@@ -12,7 +12,8 @@
     "react-scripts": "1.1.1",
     "redux": "^3.7.2",
     "redux-logger": "^3.0.6",
-    "redux-persist": "^5.7.2"
+    "redux-persist": "^5.7.2",
+    "react-router": "latest"
   },
   "devDependencies": {
     "babel-preset-env": "^1.6.1",
@@ -28,8 +29,8 @@
   "jest": {
     "coverageThreshold": {
       "global": {
-        "functions": 90,
-        "statements": 90
+        "functions": 80,
+        "statements": 80
       }
     },
     "collectCoverageFrom": [

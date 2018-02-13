@@ -1,6 +1,7 @@
 .DS_Store
 .idea/
 *.iml
+.env
 node_modules
 /build
 coverage
