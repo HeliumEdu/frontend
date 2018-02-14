@@ -1,13 +1,13 @@
 import React, {Component} from "react";
-import './Home.css';
+import './Settings.css';
 
-class Home extends Component {
+class Settings extends Component {
     render() {
         return (
             <div>
-                Home page
+                Settings page
             </div>
         )
     }
 }
-export default Home;
+export default Settings;
