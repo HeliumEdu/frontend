@@ -2,28 +2,36 @@
   "name": "frontend",
   "version": "2.0.0",
   "private": true,
-  "dependencies": {
-    "axios": "^0.17.1",
-    "react": "^16.2.0",
-    "react-dom": "^16.2.0",
-    "react-redux": "^5.0.6",
-    "react-router": "^4.2.0",
-    "react-router-dom": "^4.2.2",
-    "react-scripts": "^1.1.1",
-    "redux": "^3.7.2",
-    "redux-logger": "^3.0.6",
-    "redux-thunk": "^2.2.0"
+  "description": "Frontend for Helium Student Planner",
+  "main": "index.js",
+  "author": "Alex Laird",
+  "license": "MIT",
+  "scripts": {
+    "start": "webpack-dev-server --progress --colors --hot",
+    "build": "export NODE_ENV=prod|| set NODE_ENV=prod && webpack",
+    "test": "react-scripts test --env=jsdom --coverage"
   },
   "devDependencies": {
+    "babel-core": "^6.25.0",
+    "babel-eslint": "^7.2.3",
+    "babel-loader": "^7.1.1",
     "babel-preset-env": "^1.6.1",
-    "babel-preset-stage-3": "^6.24.1",
-    "codecov": "^3.0.0"
-  },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test --env=jsdom --coverage",
-    "eject": "react-scripts eject"
+    "babel-preset-react": "^6.24.1",
+    "babel-preset-stage-2": "^6.24.1",
+    "codecov": "^3.0.0",
+    "css-loader": "^0.28.4",
+    "eslint": "3.19.0",
+    "eslint-config-airbnb": "15.0.1",
+    "eslint-config-airbnb-base": "^11.2.0",
+    "eslint-plugin-import": "2.7.0",
+    "eslint-plugin-jest": "^20.0.3",
+    "eslint-plugin-jsx-a11y": "5.0.1",
+    "eslint-plugin-react": "7.1.0",
+    "node-sass": "^4.5.3",
+    "react-hot-loader": "3.0.0-beta.3",
+    "react-scripts": "^1.1.1",
+    "sass-loader": "^6.0.6",
+    "style-loader": "^0.18.2"
   },
   "jest": {
     "coverageThreshold": {
@@ -33,9 +41,26 @@
       }
     },
     "collectCoverageFrom": [
-      "src/**/*.js",
-      "src/**/*.jsx",
-      "!src/index.js"
+      "src/**/*.js"
     ]
+  },
+  "dependencies": {
+    "axios": "^0.16.2",
+    "babel-polyfill": "^6.23.0",
+    "lodash": "^4.17.4",
+    "moment": "^2.18.1",
+    "normalize.css": "^7.0.0",
+    "path": "^0.12.7",
+    "prop-types": "^15.5.10",
+    "react": "^15.6.1",
+    "react-dom": "^15.6.1",
+    "react-redux": "^5.0.5",
+    "react-router-dom": "^4.1.2",
+    "redux": "^3.7.2",
+    "redux-form": "^7.0.3",
+    "redux-thunk": "^2.2.0",
+    "universal-cookie": "^2.0.8",
+    "webpack": "^3.3.0",
+    "webpack-dev-server": "^2.5.1"
   }
 }
