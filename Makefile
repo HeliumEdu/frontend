@@ -9,7 +9,7 @@ install: env
 	npm install
 
 build:
-	CI=true npm run build
+	npm run build
 
 test:
-	CI=true npm run test
+	npm run test

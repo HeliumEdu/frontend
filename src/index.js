@@ -7,8 +7,7 @@ import configureStore from './redux';
 import Header from './components/header/header';
 import Routes from './routes/';
 
-// Import stylesheets
-import './../assets/stylesheets/base.scss';
+import './assets/css/base.css';
 
 const store = configureStore();
 
@@ -25,5 +24,4 @@ ReactDOM.render((
   </Provider>
 ), document.getElementById('root'));
 
-// Enable hot relading
 module.hot.accept();
