@@ -55,7 +55,7 @@ const mapStateToProps = ({ authentication }) => ({
   errors: authentication.errors[CHANGE_AUTH],
   message: authentication.messages[CHANGE_AUTH],
   loading: authentication.loading[CHANGE_AUTH],
-  authenticated: authentication.authenticated,
+  token: authentication.token
 });
 
 export default connect(mapStateToProps, { register })(form(Register));

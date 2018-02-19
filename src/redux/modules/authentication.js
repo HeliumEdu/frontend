@@ -4,6 +4,7 @@ import {get, post} from "../../util/http-utils";
 import {deleteCookie, getCookie, setCookie} from "../../util/cookie-utils";
 import {updateStore, buildGenericInitialState, handleError} from "../../util/store-utils";
 import {getAppUrl} from "../../util/environment-utils";
+import queryString from "query-string";
 
 const AUTH_ENDPOINT_BASE = 'api/auth';
 const typeBase = `${APP_NAMESPACE}/${AUTH_ENDPOINT_BASE}/`;
@@ -13,12 +14,6 @@ export const CHANGE_AUTH = `${typeBase}CHANGE_AUTH`;
 export const RESET_PASSWORD = `${typeBase}RESET_PASSWORD`;
 export const GET_AUTHENTICATED_USER = `${typeBase}GET_AUTHENTICATED_USER`;
 
-// Actions
-export const changeAuthentication = payload => dispatch =>
-    dispatch({
-        type: CHANGE_AUTH,
-        payload,
-    });
 
 /**
  * login - Authenticate a user with an email and password
@@ -26,12 +21,22 @@ export const changeAuthentication = payload => dispatch =>
  */
 export const login = (credentials) => async(dispatch) => {
     try {
+        console.log("Logging in ...");
+
         const response = await post(dispatch, CHANGE_AUTH, `${AUTH_ENDPOINT_BASE}/token/`, credentials, false);
 
         // If the login was successful, set the token as a cookie
         if (response) {
-            // TODO: support "remember me"
+            console.log("Setting login cookie");
+
             setCookie('token', response.token, {maxAge: 1209600});
+
+            const parsed = queryString.parse(window.location.search);
+            if (!!parsed.length && 'next' in parsed) {
+                window.location.href = `${getAppUrl()}${parsed['next']}`;
+            } else {
+                window.location.href = `${getAppUrl()}/dashboard/main`;
+            }
         }
     } catch (err) {
         await handleError(dispatch, err, CHANGE_AUTH);
@@ -61,6 +66,7 @@ export const register = formData => async(dispatch) => {
  */
 export const logout = () => (dispatch) => {
     dispatch({type: CHANGE_AUTH, payload: {}});
+    console.log("Deleting token");
     deleteCookie('token');
 
     window.location.href = `${getAppUrl()}/login`;
@@ -110,16 +116,16 @@ export const getAuthenticatedUser = () => async(dispatch) => {
 
 // Store
 const INITIAL_STATE = {
-    authenticated: Boolean(getCookie('token')),
+    token: getCookie('token'),
     user: '',
-    ...buildGenericInitialState([CHANGE_AUTH, RESET_PASSWORD, GET_AUTHENTICATED_USER]),
+    ...buildGenericInitialState([CHANGE_AUTH, RESET_PASSWORD, GET_AUTHENTICATED_USER])
 };
 
 export default (state = INITIAL_STATE, action) => {
     switch (action.type) {
         case CHANGE_AUTH:
             return updateStore(state, action, {
-                authenticated: Boolean(_.get(action, 'payload.token')),
+                token: _.get(action, 'payload.token'),
                 user: _.get(action, 'payload.user.id')
             });
         case GET_AUTHENTICATED_USER:

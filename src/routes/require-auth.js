@@ -8,26 +8,26 @@ import {getAuthenticatedUser} from "../redux/modules/authentication";
 export default (ComposedComponent) => {
     class Authentication extends Component {
         static propTypes = {
-            authenticated: PropTypes.bool,
+            token: PropTypes.string,
             history: PropTypes.shape({
-                push: PropTypes.func,
+                push: PropTypes.func
             }),
-            getAuthenticatedUser: PropTypes.func,
+            getAuthenticatedUser: PropTypes.func
         };
 
         // List of pre-authention routes, so they aren't saved for a post-auth redirect
         static preAuthRoutes = ['/login', '/register', '/forgot-password'];
 
-        componentDidMount = () => this.ensureAuthentication(this.props.authenticated);
+        componentDidMount = () => this.ensureAuthentication(!!this.props.token);
 
         componentWillUpdate = (nextProps) => {
-            if (this.props.authenticated !== nextProps.authenticated) {
-                this.ensureAuthentication(nextProps.authenticated);
+            if (this.props.token !== nextProps.token) {
+                this.ensureAuthentication(nextProps.token);
             }
         };
 
-        ensureAuthentication = (isAuthed) => {
-            if (!isAuthed) {
+        ensureAuthentication = (isAuthenticated) => {
+            if (!isAuthenticated) {
                 const path = _.get(this.props.location, 'pathname');
 
                 // Save the user's path for future redirect
@@ -39,14 +39,14 @@ export default (ComposedComponent) => {
             }
 
             return this.props.getAuthenticatedUser();
-        }
+        };
 
         render() {
             return <ComposedComponent {...this.props} />;
         }
     }
 
-    const mapStateToProps = ({authentication}) => ({authenticated: authentication.authenticated});
+    const mapStateToProps = ({authentication}) => ({token: authentication.token});
 
     return withRouter(connect(mapStateToProps, {getAuthenticatedUser})(Authentication));
 };

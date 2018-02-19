@@ -1,5 +1,5 @@
 /**
- * getEnvironment - Returns the current environment, or development by default
+ * getEnvironment - Returns the current environment, or dev by default
  * @returns {String}
  */
 export const getEnvironment = () => process.env.NODE_ENV

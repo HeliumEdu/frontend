@@ -1,5 +1,5 @@
-import Cookies from 'universal-cookie';
-import { getEnvironment } from './environment-utils';
+import Cookies from "universal-cookie";
+import {getEnvironment} from "./environment-utils";
 
 const cookies = new Cookies();
 
@@ -10,11 +10,11 @@ const cookies = new Cookies();
  * @param {Object} options  Options to override defaults
  */
 export const setCookie = (name, value, options = {}) =>
-  cookies.set(name, value, Object.assign({
-    path: '/',
-    maxAge: 604800,
-    secure: getEnvironment() === 'prod',
-  }, options));
+    cookies.set(name, value, Object.assign({
+        path: '/',
+        maxAge: 604800,
+        secure: getEnvironment() === 'prod'
+    }, options));
 
 
 /**
@@ -31,4 +31,4 @@ export const getCookie = name => cookies.get(name);
  *                 keeps things uniform
  * @param {String} name Name of cookie to get
  */
-export const deleteCookie = name => cookies.remove(name);
+export const deleteCookie = name => cookies.remove(name, {path: '/'});

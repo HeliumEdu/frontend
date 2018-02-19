@@ -17,7 +17,7 @@ const Alert = ({errors = [], message = '', icon}) => {
         <div className={`alert alert-card alert-${alertType} ${shouldShow ? '' : 'is-hidden'}`}>
             <div className={alertType}><i className={icon}/>
                 {(errors && errors.length) &&
-                errors.map((error, index) => <span key={index}>{error}&nbsp;</span>)
+                errors.map((error, index) => <span key={index}>{error.error}&nbsp;</span>)
                 }
                 {message && <span>{message}</span>}
             </div>

@@ -19,7 +19,7 @@ export const updateStore = (state, action, extraValues = {}) => {
                 ...extraValues,
                 messages: {...state.messages, [type]: _.get(payload, 'message')},
                 loading: {...state.loading, [type]: false},
-                errors: {...state.errors, [type]: []},
+                errors: {...state.errors, [type]: []}
             };
         case ERROR:
             return {
@@ -29,7 +29,7 @@ export const updateStore = (state, action, extraValues = {}) => {
                 errors: {
                     ...state.errors,
                     [type]: _.get(payload, 'data.errors') || _.get(payload, 'errors') || action.payload || []
-                },
+                }
             };
         case PENDING:
         default:
@@ -37,7 +37,7 @@ export const updateStore = (state, action, extraValues = {}) => {
                 ...state,
                 messages: {...state.messages, [type]: ''},
                 loading: {...state.loading, [type]: true},
-                errors: {...state.errors, [type]: []},
+                errors: {...state.errors, [type]: []}
             };
     }
 };
@@ -61,7 +61,7 @@ export const buildGenericInitialState = constants => ({
     loading: constants.reduce((retObj, constant) => {
         retObj[constant] = false;
         return retObj;
-    }, {}),
+    }, {})
 });
 
 /**
@@ -72,15 +72,11 @@ export const buildGenericInitialState = constants => ({
  * @param {String}   type     Action type constant for error received
  */
 export const handleError = (dispatch, error, type) => {
-    let foundError = _.get(error, 'response.data.detail') || _.get(error, 'response.data.non_field_errors') || {error};
-    // TODO: this doesn't yet support standard errors fron the backend (which have no "error" block and are a top-level dict)
-    if (_.isArray(foundError)) {
-        foundError = [foundError];
-    }
+    const foundError = _.get(error, 'response.data.errors') || [{error}];
     return dispatch({
         type,
         payload: foundError,
-        meta: {status: ERROR},
+        meta: {status: ERROR}
     });
 };
 

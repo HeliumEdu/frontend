@@ -1,4 +1,5 @@
 import axios from "axios";
+import _ from "lodash";
 import {getApiUrl, getEnvironment} from "./environment-utils";
 import {getCookie} from "./cookie-utils";
 import {PENDING, SUCCESS, POST, PUT, PATCH, GET, DELETE} from "./redux-constants";
@@ -41,7 +42,7 @@ const httpRequest = async(dispatch, requestType = GET, actionType = '', opts = {
     try {
         dispatch({
             type: actionType,
-            meta: {status: PENDING},
+            meta: {status: PENDING}
         });
 
         const reqArgs = [`${API_URL}/${opts.endpoint || ''}`];
@@ -51,24 +52,41 @@ const httpRequest = async(dispatch, requestType = GET, actionType = '', opts = {
             reqArgs.push(opts.data || {});
         }
 
-        // Add Authorization header if the request needs to be authenticated with
-        // a JSON Web Token, else add an empty object
+        // Add Authorization header if the request needs to be authenticated, else add an empty object
         reqArgs.push(
             opts.requiresAuth
                 ? {headers: {Authorization: `Token ${getCookie('token')}`}}
                 : {},
         );
 
+
         const response = await axios[requestType](...reqArgs);
 
         dispatch({
             type: actionType,
             meta: {status: SUCCESS},
-            payload: response.data,
+            payload: response.data
         });
 
         return Promise.resolve(response.data);
     } catch (err) {
+        // Transpose the error from expected backend structures to a consistent frontend structure
+        if (_.has(err, 'response.data.detail')) {
+            err.response.data.errors = [{'error': _.get(err, 'response.data.detail')}];
+        } else if (_.has(err, 'response.data.non_field_errors')) {
+            err.response.data.errors = [];
+            _.each(_.get(err, 'response.data.non_field_errors'), function (value) {
+                err.response.data.errors.push({'error': value});
+            });
+        } else if (_.get(err, 'response.status') === 400) {
+            err.response.data.errors = [];
+            _.each(_.get(err, 'response.data'), function (value) {
+                err.response.data.errors.push({'error': value});
+            });
+        } else {
+            err.response.data.errors = [{'error': 'An unknown error occurred.'}];
+        }
+
         throw err;
     }
 };
