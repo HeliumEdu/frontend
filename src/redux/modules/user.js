@@ -4,7 +4,7 @@ import { put, post, get, del } from '../../util/http-utils';
 import { updateStore, buildGenericInitialState, handleError } from '../../util/store-utils';
 import { CHANGE_AUTH, GET_AUTHENTICATED_USER } from './authentication';
 
-const USER_ENDPOINT_BASE = 'user';
+const USER_ENDPOINT_BASE = 'api/auth/user';
 const typeBase = `${APP_NAMESPACE}/${USER_ENDPOINT_BASE}/`;
 
 // Constants
@@ -21,21 +21,7 @@ export const GET_USERS = `${typeBase}GET_USERS`;
  */
 export const getUser = id => async (dispatch) => {
   try {
-    const response = await get(dispatch, GET_USER, `${USER_ENDPOINT_BASE}/${id}`, true);
-    return Promise.resolve(response);
-  } catch (err) {
-    await handleError(dispatch, err, GET_USER);
-  }
-};
-
-/**
- * getUsers  - Fetches users from API
- *
- * @returns {Promise}
- */
-export const getUsers = () => async (dispatch) => {
-  try {
-    const response = await get(dispatch, GET_USERS, USER_ENDPOINT_BASE, true);
+    const response = await get(dispatch, GET_USER, `${USER_ENDPOINT_BASE}/${id}/`, true);
     return Promise.resolve(response);
   } catch (err) {
     await handleError(dispatch, err, GET_USER);
@@ -44,7 +30,7 @@ export const getUsers = () => async (dispatch) => {
 
 // Store
 const INITIAL_STATE = {
-  ...buildGenericInitialState([GET_USER, GET_USERS]),
+  ...buildGenericInitialState([GET_USER]),
 };
 
 export default (state = INITIAL_STATE, action) => {
@@ -54,8 +40,6 @@ export default (state = INITIAL_STATE, action) => {
     case GET_USER:
     case GET_AUTHENTICATED_USER:
       return updateStore(state, action, _.get(action, 'payload.user.id') ? { [action.payload.user.id]: action.payload.user } : {});
-    case GET_USERS:
-      return updateStore(state, action, _.get(action, 'payload.users') ? _.mapKeys(action.payload.users, 'id') : {});
     default:
       return state;
   }

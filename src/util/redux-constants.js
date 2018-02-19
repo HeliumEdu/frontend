@@ -1,5 +1,5 @@
 // Namespace for application
-export const APP_NAMESPACE = 'mkrn-starter';
+export const APP_NAMESPACE = 'helium';
 
 // Request status indicators
 export const PENDING = 'PENDING';
@@ -11,3 +11,4 @@ export const DELETE = 'delete';
 export const GET = 'get';
 export const POST = 'post';
 export const PUT = 'put';
+export const PATCH = 'patch';

@@ -3,11 +3,11 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { reduxForm } from 'redux-form';
 import { Link } from 'react-router-dom';
-import TextInput from '../form-fields/text-input';
-import GenericForm from '../form-fields/generic-form';
-import { forgotPassword, RESET_PASSWORD } from '../../redux/modules/authentication';
-import { errorPropTypes } from '../../util/proptype-utils';
-import './authentication.scss';
+import TextInput from '../components/form-fields/text-input';
+import GenericForm from '../components/form-fields/generic-form';
+import { forgotPassword, RESET_PASSWORD } from '../redux/modules/authentication';
+import { errorPropTypes } from '../util/proptype-utils';
+import './authentication.css';
 
 const form = reduxForm({
   form: 'forgotPassword',

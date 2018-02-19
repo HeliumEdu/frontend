@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { getAuthenticatedUser } from '../../redux/modules/user';
-import { logoutUser } from '../../redux/modules/authentication';
 import { mobileBreakpoint } from '../../constants/ui-constants';
 
 class Header extends Component {
@@ -27,27 +26,27 @@ class Header extends Component {
     const links = [
       {
         name: 'Dashboard',
-        link: 'dashboard',
+        link: '/dashboard/main',
         authenticated: true,
       },
       {
         name: (user && user.firstName) || 'Profile',
-        link: 'profile',
+        link: '/dashboard/profile',
         authenticated: true,
       },
       {
         name: 'Sign out',
-        onClick: this.props.logoutUser,
+        link: '/logout',
         authenticated: true,
       },
       {
         name: 'Sign in',
-        link: 'login',
+        link: '/login',
         authenticated: false,
       },
       {
         name: 'Register',
-        link: 'register',
+        link: '/register',
         authenticated: false,
       },
     ];
@@ -96,7 +95,6 @@ Header.propTypes = {
     firstName: PropTypes.string,
   }),
   authenticated: PropTypes.bool,
-  logoutUser: PropTypes.func,
 };
 
 const mapStateToProps = ({ user, authentication }) => ({
@@ -104,4 +102,4 @@ const mapStateToProps = ({ user, authentication }) => ({
   authenticated: authentication.authenticated,
 });
 
-export default connect(mapStateToProps, { logoutUser })(Header);
+export default connect(mapStateToProps)(Header);
