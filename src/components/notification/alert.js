@@ -4,12 +4,12 @@ import {errorPropTypes} from "../../util/proptype-utils";
 
 /**
  * Alert  - Standard alert card component
- * @param {Object}   errors  Array containing errors
+ * @param {Array}   errors  Array containing errors
  * @param {String}  message Message to display
  * @param {String}  icon    Icon to show with alert
  * @returns {Function}
  */
-const Alert = ({errors = {}, message = '', icon}) => {
+const Alert = ({errors = [], message = '', icon}) => {
     const alertType = errors && errors.length ? 'errors' : 'message';
     const shouldShow = Boolean((errors && errors.length) || message);
 
