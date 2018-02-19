@@ -1,43 +1,12 @@
 import axios from "axios";
 import _ from "lodash";
-import {getApiUrl, getEnvironment} from "./environment-utils";
+import {getApiUrl} from "./environment-utils";
 import {getCookie} from "./cookie-utils";
 import {PENDING, SUCCESS, POST, PUT, PATCH, GET, DELETE} from "./redux-constants";
 
 const API_URL = getApiUrl();
 
-/**
- * logError  - Log error without UI display
- * @param {Object} error      Error object caught in catch block
- * @param {String} type       Action type that caused error
- *
- * @returns {Promise}
- */
-export const logError = (error, type) => {
-    if (getEnvironment() === 'dev') {
-        console.error(`Error type: ${type}.`);
-        console.error(error);
-    }
 
-    const errorMessage = error && error.response
-        ? error.response.data
-        : error;
-
-    return Promise.reject(errorMessage);
-};
-
-/**
- * httpRequest - Generic action to make an http request with axios
- * @param {Function} dispatch     React-redux's dispatch function
- * @param {String} requestType    Type of http request to make
- * @param {String} actionType     Action type to be dispatched
- * @param {Object} opts           Object of options
- *                  endpoint        Api endpoint to hit (e.g., '/auth/login')
- *                  data            Data to be posted to the api
- *                  requiresAuth    Whether or not request needs to be authenticated
- *
- * @returns {Promise}
- */
 const httpRequest = async(dispatch, requestType = GET, actionType = '', opts = {}) => {
     try {
         dispatch({
@@ -92,11 +61,12 @@ const httpRequest = async(dispatch, requestType = GET, actionType = '', opts = {
 };
 
 /**
- * post - Generic action to make a POST request with axios
- * @param {Function} dispatch     React-redux's dispatch function
- * @param {String} type           Action type to be dispatched
- * @param {String} endpoint       Api endpoint to hit (e.g., '/auth/login')
- * @param {Object} data           Data to be posted to the api
+ * Generic action to perform a HTTP POST request.
+ *
+ * @param {Function} dispatch     Redux's dispatch function
+ * @param {String} type           Action type to be dispatched (e.g. CHANGE_AUTH)
+ * @param {String} endpoint       The endpoint to hit (e.g., '/auth/token')
+ * @param {Object} data           The data to be posted with the request
  * @param {Boolean} requiresAuth  Whether or not request needs to be authenticated
  *
  * @returns {Promise}
@@ -105,11 +75,12 @@ export const post = (dispatch, type, endpoint, data, requiresAuth) =>
     httpRequest(dispatch, POST, type, {endpoint, data, requiresAuth});
 
 /**
- * put - Generic action to make a PUT request with axios
- * @param {Function} dispatch     React-redux's dispatch function
- * @param {String} type           Action type to be dispatched
- * @param {String} endpoint       Api endpoint to hit (e.g., '/user/:id')
- * @param {Object} data           Data to be posted to the api
+ * Generic action to perform a HTTP PUT request.
+ *
+ * @param {Function} dispatch     Redux's dispatch function
+ * @param {String} type           Action type to be dispatched (e.g. CHANGE_AUTH)
+ * @param {String} endpoint       The endpoint to hit (e.g., '/auth/token')
+ * @param {Object} data           The data to be posted with the request
  * @param {Boolean} requiresAuth  Whether or not request needs to be authenticated
  *
  * @returns {Promise}
@@ -118,11 +89,12 @@ export const put = async(dispatch, type, endpoint, data, requiresAuth) =>
     httpRequest(dispatch, PUT, type, {endpoint, data, requiresAuth});
 
 /**
- * patch - Generic action to make a PATCH request with axios
- * @param {Function} dispatch     React-redux's dispatch function
- * @param {String} type           Action type to be dispatched
- * @param {String} endpoint       Api endpoint to hit (e.g., '/user/:id')
- * @param {Object} data           Data to be posted to the api
+ * Generic action to perform a HTTP PATCH request.
+ *
+ * @param {Function} dispatch     Redux's dispatch function
+ * @param {String} type           Action type to be dispatched (e.g. CHANGE_AUTH)
+ * @param {String} endpoint       The endpoint to hit (e.g., '/auth/token')
+ * @param {Object} data           The data to be posted with the request
  * @param {Boolean} requiresAuth  Whether or not request needs to be authenticated
  *
  * @returns {Promise}
@@ -131,10 +103,11 @@ export const patch = async(dispatch, type, endpoint, data, requiresAuth) =>
     httpRequest(dispatch, PATCH, type, {endpoint, data, requiresAuth});
 
 /**
- * get - Generic action to make a GET request with axios
- * @param {Function} dispatch     React-redux's dispatch function
- * @param {String} type           Action type to be dispatched
- * @param {String} endpoint       Api endpoint to hit (e.g., '/user')
+ * Generic action to perform a HTTP GET request.
+ *
+ * @param {Function} dispatch     Redux's dispatch function
+ * @param {String} type           Action type to be dispatched (e.g. CHANGE_AUTH)
+ * @param {String} endpoint       The endpoint to hit (e.g., '/auth/token')
  * @param {Boolean} requiresAuth  Whether or not request needs to be authenticated
  *
  * @returns {Promise}
@@ -143,10 +116,11 @@ export const get = async(dispatch, type, endpoint, requiresAuth) =>
     httpRequest(dispatch, GET, type, {endpoint, requiresAuth});
 
 /**
- * del - Generic action to make a DELETE request with axios
- * @param {Function} dispatch     React-redux's dispatch function
- * @param {String} type           Action type to be dispatched
- * @param {String} endpoint       Api endpoint to hit (e.g., '/user/:id')
+ * Generic action to perform a HTTP DELETE request.
+ *
+ * @param {Function} dispatch     Redux's dispatch function
+ * @param {String} type           Action type to be dispatched (e.g. CHANGE_AUTH)
+ * @param {String} endpoint       The endpoint to hit (e.g., '/auth/token')
  * @param {Boolean} requiresAuth  Whether or not request needs to be authenticated
  *
  * @returns {Promise}

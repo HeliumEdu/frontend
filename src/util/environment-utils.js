@@ -1,16 +1,8 @@
-/**
- * getEnvironment - Returns the current environment, or dev by default
- * @returns {String}
- */
 export const getEnvironment = () => process.env.NODE_ENV
     ? process.env.NODE_ENV
     : 'dev';
 
 
-/**
- * getApiUrl  - Returns the URL for the api, given the current environment
- * @returns {String}
- */
 export const getApiUrl = () => {
     switch (getEnvironment()) {
         case 'prod':
@@ -24,10 +16,6 @@ export const getApiUrl = () => {
 };
 
 
-/**
- * getAppUrl  - Returns the URL for the app, given the environment
- * @returns {String}
- */
 export const getAppUrl = () => {
     switch (getEnvironment()) {
         case 'prod':

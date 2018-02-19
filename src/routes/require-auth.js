@@ -15,8 +15,7 @@ export default (ComposedComponent) => {
             getAuthenticatedUser: PropTypes.func
         };
 
-        // List of pre-authention routes, so they aren't saved for a post-auth redirect
-        static preAuthRoutes = ['/login', '/register', '/forgot-password'];
+        static unauthenticatedRoutes = ['/', '/register', '/verify', '/login', '/logout', '/forgot', '/support', '/terms', '/privacy', '/press', '/about', '/contact'];
 
         componentDidMount = () => this.ensureAuthentication(!!this.props.token);
 
@@ -31,7 +30,7 @@ export default (ComposedComponent) => {
                 const path = _.get(this.props.location, 'pathname');
 
                 // Save the user's path for future redirect
-                if (path && !Authentication.preAuthRoutes.includes(path)) {
+                if (path && !Authentication.unauthenticatedRoutes.includes(path)) {
                     return this.props.history.push(`/login?next=${path}`);
                 } else {
                     return this.props.history.push('/login');

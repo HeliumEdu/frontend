@@ -2,10 +2,13 @@ import {Component} from "react";
 import {connect} from "react-redux";
 import {logout} from "../redux/modules/authentication";
 
-class Logout extends Component {
-    render = () => {
-        this.props.logout();
 
+class Logout extends Component {
+    componentWillMount = () => {
+        this.props.logout();
+    };
+
+    render = () => {
         return null;
     }
 }

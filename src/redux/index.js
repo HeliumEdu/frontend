@@ -12,6 +12,6 @@ const rootReducer = combineReducers({
     form: formReducer
 });
 
-const configureStore = initialState => createStoreWithMiddleware(rootReducer, initialState);
+const configureStore = (initialState) => createStoreWithMiddleware(rootReducer, initialState);
 
 export default configureStore;

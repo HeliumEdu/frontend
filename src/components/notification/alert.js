@@ -2,13 +2,6 @@ import React from "react";
 import PropTypes from "prop-types";
 import {errorPropTypes} from "../../util/proptype-utils";
 
-/**
- * Alert  - Standard alert card component
- * @param {Array}   errors  Array containing errors
- * @param {String}  message Message to display
- * @param {String}  icon    Icon to show with alert
- * @returns {Function}
- */
 const Alert = ({errors = [], message = '', icon}) => {
     const alertType = errors && errors.length ? 'errors' : 'message';
     const shouldShow = Boolean((errors && errors.length) || message);
@@ -28,7 +21,7 @@ const Alert = ({errors = [], message = '', icon}) => {
 Alert.propTypes = {
     errors: errorPropTypes,
     icon: PropTypes.string,
-    message: PropTypes.string,
+    message: PropTypes.string
 };
 
 export default Alert;

@@ -7,6 +7,7 @@ import Login from "../scenes/login";
 import Logout from "../scenes/logout";
 import Forgot from "../scenes/forgot";
 import NotFound from "../scenes/not-found";
+import Support from "../scenes/support";
 import Terms from "../scenes/terms";
 import Privacy from "../scenes/privacy";
 import Press from "../scenes/press";
@@ -26,10 +27,7 @@ const TopLevelRoutes = () => (
         <Route exact path="/forgot" component={Forgot}/>
         <Route path="/planner" component={RequireAuth(PlannerRoutes)}/>
         <Route path="/settings" component={RequireAuth(SettingsRoutes)}/>
-        <Route exact path="/support" component={() => {
-            window.location.href = "https://heliumedu.uservoice.com";
-            return null;
-        }}/>
+        <Route exact path="/support" component={Support}/>
         <Route exact path="/terms" component={Terms}/>
         <Route exact path="/privacy" component={Privacy}/>
         <Route exact path="/press" component={Press}/>

@@ -4,7 +4,7 @@ import {updateStore, buildGenericInitialState} from "../../util/store-utils";
 import {CHANGE_AUTH, GET_AUTHENTICATED_USER} from "./authentication";
 
 const USER_ENDPOINT_BASE = 'api/auth/user';
-const typeBase = `${APP_NAMESPACE}/${USER_ENDPOINT_BASE}/`;
+const typeBase = `${APP_NAMESPACE}/${USER_ENDPOINT_BASE}`;
 
 // Constants
 
@@ -17,7 +17,7 @@ const INITIAL_STATE = {
     ...buildGenericInitialState([])
 };
 
-export default (state = INITIAL_STATE, action) => {
+export default function user(state = INITIAL_STATE, action) {
     switch (action.type) {
         case CHANGE_AUTH:
             return updateStore(state, action, _.get(action, 'payload.user.id') ? {[action.payload.user.id]: action.payload.user} : {});

@@ -3,24 +3,8 @@ import PropTypes from "prop-types";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 import {getAuthenticatedUser} from "../../redux/modules/user";
-import {mobileBreakpoint} from "../../util/ui-constants";
 
 class Header extends Component {
-    state = {
-        isMobile: window.innerWidth <= mobileBreakpoint,
-        mobileNavOpen: false
-    };
-
-    componentWillMount = () => {
-        window.addEventListener('resize', this.mobileCheck);
-    };
-
-    componentWillUnmount = () => {
-        window.removeEventListener('resize', this.mobileCheck);
-    };
-
-    mobileCheck = () => this.setState({isMobile: window.innerWidth <= mobileBreakpoint});
-
     buildNavigation = () => {
         const links = [
             {
@@ -72,27 +56,12 @@ class Header extends Component {
         );
     };
 
-    toggleMobileNav = () => this.setState({mobileNavOpen: !this.state.mobileNavOpen});
-
     render() {
-        const {isMobile, mobileNavOpen} = this.state;
-
         return (
             <header className="clearfix">
                 <strong className="logo left">MKRN Starter</strong>
-                {isMobile &&
-                <a
-                    href="javascript:void(null);"
-                    role="button"
-                    className="mobile-nav-toggle clearfix right material-icons"
-                    onClick={this.toggleMobileNav}
-                    aria-label="Toggle navigation"
-                >
-                    {mobileNavOpen ? 'close' : 'menu'}
-                </a>
-                }
                 <nav
-                    className={`main-navigation right ${isMobile ? `mobile ${mobileNavOpen ? 'is-expanded' : ''}` : ''}`}>
+                    className="main-navigation right">
                     {this.buildNavigation()}
                 </nav>
             </header>

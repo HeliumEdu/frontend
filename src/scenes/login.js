@@ -14,10 +14,6 @@ const form = reduxForm({
 });
 
 class Login extends Component {
-    state = {
-        redirecting: false
-    };
-
     static propTypes = {
         handleSubmit: PropTypes.func,
         login: PropTypes.func,
@@ -58,22 +54,15 @@ class Login extends Component {
         }
     };
 
-    componentWillUpdate = (nextProps) => {
-        this.state.redirecting = !!nextProps.token;
-
-        return true;
-    };
-
     handleFormSubmit = (formProps) => {
-        this.props.login(formProps);
+        this.props.login(this.props.history, formProps);
     };
 
     render = () => {
         const {handleSubmit, errors, message, loading} = this.props;
-        const {redirecting} = this.state;
 
         return (
-            <div className={`auth-box ${loading || redirecting ? 'is-loading' : ''}`}>
+            <div className={`auth-box ${loading ? 'is-loading' : ''}`}>
                 <h1>Login</h1>
                 <GenericForm
                     onSubmit={handleSubmit(this.handleFormSubmit)}
@@ -93,4 +82,5 @@ const mapStateToProps = ({authentication}) => ({
     loading: authentication.loading[CHANGE_AUTH],
     token: authentication.token
 });
+
 export default connect(mapStateToProps, {login})(form(Login));
