@@ -1,21 +1,41 @@
 import React from "react";
 import {Route, Switch} from "react-router-dom";
+import Home from "../scenes/home";
+import Register from "../scenes/register";
+import Verify from "../scenes/verify";
 import Login from "../scenes/login";
 import Logout from "../scenes/logout";
-import Register from "../scenes/register";
-import ForgotPassword from "../scenes/forgot-password";
+import Forgot from "../scenes/forgot";
+import NotFound from "../scenes/not-found";
+import Terms from "../scenes/terms";
+import Privacy from "../scenes/privacy";
+import Press from "../scenes/press";
+import About from "../scenes/about";
+import Contact from "../scenes/contact";
 import RequireAuth from "./require-auth";
-import AuthenticatedRoutes from "./authenticated/";
+import PlannerRoutes from "./authenticated/planner";
+import SettingsRoutes from "./authenticated/settings";
 
 const TopLevelRoutes = () => (
     <Switch>
-        <Route exact path="/" component={() => <div>Home</div>}/>
+        <Route exact path="/" component={Home}/>
+        <Route exact path="/register" component={Register}/>
+        <Route exact path="/verify" component={Verify}/>
         <Route exact path="/login" component={Login}/>
         <Route exact path="/logout" component={Logout}/>
-        <Route exact path="/register" component={Register}/>
-        <Route exact path="/forgot-password" component={ForgotPassword}/>
-        <Route path="/dashboard" component={RequireAuth(AuthenticatedRoutes)}/>
-        <Route path="*" component={() => <div>Oops, not found</div>}/>
+        <Route exact path="/forgot" component={Forgot}/>
+        <Route path="/planner" component={RequireAuth(PlannerRoutes)}/>
+        <Route path="/settings" component={RequireAuth(SettingsRoutes)}/>
+        <Route exact path="/support" component={() => {
+            window.location.href = "https://heliumedu.uservoice.com";
+            return null;
+        }}/>
+        <Route exact path="/terms" component={Terms}/>
+        <Route exact path="/privacy" component={Privacy}/>
+        <Route exact path="/press" component={Press}/>
+        <Route exact path="/about" component={About}/>
+        <Route exact path="/contact" component={Contact}/>
+        <Route component={NotFound}/>
     </Switch>
 );
 

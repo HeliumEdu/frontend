@@ -2,7 +2,6 @@ import React, {Component} from "react";
 import PropTypes from "prop-types";
 import {connect} from "react-redux";
 import {reduxForm} from "redux-form";
-import {Link} from "react-router-dom";
 import TextInput from "../components/form-fields/text-input";
 import GenericForm from "../components/form-fields/generic-form";
 import {login, CHANGE_AUTH} from "../redux/modules/authentication";
@@ -50,34 +49,28 @@ class Login extends Component {
         const {token} = this.props;
 
         if (token) {
-            console.log("Redirecting if authenticated");
-
             const parsed = queryString.parse(window.location.search);
             if (!!parsed.length && 'next' in parsed) {
                 this.props.history.push(parsed['next']);
             } else {
-                this.props.history.push('/dashboard/main');
+                this.props.history.push('/planner/calendar');
             }
         }
     };
 
     componentWillUpdate = (nextProps) => {
-        this.state.redirecting = nextProps.token !== undefined;
+        this.state.redirecting = !!nextProps.token;
 
         return true;
     };
 
     handleFormSubmit = (formProps) => {
-        console.log("Login submitted");
-
         this.props.login(formProps);
     };
 
     render = () => {
         const {handleSubmit, errors, message, loading} = this.props;
         const {redirecting} = this.state;
-
-        console.log("Login rendering");
 
         return (
             <div className={`auth-box ${loading || redirecting ? 'is-loading' : ''}`}>
@@ -89,10 +82,6 @@ class Login extends Component {
                     formSpec={Login.formSpec}
                     submitText="Login"
                 />
-                <Link className="inline" to="/forgot-password">Forgot password?</Link> | <Link className="inline"
-                                                                                               to="/register">Create
-                a
-                new account.</Link>
             </div>
         );
     }
@@ -104,5 +93,4 @@ const mapStateToProps = ({authentication}) => ({
     loading: authentication.loading[CHANGE_AUTH],
     token: authentication.token
 });
-
 export default connect(mapStateToProps, {login})(form(Login));

@@ -13,4 +13,5 @@ const rootReducer = combineReducers({
 });
 
 const configureStore = initialState => createStoreWithMiddleware(rootReducer, initialState);
+
 export default configureStore;

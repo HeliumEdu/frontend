@@ -21,21 +21,17 @@ export const GET_AUTHENTICATED_USER = `${typeBase}GET_AUTHENTICATED_USER`;
  */
 export const login = (credentials) => async(dispatch) => {
     try {
-        console.log("Logging in ...");
-
         const response = await post(dispatch, CHANGE_AUTH, `${AUTH_ENDPOINT_BASE}/token/`, credentials, false);
 
         // If the login was successful, set the token as a cookie
         if (response) {
-            console.log("Setting login cookie");
-
             setCookie('token', response.token, {maxAge: 1209600});
 
             const parsed = queryString.parse(window.location.search);
             if (!!parsed.length && 'next' in parsed) {
                 window.location.href = `${getAppUrl()}${parsed['next']}`;
             } else {
-                window.location.href = `${getAppUrl()}/dashboard/main`;
+                window.location.href = `${getAppUrl()}/planner/calendar`;
             }
         }
     } catch (err) {
@@ -54,7 +50,7 @@ export const register = formData => async(dispatch) => {
         // If the registration was successful, set the JWT as a cookie
         if (response) {
             setCookie('token', response.token, {maxAge: 1209600});
-            window.location.href = `${getAppUrl()}/dashboard/main`;
+            window.location.href = `${getAppUrl()}/planner/calendar`;
         }
     } catch (err) {
         await handleError(dispatch, err, CHANGE_AUTH);
@@ -66,7 +62,6 @@ export const register = formData => async(dispatch) => {
  */
 export const logout = () => (dispatch) => {
     dispatch({type: CHANGE_AUTH, payload: {}});
-    console.log("Deleting token");
     deleteCookie('token');
 
     window.location.href = `${getAppUrl()}/login`;

@@ -22,31 +22,40 @@ class Header extends Component {
     mobileCheck = () => this.setState({isMobile: window.innerWidth <= mobileBreakpoint});
 
     buildNavigation = () => {
-        const {user} = this.props;
         const links = [
             {
-                name: 'Dashboard',
-                link: '/dashboard/main',
+                name: 'Settings',
+                link: '/settings',
                 authenticated: true
             },
             {
-                name: (user && user.firstName) || 'Profile',
-                link: '/dashboard/profile',
+                name: 'Calendar',
+                link: '/planner/calendar',
                 authenticated: true
             },
             {
-                name: 'Sign out',
+                name: 'Classes',
+                link: '/planner/classes',
+                authenticated: true
+            },
+            {
+                name: 'Materials',
+                link: '/planner/materials',
+                authenticated: true
+            },
+            {
+                name: 'Grades',
+                link: '/planner/grades',
+                authenticated: true
+            },
+            {
+                name: 'Logout',
                 link: '/logout',
                 authenticated: true
             },
             {
-                name: 'Sign in',
+                name: 'Login',
                 link: '/login',
-                authenticated: false
-            },
-            {
-                name: 'Register',
-                link: '/register',
                 authenticated: false
             }
         ];
