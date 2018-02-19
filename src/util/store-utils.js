@@ -1,5 +1,5 @@
-import _ from 'lodash';
-import { PENDING, SUCCESS, ERROR } from './redux-constants';
+import _ from "lodash";
+import {PENDING, SUCCESS, ERROR} from "./redux-constants";
 
 /**
  * updateStore  - Returns an object containing updated state. This helper
@@ -11,32 +11,35 @@ import { PENDING, SUCCESS, ERROR } from './redux-constants';
  * @returns {Object}
  */
 export const updateStore = (state, action, extraValues = {}) => {
-  const { type = '', payload = {}, meta = { status: '' } } = action;
-  switch (meta.status) {
-    case SUCCESS:
-      return {
-        ...state,
-        ...extraValues,
-        messages: { ...state.messages, [type]: _.get(payload, 'message') },
-        loading: { ...state.loading, [type]: false },
-        errors: { ...state.errors, [type]: [] },
-      };
-    case ERROR:
-      return {
-        ...state,
-        messages: { ...state.messages, [type]: '' },
-        loading: { ...state.loading, [type]: false },
-        errors: { ...state.errors, [type]: _.get(payload, 'data.errors') || _.get(payload, 'errors') || action.payload || [] },
-      };
-    case PENDING:
-    default:
-      return {
-        ...state,
-        messages: { ...state.messages, [type]: '' },
-        loading: { ...state.loading, [type]: true },
-        errors: { ...state.errors, [type]: [] },
-      };
-  }
+    const {type = '', payload = {}, meta = {status: ''}} = action;
+    switch (meta.status) {
+        case SUCCESS:
+            return {
+                ...state,
+                ...extraValues,
+                messages: {...state.messages, [type]: _.get(payload, 'message')},
+                loading: {...state.loading, [type]: false},
+                errors: {...state.errors, [type]: []},
+            };
+        case ERROR:
+            return {
+                ...state,
+                messages: {...state.messages, [type]: ''},
+                loading: {...state.loading, [type]: false},
+                errors: {
+                    ...state.errors,
+                    [type]: _.get(payload, 'data.errors') || _.get(payload, 'errors') || action.payload || []
+                },
+            };
+        case PENDING:
+        default:
+            return {
+                ...state,
+                messages: {...state.messages, [type]: ''},
+                loading: {...state.loading, [type]: true},
+                errors: {...state.errors, [type]: []},
+            };
+    }
 };
 
 /**
@@ -47,18 +50,18 @@ export const updateStore = (state, action, extraValues = {}) => {
  * @returns {Object}
  */
 export const buildGenericInitialState = constants => ({
-  messages: constants.reduce((retObj, constant) => {
-    retObj[constant] = '';
-    return retObj;
-  }, {}),
-  errors: constants.reduce((retObj, constant) => {
-    retObj[constant] = [];
-    return retObj;
-  }, {}),
-  loading: constants.reduce((retObj, constant) => {
-    retObj[constant] = false;
-    return retObj;
-  }, {}),
+    messages: constants.reduce((retObj, constant) => {
+        retObj[constant] = '';
+        return retObj;
+    }, {}),
+    errors: constants.reduce((retObj, constant) => {
+        retObj[constant] = [];
+        return retObj;
+    }, {}),
+    loading: constants.reduce((retObj, constant) => {
+        retObj[constant] = false;
+        return retObj;
+    }, {}),
 });
 
 /**
@@ -69,12 +72,16 @@ export const buildGenericInitialState = constants => ({
  * @param {String}   type     Action type constant for error received
  */
 export const handleError = (dispatch, error, type) => {
-  const foundError = _.get(error, 'response.data.errors') || [{ error }];
-  return dispatch({
-    type,
-    payload: foundError,
-    meta: { status: ERROR },
-  });
+    let foundError = _.get(error, 'response.data.detail') || _.get(error, 'response.data.non_field_errors') || {error};
+    // TODO: this doesn't yet support standard errors fron the backend (which have no "error" block and are a top-level dict)
+    if (_.isArray(foundError)) {
+        foundError = [foundError];
+    }
+    return dispatch({
+        type,
+        payload: foundError,
+        meta: {status: ERROR},
+    });
 };
 
 /**
@@ -83,9 +90,9 @@ export const handleError = (dispatch, error, type) => {
  * @param {Object} state  State to filter metadata out of
  */
 export const removeMetaFromState = state => Object.keys(state).reduce((accum, val) => {
-  if (val !== 'errors' && val !== 'messages' && val !== 'loading') {
-    accum[val] = state[val];
-  }
+    if (val !== 'errors' && val !== 'messages' && val !== 'loading') {
+        accum[val] = state[val];
+    }
 
-  return accum;
+    return accum;
 }, {});
