@@ -11,7 +11,7 @@ export default class Classes extends Component {
                                 Classes
                                 <small>
                                     <i className="icon-double-angle-right"/>
-                                    &nbsp;tagline
+                                    &nbsp;view and edit your class schedule
                                 </small>
                             </h1>
                         </div>

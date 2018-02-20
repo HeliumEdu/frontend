@@ -11,7 +11,7 @@ export default class Grades extends Component {
                                 Grades
                                 <small>
                                     <i className="icon-double-angle-right"/>
-                                    &nbsp;tagline
+                                    &nbsp;track your progress
                                 </small>
                             </h1>
                         </div>

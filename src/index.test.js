@@ -3,8 +3,8 @@ import ReactDOM from "react-dom";
 import {Provider} from "react-redux";
 import {MemoryRouter} from "react-router-dom";
 import configureStore from "./redux";
-import Header from "./components/header/header";
-import Footer from "./components/footer/footer";
+import Header from "./components/header";
+import Footer from "./components/footer";
 import Home from "./scenes/unauthenticated/static/home";
 
 const store = configureStore();

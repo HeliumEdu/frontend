@@ -11,7 +11,7 @@ export default class Settings extends Component {
                                 Settings
                                 <small>
                                     <i className="icon-double-angle-right"/>
-                                    &nbsp;tagline
+                                    &nbsp;identify your tastes
                                 </small>
                             </h1>
                         </div>

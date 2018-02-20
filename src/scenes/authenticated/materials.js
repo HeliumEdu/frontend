@@ -11,7 +11,7 @@ export default class Materials extends Component {
                                 Materials
                                 <small>
                                     <i className="icon-double-angle-right"/>
-                                    &nbsp;tagline
+                                    &nbsp;manage books and materials for your classes
                                 </small>
                             </h1>
                         </div>

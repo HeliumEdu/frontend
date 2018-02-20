@@ -1,4 +1,5 @@
 import React, {Component} from "react";
+import ConnectSidebar from "../../../components/connect-sidebar";
 
 export default class Contact extends Component {
     render = () => {
@@ -11,15 +12,17 @@ export default class Contact extends Component {
                                 Contact
                                 <small>
                                     <i className="icon-double-angle-right"/>
-                                    &nbsp;tagline
+                                    &nbsp;we'd love to hear from you
                                 </small>
                             </h1>
                         </div>
 
                         <div className="row">
-                            <div className="col-sm-12">
-                                Content
+                            <div className="col-sm-9">
+                                <div data-uv-embed="contact" data-uv-screenshot_enabled="false"></div>
                             </div>
+
+                            <ConnectSidebar/>
                         </div>
                     </div>
                 </div>

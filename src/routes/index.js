@@ -12,7 +12,7 @@ import Terms from "../scenes/unauthenticated/static/terms";
 import Privacy from "../scenes/unauthenticated/static/privacy";
 import Press from "../scenes/unauthenticated/static/press";
 import About from "../scenes/unauthenticated/static/about";
-import Contact from "../scenes/unauthenticated/contact";
+import Contact from "../scenes/unauthenticated/static/contact";
 import RequireAuth from "./require-auth";
 import PlannerRoutes from "./authenticated/planner";
 import SettingsRoutes from "./authenticated/settings";
