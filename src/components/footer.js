@@ -40,7 +40,6 @@ export default class Footer extends Component {
                 {Footer.links.map(link => (
                     <li key={link.name}>
                         {link.link && <Link to={link.link}>{link.name}</Link>}
-                        {link.onClick && <a href="javascript:void(null);" onClick={link.onClick}>{link.name}</a>}
                     </li>
                 ))}
             </ul>
@@ -53,21 +52,21 @@ export default class Footer extends Component {
                 <div className="container">
                     <div className="row social-footer">
                         <div className="pull-right">
-                            <a href="https://github.com/HeliumEdu" className="text-white" target="_blank">
+                            <a href="https://github.com/HeliumEdu" className="white" target="_blank" rel="noopener noreferrer">
                                 <img src={process.env.PUBLIC_URL + '/assets/img/github.png'} alt="Twitter" width="38"
-                                     height="38" className="inline"/>
+                                     height="38" className="inline"/>&nbsp;
                             </a>
-                            <a href="http://www.twitter.com/heliumstudents" className="text-white" target="_blank">
+                            <a href="http://www.twitter.com/heliumstudents" className="white" target="_blank" rel="noopener noreferrer">
                                 <img src={process.env.PUBLIC_URL + '/assets/img/twitter.png'} alt="Twitter" width="38"
-                                     height="38" className="inline"/>
+                                     height="38" className="inline"/>&nbsp;
                             </a>
-                            <a href="http://www.facebook.com/heliumstudents" className="text-white" target="_blank">
+                            <a href="http://www.facebook.com/heliumstudents" className="white" target="_blank" rel="noopener noreferrer">
                                 <img src={process.env.PUBLIC_URL + '/assets/img/facebook.png'} alt="Facebook" width="38"
-                                     height="38" className="inline"/>
+                                     height="38" className="inline"/>&nbsp;
                             </a>
-                            <a href="http://blog.heliumedu.com" className="text-white" target="_blank">
+                            <a href="http://blog.heliumedu.com" className="white" target="_blank" rel="noopener noreferrer">
                                 <img src={process.env.PUBLIC_URL + '/assets/img/tumblr.png'} alt="Blog" width="38"
-                                     height="38" className="inline"/>
+                                     height="38" className="inline"/>&nbsp;
                             </a>
                         </div>
                     </div>

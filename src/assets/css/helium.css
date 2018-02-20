@@ -319,3 +319,7 @@ span.twitter-typeahead > input.form-control.input-sm.tt-query {
 .arrow-down-icon:before {
   content: "\f063";
 }
+
+.white {
+  color: #ffffff
+}

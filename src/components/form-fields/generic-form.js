@@ -6,13 +6,16 @@ import {errorPropTypes} from "../../util/proptype-utils";
 
 const GenericForm = ({formSpec = [], errors = [], message = '', onSubmit, submitText}) => (
     <form className="form" onSubmit={onSubmit}>
-        <Alert errors={errors} icon="error_outline"/>
-        <Alert message={message} icon="done"/>
-        <ul className="form-list">
-            {formSpec.map(field => <li key={field.id}><Field {...field} /></li>)}
-        </ul>
-        <button type="submit" className="button is-primary">{submitText}</button>
-        <br />
+        <Alert errors={errors}/>
+        <Alert message={message}/>
+
+        <fieldset>
+            <ul className="form-list">
+                {formSpec.map(field => <li key={field.id}><Field {...field} /></li>)}
+            </ul>
+            <button type="submit" className="width-35 pull-right btn btn-sm btn-primary">{submitText}</button>
+            <br />
+        </fieldset>
     </form>
 );
 

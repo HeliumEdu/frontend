@@ -2,8 +2,8 @@ import React, {Component} from "react";
 import PropTypes from "prop-types";
 import {connect} from "react-redux";
 import {reduxForm} from "redux-form";
-import TextInput from "../components/form-fields/text-input";
-import GenericForm from "../components/form-fields/generic-form";
+import LoginForm from "../components/form-fields/login-form";
+import {Link} from "react-router-dom";
 import {login, CHANGE_AUTH} from "../redux/modules/authentication";
 import {errorPropTypes} from "../util/proptype-utils";
 import queryString from "query-string";
@@ -18,28 +18,8 @@ class Login extends Component {
         handleSubmit: PropTypes.func,
         login: PropTypes.func,
         errors: errorPropTypes,
-        message: PropTypes.string,
-        loading: PropTypes.bool
+        message: PropTypes.string
     };
-
-    static formSpec = [
-        {
-            id: 'username',
-            name: 'username',
-            label: 'Username',
-            type: 'text',
-            placeholder: 'Username',
-            component: TextInput
-        },
-        {
-            id: 'password',
-            name: 'password',
-            label: 'Password',
-            type: 'password',
-            placeholder: 'Password',
-            component: TextInput
-        }
-    ];
 
     componentWillMount = () => {
         const {token} = this.props;
@@ -59,18 +39,43 @@ class Login extends Component {
     };
 
     render = () => {
-        const {handleSubmit, errors, message, loading} = this.props;
+        const {handleSubmit, errors, message} = this.props;
 
         return (
-            <div className={`auth-box ${loading ? 'is-loading' : ''}`}>
-                <h1>Login</h1>
-                <GenericForm
-                    onSubmit={handleSubmit(this.handleFormSubmit)}
-                    errors={errors}
-                    message={message}
-                    formSpec={Login.formSpec}
-                    submitText="Login"
-                />
+            <div className="main-container">
+                <div className="container">
+                    <div className="page-content">
+                        <div className="row">
+                            <div className="col-sm-10 col-sm-offset-1">
+                                <div className="login-container">
+                                    <div className="well">
+                                        <h4 className="header blue lighter bigger">
+                                            <i className="icon-key blue"/>
+                                            Enter Your Login Information
+                                        </h4>
+
+                                        <div className="space-6"></div>
+
+                                        <LoginForm
+                                            onSubmit={handleSubmit(this.handleFormSubmit)}
+                                            errors={errors}
+                                            message={message}
+                                        />
+
+                                        <div className="clearfix">
+                                            <Link to="/register">
+                                                Need an account?
+                                            </Link>
+                                            <Link to="/forgot" className="pull-right">
+                                                Forgot your password?
+                                            </Link>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         );
     }
@@ -79,7 +84,6 @@ class Login extends Component {
 const mapStateToProps = ({authentication}) => ({
     errors: authentication.errors[CHANGE_AUTH],
     message: authentication.messages[CHANGE_AUTH],
-    loading: authentication.loading[CHANGE_AUTH],
     token: authentication.token
 });
 

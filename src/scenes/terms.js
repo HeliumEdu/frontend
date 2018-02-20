@@ -2,6 +2,28 @@ import React, {Component} from "react";
 
 export default class Terms extends Component {
     render = () => {
-        return <div>Terms</div>
+        return (
+            <div className="main-container" id="main-container">
+                <div className="container">
+                    <div className="page-content">
+                        <div className="page-header">
+                            <h1>
+                                Terms
+                                <small>
+                                    <i className="icon-double-angle-right"/>
+                                    &nbsp;tagline
+                                </small>
+                            </h1>
+                        </div>
+
+                        <div className="row">
+                            <div className="col-sm-12">
+                                Content
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
     }
 }

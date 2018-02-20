@@ -1,11 +1,9 @@
-import React, {Component} from "react";
+import {Component} from "react";
 
 export default class Support extends Component {
     componentWillMount = () => {
-        window.location.href = "https://heliumedu.uservoice.com";
+        window.location.replace("https://heliumedu.uservoice.com");
     };
 
-    render = () => {
-        return null;
-    }
+    // TODO: need to find a way to remove the /support from history so "back" works properly
 }

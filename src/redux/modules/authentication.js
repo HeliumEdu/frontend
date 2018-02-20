@@ -39,7 +39,7 @@ export const logout = () => async(dispatch) => {
     await dispatch({type: CHANGE_AUTH, payload: {}});
     deleteCookie('token');
 
-    window.location.href = `${getAppUrl()}/login`;
+    window.location.replace(`${getAppUrl()}/login`);
 };
 
 export const getAuthenticatedUser = () => async(dispatch) => {

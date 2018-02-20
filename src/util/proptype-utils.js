@@ -16,5 +16,6 @@ export const fieldPropTypes = {
     placeholder: PropTypes.string,
     type: PropTypes.string,
     extraClasses: PropTypes.string,
-    label: PropTypes.string
+    label: PropTypes.string,
+    autoFocus: PropTypes.bool
 };
