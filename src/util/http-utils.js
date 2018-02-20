@@ -1,10 +1,9 @@
 import axios from "axios";
 import _ from "lodash";
-import {getApiUrl} from "./environment-utils";
 import {getCookie} from "./cookie-utils";
 import {PENDING, SUCCESS, POST, PUT, PATCH, GET, DELETE} from "./redux-constants";
 
-const API_URL = getApiUrl();
+const API_URL = process.env.REACT_APP_PLATFORM_HOST;
 
 
 const httpRequest = async(dispatch, requestType = GET, actionType = '', opts = {}) => {

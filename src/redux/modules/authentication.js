@@ -3,7 +3,6 @@ import {APP_NAMESPACE} from "../../util/redux-constants";
 import {get, post} from "../../util/http-utils";
 import {deleteCookie, getCookie, setCookie} from "../../util/cookie-utils";
 import {updateStore, buildGenericInitialState, handleError} from "../../util/store-utils";
-import {getAppUrl} from "../../util/environment-utils";
 import queryString from "query-string";
 
 const AUTH_ENDPOINT_BASE = 'api/auth';
@@ -39,7 +38,7 @@ export const logout = () => async(dispatch) => {
     await dispatch({type: CHANGE_AUTH, payload: {}});
     deleteCookie('token');
 
-    window.location.replace(`${getAppUrl()}/login`);
+    window.location.replace(`${process.env.REACT_APP_FRONTEND_HOST}/login`);
 };
 
 export const getAuthenticatedUser = () => async(dispatch) => {
