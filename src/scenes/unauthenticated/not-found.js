@@ -13,7 +13,7 @@ export default class NotFound extends Component {
                                     <div className="well">
                                         <h1 className="grey lighter smaller">
                                             <img src={process.env.PUBLIC_URL + '/assets/img/logo_square.png'} width="50" height="50"
-                                                 className="logo-icon"/>&nbsp;
+                                                 className="logo-icon" alt=""/>&nbsp;
                                             404 Page Not Found
                                         </h1>
 

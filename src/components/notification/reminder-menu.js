@@ -5,7 +5,7 @@ import React from "react";
 const ReminderMenu = () => {
     return (
         <li className="green hidden-xs">
-            <a data-toggle="dropdown" className="dropdown-toggle" href="#">
+            <a data-toggle="dropdown" className="dropdown-toggle" href="#dropdown">
                 <i className="icon-bell-alt"/>&nbsp;
                 <span id="reminder-bell-alt-count" className="badge badge-success to-hide"/>
             </a>

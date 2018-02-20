@@ -46,7 +46,7 @@ class Header extends Component {
                     <ul className="nav navbar-nav navbar-right">
                         <ReminderMenu/>
                         <li className={pathname === "/settings" ? "active dropdown" : "dropdown"}>
-                            <a href="#" className="dropdown-toggle" data-toggle="dropdown">
+                            <a href="#dropdown" className="dropdown-toggle" data-toggle="dropdown">
                                 <i className="icon-tasks"/>&nbsp;
                                 Account
                                 &nbsp;<b className="caret"/>
