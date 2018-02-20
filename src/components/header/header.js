@@ -1,9 +1,9 @@
 import React, {Component} from "react";
 import PropTypes from "prop-types";
-import ReminderMenu from "./notification/reminder-menu";
+import ReminderMenu from "../notification/reminder-menu";
 import {connect} from "react-redux";
 import {withRouter, Link} from "react-router-dom";
-import {getAuthenticatedUser} from "../redux/modules/user";
+import {getAuthenticatedUser} from "../../redux/modules/user";
 
 class Header extends Component {
     buildHeaderNavigation = () => {

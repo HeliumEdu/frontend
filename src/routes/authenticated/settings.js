@@ -1,7 +1,7 @@
 import React from "react";
 import {Route, Switch} from "react-router-dom";
 import Settings from "../../scenes/authenticated/settings";
-import NotFound from "../../scenes/not-found";
+import NotFound from "../../scenes/unauthenticated/not-found";
 
 const SettingsRoutes = () => (
     <Switch>

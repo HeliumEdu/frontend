@@ -4,7 +4,7 @@ import Calendar from "../../scenes/authenticated/calendar";
 import Classes from "../../scenes/authenticated/classes";
 import Materials from "../../scenes/authenticated/materials";
 import Grades from "../../scenes/authenticated/grades";
-import NotFound from "../../scenes/not-found";
+import NotFound from "../../scenes/unauthenticated/not-found";
 
 const PlannerRoutes = () => (
     <Switch>

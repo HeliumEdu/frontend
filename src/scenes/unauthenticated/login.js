@@ -2,12 +2,11 @@ import React, {Component} from "react";
 import PropTypes from "prop-types";
 import {connect} from "react-redux";
 import {reduxForm} from "redux-form";
-import LoginForm from "../components/form-fields/login-form";
+import LoginForm from "../../components/form-fields/login-form";
 import {Link} from "react-router-dom";
-import {login, CHANGE_AUTH} from "../redux/modules/authentication";
-import {errorPropTypes} from "../util/proptype-utils";
+import {login, CHANGE_AUTH} from "../../redux/modules/authentication";
+import {errorPropTypes} from "../../util/proptype-utils";
 import queryString from "query-string";
-import "./authentication.css";
 
 const form = reduxForm({
     form: 'login'

@@ -43,9 +43,9 @@ export default class NotFound extends Component {
                                         </div>
 
                                         <hr/>
-                                        <div class="space"></div>
+                                        <div className="space"></div>
 
-                                        <div class="center">
+                                        <div className="center">
                                             <Link to="/" className="btn btn-primary">
                                                 <i className="icon-home"/>
                                                 Home
@@ -55,7 +55,7 @@ export default class NotFound extends Component {
                                                 <i className="icon-refresh"/>
                                                 Refresh
                                             </Link>&nbsp;
-                                            <Link to="/support" class="btn btn-primary">
+                                            <Link to="/support" className="btn btn-primary">
                                                 <i className="icon-question"/>
                                                 Support
                                             </Link>&nbsp;

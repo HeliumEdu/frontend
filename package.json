@@ -31,8 +31,6 @@
   "jest": {
     "coverageThreshold": {
       "global": {
-        "functions": 80,
-        "statements": 80
       }
     },
     "collectCoverageFrom": [

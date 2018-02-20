@@ -71,8 +71,10 @@ export default class Footer extends Component {
                         </div>
                     </div>
                 </div>
+
                 <div className="container">
                     <span>Copyright &copy; {new Date().getFullYear()} Helium Edu</span>
+                    
                     <nav>
                         {this.buildFooterNavigation()}
                     </nav>
