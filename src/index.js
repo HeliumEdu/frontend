@@ -7,14 +7,14 @@ import configureStore from "./redux";
 import Header from "./components/header/header";
 import Footer from "./components/footer/footer";
 import Routes from "./routes/";
-import "./assets/css/base.css";
+import "./assets/css/helium.css";
 
 const store = configureStore();
 
 ReactDOM.render((
     <Provider store={store}>
         <BrowserRouter>
-            <div className="app-container">
+            <div className="full-container" id="full-container">
                 <Header />
                 <main>
                     <Routes />
