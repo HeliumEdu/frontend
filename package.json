@@ -40,11 +40,26 @@
   "dependencies": {
     "axios": "^0.17.1",
     "babel-polyfill": "^6.26.0",
+    "bootbox": "^4.4.0",
+    "bootstrap-datepicker": "^1.7.1",
+    "bootstrap-timepicker": "^0.2.7",
+    "bootstrap-wysiwyg": "^1.0.4",
+    "chosen-js": "^1.5.1",
+    "datatables.net": "^1.10.9",
+    "datatables.net-bs": "^1.10.9",
+    "dropzone": "^3.12.0",
+    "easy-pie-chart": "^2.1.7",
+    "fullcalendar": "^2.3.1",
+    "jquery-simplecolorpicker": "^0.3.1",
+    "jquery-ui-touch-punch": "^0.2.3",
+    "jquery.hotkeys": "^0.1.0",
     "lodash": "^4.17.4",
     "moment": "^2.20.1",
+    "moment-timezone": "^0.5.14",
     "normalize.css": "^8.0.0",
     "path": "^0.12.7",
     "prop-types": "^15.5.10",
+    "qtip2": "^2.2.0",
     "query-string": "^5.1.0",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
@@ -54,6 +69,7 @@
     "redux-form": "^7.2.3",
     "redux-thunk": "^2.2.0",
     "universal-cookie": "^2.1.2",
-    "webpack": "^3.11.0"
+    "webpack": "^3.11.0",
+    "x-editable": "^1.5.1"
   }
 }
