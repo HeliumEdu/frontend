@@ -32,6 +32,9 @@ environments are deployed and interacts with related projects as necessary.
 As the Vagrant environment does take a bit more time to setup (even though the setup is largely automated) and can consume more developer
 and system resources, the local development environment described below is the quickest and easiest way to get up and running.
 
+Note that Vagrant relies on a built version of the frontend code to best simulate a prod-like environment. Thus, each
+time code changes are made, `make build` will need to be run for them to take effect.
+
 ### Local Development
 This is the simplest way to get started with minimal effort. Before starting the frontend development server, ensure the
 [`platform`](https://github.com/HeliumEdu/platform) server is running at http://localhost:8000. Then, to get going
@@ -44,6 +47,6 @@ npm run start
 
 A development server will be started at http://localhost:3000.
 
-Note that environment-specific credentials are stored in corresponding .env.{{ domain_environment }} files committed to
-this repository. As these are frontned environment variables, there are no sensitive details here, so any environment's
-configuration can safely be committed to the repository.
+Note that all environment variables are declared in the `.env` with their default values. Environment-specific overrides
+(for instance, `REACT_APP_API_HOST`) should be set as system environment variables, then these shell definitions will
+override the defaults in `.env` when `make build` is run.

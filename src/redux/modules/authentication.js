@@ -5,7 +5,7 @@ import {deleteCookie, getCookie, setCookie} from "../../util/cookie-utils";
 import {updateStore, buildGenericInitialState, handleError} from "../../util/store-utils";
 import queryString from "query-string";
 
-const AUTH_ENDPOINT_BASE = 'api/auth';
+const AUTH_ENDPOINT_BASE = 'auth';
 const typeBase = `${APP_NAMESPACE}/${AUTH_ENDPOINT_BASE}`;
 
 // Constants

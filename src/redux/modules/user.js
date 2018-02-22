@@ -3,7 +3,7 @@ import _ from "lodash";
 import {updateStore, buildGenericInitialState} from "../../util/store-utils";
 import {CHANGE_AUTH, GET_AUTHENTICATED_USER} from "./authentication";
 
-// const USER_ENDPOINT_BASE = 'api/auth/user';
+// const USER_ENDPOINT_BASE = 'auth/user';
 // const typeBase = `${APP_NAMESPACE}/${USER_ENDPOINT_BASE}`;
 
 // Constants
