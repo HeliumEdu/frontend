@@ -6,7 +6,7 @@ export const setCookie = (name, value, options = {}) =>
     cookies.set(name, value, Object.assign({
         path: '/',
         maxAge: 604800,
-        secure: process.env.REACT_APP_ENVIRONMENT === 'prod'
+        secure: process.env.REACT_APP_ENV === 'prod'
     }, options));
 
 export const getCookie = (name, options = {}) =>

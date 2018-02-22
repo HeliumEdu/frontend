@@ -3,7 +3,7 @@ import _ from "lodash";
 import {getCookie} from "./cookie-utils";
 import {PENDING, SUCCESS, POST, PUT, PATCH, GET, DELETE} from "./redux-constants";
 
-const API_URL = process.env.REACT_APP_PLATFORM_HOST;
+const API_URL = process.env.REACT_APP_API_HOST;
 
 
 const httpRequest = async(dispatch, requestType = GET, actionType = '', opts = {}) => {

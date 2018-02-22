@@ -38,7 +38,7 @@ export const logout = () => async(dispatch) => {
     await dispatch({type: CHANGE_AUTH, payload: {}});
     deleteCookie('token');
 
-    window.location.replace(`${process.env.REACT_APP_FRONTEND_HOST}/login`);
+    window.location.replace(`${process.env.REACT_APP_HOST}/login`);
 };
 
 export const getAuthenticatedUser = () => async(dispatch) => {

@@ -1,9 +1,6 @@
 .DS_Store
 .idea/
 *.iml
-.env.*
-!.env.dev
-!.env.devbox
 node_modules
 /build
 /dist

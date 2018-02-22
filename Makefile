@@ -1,11 +1,8 @@
-.PHONY: all env install build migrate test
+.PHONY: all install build migrate test
 
-all: env install build migrate test
+all: install build migrate test
 
-env:
-	cp -n .env.example .env | true
-
-install: env
+install:
 	npm install
 
 build:
