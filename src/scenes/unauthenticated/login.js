@@ -2,7 +2,8 @@ import React, {Component} from "react";
 import PropTypes from "prop-types";
 import {connect} from "react-redux";
 import {reduxForm} from "redux-form";
-import LoginForm from "../../components/form-fields/login-form";
+import GenericForm from "../../components/form-fields/generic-form";
+import TextInput from "../../components/form-fields/text-input";
 import {Link} from "react-router-dom";
 import {login, CHANGE_AUTH} from "../../redux/modules/authentication";
 import {errorPropTypes} from "../../util/proptype-utils";
@@ -19,6 +20,26 @@ class Login extends Component {
         errors: errorPropTypes,
         message: PropTypes.string
     };
+
+    static formSpec = [
+        {
+            id: 'username',
+            name: 'username',
+            type: 'text',
+            icon: 'icon-user',
+            placeholder: 'Username',
+            autoFocus: true,
+            component: TextInput
+        },
+        {
+            id: 'password',
+            name: 'password',
+            type: 'password',
+            icon: 'icon-lock',
+            placeholder: 'Password',
+            component: TextInput
+        }
+    ];
 
     componentWillMount = () => {
         const {token} = this.props;
@@ -55,10 +76,13 @@ class Login extends Component {
 
                                         <div className="space-6"></div>
 
-                                        <LoginForm
+                                        <GenericForm
                                             onSubmit={handleSubmit(this.handleFormSubmit)}
                                             errors={errors}
                                             message={message}
+                                            formSpec={Login.formSpec}
+                                            submitText="Sign in"
+                                            submitIcon="icon-signin"
                                         />
 
                                         <div className="clearfix">
