@@ -59,10 +59,9 @@ export const buildGenericInitialState = (constants) => ({
  * Dispatch messages to Redux stores.
  */
 export const handleMessage = (dispatch, message, type) => {
-    const foundMessage = _.get(message, 'response.data') || {message};
     return dispatch({
         type,
-        payload: foundMessage,
+        payload: message,
         meta: {status: SUCCESS}
     });
 };

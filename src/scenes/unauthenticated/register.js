@@ -72,8 +72,8 @@ class Register extends Component {
                             <div className="col-sm-10 col-sm-offset-1">
                                 <div className="login-container">
                                     <div className="well">
-                                        <h4 class="header green lighter bigger">
-                                            <i class="icon-user blue"/>&nbsp;
+                                        <h4 className="header green lighter bigger">
+                                            <i className="icon-user blue"/>&nbsp;
                                             New User Registration
                                         </h4>
 
