@@ -1,29 +1,19 @@
-import React, {Component} from "react";
+import {Component} from "react";
+import {connect} from "react-redux";
+import {verify, VERIFY_USER} from "../../redux/modules/user";
+import queryString from "query-string";
 
-export default class Verify extends Component {
-    render = () => {
-        return (
-            <div className="main-container" id="main-container">
-                <div className="container">
-                    <div className="page-content">
-                        <div className="page-header">
-                            <h1>
-                                Verify
-                                <small>
-                                    <i className="icon-double-angle-right"/>
-                                    &nbsp;tagline
-                                </small>
-                            </h1>
-                        </div>
+class Verify extends Component {
+    componentWillMount = () => {
+        const parsed = queryString.parse(window.location.search);
 
-                        <div className="row">
-                            <div className="col-sm-12">
-                                Content
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        )
-    }
+        this.props.verify(parsed);
+    };
 }
+
+const mapStateToProps = ({user}) => ({
+    errors: user.errors[VERIFY_USER],
+    message: user.messages[VERIFY_USER]
+});
+
+export default connect(mapStateToProps, {verify})(Verify);

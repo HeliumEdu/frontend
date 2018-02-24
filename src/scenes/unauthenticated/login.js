@@ -70,7 +70,7 @@ class Login extends Component {
                                 <div className="login-container">
                                     <div className="well">
                                         <h4 className="header blue lighter bigger">
-                                            <i className="icon-key blue"/>
+                                            <i className="icon-key blue"/>&nbsp;
                                             Enter Your Login Information
                                         </h4>
 
@@ -81,7 +81,7 @@ class Login extends Component {
                                             errors={errors}
                                             message={message}
                                             formSpec={Login.formSpec}
-                                            submitText="Sign in"
+                                            submitText="Sign In"
                                             submitIcon="icon-signin"
                                         />
 
