@@ -3,10 +3,10 @@ import PropTypes from "prop-types";
 import {connect} from "react-redux";
 import {reduxForm} from "redux-form";
 import GenericForm from "../../components/form-fields/generic-form";
-import TextInput from "../../components/form-fields/text-input";
+import IconTextInput from "../../components/form-fields/icon-text-input";
 import {Link} from "react-router-dom";
 import {login, CHANGE_AUTH} from "../../redux/modules/authentication";
-import {errorPropTypes} from "../../util/proptype-utils";
+import {messagePropTypes, errorPropTypes} from "../../util/proptype-utils";
 import queryString from "query-string";
 
 const form = reduxForm({
@@ -18,7 +18,7 @@ class Login extends Component {
         handleSubmit: PropTypes.func,
         login: PropTypes.func,
         errors: errorPropTypes,
-        message: PropTypes.string
+        messages: messagePropTypes
     };
 
     static formSpec = [
@@ -29,7 +29,8 @@ class Login extends Component {
             icon: 'icon-user',
             placeholder: 'Username',
             autoFocus: true,
-            component: TextInput
+            required: true,
+            component: IconTextInput
         },
         {
             id: 'password',
@@ -37,7 +38,8 @@ class Login extends Component {
             type: 'password',
             icon: 'icon-lock',
             placeholder: 'Password',
-            component: TextInput
+            required: true,
+            component: IconTextInput
         }
     ];
 
@@ -59,7 +61,7 @@ class Login extends Component {
     };
 
     render = () => {
-        const {handleSubmit, errors, message} = this.props;
+        const {handleSubmit, errors, messages} = this.props;
 
         return (
             <div className="main-container">
@@ -79,7 +81,7 @@ class Login extends Component {
                                         <GenericForm
                                             onSubmit={handleSubmit(this.handleFormSubmit)}
                                             errors={errors}
-                                            message={message}
+                                            messages={messages}
                                             formSpec={Login.formSpec}
                                             submitText="Sign In"
                                             submitIcon="icon-signin"
@@ -106,7 +108,7 @@ class Login extends Component {
 
 const mapStateToProps = ({authentication}) => ({
     errors: authentication.errors[CHANGE_AUTH],
-    message: authentication.messages[CHANGE_AUTH],
+    messages: authentication.messages[CHANGE_AUTH],
     token: authentication.token
 });
 

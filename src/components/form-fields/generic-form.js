@@ -2,12 +2,12 @@ import React from "react";
 import PropTypes from "prop-types";
 import {Field} from "redux-form";
 import Alert from "../notification/alert";
-import {errorPropTypes} from "../../util/proptype-utils";
+import {messagePropTypes, errorPropTypes} from "../../util/proptype-utils";
 
-const GenericForm = ({formSpec = [], errors = [], message = '', submitIcon = '', submitText, onSubmit}) => (
+const GenericForm = ({formSpec = [], errors = [], messages = [], submitIcon = '', submitText, onSubmit}) => (
     <form className="form" onSubmit={onSubmit}>
         <Alert errors={errors}/>
-        <Alert message={message}/>
+        <Alert messages={messages}/>
 
         <fieldset>
             {formSpec.map(field => <Field key={field.id} {...field} />)}
@@ -25,14 +25,17 @@ const GenericForm = ({formSpec = [], errors = [], message = '', submitIcon = '',
 
 GenericForm.propTypes = {
     onSubmit: PropTypes.func,
-    message: PropTypes.string,
+    messages: messagePropTypes,
     errors: errorPropTypes,
     formSpec: PropTypes.arrayOf(PropTypes.shape({
         placeholder: PropTypes.string,
         type: PropTypes.string,
         id: PropTypes.string,
         name: PropTypes.string,
-        label: PropTypes.string,
+        label: PropTypes.oneOfType([
+            PropTypes.string,
+            PropTypes.object
+        ]),
         component: PropTypes.func,
         autoFocus: PropTypes.bool
     })),

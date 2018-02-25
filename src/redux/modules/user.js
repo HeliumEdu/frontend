@@ -1,8 +1,9 @@
 import _ from "lodash";
-import {updateStore, buildGenericInitialState} from "../../util/store-utils";
-import {put} from "../../util/http-utils";
+import {updateStore, buildGenericInitialState, handleError, handleMessage} from "../../util/store-utils";
+import {get} from "../../util/http-utils";
 import {CHANGE_AUTH, GET_AUTHENTICATED_USER} from "./authentication";
 import {APP_NAMESPACE} from "../../util/redux-constants";
+import queryString from "query-string";
 
 const USER_ENDPOINT_BASE = 'auth/user';
 const typeBase = `${APP_NAMESPACE}/${USER_ENDPOINT_BASE}`;
@@ -11,25 +12,27 @@ const typeBase = `${APP_NAMESPACE}/${USER_ENDPOINT_BASE}`;
 export const VERIFY_USER = `${typeBase}/VERIFY_USER`;
 
 // Actions
-export const verify = (queryString) => async(dispatch) => {
-    // TODO: ensure "username" and "code" are present in query parameters
-
+export const verify = (history) => async(dispatch) => {
     try {
-        // TODO: append username and code as query string
-        const response = await put(dispatch, VERIFY_USER, `${USER_ENDPOINT_BASE}/verify/`, {}, false);
+        const parsed = queryString.parse(window.location.search);
 
-        // TODO: on success, redirect to "login" page with status about the email being verified and ready to login
+        await get(dispatch, VERIFY_USER, `${USER_ENDPOINT_BASE}/verify/?username=${parsed.username}&code=${parsed.code}`, false);
 
-        window.location.replace(`${process.env.REACT_APP_HOST}/login`);
+        await handleMessage(dispatch,
+            "Your email address has been verified. You can now login to Helium using this email or your username.",
+            VERIFY_USER);
+
+        history.replace('/login');
     } catch (err) {
-        // TODO: redirect to /login page and show error message
-        window.location.replace(`${process.env.REACT_APP_HOST}/login`);
+        await handleError(dispatch, err, CHANGE_AUTH);
+
+        history.replace('/login');
     }
 };
 
 // Store
 const INITIAL_STATE = {
-    ...buildGenericInitialState([])
+    ...buildGenericInitialState([VERIFY_USER])
 };
 
 export default function user(state = INITIAL_STATE, action) {

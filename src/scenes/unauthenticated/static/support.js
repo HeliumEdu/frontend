@@ -5,5 +5,7 @@ export default class Support extends Component {
         window.location.replace("https://heliumedu.uservoice.com");
     };
 
-    // TODO: need to find a way to remove the /support from history so "back" works properly
+    render = () => {
+        return null;
+    };
 }

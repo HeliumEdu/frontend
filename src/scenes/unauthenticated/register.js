@@ -3,9 +3,12 @@ import PropTypes from "prop-types";
 import {connect} from "react-redux";
 import {reduxForm} from "redux-form";
 import GenericForm from "../../components/form-fields/generic-form";
-import TextInput from "../../components/form-fields/text-input";
+import IconTextInput from "../../components/form-fields/icon-text-input";
+import Checkbox from "../../components/form-fields/checkbox";
+// import Select from "../../components/form-fields/select";
 import {register, REGISTER_USER} from "../../redux/modules/authentication";
-import {errorPropTypes} from "../../util/proptype-utils";
+import {messagePropTypes, errorPropTypes} from "../../util/proptype-utils";
+// import {TIME_ZONE_CHILDREN} from "../../util/ui-constants";
 
 const form = reduxForm({
     form: 'register'
@@ -16,7 +19,7 @@ class Register extends Component {
         handleSubmit: PropTypes.func,
         login: PropTypes.func,
         errors: errorPropTypes,
-        message: PropTypes.string
+        messages: messagePropTypes
     };
 
     static formSpec = [
@@ -27,7 +30,8 @@ class Register extends Component {
             icon: 'icon-user',
             placeholder: 'Username',
             autoFocus: true,
-            component: TextInput
+            required: true,
+            component: IconTextInput
         },
         {
             id: 'email',
@@ -35,7 +39,8 @@ class Register extends Component {
             type: 'email',
             icon: 'icon-envelope',
             placeholder: 'Email',
-            component: TextInput
+            required: true,
+            component: IconTextInput
         },
         {
             id: 'password1',
@@ -43,7 +48,8 @@ class Register extends Component {
             type: 'password',
             icon: 'icon-lock',
             placeholder: 'Password',
-            component: TextInput
+            required: true,
+            component: IconTextInput
         },
         {
             id: 'password2',
@@ -51,10 +57,23 @@ class Register extends Component {
             type: 'password',
             icon: 'icon-retweet',
             placeholder: 'Confirm password',
-            component: TextInput
+            required: true,
+            component: IconTextInput
+        },
+        // {
+        //     id: 'time_zone',
+        //     name: 'time_zone',
+        //     label: 'Time zone',
+        //     children: TIME_ZONE_CHILDREN,
+        //     component: Select
+        // },
+        {
+            id: 'policy_agreement',
+            name: 'policy_agreement',
+            required: true,
+            label: <span>I agree to Helium's <a href='/terms' target='_blank'>Terms of Service</a> and <a href='/privacy' target='_blank'>Privacy Policy</a></span>,
+            component: Checkbox
         }
-        // TODO: time_zone
-        // TODO: agree to policy and tos
     ];
 
     handleFormSubmit = (formProps) => {
@@ -62,7 +81,7 @@ class Register extends Component {
     };
 
     render = () => {
-        const {handleSubmit, errors, message} = this.props;
+        const {handleSubmit, errors, messages} = this.props;
 
         return (
             <div className="main-container">
@@ -82,7 +101,7 @@ class Register extends Component {
                                         <GenericForm
                                             onSubmit={handleSubmit(this.handleFormSubmit)}
                                             errors={errors}
-                                            message={message}
+                                            messages={messages}
                                             formSpec={Register.formSpec}
                                             submitText="Sign Me Up!"
                                             submitIcon="icon-signin"
@@ -100,7 +119,7 @@ class Register extends Component {
 
 const mapStateToProps = ({authentication}) => ({
     errors: authentication.errors[REGISTER_USER],
-    message: authentication.messages[REGISTER_USER]
+    messages: authentication.messages[REGISTER_USER]
 });
 
 export default connect(mapStateToProps, {register})(form(Register));

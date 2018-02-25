@@ -3,10 +3,10 @@ import PropTypes from "prop-types";
 import {connect} from "react-redux";
 import {reduxForm} from "redux-form";
 import GenericForm from "../../components/form-fields/generic-form";
-import TextInput from "../../components/form-fields/text-input";
+import IconTextInput from "../../components/form-fields/icon-text-input";
 import {Link} from "react-router-dom";
-import {forgot, RESET_PASSWORD} from "../../redux/modules/authentication";
-import {errorPropTypes} from "../../util/proptype-utils";
+import {forgot, FORGOT_PASSWORD} from "../../redux/modules/authentication";
+import {messagePropTypes, errorPropTypes} from "../../util/proptype-utils";
 
 const form = reduxForm({
     form: 'forgot'
@@ -17,7 +17,7 @@ class Forgot extends Component {
         handleSubmit: PropTypes.func,
         login: PropTypes.func,
         errors: errorPropTypes,
-        message: PropTypes.string
+        messages: messagePropTypes
     };
 
     static formSpec = [
@@ -28,7 +28,8 @@ class Forgot extends Component {
             icon: 'icon-envelope',
             placeholder: 'Email',
             autoFocus: true,
-            component: TextInput
+            required: true,
+            component: IconTextInput
         }
     ];
 
@@ -37,7 +38,7 @@ class Forgot extends Component {
     };
 
     render = () => {
-        const {handleSubmit, errors, message} = this.props;
+        const {handleSubmit, errors, messages} = this.props;
 
         return (
             <div className="main-container">
@@ -60,7 +61,7 @@ class Forgot extends Component {
                                         <GenericForm
                                             onSubmit={handleSubmit(this.handleFormSubmit)}
                                             errors={errors}
-                                            message={message}
+                                            messages={messages}
                                             formSpec={Forgot.formSpec}
                                             submitText="Get It"
                                             submitIcon="icon-lock"
@@ -83,8 +84,8 @@ class Forgot extends Component {
 }
 
 const mapStateToProps = ({authentication}) => ({
-    errors: authentication.errors[RESET_PASSWORD],
-    message: authentication.messages[RESET_PASSWORD]
+    errors: authentication.errors[FORGOT_PASSWORD],
+    messages: authentication.messages[FORGOT_PASSWORD]
 });
 
 export default connect(mapStateToProps, {forgot})(form(Forgot));

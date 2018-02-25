@@ -12,14 +12,17 @@ export const updateStore = (state, action, extraValues = {}) => {
             return {
                 ...state,
                 ...extraValues,
-                messages: {...state.messages, [type]: _.get(payload, 'message')},
+                messages: {
+                    ...state.messages,
+                    [type]: _.get(payload, 'data.messages') || _.get(payload, 'messages') || []
+                },
                 loading: {...state.loading, [type]: false},
                 errors: {...state.errors, [type]: []}
             };
         case ERROR:
             return {
                 ...state,
-                messages: {...state.messages, [type]: ''},
+                messages: {...state.messages, [type]: []},
                 loading: {...state.loading, [type]: false},
                 errors: {
                     ...state.errors,
@@ -30,7 +33,7 @@ export const updateStore = (state, action, extraValues = {}) => {
         default:
             return {
                 ...state,
-                messages: {...state.messages, [type]: ''},
+                messages: {...state.messages, [type]: []},
                 loading: {...state.loading, [type]: true},
                 errors: {...state.errors, [type]: []}
             };
@@ -42,7 +45,7 @@ export const updateStore = (state, action, extraValues = {}) => {
  */
 export const buildGenericInitialState = (constants) => ({
     messages: constants.reduce((retObj, constant) => {
-        retObj[constant] = '';
+        retObj[constant] = [];
         return retObj;
     }, {}),
     errors: constants.reduce((retObj, constant) => {
@@ -59,9 +62,10 @@ export const buildGenericInitialState = (constants) => ({
  * Dispatch messages to Redux stores.
  */
 export const handleMessage = (dispatch, message, type) => {
+    const foundMessage = Array.isArray(message) ? message : [{message}];
     return dispatch({
         type,
-        payload: message,
+        payload: {"messages": foundMessage},
         meta: {status: SUCCESS}
     });
 };

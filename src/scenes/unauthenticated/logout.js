@@ -7,6 +7,10 @@ class Logout extends Component {
     componentWillMount = () => {
         this.props.logout();
     };
+
+    render = () => {
+        return null;
+    }
 }
 
 const mapStateToProps = ({authentication}) => ({});

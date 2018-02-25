@@ -1,8 +1,8 @@
 import React from "react";
 import {fieldPropTypes} from "../../util/proptype-utils";
 
-const IconTextInput = ({input, id, placeholder, type, icon, extraClasses = '', autoFocus = false}) => (
-    <label htmlFor={id} className="block clearfix">
+const IconTextInput = ({input, placeholder, type, icon, extraClasses = '', required = false, autoFocus = false}) => (
+    <label htmlFor={input.id} className="block clearfix">
         <div className="input-group no-padding">
             <span className="input-group-addon">
                 <i className={icon}/>
@@ -10,10 +10,10 @@ const IconTextInput = ({input, id, placeholder, type, icon, extraClasses = '', a
 
             <input
                 {...input}
-                id={id}
                 className={`form-control ${extraClasses}`}
                 placeholder={placeholder}
                 type={type}
+                required={required}
                 autoFocus={autoFocus}
             />
         </div>
