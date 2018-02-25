@@ -52,7 +52,9 @@ const httpRequest = async(dispatch, requestType = GET, actionType = '', opts = {
                 err.response.data.errors.push({'error': value});
             });
         } else {
-            err.response.data.errors = [{'error': 'An unknown error occurred.'}];
+            err.response = !!err.response ? err.response : {};
+            err.response.data = !!err.response.data ? err.response.data : {};
+            err.response.data.errors = [{'error': 'Oops, an unknown error has occurred. If the issue persists, <a href="/support">contact support</a>.'}];
         }
 
         throw err;
