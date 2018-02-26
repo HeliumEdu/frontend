@@ -5,10 +5,10 @@ import {reduxForm} from "redux-form";
 import GenericForm from "../../components/form-fields/generic-form";
 import IconTextInput from "../../components/form-fields/icon-text-input";
 import Checkbox from "../../components/form-fields/checkbox";
-// import Select from "../../components/form-fields/select";
+import ChosenSelect from "../../components/form-fields/chosen-select";
 import {register, REGISTER_USER} from "../../redux/modules/authentication";
 import {messagePropTypes, errorPropTypes} from "../../util/proptype-utils";
-// import {TIME_ZONE_CHILDREN} from "../../util/ui-constants";
+import {TIME_ZONE_CHILDREN} from "../../util/ui-constants";
 
 const form = reduxForm({
     form: 'register'
@@ -60,13 +60,13 @@ class Register extends Component {
             required: true,
             component: IconTextInput
         },
-        // {
-        //     id: 'time_zone',
-        //     name: 'time_zone',
-        //     label: 'Time zone',
-        //     children: TIME_ZONE_CHILDREN,
-        //     component: Select
-        // },
+        {
+            id: 'time_zone',
+            name: 'time_zone',
+            label: 'Time zone',
+            children: TIME_ZONE_CHILDREN,
+            component: ChosenSelect
+        },
         {
             id: 'policy_agreement',
             name: 'policy_agreement',
