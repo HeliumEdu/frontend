@@ -9,6 +9,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "eject": "react-scripts eject",
     "test": "react-scripts test --env=jsdom --coverage"
   },
   "devDependencies": {
