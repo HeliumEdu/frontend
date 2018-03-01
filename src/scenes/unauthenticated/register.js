@@ -9,6 +9,8 @@ import ChosenSelect from "../../components/form-fields/chosen-select";
 import {register, REGISTER_USER} from "../../redux/modules/authentication";
 import {messagePropTypes, errorPropTypes} from "../../util/proptype-utils";
 import {TIME_ZONE_CHILDREN} from "../../util/ui-constants";
+import moment from "moment";
+import "moment-timezone";
 
 const form = reduxForm({
     form: 'register'
@@ -64,6 +66,7 @@ class Register extends Component {
             id: 'time_zone',
             name: 'time_zone',
             label: 'Time zone',
+            value: moment.tz.guess(),
             children: TIME_ZONE_CHILDREN,
             component: ChosenSelect
         },

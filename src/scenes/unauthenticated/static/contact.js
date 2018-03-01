@@ -2,6 +2,15 @@ import React, {Component} from "react";
 import ConnectSidebar from "../../../components/connect-sidebar";
 
 export default class Contact extends Component {
+    componentDidMount = () => {
+        var uv = document.createElement('script');
+        uv.type = 'text/javascript';
+        uv.async = true;
+        uv.src = '//widget.uservoice.com/w7OD33G1CR78e0pGaGfw.js';
+        var s = document.getElementsByTagName('script')[0];
+        s.parentNode.insertBefore(uv, s);
+    };
+
     render = () => {
         return (
             <div className="main-container" id="main-container">

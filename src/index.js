@@ -7,7 +7,11 @@ import configureStore from "./redux";
 import Header from "./components/header";
 import Footer from "./components/footer";
 import Routes from "./routes/";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "./assets/css/vendors/ace.min.css";
 import "./assets/css/helium.css";
+// import "./assets/js/vendors/ace-extra";
+// import "./assets/js/vendors/ace";
 
 const store = configureStore();
 
