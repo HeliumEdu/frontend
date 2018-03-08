@@ -76,6 +76,31 @@ function HeliumPlannerAPI() {
         self.reminders_by_calendar_item = {};
     };
 
+    this.register = function (callback, username, email, password, time_zone) {
+        return $.ajax({
+            type: "POST",
+            url: helium.API_URL + "/auth/user/register/",
+            data: JSON.stringify({username: username, email: email, password: password, time_zone: time_zone}),
+            dataType: "json",
+            success: function (data) {callback(data)},
+            error: function (jqXHR, textStatus, errorThrown) {
+                var data = [{
+                    'err_msg': self.GENERIC_ERROR_MESSAGE,
+                    'jqXHR': jqXHR,
+                    'textStatus': textStatus,
+                    'errorThrown': errorThrown
+                }];
+                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                    var name = Object.keys(jqXHR.responseJSON)[0];
+                    if (jqXHR.responseJSON[name].length > 0) {
+                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                    }
+                }
+                callback(data);
+            }
+        });
+    }
+
     /**
      * Obtain a token for the user and, if authenticated, set the AUTH_TOKEN cookie.
      */
@@ -90,6 +115,33 @@ function HeliumPlannerAPI() {
 
                 callback(data);
             },
+            error: function (jqXHR, textStatus, errorThrown) {
+                var data = [{
+                    'err_msg': self.GENERIC_ERROR_MESSAGE,
+                    'jqXHR': jqXHR,
+                    'textStatus': textStatus,
+                    'errorThrown': errorThrown
+                }];
+                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                    var name = Object.keys(jqXHR.responseJSON)[0];
+                    if (jqXHR.responseJSON[name].length > 0) {
+                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                    }
+                }
+                callback(data);
+            }
+        });
+    }
+
+    /**
+     * Obtain a token for the user and, if authenticated, set the AUTH_TOKEN cookie.
+     */
+    this.forgot = function (callback, email) {
+        return $.ajax({
+            type: "PUT",
+            url: helium.API_URL + "/auth/user/forgot/",
+            data: JSON.stringify({email: email}),
+            success: function(data) {callback(data)},
             error: function (jqXHR, textStatus, errorThrown) {
                 var data = [{
                     'err_msg': self.GENERIC_ERROR_MESSAGE,

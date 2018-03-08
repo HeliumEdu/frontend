@@ -1,0 +1,61 @@
+{% extends "src/templates/base.njk" %}
+
+{% block title %}{{ PROJECT_NAME }} | Forgot Password{% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <div class="container">
+        <div class="page-content">
+            <div class="row">
+                <div class="col-sm-10 col-sm-offset-1">
+                    <div class="login-container">
+                        <div class="well">
+                            <h4 class="header blue lighter bigger">
+                                <i class="icon-key"></i>
+                                Retrieve Password
+                            </h4>
+
+                            <div class="space-6"></div>
+
+                            <div id="status" class="alert hidden"></div>
+
+                            <p>
+                                Enter the email associated with your account. We'll reset your password and send the temporary password to your email address.
+                            </p>
+
+                            <form id="forgot-form" method="post">
+                                <fieldset>
+                                    <label class="block clearfix">
+                                        <div class="input-group no-padding">
+                                                <span class="input-group-addon">
+                                                    <i class="icon-envelope"></i>
+                                                </span>
+                                            <input type="email" class="form-control" name="email" id="id_email"
+                                                   placeholder="Email"
+                                            required/>
+                                        </div>
+                                    </label>
+
+                                    <div class="space"></div>
+                                </fieldset>
+
+                                <div class="clearfix">
+                                    <a href="/register">
+                                        Need an account?
+                                    </a>
+                                    <button type="submit"
+                                            class="width-35 pull-right btn btn-sm btn-primary"
+                                            style="margin-top: -5px;">
+                                        Get It
+                                        <i class="icon-unlock-alt icon-on-right"></i>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

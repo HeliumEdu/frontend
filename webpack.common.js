@@ -92,10 +92,24 @@ module.exports = {
                     context: defaultContext
                 },
                 {
+                    from: path.join("src", "templates", "register.njk"),
+                    to: "register.html",
+                    context: _.extend({}, defaultContext, {
+                        "page_javascript": [path.join('assets', 'js', `register${min_suffix}.js`)]
+                    })
+                },
+                {
                     from: path.join("src", "templates", "login.njk"),
                     to: "login.html",
                     context: _.extend({}, defaultContext, {
                         "page_javascript": [path.join('assets', 'js', `login${min_suffix}.js`)]
+                    })
+                },
+                {
+                    from: path.join("src", "templates", "forgot.njk"),
+                    to: "forgot.html",
+                    context: _.extend({}, defaultContext, {
+                        "page_javascript": [path.join('assets', 'js', `forgot${min_suffix}.js`)]
                     })
                 },
                 {
