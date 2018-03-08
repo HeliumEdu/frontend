@@ -9,6 +9,7 @@
  * @version 1.4.0
  */
 
+var AUTH_TOKEN = Cookies.get("authtoken");
 var CSRF_TOKEN = Cookies.get("csrftoken");
 
 // Initialize AJAX configuration
@@ -28,6 +29,7 @@ $.ajaxSetup({
             // Using the CSRFToken value acquired earlier
             xhr.setRequestHeader("X-CSRFToken", CSRF_TOKEN);
         }
+        xhr.setRequestHeader("Authorization", AUTH_TOKEN !== undefined ? "Token " + AUTH_TOKEN : null);
     },
     contentType: "application/json; charset=UTF-8"
 });
@@ -54,6 +56,13 @@ function Helium() {
     // Variables to establish the current request/page the user is accessing
     this.SITE_HOST = location.host + "/";
     this.SITE_URL = location.protocol + "//" + this.SITE_HOST;
+    if (this.SITE_URL === "http://localhost:3000/") {
+        this.API_URL = "http://localhost:8000";
+    } else if (this.SITE_URL === "https://www.heliumedu.dev/") {
+        this.API_URL = "https://api.heliumedu.dev";
+    } else {
+        this.API_URL = "https://api.heliumedu.com";
+    }
     this.CURRENT_PAGE_URL = document.URL;
     this.CURRENT_PAGE = this.CURRENT_PAGE_URL.split(this.SITE_URL)[1];
     if (this.CURRENT_PAGE.substr(-1) === "/") {
@@ -389,18 +398,29 @@ $(window).on("load", function () {
     "use strict";
 
     $("#version-badge").fadeIn("fast");
-});
 
-$.ajax({
-    type: "GET",
-    url: "/api/auth/user/",
-    async: false,
-    dataType: "json",
-    success: function (data) {
-        $.extend(helium.USER_PREFS, data);
-
-        if (helium.USER_PREFS.profile.phone !== null) {
-            helium.REMINDER_TYPE_CHOICES.push("Text");
-        }
+    if (AUTH_TOKEN !== undefined) {
+        $("#planned-nav").removeClass("hidden");
+        $("#reminder-nav").removeClass("hidden");
+        $("#authenticated-dropdown-nav").removeClass("hidden");
+    } else {
+        $("#register-nav").removeClass("hidden");
+        $("#login-nav").removeClass("hidden");
     }
 });
+
+if (AUTH_TOKEN !== undefined) {
+    $.ajax({
+        type: "GET",
+        url: helium.API_URL + "/auth/user/",
+        async: false,
+        dataType: "json",
+        success: function (data) {
+            $.extend(helium.USER_PREFS, data);
+
+            if (helium.USER_PREFS.profile.phone !== null) {
+                helium.REMINDER_TYPE_CHOICES.push("Text");
+            }
+        }
+    });
+}

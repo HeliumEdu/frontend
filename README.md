@@ -4,6 +4,11 @@
 * NPM (>= 5.6)
 
 ## Getting Started
+Note that this project is largely a placeholder. It has been used to split out frontend code from the backend, and it
+loosely maintained while the React rewrite of this project is completed. However, in the meantime, please be aware that
+Webpack is being used in a very hacky way (for instance, the generated bundle is useless and should be ignored), and,
+ultimately, this is legacy code that is being completely overhauled.
+
 ### Project Setup
 To setup the Frontend build environment, execute:
 
@@ -38,4 +43,6 @@ This is the simplest way to get started with minimal effort. Before starting the
 npm run start
 ```
 
-A development server will be started at http://localhost:3000.
+A development server will be started at http://localhost:3000. Note however that, since part of the way this build was
+hacked together circumvents many of Webpack's most useful features, live changes will not be detected at this time and
+would require a restart of this server.
