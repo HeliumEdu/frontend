@@ -13,18 +13,21 @@
     "url": "git+https://github.com/HeliumEdu/frontend.git"
   },
   "scripts": {
-    "build": "webpack",
-    "watch": "webpack --watch",
-    "start": "webpack-dev-server --port 3000",
+    "build": "webpack --config webpack.prod.js",
+    "start": "webpack-dev-server --open --config webpack.dev.js",
     "test": "echo \"Error: no tests to run\""
   },
   "devDependencies": {
     "clean-webpack-plugin": "^0.1.18",
     "codecov": "^3.0.0",
+    "copy-webpack-plugin": "^4.5.0",
+    "lodash": "^4.17.5",
     "nunjucks": "^3.1.2",
     "nunjucks-webpack-plugin": "^4.0.0",
+    "uglifyjs-webpack-plugin": "^1.2.2",
     "webpack": "^3.11.0",
-    "webpack-dev-server": "^2.11.1"
+    "webpack-dev-server": "^2.11.1",
+    "webpack-merge": "^4.1.2"
   },
   "dependencies": {
     "npm": "^5.7.1"

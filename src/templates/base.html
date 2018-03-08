@@ -185,6 +185,10 @@
 <script type="application/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.css"></script>
 <script type="application/javascript" src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.1.1/js/bootstrap.min.js"></script>
 
+{% for js in javascript %}
+<script type="application/javascript" src="{{ PUBLIC_PATH }}/{{ js }}"></script>
+{% endfor %}
+
 <script type="application/javascript">
     $(window).on("load", function () {
         "use strict";
