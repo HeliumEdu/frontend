@@ -20,6 +20,7 @@
   },
   "devDependencies": {
     "clean-webpack-plugin": "^0.1.18",
+    "codecov": "^3.0.0",
     "nunjucks": "^3.1.2",
     "nunjucks-webpack-plugin": "^4.0.0",
     "webpack": "^3.11.0",
