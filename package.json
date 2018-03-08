@@ -1,0 +1,31 @@
+{
+  "name": "helium-frontend",
+  "version": "1.4.0",
+  "description": "Frontend for Helium Student Planner",
+  "author": "Alex Laird",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/HeliumEdu/frontend/issues"
+  },
+  "homepage": "https://github.com/HeliumEdu/frontend#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HeliumEdu/frontend.git"
+  },
+  "scripts": {
+    "build": "webpack",
+    "watch": "webpack --watch",
+    "start": "webpack-dev-server --port 3000",
+    "test": "echo \"Error: no tests to run\""
+  },
+  "devDependencies": {
+    "clean-webpack-plugin": "^0.1.18",
+    "nunjucks": "^3.1.2",
+    "nunjucks-webpack-plugin": "^4.0.0",
+    "webpack": "^3.11.0",
+    "webpack-dev-server": "^2.11.1"
+  },
+  "dependencies": {
+    "npm": "^5.7.1"
+  }
+}
