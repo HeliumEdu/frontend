@@ -399,15 +399,6 @@ $(window).on("load", function () {
 
     $("#version-badge").fadeIn("fast");
 
-    if (AUTH_TOKEN !== undefined) {
-        $("#planned-nav").removeClass("hidden");
-        $("#reminder-nav").removeClass("hidden");
-        $("#authenticated-dropdown-nav").removeClass("hidden");
-    } else {
-        $("#register-nav").removeClass("hidden");
-        $("#login-nav").removeClass("hidden");
-    }
-
     var current_nav = $('a[href="' + window.location.pathname + '"]');
     if (current_nav) {
         if (window.location.pathname === "/settings") {
@@ -415,6 +406,15 @@ $(window).on("load", function () {
         } else {
             current_nav.parent().addClass("active");
         }
+    }
+
+    if (AUTH_TOKEN !== undefined) {
+        $("#planned-nav").removeClass("hidden");
+        $("#reminder-nav").removeClass("hidden");
+        $("#authenticated-dropdown-nav").removeClass("hidden");
+    } else {
+        $("#register-nav").removeClass("hidden");
+        $("#login-nav").removeClass("hidden");
     }
 });
 

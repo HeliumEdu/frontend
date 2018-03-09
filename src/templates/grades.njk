@@ -3,5 +3,51 @@
 {% block title %}{{ PROJECT_NAME }} | Grades{% endblock %}
 
 {% block content %}
+    <div class="main-container">
+        <div class="container">
+            <div class="page-content">
+                <div class="page-header">
+                    <h1>
+                        Grades
+                        <small class="hidden-print">
+                            <i class="icon-double-angle-right"></i>
+                            &nbsp;track your progress
+                            <div id="grades-loading" class="loading-mini" style="padding-left: 25px;">
+                                <div id="loading-grades"></div>
+                            </div>
+                        </small>
+                    </h1>
+                </div>
 
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="tabbable tabs-left">
+                            <ul class="nav nav-tabs hidden-print hidden-xs" id="course-group-tabs">
+                            </ul>
+
+                            <div class="tab-content" id="course-group-tab-content" style="overflow: hidden;">
+                                <div id="no-grades-tab" class="tab-pane">
+                                    <div class="helper-container">
+                                        <div class="well">
+                                            <h1 class="grey lighter smaller">
+                                                <img src="{{ PUBLIC_PATH }}/assets/img/logo_square.png" width="50" height="50"
+                                                     class="logo-icon"/>
+                                                Add Your Classes to Get Started
+                                            </h1>
+
+                                            <hr>
+                                            <h3 class="lighter smaller">We can't calculate any grades for you if you
+                                                don't have any classes. Head on over to <a
+                                                        href="/classes">the
+                                                    Classes page</a> to get started!</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
