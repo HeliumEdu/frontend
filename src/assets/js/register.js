@@ -24,7 +24,7 @@ $("#register-form").submit(function (e) {
         if (helium.data_has_err_msg(data)) {
             $("#status").html(helium.get_error_msg(data)).addClass("alert-warning").removeClass("hidden");
         } else {
-            Cookies.set("status_type", "warning", {path: "/"});
+            Cookies.set("status_type", "info", {path: "/"});
             Cookies.set("status_msg", "You're almost there! The last step is to verify your email address. Click the link in the email we just sent you and your registration will be complete!", {path: "/"});
 
             window.location.href = "/login";

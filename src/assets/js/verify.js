@@ -5,7 +5,7 @@ var SITE_HOST = location.host + "/";
 var SITE_URL = location.protocol + "//" + SITE_HOST;
 
 var API_URL = "https://api.heliumedu.com";
-if (SITE_URL === "http://localhost:3000/") {
+if (SITE_URL === "http://localhost:3000/" || SITE_URL === "http://127.0.0.1:3000/") {
     API_URL = "http://localhost:8000";
 } else if (SITE_URL === "https://www.heliumedu.dev/") {
     API_URL = "https://api.heliumedu.dev";
