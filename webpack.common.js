@@ -31,7 +31,8 @@ const defaultContext = {
     ],
     'base_header_javascript': [
         path.join('assets', 'js', 'vendors', `ace-extra${min_suffix}.js`),
-        path.join('assets', 'js', 'vendors', `js.cookie${min_suffix}.js`)
+        path.join('assets', 'js', 'vendors', `js.cookie${min_suffix}.js`),
+        path.join('assets', 'js', 'vendors', `url${min_suffix}.js`)
     ],
     'base_ie9_javascript': [
         path.join('assets', 'js', 'vendors', `html5shiv${min_suffix}.js`),
@@ -47,7 +48,7 @@ const defaultContext = {
     ],
     'base_ie8_stylesheet': [
         path.join('assets', 'css', 'vendors', `ace-ie${min_suffix}.css`)
-    ],
+    ]
 };
 
 module.exports = {
@@ -87,6 +88,21 @@ module.exports = {
         new NunjucksWebpackPlugin({
             templates: [
                 {
+                    from: path.join("src", "templates", "404.njk"),
+                    to: "404.html",
+                    context: defaultContext
+                },
+                {
+                    from: path.join("src", "templates", "500.njk"),
+                    to: "500.html",
+                    context: defaultContext
+                },
+                {
+                    from: path.join("src", "templates", "503.njk"),
+                    to: "503.html",
+                    context: defaultContext
+                },
+                {
                     from: path.join("src", "templates", "index.njk"),
                     to: "index.html",
                     context: defaultContext
@@ -96,6 +112,13 @@ module.exports = {
                     to: "register.html",
                     context: _.extend({}, defaultContext, {
                         "page_javascript": [path.join('assets', 'js', `register${min_suffix}.js`)]
+                    })
+                },
+                {
+                    from: path.join("src", "templates", "base.njk"),
+                    to: "verify.html",
+                    context: _.extend({}, defaultContext, {
+                        "redirect_javascript": [path.join('assets', 'js', `verify${min_suffix}.js`)]
                     })
                 },
                 {
@@ -120,12 +143,12 @@ module.exports = {
                     })
                 },
                 {
-                    from: path.join("src", "templates", "support.njk"),
+                    from: path.join("src", "templates", "base.njk"),
                     to: "support.html",
                     context: _.extend({}, defaultContext, {
                         "redirect_javascript": [path.join('assets', 'js', `support${min_suffix}.js`)]
                     })
-                },
+                }
             ]
         })
     ]

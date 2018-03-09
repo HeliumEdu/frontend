@@ -9,6 +9,7 @@ module.exports = merge(common, {
             rewrites: [
                 { from: /^\/$/, to: '/index.html' },
                 { from: /^\/register/, to: '/register.html' },
+                { from: /^\/verify/, to: '/verify.html' },
                 { from: /^\/login/, to: '/login.html' },
                 { from: /^\/forgot/, to: '/forgot.html' },
                 { from: /^\/logout/, to: '/logout.html' },

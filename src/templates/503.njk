@@ -1,6 +1,6 @@
 {% extends "src/templates/base.njk" %}
 
-{% block title %}{{ PROJECT_NAME }} | Page Not Found{% endblock %}
+{% block title %}{{ PROJECT_NAME }} | Service Unavailable{% endblock %}
 
 {% block content %}
     <div class="main-container">
@@ -11,32 +11,29 @@
                         <div class="error-container">
                             <div class="well">
                                 <h1 class="grey lighter smaller">
-                                    <img src="{{ PUBLIC_PATH }}/assets/img/logo_square.png' %}" width="50" height="50"
+                                    <img src="{{ PUBLIC_PATH }}/assets/img/logo_square.png" width="50" height="50"
                                          class="logo-icon"/>
-                                    404 Page Not Found
+                                    503 Website Unavailable
                                 </h1>
 
                                 <hr/>
-                                <h3 class="lighter smaller">We looked everywhere, but we couldn't find that page!</h3>
+                                <h3 class="lighter smaller">But we are working <i
+                                        class="icon-wrench icon-animated-wrench bigger-125"></i>on it!</h3>
+
+                                <div class="space"></div>
 
                                 <div>
-                                    <div class="space"></div>
-                                    <h4 class="smaller">Try one of the following:</h4>
+                                    <h4 class="lighter smaller">Meanwhile, try one of the following:</h4>
 
                                     <ul class="list-unstyled spaced inline bigger-110 margin-15">
                                         <li>
                                             <i class="icon-hand-right blue"></i>
-                                            Check the URL for typos
+                                            Refresh the page
                                         </li>
 
                                         <li>
                                             <i class="icon-hand-right blue"></i>
-                                            Email us and let us know the page you were trying to reach
-                                        </li>
-
-                                        <li>
-                                            <i class="icon-hand-right blue"></i>
-                                            Browse our support pages, just for fun
+                                            Email us to let us know what you were doing when this error occurred
                                         </li>
                                     </ul>
                                 </div>

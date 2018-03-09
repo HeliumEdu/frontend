@@ -1,4 +1,10 @@
-$("#register-form").submit(function(e) {
+var AUTH_TOKEN = Cookies.get("authtoken", {path: "/"});
+
+if (AUTH_TOKEN !== undefined) {
+    window.location.href = "/planner/calendar";
+}
+
+$("#register-form").submit(function (e) {
     e.preventDefault();
     e.returnValue = false;
 
@@ -8,7 +14,7 @@ $("#register-form").submit(function(e) {
     var password2 = $("#id_password2").val();
     var time_zone = $("#id_time_zone").val();
 
-    if(password1 !== password2) {
+    if (password1 !== password2) {
         $("#status").html("You must enter matching passwords.").addClass("alert-warning").removeClass("hidden");
 
         return false;

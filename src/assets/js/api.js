@@ -82,7 +82,9 @@ function HeliumPlannerAPI() {
             url: helium.API_URL + "/auth/user/register/",
             data: JSON.stringify({username: username, email: email, password: password, time_zone: time_zone}),
             dataType: "json",
-            success: function (data) {callback(data)},
+            success: function (data) {
+                callback(data)
+            },
             error: function (jqXHR, textStatus, errorThrown) {
                 var data = [{
                     'err_msg': self.GENERIC_ERROR_MESSAGE,
@@ -99,11 +101,8 @@ function HeliumPlannerAPI() {
                 callback(data);
             }
         });
-    }
+    };
 
-    /**
-     * Obtain a token for the user and, if authenticated, set the AUTH_TOKEN cookie.
-     */
     this.login = function (callback, username, password) {
         return $.ajax({
             type: "POST",
@@ -131,17 +130,16 @@ function HeliumPlannerAPI() {
                 callback(data);
             }
         });
-    }
+    };
 
-    /**
-     * Obtain a token for the user and, if authenticated, set the AUTH_TOKEN cookie.
-     */
     this.forgot = function (callback, email) {
         return $.ajax({
             type: "PUT",
             url: helium.API_URL + "/auth/user/forgot/",
             data: JSON.stringify({email: email}),
-            success: function(data) {callback(data)},
+            success: function (data) {
+                callback(data)
+            },
             error: function (jqXHR, textStatus, errorThrown) {
                 var data = [{
                     'err_msg': self.GENERIC_ERROR_MESSAGE,
@@ -158,7 +156,7 @@ function HeliumPlannerAPI() {
                 callback(data);
             }
         });
-    }
+    };
 
     /**
      * Update user details.

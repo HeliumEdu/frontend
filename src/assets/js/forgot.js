@@ -1,3 +1,9 @@
+var AUTH_TOKEN = Cookies.get("authtoken", {path: "/"});
+
+if (AUTH_TOKEN !== undefined) {
+    window.location.href = "/settings";
+}
+
 $("#forgot-form").submit(function(e) {
     e.preventDefault();
     e.returnValue = false;
