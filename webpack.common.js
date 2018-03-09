@@ -81,7 +81,7 @@ module.exports = {
         // Static page assets
         new CopyWebpackPlugin([
             {
-                from: '**/*.+(txt|html)'
+                from: '**/*.+(txt|xml|html)'
             }
         ]),
         // Compile Nunjucks templates into HTML static page assets
