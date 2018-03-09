@@ -41,6 +41,10 @@
     <link rel="stylesheet" href="{{ PUBLIC_PATH }}/{{ css }}" type="text/css"/>
     {% endfor %}
 
+    {% for css in page_stylesheet_print %}
+    <link rel="stylesheet" href="{{ PUBLIC_PATH }}/{{ css }}" type="text/css" media="print"/>
+    {% endfor %}
+
     {% for css in base_stylesheet %}
     <link rel="stylesheet" href="{{ PUBLIC_PATH }}/{{ css }}" type="text/css"/>
     {% endfor %}

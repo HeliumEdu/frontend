@@ -179,7 +179,18 @@ module.exports = {
                     to: "settings.html",
                     context: _.extend({}, defaultContext, {
                         "redirect_javascript": [path.join('assets', 'js', `authenticated${min_suffix}.js`)],
-                        "page_javascript": []
+                        "page_stylesheet_pre": [
+                            path.join('assets', 'css', 'vendors', `bootstrap-editable${min_suffix}.css`),
+                            path.join('assets', 'css', 'vendors', `jquery-simplecolorpicker${min_suffix}.css`),
+                            path.join('assets', 'css', 'vendors', `jquery-simplecolorpicker-glyphicons${min_suffix}.css`)
+                        ],
+                        "page_stylesheet": [path.join('assets', 'css', `settings${min_suffix}.css`)],
+                        "page_javascript": [
+                            path.join('assets', 'js', 'vendors', `bootstrap-editable${min_suffix}.js`),
+                            path.join('assets', 'js', 'vendors', `jquery.simplecolorpicker${min_suffix}.js`),
+                            path.join('assets', 'js', 'vendors', `bootbox${min_suffix}.js`),
+                            path.join('assets', 'js', `settings${min_suffix}.js`)
+                        ]
                     })
                 },
                 {
@@ -194,7 +205,33 @@ module.exports = {
                     to: "planner/calendar.html",
                     context: _.extend({}, defaultContext, {
                         "redirect_javascript": [path.join('assets', 'js', `authenticated${min_suffix}.js`)],
-                        "page_javascript": []
+                        "page_stylesheet_pre": [
+                            path.join('assets', 'css', 'vendors', `bootstrap-editable${min_suffix}.css`),
+                            path.join('assets', 'css', 'vendors', `fullcalendar${min_suffix}.css`),
+                            path.join('assets', 'css', 'vendors', `datepicker${min_suffix}.css`),
+                            path.join('assets', 'css', 'vendors', `bootstrap-timepicker${min_suffix}.css`),
+                            path.join('assets', 'css', 'vendors', `jquery.simplecolorpicker${min_suffix}.css`),
+                            path.join('assets', 'css', 'vendors', `jquery.simplecolorpicker-glyphicons${min_suffix}.css`),
+                            path.join('assets', 'css', 'vendors', `dropzone${min_suffix}.css`),
+                            path.join('assets', 'css', 'vendors', `jquery.qtip${min_suffix}.css`)
+                        ],
+                        "page_stylesheet_print": [path.join('assets', 'css', 'vendors', `fullcalendar.print${min_suffix}.css`)],
+                        "page_stylesheet": [path.join('assets', 'css', `calendar${min_suffix}.css`)],
+                        "page_javascript": [
+                            path.join('assets', 'js', 'vendors', `bootstrap-datepicker${min_suffix}.js`),
+                            path.join('assets', 'js', 'vendors', `bootstrap-timepicker${min_suffix}.js`),
+                            path.join('assets', 'js', 'vendors', `bootstrap-editable${min_suffix}.js`),
+                            path.join('assets', 'js', 'vendors', `bootbox${min_suffix}.js`),
+                            path.join('assets', 'js', 'vendors', `jquery.dataTables${min_suffix}.js`),
+                            path.join('assets', 'js', 'vendors', `jquery.dataTables.bootstrap${min_suffix}.js`),
+                            path.join('assets', 'js', 'vendors', `fullcalendar${min_suffix}.js`),
+                            path.join('assets', 'js', 'vendors', `dropzone${min_suffix}.js`),
+                            path.join('assets', 'js', 'vendors', `jquery.qtip${min_suffix}.js`),
+                            path.join('assets', 'js', 'vendors', `jquery.hotkeys${min_suffix}.js`),
+                            path.join('assets', 'js', 'vendors', `bootstrap-wysiwyg${min_suffix}.js`),
+                            path.join('assets', 'js', `calendar${min_suffix}.js`),
+                            path.join('assets', 'js', `calendar-triggers${min_suffix}.js`)
+                        ]
                     })
                 },
                 {
@@ -202,7 +239,30 @@ module.exports = {
                     to: "planner/classes.html",
                     context: _.extend({}, defaultContext, {
                         "redirect_javascript": [path.join('assets', 'js', `authenticated${min_suffix}.js`)],
-                        "page_javascript": []
+                        "page_stylesheet_pre": [
+                            path.join('assets', 'css', 'vendors', `bootstrap-editable${min_suffix}.css`),
+                            path.join('assets', 'css', 'vendors', `typeahead.js-bootstrap${min_suffix}.css`),
+                            path.join('assets', 'css', 'vendors', `datepicker${min_suffix}.css`),
+                            path.join('assets', 'css', 'vendors', `bootstrap-timepicker${min_suffix}.css`),
+                            path.join('assets', 'css', 'vendors', `jquery.simplecolorpicker${min_suffix}.css`),
+                            path.join('assets', 'css', 'vendors', `jquery.simplecolorpicker-glyphicons${min_suffix}.css`),
+                            path.join('assets', 'css', 'vendors', `dropzone${min_suffix}.css`)
+                        ],
+                        "page_stylesheet": [path.join('assets', 'css', `classes${min_suffix}.css`)],
+                        "page_javascript": [
+                            path.join('assets', 'js', 'vendors', `bootstrap-datepicker${min_suffix}.js`),
+                            path.join('assets', 'js', 'vendors', `bootstrap-timepicker${min_suffix}.js`),
+                            path.join('assets', 'js', 'vendors', `bootstrap-editable${min_suffix}.js`),
+                            path.join('assets', 'js', 'vendors', `typeahead${min_suffix}.js`),
+                            path.join('assets', 'js', 'vendors', `typeaheadjs${min_suffix}.js`),
+                            path.join('assets', 'js', 'vendors', `bootbox${min_suffix}.js`),
+                            path.join('assets', 'js', 'vendors', `jquery.dataTables${min_suffix}.js`),
+                            path.join('assets', 'js', 'vendors', `jquery.dataTables.bootstrap${min_suffix}.js`),
+                            path.join('assets', 'js', 'vendors', `jquery.simplecolorpicker${min_suffix}.js`),
+                            path.join('assets', 'js', 'vendors', `dropzone${min_suffix}.js`),
+                            path.join('assets', 'js', `classes${min_suffix}.js`),
+                            path.join('assets', 'js', `classes-triggers${min_suffix}.js`)
+                        ]
                     })
                 },
                 {
@@ -210,7 +270,18 @@ module.exports = {
                     to: "planner/materials.html",
                     context: _.extend({}, defaultContext, {
                         "redirect_javascript": [path.join('assets', 'js', `authenticated${min_suffix}.js`)],
-                        "page_javascript": []
+                        "page_stylesheet_pre": [path.join('assets', 'css', 'vendors', `bootstrap-editable${min_suffix}.css`)],
+                        "page_stylesheet": [path.join('assets', 'css', `materials${min_suffix}.css`)],
+                        "page_javascript": [
+                            path.join('assets', 'js', 'vendors', `bootstrap-editable${min_suffix}.js`),
+                            path.join('assets', 'js', 'vendors', `bootbox${min_suffix}.js`),
+                            path.join('assets', 'js', 'vendors', `jquery.dataTables${min_suffix}.js`),
+                            path.join('assets', 'js', 'vendors', `jquery.dataTables.bootstrap${min_suffix}.js`),
+                            path.join('assets', 'js', 'vendors', `jquery.hotkeys${min_suffix}.js`),
+                            path.join('assets', 'js', 'vendors', `bootstrap-wysiwyg${min_suffix}.js`),
+                            path.join('assets', 'js', `materials${min_suffix}.js`),
+                            path.join('assets', 'js', `materials-triggers${min_suffix}.js`)
+                        ]
                     })
                 },
                 {
@@ -218,7 +289,16 @@ module.exports = {
                     to: "planner/grades.html",
                     context: _.extend({}, defaultContext, {
                         "redirect_javascript": [path.join('assets', 'js', `authenticated${min_suffix}.js`)],
-                        "page_javascript": []
+                        "page_stylesheet_pre": [path.join('assets', 'css', `grades${min_suffix}.css`)],
+                        "page_javascript": [
+                            path.join('assets', 'js', 'vendors', `bootbox${min_suffix}.js`),
+                            path.join('assets', 'js', 'vendors', `jquery.easy-pie-chart${min_suffix}.js`),
+                            path.join('assets', 'js', 'vendors', `jquery.flot${min_suffix}.js`),
+                            path.join('assets', 'js', 'vendors', `jquery.flot.pie${min_suffix}.js`),
+                            path.join('assets', 'js', 'vendors', `jquery.flot.resize${min_suffix}.js`),
+                            path.join('assets', 'js', 'vendors', `jquery.flot.time${min_suffix}.js`),
+                            path.join('assets', 'js', `grades${min_suffix}.js`)
+                        ]
                     })
                 }
             ]

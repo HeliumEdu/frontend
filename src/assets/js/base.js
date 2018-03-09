@@ -407,6 +407,15 @@ $(window).on("load", function () {
         $("#register-nav").removeClass("hidden");
         $("#login-nav").removeClass("hidden");
     }
+
+    var current_nav = $('a[href="' + window.location.pathname + '"]');
+    if (current_nav) {
+        if (window.location.pathname === "/settings") {
+            $("#authenticated-dropdown-nav").addClass("active");
+        } else {
+            current_nav.parent().addClass("active");
+        }
+    }
 });
 
 if (AUTH_TOKEN !== undefined) {
