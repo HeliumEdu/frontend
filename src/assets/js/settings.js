@@ -119,7 +119,7 @@ function HeliumSettings() {
                     context: form,
                     data: JSON.stringify(data),
                     type: 'POST',
-                    url: '/api/feed/externalcalendars/',
+                    url: helium.API_URL + '/feed/externalcalendars/',
                     error: function (xhr) {
                         $("#status_preferences").html('Oops, an error occurred while saving changes to external calendars. Was the URL valid?').addClass("alert-warning").removeClass("hidden");
                     }
@@ -130,7 +130,7 @@ function HeliumSettings() {
                     context: form,
                     data: JSON.stringify(data),
                     type: 'PUT',
-                    url: '/api/feed/externalcalendars/' + id + '/',
+                    url: helium.API_URL + '/feed/externalcalendars/' + id + '/',
                     error: function (xhr) {
                         $("#status_preferences").html('Oops, an error occurred while saving changes to external calendars. Was the URL valid?').addClass("alert-warning").removeClass("hidden");
                     }
@@ -165,7 +165,7 @@ function HeliumSettings() {
             contentType: false,
             data: new FormData(this),
             type: 'POST',
-            url: '/api/importexport/import/',
+            url: helium.API_URL + '/importexport/import/',
             error: function (xhr) {
                 $("#status_importexport").html(JSON.stringify(xhr.responseJSON)).addClass("alert-danger").removeClass("hidden");
 
@@ -211,7 +211,7 @@ function HeliumSettings() {
                 $.ajax({
                     async: false,
                     type: 'DELETE',
-                    url: '/api/feed/externalcalendars/' + id + '/',
+                    url: helium.API_URL + '/feed/externalcalendars/' + id + '/',
                     error: function (xhr) {
                         // TODO: show errors
                     }
@@ -227,7 +227,7 @@ function HeliumSettings() {
                 data: data,
                 contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
                 type: 'PUT',
-                url: '/api/auth/user/settings/',
+                url: helium.API_URL + '/auth/user/settings/',
                 error: function (xhr) {
                     $.each(xhr.responseJSON, function (key, value) {
                         helium.show_error("preferences", key, value);
@@ -264,7 +264,7 @@ function HeliumSettings() {
                 data: data,
                 contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
                 type: 'PUT',
-                url: '/api/auth/user/profile/',
+                url: helium.API_URL + '/auth/user/profile/',
                 error: function (xhr) {
                     $.each(xhr.responseJSON, function (key, value) {
                         helium.show_error("personal", key, value);
@@ -346,7 +346,7 @@ function HeliumSettings() {
                 data: data,
                 contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
                 type: 'PUT',
-                url: '/api/auth/user/',
+                url: helium.API_URL + '/auth/user/',
                 error: function (xhr) {
                     $.each(xhr.responseJSON, function (key, value) {
                         helium.show_error("account", key, value);
@@ -381,7 +381,7 @@ function HeliumSettings() {
             $("#enable-disable-feed").addClass("btn-warning");
             $("#enable-disable-feed").html('<i class="icon-check-minus"></i>Disable Private Feeds');
 
-            var base_url = helium.SITE_URL + "feed/private/" + helium.USER_PREFS.settings.private_slug;
+            var base_url = helium.API_URL + "/feed/private/" + helium.USER_PREFS.settings.private_slug;
 
             $("#private-feed-urls").html("<strong>Events: </strong><a href=\"" + base_url + "/events.ics\">" + base_url + "/events.ics</a>" +
                 "<br /><strong>Homework: </strong><a href=\"" + base_url + "/homework.ics\">" + base_url + "/homework.ics</a>" +
@@ -396,7 +396,7 @@ function HeliumSettings() {
             $.ajax({
                 async: false,
                 type: 'PUT',
-                url: '/api/feed/private/enable/',
+                url: helium.API_URL + '/feed/private/enable/',
                 error: function () {
                     $("#status_feed").html('Sorry, an unknown error occurred while trying to enable feeds. Please <a href="/contact">contact support</a>').addClass("alert-warning").removeClass("hidden");
 
@@ -412,7 +412,7 @@ function HeliumSettings() {
             $.ajax({
                 async: false,
                 type: 'PUT',
-                url: '/api/feed/private/disable/',
+                url: helium.API_URL + '/feed/private/disable/',
                 error: function () {
                     $("#status_feed").html('Sorry, an unknown error occurred while trying to enable feeds. Please <a href="/contact">contact support</a>').addClass("alert-warning").removeClass("hidden");
 
@@ -457,7 +457,7 @@ function HeliumSettings() {
                             async: false,
                             data: JSON.stringify(data),
                             type: 'DELETE',
-                            url: '/api/auth/user/',
+                            url: helium.API_URL + '/auth/user/',
                             error: function () {
                                 $("#status_account").html('Sorry, an unknown error occurred while trying to delete your account. Please <a href="/contact">contact support</a>').addClass("alert-warning").removeClass("hidden");
 
@@ -477,6 +477,16 @@ function HeliumSettings() {
             }
         });
     });
+
+    $("#export-button").on("click", function (e) {
+        e.preventDefault();
+        e.returnValue = false;
+
+        // TODO: need to readd support for this that can properly go cross-origin
+        $("#export-status-div").addClass("alert-warning").removeClass("alert-info").html("We're sorry, but exports are currently not working.").show();
+
+//        helium.API_URL + "/importexport/export/";
+    });
 }
 
 // Initialize HeliumSettings and give a reference to the Helium object
@@ -484,8 +494,6 @@ helium.settings = new HeliumSettings();
 
 $(document).ready(function () {
     "use strict";
-
-    $("#export-button").attr("href", helium.API_URL + "/importexport/export");
 
     $("#loading-preferences").spin(false);
     $("#loading-personal").spin(false);

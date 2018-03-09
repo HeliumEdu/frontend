@@ -7,6 +7,8 @@
  * @version 1.4.0
  */
 
+window.PRIVILEGED_ROUTE = true;
+
 var AUTH_TOKEN = Cookies.get("authtoken");
 
 if (AUTH_TOKEN === undefined) {

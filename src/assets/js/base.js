@@ -430,6 +430,13 @@ if (AUTH_TOKEN !== undefined) {
             if (helium.USER_PREFS.profile.phone !== null) {
                 helium.REMINDER_TYPE_CHOICES.push("Text");
             }
+        },
+        error: function () {
+            if (window.PRIVILEGED_ROUTE) {
+                Cookies.remove("authtoken", {path: "/"})
+
+                window.location.href = "/login?next=" + window.location.pathname;
+            }
         }
     });
 }
