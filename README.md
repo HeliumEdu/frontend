@@ -24,7 +24,7 @@ make test
 
 ## Development
 ### Vagrant Development
-To emulate a prod-like environment, use the Vagrant box. It's setup is described more thoroughly in the [deploy](https://github.com/HeliumEdu/deploy)
+To emulate a prod-like environment, use the Vagrant box. It's setup is described more thoroughly in the [deploy](https://github.com/HeliumEdu/deploy#readme)
 project. This is the recommended way to develop and test for production as this environment is provisioned in the same way other prod-like
 environments are deployed and interacts with related projects as necessary.
 
@@ -36,7 +36,7 @@ time code changes are made, `make build` will need to be run for them to take ef
 
 ### Local Development
 This is the simplest way to get started with minimal effort. Before starting the frontend development server, ensure the
-[`platform`](https://github.com/HeliumEdu/platform) server is running at http://localhost:8000. Then, to get going
+[platform](https://github.com/HeliumEdu/platform#readme) server is running at http://localhost:8000. Then, to get going
 (assuming you have followed the "Getting Started" directions above), then simply start the frontend server with:
 
 ```
