@@ -7,14 +7,25 @@ module.exports = merge(common, {
         port: 3000,
         historyApiFallback: {
             rewrites: [
-                { from: /^\/$/, to: '/index.html' },
-                { from: /^\/register/, to: '/register.html' },
-                { from: /^\/verify/, to: '/verify.html' },
-                { from: /^\/login/, to: '/login.html' },
-                { from: /^\/forgot/, to: '/forgot.html' },
-                { from: /^\/logout/, to: '/logout.html' },
-                { from: /^\/support/, to: '/support.html' },
-                { from: /./, to: '/404.html' }
+                {from: /^\/$/, to: '/index.html'},
+                {from: /^\/register/, to: '/register.html'},
+                {from: /^\/verify/, to: '/verify.html'},
+                {from: /^\/login/, to: '/login.html'},
+                {from: /^\/forgot/, to: '/forgot.html'},
+                {from: /^\/logout/, to: '/logout.html'},
+                {from: /^\/support/, to: '/support.html'},
+                {from: /^\/about/, to: '/about.html'},
+                {from: /^\/contact/, to: '/contact.html'},
+                {from: /^\/press/, to: '/press.html'},
+                {from: /^\/privacy/, to: '/privacy.html'},
+                {from: /^\/terms/, to: '/terms.html'},
+                {from: /^\/settings/, to: '/settings.html'},
+                {from: /^\/planner$/, to: '/planner/index.html'},
+                {from: /^\/planner\/calendar/, to: '/planner/calendar.html'},
+                {from: /^\/planner\/classes/, to: '/planner/classes.html'},
+                {from: /^\/planner\/materials/, to: '/planner/materials.html'},
+                {from: /^\/planner\/grades/, to: '/planner/grades.html'},
+                {from: /./, to: '/404.html'}
             ]
         }
     }

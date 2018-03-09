@@ -1,6 +1,6 @@
 const path = require('path');
 const _ = require('lodash');
-const CopyWebpackPlugin = require('copy-webpack-plugin')
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 const NunjucksWebpackPlugin = require("nunjucks-webpack-plugin");
 
 const publicPath = "";
@@ -147,6 +147,78 @@ module.exports = {
                     to: "support.html",
                     context: _.extend({}, defaultContext, {
                         "redirect_javascript": [path.join('assets', 'js', `support${min_suffix}.js`)]
+                    })
+                },
+                {
+                    from: path.join("src", "templates", "about.njk"),
+                    to: "about.html",
+                    context: defaultContext
+                },
+                {
+                    from: path.join("src", "templates", "contact.njk"),
+                    to: "contact.html",
+                    context: defaultContext
+                },
+                {
+                    from: path.join("src", "templates", "press.njk"),
+                    to: "press.html",
+                    context: defaultContext
+                },
+                {
+                    from: path.join("src", "templates", "privacy.njk"),
+                    to: "privacy.html",
+                    context: defaultContext
+                },
+                {
+                    from: path.join("src", "templates", "terms.njk"),
+                    to: "terms.html",
+                    context: defaultContext
+                },
+                {
+                    from: path.join("src", "templates", "settings.njk"),
+                    to: "settings.html",
+                    context: _.extend({}, defaultContext, {
+                        "redirect_javascript": [path.join('assets', 'js', `authenticated${min_suffix}.js`)],
+                        "page_javascript": []
+                    })
+                },
+                {
+                    from: path.join("src", "templates", "base.njk"),
+                    to: "planner/index.html",
+                    context: _.extend({}, defaultContext, {
+                        "redirect_javascript": [path.join('assets', 'js', `planner${min_suffix}.js`)]
+                    })
+                },
+                {
+                    from: path.join("src", "templates", "calendar.njk"),
+                    to: "planner/calendar.html",
+                    context: _.extend({}, defaultContext, {
+                        "redirect_javascript": [path.join('assets', 'js', `authenticated${min_suffix}.js`)],
+                        "page_javascript": []
+                    })
+                },
+                {
+                    from: path.join("src", "templates", "classes.njk"),
+                    to: "planner/classes.html",
+                    context: _.extend({}, defaultContext, {
+                        "redirect_javascript": [path.join('assets', 'js', `authenticated${min_suffix}.js`)],
+                        "page_javascript": []
+                    })
+                },
+                {
+                    from: path.join("src", "templates", "materials.njk"),
+                    to: "planner/materials.html",
+                    context: _.extend({}, defaultContext, {
+                        "redirect_javascript": [path.join('assets', 'js', `authenticated${min_suffix}.js`)],
+                        "page_javascript": []
+                    })
+                },
+                {
+                    from: path.join("src", "templates", "grades.njk"),
+                    to: "planner/grades.html",
+                    context: _.extend({}, defaultContext, {
+                        "redirect_javascript": [path.join('assets', 'js', `authenticated${min_suffix}.js`)],
+                        "page_javascript": []
                     })
                 }
             ]
