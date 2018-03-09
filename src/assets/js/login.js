@@ -9,6 +9,10 @@
 
 var AUTH_TOKEN = Cookies.get("authtoken");
 
+if (AUTH_TOKEN !== undefined) {
+    window.location.href = "/planner/calendar";
+}
+
 $("#login-form").submit(function (e) {
     e.preventDefault();
     e.returnValue = false;
