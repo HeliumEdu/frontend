@@ -305,7 +305,7 @@ function HeliumSettings() {
 
         helium.clear_form_errors($(this).attr("id"));
 
-        if ($("#id_old_password").val() !== '' || $("#id_new_password1").val() !== '' || $("#id_new_password2").val() !== '') {
+        if ($("#id_old_password").val() !== '' || $("#id_password").val() !== '' || $("#id_password2").val() !== '') {
             // If one is present, all three must be present
             var has_error = false;
             if ($("#id_old_password").val() === '') {
@@ -313,13 +313,18 @@ function HeliumSettings() {
 
                 has_error = true;
             }
-            if ($("#id_new_password1").val() === '') {
-                helium.show_error("account", "new_password1", "This field is required.");
+            if ($("#id_password").val() === '') {
+                helium.show_error("account", "password", "This field is required.");
 
                 has_error = true;
             }
-            if ($("#id_new_password2").val() === '') {
-                helium.show_error("account", "new_password2", "This field is required.");
+            if ($("#id_password2").val() === '') {
+                helium.show_error("account", "password2", "This field is required.");
+
+                has_error = true;
+            }
+            if (!has_error && $("#id_password").val() !== $("#id_password2").val()) {
+                helium.show_error("account", "password2", "You must enter matching passwords.");
 
                 has_error = true;
             }
@@ -360,6 +365,10 @@ function HeliumSettings() {
                     }
 
                     helium.clear_form_errors("account-form");
+
+                    $("#id_old_password").val("");
+                    $("#id_password").val("");
+                    $("#id_password2").val("");
 
                     $("#status_account").html("Changes saved.").addClass("alert-success").removeClass("hidden");
 
@@ -482,10 +491,21 @@ function HeliumSettings() {
         e.preventDefault();
         e.returnValue = false;
 
-        // TODO: need to readd support for this that can properly go cross-origin
-        $("#export-status-div").addClass("alert-warning").removeClass("alert-info").html("We're sorry, but exports are currently not working.").show();
+        $.ajax({
+            url: helium.API_URL + "/importexport/export/",
+            type: "GET",
+            dataType: "json",
+            success: function (data) {
+                var jsonStr = JSON.stringify(data);
+                var base64 = "data:application/json;charset=utf-8;base64," + btoa(jsonStr);
 
-//        helium.API_URL + "/importexport/export/";
+                $("<a>")
+                    .attr({
+                        "href": base64,
+                        "download": "Helium_" + helium.USER_PREFS.username + ".json"
+                    }).html($("<a>").attr("download")).get(0).click();
+            }
+        });
     });
 }
 
