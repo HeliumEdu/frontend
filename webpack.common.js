@@ -181,8 +181,8 @@ module.exports = {
                         "redirect_javascript": [path.join('assets', 'js', `authenticated${min_suffix}.js`)],
                         "page_stylesheet_pre": [
                             path.join('assets', 'css', 'vendors', `bootstrap-editable${min_suffix}.css`),
-                            path.join('assets', 'css', 'vendors', `jquery-simplecolorpicker${min_suffix}.css`),
-                            path.join('assets', 'css', 'vendors', `jquery-simplecolorpicker-glyphicons${min_suffix}.css`)
+                            path.join('assets', 'css', 'vendors', `jquery.simplecolorpicker${min_suffix}.css`),
+                            path.join('assets', 'css', 'vendors', `jquery.simplecolorpicker-glyphicons${min_suffix}.css`)
                         ],
                         "page_stylesheet": [path.join('assets', 'css', `settings${min_suffix}.css`)],
                         "page_javascript": [

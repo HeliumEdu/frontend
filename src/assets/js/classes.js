@@ -173,7 +173,7 @@ function HeliumClasses() {
             self.category_unsaved_pk += 1;
         }
 
-        row = "<tr id=\"category-" + category.id + unsaved_string + "\">" + "<td><a class=\"cursor-hover\" data-type=\"typeaheadjs\" id=\"category-" + category.id + unsaved_string + "-type\">" + category.title + "</a></td>" + "<td><a class=\"cursor-hover\" id=\"category-" + category.id + unsaved_string + "-weight\">" + category.weight + "</a></td><td><select id=\"category-" + category.id + unsaved_string + "-color\" class='color-picker'>" + $("#id_course_color").html() + "</select></td><td class=\"hidden-480\">" + (category.num_homework !== undefined ? category.num_homework : "0") + "</td>" + "<td><div class=\"btn-group\"><button class=\"btn btn-xs btn-danger\" id=\"delete-category-" + category.id + unsaved_string + "\"><i class=\"icon-trash bigger-120\"></i></button></div></td>" + "</tr>";
+        row = "<tr id=\"category-" + category.id + unsaved_string + "\">" + "<td><a class=\"cursor-hover\" data-type=\"typeaheadjs\" id=\"category-" + category.id + unsaved_string + "-type\">" + category.title + "</a></td>" + "<td><a class=\"cursor-hover\" id=\"category-" + category.id + unsaved_string + "-weight\">" + category.weight + "</a></td><td><select id=\"category-" + category.id + unsaved_string + "-color\" class='color-picker'>" + $("#id_color_select").html() + "</select></td><td class=\"hidden-480\">" + (category.num_homework !== undefined ? category.num_homework : "0") + "</td>" + "<td><div class=\"btn-group\"><button class=\"btn btn-xs btn-danger\" id=\"delete-category-" + category.id + unsaved_string + "\"><i class=\"icon-trash bigger-120\"></i></button></div></td>" + "</tr>";
         $("#categories-table-end-placeholder").before(row);
 
         $("#category-" + category.id + unsaved_string + "-color").simplecolorpicker({
@@ -362,7 +362,7 @@ function HeliumClasses() {
         $("#course-credits").spinner("value", "0");
         $("#course-teacher-name").val("");
         $("#course-teacher-email").val("");
-        $("#id_course_color").simplecolorpicker("selectColor", $($("#id_course_color option")[Math.floor(Math.random() * $("#id_course_color option").length)]).val());
+        $("#id_color_select").simplecolorpicker("selectColor", $($("#id_color_select option")[Math.floor(Math.random() * $("#id_color_select option").length)]).val());
         $("#course-online").prop("checked", false).trigger("change");
 
         // Initialize details on Schedule and Categories panels as well
@@ -730,7 +730,7 @@ function HeliumClasses() {
                     $("#course-website").val(course.website);
                     self.last_good_credits = course.credits;
                     $("#course-credits").spinner("value", self.last_good_credits);
-                    $("#id_course_color").simplecolorpicker("selectColor", course.color);
+                    $("#id_color_select").simplecolorpicker("selectColor", course.color);
                     $("#course-online").prop("checked", course.is_online);
                     $("#course-online").trigger("change");
 
@@ -1197,7 +1197,7 @@ function HeliumClasses() {
                         "end_date": end_date,
                         "room": $("#course-room").val(),
                         "credits": $("#course-credits").val(),
-                        "color": $("#id_course_color").val(),
+                        "color": $("#id_color_select").val(),
                         "website": $("#course-website").val(),
                         "is_online": $("#course-online").is(":checked"),
                         "teacher_name": $("#course-teacher-name").val(),
@@ -1501,7 +1501,7 @@ $(document).ready(function () {
             }
         }
     });
-    $("#id_course_color").simplecolorpicker({picker: true, theme: "glyphicons"});
+    $("#id_color_select").simplecolorpicker({picker: true, theme: "glyphicons"});
 
     /*******************************************
      * Other page initialization
