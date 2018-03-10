@@ -467,8 +467,12 @@ function HeliumSettings() {
                             data: JSON.stringify(data),
                             type: 'DELETE',
                             url: helium.API_URL + '/auth/user/',
-                            error: function () {
-                                $("#status_account").html('Sorry, an unknown error occurred while trying to delete your account. Please <a href="/contact">contact support</a>').addClass("alert-warning").removeClass("hidden");
+                            error: function (data) {
+                                if (data !== undefined && data.hasOwnProperty("responseJSON") && data.responseJSON.hasOwnProperty("password")) {
+                                    $("#status_account").html(data.responseJSON.password).addClass("alert-warning").removeClass("hidden");
+                                } else {
+                                    $("#status_account").html('Sorry, an unknown error occurred while trying to delete your account. Please <a href="/contact">contact support</a>').addClass("alert-warning").removeClass("hidden");
+                                }
 
                                 $("#loading-account").spin(false);
                             },
