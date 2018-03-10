@@ -7,6 +7,8 @@
  * @version 1.4.0
  */
 
+Cookies.remove("authtoken", {path: "/"});
+
 var username = url('?username');
 var code = url('?code');
 

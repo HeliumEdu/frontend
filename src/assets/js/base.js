@@ -433,7 +433,7 @@ if (AUTH_TOKEN !== undefined) {
         },
         error: function () {
             if (window.PRIVILEGED_ROUTE) {
-                Cookies.remove("authtoken", {path: "/"})
+                Cookies.remove("authtoken", {path: "/"});
 
                 window.location.href = "/login?next=" + window.location.pathname;
             }
