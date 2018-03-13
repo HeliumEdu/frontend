@@ -6,7 +6,7 @@
  * FIXME: This implementation is pretty crude compared to modern standards and will be completely overhauled in favor of a framework once the open source migration is completed.
  *
  * @author Alex Laird
- * @version 1.4.0
+ * @version 1.4.1
  */
 
 /**
@@ -427,8 +427,8 @@ function HeliumClasses() {
             helium.ajax_error_occurred = true;
             $("#loading-course-group-modal").spin(false);
 
-            $("#course-error").html(helium.get_error_msg(data));
-            $("#course-error").parent().show("fast");
+            $("#course-group-error").html(helium.get_error_msg(data));
+            $("#course-group-error").parent().show("fast");
         } else {
             var course_group_div, div, table_div;
             $("#course-group-tabs").prepend("<li><a data-toggle=\"tab\" href=\"#course-group-" + data.id + "\"><i class=\"icon-book r-110\"></i> " + data.title + (!data.shown_on_calendar ? " (H)" : "") + "</a></li>");
@@ -1157,9 +1157,17 @@ function HeliumClasses() {
                 };
 
                 self.ajax_calls.push(helium.planner_api.add_course_group(function (data) {
-                    self.add_course_group_to_page(data);
+                    if (helium.data_has_err_msg(data)) {
+                        helium.ajax_error_occurred = true;
+                        $("#loading-course-modal").spin(false);
 
-                    $("#course-group").val(data.id);
+                        $("#course-error").html(helium.get_error_msg(data));
+                        $("#course-error").parent().show("fast");
+                    } else {
+                        self.add_course_group_to_page(data);
+
+                        $("#course-group").val(data.id);
+                    }
                 }, data));
             }
 

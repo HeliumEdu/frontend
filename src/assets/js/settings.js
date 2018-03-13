@@ -6,7 +6,7 @@
  * FIXME: This implementation is pretty crude compared to modern standards and will be completely overhauled in favor of a framework once the open source migration is completed.
  *
  * @author Alex Laird
- * @version 1.4.0
+ * @version 1.4.1
  */
 
 /**
@@ -229,9 +229,13 @@ function HeliumSettings() {
                 type: 'PUT',
                 url: helium.API_URL + '/auth/user/settings/',
                 error: function (xhr) {
-                    $.each(xhr.responseJSON, function (key, value) {
-                        helium.show_error("preferences", key, value);
-                    });
+                    if (xhr.hasOwnProperty("responseJSON")) {
+                        $.each(xhr.responseJSON, function (key, value) {
+                            helium.show_error("preferences", key, value);
+                        });
+                    } else {
+                        helium.show_error("", "preferences", helium.planner_api.GENERIC_ERROR_MESSAGE);
+                    }
 
                     $("#loading-preferences").spin(false);
                 },
@@ -266,9 +270,13 @@ function HeliumSettings() {
                 type: 'PUT',
                 url: helium.API_URL + '/auth/user/profile/',
                 error: function (xhr) {
-                    $.each(xhr.responseJSON, function (key, value) {
-                        helium.show_error("personal", key, value);
-                    });
+                    if (xhr.hasOwnProperty("responseJSON")) {
+                        $.each(xhr.responseJSON, function (key, value) {
+                            helium.show_error("personal", key, value);
+                        });
+                    } else {
+                        helium.show_error("personal", "", helium.planner_api.GENERIC_ERROR_MESSAGE);
+                    }
 
                     $("#loading-personal").spin(false);
                 },
@@ -353,9 +361,13 @@ function HeliumSettings() {
                 type: 'PUT',
                 url: helium.API_URL + '/auth/user/',
                 error: function (xhr) {
-                    $.each(xhr.responseJSON, function (key, value) {
-                        helium.show_error("account", key, value);
-                    });
+                    if (xhr.hasOwnProperty("responseJSON")) {
+                        $.each(xhr.responseJSON, function (key, value) {
+                            helium.show_error("account", key, value);
+                        });
+                    } else {
+                        helium.show_error("account", "", helium.planner_api.GENERIC_ERROR_MESSAGE);
+                    }
 
                     $("#loading-account").spin(false);
                 },

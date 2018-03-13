@@ -6,7 +6,7 @@
  * FIXME: This implementation is pretty crude compared to modern standards and will be completely overhauled in favor of a framework once the open source migration is completed.
  *
  * @author Alex Laird
- * @version 1.4.0
+ * @version 1.4.1
  */
 
 /**
@@ -110,8 +110,8 @@ function HeliumMaterials() {
             helium.ajax_error_occurred = true;
             $("#loading-material-group-modal").spin(false);
 
-            $("#material-error").html(helium.get_error_msg(data));
-            $("#material-error").parent().show("fast");
+            $("#material-group-error").html(helium.get_error_msg(data));
+            $("#material-group-error").parent().show("fast");
         } else {
             var input_tab, material_group_div, div, table_div;
             $.each($('a[href^="#material-group-"]'), function (index, tab) {

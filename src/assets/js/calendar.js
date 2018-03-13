@@ -6,7 +6,7 @@
  * FIXME: This implementation is pretty crude compared to modern standards and will be completely overhauled in favor of a framework once the open source migration is completed.
  *
  * @author Alex Laird
- * @version 1.4.0
+ * @version 1.4.1
  */
 
 /**
@@ -743,6 +743,12 @@ function HeliumCalendar() {
                 $.each(external_calendars, function (index, external_calendar) {
                     helium.calendar.ajax_calls.push(helium.planner_api.get_external_calendar_feed(function (data) {
                         $.each(data, function (i, calendar_item) {
+                            if (calendar_item.hasOwnProperty("err_msg")) {
+                                helium.ajax_error_occurred = true;
+
+                                return false;
+                            }
+
                             if (Cookies.get("filter_search_string") === undefined || calendar_item.title.toLowerCase().indexOf(Cookies.get("filter_search_string")) !== -1) {
                                 events.push({
                                     id: "ext_" + external_calendar.id + "_" + calendar_item.id,
@@ -776,6 +782,12 @@ function HeliumCalendar() {
         if (Cookies.get("filter_show_events") === undefined || Cookies.get("filter_show_events") === "true") {
             helium.calendar.ajax_calls.push(helium.planner_api.get_events(function (data) {
                 $.each(data, function (i, calendar_item) {
+                    if (calendar_item.hasOwnProperty("err_msg")) {
+                        helium.ajax_error_occurred = true;
+
+                        return false;
+                    }
+
                     if (Cookies.get("filter_search_string") === undefined ||
                         calendar_item.title.toLowerCase().indexOf(Cookies.get("filter_search_string")) !== -1 ||
                         calendar_item.comments.toLowerCase().indexOf(Cookies.get("filter_search_string")) !== -1) {
@@ -808,6 +820,12 @@ function HeliumCalendar() {
         if (Cookies.get("filter_show_homework") === undefined || Cookies.get("filter_show_homework") === "true") {
             helium.calendar.ajax_calls.push(helium.planner_api.get_homework_by_user(function (data) {
                 $.each(data, function (i, calendar_item) {
+                    if (calendar_item.hasOwnProperty("err_msg")) {
+                        helium.ajax_error_occurred = true;
+
+                        return false;
+                    }
+
                     var course = helium.calendar.courses[calendar_item.course];
 
                     if (!helium.calendar.course_groups[course.course_group].shown_on_calendar) {
@@ -865,6 +883,12 @@ function HeliumCalendar() {
             $.each(helium.calendar.courses, function (index, course) {
                 helium.calendar.ajax_calls.push(helium.planner_api.get_class_schedule_events(function (data) {
                     $.each(data, function (i, calendar_item) {
+                        if (calendar_item.hasOwnProperty("err_msg")) {
+                            helium.ajax_error_occurred = true;
+
+                            return false;
+                        }
+
                         var course = helium.calendar.courses[calendar_item.owner_id];
 
                         if (!helium.calendar.course_groups[helium.calendar.courses[calendar_item.owner_id].course_group].shown_on_calendar) {
@@ -907,6 +931,10 @@ function HeliumCalendar() {
             callback(events);
 
             self.loading_div.spin(false);
+        }).fail(function () {
+            self.loading_div.spin(false);
+            
+            bootbox.alert(helium.planner_api.GENERIC_ERROR_MESSAGE);
         });
     };
 

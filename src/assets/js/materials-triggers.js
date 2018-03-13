@@ -6,7 +6,7 @@
  * FIXME: This implementation is pretty crude compared to modern standards and will be completely overhauled in favor of a framework once the open source migration is completed.
  *
  * @author Alex Laird
- * @version 1.4.0
+ * @version 1.4.1
  */
 
 /*******************************************
@@ -130,9 +130,17 @@
                 };
 
                 helium.materials.ajax_calls.push(helium.planner_api.add_material_group(function (data) {
-                    helium.materials.add_material_group_to_page(data);
+                    if (helium.data_has_err_msg(data)) {
+                        helium.ajax_error_occurred = true;
+                        $("#loading-material-modal").spin(false);
 
-                    $("#material-group").val(data.id);
+                        $("#material-error").html(helium.get_error_msg(data));
+                        $("#material-error").parent().show("fast");
+                    } else {
+                        helium.materials.add_material_group_to_page(data);
+
+                        $("#material-group").val(data.id);
+                    }
                 }, data));
             }
 
