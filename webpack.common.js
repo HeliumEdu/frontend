@@ -194,13 +194,6 @@ module.exports = {
                     })
                 },
                 {
-                    from: path.join("src", "templates", "base.njk"),
-                    to: "planner/index.html",
-                    context: _.extend({}, defaultContext, {
-                        "redirect_javascript": [path.join('assets', 'js', `planner${min_suffix}.js`)]
-                    })
-                },
-                {
                     from: path.join("src", "templates", "calendar.njk"),
                     to: "planner/calendar.html",
                     context: _.extend({}, defaultContext, {
