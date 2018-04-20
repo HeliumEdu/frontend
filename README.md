@@ -1,6 +1,7 @@
 # Helium Frontend Project
 
 ## Prerequisites
+
 * NPM (>= 5.6)
 
 ## Getting Started
