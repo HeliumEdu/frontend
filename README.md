@@ -41,7 +41,7 @@ This is the simplest way to get started with minimal effort. Before starting the
 (assuming you have followed the "Getting Started" directions above), then simply start the frontend server with:
 
 ```
-npm run start
+bin/runserver
 ```
 
 A development server will be started at http://localhost:3000. Note however that, since part of the way this build was
