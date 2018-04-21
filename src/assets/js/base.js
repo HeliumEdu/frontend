@@ -71,6 +71,8 @@ function Helium() {
     // This object gets initialized in the base template
     this.USER_PREFS = {};
 
+    this.INFO = {};
+
     // Date/Time formats used between the client and server
     this.HE_DATE_STRING_SERVER = "YYYY-MM-DD";
     this.HE_TIME_STRING_SERVER = "HH:mm:ss";
@@ -394,27 +396,13 @@ function Helium() {
 // Initialize the Helium object
 var helium = new Helium();
 
-$(window).on("load", function () {
-    "use strict";
-
-    $("#version-badge").fadeIn("fast");
-
-    var current_nav = $('a[href="' + window.location.pathname + '"]');
-    if (current_nav) {
-        if (window.location.pathname === "/settings") {
-            $("#authenticated-dropdown-nav").addClass("active");
-        } else {
-            current_nav.parent().addClass("active");
-        }
-    }
-
-    if (AUTH_TOKEN !== undefined) {
-        $("#planned-nav").removeClass("hidden");
-        $("#reminder-nav").removeClass("hidden");
-        $("#authenticated-dropdown-nav").removeClass("hidden");
-    } else {
-        $("#register-nav").removeClass("hidden");
-        $("#login-nav").removeClass("hidden");
+$.ajax({
+    type: "GET",
+    url: helium.API_URL + "/common/info/",
+    async: false,
+    dataType: "json",
+    success: function (data) {
+        $.extend(helium.INFO, data);
     }
 });
 
@@ -440,3 +428,30 @@ if (AUTH_TOKEN !== undefined) {
         }
     });
 }
+
+$(window).on("load", function () {
+    "use strict";
+
+    if (helium.INFO.hasOwnProperty("version")) {
+        $("#version-badge small").html(helium.INFO.version);
+    }
+    $("#version-badge").fadeIn("fast");
+
+    var current_nav = $('a[href="' + window.location.pathname + '"]');
+    if (current_nav) {
+        if (window.location.pathname === "/settings") {
+            $("#authenticated-dropdown-nav").addClass("active");
+        } else {
+            current_nav.parent().addClass("active");
+        }
+    }
+
+    if (AUTH_TOKEN !== undefined) {
+        $("#planned-nav").removeClass("hidden");
+        $("#reminder-nav").removeClass("hidden");
+        $("#authenticated-dropdown-nav").removeClass("hidden");
+    } else {
+        $("#register-nav").removeClass("hidden");
+        $("#login-nav").removeClass("hidden");
+    }
+});
