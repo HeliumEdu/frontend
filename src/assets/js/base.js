@@ -398,7 +398,7 @@ var helium = new Helium();
 
 $.ajax({
     type: "GET",
-    url: helium.API_URL + "/common/info/",
+    url: helium.API_URL + "/info/",
     async: false,
     dataType: "json",
     success: function (data) {
@@ -431,11 +431,6 @@ if (AUTH_TOKEN !== undefined) {
 
 $(window).on("load", function () {
     "use strict";
-
-    if (helium.INFO.hasOwnProperty("version")) {
-        $("#version-badge small").html(helium.INFO.version);
-    }
-    $("#version-badge").fadeIn("fast");
 
     var current_nav = $('a[href="' + window.location.pathname + '"]');
     if (current_nav) {

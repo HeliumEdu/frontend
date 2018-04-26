@@ -242,12 +242,6 @@ span.twitter-typeahead > input.form-control.input-sm.tt-query {
     min-height: 200px;
 }
 
-#version-badge {
-    position: absolute;
-    left: 103px;
-    top: 7px;
-}
-
 .input-group-addon i {
     width: 15px;
 }
