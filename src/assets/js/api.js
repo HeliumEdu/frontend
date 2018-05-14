@@ -3,10 +3,11 @@
  *
  * JavaScript API for requests into server-side functionality for /planner pages.
  *
- * FIXME: This implementation is pretty crude compared to modern standards and will be completely overhauled in favor of a framework once the open source migration is completed.
+ * FIXME: This implementation is pretty crude compared to modern standards and will be completely overhauled in favor
+ * of a framework once the open source migration is completed.
  *
  * @author Alex Laird
- * @version 1.4.0
+ * @version 1.4.14
  */
 
 /**
@@ -17,7 +18,8 @@
 function HeliumPlannerAPI() {
     "use strict";
 
-    this.GENERIC_ERROR_MESSAGE = "Oops, an unknown error has occurred. If the issue persists, <a href=\"/support\">contact support</a>.";
+    this.GENERIC_ERROR_MESSAGE =
+        "Oops, an unknown error has occurred. If the issue persists, <a href=\"/support\">contact support</a>.";
 
     this.course_groups_by_user_id = {};
     this.course_group = {};
@@ -78,84 +80,85 @@ function HeliumPlannerAPI() {
 
     this.register = function (callback, username, email, password, time_zone) {
         return $.ajax({
-            type: "POST",
-            url: helium.API_URL + "/auth/user/register/",
-            data: JSON.stringify({username: username, email: email, password: password, time_zone: time_zone}),
-            dataType: "json",
-            success: function (data) {
-                callback(data)
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                          type: "POST",
+                          url: helium.API_URL + "/auth/user/register/",
+                          data: JSON.stringify(
+                              {username: username, email: email, password: password, time_zone: time_zone}),
+                          dataType: "json",
+                          success: function (data) {
+                              callback(data)
+                          },
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     this.login = function (callback, username, password) {
         return $.ajax({
-            type: "POST",
-            url: helium.API_URL + "/auth/token/",
-            data: JSON.stringify({username: username, password: password}),
-            dataType: "json",
-            success: function (data) {
-                Cookies.set("authtoken", data.token, {path: "/"});
+                          type: "POST",
+                          url: helium.API_URL + "/auth/token/",
+                          data: JSON.stringify({username: username, password: password}),
+                          dataType: "json",
+                          success: function (data) {
+                              Cookies.set("authtoken", data.token, {path: "/"});
 
-                callback(data);
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                              callback(data);
+                          },
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     this.forgot = function (callback, email) {
         return $.ajax({
-            type: "PUT",
-            url: helium.API_URL + "/auth/user/forgot/",
-            data: JSON.stringify({email: email}),
-            success: function (data) {
-                callback(data)
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                          type: "PUT",
+                          url: helium.API_URL + "/auth/user/forgot/",
+                          data: JSON.stringify({email: email}),
+                          success: function (data) {
+                              callback(data)
+                          },
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     /**
@@ -170,32 +173,33 @@ function HeliumPlannerAPI() {
         async = typeof async === "undefined" ? true : async;
         self.course_groups_by_user_id = {};
         return $.ajax({
-            type: "PUT",
-            url: helium.API_URL + "/auth/user/settings/",
-            async: async,
-            data: JSON.stringify(data),
-            dataType: "json",
-            success: callback,
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                          type: "PUT",
+                          url: helium.API_URL + "/auth/user/settings/",
+                          async: async,
+                          data: JSON.stringify(data),
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     /**
-     * Compile data for display on the /grades page for the given User ID and pass the values to the given callback function in JSON format.
+     * Compile data for display on the /grades page for the given User ID and pass the values to the given callback
+     * function in JSON format.
      *
      * @param callback function to pass response data and call after completion
      * @param async true if call should be async, false otherwise (default is true)
@@ -204,35 +208,37 @@ function HeliumPlannerAPI() {
         async = typeof async === "undefined" ? true : async;
 
         return $.ajax({
-            type: "GET",
-            url: helium.API_URL + "/planner/grades/",
-            async: async,
-            dataType: "json",
-            success: callback,
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                          type: "GET",
+                          url: helium.API_URL + "/planner/grades/",
+                          async: async,
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     /**
-     * Compile the CourseGroups for the given User ID and pass the values to the given callback function in JSON format.
+     * Compile the CourseGroups for the given User ID and pass the values to the given callback function in JSON
+     * format.
      *
      * @param callback function to pass response data and call after completion
      * @param async true if call should be async, false otherwise (default is true)
-     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to refresh the cache (default to false)
+     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
+     *     refresh the cache (default to false)
      */
     this.get_course_groups = function (callback, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
@@ -243,30 +249,32 @@ function HeliumPlannerAPI() {
             ret_val = callback(self.course_groups_by_user_id[helium.USER_PREFS.id]);
         } else {
             ret_val = $.ajax({
-                type: "GET",
-                url: helium.API_URL + "/planner/coursegroups/",
-                async: async,
-                dataType: "json",
-                success: function (data) {
-                    self.course_groups_by_user_id[helium.USER_PREFS.id] = data;
-                    callback(self.course_groups_by_user_id[helium.USER_PREFS.id]);
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    var data = [{
-                        'err_msg': self.GENERIC_ERROR_MESSAGE,
-                        'jqXHR': jqXHR,
-                        'textStatus': textStatus,
-                        'errorThrown': errorThrown
-                    }];
-                    if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                        var name = Object.keys(jqXHR.responseJSON)[0];
-                        if (jqXHR.responseJSON[name].length > 0) {
-                            data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                        }
-                    }
-                    callback(data);
-                }
-            });
+                                 type: "GET",
+                                 url: helium.API_URL + "/planner/coursegroups/",
+                                 async: async,
+                                 dataType: "json",
+                                 success: function (data) {
+                                     self.course_groups_by_user_id[helium.USER_PREFS.id] = data;
+                                     callback(self.course_groups_by_user_id[helium.USER_PREFS.id]);
+                                 },
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     var data = [{
+                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                         'jqXHR': jqXHR,
+                                         'textStatus': textStatus,
+                                         'errorThrown': errorThrown
+                                     }];
+                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
+                                                                                 > 0) {
+                                         var name = Object.keys(jqXHR.responseJSON)[0];
+                                         if (jqXHR.responseJSON[name].length > 0) {
+                                             data[0]['err_msg'] =
+                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                         }
+                                     }
+                                     callback(data);
+                                 }
+                             });
         }
 
         return ret_val;
@@ -278,7 +286,8 @@ function HeliumPlannerAPI() {
      * @param callback function to pass response data and call after completion
      * @param id the ID of the CourseGroup
      * @param async true if call should be async, false otherwise (default is true)
-     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to refresh the cache (default to false)
+     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
+     *     refresh the cache (default to false)
      */
     this.get_course_group = function (callback, id, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
@@ -289,30 +298,32 @@ function HeliumPlannerAPI() {
             ret_val = callback(self.course_group[id]);
         } else {
             ret_val = $.ajax({
-                type: "GET",
-                url: helium.API_URL + "/planner/coursegroups/" + id + "/",
-                async: async,
-                dataType: "json",
-                success: function (data) {
-                    self.course_group[id] = data;
-                    callback(self.course_group[id]);
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    var data = [{
-                        'err_msg': self.GENERIC_ERROR_MESSAGE,
-                        'jqXHR': jqXHR,
-                        'textStatus': textStatus,
-                        'errorThrown': errorThrown
-                    }];
-                    if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                        var name = Object.keys(jqXHR.responseJSON)[0];
-                        if (jqXHR.responseJSON[name].length > 0) {
-                            data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                        }
-                    }
-                    callback(data);
-                }
-            });
+                                 type: "GET",
+                                 url: helium.API_URL + "/planner/coursegroups/" + id + "/",
+                                 async: async,
+                                 dataType: "json",
+                                 success: function (data) {
+                                     self.course_group[id] = data;
+                                     callback(self.course_group[id]);
+                                 },
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     var data = [{
+                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                         'jqXHR': jqXHR,
+                                         'textStatus': textStatus,
+                                         'errorThrown': errorThrown
+                                     }];
+                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
+                                                                                 > 0) {
+                                         var name = Object.keys(jqXHR.responseJSON)[0];
+                                         if (jqXHR.responseJSON[name].length > 0) {
+                                             data[0]['err_msg'] =
+                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                         }
+                                     }
+                                     callback(data);
+                                 }
+                             });
         }
 
         return ret_val;
@@ -329,28 +340,28 @@ function HeliumPlannerAPI() {
         async = typeof async === "undefined" ? true : async;
         self.course_groups_by_user_id = {};
         return $.ajax({
-            type: "POST",
-            url: helium.API_URL + "/planner/coursegroups/",
-            async: async,
-            data: JSON.stringify(data),
-            dataType: "json",
-            success: callback,
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                          type: "POST",
+                          url: helium.API_URL + "/planner/coursegroups/",
+                          async: async,
+                          data: JSON.stringify(data),
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     /**
@@ -366,32 +377,33 @@ function HeliumPlannerAPI() {
         delete self.course_group[id];
         self.course_groups_by_user_id = {};
         return $.ajax({
-            type: "PUT",
-            url: helium.API_URL + "/planner/coursegroups/" + id + "/",
-            async: async,
-            data: JSON.stringify(data),
-            dataType: "json",
-            success: callback,
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                          type: "PUT",
+                          url: helium.API_URL + "/planner/coursegroups/" + id + "/",
+                          async: async,
+                          data: JSON.stringify(data),
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     /**
-     * Delete the CourseGroup for the given ID and pass the returned values to the given callback function in JSON format.
+     * Delete the CourseGroup for the given ID and pass the returned values to the given callback function in JSON
+     * format.
      *
      * @param callback function to pass response data and call after completion
      * @param id the ID of the CourseGroup
@@ -402,36 +414,38 @@ function HeliumPlannerAPI() {
         delete self.course_group[id];
         self.course_groups_by_user_id = {};
         return $.ajax({
-            type: "DELETE",
-            url: helium.API_URL + "/planner/coursegroups/" + id + "/",
-            async: async,
-            dataType: "json",
-            success: callback,
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                          type: "DELETE",
+                          url: helium.API_URL + "/planner/coursegroups/" + id + "/",
+                          async: async,
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     /**
-     * Compile all Courses for the given CourseGroup ID and pass the values to the given callback function in JSON format.
+     * Compile all Courses for the given CourseGroup ID and pass the values to the given callback function in JSON
+     * format.
      *
      * @param callback function to pass response data and call after completion
      * @param id the ID of the CourseGroup with which to associate
      * @param async true if call should be async, false otherwise (default is true)
-     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to refresh the cache (default to false)
+     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
+     *     refresh the cache (default to false)
      */
     this.get_courses_by_course_group_id = function (callback, id, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
@@ -442,41 +456,45 @@ function HeliumPlannerAPI() {
             ret_val = callback(self.courses_by_course_group_id[id]);
         } else {
             ret_val = $.ajax({
-                type: "GET",
-                url: helium.API_URL + "/planner/coursegroups/" + id + "/courses/",
-                async: async,
-                dataType: "json",
-                success: function (data) {
-                    self.courses_by_course_group_id[id] = data;
-                    callback(self.courses_by_course_group_id[id]);
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    var data = [{
-                        'err_msg': self.GENERIC_ERROR_MESSAGE,
-                        'jqXHR': jqXHR,
-                        'textStatus': textStatus,
-                        'errorThrown': errorThrown
-                    }];
-                    if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                        var name = Object.keys(jqXHR.responseJSON)[0];
-                        if (jqXHR.responseJSON[name].length > 0) {
-                            data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                        }
-                    }
-                    callback(data);
-                }
-            });
+                                 type: "GET",
+                                 url: helium.API_URL + "/planner/coursegroups/" + id + "/courses/",
+                                 async: async,
+                                 dataType: "json",
+                                 success: function (data) {
+                                     self.courses_by_course_group_id[id] = data;
+                                     callback(self.courses_by_course_group_id[id]);
+                                 },
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     var data = [{
+                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                         'jqXHR': jqXHR,
+                                         'textStatus': textStatus,
+                                         'errorThrown': errorThrown
+                                     }];
+                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
+                                                                                 > 0) {
+                                         var name = Object.keys(jqXHR.responseJSON)[0];
+                                         if (jqXHR.responseJSON[name].length > 0) {
+                                             data[0]['err_msg'] =
+                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                         }
+                                     }
+                                     callback(data);
+                                 }
+                             });
         }
 
         return ret_val;
     };
 
     /**
-     * Compile all Courses for the given User Profile ID and pass the values to the given callback function in JSON format.
+     * Compile all Courses for the given User Profile ID and pass the values to the given callback function in JSON
+     * format.
      *
      * @param callback function to pass response data and call after completion
      * @param async true if call should be async, false otherwise (default is true)
-     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to refresh the cache (default to false)
+     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
+     *     refresh the cache (default to false)
      */
     this.get_all_courses_by_user_id = function (callback, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
@@ -487,41 +505,45 @@ function HeliumPlannerAPI() {
             ret_val = callback(self.courses_by_user_id[helium.USER_PREFS.id]);
         } else {
             ret_val = $.ajax({
-                type: "GET",
-                url: helium.API_URL + "/planner/courses/",
-                async: async,
-                dataType: "json",
-                success: function (data) {
-                    self.courses_by_user_id[helium.USER_PREFS.id] = data;
-                    callback(self.courses_by_user_id[helium.USER_PREFS.id]);
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    var data = [{
-                        'err_msg': self.GENERIC_ERROR_MESSAGE,
-                        'jqXHR': jqXHR,
-                        'textStatus': textStatus,
-                        'errorThrown': errorThrown
-                    }];
-                    if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                        var name = Object.keys(jqXHR.responseJSON)[0];
-                        if (jqXHR.responseJSON[name].length > 0) {
-                            data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                        }
-                    }
-                    callback(data);
-                }
-            });
+                                 type: "GET",
+                                 url: helium.API_URL + "/planner/courses/",
+                                 async: async,
+                                 dataType: "json",
+                                 success: function (data) {
+                                     self.courses_by_user_id[helium.USER_PREFS.id] = data;
+                                     callback(self.courses_by_user_id[helium.USER_PREFS.id]);
+                                 },
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     var data = [{
+                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                         'jqXHR': jqXHR,
+                                         'textStatus': textStatus,
+                                         'errorThrown': errorThrown
+                                     }];
+                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
+                                                                                 > 0) {
+                                         var name = Object.keys(jqXHR.responseJSON)[0];
+                                         if (jqXHR.responseJSON[name].length > 0) {
+                                             data[0]['err_msg'] =
+                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                         }
+                                     }
+                                     callback(data);
+                                 }
+                             });
         }
 
         return ret_val;
     };
 
     /**
-     * Compile all Courses (excluding those in hidden groups) for the given User Profile ID and pass the values to the given callback function in JSON format.
+     * Compile all Courses (excluding those in hidden groups) for the given User Profile ID and pass the values to the
+     * given callback function in JSON format.
      *
      * @param callback function to pass response data and call after completion
      * @param async true if call should be async, false otherwise (default is true)
-     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to refresh the cache (default to false)
+     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
+     *     refresh the cache (default to false)
      */
     this.get_courses = function (callback, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
@@ -532,43 +554,47 @@ function HeliumPlannerAPI() {
             ret_val = callback(self.courses_by_user_id[helium.USER_PREFS.id]);
         } else {
             ret_val = $.ajax({
-                type: "GET",
-                url: helium.API_URL + "/planner/courses/",
-                async: async,
-                dataType: "json",
-                success: function (data) {
-                    self.courses_by_user_id[helium.USER_PREFS.id] = data;
-                    callback(self.courses_by_user_id[helium.USER_PREFS.id]);
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    var data = [{
-                        'err_msg': self.GENERIC_ERROR_MESSAGE,
-                        'jqXHR': jqXHR,
-                        'textStatus': textStatus,
-                        'errorThrown': errorThrown
-                    }];
-                    if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                        var name = Object.keys(jqXHR.responseJSON)[0];
-                        if (jqXHR.responseJSON[name].length > 0) {
-                            data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                        }
-                    }
-                    callback(data);
-                }
-            });
+                                 type: "GET",
+                                 url: helium.API_URL + "/planner/courses/",
+                                 async: async,
+                                 dataType: "json",
+                                 success: function (data) {
+                                     self.courses_by_user_id[helium.USER_PREFS.id] = data;
+                                     callback(self.courses_by_user_id[helium.USER_PREFS.id]);
+                                 },
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     var data = [{
+                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                         'jqXHR': jqXHR,
+                                         'textStatus': textStatus,
+                                         'errorThrown': errorThrown
+                                     }];
+                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
+                                                                                 > 0) {
+                                         var name = Object.keys(jqXHR.responseJSON)[0];
+                                         if (jqXHR.responseJSON[name].length > 0) {
+                                             data[0]['err_msg'] =
+                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                         }
+                                     }
+                                     callback(data);
+                                 }
+                             });
         }
 
         return ret_val;
     };
 
     /**
-     * Compile all Events for the given CourseSchedule and pass the values to the given callback function in JSON format.
+     * Compile all Events for the given CourseSchedule and pass the values to the given callback function in JSON
+     * format.
      *
      * @param callback function to pass response data and call after completion
      * @param course_group_id The ID of the CourseGroup.
      * @param course_id The ID of the Course.
      * @param async true if call should be async, false otherwise (default is true)
-     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to refresh the cache (default to false)
+     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
+     *     refresh the cache (default to false)
      */
     this.get_class_schedule_events = function (callback, course_group_id, course_id, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
@@ -579,30 +605,33 @@ function HeliumPlannerAPI() {
             ret_val = callback(self.class_schedules[course_id]);
         } else {
             ret_val = $.ajax({
-                type: "GET",
-                url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + course_id + "/courseschedules/events/",
-                async: async,
-                dataType: "json",
-                success: function (data) {
-                    self.class_schedules[course_id] = data;
-                    callback(self.class_schedules[course_id]);
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    var data = [{
-                        'err_msg': self.GENERIC_ERROR_MESSAGE,
-                        'jqXHR': jqXHR,
-                        'textStatus': textStatus,
-                        'errorThrown': errorThrown
-                    }];
-                    if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                        var name = Object.keys(jqXHR.responseJSON)[0];
-                        if (jqXHR.responseJSON[name].length > 0) {
-                            data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                        }
-                    }
-                    callback(data);
-                }
-            });
+                                 type: "GET",
+                                 url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/"
+                                      + course_id + "/courseschedules/events/",
+                                 async: async,
+                                 dataType: "json",
+                                 success: function (data) {
+                                     self.class_schedules[course_id] = data;
+                                     callback(self.class_schedules[course_id]);
+                                 },
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     var data = [{
+                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                         'jqXHR': jqXHR,
+                                         'textStatus': textStatus,
+                                         'errorThrown': errorThrown
+                                     }];
+                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
+                                                                                 > 0) {
+                                         var name = Object.keys(jqXHR.responseJSON)[0];
+                                         if (jqXHR.responseJSON[name].length > 0) {
+                                             data[0]['err_msg'] =
+                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                         }
+                                     }
+                                     callback(data);
+                                 }
+                             });
         }
 
         return ret_val;
@@ -615,7 +644,8 @@ function HeliumPlannerAPI() {
      * @param course_group_id the ID of the CourseGroup
      * @param id the ID of the Course
      * @param async true if call should be async, false otherwise (default is true)
-     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to refresh the cache (default to false)
+     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
+     *     refresh the cache (default to false)
      */
     this.get_course = function (callback, course_group_id, id, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
@@ -626,30 +656,33 @@ function HeliumPlannerAPI() {
             ret_val = callback(self.course[id]);
         } else {
             ret_val = $.ajax({
-                type: "GET",
-                url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + id + "/",
-                async: async,
-                dataType: "json",
-                success: function (data) {
-                    self.course[id] = data;
-                    callback(self.course[id]);
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    var data = [{
-                        'err_msg': self.GENERIC_ERROR_MESSAGE,
-                        'jqXHR': jqXHR,
-                        'textStatus': textStatus,
-                        'errorThrown': errorThrown
-                    }];
-                    if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                        var name = Object.keys(jqXHR.responseJSON)[0];
-                        if (jqXHR.responseJSON[name].length > 0) {
-                            data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                        }
-                    }
-                    callback(data);
-                }
-            });
+                                 type: "GET",
+                                 url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + id
+                                      + "/",
+                                 async: async,
+                                 dataType: "json",
+                                 success: function (data) {
+                                     self.course[id] = data;
+                                     callback(self.course[id]);
+                                 },
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     var data = [{
+                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                         'jqXHR': jqXHR,
+                                         'textStatus': textStatus,
+                                         'errorThrown': errorThrown
+                                     }];
+                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
+                                                                                 > 0) {
+                                         var name = Object.keys(jqXHR.responseJSON)[0];
+                                         if (jqXHR.responseJSON[name].length > 0) {
+                                             data[0]['err_msg'] =
+                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                         }
+                                     }
+                                     callback(data);
+                                 }
+                             });
         }
 
         return ret_val;
@@ -671,28 +704,28 @@ function HeliumPlannerAPI() {
         self.category_names = null;
         self.categories_by_course_id = {};
         return $.ajax({
-            type: "POST",
-            url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/",
-            async: async,
-            data: JSON.stringify(data),
-            dataType: "json",
-            success: callback,
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                          type: "POST",
+                          url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/",
+                          async: async,
+                          data: JSON.stringify(data),
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     /**
@@ -713,25 +746,26 @@ function HeliumPlannerAPI() {
         self.category_names = null;
         self.categories_by_course_id = {};
         return $.ajax({
-            type: "PUT",
-            url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + id + "/",
-            async: async,
-            data: JSON.stringify(data),
-            dataType: "json",
-            success: callback,
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0 && jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]].length > 0) {
-                    data['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                }
-                callback(data);
-            }
-        });
+                          type: "PUT",
+                          url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + id + "/",
+                          async: async,
+                          data: JSON.stringify(data),
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0
+                                  && jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]].length > 0) {
+                                  data['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     /**
@@ -751,27 +785,27 @@ function HeliumPlannerAPI() {
         self.category_names = null;
         self.categories_by_course_id = {};
         return $.ajax({
-            type: "DELETE",
-            url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + id + "/",
-            async: async,
-            dataType: "json",
-            success: callback,
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                          type: "DELETE",
+                          url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + id + "/",
+                          async: async,
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     /**
@@ -786,28 +820,29 @@ function HeliumPlannerAPI() {
     this.add_courseschedule = function (callback, course_group_id, course_id, data, async) {
         async = typeof async === "undefined" ? true : async;
         return $.ajax({
-            type: "POST",
-            url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + course_id + "/courseschedules/",
-            async: async,
-            data: JSON.stringify(data),
-            dataType: "json",
-            success: callback,
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                          type: "POST",
+                          url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + course_id
+                               + "/courseschedules/",
+                          async: async,
+                          data: JSON.stringify(data),
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     /**
@@ -823,25 +858,27 @@ function HeliumPlannerAPI() {
     this.edit_courseschedule = function (callback, course_group_id, course_id, id, data, async) {
         async = typeof async === "undefined" ? true : async;
         return $.ajax({
-            type: "PUT",
-            url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + course_id + "/courseschedules/" + id + "/",
-            async: async,
-            data: JSON.stringify(data),
-            dataType: "json",
-            success: callback,
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0 && jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]].length > 0) {
-                    data['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                }
-                callback(data);
-            }
-        });
+                          type: "PUT",
+                          url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + course_id
+                               + "/courseschedules/" + id + "/",
+                          async: async,
+                          data: JSON.stringify(data),
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0
+                                  && jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]].length > 0) {
+                                  data['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     /**
@@ -861,35 +898,37 @@ function HeliumPlannerAPI() {
         self.category_names = null;
         self.categories_by_course_id = {};
         return $.ajax({
-            type: "DELETE",
-            url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + id + "/",
-            async: async,
-            dataType: "json",
-            success: callback,
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                          type: "DELETE",
+                          url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + id + "/",
+                          async: async,
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     /**
-     * Compile the MaterialGroups for the given User ID and pass the values to the given callback function in JSON format.
+     * Compile the MaterialGroups for the given User ID and pass the values to the given callback function in JSON
+     * format.
      *
      * @param callback function to pass response data and call after completion
      * @param async true if call should be async, false otherwise (default is true)
-     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to refresh the cache (default to false)
+     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
+     *     refresh the cache (default to false)
      */
     this.get_material_groups = function (callback, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
@@ -900,30 +939,32 @@ function HeliumPlannerAPI() {
             ret_val = callback(self.material_groups_by_user_id[helium.USER_PREFS.id]);
         } else {
             ret_val = $.ajax({
-                type: "GET",
-                url: helium.API_URL + "/planner/materialgroups/",
-                async: async,
-                dataType: "json",
-                success: function (data) {
-                    self.material_groups_by_user_id[helium.USER_PREFS.id] = data;
-                    callback(self.material_groups_by_user_id[helium.USER_PREFS.id]);
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    var data = [{
-                        'err_msg': self.GENERIC_ERROR_MESSAGE,
-                        'jqXHR': jqXHR,
-                        'textStatus': textStatus,
-                        'errorThrown': errorThrown
-                    }];
-                    if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                        var name = Object.keys(jqXHR.responseJSON)[0];
-                        if (jqXHR.responseJSON[name].length > 0) {
-                            data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                        }
-                    }
-                    callback(data);
-                }
-            });
+                                 type: "GET",
+                                 url: helium.API_URL + "/planner/materialgroups/",
+                                 async: async,
+                                 dataType: "json",
+                                 success: function (data) {
+                                     self.material_groups_by_user_id[helium.USER_PREFS.id] = data;
+                                     callback(self.material_groups_by_user_id[helium.USER_PREFS.id]);
+                                 },
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     var data = [{
+                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                         'jqXHR': jqXHR,
+                                         'textStatus': textStatus,
+                                         'errorThrown': errorThrown
+                                     }];
+                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
+                                                                                 > 0) {
+                                         var name = Object.keys(jqXHR.responseJSON)[0];
+                                         if (jqXHR.responseJSON[name].length > 0) {
+                                             data[0]['err_msg'] =
+                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                         }
+                                     }
+                                     callback(data);
+                                 }
+                             });
         }
 
         return ret_val;
@@ -935,7 +976,8 @@ function HeliumPlannerAPI() {
      * @param callback function to pass response data and call after completion
      * @param id the ID of the MaterialGroup
      * @param async true if call should be async, false otherwise (default is true)
-     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to refresh the cache (default to false)
+     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
+     *     refresh the cache (default to false)
      */
     this.get_material_group = function (callback, id, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
@@ -946,30 +988,32 @@ function HeliumPlannerAPI() {
             ret_val = callback(self.material_group[id]);
         } else {
             ret_val = $.ajax({
-                type: "GET",
-                url: helium.API_URL + "/planner/materialgroups/" + id + "/",
-                async: async,
-                dataType: "json",
-                success: function (data) {
-                    self.material_group[id] = data;
-                    callback(self.material_group[id]);
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    var data = [{
-                        'err_msg': self.GENERIC_ERROR_MESSAGE,
-                        'jqXHR': jqXHR,
-                        'textStatus': textStatus,
-                        'errorThrown': errorThrown
-                    }];
-                    if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                        var name = Object.keys(jqXHR.responseJSON)[0];
-                        if (jqXHR.responseJSON[name].length > 0) {
-                            data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                        }
-                    }
-                    callback(data);
-                }
-            });
+                                 type: "GET",
+                                 url: helium.API_URL + "/planner/materialgroups/" + id + "/",
+                                 async: async,
+                                 dataType: "json",
+                                 success: function (data) {
+                                     self.material_group[id] = data;
+                                     callback(self.material_group[id]);
+                                 },
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     var data = [{
+                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                         'jqXHR': jqXHR,
+                                         'textStatus': textStatus,
+                                         'errorThrown': errorThrown
+                                     }];
+                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
+                                                                                 > 0) {
+                                         var name = Object.keys(jqXHR.responseJSON)[0];
+                                         if (jqXHR.responseJSON[name].length > 0) {
+                                             data[0]['err_msg'] =
+                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                         }
+                                     }
+                                     callback(data);
+                                 }
+                             });
         }
 
         return ret_val;
@@ -986,32 +1030,33 @@ function HeliumPlannerAPI() {
         async = typeof async === "undefined" ? true : async;
         self.material_group = {};
         return $.ajax({
-            type: "POST",
-            url: helium.API_URL + "/planner/materialgroups/",
-            async: async,
-            data: JSON.stringify(data),
-            dataType: "json",
-            success: callback,
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                          type: "POST",
+                          url: helium.API_URL + "/planner/materialgroups/",
+                          async: async,
+                          data: JSON.stringify(data),
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     /**
-     * Edit the MaterialGroup for the given ID and pass the returned values to the given callback function in JSON format.
+     * Edit the MaterialGroup for the given ID and pass the returned values to the given callback function in JSON
+     * format.
      *
      * @param callback function to pass response data and call after completion
      * @param id the ID of the MaterialGroup
@@ -1023,32 +1068,33 @@ function HeliumPlannerAPI() {
         delete self.material_group[id];
         self.material_group = {};
         return $.ajax({
-            type: "PUT",
-            url: helium.API_URL + "/planner/materialgroups/" + id + "/",
-            async: async,
-            data: JSON.stringify(data),
-            dataType: "json",
-            success: callback,
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                          type: "PUT",
+                          url: helium.API_URL + "/planner/materialgroups/" + id + "/",
+                          async: async,
+                          data: JSON.stringify(data),
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     /**
-     * Delete the MaterialGroup for the given ID and pass the returned values to the given callback function in JSON format.
+     * Delete the MaterialGroup for the given ID and pass the returned values to the given callback function in JSON
+     * format.
      *
      * @param callback function to pass response data and call after completion
      * @param id the ID of the MaterialGroup
@@ -1058,27 +1104,27 @@ function HeliumPlannerAPI() {
         async = typeof async === "undefined" ? true : async;
         delete self.material_group[id];
         return $.ajax({
-            type: "DELETE",
-            url: helium.API_URL + "/planner/materialgroups/" + id + "/",
-            async: async,
-            dataType: "json",
-            success: callback,
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                          type: "DELETE",
+                          url: helium.API_URL + "/planner/materialgroups/" + id + "/",
+                          async: async,
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     /**
@@ -1087,7 +1133,8 @@ function HeliumPlannerAPI() {
      * @param callback function to pass response data and call after completion
      * @param id the ID of the Course with which to associate
      * @param async true if call should be async, false otherwise (default is true)
-     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to refresh the cache (default to false)
+     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
+     *     refresh the cache (default to false)
      */
     this.get_materials_by_course_id = function (callback, id, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
@@ -1098,30 +1145,32 @@ function HeliumPlannerAPI() {
             ret_val = callback(self.materials_by_course_id[id]);
         } else {
             ret_val = $.ajax({
-                type: "GET",
-                url: helium.API_URL + "/planner/materials/?courses=" + id,
-                async: async,
-                dataType: "json",
-                success: function (data) {
-                    self.materials_by_course_id[id] = data;
-                    callback(self.materials_by_course_id[id]);
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    var data = [{
-                        'err_msg': self.GENERIC_ERROR_MESSAGE,
-                        'jqXHR': jqXHR,
-                        'textStatus': textStatus,
-                        'errorThrown': errorThrown
-                    }];
-                    if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                        var name = Object.keys(jqXHR.responseJSON)[0];
-                        if (jqXHR.responseJSON[name].length > 0) {
-                            data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                        }
-                    }
-                    callback(data);
-                }
-            });
+                                 type: "GET",
+                                 url: helium.API_URL + "/planner/materials/?courses=" + id,
+                                 async: async,
+                                 dataType: "json",
+                                 success: function (data) {
+                                     self.materials_by_course_id[id] = data;
+                                     callback(self.materials_by_course_id[id]);
+                                 },
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     var data = [{
+                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                         'jqXHR': jqXHR,
+                                         'textStatus': textStatus,
+                                         'errorThrown': errorThrown
+                                     }];
+                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
+                                                                                 > 0) {
+                                         var name = Object.keys(jqXHR.responseJSON)[0];
+                                         if (jqXHR.responseJSON[name].length > 0) {
+                                             data[0]['err_msg'] =
+                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                         }
+                                     }
+                                     callback(data);
+                                 }
+                             });
         }
 
         return ret_val;
@@ -1134,7 +1183,8 @@ function HeliumPlannerAPI() {
      * @param material_group_id the ID of the MaterialGroup
      * @param id the ID of the Material
      * @param async true if call should be async, false otherwise (default is true)
-     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to refresh the cache (default to false)
+     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
+     *     refresh the cache (default to false)
      */
     this.get_material = function (callback, material_group_id, id, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
@@ -1145,42 +1195,47 @@ function HeliumPlannerAPI() {
             ret_val = callback(self.material[id]);
         } else {
             ret_val = $.ajax({
-                type: "GET",
-                url: helium.API_URL + "/planner/materialgroups/" + material_group_id + "/materials/" + id + "/",
-                async: async,
-                dataType: "json",
-                success: function (data) {
-                    self.material[id] = data;
-                    callback(self.material[id]);
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    var data = [{
-                        'err_msg': self.GENERIC_ERROR_MESSAGE,
-                        'jqXHR': jqXHR,
-                        'textStatus': textStatus,
-                        'errorThrown': errorThrown
-                    }];
-                    if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                        var name = Object.keys(jqXHR.responseJSON)[0];
-                        if (jqXHR.responseJSON[name].length > 0) {
-                            data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                        }
-                    }
-                    callback(data);
-                }
-            });
+                                 type: "GET",
+                                 url: helium.API_URL + "/planner/materialgroups/" + material_group_id + "/materials/"
+                                      + id + "/",
+                                 async: async,
+                                 dataType: "json",
+                                 success: function (data) {
+                                     self.material[id] = data;
+                                     callback(self.material[id]);
+                                 },
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     var data = [{
+                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                         'jqXHR': jqXHR,
+                                         'textStatus': textStatus,
+                                         'errorThrown': errorThrown
+                                     }];
+                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
+                                                                                 > 0) {
+                                         var name = Object.keys(jqXHR.responseJSON)[0];
+                                         if (jqXHR.responseJSON[name].length > 0) {
+                                             data[0]['err_msg'] =
+                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                         }
+                                     }
+                                     callback(data);
+                                 }
+                             });
         }
 
         return ret_val;
     };
 
     /**
-     * Compile the Material for the given material group ID and pass the values to the given callback function in JSON format.
+     * Compile the Material for the given material group ID and pass the values to the given callback function in JSON
+     * format.
      *
      * @param callback function to pass response data and call after completion
      * @param id the ID of the MaterialGroup
      * @param async true if call should be async, false otherwise (default is true)
-     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to refresh the cache (default to false)
+     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
+     *     refresh the cache (default to false)
      */
     this.get_materials_by_material_group_id = function (callback, id, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
@@ -1191,30 +1246,32 @@ function HeliumPlannerAPI() {
             ret_val = callback(self.materials_by_material_group_id[id]);
         } else {
             ret_val = $.ajax({
-                type: "GET",
-                url: helium.API_URL + "/planner/materialgroups/" + id + "/materials/",
-                async: async,
-                dataType: "json",
-                success: function (data) {
-                    self.materials_by_material_group_id[id] = data;
-                    callback(self.materials_by_material_group_id[id]);
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    var data = [{
-                        'err_msg': self.GENERIC_ERROR_MESSAGE,
-                        'jqXHR': jqXHR,
-                        'textStatus': textStatus,
-                        'errorThrown': errorThrown
-                    }];
-                    if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                        var name = Object.keys(jqXHR.responseJSON)[0];
-                        if (jqXHR.responseJSON[name].length > 0) {
-                            data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                        }
-                    }
-                    callback(data);
-                }
-            });
+                                 type: "GET",
+                                 url: helium.API_URL + "/planner/materialgroups/" + id + "/materials/",
+                                 async: async,
+                                 dataType: "json",
+                                 success: function (data) {
+                                     self.materials_by_material_group_id[id] = data;
+                                     callback(self.materials_by_material_group_id[id]);
+                                 },
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     var data = [{
+                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                         'jqXHR': jqXHR,
+                                         'textStatus': textStatus,
+                                         'errorThrown': errorThrown
+                                     }];
+                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
+                                                                                 > 0) {
+                                         var name = Object.keys(jqXHR.responseJSON)[0];
+                                         if (jqXHR.responseJSON[name].length > 0) {
+                                             data[0]['err_msg'] =
+                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                         }
+                                     }
+                                     callback(data);
+                                 }
+                             });
         }
 
         return ret_val;
@@ -1232,28 +1289,28 @@ function HeliumPlannerAPI() {
         async = typeof async === "undefined" ? true : async;
         self.materials_by_course_id = {};
         return $.ajax({
-            type: "POST",
-            url: helium.API_URL + "/planner/materialgroups/" + material_group_id + "/materials/",
-            async: async,
-            data: JSON.stringify(data),
-            dataType: "json",
-            success: callback,
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                          type: "POST",
+                          url: helium.API_URL + "/planner/materialgroups/" + material_group_id + "/materials/",
+                          async: async,
+                          data: JSON.stringify(data),
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     /**
@@ -1270,28 +1327,29 @@ function HeliumPlannerAPI() {
         delete self.material[id];
         self.materials_by_course_id = {};
         return $.ajax({
-            type: "PUT",
-            url: helium.API_URL + "/planner/materialgroups/" + material_group_id + "/materials/" + id + "/",
-            async: async,
-            data: JSON.stringify(data),
-            dataType: "json",
-            success: callback,
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                          type: "PUT",
+                          url: helium.API_URL + "/planner/materialgroups/" + material_group_id + "/materials/" + id
+                               + "/",
+                          async: async,
+                          data: JSON.stringify(data),
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     /**
@@ -1307,27 +1365,28 @@ function HeliumPlannerAPI() {
         delete self.material[id];
         self.materials_by_course_id = {};
         return $.ajax({
-            type: "DELETE",
-            url: helium.API_URL + "/planner/materialgroups/" + material_group_id + "/materials/" + id + "/",
-            async: async,
-            dataType: "json",
-            success: callback,
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                          type: "DELETE",
+                          url: helium.API_URL + "/planner/materialgroups/" + material_group_id + "/materials/" + id
+                               + "/",
+                          async: async,
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     /**
@@ -1335,7 +1394,8 @@ function HeliumPlannerAPI() {
      *
      * @param callback function to pass response data and call after completion
      * @param async true if call should be async, false otherwise (default is true)
-     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to refresh the cache (default to false)
+     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
+     *     refresh the cache (default to false)
      */
     this.get_category_names = function (callback, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
@@ -1346,46 +1406,50 @@ function HeliumPlannerAPI() {
             ret_val = callback(self.category_names);
         } else {
             ret_val = $.ajax({
-                type: "GET",
-                url: helium.API_URL + "/planner/categories/",
-                async: async,
-                dataType: "json",
-                success: function (data) {
-                    self.category_names = [];
-                    $.each(data, function (index, category) {
-                        self.category_names.push(category);
-                    });
-                    callback(self.category_names);
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    var data = [{
-                        'err_msg': self.GENERIC_ERROR_MESSAGE,
-                        'jqXHR': jqXHR,
-                        'textStatus': textStatus,
-                        'errorThrown': errorThrown
-                    }];
-                    if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                        var name = Object.keys(jqXHR.responseJSON)[0];
-                        if (jqXHR.responseJSON[name].length > 0) {
-                            data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                        }
-                    }
-                    callback(data);
-                }
-            });
+                                 type: "GET",
+                                 url: helium.API_URL + "/planner/categories/",
+                                 async: async,
+                                 dataType: "json",
+                                 success: function (data) {
+                                     self.category_names = [];
+                                     $.each(data, function (index, category) {
+                                         self.category_names.push(category);
+                                     });
+                                     callback(self.category_names);
+                                 },
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     var data = [{
+                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                         'jqXHR': jqXHR,
+                                         'textStatus': textStatus,
+                                         'errorThrown': errorThrown
+                                     }];
+                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
+                                                                                 > 0) {
+                                         var name = Object.keys(jqXHR.responseJSON)[0];
+                                         if (jqXHR.responseJSON[name].length > 0) {
+                                             data[0]['err_msg'] =
+                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                         }
+                                     }
+                                     callback(data);
+                                 }
+                             });
         }
 
         return ret_val;
     };
 
     /**
-     * Compile all Categories for the given Course ID and pass the values to the given callback function in JSON format.
+     * Compile all Categories for the given Course ID and pass the values to the given callback function in JSON
+     * format.
      *
      * @param callback function to pass response data and call after completion
      * @param course_group_id the ID of the CourseGroup with which to associate
      * @param id the ID of the Course with which to associate
      * @param async true if call should be async, false otherwise (default is true)
-     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to refresh the cache (default to false)
+     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
+     *     refresh the cache (default to false)
      */
     this.get_categories_by_course_id = function (callback, course_group_id, id, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
@@ -1396,30 +1460,33 @@ function HeliumPlannerAPI() {
             ret_val = callback(self.categories_by_course_id[id]);
         } else {
             ret_val = $.ajax({
-                type: "GET",
-                url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + id + "/categories/",
-                async: async,
-                dataType: "json",
-                success: function (data) {
-                    self.categories_by_course_id[id] = data;
-                    callback(self.categories_by_course_id[id]);
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    var data = [{
-                        'err_msg': self.GENERIC_ERROR_MESSAGE,
-                        'jqXHR': jqXHR,
-                        'textStatus': textStatus,
-                        'errorThrown': errorThrown
-                    }];
-                    if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                        var name = Object.keys(jqXHR.responseJSON)[0];
-                        if (jqXHR.responseJSON[name].length > 0) {
-                            data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                        }
-                    }
-                    callback(data);
-                }
-            });
+                                 type: "GET",
+                                 url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + id
+                                      + "/categories/",
+                                 async: async,
+                                 dataType: "json",
+                                 success: function (data) {
+                                     self.categories_by_course_id[id] = data;
+                                     callback(self.categories_by_course_id[id]);
+                                 },
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     var data = [{
+                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                         'jqXHR': jqXHR,
+                                         'textStatus': textStatus,
+                                         'errorThrown': errorThrown
+                                     }];
+                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
+                                                                                 > 0) {
+                                         var name = Object.keys(jqXHR.responseJSON)[0];
+                                         if (jqXHR.responseJSON[name].length > 0) {
+                                             data[0]['err_msg'] =
+                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                         }
+                                     }
+                                     callback(data);
+                                 }
+                             });
         }
 
         return ret_val;
@@ -1433,7 +1500,8 @@ function HeliumPlannerAPI() {
      * @param course_id the ID of the Course
      * @param id the ID of the Category
      * @param async true if call should be async, false otherwise (default is true)
-     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to refresh the cache (default to false)
+     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
+     *     refresh the cache (default to false)
      */
     this.get_category = function (callback, course_group_id, course_id, id, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
@@ -1444,30 +1512,33 @@ function HeliumPlannerAPI() {
             ret_val = callback(self.category[id]);
         } else {
             ret_val = $.ajax({
-                type: "GET",
-                url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + course_id + "/categories/" + id + "/",
-                async: async,
-                dataType: "json",
-                success: function (data) {
-                    self.category[id] = data;
-                    callback(self.category[id]);
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    var data = [{
-                        'err_msg': self.GENERIC_ERROR_MESSAGE,
-                        'jqXHR': jqXHR,
-                        'textStatus': textStatus,
-                        'errorThrown': errorThrown
-                    }];
-                    if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                        var name = Object.keys(jqXHR.responseJSON)[0];
-                        if (jqXHR.responseJSON[name].length > 0) {
-                            data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                        }
-                    }
-                    callback(data);
-                }
-            });
+                                 type: "GET",
+                                 url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/"
+                                      + course_id + "/categories/" + id + "/",
+                                 async: async,
+                                 dataType: "json",
+                                 success: function (data) {
+                                     self.category[id] = data;
+                                     callback(self.category[id]);
+                                 },
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     var data = [{
+                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                         'jqXHR': jqXHR,
+                                         'textStatus': textStatus,
+                                         'errorThrown': errorThrown
+                                     }];
+                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
+                                                                                 > 0) {
+                                         var name = Object.keys(jqXHR.responseJSON)[0];
+                                         if (jqXHR.responseJSON[name].length > 0) {
+                                             data[0]['err_msg'] =
+                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                         }
+                                     }
+                                     callback(data);
+                                 }
+                             });
         }
 
         return ret_val;
@@ -1487,28 +1558,29 @@ function HeliumPlannerAPI() {
         self.category_names = null;
         self.categories_by_course_id = {};
         return $.ajax({
-            type: "POST",
-            url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + course_id + "/categories/",
-            async: async,
-            data: JSON.stringify(data),
-            dataType: "json",
-            success: callback,
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                          type: "POST",
+                          url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + course_id
+                               + "/categories/",
+                          async: async,
+                          data: JSON.stringify(data),
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     /**
@@ -1527,28 +1599,29 @@ function HeliumPlannerAPI() {
         self.category_names = null;
         self.categories_by_course_id = {};
         return $.ajax({
-            type: "PUT",
-            url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + course_id + "/categories/" + id + "/",
-            async: async,
-            data: JSON.stringify(data),
-            dataType: "json",
-            success: callback,
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                          type: "PUT",
+                          url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + course_id
+                               + "/categories/" + id + "/",
+                          async: async,
+                          data: JSON.stringify(data),
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     /**
@@ -1566,36 +1639,39 @@ function HeliumPlannerAPI() {
         self.category_names = null;
         self.categories_by_course_id = {};
         return $.ajax({
-            type: "DELETE",
-            url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + course_id + "/categories/" + id + "/",
-            async: async,
-            dataType: "json",
-            success: callback,
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                          type: "DELETE",
+                          url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + course_id
+                               + "/categories/" + id + "/",
+                          async: async,
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     /**
-     * Compile all Attachments for the given Course ID and pass the values to the given callback function in JSON format.
+     * Compile all Attachments for the given Course ID and pass the values to the given callback function in JSON
+     * format.
      *
      * @param callback function to pass response data and call after completion
      * @param id the ID of the Course with which to associate
      * @param async true if call should be async, false otherwise (default is true)
-     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to refresh the cache (default to false)
+     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
+     *     refresh the cache (default to false)
      */
     this.get_attachments_by_course_id = function (callback, id, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
@@ -1606,37 +1682,40 @@ function HeliumPlannerAPI() {
             ret_val = callback(self.attachments_by_course_id[id]);
         } else {
             ret_val = $.ajax({
-                type: "GET",
-                url: helium.API_URL + "/planner/attachments/?course=" + id,
-                async: async,
-                dataType: "json",
-                success: function (data) {
-                    self.categories_by_course_id[id] = data;
-                    callback(self.categories_by_course_id[id]);
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    var data = [{
-                        'err_msg': self.GENERIC_ERROR_MESSAGE,
-                        'jqXHR': jqXHR,
-                        'textStatus': textStatus,
-                        'errorThrown': errorThrown
-                    }];
-                    if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                        var name = Object.keys(jqXHR.responseJSON)[0];
-                        if (jqXHR.responseJSON[name].length > 0) {
-                            data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                        }
-                    }
-                    callback(data);
-                }
-            });
+                                 type: "GET",
+                                 url: helium.API_URL + "/planner/attachments/?course=" + id,
+                                 async: async,
+                                 dataType: "json",
+                                 success: function (data) {
+                                     self.categories_by_course_id[id] = data;
+                                     callback(self.categories_by_course_id[id]);
+                                 },
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     var data = [{
+                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                         'jqXHR': jqXHR,
+                                         'textStatus': textStatus,
+                                         'errorThrown': errorThrown
+                                     }];
+                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
+                                                                                 > 0) {
+                                         var name = Object.keys(jqXHR.responseJSON)[0];
+                                         if (jqXHR.responseJSON[name].length > 0) {
+                                             data[0]['err_msg'] =
+                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                         }
+                                     }
+                                     callback(data);
+                                 }
+                             });
         }
 
         return ret_val;
     };
 
     /**
-     * Delete the Attachment for the given ID and pass the returned values to the given callback function in JSON format.
+     * Delete the Attachment for the given ID and pass the returned values to the given callback function in JSON
+     * format.
      *
      * @param callback function to pass response data and call after completion
      * @param id the ID of the Attachment
@@ -1647,27 +1726,27 @@ function HeliumPlannerAPI() {
         delete self.attachment[id];
         self.attachments_by_course_id = {};
         return $.ajax({
-            type: "DELETE",
-            url: helium.API_URL + "/planner/attachments/" + id,
-            async: async,
-            dataType: "json",
-            success: callback,
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                          type: "DELETE",
+                          url: helium.API_URL + "/planner/attachments/" + id,
+                          async: async,
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     /**
@@ -1675,7 +1754,8 @@ function HeliumPlannerAPI() {
      *
      * @param callback function to pass response data and call after completion
      * @param async true if call should be async, false otherwise (default is true)
-     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to refresh the cache (default to false)
+     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
+     *     refresh the cache (default to false)
      */
     this.get_homework_by_user = function (callback, async, use_cache, start, end) {
         async = typeof async === "undefined" ? true : async;
@@ -1686,30 +1766,34 @@ function HeliumPlannerAPI() {
             ret_val = callback(self.homework_by_user_id[helium.USER_PREFS.id]);
         } else {
             ret_val = $.ajax({
-                type: "GET",
-                url: helium.API_URL + "/planner/homework/" + (typeof start !== "undefined" ? "?start__gte=" + start : "") + (typeof end !== "undefined" ? "&end__lt=" + end : ""),
-                async: async,
-                dataType: "json",
-                success: function (data) {
-                    self.homework_by_user_id[helium.USER_PREFS.id] = data;
-                    callback(self.homework_by_user_id[helium.USER_PREFS.id]);
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    var data = [{
-                        'err_msg': self.GENERIC_ERROR_MESSAGE,
-                        'jqXHR': jqXHR,
-                        'textStatus': textStatus,
-                        'errorThrown': errorThrown
-                    }];
-                    if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                        var name = Object.keys(jqXHR.responseJSON)[0];
-                        if (jqXHR.responseJSON[name].length > 0) {
-                            data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                        }
-                    }
-                    callback(data);
-                }
-            });
+                                 type: "GET",
+                                 url: helium.API_URL + "/planner/homework/" + (typeof start !== "undefined"
+                                     ? "?start__gte=" + start : "") + (typeof end !== "undefined" ? "&end__lt=" + end
+                                     : ""),
+                                 async: async,
+                                 dataType: "json",
+                                 success: function (data) {
+                                     self.homework_by_user_id[helium.USER_PREFS.id] = data;
+                                     callback(self.homework_by_user_id[helium.USER_PREFS.id]);
+                                 },
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     var data = [{
+                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                         'jqXHR': jqXHR,
+                                         'textStatus': textStatus,
+                                         'errorThrown': errorThrown
+                                     }];
+                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
+                                                                                 > 0) {
+                                         var name = Object.keys(jqXHR.responseJSON)[0];
+                                         if (jqXHR.responseJSON[name].length > 0) {
+                                             data[0]['err_msg'] =
+                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                         }
+                                     }
+                                     callback(data);
+                                 }
+                             });
         }
 
         return ret_val;
@@ -1722,7 +1806,8 @@ function HeliumPlannerAPI() {
      * @param course_group_id the ID of the CourseGroup with which to associate
      * @param id the ID of the Course with which to associate
      * @param async true if call should be async, false otherwise (default is true)
-     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to refresh the cache (default to false)
+     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
+     *     refresh the cache (default to false)
      */
     this.get_homework_by_course_id = function (callback, course_group_id, id, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
@@ -1733,30 +1818,33 @@ function HeliumPlannerAPI() {
             ret_val = callback(self.homework_by_course_id[id]);
         } else {
             ret_val = $.ajax({
-                type: "GET",
-                url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + id + "/homework/",
-                async: async,
-                dataType: "json",
-                success: function (data) {
-                    self.homework_by_course_id[id] = data;
-                    callback(self.homework_by_course_id[id]);
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    var data = [{
-                        'err_msg': self.GENERIC_ERROR_MESSAGE,
-                        'jqXHR': jqXHR,
-                        'textStatus': textStatus,
-                        'errorThrown': errorThrown
-                    }];
-                    if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                        var name = Object.keys(jqXHR.responseJSON)[0];
-                        if (jqXHR.responseJSON[name].length > 0) {
-                            data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                        }
-                    }
-                    callback(data);
-                }
-            });
+                                 type: "GET",
+                                 url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + id
+                                      + "/homework/",
+                                 async: async,
+                                 dataType: "json",
+                                 success: function (data) {
+                                     self.homework_by_course_id[id] = data;
+                                     callback(self.homework_by_course_id[id]);
+                                 },
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     var data = [{
+                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                         'jqXHR': jqXHR,
+                                         'textStatus': textStatus,
+                                         'errorThrown': errorThrown
+                                     }];
+                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
+                                                                                 > 0) {
+                                         var name = Object.keys(jqXHR.responseJSON)[0];
+                                         if (jqXHR.responseJSON[name].length > 0) {
+                                             data[0]['err_msg'] =
+                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                         }
+                                     }
+                                     callback(data);
+                                 }
+                             });
         }
 
         return ret_val;
@@ -1770,7 +1858,8 @@ function HeliumPlannerAPI() {
      * @param course_id the ID of the Course
      * @param id the ID of the Homework
      * @param async true if call should be async, false otherwise (default is true)
-     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to refresh the cache (default to false)
+     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
+     *     refresh the cache (default to false)
      */
     this.get_homework = function (callback, course_group_id, course_id, id, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
@@ -1781,30 +1870,33 @@ function HeliumPlannerAPI() {
             ret_val = callback(self.homework[id]);
         } else {
             ret_val = $.ajax({
-                type: "GET",
-                url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + course_id + "/homework/" + id + "/",
-                async: async,
-                dataType: "json",
-                success: function (data) {
-                    self.homework[id] = data;
-                    callback(self.homework[id]);
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    var data = [{
-                        'err_msg': self.GENERIC_ERROR_MESSAGE,
-                        'jqXHR': jqXHR,
-                        'textStatus': textStatus,
-                        'errorThrown': errorThrown
-                    }];
-                    if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                        var name = Object.keys(jqXHR.responseJSON)[0];
-                        if (jqXHR.responseJSON[name].length > 0) {
-                            data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                        }
-                    }
-                    callback(data);
-                }
-            });
+                                 type: "GET",
+                                 url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/"
+                                      + course_id + "/homework/" + id + "/",
+                                 async: async,
+                                 dataType: "json",
+                                 success: function (data) {
+                                     self.homework[id] = data;
+                                     callback(self.homework[id]);
+                                 },
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     var data = [{
+                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                         'jqXHR': jqXHR,
+                                         'textStatus': textStatus,
+                                         'errorThrown': errorThrown
+                                     }];
+                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
+                                                                                 > 0) {
+                                         var name = Object.keys(jqXHR.responseJSON)[0];
+                                         if (jqXHR.responseJSON[name].length > 0) {
+                                             data[0]['err_msg'] =
+                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                         }
+                                     }
+                                     callback(data);
+                                 }
+                             });
         }
 
         return ret_val;
@@ -1844,28 +1936,29 @@ function HeliumPlannerAPI() {
         self.homework_by_course_id = {};
         self.homework_by_user_id = {};
         return $.ajax({
-            type: "POST",
-            url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + course_id + "/homework/",
-            async: async,
-            data: JSON.stringify(data),
-            dataType: "json",
-            success: callback,
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                          type: "POST",
+                          url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + course_id
+                               + "/homework/",
+                          async: async,
+                          data: JSON.stringify(data),
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     /**
@@ -1887,28 +1980,29 @@ function HeliumPlannerAPI() {
         self.homework_by_user_id = {};
         self.reminders_by_calendar_item = {};
         return $.ajax({
-            type: patch ? "PATCH" : "PUT",
-            url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + course_id + "/homework/" + id + "/",
-            async: async,
-            data: JSON.stringify(data),
-            dataType: "json",
-            success: callback,
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                          type: patch ? "PATCH" : "PUT",
+                          url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + course_id
+                               + "/homework/" + id + "/",
+                          async: async,
+                          data: JSON.stringify(data),
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     /**
@@ -1927,27 +2021,28 @@ function HeliumPlannerAPI() {
         self.homework_by_user_id = {};
         self.reminders_by_calendar_item = {};
         return $.ajax({
-            type: "DELETE",
-            url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + course_id + "/homework/" + id + "/",
-            async: async,
-            dataType: "json",
-            success: callback,
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                          type: "DELETE",
+                          url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + course_id
+                               + "/homework/" + id + "/",
+                          async: async,
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     /**
@@ -1955,7 +2050,8 @@ function HeliumPlannerAPI() {
      *
      * @param callback function to pass response data and call after completion
      * @param async true if call should be async, false otherwise (default is true)
-     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to refresh the cache (default to false)
+     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
+     *     refresh the cache (default to false)
      */
     this.get_events = function (callback, async, use_cache, start, end) {
         async = typeof async === "undefined" ? true : async;
@@ -1966,30 +2062,33 @@ function HeliumPlannerAPI() {
             ret_val = callback(self.events_by_user_id[helium.USER_PREFS.id]);
         } else {
             ret_val = $.ajax({
-                type: "GET",
-                url: helium.API_URL + "/planner/events/" + (start !== "undefined" ? "?start__gte=" + start : "") + (end !== "undefined" ? "&end__lt=" + end : ""),
-                async: async,
-                dataType: "json",
-                success: function (data) {
-                    self.events_by_user_id[helium.USER_PREFS.id] = data;
-                    callback(self.events_by_user_id[helium.USER_PREFS.id]);
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    var data = [{
-                        'err_msg': self.GENERIC_ERROR_MESSAGE,
-                        'jqXHR': jqXHR,
-                        'textStatus': textStatus,
-                        'errorThrown': errorThrown
-                    }];
-                    if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                        var name = Object.keys(jqXHR.responseJSON)[0];
-                        if (jqXHR.responseJSON[name].length > 0) {
-                            data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                        }
-                    }
-                    callback(data);
-                }
-            });
+                                 type: "GET",
+                                 url: helium.API_URL + "/planner/events/" + (start !== "undefined" ? "?start__gte="
+                                      + start : "") + (end !== "undefined" ? "&end__lt=" + end : ""),
+                                 async: async,
+                                 dataType: "json",
+                                 success: function (data) {
+                                     self.events_by_user_id[helium.USER_PREFS.id] = data;
+                                     callback(self.events_by_user_id[helium.USER_PREFS.id]);
+                                 },
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     var data = [{
+                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                         'jqXHR': jqXHR,
+                                         'textStatus': textStatus,
+                                         'errorThrown': errorThrown
+                                     }];
+                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
+                                                                                 > 0) {
+                                         var name = Object.keys(jqXHR.responseJSON)[0];
+                                         if (jqXHR.responseJSON[name].length > 0) {
+                                             data[0]['err_msg'] =
+                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                         }
+                                     }
+                                     callback(data);
+                                 }
+                             });
         }
 
         return ret_val;
@@ -2001,7 +2100,8 @@ function HeliumPlannerAPI() {
      * @param callback function to pass response data and call after completion
      * @param id the ID of the Event.
      * @param async true if call should be async, false otherwise (default is true)
-     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to refresh the cache (default to false)
+     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
+     *     refresh the cache (default to false)
      */
     this.get_event = function (callback, id, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
@@ -2016,30 +2116,32 @@ function HeliumPlannerAPI() {
             ret_val = callback(self.event[id]);
         } else {
             ret_val = $.ajax({
-                type: "GET",
-                url: helium.API_URL + "/planner/events/" + id + "/",
-                async: async,
-                dataType: "json",
-                success: function (data) {
-                    self.event[id] = data;
-                    callback(self.event[id]);
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    var data = [{
-                        'err_msg': self.GENERIC_ERROR_MESSAGE,
-                        'jqXHR': jqXHR,
-                        'textStatus': textStatus,
-                        'errorThrown': errorThrown
-                    }];
-                    if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                        var name = Object.keys(jqXHR.responseJSON)[0];
-                        if (jqXHR.responseJSON[name].length > 0) {
-                            data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                        }
-                    }
-                    callback(data);
-                }
-            });
+                                 type: "GET",
+                                 url: helium.API_URL + "/planner/events/" + id + "/",
+                                 async: async,
+                                 dataType: "json",
+                                 success: function (data) {
+                                     self.event[id] = data;
+                                     callback(self.event[id]);
+                                 },
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     var data = [{
+                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                         'jqXHR': jqXHR,
+                                         'textStatus': textStatus,
+                                         'errorThrown': errorThrown
+                                     }];
+                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
+                                                                                 > 0) {
+                                         var name = Object.keys(jqXHR.responseJSON)[0];
+                                         if (jqXHR.responseJSON[name].length > 0) {
+                                             data[0]['err_msg'] =
+                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                         }
+                                     }
+                                     callback(data);
+                                 }
+                             });
         }
 
         return ret_val;
@@ -2056,28 +2158,28 @@ function HeliumPlannerAPI() {
         async = typeof async === "undefined" ? true : async;
         self.events_by_user_id = {};
         return $.ajax({
-            type: "POST",
-            url: helium.API_URL + "/planner/events/",
-            async: async,
-            data: JSON.stringify(data),
-            dataType: "json",
-            success: callback,
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                          type: "POST",
+                          url: helium.API_URL + "/planner/events/",
+                          async: async,
+                          data: JSON.stringify(data),
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     /**
@@ -2101,28 +2203,28 @@ function HeliumPlannerAPI() {
         self.events_by_user_id = {};
         self.reminders_by_calendar_item = {};
         return $.ajax({
-            type: patch ? "PATCH" : "PUT",
-            url: helium.API_URL + "/planner/events/" + id + "/",
-            async: async,
-            data: JSON.stringify(data),
-            dataType: "json",
-            success: callback,
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                          type: patch ? "PATCH" : "PUT",
+                          url: helium.API_URL + "/planner/events/" + id + "/",
+                          async: async,
+                          data: JSON.stringify(data),
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     /**
@@ -2143,35 +2245,37 @@ function HeliumPlannerAPI() {
         self.events_by_user_id = {};
         self.reminders_by_calendar_item = {};
         return $.ajax({
-            type: "DELETE",
-            url: helium.API_URL + "/planner/events/" + id + "/",
-            async: async,
-            dataType: "json",
-            success: callback,
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                          type: "DELETE",
+                          url: helium.API_URL + "/planner/events/" + id + "/",
+                          async: async,
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     /**
-     * Compile all Calendar Sources for the given user and pass the values to the given callback function in JSON format.
+     * Compile all Calendar Sources for the given user and pass the values to the given callback function in JSON
+     * format.
      *
      * @param callback function to pass response data and call after completion
      * @param async true if call should be async, false otherwise (default is true)
-     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to refresh the cache (default to false)
+     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
+     *     refresh the cache (default to false)
      */
     this.get_external_calendars = function (callback, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
@@ -2182,42 +2286,46 @@ function HeliumPlannerAPI() {
             ret_val = callback(self.external_calendars_by_user_id[helium.USER_PREFS.id]);
         } else {
             ret_val = $.ajax({
-                type: "GET",
-                url: helium.API_URL + "/feed/externalcalendars/",
-                async: async,
-                dataType: "json",
-                success: function (data) {
-                    self.external_calendars_by_user_id[helium.USER_PREFS.id] = data;
-                    callback(self.external_calendars_by_user_id[helium.USER_PREFS.id]);
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    var data = [{
-                        'err_msg': self.GENERIC_ERROR_MESSAGE,
-                        'jqXHR': jqXHR,
-                        'textStatus': textStatus,
-                        'errorThrown': errorThrown
-                    }];
-                    if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                        var name = Object.keys(jqXHR.responseJSON)[0];
-                        if (jqXHR.responseJSON[name].length > 0) {
-                            data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                        }
-                    }
-                    callback(data);
-                }
-            });
+                                 type: "GET",
+                                 url: helium.API_URL + "/feed/externalcalendars/",
+                                 async: async,
+                                 dataType: "json",
+                                 success: function (data) {
+                                     self.external_calendars_by_user_id[helium.USER_PREFS.id] = data;
+                                     callback(self.external_calendars_by_user_id[helium.USER_PREFS.id]);
+                                 },
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     var data = [{
+                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                         'jqXHR': jqXHR,
+                                         'textStatus': textStatus,
+                                         'errorThrown': errorThrown
+                                     }];
+                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
+                                                                                 > 0) {
+                                         var name = Object.keys(jqXHR.responseJSON)[0];
+                                         if (jqXHR.responseJSON[name].length > 0) {
+                                             data[0]['err_msg'] =
+                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                         }
+                                     }
+                                     callback(data);
+                                 }
+                             });
         }
 
         return ret_val;
     };
 
     /**
-     * Compile all Events for the given External Calendar source and pass the values to the given callback function in JSON format.
+     * Compile all Events for the given External Calendar source and pass the values to the given callback function in
+     * JSON format.
      *
      * @param callback function to pass response data and call after completion
      * @param id The ID of the ExternalCalendar.
      * @param async true if call should be async, false otherwise (default is true)
-     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to refresh the cache (default to false)
+     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
+     *     refresh the cache (default to false)
      */
     this.get_external_calendar_feed = function (callback, id, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
@@ -2228,30 +2336,32 @@ function HeliumPlannerAPI() {
             ret_val = callback(self.external_calendar_feed[id]);
         } else {
             ret_val = $.ajax({
-                type: "GET",
-                url: helium.API_URL + "/feed/externalcalendars/" + id + "/events/",
-                async: async,
-                dataType: "json",
-                success: function (data) {
-                    self.external_calendar_feed[id] = data;
-                    callback(self.external_calendar_feed[id]);
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    var data = [{
-                        'err_msg': self.GENERIC_ERROR_MESSAGE,
-                        'jqXHR': jqXHR,
-                        'textStatus': textStatus,
-                        'errorThrown': errorThrown
-                    }];
-                    if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                        var name = Object.keys(jqXHR.responseJSON)[0];
-                        if (jqXHR.responseJSON[name].length > 0) {
-                            data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                        }
-                    }
-                    callback(data);
-                }
-            });
+                                 type: "GET",
+                                 url: helium.API_URL + "/feed/externalcalendars/" + id + "/events/",
+                                 async: async,
+                                 dataType: "json",
+                                 success: function (data) {
+                                     self.external_calendar_feed[id] = data;
+                                     callback(self.external_calendar_feed[id]);
+                                 },
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     var data = [{
+                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                         'jqXHR': jqXHR,
+                                         'textStatus': textStatus,
+                                         'errorThrown': errorThrown
+                                     }];
+                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
+                                                                                 > 0) {
+                                         var name = Object.keys(jqXHR.responseJSON)[0];
+                                         if (jqXHR.responseJSON[name].length > 0) {
+                                             data[0]['err_msg'] =
+                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                         }
+                                     }
+                                     callback(data);
+                                 }
+                             });
         }
 
         return ret_val;
@@ -2262,7 +2372,8 @@ function HeliumPlannerAPI() {
      *
      * @param callback function to pass response data and call after completion
      * @param async true if call should be async, false otherwise (default is true)
-     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to refresh the cache (default to false)
+     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
+     *     refresh the cache (default to false)
      */
     this.get_reminders = function (callback, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
@@ -2273,43 +2384,48 @@ function HeliumPlannerAPI() {
             ret_val = callback(self.reminders_by_user_id[helium.USER_PREFS.id]);
         } else {
             ret_val = $.ajax({
-                type: "GET",
-                url: helium.API_URL + "/planner/reminders/?sent=false&type=0&start_of_range__lte=" + moment().toISOString(),
-                async: async,
-                dataType: "json",
-                success: function (data) {
-                    self.reminders_by_user_id[helium.USER_PREFS.id] = data;
-                    callback(self.reminders_by_user_id[helium.USER_PREFS.id]);
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    var data = [{
-                        'err_msg': self.GENERIC_ERROR_MESSAGE,
-                        'jqXHR': jqXHR,
-                        'textStatus': textStatus,
-                        'errorThrown': errorThrown
-                    }];
-                    if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                        var name = Object.keys(jqXHR.responseJSON)[0];
-                        if (jqXHR.responseJSON[name].length > 0) {
-                            data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                        }
-                    }
-                    callback(data);
-                }
-            });
+                                 type: "GET",
+                                 url: helium.API_URL + "/planner/reminders/?sent=false&type=0&start_of_range__lte="
+                                      + moment().toISOString(),
+                                 async: async,
+                                 dataType: "json",
+                                 success: function (data) {
+                                     self.reminders_by_user_id[helium.USER_PREFS.id] = data;
+                                     callback(self.reminders_by_user_id[helium.USER_PREFS.id]);
+                                 },
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     var data = [{
+                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                         'jqXHR': jqXHR,
+                                         'textStatus': textStatus,
+                                         'errorThrown': errorThrown
+                                     }];
+                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
+                                                                                 > 0) {
+                                         var name = Object.keys(jqXHR.responseJSON)[0];
+                                         if (jqXHR.responseJSON[name].length > 0) {
+                                             data[0]['err_msg'] =
+                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                         }
+                                     }
+                                     callback(data);
+                                 }
+                             });
         }
 
         return ret_val;
     };
 
     /**
-     * Compile all Reminders for the given calendar item (Homework or Event) and pass the values to the given callback function in JSON format.
+     * Compile all Reminders for the given calendar item (Homework or Event) and pass the values to the given callback
+     * function in JSON format.
      *
      * @param callback function to pass response data and call after completion
      * @param id the ID of the user with which to associate
      * @param calendar_item_type true if the item is an event, false otherwise
      * @param async true if call should be async, false otherwise (default is true)
-     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to refresh the cache (default to false)
+     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
+     *     refresh the cache (default to false)
      */
     this.get_reminders_by_calendar_item = function (callback, id, calendar_item_type, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
@@ -2322,31 +2438,33 @@ function HeliumPlannerAPI() {
             var query = calendar_item_type == "0" ? "event=" + id : "homework=" + id;
 
             ret_val = $.ajax({
-                type: "GET",
-                url: helium.API_URL + "/planner/reminders/?" + query,
-                data: {calendar_item_type: calendar_item_type},
-                async: async,
-                dataType: "json",
-                success: function (data) {
-                    self.reminders_by_calendar_item[id] = data;
-                    callback(self.reminders_by_calendar_item[id]);
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    var data = [{
-                        'err_msg': self.GENERIC_ERROR_MESSAGE,
-                        'jqXHR': jqXHR,
-                        'textStatus': textStatus,
-                        'errorThrown': errorThrown
-                    }];
-                    if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                        var name = Object.keys(jqXHR.responseJSON)[0];
-                        if (jqXHR.responseJSON[name].length > 0) {
-                            data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                        }
-                    }
-                    callback(data);
-                }
-            });
+                                 type: "GET",
+                                 url: helium.API_URL + "/planner/reminders/?" + query,
+                                 data: {calendar_item_type: calendar_item_type},
+                                 async: async,
+                                 dataType: "json",
+                                 success: function (data) {
+                                     self.reminders_by_calendar_item[id] = data;
+                                     callback(self.reminders_by_calendar_item[id]);
+                                 },
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     var data = [{
+                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                         'jqXHR': jqXHR,
+                                         'textStatus': textStatus,
+                                         'errorThrown': errorThrown
+                                     }];
+                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
+                                                                                 > 0) {
+                                         var name = Object.keys(jqXHR.responseJSON)[0];
+                                         if (jqXHR.responseJSON[name].length > 0) {
+                                             data[0]['err_msg'] =
+                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                         }
+                                     }
+                                     callback(data);
+                                 }
+                             });
         }
 
         return ret_val;
@@ -2363,28 +2481,28 @@ function HeliumPlannerAPI() {
         async = typeof async === "undefined" ? true : async;
         self.events_by_user_id = {};
         return $.ajax({
-            type: "POST",
-            url: helium.API_URL + "/planner/reminders/",
-            async: async,
-            data: JSON.stringify(data),
-            dataType: "json",
-            success: callback,
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                          type: "POST",
+                          url: helium.API_URL + "/planner/reminders/",
+                          async: async,
+                          data: JSON.stringify(data),
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     /**
@@ -2393,7 +2511,8 @@ function HeliumPlannerAPI() {
      * @param callback function to pass response data and call after completion
      * @param id the ID of the Reminder.
      * @param async true if call should be async, false otherwise (default is true)
-     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to refresh the cache (default to false)
+     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
+     *     refresh the cache (default to false)
      */
     this.get_reminder = function (callback, id, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
@@ -2404,30 +2523,32 @@ function HeliumPlannerAPI() {
             ret_val = callback(self.reminder[id]);
         } else {
             ret_val = $.ajax({
-                type: "GET",
-                url: helium.API_URL + "/planner/reminders/" + id + "/",
-                async: async,
-                dataType: "json",
-                success: function (data) {
-                    self.reminder[id] = data;
-                    callback(self.reminder[id]);
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    var data = [{
-                        'err_msg': self.GENERIC_ERROR_MESSAGE,
-                        'jqXHR': jqXHR,
-                        'textStatus': textStatus,
-                        'errorThrown': errorThrown
-                    }];
-                    if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                        var name = Object.keys(jqXHR.responseJSON)[0];
-                        if (jqXHR.responseJSON[name].length > 0) {
-                            data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                        }
-                    }
-                    callback(data);
-                }
-            });
+                                 type: "GET",
+                                 url: helium.API_URL + "/planner/reminders/" + id + "/",
+                                 async: async,
+                                 dataType: "json",
+                                 success: function (data) {
+                                     self.reminder[id] = data;
+                                     callback(self.reminder[id]);
+                                 },
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     var data = [{
+                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                         'jqXHR': jqXHR,
+                                         'textStatus': textStatus,
+                                         'errorThrown': errorThrown
+                                     }];
+                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
+                                                                                 > 0) {
+                                         var name = Object.keys(jqXHR.responseJSON)[0];
+                                         if (jqXHR.responseJSON[name].length > 0) {
+                                             data[0]['err_msg'] =
+                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                         }
+                                     }
+                                     callback(data);
+                                 }
+                             });
         }
 
         return ret_val;
@@ -2451,28 +2572,28 @@ function HeliumPlannerAPI() {
         self.reminders_by_calendar_item = {};
 
         return $.ajax({
-            type: patch ? "PATCH" : "PUT",
-            url: helium.API_URL + "/planner/reminders/" + id + "/",
-            async: async,
-            data: JSON.stringify(data),
-            dataType: "json",
-            success: callback,
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                          type: patch ? "PATCH" : "PUT",
+                          url: helium.API_URL + "/planner/reminders/" + id + "/",
+                          async: async,
+                          data: JSON.stringify(data),
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     /**
@@ -2491,28 +2612,28 @@ function HeliumPlannerAPI() {
         self.reminders_by_calendar_item = {};
 
         return $.ajax({
-            type: "DELETE",
-            url: helium.API_URL + "/planner/reminders/" + id + "/",
-            async: async,
-            data: JSON.stringify(data),
-            dataType: "json",
-            success: callback,
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                          type: "DELETE",
+                          url: helium.API_URL + "/planner/reminders/" + id + "/",
+                          async: async,
+                          data: JSON.stringify(data),
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     /**
@@ -2532,87 +2653,87 @@ function HeliumPlannerAPI() {
 
         var query = calendar_item_type == "0" ? "event=" + id : "homework=" + id;
         return $.ajax({
-            type: "GET",
-            url: helium.API_URL + "/planner/attachments/?" + query,
-            async: async,
-            data: {calendar_item_type: calendar_item_type},
-            dataType: "json",
-            success: callback,
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                          type: "GET",
+                          url: helium.API_URL + "/planner/attachments/?" + query,
+                          async: async,
+                          data: {calendar_item_type: calendar_item_type},
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     this.enable_feed = function (callback, feed_type, id, async) {
         async = typeof async === "undefined" ? true : async;
         return $.ajax({
-            type: "PUT",
-            url: helium.API_URL + "/feeds/enable-external/",
-            async: async,
-            dataType: "json",
-            success: callback,
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                          type: "PUT",
+                          url: helium.API_URL + "/feeds/enable-external/",
+                          async: async,
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 
     this.disable_feed = function (callback, feed_type, id, async) {
         async = typeof async === "undefined" ? true : async;
         return $.ajax({
-            type: "PUT",
-            url: helium.API_URL + "/feeds/disable-external/",
-            async: async,
-            dataType: "json",
-            success: callback,
-            error: function (jqXHR, textStatus, errorThrown) {
-                var data = [{
-                    'err_msg': self.GENERIC_ERROR_MESSAGE,
-                    'jqXHR': jqXHR,
-                    'textStatus': textStatus,
-                    'errorThrown': errorThrown
-                }];
-                if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                    var name = Object.keys(jqXHR.responseJSON)[0];
-                    if (jqXHR.responseJSON[name].length > 0) {
-                        data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                    }
-                }
-                callback(data);
-            }
-        });
+                          type: "PUT",
+                          url: helium.API_URL + "/feeds/disable-external/",
+                          async: async,
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
     };
 }
 
 // Initialize HeliumPlannerAPI and give a reference to the Helium object
 helium.planner_api = new HeliumPlannerAPI();
 
-if (typeof USER_ID !== 'undefined') {
+if (AUTH_TOKEN !== undefined) {
     helium.planner_api.get_reminders(function (data) {
         helium.process_reminders(data);
     });
