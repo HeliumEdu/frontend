@@ -2027,10 +2027,9 @@ $(document).ready(function () {
                 previewTemplate: "<div class=\"dz-preview dz-file-preview\">\n  <div class=\"dz-details\">\n    <div class=\"dz-filename\"><span data-dz-name></span></div>\n    <div class=\"dz-size\" data-dz-size></div>\n    <img data-dz-thumbnail />\n  </div>\n  <div class=\"progress progress-small progress-striped active\"><div class=\"progress-bar progress-bar-success\" data-dz-uploadprogress></div></div>\n  <div class=\"dz-success-mark\"><span></span></div>\n  <div class=\"dz-error-mark\"><span></span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
                 init: function () {
                     helium.calendar.dropzone = this;
-                    var CSRF_TOKEN = Cookies.get("csrftoken");
 
                     this.on("sendingmultiple", function (na, xhr, form_data) {
-                        xhr.setRequestHeader("X-CSRFToken", CSRF_TOKEN);
+                        xhr.setRequestHeader("Authorization", "Token " + AUTH_TOKEN);
                         if (helium.calendar.current_calendar_item.calendar_item_type === 0) {
                             form_data.append("event", helium.calendar.current_calendar_item.id.substr(6));
                         } else {
