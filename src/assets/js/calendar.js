@@ -1890,6 +1890,8 @@ $(document).ready(function () {
 
     $("#loading-calendar").spin(helium.LARGE_LOADING_OPTS);
 
+    $("#dropzone-form").attr("action", helium.API_URL + "/planner/attachments/");
+
     moment.tz.setDefault(helium.USER_PREFS.settings.time_zone);
 
     // Prevent Dropzone auto-initialization, as we'll do it in a bit

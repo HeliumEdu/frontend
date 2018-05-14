@@ -1487,6 +1487,8 @@ $(document).ready(function () {
     $("#loading-course-group-modal").spin(false);
     $("#loading-course-modal").spin(false);
 
+    $("#dropzone-form").attr("action", helium.API_URL + "/planner/attachments/");
+
     /*******************************************
      * Initialize component libraries
      ******************************************/
