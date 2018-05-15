@@ -1,4 +1,4 @@
-{% extends "src/templates/base.njk" %}
+{% extends "src/templates/base.html" %}
 
 {% block title %}{{ PROJECT_NAME }} | Classes{% endblock %}
 
@@ -263,7 +263,7 @@
                                                            for="id_color_select">Color</label>
 
                                                     <div class="col-sm-4 col-xs-12">
-                                                        {% include "src/templates/snippets/colorselect.njk" %}
+                                                        {% include "src/templates/snippets/colorselect.html" %}
                                                     </div>
                                                 </div>
                                                 <div class="form-group">

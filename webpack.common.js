@@ -88,94 +88,94 @@ module.exports = {
         new NunjucksWebpackPlugin({
             templates: [
                 {
-                    from: path.join("src", "templates", "404.njk"),
+                    from: path.join("src", "templates", "404.html"),
                     to: "404.html",
                     context: defaultContext
                 },
                 {
-                    from: path.join("src", "templates", "500.njk"),
+                    from: path.join("src", "templates", "500.html"),
                     to: "500.html",
                     context: defaultContext
                 },
                 {
-                    from: path.join("src", "templates", "503.njk"),
+                    from: path.join("src", "templates", "503.html"),
                     to: "503.html",
                     context: defaultContext
                 },
                 {
-                    from: path.join("src", "templates", "index.njk"),
+                    from: path.join("src", "templates", "index.html"),
                     to: "index.html",
                     context: defaultContext
                 },
                 {
-                    from: path.join("src", "templates", "register.njk"),
+                    from: path.join("src", "templates", "register.html"),
                     to: "register.html",
                     context: _.extend({}, defaultContext, {
                         "page_javascript": [path.join('assets', 'js', `register${min_suffix}.js`)]
                     })
                 },
                 {
-                    from: path.join("src", "templates", "base.njk"),
+                    from: path.join("src", "templates", "base.html"),
                     to: "verify.html",
                     context: _.extend({}, defaultContext, {
                         "redirect_javascript": [path.join('assets', 'js', `verify${min_suffix}.js`)]
                     })
                 },
                 {
-                    from: path.join("src", "templates", "login.njk"),
+                    from: path.join("src", "templates", "login.html"),
                     to: "login.html",
                     context: _.extend({}, defaultContext, {
                         "page_javascript": [path.join('assets', 'js', `login${min_suffix}.js`)]
                     })
                 },
                 {
-                    from: path.join("src", "templates", "forgot.njk"),
+                    from: path.join("src", "templates", "forgot.html"),
                     to: "forgot.html",
                     context: _.extend({}, defaultContext, {
                         "page_javascript": [path.join('assets', 'js', `forgot${min_suffix}.js`)]
                     })
                 },
                 {
-                    from: path.join("src", "templates", "logout.njk"),
+                    from: path.join("src", "templates", "logout.html"),
                     to: "logout.html",
                     context: _.extend({}, defaultContext, {
                         "redirect_javascript": [path.join('assets', 'js', `logout${min_suffix}.js`)]
                     })
                 },
                 {
-                    from: path.join("src", "templates", "base.njk"),
+                    from: path.join("src", "templates", "base.html"),
                     to: "support.html",
                     context: _.extend({}, defaultContext, {
                         "redirect_javascript": [path.join('assets', 'js', `support${min_suffix}.js`)]
                     })
                 },
                 {
-                    from: path.join("src", "templates", "about.njk"),
+                    from: path.join("src", "templates", "about.html"),
                     to: "about.html",
                     context: defaultContext
                 },
                 {
-                    from: path.join("src", "templates", "contact.njk"),
+                    from: path.join("src", "templates", "contact.html"),
                     to: "contact.html",
                     context: defaultContext
                 },
                 {
-                    from: path.join("src", "templates", "press.njk"),
+                    from: path.join("src", "templates", "press.html"),
                     to: "press.html",
                     context: defaultContext
                 },
                 {
-                    from: path.join("src", "templates", "privacy.njk"),
+                    from: path.join("src", "templates", "privacy.html"),
                     to: "privacy.html",
                     context: defaultContext
                 },
                 {
-                    from: path.join("src", "templates", "terms.njk"),
+                    from: path.join("src", "templates", "terms.html"),
                     to: "terms.html",
                     context: defaultContext
                 },
                 {
-                    from: path.join("src", "templates", "settings.njk"),
+                    from: path.join("src", "templates", "settings.html"),
                     to: "settings.html",
                     context: _.extend({}, defaultContext, {
                         "redirect_javascript": [path.join('assets', 'js', `authenticated${min_suffix}.js`)],
@@ -194,7 +194,7 @@ module.exports = {
                     })
                 },
                 {
-                    from: path.join("src", "templates", "calendar.njk"),
+                    from: path.join("src", "templates", "calendar.html"),
                     to: "planner/calendar.html",
                     context: _.extend({}, defaultContext, {
                         "redirect_javascript": [path.join('assets', 'js', `authenticated${min_suffix}.js`)],
@@ -228,7 +228,7 @@ module.exports = {
                     })
                 },
                 {
-                    from: path.join("src", "templates", "classes.njk"),
+                    from: path.join("src", "templates", "classes.html"),
                     to: "planner/classes.html",
                     context: _.extend({}, defaultContext, {
                         "redirect_javascript": [path.join('assets', 'js', `authenticated${min_suffix}.js`)],
@@ -259,7 +259,7 @@ module.exports = {
                     })
                 },
                 {
-                    from: path.join("src", "templates", "materials.njk"),
+                    from: path.join("src", "templates", "materials.html"),
                     to: "planner/materials.html",
                     context: _.extend({}, defaultContext, {
                         "redirect_javascript": [path.join('assets', 'js', `authenticated${min_suffix}.js`)],
@@ -278,7 +278,7 @@ module.exports = {
                     })
                 },
                 {
-                    from: path.join("src", "templates", "grades.njk"),
+                    from: path.join("src", "templates", "grades.html"),
                     to: "planner/grades.html",
                     context: _.extend({}, defaultContext, {
                         "redirect_javascript": [path.join('assets', 'js', `authenticated${min_suffix}.js`)],

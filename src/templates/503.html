@@ -1,6 +1,6 @@
-{% extends "src/templates/base.njk" %}
+{% extends "src/templates/base.html" %}
 
-{% block title %}{{ PROJECT_NAME }} | Internal Server Error{% endblock %}
+{% block title %}{{ PROJECT_NAME }} | Service Unavailable{% endblock %}
 
 {% block content %}
     <div class="main-container">
@@ -13,7 +13,7 @@
                                 <h1 class="grey lighter smaller">
                                     <img src="{{ PUBLIC_PATH }}/assets/img/logo_square.png" width="50" height="50"
                                          class="logo-icon"/>
-                                    500 Something Went Wrong
+                                    503 Website Unavailable
                                 </h1>
 
                                 <hr/>

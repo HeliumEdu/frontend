@@ -1,4 +1,4 @@
-{% extends "src/templates/base.njk" %}
+{% extends "src/templates/base.html" %}
 
 {% block title %}{{ PROJECT_NAME }} | About{% endblock %}
 
@@ -65,7 +65,7 @@
                         email</a>!</p>
                 </div>
 
-                {% include "src/templates/snippets/connectsidebar.njk" %}
+                {% include "src/templates/snippets/connectsidebar.html" %}
             </div>
         </div>
     </div>

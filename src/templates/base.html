@@ -73,7 +73,7 @@
     <link rel="stylesheet" href="{{ PUBLIC_PATH }}/{{ css }}" type="text/css"/>
     {% endfor %}
 
-    {% include "src/templates/snippets/googleanalytics-js.njk" %}
+    {% include "src/templates/snippets/googleanalytics-js.html" %}
 </head>
 
 <body class="navbar-fixed">
@@ -230,7 +230,7 @@
 <script type="application/javascript" src="{{ PUBLIC_PATH }}/{{ js }}"></script>
 {% endfor %}
 
-{% include "src/templates/snippets/uservoice-js.njk" %}
+{% include "src/templates/snippets/uservoice-js.html" %}
 
 </body>
 </html>

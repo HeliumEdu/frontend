@@ -1,4 +1,4 @@
-{% extends "src/templates/base.njk" %}
+{% extends "src/templates/base.html" %}
 
 {% block title %}{{ PROJECT_NAME }} | Press{% endblock %}
 
@@ -91,7 +91,7 @@
                     </div>
                 </div>
 
-                {% include "src/templates/snippets/connectsidebar.njk" %}
+                {% include "src/templates/snippets/connectsidebar.html" %}
             </div>
         </div>
     </div>

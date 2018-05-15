@@ -1,4 +1,4 @@
-{% extends "src/templates/base.njk" %}
+{% extends "src/templates/base.html" %}
 
 {% block title %}{{ PROJECT_NAME }} | Settings{% endblock %}
 
@@ -57,15 +57,15 @@
                             </ul>
 
                             <div class="tab-content no-border padding-24">
-                                {% include "src/templates/snippets/settings/preferencestab.njk" %}
+                                {% include "src/templates/snippets/settings/preferencestab.html" %}
 
-                                {% include "src/templates/snippets/settings/personaltab.njk" %}
+                                {% include "src/templates/snippets/settings/personaltab.html" %}
 
-                                {% include "src/templates/snippets/settings/accounttab.njk" %}
+                                {% include "src/templates/snippets/settings/accounttab.html" %}
 
-                                {% include "src/templates/snippets/settings/feedtab.njk" %}
+                                {% include "src/templates/snippets/settings/feedtab.html" %}
 
-                                {% include "src/templates/snippets/settings/importexporttab.njk" %}
+                                {% include "src/templates/snippets/settings/importexporttab.html" %}
                             </div>
                         </div>
                     </div>

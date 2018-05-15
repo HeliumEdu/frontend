@@ -7,7 +7,8 @@
 ## Getting Started
 Note that this project is largely a placeholder. It has been used to split out frontend code from the backend, and it
 loosely maintained while the React rewrite of this project is completed. However, in the meantime, please be aware that
-Webpack is being used in a very hacky way (for instance, the generated bundle is useless and should be ignored), and,
+[Webpack](https://webpack.js.org/) is being used in a very hacky way (for instance, the generated bundle is useless and
+should be ignored), [Nunjucks](https://mozilla.github.io/nunjucks/), is being used to process HTML templates, and
 ultimately, this is legacy code that is being completely overhauled.
 
 ### Project Setup

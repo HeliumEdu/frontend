@@ -1,4 +1,4 @@
-{% extends "src/templates/base.njk" %}
+{% extends "src/templates/base.html" %}
 
 {% block title %}{{ PROJECT_NAME }} | Register{% endblock %}
 
@@ -74,7 +74,7 @@
                                                        for="id_time_zone">Time zone</label>
 
                                                 <div class="col-sm-8">
-                                                    {% include "src/templates/snippets/timezoneselect.njk" %}
+                                                    {% include "src/templates/snippets/timezoneselect.html" %}
                                                 </div>
                                             </label>
 
