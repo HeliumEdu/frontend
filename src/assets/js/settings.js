@@ -478,7 +478,7 @@ function HeliumSettings() {
                             async: false,
                             data: JSON.stringify(data),
                             type: 'DELETE',
-                            url: helium.API_URL + '/auth/user/',
+                            url: helium.API_URL + '/auth/user/delete/',
                             error: function (data) {
                                 if (data !== undefined && data.hasOwnProperty("responseJSON") && data.responseJSON.hasOwnProperty("password")) {
                                     $("#status_account").html(data.responseJSON.password).addClass("alert-warning").removeClass("hidden");
