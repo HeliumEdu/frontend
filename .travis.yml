@@ -1,11 +1,11 @@
 language: node_js
 node_js:
-  - 6
+- 6
 cache:
   directories:
-    - node_modules
+  - node_modules
 script:
-  - make build
-  - make test
+- make build
+- make test
 after_success:
-  - codecov
+- codecov
