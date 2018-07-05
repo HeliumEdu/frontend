@@ -19,7 +19,7 @@ if (SITE_URL === "http://localhost:3000/" || SITE_URL === "http://127.0.0.1:3000
 
 $.ajax({
     type: "GET",
-    url: API_URL + "/common/info/",
+    url: API_URL + "/info/",
     dataType: "json",
     success: function (data) {
         window.location.replace(data.support_url);
