@@ -741,40 +741,42 @@ function HeliumCalendar() {
         if (Cookies.get("filter_show_external") === undefined || Cookies.get("filter_show_external") === "true") {
             helium.planner_api.get_external_calendars(function (external_calendars) {
                 $.each(external_calendars, function (index, external_calendar) {
-                    helium.calendar.ajax_calls.push(helium.planner_api.get_external_calendar_feed(function (data) {
-                        $.each(data, function (i, calendar_item) {
-                            if (calendar_item.hasOwnProperty("err_msg")) {
-                                helium.ajax_error_occurred = true;
+                    if (external_calendar.shown_on_calendar) {
+                        helium.calendar.ajax_calls.push(helium.planner_api.get_external_calendar_feed(function (data) {
+                            $.each(data, function (i, calendar_item) {
+                                if (calendar_item.hasOwnProperty("err_msg")) {
+                                    helium.ajax_error_occurred = true;
 
-                                return false;
-                            }
+                                    return false;
+                                }
 
-                            if (Cookies.get("filter_search_string") === undefined || calendar_item.title.toLowerCase().indexOf(Cookies.get("filter_search_string")) !== -1) {
-                                events.push({
-                                    id: "ext_" + external_calendar.id + "_" + calendar_item.id,
-                                    color: external_calendar.color,
-                                    title: helium.calendar.get_calendar_item_title(calendar_item),
-                                    title_no_format: calendar_item.title,
-                                    start: moment(calendar_item.start).tz(helium.USER_PREFS.settings.time_zone),
-                                    end: moment(calendar_item.end).tz(helium.USER_PREFS.settings.time_zone),
-                                    allDay: calendar_item.all_day,
-                                    editable: false,
-                                    // The following elements are for list view display accuracy
-                                    materials: [],
-                                    show_end_time: !calendar_item.all_day,
-                                    calendar_item_type: calendar_item.calendar_item_type,
-                                    course: null,
-                                    category: null,
-                                    completed: false,
-                                    priority: null,
-                                    current_grade: null,
-                                    comments: '',
-                                    attachments: [],
-                                    reminders: []
-                                });
-                            }
-                        });
-                    }, external_calendar.id, true, true));
+                                if (Cookies.get("filter_search_string") === undefined || calendar_item.title.toLowerCase().indexOf(Cookies.get("filter_search_string")) !== -1) {
+                                    events.push({
+                                        id: "ext_" + external_calendar.id + "_" + calendar_item.id,
+                                        color: external_calendar.color,
+                                        title: helium.calendar.get_calendar_item_title(calendar_item),
+                                        title_no_format: calendar_item.title,
+                                        start: moment(calendar_item.start).tz(helium.USER_PREFS.settings.time_zone),
+                                        end: moment(calendar_item.end).tz(helium.USER_PREFS.settings.time_zone),
+                                        allDay: calendar_item.all_day,
+                                        editable: false,
+                                        // The following elements are for list view display accuracy
+                                        materials: [],
+                                        show_end_time: !calendar_item.all_day,
+                                        calendar_item_type: calendar_item.calendar_item_type,
+                                        course: null,
+                                        category: null,
+                                        completed: false,
+                                        priority: null,
+                                        current_grade: null,
+                                        comments: '',
+                                        attachments: [],
+                                        reminders: []
+                                    });
+                                }
+                            });
+                        }, external_calendar.id, true, true));
+                    }
                 });
             }, false, true);
         }
