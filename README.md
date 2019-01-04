@@ -1,6 +1,5 @@
 [![Build Status](https://travis-ci.org/HeliumEdu/frontend.svg?branch=master)](https://travis-ci.org/HeliumEdu/frontend)
 
-
 # Helium Frontend Project
 
 ## Prerequisites
