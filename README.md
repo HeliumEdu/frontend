@@ -5,7 +5,7 @@
 
 ## Prerequisites
 
-* NPM (>= 5.6)
+  - NPM (>= 5.6)
 
 ## Getting Started
 Note that this project is largely a placeholder. It has been used to split out frontend code from the backend, and it
@@ -17,13 +17,13 @@ ultimately, this is legacy code that is being completely overhauled.
 ### Project Setup
 To setup the Frontend build environment, execute:
 
-```
+```sh
 make install
 ```
 
 Before commits are made, be sure to run tests and check the generated coverage report
 
-```
+```sh
 make test
 ```
 
@@ -44,7 +44,7 @@ This is the simplest way to get started with minimal effort. Before starting the
 [platform](https://github.com/HeliumEdu/platform#readme) server is running at http://localhost:8000. Then, to get going
 (assuming you have followed the "Getting Started" directions above), then simply start the frontend server with:
 
-```
+```sh
 bin/runserver
 ```
 
