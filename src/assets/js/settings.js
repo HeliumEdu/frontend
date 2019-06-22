@@ -204,6 +204,7 @@ function HeliumSettings() {
                 "value": helium.USER_PREFS.settings.receive_emails_from_admin
             });
             data.push({"name": "private_slug", "value": helium.USER_PREFS.settings.private_slug});
+            data.push({"name": "events_color", "value": $("#id_color_select").val()});
 
             self.save_externalcalendars(form);
 
