@@ -1,12 +1,12 @@
 /**
- * Copyright (c) 2018 Helium Edu.
+ * Copyright (c) 2019 Helium Edu.
  *
  * JavaScript for /settings page.
  *
  * FIXME: This implementation is pretty crude compared to modern standards and will be completely overhauled in favor of a framework once the open source migration is completed.
  *
  * @author Alex Laird
- * @version 1.4.1
+ * @version 1.4.40
  */
 
 /**
