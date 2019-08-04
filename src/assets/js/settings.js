@@ -407,7 +407,7 @@ function HeliumSettings() {
 
             $("#private-feed-urls").html("<strong>Events: </strong><a href=\"" + base_url + "/events.ics\">" + base_url + "/events.ics</a>" +
                 "<br /><strong>Homework: </strong><a href=\"" + base_url + "/homework.ics\">" + base_url + "/homework.ics</a>" +
-                "<br /><strong>Class Schedule: </strong><a href=\"" + base_url + "/coursescheduleevents.ics\">" + base_url + "/coursescheduleevents.ics</a>");
+                "<br /><strong>Class Schedule: </strong><a href=\"" + base_url + "/courseschedules.ics\">" + base_url + "/courseschedules.ics</a>");
         }
     };
 
