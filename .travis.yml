@@ -5,6 +5,7 @@ node_js:
 cache:
   directories:
   - node_modules
+  npm: false
 script:
 - make build
 - make test
