@@ -18,7 +18,7 @@
     "test": "echo \"Error: no tests to run\""
   },
   "devDependencies": {
-    "clean-webpack-plugin": "^2.0.2",
+    "clean-webpack-plugin": "^1.0.1",
     "codecov": "^3.7.0",
     "copy-webpack-plugin": "^4.6.0",
     "cross-env": "^7.0.2",
