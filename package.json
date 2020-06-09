@@ -18,21 +18,21 @@
     "test": "echo \"Error: no tests to run\""
   },
   "devDependencies": {
-    "clean-webpack-plugin": "^0.1.18",
-    "codecov": "^3.6.5",
+    "clean-webpack-plugin": "^2.0.2",
+    "codecov": "^3.7.0",
     "copy-webpack-plugin": "^4.6.0",
-    "cross-env": "^5.1.3",
+    "cross-env": "^7.0.2",
     "cssnano": "^3.10.0",
-    "lodash": "^4.17.13",
+    "lodash": "^4.17.15",
     "nunjucks": "^3.2.1",
-    "nunjucks-webpack-plugin": "^4.0.0",
-    "uglifyjs-webpack-plugin": "^1.2.2",
-    "webpack": "^3.11.0",
+    "nunjucks-webpack-plugin": "^5.0.0",
+    "uglifyjs-webpack-plugin": "^1.3.0",
+    "webpack": "^3.12.0",
     "webpack-dev-server": "^3.11.0",
     "webpack-merge": "^4.1.2"
   },
   "dependencies": {
-    "clean-css-cli": "^4.1.11",
+    "clean-css-cli": "^4.3.0",
     "npm": "^6.14.5",
     "uglify-js": "^3.9.4"
   }
