@@ -4,6 +4,8 @@
 
 # Helium Frontend Project
 
+<p align="center"><img src="https://www.heliumedu.com/assets/img/logo_full_blue.png" /></p>
+
 ## Prerequisites
 
 - NPM (>= 5.6)
