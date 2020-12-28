@@ -1,6 +1,5 @@
-[![Build Status](https://travis-ci.org/HeliumEdu/frontend.svg?branch=master)](https://travis-ci.org/HeliumEdu/frontend)
+[![Build Status](https://travis-ci.com/HeliumEdu/frontend.svg?branch=master)](https://travis-ci.com/HeliumEdu/frontend)
 ![GitHub](https://img.shields.io/github/license/heliumedu/frontend)
-[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/alexdlaird)
 
 # Helium Frontend Project
 
