@@ -16,9 +16,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Set up Node 9.x
-          uses: actions/setup-node@v1
-          with:
-            node-version: 9.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 9.x
       - name: Install dependencies
         run:
           make build
