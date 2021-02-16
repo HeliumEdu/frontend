@@ -1,6 +1,6 @@
 {
   "name": "helium-frontend",
-  "version": "1.4.45",
+  "version": "1.4.46",
   "description": "Frontend for Helium Student Planner",
   "author": "Alex Laird",
   "license": "MIT",
@@ -28,9 +28,9 @@
     "nunjucks-webpack-plugin": "^5.0.0",
     "uglifyjs-webpack-plugin": "^2.2.0",
     "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.11",
     "webpack-dev-server": "^3.11.0",
-    "webpack-merge": "^4.2.2",
-    "webpack-cli": "^3.3.11"
+    "webpack-merge": "^4.2.2"
   },
   "dependencies": {
     "clean-css-cli": "^4.3.0",
