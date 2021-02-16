@@ -1,5 +1,5 @@
-[![Build Status](https://travis-ci.com/HeliumEdu/frontend.svg?branch=master)](https://travis-ci.com/HeliumEdu/frontend)
-![GitHub](https://img.shields.io/github/license/heliumedu/frontend)
+[![CI/CD](https://github.com/heliumedu/frontend/workflows/CI/CD/badge.svg)](https://github.com/heliumedu/frontend/actions?query=workflow%3ACI%2FCD)
+![GitHub License](https://img.shields.io/github/license/heliumedu/frontend)
 
 # Helium Frontend Project
 
