@@ -155,9 +155,11 @@ module.exports = {
                     context: defaultContext
                 },
                 {
-                    from: path.join("src", "templates", "contact.html"),
+                    from: path.join("src", "templates", "base.html"),
                     to: "contact.html",
-                    context: defaultContext
+                    context: _.extend({}, defaultContext, {
+                        "redirect_javascript": [path.join('assets', 'js', `support${min_suffix}.js`)]
+                    })
                 },
                 {
                     from: path.join("src", "templates", "press.html"),
