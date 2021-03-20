@@ -19,7 +19,7 @@ function HeliumPlannerAPI() {
     "use strict";
 
     this.GENERIC_ERROR_MESSAGE =
-        "Oops, an unknown error has occurred. If the issue persists, <a href=\"/support\">contact support</a>.";
+        "Oops, an unknown error has occurred. If the issue persists, <a href=\"https://github.com/HeliumEdu/platform/issues/new?labels=bug\">open a ticket</a>.";
 
     this.course_groups_by_user_id = {};
     this.course_group = {};

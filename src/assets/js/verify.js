@@ -48,7 +48,7 @@ $.ajax({
     },
     error: function (jqXHR, textStatus, errorThrown) {
         var data = [{
-            'err_msg': "Oops, an unknown error has occurred. If the issue persists, <a href=\"/support\">contact support</a>.",
+            'err_msg': "Oops, an unknown error has occurred. If the issue persists, <a href=\"https://github.com/HeliumEdu/platform/issues/new?labels=bug\">open a ticket</a>.",
             'jqXHR': jqXHR,
             'textStatus': textStatus,
             'errorThrown': errorThrown

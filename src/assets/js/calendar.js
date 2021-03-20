@@ -2062,13 +2062,13 @@ $(document).ready(function () {
 
                         if (helium.calendar.edit) {
                             if (helium.calendar.current_calendar_item.calendar_item_type === 0) {
-                                $("#homework-error").html("The event is saved, but an error occurred while uploading attachments. If the error persists, <a href=\"/support\">contact support</a>.");
+                                $("#homework-error").html("The event is saved, but an error occurred while uploading attachments. If the error persists, <a href=\"https://github.com/HeliumEdu/platform/issues/new?labels=bug\">open a ticket</a>.");
                             } else {
-                                $("#homework-error").html("The assignment is saved, but an error occurred while uploading attachments. If the error persists, <a href=\"/support\">contact support</a>.");
+                                $("#homework-error").html("The assignment is saved, but an error occurred while uploading attachments. If the error persists, <a href=\"https://github.com/HeliumEdu/platform/issues/new?labels=bug\">open a ticket</a>.");
                             }
                         }
                         else {
-                            $("#homework-error").html("An unknown error occurred with attachments. If the error persists, <a href=\"/support\">contact support</a>.");
+                            $("#homework-error").html("An unknown error occurred with attachments. If the error persists, <a href=\"https://github.com/HeliumEdu/platform/issues/new?labels=bug\">open a ticket</a>.");
                         }
                         $("#homework-error").parent().show("fast");
 
