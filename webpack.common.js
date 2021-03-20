@@ -108,17 +108,30 @@ module.exports = {
                     context: defaultContext
                 },
                 {
+                    from: path.join("src", "templates", "about.html"),
+                    to: "about.html",
+                    context: defaultContext
+                },
+                {
+                    from: path.join("src", "templates", "press.html"),
+                    to: "press.html",
+                    context: defaultContext
+                },
+                {
+                    from: path.join("src", "templates", "privacy.html"),
+                    to: "privacy.html",
+                    context: defaultContext
+                },
+                {
+                    from: path.join("src", "templates", "terms.html"),
+                    to: "terms.html",
+                    context: defaultContext
+                },
+                {
                     from: path.join("src", "templates", "register.html"),
                     to: "register.html",
                     context: _.extend({}, defaultContext, {
                         "page_javascript": [path.join('assets', 'js', `register${min_suffix}.js`)]
-                    })
-                },
-                {
-                    from: path.join("src", "templates", "base.html"),
-                    to: "verify.html",
-                    context: _.extend({}, defaultContext, {
-                        "redirect_javascript": [path.join('assets', 'js', `verify${min_suffix}.js`)]
                     })
                 },
                 {
@@ -144,15 +157,17 @@ module.exports = {
                 },
                 {
                     from: path.join("src", "templates", "base.html"),
+                    to: "verify.html",
+                    context: _.extend({}, defaultContext, {
+                        "redirect_javascript": [path.join('assets', 'js', `verify${min_suffix}.js`)]
+                    })
+                },
+                {
+                    from: path.join("src", "templates", "base.html"),
                     to: "support.html",
                     context: _.extend({}, defaultContext, {
                         "redirect_javascript": [path.join('assets', 'js', `support${min_suffix}.js`)]
                     })
-                },
-                {
-                    from: path.join("src", "templates", "about.html"),
-                    to: "about.html",
-                    context: defaultContext
                 },
                 {
                     from: path.join("src", "templates", "base.html"),
@@ -160,21 +175,6 @@ module.exports = {
                     context: _.extend({}, defaultContext, {
                         "redirect_javascript": [path.join('assets', 'js', `support${min_suffix}.js`)]
                     })
-                },
-                {
-                    from: path.join("src", "templates", "press.html"),
-                    to: "press.html",
-                    context: defaultContext
-                },
-                {
-                    from: path.join("src", "templates", "privacy.html"),
-                    to: "privacy.html",
-                    context: defaultContext
-                },
-                {
-                    from: path.join("src", "templates", "terms.html"),
-                    to: "terms.html",
-                    context: defaultContext
                 },
                 {
                     from: path.join("src", "templates", "settings.html"),
