@@ -1522,6 +1522,8 @@ $(document).ready(function () {
         });
     }, false);
 
+    $("#course-group-title").attr('placeholder', 'Fall Semester ' + moment().year());
+
     $("#course-group-tabs li a[href^='#course-group-']").first().tab("show");
 
     helium.classes.refresh_course_groups();
