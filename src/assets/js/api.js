@@ -2327,7 +2327,7 @@ function HeliumPlannerAPI() {
      * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
      *     refresh the cache (default to false)
      */
-    this.get_external_calendar_feed = function (callback, id, async, use_cache) {
+    this.get_external_calendar_feed = function (callback, id, async, use_cache, start, end) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
         var ret_val = null;
@@ -2337,7 +2337,9 @@ function HeliumPlannerAPI() {
         } else {
             ret_val = $.ajax({
                                  type: "GET",
-                                 url: helium.API_URL + "/feed/externalcalendars/" + id + "/events/",
+                                 url: helium.API_URL + "/feed/externalcalendars/" + id + "/events/"
+                                     + (start !== "undefined" ? "?start__gte=" + start : "")
+                                     + (end !== "undefined" ? "&end__lt=" + end : ""),
                                  async: async,
                                  dataType: "json",
                                  success: function (data) {

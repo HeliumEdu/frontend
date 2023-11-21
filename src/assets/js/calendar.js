@@ -775,7 +775,7 @@ function HeliumCalendar() {
                                     });
                                 }
                             });
-                        }, external_calendar.id, true, true));
+                        }, external_calendar.id, true, false, start.toISOString() + "T00:00Z", end.toISOString() + "T00:00Z"));
                     }
                 });
             }, false, true);
@@ -935,7 +935,7 @@ function HeliumCalendar() {
             self.loading_div.spin(false);
         }).fail(function () {
             self.loading_div.spin(false);
-            
+
             bootbox.alert(helium.planner_api.GENERIC_ERROR_MESSAGE);
         });
     };
