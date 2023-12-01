@@ -1,4 +1,4 @@
-[![CI/CD](https://github.com/heliumedu/frontend/workflows/CI/CD/badge.svg)](https://github.com/heliumedu/frontend/actions?query=workflow%3ACI%2FCD)
+[![Build](https://github.com/heliumedu/frontend/workflows/build.yml/badge.svg)](https://github.com/heliumedu/frontend/actions/workflows/build.yml)
 ![GitHub License](https://img.shields.io/github/license/heliumedu/frontend)
 
 # Helium Frontend Project
