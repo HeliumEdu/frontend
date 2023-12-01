@@ -1,4 +1,4 @@
-[![Build](https://github.com/heliumedu/frontend/workflows/build.yml/badge.svg)](https://github.com/heliumedu/frontend/actions/workflows/build.yml)
+[![Build](https://github.com/heliumedu/frontend/actions/workflows/build.yml/badge.svg)](https://github.com/heliumedu/frontend/actions/workflows/build.yml)
 ![GitHub License](https://img.shields.io/github/license/heliumedu/frontend)
 
 # Helium Frontend Project
