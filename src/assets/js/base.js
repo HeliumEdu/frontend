@@ -1,12 +1,12 @@
 /**
- * Copyright (c) 2018 Helium Edu.
+ * Copyright (c) 2018, Helium Edu
  *
  * Dynamic functionality shared among all pages.
  *
  * FIXME: This implementation is pretty crude compared to modern standards and will be completely overhauled in favor of a framework once the open source migration is completed.
  *
- * @author Alex Laird
- * @version 1.4.9
+ * @license MIT
+ * @version 1.5.1
  */
 
 var AUTH_TOKEN = Cookies.get("authtoken");

@@ -1,12 +1,12 @@
 /**
- * Copyright (c) 2018 Helium Edu.
+ * Copyright (c) 2018, Helium Edu
  *
  * JavaScript functionality for triggers on the the /planner/classes page.
  *
  * FIXME: This implementation is pretty crude compared to modern standards and will be completely overhauled in favor of a framework once the open source migration is completed.
  *
- * @author Alex Laird
- * @version 1.4.0
+ * @license MIT
+ * @version 1.5.1
  */
 
 /*******************************************

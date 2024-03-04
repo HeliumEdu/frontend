@@ -1,13 +1,13 @@
 /**
- * Copyright (c) 2023 Helium Edu.
+ * Copyright (c), 2018 Helium Edu
  *
  * JavaScript API for requests into server-side functionality for /planner pages.
  *
  * FIXME: This implementation is pretty crude compared to modern standards and will be completely overhauled in favor
  * of a framework once the open source migration is completed.
  *
- * @author Alex Laird
- * @version 1.4.51
+ * @license MIT
+ * @version 1.5.1
  */
 
 /**
