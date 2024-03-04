@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2021 Helium Edu.
+ * Copyright (c) 2018, Helium Edu
  *
  * FIXME: This implementation is pretty crude compared to modern standards and will be completely overhauled in favor of a framework once the open source migration is completed.
  *
