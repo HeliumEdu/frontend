@@ -1599,7 +1599,7 @@ $(document).ready(function () {
                 this.on("errormultiple", function () {
                     $("#loading-course-modal").spin(false);
 
-                    $("#course-error").html("The class is saved, but an error occurred while uploading attachments. If the error persists, <a href=\"https://github.com/HeliumEdu/platform/issues/new?labels=bug\">open a ticket</a>.");
+                    $("#course-error").html("The class is saved, but an error occurred while uploading attachments. If the error persists, <a href=\"https://github.com/HeliumEdu/platform/issues/new/choose\">open a ticket</a>.");
                     $("#course-error").parent().show("fast");
 
                     $("a[href='#course-panel-tab-4']").tab("show");
