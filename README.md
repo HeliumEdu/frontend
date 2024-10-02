@@ -7,7 +7,7 @@
 
 ## Prerequisites
 
-- Node 14
+- Node 16
 - NPM (>= 6)
 
 ## Getting Started
