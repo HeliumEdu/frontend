@@ -15,8 +15,8 @@ test:
 	@npm run test
 
 build-docker: install build
-	docker build -t helium-frontend .
-	docker tag helium-frontend:latest helium:frontend
+	docker build -t helium/frontend .
+	docker tag helium/frontend:latest helium/frontend
 
 run-docker:
 	docker compose up -d
