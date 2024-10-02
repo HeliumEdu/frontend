@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-make install migrate -C ${DIR}/..
-
-npm --prefix ${DIR}/.. run start
+make build-docker
+make run-docker
