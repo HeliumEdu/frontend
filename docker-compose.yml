@@ -2,5 +2,5 @@ services:
   server:
     image: helium/frontend
     ports:
-      - 3000:80
+      - 3000:3000
     container_name: helium_frontend
