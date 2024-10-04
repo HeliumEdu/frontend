@@ -12,11 +12,12 @@
 
 ## Getting Started
 
-Note that this project is largely a placeholder. It has been used to split out `frontend` code from the backend
-`platform`, and it is loosely maintained while the React rewrite of this project is completed. However, in the meantime,
-please be aware that [Webpack](https://webpack.js.org/) is being used in a very hacky way (for instance, the generated bundle is useless
-and should be ignored), [Nunjucks](https://mozilla.github.io/nunjucks/), is being used to process HTML templates, and ultimately, this is legacy code
-that is being completely overhauled.
+Note that this project is largely a placeholder. It was used to split out `frontend` code from the backend `platform`
+while the `frontend` code would be rewritten in React. However, as the project is no longer actively maintained, there
+is no current plant for this redevelopment. So, be aware that [Webpack](https://webpack.js.org/) is being used in a very hacky way (for
+instance, the generated bundle is useless and should be ignored), [Nunjucks](https://mozilla.github.io/nunjucks/), is being used to process HTML
+templates, and ultimately, this is legacy code that, if the project ever goes back in to active development, would
+be completely overhauled.
 
 ## Development
 ### Docker Setup
