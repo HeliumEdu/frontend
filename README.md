@@ -11,6 +11,7 @@
 - Node (>= 18)
 
 ## Getting Started
+
 Note that this project is largely a placeholder. It has been used to split out `frontend` code from the backend
 `platform`, and it is loosely maintained while the React rewrite of this project is completed. However, in the meantime,
 please be aware that [Webpack](https://webpack.js.org/) is being used in a very hacky way (for instance, the generated bundle is useless
@@ -19,6 +20,7 @@ that is being completely overhauled.
 
 ## Development
 ### Docker Setup
+
 To provision the Docker container with the `frontend` build, execute:
 
 ```sh
@@ -42,6 +44,7 @@ make test
 ```
 
 ### Platform
+
 The backend `platform` is served from a separate repository and can be found [here](https://github.com/HeliumEdu/platform#readme).
 Using Docker, the `frontend` and `platform` containers can be started alongside each other using to fully emulate
 a production environment using [the deploy project](https://github.com/HeliumEdu/deploy).
