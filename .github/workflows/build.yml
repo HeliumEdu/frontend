@@ -24,9 +24,11 @@ jobs:
       - name: Install dependencies
         run:
           make install build
-      - name: Run tests
+      - name: Test frontend
         run:
           make test
+      - name: Test Docker build
+        run: make build-docker
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         with:
