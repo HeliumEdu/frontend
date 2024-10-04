@@ -8,6 +8,7 @@
 ## Prerequisites
 
 - Docker
+- Node (>= 16)
 
 ## Getting Started
 Note that this project is largely a placeholder. It has been used to split out `frontend` code from the backend
