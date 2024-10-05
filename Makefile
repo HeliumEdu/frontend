@@ -24,7 +24,7 @@ build-docker: install build
 run-docker:
 	docker compose up -d
 
-push-docker:
+publish-docker:
 	aws ecr get-login-password --region $(AWS_REGION) | docker login --username AWS --password-stdin $(AWS_ACCOUNT_ID).dkr.ecr.us-east-1.amazonaws.com
 	docker tag helium/frontend:$(TAG_VERSION) $(AWS_ACCOUNT_ID).dkr.ecr.us-east-1.amazonaws.com/helium/frontend:$(TAG_VERSION)
-	docker push $(AWS_ACCOUNT_ID).dkr.ecr.us-east-1.amazonaws.com/helium/frontend:$(AWS_ACCOUNT_ID)
+	docker push $(AWS_ACCOUNT_ID).dkr.ecr.us-east-1.amazonaws.com/helium/frontend:$(TAG_VERSION)
