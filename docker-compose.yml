@@ -1,6 +1,11 @@
 services:
   server:
     image: helium/frontend
+    env_file: .env
+    volumes:
+      - type: bind
+        source: ./.env
+        target: /app/.env
     ports:
       - 3000:3000
     container_name: helium_frontend

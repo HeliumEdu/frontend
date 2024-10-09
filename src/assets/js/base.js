@@ -58,10 +58,13 @@ function Helium() {
     this.SITE_URL = location.protocol + "//" + this.SITE_HOST;
     if (this.SITE_URL === "http://localhost:3000/" || this.SITE_URL === "http://127.0.0.1:3000/") {
         this.API_URL = "http://localhost:8000";
-    } else if (this.SITE_URL === "https://www.heliumedu.test/") {
-        this.API_URL = "https://api.heliumedu.test";
-    } else {
+
+    } else if (this.SITE_URL === "https://www.heliumedu.com/") {
+        // Prod
         this.API_URL = "https://api.heliumedu.com";
+    } else {
+        // Env-prefixed
+        this.API_URL = this.SITE_URL.replace("www", "api");
     }
     this.CURRENT_PAGE_URL = document.URL;
     this.CURRENT_PAGE = this.CURRENT_PAGE_URL.split(this.SITE_URL)[1];
