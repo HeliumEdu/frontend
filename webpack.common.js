@@ -103,6 +103,11 @@ module.exports = {
                     context: defaultContext
                 },
                 {
+                    from: path.join("src", "templates", "health.json"),
+                    to: "health.json",
+                    context: defaultContext
+                },
+                {
                     from: path.join("src", "templates", "index.html"),
                     to: "index.html",
                     context: defaultContext

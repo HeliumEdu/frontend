@@ -25,6 +25,7 @@ module.exports = merge(common, {
                 {from: /^\/planner\/classes/, to: '/planner/classes.html'},
                 {from: /^\/planner\/materials/, to: '/planner/materials.html'},
                 {from: /^\/planner\/grades/, to: '/planner/grades.html'},
+                {from: /^\/health/, to: '/health.json'},
                 {from: /./, to: '/404.html'}
             ]
         }
