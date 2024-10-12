@@ -1,6 +1,6 @@
-.PHONY: all install build migrate test build-docker run-docker
+.PHONY: all install build test build-docker run-docker publish-docker
 
-all: install build migrate test
+all: install build test build-docker
 
 SHELL := /usr/bin/env bash
 AWS_REGION ?= us-east-1
@@ -12,13 +12,10 @@ install:
 build:
 	NODE_OPTIONS=--openssl-legacy-provider npm run build
 
-migrate:
-	echo "Nothing to migrate."
-
 test:
 	@npm run test
 
-build-docker: install build
+build-docker:
 	docker build -t helium/frontend:latest -t helium/frontend:$(TAG_VERSION) .
 
 run-docker:
