@@ -1,4 +1,17 @@
-FROM ubuntu/apache2
+FROM ubuntu/apache2 AS build
+
+RUN apt-get update
+RUN apt-get install -y --no-install-recommends make npm nodejs
+
+WORKDIR /app
+
+COPY . .
+
+RUN make install build
+
+######################################################################
+
+FROM ubuntu/apache2 AS frontend
 
 RUN a2enmod rewrite
 
@@ -8,7 +21,7 @@ COPY container/apache-mod-servername.conf /etc/apache2/mods-enabled/servername.c
 
 WORKDIR /app
 
-COPY build .
+COPY --from=build --chown=ubuntu:ubuntu /app/build .
 
 EXPOSE 3000
 
