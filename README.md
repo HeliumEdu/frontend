@@ -47,5 +47,8 @@ make test
 ### Platform
 
 The backend `platform` is served from a separate repository and can be found [here](https://github.com/HeliumEdu/platform#readme).
-Using Docker, the `frontend` and `platform` containers can be started alongside each other using to fully emulate
-a production environment using [the deploy project](https://github.com/HeliumEdu/deploy).
+Using Docker, the `frontend` and `platform` containers can be started alongside each other using to almost entirely
+emulate a prod-like environment locally using [the deploy project](https://github.com/HeliumEdu/deploy). For
+functionality that still requires Internet-connected external services (ex. emails and text reminders), provision
+[the `dev-local` Terraform Workspace](https://github.com/HeliumEdu/deploy/tree/main/terraform/environments/dev-local),
+which is meant to work alongside local Docker development.
