@@ -6,7 +6,7 @@
  * FIXME: This implementation is pretty crude compared to modern standards and will be completely overhauled in favor of a framework once the open source migration is completed.
  *
  * @license MIT
- * @version 1.7.4
+ * @version 1.7.14
  */
 
 var AUTH_TOKEN = Cookies.get("authtoken");
