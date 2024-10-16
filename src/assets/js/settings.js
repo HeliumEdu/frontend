@@ -454,7 +454,7 @@ function HeliumSettings() {
     $("#delete-account").on("click", function () {
         bootbox.dialog({
             title: "To permanently delete your Helium account <em>and all data you have stored in Helium</em>, confirm your password below.",
-            message: '<input id="delete-account" name="delete-account" type="password" class="form-control" />',
+            message: '<input id="delete-account-password" name="delete-account-password" type="password" class="form-control" />',
             inputType: "password",
             closeButton: true,
             onEscape: true,
@@ -472,7 +472,7 @@ function HeliumSettings() {
                         var data = {
                             "username": helium.USER_PREFS.username,
                             "email": helium.USER_PREFS.email,
-                            "password": $("input[name='delete-account']").val()
+                            "password": $("input[name='delete-account-password']").val()
                         };
 
                         $.ajax({

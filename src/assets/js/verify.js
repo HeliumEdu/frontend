@@ -11,15 +11,18 @@ Cookies.remove("authtoken", {path: "/"});
 
 var username = url('?username');
 var code = url('?code');
+var welcome_email = url('?welcome-email');
 
 var SITE_HOST = location.host + "/";
 var SITE_URL = location.protocol + "//" + SITE_HOST;
-
-var API_URL = "https://api.heliumedu.com";
 if (SITE_URL === "http://localhost:3000/" || SITE_URL === "http://127.0.0.1:3000/") {
     API_URL = "http://localhost:8000";
-} else if (SITE_URL === "https://www.heliumedu.test/") {
-    API_URL = "https://api.heliumedu.test";
+} else if (SITE_URL === "https://www.heliumedu.com/") {
+    // Prod
+    API_URL = "https://api.heliumedu.com";
+} else {
+    // Env-prefixed
+    API_URL = SITE_URL.replace("www", "api");
 }
 
 callback = function (data) {
@@ -40,9 +43,14 @@ callback = function (data) {
     }
 };
 
+API_VERIFY_URL = API_URL + "/auth/user/verify/?username=" + username + "&code=" + code
+if (welcome_email !== undefined) {
+    API_VERIFY_URL += "&welcome-email=" + welcome_email
+}
+
 $.ajax({
     type: "GET",
-    url: API_URL + "/auth/user/verify/?username=" + username + "&code=" + code,
+    url: API_VERIFY_URL,
     success: function (data) {
         callback(data)
     },
