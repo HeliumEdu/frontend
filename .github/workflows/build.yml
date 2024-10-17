@@ -33,7 +33,6 @@ jobs:
       - name: Test Docker build
         run: |
           make build-docker
-          docker buildx build -t helium/frontend:latest --load .
           make run-docker
       - name: Upload coverage
         uses: codecov/codecov-action@v3
