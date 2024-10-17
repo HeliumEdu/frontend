@@ -22,11 +22,11 @@ jobs:
         with:
           node-version: 18
       - name: Install dependencies
-        run:
-          make install build
+        run: make install build
       - name: Test frontend
-        run:
-          make test
+        run: make test
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
       - name: Test Docker build
         run: make build-docker
       - name: Upload coverage
