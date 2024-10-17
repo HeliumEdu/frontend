@@ -13,6 +13,10 @@ jobs:
   build:
     name: Build
 
+    env:
+      env:
+        PLATFORM: linux/amd64
+
     runs-on: ubuntu-latest
 
     steps:

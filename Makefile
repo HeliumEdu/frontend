@@ -5,6 +5,7 @@ all: install build test build-docker
 SHELL := /usr/bin/env bash
 AWS_REGION ?= us-east-1
 TAG_VERSION ?= latest
+PLATFORM ?= linux/arm64
 
 install:
 	@npm install
@@ -16,7 +17,7 @@ test:
 	@npm run test
 
 build-docker:
-	docker buildx build -t helium/frontend:latest -t helium/frontend:$(TAG_VERSION) --platform=linux/amd64,linux/arm64 .
+	docker buildx build -t helium/frontend:latest -t helium/frontend:$(TAG_VERSION) --platform=$(PLATFORM) .
 	docker buildx build -t helium/frontend:latest --load .
 
 run-docker:
