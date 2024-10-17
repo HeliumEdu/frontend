@@ -16,7 +16,7 @@ test:
 	@npm run test
 
 build-docker:
-	docker buildx build --platform=linux/arm64 -t helium/frontend:latest -t helium/frontend:$(TAG_VERSION) .
+	docker build -t helium/frontend:latest -t helium/frontend:$(TAG_VERSION) .
 
 run-docker:
 	docker compose up -d
