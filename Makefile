@@ -1,4 +1,4 @@
-.PHONY: all install build test build-docker run-docker publish-docker
+.PHONY: all install build test build-docker run-docker stop-docker publish-docker
 
 all: install build test build-docker
 
@@ -21,6 +21,9 @@ build-docker:
 
 run-docker:
 	docker compose up -d
+
+stop-docker:
+	docker compose stop
 
 publish-docker:
 	aws ecr get-login-password --region $(AWS_REGION) | docker login --username AWS --password-stdin $(AWS_ACCOUNT_ID).dkr.ecr.us-east-1.amazonaws.com

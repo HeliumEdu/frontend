@@ -32,7 +32,7 @@ This builds and starts a container named `helium_frontend`. Once running, the `f
 http://localhost:3000. The shell of containers can be accessed with:
 
 ```shell
-docker exec -it helium_frontend /bin/bash
+docker exec -it frontend-frontend-1 /bin/bash
 ```
 
 Note that, since part of the way this build was hacked together circumvents many of Webpack's most useful features,

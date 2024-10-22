@@ -8,4 +8,3 @@ services:
         target: /app/.env
     ports:
       - 3000:3000
-    container_name: helium_frontend
