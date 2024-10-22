@@ -1,5 +1,5 @@
 services:
-  server:
+  frontend:
     image: helium/frontend
     env_file: .env
     volumes:
