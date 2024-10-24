@@ -20,6 +20,7 @@ templates, and ultimately, this is legacy code that, if the project ever goes ba
 be completely overhauled.
 
 ## Development
+
 ### Docker Setup
 
 To provision the Docker container with the `frontend` build, execute:
@@ -31,7 +32,7 @@ bin/runserver
 This builds and starts a container named `helium_frontend`. Once running, the `frontend` is available at
 http://localhost:3000. The shell of containers can be accessed with:
 
-```shell
+```sh
 docker exec -it frontend-frontend-1 /bin/bash
 ```
 
