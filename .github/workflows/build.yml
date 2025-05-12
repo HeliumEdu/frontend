@@ -35,7 +35,7 @@ jobs:
           make build-docker
           make run-docker
       - name: Upload test coverage
-      if: ${{ !cancelled() }}
+        if: ${{ !cancelled() }}
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
