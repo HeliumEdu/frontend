@@ -3,7 +3,6 @@
 all: install build test build-docker
 
 SHELL := /usr/bin/env bash
-AWS_REGION ?= us-east-1
 TAG_VERSION ?= latest
 PLATFORM ?= linux/arm64
 
@@ -26,6 +25,7 @@ stop-docker:
 	docker compose stop
 
 publish-docker: build-docker
-	aws ecr get-login-password --region $(AWS_REGION) | docker login --username AWS --password-stdin $(AWS_ACCOUNT_ID).dkr.ecr.us-east-1.amazonaws.com
-	docker tag helium/frontend:$(TAG_VERSION) $(AWS_ACCOUNT_ID).dkr.ecr.us-east-1.amazonaws.com/helium/frontend:$(TAG_VERSION)
-	docker push $(AWS_ACCOUNT_ID).dkr.ecr.us-east-1.amazonaws.com/helium/frontend:$(TAG_VERSION)
+	aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/w6u3m4h5
+
+	docker tag helium/frontend:$(TAG_VERSION) public.ecr.aws/w6u3m4h5/helium/frontend:$(TAG_VERSION)
+	docker push public.ecr.aws/w6u3m4h5/helium/frontend:$(TAG_VERSION)
