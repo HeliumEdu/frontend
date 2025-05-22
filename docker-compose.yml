@@ -1,6 +1,6 @@
 services:
   frontend:
-    image: helium/frontend
+    image: ${FRONTEND_IMAGE:-helium/frontend}
     env_file: .env
     volumes:
       - type: bind
