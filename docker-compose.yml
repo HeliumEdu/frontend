@@ -1,6 +1,6 @@
 services:
   frontend:
-    image: ${FRONTEND_IMAGE:-helium/frontend}
+    image: ${FRONTEND_IMAGE:-helium/frontend:${PLATFORM:-arm64}-latest}
     env_file: .env
     volumes:
       - type: bind
