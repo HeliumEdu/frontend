@@ -24,6 +24,8 @@ run-docker:
 stop-docker:
 	docker compose stop
 
+restart-docker: stop-docker run-docker
+
 publish-docker: build-docker
 	aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/w6u3m4h5
 
