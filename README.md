@@ -3,7 +3,9 @@
 [![Build](https://img.shields.io/github/actions/workflow/status/HeliumEdu/frontend/build.yml)](https://github.com/HeliumEdu/frontend/actions/workflows/build.yml)
 ![GitHub License](https://img.shields.io/github/license/heliumedu/frontend)
 
-# Helium Frontend Project
+# Helium Frontend
+
+The `frontend` for [Helium Edu](https://www.heliumedu.com/).
 
 ## Prerequisites
 
@@ -48,8 +50,8 @@ make test
 ### Platform
 
 The backend `platform` is served from a separate repository and can be found [here](https://github.com/HeliumEdu/platform#readme).
-Using Docker, the `frontend` and `platform` containers can be started alongside each other using to almost entirely
-emulate a prod-like environment locally using [the deploy project](https://github.com/HeliumEdu/deploy). For
+Using Docker, the `frontend` and `platform` containers can be started alongside each other to almost entirely
+emulate a `prod`-like environment locally using [the `deploy` project](https://github.com/HeliumEdu/deploy). For
 functionality that still requires Internet-connected external services (ex. emails and text messages), provision
 [the `dev-local` Terraform Workspace](https://github.com/HeliumEdu/deploy/tree/main/terraform/environments/dev-local),
-which is meant to work alongside local Docker development.
+which is meant to work alongside local Docker development. 
