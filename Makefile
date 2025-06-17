@@ -27,7 +27,7 @@ stop-docker:
 restart-docker: stop-docker run-docker
 
 publish-docker: build-docker
-	aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/w6u3m4h5
+	aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/heliumedu
 
-	docker tag helium/frontend:$(PLATFORM)-$(TAG_VERSION) public.ecr.aws/w6u3m4h5/helium/frontend:$(PLATFORM)-$(TAG_VERSION)
-	docker push public.ecr.aws/w6u3m4h5/helium/frontend:$(PLATFORM)-$(TAG_VERSION)
+	docker tag helium/frontend:$(PLATFORM)-$(TAG_VERSION) public.ecr.aws/heliumedu/helium/frontend:$(PLATFORM)-$(TAG_VERSION)
+	docker push public.ecr.aws/heliumedu/helium/frontend:$(PLATFORM)-$(TAG_VERSION)
