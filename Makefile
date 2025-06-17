@@ -4,7 +4,7 @@ all: install build test build-docker
 
 SHELL := /usr/bin/env bash
 TAG_VERSION ?= latest
-PLATFORM ?= arm64
+PLATFORM ?= amd64
 
 install:
 	@npm install
