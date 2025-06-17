@@ -52,7 +52,7 @@ make test
 #### Image Architecture
 
 By default, the Docker image will be built for `linux/arm64`. To build a native image on an `x86` architecture
-instead, set `PLATFORM=linux/amd64`.
+instead, set `PLATFORM=amd64`.
 
 ### Platform
 
