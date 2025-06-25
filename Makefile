@@ -1,4 +1,4 @@
-.PHONY: all install build test build-docker run-docker stop-docker publish-docker
+.PHONY: all install build test build-docker run-docker stop-docker restart-docker publish-docker
 
 all: install build test build-docker
 
