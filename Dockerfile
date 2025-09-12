@@ -1,6 +1,6 @@
-FROM ubuntu/apache2 AS build
+FROM ubuntu:24.04 AS build
 
-RUN apt-get update
+RUN apt-get --fix-missing update
 RUN apt-get install -y --no-install-recommends make npm nodejs
 
 WORKDIR /app
@@ -11,7 +11,10 @@ RUN make install build
 
 ######################################################################
 
-FROM ubuntu/apache2 AS frontend
+FROM ubuntu:24.04 AS frontend
+
+RUN apt-get --fix-missing update
+RUN apt-get install -y --no-install-recommends apache2
 
 RUN a2enmod rewrite
 
