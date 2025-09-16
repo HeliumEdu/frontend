@@ -109,7 +109,7 @@ function HeliumPlannerAPI() {
     this.login = function (callback, username, password) {
         return $.ajax({
                           type: "POST",
-                          url: helium.API_URL + "/auth/token/",
+                          url: helium.API_URL + "/auth/legacy/token/",
                           data: JSON.stringify({username: username, password: password}),
                           dataType: "json",
                           success: function (data) {
