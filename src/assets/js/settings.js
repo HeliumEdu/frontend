@@ -470,8 +470,6 @@ function HeliumSettings() {
                         $("#loading-account").spin(helium.SMALL_LOADING_OPTS);
 
                         var data = {
-                            "username": helium.USER_PREFS.username,
-                            "email": helium.USER_PREFS.email,
                             "password": $("input[name='delete-account-password']").val()
                         };
 
