@@ -115,36 +115,7 @@ function HeliumPlannerAPI() {
                           success: function (data) {
                               localStorage.setItem("access_token", data.access);
                               localStorage.setItem("refresh_token", data.refresh);
-
-                              callback(data);
-                          },
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
-                      });
-    };
-
-    this.refresh_login = function (callback) {
-        return $.ajax({
-                          type: "POST",
-                          url: helium.API_URL + "/auth/token/refresh/",
-                          data: JSON.stringify({refresh: refresh}),
-                          dataType: "json",
-                          success: function (data) {
-                              localStorage.setItem("access_token", data.access);
-                              localStorage.setItem("refresh_token", data.refresh);
+                              localStorage.setItem("access_token_exp", parseJwt(data.access).exp);
 
                               callback(data);
                           },
@@ -194,7 +165,7 @@ function HeliumPlannerAPI() {
                               callback(data);
                           }
                       });
-        };
+    };
 
     this.forgot = function (callback, email) {
         return $.ajax({

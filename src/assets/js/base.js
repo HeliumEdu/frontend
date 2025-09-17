@@ -19,81 +19,55 @@ function csrfSafeMethod(method) {
     // These HTTP methods do not require CSRF protection
     return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
 }
+
+function parseJwt (token) {
+    var base64Url = token.split('.')[1];
+    var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+
+    return JSON.parse(jsonPayload);
+}
+
+function checkTokenExp () {
+    var refreshTime = new Date((localStorage.getItem("access_token_exp") - 90) * 1000);
+    if (new Date() > refreshTime) {
+        $.ajax({
+            type: "POST",
+            url: helium.API_URL + "/auth/token/refresh/",
+            data: JSON.stringify({refresh: localStorage.getItem("refresh_token")}),
+            dataType: "json",
+            success: function (data) {
+                localStorage.setItem("access_token", data.access);
+                AUTH_TOKEN = data.access;
+                localStorage.setItem("refresh_token", data.refresh);
+                localStorage.setItem("access_token_exp", parseJwt(data.access).exp);
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                window.location.href = "/login?next=" + window.location.pathname;
+            }
+        });
+    }
+}
+
 $.ajaxSetup({
-    beforeSend: function (xhr, settings) {
+    beforeSend: function (xhr, options) {
         "use strict";
 
-        if (!csrfSafeMethod(settings.type)) {
+        if (!csrfSafeMethod(options.type)) {
             // Send the token to same-origin, relative URLs only.
             // Send the token only if the method warrants CSRF protection
             // Using the CSRFToken value acquired earlier
             xhr.setRequestHeader("X-CSRFToken", CSRF_TOKEN);
         }
         xhr.setRequestHeader("Authorization", AUTH_TOKEN !== null ? "Bearer " + AUTH_TOKEN : null);
+        if (window.PRIVILEGED_ROUTE && options.url != helium.API_URL + "/auth/token/refresh/") {
+            checkTokenExp();
+        }
     },
     contentType: "application/json; charset=UTF-8"
 });
-//$.ajaxPrefilter(function onPrefilter(opts, ajaxOpts, jqXHR) {
-//    if (opts.authRefresh) {
-//        return; // don't do it again
-//    }
-//    const dfd = $.Deferred();
-//    // if the non refresh request was done just resolve our deferred
-//    jqXHR.done(dfd.resolve);
-//    // if the request failed, handle
-//    jqXHR.fail(function onAjaxFail(...args) {
-//        const { status, url } = jqXHR;
-//        // keep list of failed requests while refresh token request still outstanding
-//        origOptsList.push(ajaxOpts);
-//
-//        window.XHR = {
-//            ...jqXHR,
-//            ...opts,
-//        };
-//        // keep copy of XHR in window global for logging purpose
-//        const { browserSession } = APPLICATION;
-//
-//        if (!url && !refreshing && browserSession && status === 401) {
-//            refreshing = true;
-//            return browserSession
-//                .refresh()
-//                .then((response) => {
-//                    refreshing = false;
-//                    const { access_token: accessToken } = response;
-//
-//                    // retry failed requests
-//                    const retries = [];
-//                    while (origOptsList.length && accessToken) {
-//                        const origOpts = origOptsList.shift();
-//                        const newOpts = {
-//                            ...origOpts,
-//                            authRefresh: true, // prevent infinite loop in case of bad token
-//                            headers: { Authorization: `Bearer ${accessToken}` },
-//                        };
-//
-//                        retries.push($.ajax(newOpts).then(dfd.resolve, dfd.reject));
-//                    }
-//                    return Promise.allSettled(retries);
-//                })
-//                .catch((error) => {
-//                    refreshing = false;
-//
-//                    jqXHR.status = error.status || 401;
-//                    jqXHR.statusText = error.message || 'token expired';
-//                    dfd.rejectWith(jqXHR, [...args]);
-//                });
-//        } else {
-//            if (jqXHR.status === 200) {
-//                return dfd.resolve(args);
-//                // status cancel happens when beforeSend cancels $.ajax request
-//            } else if (jqXHR.statusText && !jqXHR.statusText.includes('cancel')) {
-//                // eslint-disable-next-line no-console
-//                console.error(jqXHR, jqXHR.responseText);
-//            }
-//            return dfd.rejectWith(jqXHR, [...args]);
-//        }
-//    });
-//});
 
 /**
  * Create the Helium persistence object.
