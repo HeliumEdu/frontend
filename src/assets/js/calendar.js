@@ -963,7 +963,7 @@ function HeliumCalendar() {
                 self.is_resizing_calendar_item = false;
             },
             eventRender: function (event, element) {
-                element.find(".fc-event-title").html(event.title);
+                element.find(".fc-event-title").html("<strong>" + event.title_no_format + "</strong>, " + moment(event.start).format(helium.HE_TIME_STRING_CLIENT));
 
                 if (event.url === undefined) {
                     var start, end = null, course_string;
@@ -995,7 +995,7 @@ function HeliumCalendar() {
                     course_string = event.calendar_item_type === 1 || event.calendar_item_type === 3 ? ((helium.calendar.courses[event.course].website.replace(/\s/g, "").length > 0 ? "<a target=\"_blank\" href=\"" + helium.calendar.courses[event.course].website + "\">" : "") + helium.calendar.courses[event.course].title + (helium.calendar.courses[event.course].website.replace(/\s/g, "").length > 0 ? "</a>" : "")) : "";
                     element.qtip({
                         content: {
-                            title: "<strong>" + event.title_no_format + "</strong> on " + start,
+                            title: "<strong>" + event.title_no_format + "</strong>",
                             text: "<div class=\"row\"><div class=\"col-xs-12\"><strong>When:</strong> " + start + (
                                 event.show_end_time && end ? (" to " + end) : ""
                             ) + "</div></div>" + (
