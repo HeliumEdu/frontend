@@ -9,4 +9,4 @@
 
 helium.planner_api.logout(function (data) {
     window.location.replace("/login");
-};
+});

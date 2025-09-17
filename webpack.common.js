@@ -157,7 +157,7 @@ module.exports = {
                     from: path.join("src", "templates", "logout.html"),
                     to: "logout.html",
                     context: _.extend({}, defaultContext, {
-                        "redirect_javascript": [path.join('assets', 'js', `logout${min_suffix}.js`)]
+                        "page_javascript": [path.join('assets', 'js', `logout${min_suffix}.js`)]
                     })
                 },
                 {

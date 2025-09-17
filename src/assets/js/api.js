@@ -169,7 +169,7 @@ function HeliumPlannerAPI() {
     this.logout = function (callback) {
         return $.ajax({
                           type: "POST",
-                          url: helium.API_URL + "/auth/token/blacklist",
+                          url: helium.API_URL + "/auth/token/blacklist/",
                           data: JSON.stringify({refresh: localStorage.getItem("refresh_token")}),
                           dataType: "json",
                           success: function (data) {
