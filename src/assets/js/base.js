@@ -11,6 +11,7 @@
 
 var AUTH_TOKEN = localStorage.getItem("access_token");
 var CSRF_TOKEN = Cookies.get("csrftoken");
+var REFRESH_LOCK = false;
 
 // Initialize AJAX configuration
 function csrfSafeMethod(method) {
@@ -32,17 +33,20 @@ function parseJwt (token) {
 
 function checkTokenExp () {
     var refreshTime = new Date((localStorage.getItem("access_token_exp") - 90) * 1000);
-    if (new Date() > refreshTime) {
+    if (new Date() > refreshTime && !REFRESH_LOCK) {
+        REFRESH_LOCK = true;
         $.ajax({
             type: "POST",
             url: helium.API_URL + "/auth/token/refresh/",
             data: JSON.stringify({refresh: localStorage.getItem("refresh_token")}),
             dataType: "json",
             success: function (data) {
-                localStorage.setItem("access_token", data.access);
                 AUTH_TOKEN = data.access;
+                localStorage.setItem("access_token", AUTH_TOKEN);
                 localStorage.setItem("refresh_token", data.refresh);
-                localStorage.setItem("access_token_exp", parseJwt(data.access).exp);
+                localStorage.setItem("access_token_exp", parseJwt(AUTH_TOKEN).exp);
+
+                REFRESH_LOCK = true;
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 window.location.href = "/login?next=" + window.location.pathname;
