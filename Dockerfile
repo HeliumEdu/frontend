@@ -1,13 +1,13 @@
 FROM ubuntu:24.04 AS build
 
 RUN apt-get --fix-missing update
-RUN apt-get install -y --no-install-recommends make npm nodejs
+RUN apt-get install -y --no-install-recommends npm nodejs
 
 WORKDIR /app
 
 COPY . .
 
-RUN make install build
+RUN npm run install build
 
 ######################################################################
 
