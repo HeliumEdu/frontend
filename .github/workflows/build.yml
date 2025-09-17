@@ -25,8 +25,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
-      - name: Install dependencies
-        run: make install build
       - name: Test frontend
         run: make test
       - name: Set up Docker Buildx
