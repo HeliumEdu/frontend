@@ -2796,7 +2796,7 @@ function HeliumPlannerAPI() {
 // Initialize HeliumPlannerAPI and give a reference to the Helium object
 helium.planner_api = new HeliumPlannerAPI();
 
-if (AUTH_TOKEN !== undefined) {
+if (AUTH_TOKEN !== null) {
     helium.planner_api.get_reminders(function (data) {
         helium.process_reminders(data);
     });

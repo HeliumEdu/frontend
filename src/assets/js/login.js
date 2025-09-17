@@ -9,7 +9,7 @@
 
 var AUTH_TOKEN = localStorage.getItem("access_token");
 
-if (AUTH_TOKEN !== undefined) {
+if (AUTH_TOKEN !== null) {
     window.location.href = "/planner/calendar";
 }
 
@@ -38,14 +38,14 @@ $("#login-form").submit(function (e) {
 $(window).on("load", function () {
     "use strict";
 
-    var status_type = Cookies.get("status_type", {path: "/"});
-    var status_msg = Cookies.get("status_msg", {path: "/"});
+    var status_type = localStorage.getItem("status_type");
+    var status_msg = localStorage.getItem("status_msg");
 
-    if (status_type !== undefined && status_msg !== undefined) {
+    if (status_type !== null && status_msg !== null) {
         $("#status").html(status_msg).addClass("alert-" + status_type).removeClass("hidden");
 
-        Cookies.remove("status_type", {path: "/"});
-        Cookies.remove("status_msg", {path: "/"});
+        localStorage.removeItem("status_type");
+        localStorage.removeItem("status_msg");
     }
 
     $("#id_username").focus();

@@ -29,7 +29,7 @@ $.ajaxSetup({
             // Using the CSRFToken value acquired earlier
             xhr.setRequestHeader("X-CSRFToken", CSRF_TOKEN);
         }
-        xhr.setRequestHeader("Authorization", AUTH_TOKEN !== undefined ? "Bearer " + AUTH_TOKEN : null);
+        xhr.setRequestHeader("Authorization", AUTH_TOKEN !== null ? "Bearer " + AUTH_TOKEN : null);
     },
     contentType: "application/json; charset=UTF-8"
 });
@@ -469,7 +469,7 @@ $.ajax({
     }
 });
 
-if (AUTH_TOKEN !== undefined) {
+if (AUTH_TOKEN !== null) {
     $.ajax({
         type: "GET",
         url: helium.API_URL + "/auth/user/",
@@ -505,7 +505,7 @@ $(window).on("load", function () {
         }
     }
 
-    if (AUTH_TOKEN !== undefined) {
+    if (AUTH_TOKEN !== null) {
         $("#planned-nav").removeClass("hidden");
         $("#reminder-nav").removeClass("hidden");
         $("#authenticated-dropdown-nav").removeClass("hidden");
