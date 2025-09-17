@@ -17,7 +17,7 @@ run-devserver: install-dev
 	# during active development, so images don't need to be rebuilt to validate each change.
 	NODE_OPTIONS=--openssl-legacy-provider npm run start
 
-test:
+test: install-dev
 	NODE_OPTIONS=--openssl-legacy-provider npm run test
 
 build-docker:
