@@ -9,7 +9,7 @@
  * @version 1.7.14
  */
 
-var AUTH_TOKEN = Cookies.get("authtoken");
+var AUTH_TOKEN = localStorage.getItem("access");
 var CSRF_TOKEN = Cookies.get("csrftoken");
 
 // Initialize AJAX configuration
@@ -29,7 +29,7 @@ $.ajaxSetup({
             // Using the CSRFToken value acquired earlier
             xhr.setRequestHeader("X-CSRFToken", CSRF_TOKEN);
         }
-        xhr.setRequestHeader("Authorization", AUTH_TOKEN !== undefined ? "Token " + AUTH_TOKEN : null);
+        xhr.setRequestHeader("Authorization", AUTH_TOKEN !== undefined ? "Bearer " + AUTH_TOKEN : null);
     },
     contentType: "application/json; charset=UTF-8"
 });
@@ -423,7 +423,8 @@ if (AUTH_TOKEN !== undefined) {
         },
         error: function () {
             if (window.PRIVILEGED_ROUTE) {
-                Cookies.remove("authtoken", {path: "/"});
+                localStorage.removeItem("access");
+                localStorage.removeItem("refresh");
 
                 window.location.href = "/login?next=" + window.location.pathname;
             }

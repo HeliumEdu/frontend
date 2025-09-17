@@ -7,6 +7,6 @@
  * @version 1.5.1
  */
 
-Cookies.remove("authtoken", {path: "/"});
-
-window.location.replace("/login");
+helium.planner_api.logout(function (data) {
+    window.location.replace("/login");
+};

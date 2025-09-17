@@ -109,11 +109,12 @@ function HeliumPlannerAPI() {
     this.login = function (callback, username, password) {
         return $.ajax({
                           type: "POST",
-                          url: helium.API_URL + "/auth/legacy/token/",
+                          url: helium.API_URL + "/auth/token/",
                           data: JSON.stringify({username: username, password: password}),
                           dataType: "json",
                           success: function (data) {
-                              Cookies.set("authtoken", data.token, {path: "/"});
+                              localStorage.setItem("access", data.access);
+                              localStorage.setItem("refresh", data.refresh);
 
                               callback(data);
                           },
@@ -134,6 +135,66 @@ function HeliumPlannerAPI() {
                           }
                       });
     };
+
+    this.refresh_login = function (callback) {
+        return $.ajax({
+                          type: "POST",
+                          url: helium.API_URL + "/auth/token/refresh/",
+                          data: JSON.stringify({refresh: refresh}),
+                          dataType: "json",
+                          success: function (data) {
+                              localStorage.setItem("access", data.access);
+                              localStorage.setItem("refresh", data.refresh);
+
+                              callback(data);
+                          },
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
+    };
+
+    this.logout = function (callback) {
+        return $.ajax({
+                          type: "POST",
+                          url: helium.API_URL + "/auth/token/blacklist",
+                          data: JSON.stringify({refresh: localStorage.getItem("refresh")}),
+                          dataType: "json",
+                          success: function (data) {
+                              localStorage.removeItem("access");
+                              localStorage.removeItem("refresh");
+
+                              callback(data);
+                          },
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              var data = [{
+                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
+                                  'jqXHR': jqXHR,
+                                  'textStatus': textStatus,
+                                  'errorThrown': errorThrown
+                              }];
+                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+                                  var name = Object.keys(jqXHR.responseJSON)[0];
+                                  if (jqXHR.responseJSON[name].length > 0) {
+                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+                                  }
+                              }
+                              callback(data);
+                          }
+                      });
+        };
 
     this.forgot = function (callback, email) {
         return $.ajax({
