@@ -1,21 +1,18 @@
-.PHONY: all install build clean run-devserver test build-docker run-docker stop-docker restart-docker publish-docker
+.PHONY: all install clean run-devserver test build-docker run-docker stop-docker restart-docker publish-docker
 
-all: install build test build-docker
+all: test build-docker run-docker
 
 SHELL := /usr/bin/env bash
 TAG_VERSION ?= latest
 PLATFORM ?= arm64
 
-install:
+install-dev:
 	NODE_OPTIONS=--openssl-legacy-provider npm install
-
-build:
-	NODE_OPTIONS=--openssl-legacy-provider npm run build
 
 clean:
 	rm -rf node_modules build
 
-run-devserver: install
+run-devserver: install-dev
 	# This will start a local dev server that runs the unminified frontend, outside of Docker. This can be useful
 	# during active development, so images don't need to be rebuilt to validate each change.
 	NODE_OPTIONS=--openssl-legacy-provider npm run start
