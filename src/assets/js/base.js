@@ -9,7 +9,7 @@
  * @version 1.7.14
  */
 
-var AUTH_TOKEN = localStorage.getItem("access");
+var AUTH_TOKEN = localStorage.getItem("access_token");
 var CSRF_TOKEN = Cookies.get("csrftoken");
 
 // Initialize AJAX configuration
@@ -32,6 +32,67 @@ $.ajaxSetup({
         xhr.setRequestHeader("Authorization", AUTH_TOKEN !== undefined ? "Bearer " + AUTH_TOKEN : null);
     },
     contentType: "application/json; charset=UTF-8"
+});
+$.ajaxPrefilter(function onPrefilter(opts, ajaxOpts, jqXHR) {
+    if (opts.authRefresh) {
+        return; // don't do it again
+    }
+    const dfd = $.Deferred();
+    // if the non refresh request was done just resolve our deferred
+    jqXHR.done(dfd.resolve);
+    // if the request failed, handle
+    jqXHR.fail(function onAjaxFail(...args) {
+        const { status, url } = jqXHR;
+        // keep list of failed requests while refresh token request still outstanding
+        origOptsList.push(ajaxOpts);
+
+        window.XHR = {
+            ...jqXHR,
+            ...opts,
+        };
+        // keep copy of XHR in window global for logging purpose
+        const { browserSession } = APPLICATION;
+
+        if (!url && !refreshing && browserSession && status === 401) {
+            refreshing = true;
+            return browserSession
+                .refresh()
+                .then((response) => {
+                    refreshing = false;
+                    const { access_token: accessToken } = response;
+
+                    // retry failed requests
+                    const retries = [];
+                    while (origOptsList.length && accessToken) {
+                        const origOpts = origOptsList.shift();
+                        const newOpts = {
+                            ...origOpts,
+                            authRefresh: true, // prevent infinite loop in case of bad token
+                            headers: { Authorization: `Bearer ${accessToken}` },
+                        };
+
+                        retries.push($.ajax(newOpts).then(dfd.resolve, dfd.reject));
+                    }
+                    return Promise.allSettled(retries);
+                })
+                .catch((error) => {
+                    refreshing = false;
+
+                    jqXHR.status = error.status || 401;
+                    jqXHR.statusText = error.message || 'token expired';
+                    dfd.rejectWith(jqXHR, [...args]);
+                });
+        } else {
+            if (jqXHR.status === 200) {
+                return dfd.resolve(args);
+                // status cancel happens when beforeSend cancels $.ajax request
+            } else if (jqXHR.statusText && !jqXHR.statusText.includes('cancel')) {
+                // eslint-disable-next-line no-console
+                console.error(jqXHR, jqXHR.responseText);
+            }
+            return dfd.rejectWith(jqXHR, [...args]);
+        }
+    });
 });
 
 /**
@@ -423,7 +484,7 @@ if (AUTH_TOKEN !== undefined) {
         },
         error: function () {
             if (window.PRIVILEGED_ROUTE) {
-                localStorage.removeItem("access");
+                localStorage.removeItem("access_token");
                 localStorage.removeItem("refresh");
 
                 window.location.href = "/login?next=" + window.location.pathname;

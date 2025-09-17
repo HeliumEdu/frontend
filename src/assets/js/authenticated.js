@@ -9,7 +9,7 @@
 
 window.PRIVILEGED_ROUTE = true;
 
-var AUTH_TOKEN = localStorage.getItem("access");
+var AUTH_TOKEN = localStorage.getItem("access_token");
 
 if (AUTH_TOKEN === undefined) {
     window.location.href = "/login?next=" + window.location.pathname;

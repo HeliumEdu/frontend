@@ -113,8 +113,8 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify({username: username, password: password}),
                           dataType: "json",
                           success: function (data) {
-                              localStorage.setItem("access", data.access);
-                              localStorage.setItem("refresh", data.refresh);
+                              localStorage.setItem("access_token", data.access);
+                              localStorage.setItem("refresh_token", data.refresh);
 
                               callback(data);
                           },
@@ -143,8 +143,8 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify({refresh: refresh}),
                           dataType: "json",
                           success: function (data) {
-                              localStorage.setItem("access", data.access);
-                              localStorage.setItem("refresh", data.refresh);
+                              localStorage.setItem("access_token", data.access);
+                              localStorage.setItem("refresh_token", data.refresh);
 
                               callback(data);
                           },
@@ -170,11 +170,11 @@ function HeliumPlannerAPI() {
         return $.ajax({
                           type: "POST",
                           url: helium.API_URL + "/auth/token/blacklist",
-                          data: JSON.stringify({refresh: localStorage.getItem("refresh")}),
+                          data: JSON.stringify({refresh: localStorage.getItem("refresh_token")}),
                           dataType: "json",
                           success: function (data) {
-                              localStorage.removeItem("access");
-                              localStorage.removeItem("refresh");
+                              localStorage.removeItem("access_token");
+                              localStorage.removeItem("refresh_token");
 
                               callback(data);
                           },

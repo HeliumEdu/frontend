@@ -7,7 +7,7 @@
  * @version 1.5.1
  */
 
-var AUTH_TOKEN = localStorage.getItem("access");
+var AUTH_TOKEN = localStorage.getItem("access_token");
 
 if (AUTH_TOKEN !== undefined) {
     window.location.href = "/planner/calendar";
