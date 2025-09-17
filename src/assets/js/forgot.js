@@ -7,9 +7,9 @@
  * @version 1.5.1
  */
 
-var AUTH_TOKEN = Cookies.get("authtoken", {path: "/"});
+var AUTH_TOKEN = localStorage.getItem("authtoken");
 
-if (AUTH_TOKEN !== undefined) {
+if (AUTH_TOKEN !== null) {
     window.location.href = "/settings";
 }
 

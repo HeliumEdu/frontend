@@ -1409,13 +1409,13 @@ function HeliumClasses() {
                                         helium.classes.categories_to_delete = [];
                                         helium.classes.attachments_to_delete = [];
 
-                                        if (Cookies.get("filter_courses_" + helium.USER_PREFS.id) === undefined) {
-                                            Cookies.set("filter_courses_" + helium.USER_PREFS.id, {path: "/"});
+                                        if (localStorage.getItem("filter_courses_" + helium.USER_PREFS.id) === null) {
+                                            localStorage.setItem("filter_courses_" + helium.USER_PREFS.id);
                                         }
 
-                                        var course_ids = Cookies.get("filter_courses_" + helium.USER_PREFS.id).split(",");
+                                        var course_ids = localStorage.getItem("filter_courses_" + helium.USER_PREFS.id).split(",");
                                         course_ids.push(data.id);
-                                        Cookies.set("filter_courses_" + helium.USER_PREFS.id, course_ids.join(","), {path: "/"});
+                                        localStorage.setItem("filter_courses_" + helium.USER_PREFS.id, course_ids.join(","));
 
                                         self.add_course_to_groups(data, self.course_group_table[data.course_group.toString()]);
                                         self.course_group_table[data.course_group.toString()].draw();
@@ -1556,14 +1556,14 @@ $(document).ready(function () {
             /*******************************************
              * Check cookies for triggers passed in
              ******************************************/
-            if (Cookies.get("edit_categories")) {
-                var course_id = Cookies.get("course_id");
+            if (localStorage.getItem("edit_categories")) {
+                var course_id = localStorage.getItem("course_id");
 
                 helium.classes.edit_course_btn($("#edit-course-" + course_id), false);
                 $("a[href='#course-panel-tab-3']").tab("show");
 
-                Cookies.remove("course_id", {path: "/"});
-                Cookies.remove("edit_categories", {path: "/"});
+                localStorage.removeItem("course_id");
+                localStorage.removeItem("edit_categories");
             }
 
             if ($("#course-group-tabs a").length === 1) {

@@ -178,7 +178,7 @@ function HeliumSettings() {
 
                 helium.clear_form_errors("importexport-form");
 
-                Cookies.remove("filter_courses_" + helium.USER_PREFS.id, {path: "/"});
+                localStorage.removeItem("filter_courses_" + helium.USER_PREFS.id);
 
                 $("#status_importexport").html("Import successful.").addClass("alert-success").removeClass("hidden");
 
@@ -490,8 +490,8 @@ function HeliumSettings() {
                             success: function () {
                                 $("#loading-account").spin(false);
 
-                                Cookies.set("status_type", "warning", {path: "/"});
-                                Cookies.set("status_msg", "Sorry to see you go! We've deleted all traces of your existence from Helium.", {path: "/"});
+                                localStorage.setItem("status_type", "warning");
+                                localStorage.setItem("status_msg", "Sorry to see you go! We've deleted all traces of your existence from Helium.");
 
                                 window.location = "/logout";
                             }

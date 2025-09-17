@@ -7,7 +7,7 @@
  * @version 1.7.14
  */
 
-Cookies.remove("authtoken", {path: "/"});
+localStorage.removeItem("authtoken");
 
 var username = url('?username');
 var code = url('?code');
@@ -30,14 +30,14 @@ callback = function (data) {
         if (data[0].jqXHR.status === 404) {
             window.location.replace("/register");
         } else {
-            Cookies.set("status_type", "warning", {path: "/"});
-            Cookies.set("status_msg", data[0].err_msg, {path: "/"});
+            localStorage.setItem("status_type", "warning");
+            localStorage.setItem("status_msg", data[0].err_msg);
 
             window.location.replace("/login");
         }
     } else {
-        Cookies.set("status_type", "info", {path: "/"});
-        Cookies.set("status_msg", "Your email address has been verified. You can now login to Helium using this email or your username.", {path: "/"});
+        localStorage.setItem("status_type", "info");
+        localStorage.setItem("status_msg", "Your email address has been verified. You can now login to Helium using this email or your username.");
 
         window.location.replace("/login");
     }

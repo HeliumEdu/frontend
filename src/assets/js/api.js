@@ -113,7 +113,7 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify({username: username, password: password}),
                           dataType: "json",
                           success: function (data) {
-                              Cookies.set("authtoken", data.token, {path: "/"});
+                              localStorage.setItem("authtoken", data.token);
 
                               callback(data);
                           },
@@ -2735,7 +2735,7 @@ function HeliumPlannerAPI() {
 // Initialize HeliumPlannerAPI and give a reference to the Helium object
 helium.planner_api = new HeliumPlannerAPI();
 
-if (AUTH_TOKEN !== undefined) {
+if (AUTH_TOKEN !== null) {
     helium.planner_api.get_reminders(function (data) {
         helium.process_reminders(data);
     });

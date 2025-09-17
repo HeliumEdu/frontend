@@ -369,8 +369,8 @@
         helium.calendar.clear_calendar_item_errors();
     });
     $("#edit-categories").on("click", function () {
-        Cookies.set("course_id", $("#homework-class").val(), {path: "/"});
-        Cookies.set("edit_categories", true, {path: "/"});
+        localStorage.setItem("course_id", $("#homework-class").val());
+        localStorage.setItem("edit_categories", true);
         window.location = "/planner/classes";
     });
 

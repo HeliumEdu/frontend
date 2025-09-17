@@ -9,7 +9,7 @@
  * @version 1.7.14
  */
 
-var AUTH_TOKEN = Cookies.get("authtoken");
+var AUTH_TOKEN = localStorage.getItem("authtoken");
 var CSRF_TOKEN = Cookies.get("csrftoken");
 
 // Initialize AJAX configuration
@@ -29,7 +29,7 @@ $.ajaxSetup({
             // Using the CSRFToken value acquired earlier
             xhr.setRequestHeader("X-CSRFToken", CSRF_TOKEN);
         }
-        xhr.setRequestHeader("Authorization", AUTH_TOKEN !== undefined ? "Token " + AUTH_TOKEN : null);
+        xhr.setRequestHeader("Authorization", AUTH_TOKEN !== null ? "Token " + AUTH_TOKEN : null);
     },
     contentType: "application/json; charset=UTF-8"
 });
@@ -408,7 +408,7 @@ $.ajax({
     }
 });
 
-if (AUTH_TOKEN !== undefined) {
+if (AUTH_TOKEN !== null) {
     $.ajax({
         type: "GET",
         url: helium.API_URL + "/auth/user/",
@@ -423,7 +423,7 @@ if (AUTH_TOKEN !== undefined) {
         },
         error: function () {
             if (window.PRIVILEGED_ROUTE) {
-                Cookies.remove("authtoken", {path: "/"});
+                localStorage.removeItem("authtoken");
 
                 window.location.href = "/login?next=" + window.location.pathname;
             }
@@ -443,7 +443,7 @@ $(window).on("load", function () {
         }
     }
 
-    if (AUTH_TOKEN !== undefined) {
+    if (AUTH_TOKEN !== null) {
         $("#planned-nav").removeClass("hidden");
         $("#reminder-nav").removeClass("hidden");
         $("#authenticated-dropdown-nav").removeClass("hidden");

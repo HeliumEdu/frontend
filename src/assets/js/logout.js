@@ -7,6 +7,6 @@
  * @version 1.5.1
  */
 
-Cookies.remove("authtoken", {path: "/"});
+localStorage.removeItem("authtoken");
 
 window.location.replace("/login");
