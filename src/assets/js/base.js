@@ -11,7 +11,7 @@
 
 var AUTH_TOKEN = localStorage.getItem("access_token");
 var CSRF_TOKEN = Cookies.get("csrftoken");
-var REFRESH_LOCK = false;
+var REFRESHING_TOKEN = false;
 
 // Initialize AJAX configuration
 function csrfSafeMethod(method) {
@@ -32,9 +32,13 @@ function parseJwt (token) {
 }
 
 function checkTokenExp () {
+    if (REFRESHING_TOKEN) {
+        return;
+    }
+    REFRESHING_TOKEN = true;
+
     var refreshTime = new Date((localStorage.getItem("access_token_exp") - 90) * 1000);
-    if (new Date() > refreshTime && !REFRESH_LOCK) {
-        REFRESH_LOCK = true;
+    if (new Date() > refreshTime) {
         $.ajax({
             type: "POST",
             url: helium.API_URL + "/auth/token/refresh/",
@@ -46,12 +50,14 @@ function checkTokenExp () {
                 localStorage.setItem("refresh_token", data.refresh);
                 localStorage.setItem("access_token_exp", parseJwt(AUTH_TOKEN).exp);
 
-                REFRESH_LOCK = true;
+                REFRESHING_TOKEN = false;
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 window.location.href = "/login?next=" + window.location.pathname;
             }
         });
+    } else {
+        REFRESHING_TOKEN = false;
     }
 }
 
