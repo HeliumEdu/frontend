@@ -7,13 +7,18 @@ TAG_VERSION ?= latest
 PLATFORM ?= arm64
 
 install:
-	@npm install
+	NODE_OPTIONS=--openssl-legacy-provider npm install
 
 build:
 	NODE_OPTIONS=--openssl-legacy-provider npm run build
 
+run-devserver:
+	# This will start a local dev server that runs the unminified frontend, outside of Docker. This can be useful
+	# during active development, so images don't need to be rebuilt to validate each change.
+	NODE_OPTIONS=--openssl-legacy-provider npm run start
+
 test:
-	@npm run test
+	NODE_OPTIONS=--openssl-legacy-provider npm run test
 
 build-docker:
 	docker buildx build -t helium/frontend:$(PLATFORM)-latest -t helium/frontend:$(PLATFORM)-$(TAG_VERSION) --platform=linux/$(PLATFORM) --load .
