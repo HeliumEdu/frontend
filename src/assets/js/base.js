@@ -65,8 +65,8 @@ $.ajaxSetup({
             // Using the CSRFToken value acquired earlier
             xhr.setRequestHeader("X-CSRFToken", CSRF_TOKEN);
         }
-        xhr.setRequestHeader("Authorization", AUTH_TOKEN !== null ? "Bearer " + AUTH_TOKEN : null);
         if (window.PRIVILEGED_ROUTE && options.url != helium.API_URL + "/auth/token/refresh/") {
+            xhr.setRequestHeader("Authorization", AUTH_TOKEN !== null ? "Bearer " + AUTH_TOKEN : null);
             checkTokenExp();
         }
     },
