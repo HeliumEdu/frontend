@@ -16,12 +16,15 @@ Released container images are published to [Helium's AWS ECR](https://gallery.ec
 
 ## Getting Started
 
-Note that this project is largely a placeholder. It was used to split out `frontend` code from the backend `platform`
-while the `frontend` code would be rewritten in React. However, as the project is no longer actively maintained, there
-is no current plant for this redevelopment. So, be aware that [Webpack](https://webpack.js.org/) is being used in a very hacky way (for
-instance, the generated bundle is useless and should be ignored), [Nunjucks](https://mozilla.github.io/nunjucks/), is being used to process HTML
-templates, and ultimately, this is legacy code that, if the project ever goes back in to active development, would
-be completely overhauled.
+This project is the result of separating the `frontend` code from the backend `platform`, with the intention of someday
+rewriting it in a modern framework. But we have not had the capacity (or expertise) to do that. Are you a frontend
+expert in search of an open source project and interested in joining forces? [Reach out](mailto:contact@alexlaird.com)
+and let us know!
+
+Be aware that this is legacy code, and we would love to have the capacity to completely rewrite it. In its current
+form, [Webpack](https://webpack.js.org/) generates a bundle that is useless and should be ignored,
+[Nunjucks](https://mozilla.github.io/nunjucks/) is being used to process HTML templates, and the way JavaScript and
+Ajax are being used is pretty dated.
 
 ## Development
 
@@ -39,9 +42,6 @@ http://localhost:3000. The shell of containers can be accessed with:
 ```sh
 docker exec -it frontend-frontend-1 /bin/bash
 ```
-
-Note that, since part of the way this build was hacked together circumvents many of Webpack's most useful features,
-live changes will not be detected at this time and would require a restart of this server.
 
 Before commits are made, be sure to run tests and check the generated coverage report
 

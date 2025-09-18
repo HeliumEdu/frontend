@@ -3,7 +3,9 @@
  *
  * JavaScript functionality for triggers on the the /planner/classes page.
  *
- * FIXME: This implementation is pretty crude compared to modern standards and will be completely overhauled in favor of a framework once the open source migration is completed.
+ * FIXME: Be aware that this is legacy code, and we would love to have the capacity to completely rewrite it.
+ *  The way JavaScript and Ajax are being used is pretty dated. Are you a frontend expert in search of an open source
+ *  project and interested in joining forces? Reach out and let us know! contact@alexlaird.com
  *
  * @license MIT
  * @version 1.5.1
