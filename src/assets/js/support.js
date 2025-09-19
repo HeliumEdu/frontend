@@ -6,7 +6,7 @@
  *  project and interested in joining forces? Reach out and let us know! contact@alexlaird.com
  *
  * @license MIT
- * @version 1.7.14
+ * @version 1.11.0
  */
 
 var SITE_HOST = location.host + "/";
