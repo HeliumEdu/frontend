@@ -9,7 +9,7 @@
  * @version 1.10.35
  */
 
-localStorage.removeItem("authtoken");
+localStorage.removeItem("access_token");
 
 var username = url('?username');
 var code = url('?code');
