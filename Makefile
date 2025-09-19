@@ -6,18 +6,18 @@ SHELL := /usr/bin/env bash
 TAG_VERSION ?= latest
 PLATFORM ?= arm64
 
-install-dev:
+install:
 	NODE_OPTIONS=--openssl-legacy-provider npm install
 
 clean:
-	rm -rf node_modules build
+	rm -rf node_modules build src/assets/js/*.min.js
 
-run-devserver: install-dev
+run-devserver: install
 	# This will start a local dev server that runs the unminified frontend, outside of Docker. This can be useful
 	# during active development, so images don't need to be rebuilt to validate each change.
 	NODE_OPTIONS=--openssl-legacy-provider npm run start
 
-test: install-dev
+test: install
 	NODE_OPTIONS=--openssl-legacy-provider npm run test
 
 build-docker:
