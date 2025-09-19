@@ -1668,7 +1668,7 @@ function HeliumCalendar() {
                     });
                 }
 
-                callback = function (data) {
+                var callback = function (data) {
                     if (helium.data_has_err_msg(data)) {
                         helium.ajax_error_occurred = true;
                         $("#loading-homework-modal").spin(false);

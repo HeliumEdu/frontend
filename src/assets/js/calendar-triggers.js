@@ -282,7 +282,7 @@
 
         helium.calendar.set_timing_fields();
 
-        materials_callback = function (data) {
+        var materials_callback = function (data) {
             if (helium.data_has_err_msg(data)) {
                 helium.ajax_error_occurred = true;
                 $("#loading-homework-modal").spin(false);
