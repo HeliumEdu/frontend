@@ -39,7 +39,7 @@ callback = function (data) {
         }
     } else {
         localStorage.setItem("status_type", "info");
-        localStorage.setItem("status_msg", "Your email address has been verified. You can now login to Helium using this email or your username.");
+        localStorage.setItem("status_msg", "Your email address has been verified. You can now login to Helium!");
 
         window.location.replace("/login");
     }
