@@ -27,7 +27,7 @@ if (SITE_URL === "http://localhost:3000/" || SITE_URL === "http://127.0.0.1:3000
     API_URL = SITE_URL.replace("www", "api");
 }
 
-callback = function (data) {
+var callback = function (data) {
     if (data !== undefined && data.length === 1) {
         if (data[0].jqXHR.status === 404) {
             window.location.replace("/register");
