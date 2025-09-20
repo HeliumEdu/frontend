@@ -176,6 +176,27 @@ module.exports = {
                 },
                 {
                     from: path.join("src", "templates", "base.html"),
+                    to: "docs.html",
+                    context: _.extend({}, defaultContext, {
+                        "redirect_javascript": [path.join('assets', 'js', `docs${min_suffix}.js`)]
+                    })
+                },
+                {
+                    from: path.join("src", "templates", "base.html"),
+                    to: "status.html",
+                    context: _.extend({}, defaultContext, {
+                        "redirect_javascript": [path.join('assets', 'js', `status${min_suffix}.js`)]
+                    })
+                },
+                {
+                    from: path.join("src", "templates", "base.html"),
+                    to: "admin.html",
+                    context: _.extend({}, defaultContext, {
+                        "redirect_javascript": [path.join('assets', 'js', `admin${min_suffix}.js`)]
+                    })
+                },
+                {
+                    from: path.join("src", "templates", "base.html"),
                     to: "contact.html",
                     context: _.extend({}, defaultContext, {
                         "redirect_javascript": [path.join('assets', 'js', `support${min_suffix}.js`)]

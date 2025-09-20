@@ -6,7 +6,7 @@
  *  project and interested in joining forces? Reach out and let us know! contact@alexlaird.com
  *
  * @license MIT
- * @version 1.11.0
+ * @version 1.7.14
  */
 
 var SITE_HOST = location.host + "/";
@@ -21,12 +21,4 @@ if (SITE_URL === "http://localhost:3000/" || SITE_URL === "http://127.0.0.1:3000
     API_URL = SITE_URL.replace("www", "api");
 }
 
-$.ajax({
-    type: "GET",
-    url: API_URL + "/info/",
-    async: false,
-    dataType: "json",
-    success: function (data) {
-        window.location.replace(data.support_url);
-    }
-});
+window.location.replace(API_URL + "/docs");
