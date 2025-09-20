@@ -53,6 +53,7 @@ if (welcome_email !== undefined) {
 $.ajax({
     type: "GET",
     url: API_VERIFY_URL,
+    async: false,
     success: function (data) {
         callback(data)
     },
