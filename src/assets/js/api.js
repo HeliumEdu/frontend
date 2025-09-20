@@ -110,7 +110,7 @@ function HeliumPlannerAPI() {
         return $.ajax({
                           type: "POST",
                           url: helium.API_URL + "/auth/token/",
-                          data: JSON.stringify({username: username, password: password}),
+                          data: JSON.stringify({username: username, password: password, last_login_now: true}),
                           dataType: "json",
                           success: function (data) {
                               localStorage.setItem("access_token", data.access);
