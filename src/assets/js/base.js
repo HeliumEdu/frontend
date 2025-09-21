@@ -11,10 +11,6 @@
  * @version 1.11.0
  */
 
-var AUTH_TOKEN = localStorage.getItem("access_token");
-var CSRF_TOKEN = Cookies.get("csrftoken");
-var REFRESHING_TOKEN = false;
-
 // Initialize AJAX configuration
 function csrfSafeMethod(method) {
     "use strict";
@@ -34,10 +30,10 @@ function parseJwt (token) {
 }
 
 function checkTokenExp () {
-    if (REFRESHING_TOKEN) {
+    if (localStorage.getItem("refreshing_token") || false && REFRESHING_TOKEN) {
         return;
     }
-    REFRESHING_TOKEN = true;
+    localStorage.setItem("refreshing_token", true);
 
     var refreshTime = new Date((localStorage.getItem("access_token_exp") - 90) * 1000);
     if (new Date() > refreshTime) {
@@ -47,19 +43,18 @@ function checkTokenExp () {
             data: JSON.stringify({refresh: localStorage.getItem("refresh_token")}),
             dataType: "json",
             success: function (data) {
-                AUTH_TOKEN = data.access;
-                localStorage.setItem("access_token", AUTH_TOKEN);
+                localStorage.setItem("access_token", data.access);
                 localStorage.setItem("refresh_token", data.refresh);
-                localStorage.setItem("access_token_exp", parseJwt(AUTH_TOKEN).exp);
+                localStorage.setItem("access_token_exp", parseJwt(data.access).exp);
 
-                REFRESHING_TOKEN = false;
+                localStorage.setItem("refreshing_token", false);
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 window.location.href = "/login?next=" + window.location.pathname;
             }
         });
     } else {
-        REFRESHING_TOKEN = false;
+        localStorage.setItem("refreshing_token", false);
     }
 }
 
@@ -71,10 +66,10 @@ $.ajaxSetup({
             // Send the token to same-origin, relative URLs only.
             // Send the token only if the method warrants CSRF protection
             // Using the CSRFToken value acquired earlier
-            xhr.setRequestHeader("X-CSRFToken", CSRF_TOKEN);
+            xhr.setRequestHeader("X-CSRFToken", Cookies.get("csrftoken"));
         }
-        if (AUTH_TOKEN != null && options.url != helium.API_URL + "/auth/token/refresh/") {
-            xhr.setRequestHeader("Authorization", "Bearer " + AUTH_TOKEN);
+        if (localStorage.getItem("access_token") != null && options.url != helium.API_URL + "/auth/token/refresh/") {
+            xhr.setRequestHeader("Authorization", "Bearer " + localStorage.getItem("access_token"));
             checkTokenExp();
         }
     },
@@ -455,7 +450,7 @@ $.ajax({
     }
 });
 
-if (AUTH_TOKEN !== null) {
+if (localStorage.getItem("access_token") !== null) {
     $.ajax({
         type: "GET",
         url: helium.API_URL + "/auth/user/",
@@ -491,7 +486,7 @@ $(window).on("load", function () {
         }
     }
 
-    if (AUTH_TOKEN !== null) {
+    if (localStorage.getItem("access_token") !== null) {
         $("#planned-nav").removeClass("hidden");
         $("#reminder-nav").removeClass("hidden");
         $("#authenticated-dropdown-nav").removeClass("hidden");
@@ -500,3 +495,7 @@ $(window).on("load", function () {
         $("#login-nav").removeClass("hidden");
     }
 });
+
+module.exports = {
+  Helium,
+};

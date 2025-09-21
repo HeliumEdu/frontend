@@ -3,6 +3,7 @@
   "version": "1.11.0",
   "description": "Frontend for Helium Student Planner",
   "author": "Alex Laird",
+  "type": "commonjs",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/HeliumEdu/frontend/issues"
@@ -13,17 +14,22 @@
     "url": "git+https://github.com/HeliumEdu/frontend.git"
   },
   "scripts": {
-    "build": "./bin/minify && cross-env NODE_ENV=production webpack --config webpack.prod.js",
+    "build": "./bin/minify && cross-env NODE_ENV=production webpack --config webpack.prod.js --mode production",
     "start": "webpack-dev-server --open --config webpack.dev.js",
-    "test": "echo \"Error: no tests to run\""
+    "test": "mocha --require test/setup.js"
   },
   "devDependencies": {
+    "chai": "^4.5.0",
     "clean-webpack-plugin": "^1.0.1",
     "codecov": "^3.7.0",
     "copy-webpack-plugin": "^4.6.0",
     "cross-env": "^7.0.2",
     "cssnano": "^4.1.10",
+    "jquery": "^1.12.1",
+    "jquery-ui": "^1.12.1",
+    "jsdom": "^26.1.0",
     "lodash": "^4.17.15",
+    "mocha": "^11.7.2",
     "nunjucks": "^3.2.1",
     "nunjucks-webpack-plugin": "^5.0.0",
     "uglifyjs-webpack-plugin": "^2.2.0",
@@ -35,6 +41,6 @@
   "dependencies": {
     "clean-css-cli": "^4.3.0",
     "npm": "^6.14.5",
-    "uglify-js": "^3.9.4"
+    "uglify-js": "^3.13.10"
   }
 }

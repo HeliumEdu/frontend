@@ -9,9 +9,7 @@
  * @version 1.11.0
  */
 
-var AUTH_TOKEN = localStorage.getItem("access_token");
-
-if (AUTH_TOKEN !== null) {
+if (localStorage.getItem("access_token") !== null) {
     window.location.href = "/settings";
 }
 
