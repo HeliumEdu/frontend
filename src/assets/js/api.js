@@ -78,7 +78,7 @@ function HeliumPlannerAPI() {
         self.reminders_by_calendar_item = {};
     };
 
-    this.api_error = function (jqXHR, textStatus, errorThrown) {
+    this.api_error = function (jqXHR, textStatus, errorThrown, callback) {
         var data = [{
             'err_msg': self.GENERIC_ERROR_MESSAGE,
             'jqXHR': jqXHR,
@@ -104,7 +104,9 @@ function HeliumPlannerAPI() {
                           success: function (data) {
                               callback(data)
                           },
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -121,7 +123,9 @@ function HeliumPlannerAPI() {
 
                               callback(data);
                           },
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -141,7 +145,9 @@ function HeliumPlannerAPI() {
 
                               callback(data);
                           },
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -153,7 +159,9 @@ function HeliumPlannerAPI() {
                           success: function (data) {
                               callback(data)
                           },
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -175,7 +183,9 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -195,7 +205,9 @@ function HeliumPlannerAPI() {
                           async: async,
                           dataType: "json",
                           success: callback,
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -225,7 +237,9 @@ function HeliumPlannerAPI() {
                                      self.course_groups_by_user_id[helium.USER_PREFS.id] = data;
                                      callback(self.course_groups_by_user_id[helium.USER_PREFS.id]);
                                  },
-                                 error: helium.api_error
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     helium.api_error(jqXHR, textStatus, err_msg, callback);
+                                 }
                              });
         }
 
@@ -258,7 +272,9 @@ function HeliumPlannerAPI() {
                                      self.course_group[id] = data;
                                      callback(self.course_group[id]);
                                  },
-                                 error: helium.api_error
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     helium.api_error(jqXHR, textStatus, err_msg, callback);
+                                 }
                              });
         }
 
@@ -282,7 +298,9 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -305,7 +323,9 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -327,7 +347,9 @@ function HeliumPlannerAPI() {
                           async: async,
                           dataType: "json",
                           success: callback,
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -358,7 +380,9 @@ function HeliumPlannerAPI() {
                                      self.courses_by_course_group_id[id] = data;
                                      callback(self.courses_by_course_group_id[id]);
                                  },
-                                 error: helium.api_error
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     helium.api_error(jqXHR, textStatus, err_msg, callback);
+                                 }
                              });
         }
 
@@ -391,7 +415,9 @@ function HeliumPlannerAPI() {
                                      self.courses_by_user_id[helium.USER_PREFS.id] = data;
                                      callback(self.courses_by_user_id[helium.USER_PREFS.id]);
                                  },
-                                 error: helium.api_error
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     helium.api_error(jqXHR, textStatus, err_msg, callback);
+                                 }
                              });
         }
 
@@ -424,7 +450,9 @@ function HeliumPlannerAPI() {
                                      self.courses_by_user_id[helium.USER_PREFS.id] = data;
                                      callback(self.courses_by_user_id[helium.USER_PREFS.id]);
                                  },
-                                 error: helium.api_error
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     helium.api_error(jqXHR, textStatus, err_msg, callback);
+                                 }
                              });
         }
 
@@ -460,7 +488,9 @@ function HeliumPlannerAPI() {
                                      self.class_schedules[course_id] = data;
                                      callback(self.class_schedules[course_id]);
                                  },
-                                 error: helium.api_error
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     helium.api_error(jqXHR, textStatus, err_msg, callback);
+                                 }
                              });
         }
 
@@ -495,7 +525,9 @@ function HeliumPlannerAPI() {
                                      self.course[id] = data;
                                      callback(self.course[id]);
                                  },
-                                 error: helium.api_error
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     helium.api_error(jqXHR, textStatus, err_msg, callback);
+                                 }
                              });
         }
 
@@ -524,7 +556,9 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -552,7 +586,9 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -578,7 +614,9 @@ function HeliumPlannerAPI() {
                           async: async,
                           dataType: "json",
                           success: callback,
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -601,7 +639,9 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -663,7 +703,9 @@ function HeliumPlannerAPI() {
                           async: async,
                           dataType: "json",
                           success: callback,
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -693,7 +735,9 @@ function HeliumPlannerAPI() {
                                      self.material_groups_by_user_id[helium.USER_PREFS.id] = data;
                                      callback(self.material_groups_by_user_id[helium.USER_PREFS.id]);
                                  },
-                                 error: helium.api_error
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     helium.api_error(jqXHR, textStatus, err_msg, callback);
+                                 }
                              });
         }
 
@@ -726,7 +770,9 @@ function HeliumPlannerAPI() {
                                      self.material_group[id] = data;
                                      callback(self.material_group[id]);
                                  },
-                                 error: helium.api_error
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     helium.api_error(jqXHR, textStatus, err_msg, callback);
+                                 }
                              });
         }
 
@@ -750,7 +796,9 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -774,7 +822,9 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -795,7 +845,9 @@ function HeliumPlannerAPI() {
                           async: async,
                           dataType: "json",
                           success: callback,
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -825,7 +877,9 @@ function HeliumPlannerAPI() {
                                      self.materials_by_course_id[id] = data;
                                      callback(self.materials_by_course_id[id]);
                                  },
-                                 error: helium.api_error
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     helium.api_error(jqXHR, textStatus, err_msg, callback);
+                                 }
                              });
         }
 
@@ -860,7 +914,9 @@ function HeliumPlannerAPI() {
                                      self.material[id] = data;
                                      callback(self.material[id]);
                                  },
-                                 error: helium.api_error
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     helium.api_error(jqXHR, textStatus, err_msg, callback);
+                                 }
                              });
         }
 
@@ -894,7 +950,9 @@ function HeliumPlannerAPI() {
                                      self.materials_by_material_group_id[id] = data;
                                      callback(self.materials_by_material_group_id[id]);
                                  },
-                                 error: helium.api_error
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     helium.api_error(jqXHR, textStatus, err_msg, callback);
+                                 }
                              });
         }
 
@@ -919,7 +977,9 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -944,7 +1004,9 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -967,7 +1029,9 @@ function HeliumPlannerAPI() {
                           async: async,
                           dataType: "json",
                           success: callback,
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -999,7 +1063,9 @@ function HeliumPlannerAPI() {
                                      });
                                      callback(self.category_names);
                                  },
-                                 error: helium.api_error
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     helium.api_error(jqXHR, textStatus, err_msg, callback);
+                                 }
                              });
         }
 
@@ -1035,7 +1101,9 @@ function HeliumPlannerAPI() {
                                      self.categories_by_course_id[id] = data;
                                      callback(self.categories_by_course_id[id]);
                                  },
-                                 error: helium.api_error
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     helium.api_error(jqXHR, textStatus, err_msg, callback);
+                                 }
                              });
         }
 
@@ -1071,7 +1139,9 @@ function HeliumPlannerAPI() {
                                      self.category[id] = data;
                                      callback(self.category[id]);
                                  },
-                                 error: helium.api_error
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     helium.api_error(jqXHR, textStatus, err_msg, callback);
+                                 }
                              });
         }
 
@@ -1099,7 +1169,9 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -1126,7 +1198,9 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -1151,7 +1225,9 @@ function HeliumPlannerAPI() {
                           async: async,
                           dataType: "json",
                           success: callback,
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -1182,7 +1258,9 @@ function HeliumPlannerAPI() {
                                      self.categories_by_course_id[id] = data;
                                      callback(self.categories_by_course_id[id]);
                                  },
-                                 error: helium.api_error
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     helium.api_error(jqXHR, textStatus, err_msg, callback);
+                                 }
                              });
         }
 
@@ -1207,7 +1285,9 @@ function HeliumPlannerAPI() {
                           async: async,
                           dataType: "json",
                           success: callback,
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -1238,7 +1318,9 @@ function HeliumPlannerAPI() {
                                      self.homework_by_user_id[helium.USER_PREFS.id] = data;
                                      callback(self.homework_by_user_id[helium.USER_PREFS.id]);
                                  },
-                                 error: helium.api_error
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     helium.api_error(jqXHR, textStatus, err_msg, callback);
+                                 }
                              });
         }
 
@@ -1273,7 +1355,9 @@ function HeliumPlannerAPI() {
                                      self.homework_by_course_id[id] = data;
                                      callback(self.homework_by_course_id[id]);
                                  },
-                                 error: helium.api_error
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     helium.api_error(jqXHR, textStatus, err_msg, callback);
+                                 }
                              });
         }
 
@@ -1309,7 +1393,9 @@ function HeliumPlannerAPI() {
                                      self.homework[id] = data;
                                      callback(self.homework[id]);
                                  },
-                                 error: helium.api_error
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     helium.api_error(jqXHR, textStatus, err_msg, callback);
+                                 }
                              });
         }
 
@@ -1357,7 +1443,9 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -1387,7 +1475,9 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -1413,7 +1503,9 @@ function HeliumPlannerAPI() {
                           async: async,
                           dataType: "json",
                           success: callback,
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -1443,7 +1535,9 @@ function HeliumPlannerAPI() {
                                      self.events_by_user_id[helium.USER_PREFS.id] = data;
                                      callback(self.events_by_user_id[helium.USER_PREFS.id]);
                                  },
-                                 error: helium.api_error
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     helium.api_error(jqXHR, textStatus, err_msg, callback);
+                                 }
                              });
         }
 
@@ -1480,7 +1574,9 @@ function HeliumPlannerAPI() {
                                      self.event[id] = data;
                                      callback(self.event[id]);
                                  },
-                                 error: helium.api_error
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     helium.api_error(jqXHR, textStatus, err_msg, callback);
+                                 }
                              });
         }
 
@@ -1504,7 +1600,9 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -1535,7 +1633,9 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -1562,7 +1662,9 @@ function HeliumPlannerAPI() {
                           async: async,
                           dataType: "json",
                           success: callback,
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -1592,7 +1694,9 @@ function HeliumPlannerAPI() {
                                      self.external_calendars_by_user_id[helium.USER_PREFS.id] = data;
                                      callback(self.external_calendars_by_user_id[helium.USER_PREFS.id]);
                                  },
-                                 error: helium.api_error
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     helium.api_error(jqXHR, textStatus, err_msg, callback);
+                                 }
                              });
         }
 
@@ -1628,7 +1732,9 @@ function HeliumPlannerAPI() {
                                      self.external_calendar_feed[id] = data;
                                      callback(self.external_calendar_feed[id]);
                                  },
-                                 error: helium.api_error
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     helium.api_error(jqXHR, textStatus, err_msg, callback);
+                                 }
                              });
         }
 
@@ -1661,7 +1767,9 @@ function HeliumPlannerAPI() {
                                      self.reminders_by_user_id[helium.USER_PREFS.id] = data;
                                      callback(self.reminders_by_user_id[helium.USER_PREFS.id]);
                                  },
-                                 error: helium.api_error
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     helium.api_error(jqXHR, textStatus, err_msg, callback);
+                                 }
                              });
         }
 
@@ -1699,7 +1807,9 @@ function HeliumPlannerAPI() {
                                      self.reminders_by_calendar_item[id] = data;
                                      callback(self.reminders_by_calendar_item[id]);
                                  },
-                                 error: helium.api_error
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     helium.api_error(jqXHR, textStatus, err_msg, callback);
+                                 }
                              });
         }
 
@@ -1723,7 +1833,9 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -1753,7 +1865,9 @@ function HeliumPlannerAPI() {
                                      self.reminder[id] = data;
                                      callback(self.reminder[id]);
                                  },
-                                 error: helium.api_error
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     helium.api_error(jqXHR, textStatus, err_msg, callback);
+                                 }
                              });
         }
 
@@ -1784,7 +1898,9 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -1810,7 +1926,9 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -1837,7 +1955,9 @@ function HeliumPlannerAPI() {
                           data: {calendar_item_type: calendar_item_type},
                           dataType: "json",
                           success: callback,
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -1849,7 +1969,9 @@ function HeliumPlannerAPI() {
                           async: async,
                           dataType: "json",
                           success: callback,
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 
@@ -1861,7 +1983,9 @@ function HeliumPlannerAPI() {
                           async: async,
                           dataType: "json",
                           success: callback,
-                          error: helium.api_error
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              helium.api_error(jqXHR, textStatus, err_msg, callback);
+                          }
                       });
     };
 }

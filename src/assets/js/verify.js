@@ -45,5 +45,7 @@ $.ajax({
     success: function (data) {
         callback(data)
     },
-    error: helium.api_error
+    error: function (jqXHR, textStatus, errorThrown) {
+        helium.api_error(jqXHR, textStatus, err_msg, callback);
+    }
 });
