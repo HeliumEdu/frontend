@@ -115,7 +115,7 @@ function HeliumPlannerAPI() {
                           success: function (data) {
                               localStorage.setItem("access_token", data.access);
                               localStorage.setItem("refresh_token", data.refresh);
-                              localStorage.setItem("access_token_exp", parseJwt(data.access).exp);
+                              localStorage.setItem("access_token_exp", helium.parse_jwt(data.access).exp);
 
                               callback(data);
                           },
@@ -2778,7 +2778,3 @@ if (localStorage.getItem("access_token") !== null) {
         });
     }, 60000);
 }
-
-module.exports = {
-  HeliumPlannerAPI,
-};

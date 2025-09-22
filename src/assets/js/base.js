@@ -12,57 +12,11 @@
  */
 
 // Initialize AJAX configuration
-function csrfSafeMethod(method) {
-    "use strict";
-
-    // These HTTP methods do not require CSRF protection
-    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
-}
-
-function parseJwt (token) {
-    var base64Url = token.split('.')[1];
-    var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-
-    return JSON.parse(jsonPayload);
-}
-
-function checkTokenExp () {
-    if (localStorage.getItem("refreshing_token") || false && REFRESHING_TOKEN) {
-        return;
-    }
-    localStorage.setItem("refreshing_token", true);
-
-    var refreshTime = new Date((localStorage.getItem("access_token_exp") - 90) * 1000);
-    if (new Date() > refreshTime) {
-        $.ajax({
-            type: "POST",
-            url: helium.API_URL + "/auth/token/refresh/",
-            data: JSON.stringify({refresh: localStorage.getItem("refresh_token")}),
-            dataType: "json",
-            success: function (data) {
-                localStorage.setItem("access_token", data.access);
-                localStorage.setItem("refresh_token", data.refresh);
-                localStorage.setItem("access_token_exp", parseJwt(data.access).exp);
-
-                localStorage.setItem("refreshing_token", false);
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                window.location.href = "/login?next=" + window.location.pathname;
-            }
-        });
-    } else {
-        localStorage.setItem("refreshing_token", false);
-    }
-}
-
 $.ajaxSetup({
     beforeSend: function (xhr, options) {
         "use strict";
 
-        if (!csrfSafeMethod(options.type)) {
+        if (!(/^(GET|HEAD|OPTIONS|TRACE)$/.test(options.type))) {
             // Send the token to same-origin, relative URLs only.
             // Send the token only if the method warrants CSRF protection
             // Using the CSRFToken value acquired earlier
@@ -70,7 +24,7 @@ $.ajaxSetup({
         }
         if (localStorage.getItem("access_token") != null && options.url != helium.API_URL + "/auth/token/refresh/") {
             xhr.setRequestHeader("Authorization", "Bearer " + localStorage.getItem("access_token"));
-            checkTokenExp();
+            helium.check_token_exp();
         }
     },
     contentType: "application/json; charset=UTF-8"
@@ -187,6 +141,53 @@ function Helium() {
     this.calendar = null;
     this.materials = null;
     this.grades = null;
+
+    /**
+     * Check if the access token currently in localStorage has expired and needs refreshed.
+     */
+    this.check_token_exp = function() {
+        if (localStorage.getItem("refreshing_token") || false) {
+            return;
+        }
+        localStorage.setItem("refreshing_token", true);
+
+        var refresh_time = new Date((localStorage.getItem("access_token_exp") - 90) * 1000);
+        if (new Date() > refresh_time) {
+            $.ajax({
+                type: "POST",
+                url: helium.API_URL + "/auth/token/refresh/",
+                data: JSON.stringify({refresh: localStorage.getItem("refresh_token")}),
+                dataType: "json",
+                success: function (data) {
+                    localStorage.setItem("access_token", data.access);
+                    localStorage.setItem("refresh_token", data.refresh);
+                    localStorage.setItem("access_token_exp", helium.parse_jwt(data.access).exp);
+
+                    localStorage.setItem("refreshing_token", false);
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    window.location.href = "/login?next=" + window.location.pathname;
+                }
+            });
+        } else {
+            localStorage.setItem("refreshing_token", false);
+        }
+    }
+
+    /**
+     * Parse the given JWT token to JSON.
+     *
+     * @param token The JWT token to parse
+     */
+    this.parse_jwt = function(token) {
+         var base64_url = token.split('.')[1];
+         var base64 = base64_url.replace(/-/g, '+').replace(/_/g, '/');
+         var json_payload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+             return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+         }).join(''));
+
+         return JSON.parse(json_payload);
+     }
 
     /**
      * From a given string (which may be a mathematical operation), convert the string to a percentage string.
@@ -495,7 +496,3 @@ $(window).on("load", function () {
         $("#login-nav").removeClass("hidden");
     }
 });
-
-module.exports = {
-  Helium,
-};

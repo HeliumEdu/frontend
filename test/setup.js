@@ -54,5 +54,18 @@ global.location = {
     protocol: 'http:'
 };
 
-const { Helium } = require('../src/assets/js/base.js');
-global.helium = new Helium();
+const fs = require('fs');
+const path = require('path')
+
+const scriptContent = fs.readFileSync(path.resolve(__dirname, '../src/assets/js/base.js'), 'utf8');
+dom = new JSDOM(`<!DOCTYPE html><html><body><div id="app"></div></body></html>`, {
+    runScripts: "dangerously",
+});
+document = dom.window.document;
+const scriptElement = document.createElement('script');
+scriptElement.textContent = scriptContent;
+document.body.appendChild(scriptElement);
+
+dom.window.addEventListener('DOMContentLoaded', () => {
+    global.helium = new Helium();
+});

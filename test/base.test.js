@@ -1,8 +1,6 @@
 const chai = require('chai');
 const expect = chai.expect;
 
-const { HeliumPlannerAPI } = require('../src/assets/js/api.js');
-
 describe('My Functionality', () => {
   it('should return true for a valid input', () => {
     // Replace with your actual function call
