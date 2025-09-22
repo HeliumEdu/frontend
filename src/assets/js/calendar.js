@@ -965,7 +965,7 @@ function HeliumCalendar() {
                 self.is_resizing_calendar_item = false;
             },
             eventRender: function (event, element) {
-                element.find(".fc-event-title").html("<strong>" + event.title_no_format + "</strong>, " + moment(event.start).format(helium.HE_TIME_STRING_CLIENT));
+                element.find(".fc-event-title").html("<strong>" + event.title + "</strong>, " + moment(event.start).format(helium.HE_TIME_STRING_CLIENT));
 
                 if (event.url === undefined) {
                     var start, end = null, course_string;
