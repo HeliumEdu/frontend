@@ -148,10 +148,10 @@ function Helium() {
      * Check if the access token currently in localStorage has expired and needs refreshed.
      */
     this.check_token_exp = function() {
-        if (localStorage.getItem("refreshing_token") || false) {
+        if (localStorage.getItem("refresh_token_lock") || false) {
             return;
         }
-        localStorage.setItem("refreshing_token", true);
+        localStorage.setItem("refresh_token_lock", true);
 
         var refresh_time = new Date((localStorage.getItem("access_token_exp") - 90) * 1000);
         if (new Date() > refresh_time) {
@@ -160,12 +160,13 @@ function Helium() {
                 url: helium.API_URL + "/auth/token/refresh/",
                 data: JSON.stringify({refresh: localStorage.getItem("refresh_token")}),
                 dataType: "json",
+                async: false,
                 success: function (data) {
                     localStorage.setItem("access_token", data.access);
                     localStorage.setItem("refresh_token", data.refresh);
                     localStorage.setItem("access_token_exp", helium.parse_jwt(data.access).exp);
 
-                    localStorage.setItem("refreshing_token", false);
+                    localStorage.setItem("refresh_token_lock", false);
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     helium.clear_access_token();
@@ -177,7 +178,7 @@ function Helium() {
                 }
             });
         } else {
-            localStorage.setItem("refreshing_token", false);
+            localStorage.setItem("refresh_token_lock", false);
         }
     }
 
@@ -453,6 +454,8 @@ function Helium() {
 
 // Initialize the Helium object
 var helium = new Helium();
+
+helium.check_token_exp();
 
 $.ajax({
     type: "GET",
