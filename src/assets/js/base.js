@@ -11,6 +11,8 @@
  * @version 1.11.10
  */
 
+localStorage.setItem("refresh_token_lock", "false");
+
 // Initialize AJAX configuration
 $.ajaxSetup({
     beforeSend: function (jqXHR, options) {
@@ -22,11 +24,13 @@ $.ajaxSetup({
             // Using the CSRFToken value acquired earlier
             jqXHR.setRequestHeader("X-CSRFToken", Cookies.get("csrftoken"));
         }
-        if (localStorage.getItem("access_token") !== null &&
+        var access_token = localStorage.getItem("access_token");
+        if (access_token !== null &&
               options.url != helium.API_URL + "/auth/token/refresh/" &&
               options.url != helium.API_URL + "/info/") {
-            jqXHR.setRequestHeader("Authorization", "Bearer " + localStorage.getItem("access_token"));
             helium.check_token_exp();
+
+            jqXHR.setRequestHeader("Authorization", "Bearer " + access_token);
         }
     },
     contentType: "application/json; charset=UTF-8"
@@ -148,17 +152,18 @@ function Helium() {
      * Check if the access token currently in localStorage has expired and needs refreshed.
      */
     this.check_token_exp = function() {
-        if (localStorage.getItem("refresh_token_lock") || false) {
+        var refresh_token = localStorage.getItem("refresh_token")
+        if (refresh_token === null || localStorage.getItem("refresh_token_lock") === "true") {
             return;
         }
-        localStorage.setItem("refresh_token_lock", true);
+        localStorage.setItem("refresh_token_lock", "true");
 
         var refresh_time = new Date((localStorage.getItem("access_token_exp") - 90) * 1000);
         if (new Date() > refresh_time) {
             $.ajax({
                 type: "POST",
                 url: helium.API_URL + "/auth/token/refresh/",
-                data: JSON.stringify({refresh: localStorage.getItem("refresh_token")}),
+                data: JSON.stringify({refresh: refresh_token}),
                 dataType: "json",
                 async: false,
                 success: function (data) {
@@ -166,7 +171,7 @@ function Helium() {
                     localStorage.setItem("refresh_token", data.refresh);
                     localStorage.setItem("access_token_exp", helium.parse_jwt(data.access).exp);
 
-                    localStorage.setItem("refresh_token_lock", false);
+                    localStorage.setItem("refresh_token_lock", "false");
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     helium.clear_access_token();
@@ -178,7 +183,7 @@ function Helium() {
                 }
             });
         } else {
-            localStorage.setItem("refresh_token_lock", false);
+            localStorage.setItem("refresh_token_lock", "false");
         }
     }
 

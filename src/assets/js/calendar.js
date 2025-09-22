@@ -752,7 +752,7 @@ function HeliumCalendar() {
                                     return false;
                                 }
 
-                                if (localStorage.getItem("filter_search_string") === null || calendar_item.title.toLowerCase().indexOf(localStorage.getItem("filter_search_string")) !== -1) {
+                                if (localStorage.getItem("filter_search_string") === null || calendar_item.title.toLowerCase().indexOf(localStorage.getItem("filter_search_string")) !== "-1") {
                                     events.push({
                                         id: "ext_" + external_calendar.id + "_" + calendar_item.id,
                                         color: external_calendar.color,
@@ -793,8 +793,8 @@ function HeliumCalendar() {
                     }
 
                     if (localStorage.getItem("filter_search_string") === null ||
-                        calendar_item.title.toLowerCase().indexOf(localStorage.getItem("filter_search_string")) !== -1 ||
-                        calendar_item.comments.toLowerCase().indexOf(localStorage.getItem("filter_search_string")) !== -1) {
+                        calendar_item.title.toLowerCase().indexOf(localStorage.getItem("filter_search_string")) !== "-1" ||
+                        calendar_item.comments.toLowerCase().indexOf(localStorage.getItem("filter_search_string")) !== "-1") {
                         events.push({
                             id: "event_" + calendar_item.id,
                             color: helium.USER_PREFS.settings.events_color,
@@ -836,22 +836,22 @@ function HeliumCalendar() {
                         return true;
                     }
 
-                    // Check if any filters are applied and failing, in whic case continue before adding the item
+                    // Check if any filters are applied and failing, in which case continue before adding the item
                     if (localStorage.getItem("filter_search_string") !== null &&
-                        calendar_item.title.toLowerCase().indexOf(localStorage.getItem("filter_search_string")) === -1 &&
-                        calendar_item.comments.toLowerCase().indexOf(localStorage.getItem("filter_search_string")) === -1 &&
-                        helium.calendar.categories[calendar_item.category].title.toLowerCase().indexOf(localStorage.getItem("filter_search_string")) === -1 &&
-                        course.title.toLowerCase().indexOf(localStorage.getItem("filter_search_string")) === -1) {
+                        calendar_item.title.toLowerCase().indexOf(localStorage.getItem("filter_search_string")) === "-1" &&
+                        calendar_item.comments.toLowerCase().indexOf(localStorage.getItem("filter_search_string")) === "-1" &&
+                        helium.calendar.categories[calendar_item.category].title.toLowerCase().indexOf(localStorage.getItem("filter_search_string")) === "-1" &&
+                        course.title.toLowerCase().indexOf(localStorage.getItem("filter_search_string")) === "-1") {
                         return true;
                     }
                     if (localStorage.getItem("filter_complete") && localStorage.getItem("filter_complete") != calendar_item.completed.toString()) {
                         return true;
                     }
-                    if ($.inArray(course.id.toString(), localStorage.getItem("filter_courses_" + helium.USER_PREFS.id).split(",")) === -1) {
+                    if ($.inArray(course.id.toString(), localStorage.getItem("filter_courses_" + helium.USER_PREFS.id).split(",")) === "-1") {
                         return true;
                     }
                     var slug = helium.calendar.categories[calendar_item.category].title.replace(" ", "").toLowerCase();
-                    if (localStorage.getItem("filter_categories") && $.inArray(slug, localStorage.getItem("filter_categories").split(",")) === -1) {
+                    if (localStorage.getItem("filter_categories") && $.inArray(slug, localStorage.getItem("filter_categories").split(",")) === "-1") {
                         return true;
                     }
                     if (localStorage.getItem("filter_overdue") !== null && (calendar_item.completed || moment().isBefore(moment(calendar_item.start)))) {
@@ -898,11 +898,11 @@ function HeliumCalendar() {
                         if (!helium.calendar.course_groups[helium.calendar.courses[calendar_item.owner_id].course_group].shown_on_calendar) {
                             return true;
                         }
-                        if ($.inArray(course.id.toString(), localStorage.getItem("filter_courses_" + helium.USER_PREFS.id).split(",")) === -1) {
+                        if ($.inArray(course.id.toString(), localStorage.getItem("filter_courses_" + helium.USER_PREFS.id).split(",")) === "-1") {
                             return true;
                         }
 
-                        if (localStorage.getItem("filter_search_string") === null || calendar_item.title.toLowerCase().indexOf(localStorage.getItem("filter_search_string")) !== -1) {
+                        if (localStorage.getItem("filter_search_string") === null || calendar_item.title.toLowerCase().indexOf(localStorage.getItem("filter_search_string")) !== "-1") {
                             events.push({
                                 id: "class_" + course.id + "_" + calendar_item.id,
                                 color: course.color,

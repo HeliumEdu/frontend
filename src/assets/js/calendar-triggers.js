@@ -372,7 +372,7 @@
     });
     $("#edit-categories").on("click", function () {
         localStorage.setItem("course_id", $("#homework-class").val());
-        localStorage.setItem("edit_categories", true);
+        localStorage.setItem("edit_categories", "true");
         window.location = "/planner/classes";
     });
 
