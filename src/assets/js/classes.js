@@ -1558,7 +1558,7 @@ $(document).ready(function () {
             /*******************************************
              * Check cookies for triggers passed in
              ******************************************/
-            if (localStorage.getItem("edit_categories")) {
+            if (localStorage.getItem("edit_categories") === "true") {
                 var course_id = localStorage.getItem("course_id");
 
                 helium.classes.edit_course_btn($("#edit-course-" + course_id), false);

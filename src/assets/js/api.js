@@ -130,14 +130,15 @@ function HeliumPlannerAPI() {
     };
 
     this.logout = function (callback, async) {
-        if (localStorage.getItem("refresh_token") === null) {
+        var refreshToken = localStorage.getItem("refresh_token");
+        if (refreshToken === null) {
             callback({});
         }
 
         return $.ajax({
                           type: "POST",
                           url: helium.API_URL + "/auth/token/blacklist/",
-                          data: JSON.stringify({refresh: localStorage.getItem("refresh_token")}),
+                          data: JSON.stringify({refresh: refreshToken}),
                           dataType: "json",
                           async: async,
                           success: function (data) {
