@@ -7,7 +7,7 @@
  * of a framework once the open source migration is completed.
  *
  * @license MIT
- * @version 1.11.2
+ * @version 1.11.8
  */
 
 /**
