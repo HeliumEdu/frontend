@@ -171,7 +171,7 @@ function Helium() {
                     helium.clear_access_token();
 
                     localStorage.setItem("status_type", "warning");
-                    localStorage.setItem("status_msg", "Please login to continue.");
+                    localStorage.setItem("status_msg", "Please login again to continue.");
 
                     window.location.href = "/login?next=" + window.location.pathname;
                 }
@@ -479,11 +479,6 @@ if (localStorage.getItem("access_token") !== null && !window.REDIRECT_ROUTE) {
         },
         error: function () {
             if (window.PRIVILEGED_ROUTE) {
-                helium.clear_access_token();
-
-                localStorage.setItem("status_type", "warning");
-                localStorage.setItem("status_msg", "Please login to continue.");
-
                 window.location.href = "/login?next=" + window.location.pathname;
             }
         }
