@@ -11,8 +11,6 @@
 
 window.PRIVILEGED_ROUTE = true;
 
-var AUTH_TOKEN = localStorage.getItem("access_token");
-
-if (AUTH_TOKEN === null) {
+if (localStorage.getItem("access_token") === null) {
     window.location.href = "/login?next=" + window.location.pathname;
 }

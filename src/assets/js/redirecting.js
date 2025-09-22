@@ -6,7 +6,7 @@
  *  project and interested in joining forces? Reach out and let us know! contact@alexlaird.com
  *
  * @license MIT
- * @version 1.11.1
+ * @version 1.11.0
  */
 
-window.location.replace(helium.INFO.support_url);
+window.REDIRECT_ROUTE = true;

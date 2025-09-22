@@ -17,7 +17,7 @@ run-devserver: install-dev
 	NODE_OPTIONS=--openssl-legacy-provider npm run start
 
 clean:
-	rm -rf node_modules build src/assets/js/*.min.js
+	rm -rf node_modules build src/assets/js/*.min.js src/assets/js/vendors/*.min.js
 
 build: install
 	NODE_OPTIONS=--openssl-legacy-provider npm run build

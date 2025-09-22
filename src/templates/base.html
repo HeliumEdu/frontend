@@ -35,7 +35,7 @@
 
     <!-- CDN dependencies -->
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.1.1/css/bootstrap.min.css" type="text/css"/>
-    <script type="application/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script type="application/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.12.1/jquery.min.js"></script>
 
     {% for css in page_stylesheet_pre %}
     <link rel="stylesheet" href="{{ PUBLIC_PATH }}/{{ css }}" type="text/css"/>
@@ -59,7 +59,7 @@
     <script type="application/javascript" src="{{ PUBLIC_PATH }}/{{ js }}"></script>
     {% endfor %}
 
-    {% for js in redirect_javascript %}
+    {% for js in page_header_javascript %}
     <script type="application/javascript" src="{{ PUBLIC_PATH }}/{{ js }}"></script>
     {% endfor %}
 
@@ -221,7 +221,7 @@
 </div>
 
 <!-- CDN dependencies -->
-<script type="application/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+<script type="application/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
 <script type="application/javascript"
         src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.1.1/js/bootstrap.min.js"></script>
 
@@ -230,6 +230,10 @@
 {% endfor %}
 
 {% for js in page_javascript %}
+<script type="application/javascript" src="{{ PUBLIC_PATH }}/{{ js }}"></script>
+{% endfor %}
+
+{% for js in redirect_javascript %}
 <script type="application/javascript" src="{{ PUBLIC_PATH }}/{{ js }}"></script>
 {% endfor %}
 

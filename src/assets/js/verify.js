@@ -9,23 +9,11 @@
  * @version 1.11.1
  */
 
-localStorage.removeItem("access_token");
+helium.clear_access_token();
 
 var username = url('?username');
 var code = url('?code');
 var welcome_email = url('?welcome-email');
-
-var SITE_HOST = location.host + "/";
-var SITE_URL = location.protocol + "//" + SITE_HOST;
-if (SITE_URL === "http://localhost:3000/" || SITE_URL === "http://127.0.0.1:3000/") {
-    API_URL = "http://localhost:8000";
-} else if (SITE_URL === "https://www.heliumedu.com/") {
-    // Prod
-    API_URL = "https://api.heliumedu.com";
-} else {
-    // Env-prefixed
-    API_URL = SITE_URL.replace("www", "api");
-}
 
 var callback = function (data) {
     if (data !== undefined && data.length === 1) {
@@ -45,7 +33,7 @@ var callback = function (data) {
     }
 };
 
-API_VERIFY_URL = API_URL + "/auth/user/verify/?username=" + username + "&code=" + code
+var API_VERIFY_URL = helium.API_URL + "/auth/user/verify/?username=" + username + "&code=" + code
 if (welcome_email !== undefined) {
     API_VERIFY_URL += "&welcome-email=" + welcome_email
 }
@@ -58,19 +46,6 @@ $.ajax({
         callback(data)
     },
     error: function (jqXHR, textStatus, errorThrown) {
-        var data = [{
-            'err_msg': "Oops, an unknown error has occurred. If the issue persists, <a href=\"https://github.com/HeliumEdu/platform/issues/new/choose\">open a ticket</a>.",
-            'jqXHR': jqXHR,
-            'textStatus': textStatus,
-            'errorThrown': errorThrown
-        }];
-        if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-            var name = Object.keys(jqXHR.responseJSON)[0];
-            if (jqXHR.responseJSON[name].length > 0) {
-                data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-            }
-        }
-
-        callback(data);
+        helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
     }
 });
