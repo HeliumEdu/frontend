@@ -164,49 +164,54 @@ module.exports = {
                     from: path.join("src", "templates", "base.html"),
                     to: "verify.html",
                     context: _.extend({}, defaultContext, {
-                        "redirect_javascript": [path.join('assets', 'js', `verify${min_suffix}.js`)]
+                        "page_header_javascript": [path.join('assets', 'js', `redirecting${min_suffix}.js`)],
+                        "page_javascript": [path.join('assets', 'js', `verify${min_suffix}.js`)]
                     })
                 },
                 {
                     from: path.join("src", "templates", "base.html"),
                     to: "support.html",
                     context: _.extend({}, defaultContext, {
-                        "redirect_javascript": [path.join('assets', 'js', `support${min_suffix}.js`)]
+                        "page_header_javascript": [path.join('assets', 'js', `redirecting${min_suffix}.js`)],
+                        "page_javascript": [path.join('assets', 'js', `support${min_suffix}.js`)]
                     })
                 },
                 {
                     from: path.join("src", "templates", "base.html"),
                     to: "docs.html",
                     context: _.extend({}, defaultContext, {
-                        "redirect_javascript": [path.join('assets', 'js', `docs${min_suffix}.js`)]
+                        "page_header_javascript": [path.join('assets', 'js', `redirecting${min_suffix}.js`)],
+                        "page_javascript": [path.join('assets', 'js', `docs${min_suffix}.js`)]
                     })
                 },
                 {
                     from: path.join("src", "templates", "base.html"),
                     to: "status.html",
                     context: _.extend({}, defaultContext, {
-                        "redirect_javascript": [path.join('assets', 'js', `status${min_suffix}.js`)]
+                        "page_javascript": [path.join('assets', 'js', `status${min_suffix}.js`)]
                     })
                 },
                 {
                     from: path.join("src", "templates", "base.html"),
                     to: "admin.html",
                     context: _.extend({}, defaultContext, {
-                        "redirect_javascript": [path.join('assets', 'js', `admin${min_suffix}.js`)]
+                        "page_header_javascript": [path.join('assets', 'js', `redirecting${min_suffix}.js`)],
+                        "page_javascript": [path.join('assets', 'js', `admin${min_suffix}.js`)]
                     })
                 },
                 {
                     from: path.join("src", "templates", "base.html"),
                     to: "contact.html",
                     context: _.extend({}, defaultContext, {
-                        "redirect_javascript": [path.join('assets', 'js', `support${min_suffix}.js`)]
+                        "page_header_javascript": [path.join('assets', 'js', `redirecting${min_suffix}.js`)],
+                        "page_javascript": [path.join('assets', 'js', `support${min_suffix}.js`)]
                     })
                 },
                 {
                     from: path.join("src", "templates", "settings.html"),
                     to: "settings.html",
                     context: _.extend({}, defaultContext, {
-                        "redirect_javascript": [path.join('assets', 'js', `authenticated${min_suffix}.js`)],
+                        "page_header_javascript": [path.join('assets', 'js', `authenticated${min_suffix}.js`)],
                         "page_stylesheet_pre": [
                             path.join('assets', 'css', 'vendors', `bootstrap-editable${min_suffix}.css`),
                             path.join('assets', 'css', 'vendors', `jquery.simplecolorpicker${min_suffix}.css`),
@@ -225,7 +230,7 @@ module.exports = {
                     from: path.join("src", "templates", "calendar.html"),
                     to: "planner/calendar.html",
                     context: _.extend({}, defaultContext, {
-                        "redirect_javascript": [path.join('assets', 'js', `authenticated${min_suffix}.js`)],
+                        "page_header_javascript": [path.join('assets', 'js', `authenticated${min_suffix}.js`)],
                         "page_stylesheet_pre": [
                             path.join('assets', 'css', 'vendors', `bootstrap-editable${min_suffix}.css`),
                             path.join('assets', 'css', 'vendors', `fullcalendar${min_suffix}.css`),
@@ -259,7 +264,7 @@ module.exports = {
                     from: path.join("src", "templates", "classes.html"),
                     to: "planner/classes.html",
                     context: _.extend({}, defaultContext, {
-                        "redirect_javascript": [path.join('assets', 'js', `authenticated${min_suffix}.js`)],
+                        "page_header_javascript": [path.join('assets', 'js', `authenticated${min_suffix}.js`)],
                         "page_stylesheet_pre": [
                             path.join('assets', 'css', 'vendors', `bootstrap-editable${min_suffix}.css`),
                             path.join('assets', 'css', 'vendors', `typeahead.js-bootstrap${min_suffix}.css`),
@@ -290,7 +295,7 @@ module.exports = {
                     from: path.join("src", "templates", "materials.html"),
                     to: "planner/materials.html",
                     context: _.extend({}, defaultContext, {
-                        "redirect_javascript": [path.join('assets', 'js', `authenticated${min_suffix}.js`)],
+                        "page_header_javascript": [path.join('assets', 'js', `authenticated${min_suffix}.js`)],
                         "page_stylesheet_pre": [path.join('assets', 'css', 'vendors', `bootstrap-editable${min_suffix}.css`)],
                         "page_stylesheet": [path.join('assets', 'css', `materials${min_suffix}.css`)],
                         "page_javascript": [
@@ -309,7 +314,7 @@ module.exports = {
                     from: path.join("src", "templates", "grades.html"),
                     to: "planner/grades.html",
                     context: _.extend({}, defaultContext, {
-                        "redirect_javascript": [path.join('assets', 'js', `authenticated${min_suffix}.js`)],
+                        "page_header_javascript": [path.join('assets', 'js', `authenticated${min_suffix}.js`)],
                         "page_stylesheet_pre": [path.join('assets', 'css', `grades${min_suffix}.css`)],
                         "page_javascript": [
                             path.join('assets', 'js', 'vendors', `bootbox${min_suffix}.js`),

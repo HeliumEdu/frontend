@@ -22,7 +22,9 @@ $.ajaxSetup({
             // Using the CSRFToken value acquired earlier
             xhr.setRequestHeader("X-CSRFToken", Cookies.get("csrftoken"));
         }
-        if (localStorage.getItem("access_token") != null && options.url != helium.API_URL + "/auth/token/refresh/") {
+        if (localStorage.getItem("access_token") !== null &&
+              options.url != helium.API_URL + "/auth/token/refresh/" &&
+              options.url != helium.API_URL + "/info/") {
             xhr.setRequestHeader("Authorization", "Bearer " + localStorage.getItem("access_token"));
             helium.check_token_exp();
         }
@@ -166,12 +168,23 @@ function Helium() {
                     localStorage.setItem("refreshing_token", false);
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
+                    helium.clear_access_token();
+
+                    localStorage.setItem("status_type", "warning");
+                    localStorage.setItem("status_msg", "Please login to continue.");
+
                     window.location.href = "/login?next=" + window.location.pathname;
                 }
             });
         } else {
             localStorage.setItem("refreshing_token", false);
         }
+    }
+
+    this.clear_access_token = function() {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("access_token_exp");
     }
 
     /**
@@ -451,7 +464,7 @@ $.ajax({
     }
 });
 
-if (localStorage.getItem("access_token") !== null) {
+if (localStorage.getItem("access_token") !== null && !window.REDIRECT_ROUTE) {
     $.ajax({
         type: "GET",
         url: helium.API_URL + "/auth/user/",
@@ -466,8 +479,10 @@ if (localStorage.getItem("access_token") !== null) {
         },
         error: function () {
             if (window.PRIVILEGED_ROUTE) {
-                localStorage.removeItem("access_token");
-                localStorage.removeItem("refresh");
+                helium.clear_access_token();
+
+                localStorage.setItem("status_type", "warning");
+                localStorage.setItem("status_msg", "Please login to continue.");
 
                 window.location.href = "/login?next=" + window.location.pathname;
             }

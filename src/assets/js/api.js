@@ -78,6 +78,22 @@ function HeliumPlannerAPI() {
         self.reminders_by_calendar_item = {};
     };
 
+    this.api_error = function (jqXHR, textStatus, errorThrown) {
+        var data = [{
+            'err_msg': self.GENERIC_ERROR_MESSAGE,
+            'jqXHR': jqXHR,
+            'textStatus': textStatus,
+            'errorThrown': errorThrown
+       }];
+       if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+           var name = Object.keys(jqXHR.responseJSON)[0];
+           if (jqXHR.responseJSON[name].length > 0) {
+               data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+           }
+       }
+       callback(data);
+    }
+
     this.register = function (callback, username, email, password, time_zone) {
         return $.ajax({
                           type: "POST",
@@ -88,21 +104,7 @@ function HeliumPlannerAPI() {
                           success: function (data) {
                               callback(data)
                           },
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -119,51 +121,27 @@ function HeliumPlannerAPI() {
 
                               callback(data);
                           },
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
-    this.logout = function (callback) {
+    this.logout = function (callback, async) {
+        if (localStorage.getItem("refresh_token") === null) {
+            callback({});
+        }
+
         return $.ajax({
                           type: "POST",
                           url: helium.API_URL + "/auth/token/blacklist/",
                           data: JSON.stringify({refresh: localStorage.getItem("refresh_token")}),
                           dataType: "json",
+                          async: async,
                           success: function (data) {
-                              localStorage.removeItem("access_token");
-                              localStorage.removeItem("refresh_token");
+                              helium.clear_access_token();
 
                               callback(data);
                           },
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -175,21 +153,7 @@ function HeliumPlannerAPI() {
                           success: function (data) {
                               callback(data)
                           },
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -211,21 +175,7 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -245,21 +195,7 @@ function HeliumPlannerAPI() {
                           async: async,
                           dataType: "json",
                           success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -289,23 +225,7 @@ function HeliumPlannerAPI() {
                                      self.course_groups_by_user_id[helium.USER_PREFS.id] = data;
                                      callback(self.course_groups_by_user_id[helium.USER_PREFS.id]);
                                  },
-                                 error: function (jqXHR, textStatus, errorThrown) {
-                                     var data = [{
-                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                         'jqXHR': jqXHR,
-                                         'textStatus': textStatus,
-                                         'errorThrown': errorThrown
-                                     }];
-                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
-                                                                                 > 0) {
-                                         var name = Object.keys(jqXHR.responseJSON)[0];
-                                         if (jqXHR.responseJSON[name].length > 0) {
-                                             data[0]['err_msg'] =
-                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                         }
-                                     }
-                                     callback(data);
-                                 }
+                                 error: helium.api_error
                              });
         }
 
@@ -338,23 +258,7 @@ function HeliumPlannerAPI() {
                                      self.course_group[id] = data;
                                      callback(self.course_group[id]);
                                  },
-                                 error: function (jqXHR, textStatus, errorThrown) {
-                                     var data = [{
-                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                         'jqXHR': jqXHR,
-                                         'textStatus': textStatus,
-                                         'errorThrown': errorThrown
-                                     }];
-                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
-                                                                                 > 0) {
-                                         var name = Object.keys(jqXHR.responseJSON)[0];
-                                         if (jqXHR.responseJSON[name].length > 0) {
-                                             data[0]['err_msg'] =
-                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                         }
-                                     }
-                                     callback(data);
-                                 }
+                                 error: helium.api_error
                              });
         }
 
@@ -378,21 +282,7 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -415,21 +305,7 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -451,21 +327,7 @@ function HeliumPlannerAPI() {
                           async: async,
                           dataType: "json",
                           success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -496,23 +358,7 @@ function HeliumPlannerAPI() {
                                      self.courses_by_course_group_id[id] = data;
                                      callback(self.courses_by_course_group_id[id]);
                                  },
-                                 error: function (jqXHR, textStatus, errorThrown) {
-                                     var data = [{
-                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                         'jqXHR': jqXHR,
-                                         'textStatus': textStatus,
-                                         'errorThrown': errorThrown
-                                     }];
-                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
-                                                                                 > 0) {
-                                         var name = Object.keys(jqXHR.responseJSON)[0];
-                                         if (jqXHR.responseJSON[name].length > 0) {
-                                             data[0]['err_msg'] =
-                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                         }
-                                     }
-                                     callback(data);
-                                 }
+                                 error: helium.api_error
                              });
         }
 
@@ -545,23 +391,7 @@ function HeliumPlannerAPI() {
                                      self.courses_by_user_id[helium.USER_PREFS.id] = data;
                                      callback(self.courses_by_user_id[helium.USER_PREFS.id]);
                                  },
-                                 error: function (jqXHR, textStatus, errorThrown) {
-                                     var data = [{
-                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                         'jqXHR': jqXHR,
-                                         'textStatus': textStatus,
-                                         'errorThrown': errorThrown
-                                     }];
-                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
-                                                                                 > 0) {
-                                         var name = Object.keys(jqXHR.responseJSON)[0];
-                                         if (jqXHR.responseJSON[name].length > 0) {
-                                             data[0]['err_msg'] =
-                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                         }
-                                     }
-                                     callback(data);
-                                 }
+                                 error: helium.api_error
                              });
         }
 
@@ -594,23 +424,7 @@ function HeliumPlannerAPI() {
                                      self.courses_by_user_id[helium.USER_PREFS.id] = data;
                                      callback(self.courses_by_user_id[helium.USER_PREFS.id]);
                                  },
-                                 error: function (jqXHR, textStatus, errorThrown) {
-                                     var data = [{
-                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                         'jqXHR': jqXHR,
-                                         'textStatus': textStatus,
-                                         'errorThrown': errorThrown
-                                     }];
-                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
-                                                                                 > 0) {
-                                         var name = Object.keys(jqXHR.responseJSON)[0];
-                                         if (jqXHR.responseJSON[name].length > 0) {
-                                             data[0]['err_msg'] =
-                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                         }
-                                     }
-                                     callback(data);
-                                 }
+                                 error: helium.api_error
                              });
         }
 
@@ -646,23 +460,7 @@ function HeliumPlannerAPI() {
                                      self.class_schedules[course_id] = data;
                                      callback(self.class_schedules[course_id]);
                                  },
-                                 error: function (jqXHR, textStatus, errorThrown) {
-                                     var data = [{
-                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                         'jqXHR': jqXHR,
-                                         'textStatus': textStatus,
-                                         'errorThrown': errorThrown
-                                     }];
-                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
-                                                                                 > 0) {
-                                         var name = Object.keys(jqXHR.responseJSON)[0];
-                                         if (jqXHR.responseJSON[name].length > 0) {
-                                             data[0]['err_msg'] =
-                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                         }
-                                     }
-                                     callback(data);
-                                 }
+                                 error: helium.api_error
                              });
         }
 
@@ -697,23 +495,7 @@ function HeliumPlannerAPI() {
                                      self.course[id] = data;
                                      callback(self.course[id]);
                                  },
-                                 error: function (jqXHR, textStatus, errorThrown) {
-                                     var data = [{
-                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                         'jqXHR': jqXHR,
-                                         'textStatus': textStatus,
-                                         'errorThrown': errorThrown
-                                     }];
-                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
-                                                                                 > 0) {
-                                         var name = Object.keys(jqXHR.responseJSON)[0];
-                                         if (jqXHR.responseJSON[name].length > 0) {
-                                             data[0]['err_msg'] =
-                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                         }
-                                     }
-                                     callback(data);
-                                 }
+                                 error: helium.api_error
                              });
         }
 
@@ -742,21 +524,7 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -784,19 +552,7 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0
-                                  && jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]].length > 0) {
-                                  data['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -822,21 +578,7 @@ function HeliumPlannerAPI() {
                           async: async,
                           dataType: "json",
                           success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -859,21 +601,7 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -935,21 +663,7 @@ function HeliumPlannerAPI() {
                           async: async,
                           dataType: "json",
                           success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -979,23 +693,7 @@ function HeliumPlannerAPI() {
                                      self.material_groups_by_user_id[helium.USER_PREFS.id] = data;
                                      callback(self.material_groups_by_user_id[helium.USER_PREFS.id]);
                                  },
-                                 error: function (jqXHR, textStatus, errorThrown) {
-                                     var data = [{
-                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                         'jqXHR': jqXHR,
-                                         'textStatus': textStatus,
-                                         'errorThrown': errorThrown
-                                     }];
-                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
-                                                                                 > 0) {
-                                         var name = Object.keys(jqXHR.responseJSON)[0];
-                                         if (jqXHR.responseJSON[name].length > 0) {
-                                             data[0]['err_msg'] =
-                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                         }
-                                     }
-                                     callback(data);
-                                 }
+                                 error: helium.api_error
                              });
         }
 
@@ -1028,23 +726,7 @@ function HeliumPlannerAPI() {
                                      self.material_group[id] = data;
                                      callback(self.material_group[id]);
                                  },
-                                 error: function (jqXHR, textStatus, errorThrown) {
-                                     var data = [{
-                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                         'jqXHR': jqXHR,
-                                         'textStatus': textStatus,
-                                         'errorThrown': errorThrown
-                                     }];
-                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
-                                                                                 > 0) {
-                                         var name = Object.keys(jqXHR.responseJSON)[0];
-                                         if (jqXHR.responseJSON[name].length > 0) {
-                                             data[0]['err_msg'] =
-                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                         }
-                                     }
-                                     callback(data);
-                                 }
+                                 error: helium.api_error
                              });
         }
 
@@ -1068,21 +750,7 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -1106,21 +774,7 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -1141,21 +795,7 @@ function HeliumPlannerAPI() {
                           async: async,
                           dataType: "json",
                           success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -1185,23 +825,7 @@ function HeliumPlannerAPI() {
                                      self.materials_by_course_id[id] = data;
                                      callback(self.materials_by_course_id[id]);
                                  },
-                                 error: function (jqXHR, textStatus, errorThrown) {
-                                     var data = [{
-                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                         'jqXHR': jqXHR,
-                                         'textStatus': textStatus,
-                                         'errorThrown': errorThrown
-                                     }];
-                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
-                                                                                 > 0) {
-                                         var name = Object.keys(jqXHR.responseJSON)[0];
-                                         if (jqXHR.responseJSON[name].length > 0) {
-                                             data[0]['err_msg'] =
-                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                         }
-                                     }
-                                     callback(data);
-                                 }
+                                 error: helium.api_error
                              });
         }
 
@@ -1236,23 +860,7 @@ function HeliumPlannerAPI() {
                                      self.material[id] = data;
                                      callback(self.material[id]);
                                  },
-                                 error: function (jqXHR, textStatus, errorThrown) {
-                                     var data = [{
-                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                         'jqXHR': jqXHR,
-                                         'textStatus': textStatus,
-                                         'errorThrown': errorThrown
-                                     }];
-                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
-                                                                                 > 0) {
-                                         var name = Object.keys(jqXHR.responseJSON)[0];
-                                         if (jqXHR.responseJSON[name].length > 0) {
-                                             data[0]['err_msg'] =
-                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                         }
-                                     }
-                                     callback(data);
-                                 }
+                                 error: helium.api_error
                              });
         }
 
@@ -1286,23 +894,7 @@ function HeliumPlannerAPI() {
                                      self.materials_by_material_group_id[id] = data;
                                      callback(self.materials_by_material_group_id[id]);
                                  },
-                                 error: function (jqXHR, textStatus, errorThrown) {
-                                     var data = [{
-                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                         'jqXHR': jqXHR,
-                                         'textStatus': textStatus,
-                                         'errorThrown': errorThrown
-                                     }];
-                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
-                                                                                 > 0) {
-                                         var name = Object.keys(jqXHR.responseJSON)[0];
-                                         if (jqXHR.responseJSON[name].length > 0) {
-                                             data[0]['err_msg'] =
-                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                         }
-                                     }
-                                     callback(data);
-                                 }
+                                 error: helium.api_error
                              });
         }
 
@@ -1327,21 +919,7 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -1366,21 +944,7 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -1403,21 +967,7 @@ function HeliumPlannerAPI() {
                           async: async,
                           dataType: "json",
                           success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -1449,23 +999,7 @@ function HeliumPlannerAPI() {
                                      });
                                      callback(self.category_names);
                                  },
-                                 error: function (jqXHR, textStatus, errorThrown) {
-                                     var data = [{
-                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                         'jqXHR': jqXHR,
-                                         'textStatus': textStatus,
-                                         'errorThrown': errorThrown
-                                     }];
-                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
-                                                                                 > 0) {
-                                         var name = Object.keys(jqXHR.responseJSON)[0];
-                                         if (jqXHR.responseJSON[name].length > 0) {
-                                             data[0]['err_msg'] =
-                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                         }
-                                     }
-                                     callback(data);
-                                 }
+                                 error: helium.api_error
                              });
         }
 
@@ -1501,23 +1035,7 @@ function HeliumPlannerAPI() {
                                      self.categories_by_course_id[id] = data;
                                      callback(self.categories_by_course_id[id]);
                                  },
-                                 error: function (jqXHR, textStatus, errorThrown) {
-                                     var data = [{
-                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                         'jqXHR': jqXHR,
-                                         'textStatus': textStatus,
-                                         'errorThrown': errorThrown
-                                     }];
-                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
-                                                                                 > 0) {
-                                         var name = Object.keys(jqXHR.responseJSON)[0];
-                                         if (jqXHR.responseJSON[name].length > 0) {
-                                             data[0]['err_msg'] =
-                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                         }
-                                     }
-                                     callback(data);
-                                 }
+                                 error: helium.api_error
                              });
         }
 
@@ -1553,23 +1071,7 @@ function HeliumPlannerAPI() {
                                      self.category[id] = data;
                                      callback(self.category[id]);
                                  },
-                                 error: function (jqXHR, textStatus, errorThrown) {
-                                     var data = [{
-                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                         'jqXHR': jqXHR,
-                                         'textStatus': textStatus,
-                                         'errorThrown': errorThrown
-                                     }];
-                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
-                                                                                 > 0) {
-                                         var name = Object.keys(jqXHR.responseJSON)[0];
-                                         if (jqXHR.responseJSON[name].length > 0) {
-                                             data[0]['err_msg'] =
-                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                         }
-                                     }
-                                     callback(data);
-                                 }
+                                 error: helium.api_error
                              });
         }
 
@@ -1597,21 +1099,7 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -1638,21 +1126,7 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -1677,21 +1151,7 @@ function HeliumPlannerAPI() {
                           async: async,
                           dataType: "json",
                           success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -1722,23 +1182,7 @@ function HeliumPlannerAPI() {
                                      self.categories_by_course_id[id] = data;
                                      callback(self.categories_by_course_id[id]);
                                  },
-                                 error: function (jqXHR, textStatus, errorThrown) {
-                                     var data = [{
-                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                         'jqXHR': jqXHR,
-                                         'textStatus': textStatus,
-                                         'errorThrown': errorThrown
-                                     }];
-                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
-                                                                                 > 0) {
-                                         var name = Object.keys(jqXHR.responseJSON)[0];
-                                         if (jqXHR.responseJSON[name].length > 0) {
-                                             data[0]['err_msg'] =
-                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                         }
-                                     }
-                                     callback(data);
-                                 }
+                                 error: helium.api_error
                              });
         }
 
@@ -1763,21 +1207,7 @@ function HeliumPlannerAPI() {
                           async: async,
                           dataType: "json",
                           success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -1808,23 +1238,7 @@ function HeliumPlannerAPI() {
                                      self.homework_by_user_id[helium.USER_PREFS.id] = data;
                                      callback(self.homework_by_user_id[helium.USER_PREFS.id]);
                                  },
-                                 error: function (jqXHR, textStatus, errorThrown) {
-                                     var data = [{
-                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                         'jqXHR': jqXHR,
-                                         'textStatus': textStatus,
-                                         'errorThrown': errorThrown
-                                     }];
-                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
-                                                                                 > 0) {
-                                         var name = Object.keys(jqXHR.responseJSON)[0];
-                                         if (jqXHR.responseJSON[name].length > 0) {
-                                             data[0]['err_msg'] =
-                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                         }
-                                     }
-                                     callback(data);
-                                 }
+                                 error: helium.api_error
                              });
         }
 
@@ -1859,23 +1273,7 @@ function HeliumPlannerAPI() {
                                      self.homework_by_course_id[id] = data;
                                      callback(self.homework_by_course_id[id]);
                                  },
-                                 error: function (jqXHR, textStatus, errorThrown) {
-                                     var data = [{
-                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                         'jqXHR': jqXHR,
-                                         'textStatus': textStatus,
-                                         'errorThrown': errorThrown
-                                     }];
-                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
-                                                                                 > 0) {
-                                         var name = Object.keys(jqXHR.responseJSON)[0];
-                                         if (jqXHR.responseJSON[name].length > 0) {
-                                             data[0]['err_msg'] =
-                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                         }
-                                     }
-                                     callback(data);
-                                 }
+                                 error: helium.api_error
                              });
         }
 
@@ -1911,23 +1309,7 @@ function HeliumPlannerAPI() {
                                      self.homework[id] = data;
                                      callback(self.homework[id]);
                                  },
-                                 error: function (jqXHR, textStatus, errorThrown) {
-                                     var data = [{
-                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                         'jqXHR': jqXHR,
-                                         'textStatus': textStatus,
-                                         'errorThrown': errorThrown
-                                     }];
-                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
-                                                                                 > 0) {
-                                         var name = Object.keys(jqXHR.responseJSON)[0];
-                                         if (jqXHR.responseJSON[name].length > 0) {
-                                             data[0]['err_msg'] =
-                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                         }
-                                     }
-                                     callback(data);
-                                 }
+                                 error: helium.api_error
                              });
         }
 
@@ -1975,21 +1357,7 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -2019,21 +1387,7 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -2059,21 +1413,7 @@ function HeliumPlannerAPI() {
                           async: async,
                           dataType: "json",
                           success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -2103,23 +1443,7 @@ function HeliumPlannerAPI() {
                                      self.events_by_user_id[helium.USER_PREFS.id] = data;
                                      callback(self.events_by_user_id[helium.USER_PREFS.id]);
                                  },
-                                 error: function (jqXHR, textStatus, errorThrown) {
-                                     var data = [{
-                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                         'jqXHR': jqXHR,
-                                         'textStatus': textStatus,
-                                         'errorThrown': errorThrown
-                                     }];
-                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
-                                                                                 > 0) {
-                                         var name = Object.keys(jqXHR.responseJSON)[0];
-                                         if (jqXHR.responseJSON[name].length > 0) {
-                                             data[0]['err_msg'] =
-                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                         }
-                                     }
-                                     callback(data);
-                                 }
+                                 error: helium.api_error
                              });
         }
 
@@ -2156,23 +1480,7 @@ function HeliumPlannerAPI() {
                                      self.event[id] = data;
                                      callback(self.event[id]);
                                  },
-                                 error: function (jqXHR, textStatus, errorThrown) {
-                                     var data = [{
-                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                         'jqXHR': jqXHR,
-                                         'textStatus': textStatus,
-                                         'errorThrown': errorThrown
-                                     }];
-                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
-                                                                                 > 0) {
-                                         var name = Object.keys(jqXHR.responseJSON)[0];
-                                         if (jqXHR.responseJSON[name].length > 0) {
-                                             data[0]['err_msg'] =
-                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                         }
-                                     }
-                                     callback(data);
-                                 }
+                                 error: helium.api_error
                              });
         }
 
@@ -2196,21 +1504,7 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -2241,21 +1535,7 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -2282,21 +1562,7 @@ function HeliumPlannerAPI() {
                           async: async,
                           dataType: "json",
                           success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -2326,23 +1592,7 @@ function HeliumPlannerAPI() {
                                      self.external_calendars_by_user_id[helium.USER_PREFS.id] = data;
                                      callback(self.external_calendars_by_user_id[helium.USER_PREFS.id]);
                                  },
-                                 error: function (jqXHR, textStatus, errorThrown) {
-                                     var data = [{
-                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                         'jqXHR': jqXHR,
-                                         'textStatus': textStatus,
-                                         'errorThrown': errorThrown
-                                     }];
-                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
-                                                                                 > 0) {
-                                         var name = Object.keys(jqXHR.responseJSON)[0];
-                                         if (jqXHR.responseJSON[name].length > 0) {
-                                             data[0]['err_msg'] =
-                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                         }
-                                     }
-                                     callback(data);
-                                 }
+                                 error: helium.api_error
                              });
         }
 
@@ -2378,23 +1628,7 @@ function HeliumPlannerAPI() {
                                      self.external_calendar_feed[id] = data;
                                      callback(self.external_calendar_feed[id]);
                                  },
-                                 error: function (jqXHR, textStatus, errorThrown) {
-                                     var data = [{
-                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                         'jqXHR': jqXHR,
-                                         'textStatus': textStatus,
-                                         'errorThrown': errorThrown
-                                     }];
-                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
-                                                                                 > 0) {
-                                         var name = Object.keys(jqXHR.responseJSON)[0];
-                                         if (jqXHR.responseJSON[name].length > 0) {
-                                             data[0]['err_msg'] =
-                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                         }
-                                     }
-                                     callback(data);
-                                 }
+                                 error: helium.api_error
                              });
         }
 
@@ -2427,23 +1661,7 @@ function HeliumPlannerAPI() {
                                      self.reminders_by_user_id[helium.USER_PREFS.id] = data;
                                      callback(self.reminders_by_user_id[helium.USER_PREFS.id]);
                                  },
-                                 error: function (jqXHR, textStatus, errorThrown) {
-                                     var data = [{
-                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                         'jqXHR': jqXHR,
-                                         'textStatus': textStatus,
-                                         'errorThrown': errorThrown
-                                     }];
-                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
-                                                                                 > 0) {
-                                         var name = Object.keys(jqXHR.responseJSON)[0];
-                                         if (jqXHR.responseJSON[name].length > 0) {
-                                             data[0]['err_msg'] =
-                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                         }
-                                     }
-                                     callback(data);
-                                 }
+                                 error: helium.api_error
                              });
         }
 
@@ -2481,23 +1699,7 @@ function HeliumPlannerAPI() {
                                      self.reminders_by_calendar_item[id] = data;
                                      callback(self.reminders_by_calendar_item[id]);
                                  },
-                                 error: function (jqXHR, textStatus, errorThrown) {
-                                     var data = [{
-                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                         'jqXHR': jqXHR,
-                                         'textStatus': textStatus,
-                                         'errorThrown': errorThrown
-                                     }];
-                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
-                                                                                 > 0) {
-                                         var name = Object.keys(jqXHR.responseJSON)[0];
-                                         if (jqXHR.responseJSON[name].length > 0) {
-                                             data[0]['err_msg'] =
-                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                         }
-                                     }
-                                     callback(data);
-                                 }
+                                 error: helium.api_error
                              });
         }
 
@@ -2521,21 +1723,7 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -2565,23 +1753,7 @@ function HeliumPlannerAPI() {
                                      self.reminder[id] = data;
                                      callback(self.reminder[id]);
                                  },
-                                 error: function (jqXHR, textStatus, errorThrown) {
-                                     var data = [{
-                                         'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                         'jqXHR': jqXHR,
-                                         'textStatus': textStatus,
-                                         'errorThrown': errorThrown
-                                     }];
-                                     if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length
-                                                                                 > 0) {
-                                         var name = Object.keys(jqXHR.responseJSON)[0];
-                                         if (jqXHR.responseJSON[name].length > 0) {
-                                             data[0]['err_msg'] =
-                                                 jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                         }
-                                     }
-                                     callback(data);
-                                 }
+                                 error: helium.api_error
                              });
         }
 
@@ -2612,21 +1784,7 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -2652,21 +1810,7 @@ function HeliumPlannerAPI() {
                           data: JSON.stringify(data),
                           dataType: "json",
                           success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -2693,21 +1837,7 @@ function HeliumPlannerAPI() {
                           data: {calendar_item_type: calendar_item_type},
                           dataType: "json",
                           success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -2719,21 +1849,7 @@ function HeliumPlannerAPI() {
                           async: async,
                           dataType: "json",
                           success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 
@@ -2745,21 +1861,7 @@ function HeliumPlannerAPI() {
                           async: async,
                           dataType: "json",
                           success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              var data = [{
-                                  'err_msg': self.GENERIC_ERROR_MESSAGE,
-                                  'jqXHR': jqXHR,
-                                  'textStatus': textStatus,
-                                  'errorThrown': errorThrown
-                              }];
-                              if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-                                  var name = Object.keys(jqXHR.responseJSON)[0];
-                                  if (jqXHR.responseJSON[name].length > 0) {
-                                      data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-                                  }
-                              }
-                              callback(data);
-                          }
+                          error: helium.api_error
                       });
     };
 }
@@ -2767,14 +1869,16 @@ function HeliumPlannerAPI() {
 // Initialize HeliumPlannerAPI and give a reference to the Helium object
 helium.planner_api = new HeliumPlannerAPI();
 
-if (localStorage.getItem("access_token") !== null) {
-    helium.planner_api.get_reminders(function (data) {
-        helium.process_reminders(data);
-    });
-
-    window.setInterval(function () {
+if (!window.REDIRECT_ROUTE) {
+    if (localStorage.getItem("access_token") !== null) {
         helium.planner_api.get_reminders(function (data) {
             helium.process_reminders(data);
         });
-    }, 60000);
+
+        window.setInterval(function () {
+            helium.planner_api.get_reminders(function (data) {
+                helium.process_reminders(data);
+            });
+        }, 60000);
+    }
 }

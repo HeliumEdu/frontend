@@ -59,7 +59,7 @@
     <script type="application/javascript" src="{{ PUBLIC_PATH }}/{{ js }}"></script>
     {% endfor %}
 
-    {% for js in redirect_javascript %}
+    {% for js in page_header_javascript %}
     <script type="application/javascript" src="{{ PUBLIC_PATH }}/{{ js }}"></script>
     {% endfor %}
 
@@ -230,6 +230,10 @@
 {% endfor %}
 
 {% for js in page_javascript %}
+<script type="application/javascript" src="{{ PUBLIC_PATH }}/{{ js }}"></script>
+{% endfor %}
+
+{% for js in redirect_javascript %}
 <script type="application/javascript" src="{{ PUBLIC_PATH }}/{{ js }}"></script>
 {% endfor %}
 

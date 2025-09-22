@@ -9,6 +9,4 @@
  * @version 1.11.0
  */
 
-helium.planner_api.logout(function (data) {
-    window.location.replace("/login");
-}, false);
+window.REDIRECT_ROUTE = true;

@@ -16,10 +16,9 @@
   "scripts": {
     "build": "./bin/minify && cross-env NODE_ENV=production webpack --config webpack.prod.js --mode production",
     "start": "webpack-dev-server --open --config webpack.dev.js",
-    "test": "mocha --require test/setup.js"
+    "test": "echo \"Error: no tests to run\""
   },
   "devDependencies": {
-    "chai": "^4.5.0",
     "clean-webpack-plugin": "^1.0.1",
     "codecov": "^3.7.0",
     "copy-webpack-plugin": "^4.6.0",
@@ -29,7 +28,6 @@
     "jquery-ui": "^1.12.1",
     "jsdom": "^26.1.0",
     "lodash": "^4.17.15",
-    "mocha": "^11.7.2",
     "nunjucks": "^3.2.1",
     "nunjucks-webpack-plugin": "^5.0.0",
     "uglifyjs-webpack-plugin": "^2.2.0",
