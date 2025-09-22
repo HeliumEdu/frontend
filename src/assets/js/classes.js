@@ -1591,7 +1591,7 @@ $(document).ready(function () {
                 helium.classes.dropzone = this;
 
                 this.on("sendingmultiple", function (na, xhr, form_data) {
-                    xhr.setRequestHeader("Authorization", "Token " + localStorage.getItem("access_token"));
+                    xhr.setRequestHeader("Authorization", "Bearer " + localStorage.getItem("access_token"));
                     form_data.append("course", helium.classes.edit_id);
                 });
                 this.on("successmultiple", function (files) {

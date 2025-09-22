@@ -46,6 +46,6 @@ $.ajax({
         callback(data)
     },
     error: function (jqXHR, textStatus, errorThrown) {
-        helium.api_error(jqXHR, textStatus, err_msg, callback);
+        helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
     }
 });

@@ -2033,7 +2033,7 @@ $(document).ready(function () {
                     helium.calendar.dropzone = this;
 
                     this.on("sendingmultiple", function (na, xhr, form_data) {
-                        xhr.setRequestHeader("Authorization", "Token " + localStorage.getItem("access_token"));
+                        xhr.setRequestHeader("Authorization", "Bearer " + localStorage.getItem("access_token"));
                         if (helium.calendar.current_calendar_item.calendar_item_type === 0) {
                             form_data.append("event", helium.calendar.current_calendar_item.id.substr(6));
                         } else {

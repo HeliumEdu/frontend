@@ -13,19 +13,19 @@
 
 // Initialize AJAX configuration
 $.ajaxSetup({
-    beforeSend: function (xhr, options) {
+    beforeSend: function (jqXHR, options) {
         "use strict";
 
         if (!(/^(GET|HEAD|OPTIONS|TRACE)$/.test(options.type))) {
             // Send the token to same-origin, relative URLs only.
             // Send the token only if the method warrants CSRF protection
             // Using the CSRFToken value acquired earlier
-            xhr.setRequestHeader("X-CSRFToken", Cookies.get("csrftoken"));
+            jqXHR.setRequestHeader("X-CSRFToken", Cookies.get("csrftoken"));
         }
         if (localStorage.getItem("access_token") !== null &&
               options.url != helium.API_URL + "/auth/token/refresh/" &&
               options.url != helium.API_URL + "/info/") {
-            xhr.setRequestHeader("Authorization", "Bearer " + localStorage.getItem("access_token"));
+            jqXHR.setRequestHeader("Authorization", "Bearer " + localStorage.getItem("access_token"));
             helium.check_token_exp();
         }
     },
