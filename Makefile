@@ -14,7 +14,7 @@ install-dev: install
 run-devserver: install-dev
 	# This will start a local dev server that runs the unminified frontend, outside of Docker. This can be useful
 	# during active development, so images don't need to be rebuilt to validate each change.
-	NODE_OPTIONS=--openssl-legacy-provider npm run start
+	NODE_OPTIONS=--openssl-legacy-provider npm start
 
 clean:
 	rm -rf node_modules build src/assets/js/*.min.js src/assets/js/vendors/*.min.js
