@@ -209,6 +209,14 @@ module.exports = {
                 },
                 {
                     from: path.join("src", "templates", "base.html"),
+                    to: "planner/index.html",
+                    context: _.extend({}, defaultContext, {
+                        "page_header_javascript": [path.join('assets', 'js', `redirecting${min_suffix}.js`)],
+                        "page_javascript": [path.join('assets', 'js', `planner${min_suffix}.js`)]
+                    })
+                },
+                {
+                    from: path.join("src", "templates", "base.html"),
                     to: "planner.html",
                     context: _.extend({}, defaultContext, {
                         "page_header_javascript": [path.join('assets', 'js', `redirecting${min_suffix}.js`)],
