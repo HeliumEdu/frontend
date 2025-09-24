@@ -24,7 +24,7 @@ JS_VENDOR_FILES=${DIR}/../src/assets/js/vendors/*.js
 
 for path in ${JS_FILES} ${JS_VENDOR_FILES}
 do
-    if [[ "${path}" == *min.js ]]; then
+    if [[ "${path}" == *.min.js ]]; then
         continue;
     fi
 
