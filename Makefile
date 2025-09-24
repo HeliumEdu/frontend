@@ -7,9 +7,10 @@ TAG_VERSION ?= latest
 PLATFORM ?= arm64
 
 install:
-	NODE_OPTIONS=--openssl-legacy-provider npm install
+	NODE_OPTIONS=--openssl-legacy-provider NODE_ENV=production npm install
 
-install-dev: install
+install-dev:
+	NODE_OPTIONS=--openssl-legacy-provider npm install
 
 run-devserver: install-dev
 	# This will start a local dev server that runs the unminified frontend, outside of Docker. This can be useful
