@@ -24,7 +24,7 @@ module.exports = merge(common, {
                     {from: /^\/privacy/, to: '/privacy.html'},
                     {from: /^\/terms/, to: '/terms.html'},
                     {from: /^\/settings/, to: '/settings.html'},
-                    {from: /^\/planner$/, to: '/planner.html'},
+                    {from: /^\/planner\/$/, to: '/planner/index.html'},
                     {from: /^\/planner\/calendar/, to: '/planner/calendar.html'},
                     {from: /^\/planner\/classes/, to: '/planner/classes.html'},
                     {from: /^\/planner\/materials/, to: '/planner/materials.html'},
