@@ -22,7 +22,7 @@ describe('Pages Test', function() {
     await driver.quit();
   });
 
-  it('should load /tour', async function() {
+  it('/ should load index', async function() {
     this.timeout(10000);
 
     await driver.get('http://localhost:3000/');
