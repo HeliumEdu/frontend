@@ -3,6 +3,8 @@ FROM ubuntu:24.04 AS build
 RUN apt-get --fix-missing update
 RUN apt-get install -y --no-install-recommends npm nodejs
 
+ENV NODE_ENV=production
+
 WORKDIR /app
 
 COPY . .

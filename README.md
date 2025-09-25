@@ -33,11 +33,11 @@ Ajax are being used is pretty dated.
 To provision the Docker container with the `frontend` build, execute:
 
 ```sh
-bin/runserver
+make
 ```
 
-This builds and starts a container named `helium_frontend`. Once running, the `frontend` is available at
-http://localhost:3000. The shell of containers can be accessed with:
+This builds and starts a container named `frontend-frontend-1`. Once running, the `frontend` is available at
+http://localhost:3000. The shell of the container can be accessed with:
 
 ```sh
 docker exec -it frontend-frontend-1 /bin/bash
