@@ -23,7 +23,9 @@ $("#forgot-form").submit(function (e) {
         if (helium.data_has_err_msg(data)) {
             $("#status").html(helium.get_error_msg(data)).addClass("alert-warning").removeClass("hidden");
         } else {
-            $("#status").html("You've been emailed a temporary password. Login to your account immediately using the temporary password, then change your password").addClass("alert-info").removeClass("hidden");
+            $("#status").html(
+                "You've been emailed a temporary password. Login to your account immediately using the temporary password, then change your password")
+                .addClass("alert-info").removeClass("hidden");
         }
     }, email);
 });

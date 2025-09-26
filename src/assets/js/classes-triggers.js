@@ -35,7 +35,9 @@
     $("#save-course-group").on("click", function () {
         helium.ajax_error_occurred = false;
 
-        var course_group_title = $("#course-group-title").val(), course_group_start_date = $("#course-group-start-date").val(), course_group_end_date = $("#course-group-end-date").val(), data;
+        var course_group_title = $("#course-group-title").val(),
+            course_group_start_date = $("#course-group-start-date").val(),
+            course_group_end_date = $("#course-group-end-date").val(), data;
 
         helium.classes.clear_course_group_errors();
 
@@ -45,8 +47,10 @@
 
             data = {
                 "title": course_group_title,
-                "start_date": moment(course_group_start_date, helium.HE_DATE_STRING_CLIENT).format(helium.HE_DATE_STRING_SERVER),
-                "end_date": moment(course_group_end_date, helium.HE_DATE_STRING_CLIENT).format(helium.HE_DATE_STRING_SERVER),
+                "start_date": moment(course_group_start_date, helium.HE_DATE_STRING_CLIENT)
+                    .format(helium.HE_DATE_STRING_SERVER),
+                "end_date": moment(course_group_end_date, helium.HE_DATE_STRING_CLIENT)
+                    .format(helium.HE_DATE_STRING_SERVER),
                 "shown_on_calendar": !$("#course-group-shown-on-calendar").prop("checked")
             };
             if (helium.classes.edit) {
@@ -59,10 +63,17 @@
                         $("#course-group-error").parent().show("fast");
                     } else {
                         var course_group = data;
-                        $('a[href="#course-group-' + course_group.id + '"]').html("<i class=\"icon-book r-110\"></i> <span class=\"hidden-xs\">" + course_group.title + (!course_group.shown_on_calendar ? " (H)" : "") + "</span>");
-                        $("#course-group-title-" + course_group.id).html(course_group.title + (!course_group.shown_on_calendar ? " (Hidden)" : ""));
-                        $("#course-group-" + course_group.id + "-start-date").html(moment(course_group.start_date, helium.HE_DATE_STRING_SERVER).format(helium.HE_DATE_STRING_CLIENT));
-                        $("#course-group-" + course_group.id + "-end-date").html(" to " + moment(course_group.end_date, helium.HE_DATE_STRING_SERVER).format(helium.HE_DATE_STRING_CLIENT));
+                        $('a[href="#course-group-' + course_group.id + '"]').html(
+                            "<i class=\"icon-book r-110\"></i> <span class=\"hidden-xs\">" + course_group.title
+                            + (!course_group.shown_on_calendar ? " (H)" : "") + "</span>");
+                        $("#course-group-title-" + course_group.id)
+                            .html(course_group.title + (!course_group.shown_on_calendar ? " (Hidden)" : ""));
+                        $("#course-group-" + course_group.id + "-start-date").html(
+                            moment(course_group.start_date, helium.HE_DATE_STRING_SERVER)
+                                .format(helium.HE_DATE_STRING_CLIENT));
+                        $("#course-group-" + course_group.id + "-end-date").html(
+                            " to " + moment(course_group.end_date, helium.HE_DATE_STRING_SERVER)
+                                       .format(helium.HE_DATE_STRING_CLIENT));
 
                         helium.classes.refresh_course_groups();
                         helium.classes.resort_course_groups();
@@ -158,8 +169,12 @@
             // If we've only selected one course group, and we're creating a new course, set the
             // start/end date for the new course to match the course group
             if (!helium.classes.edit && $(this).val().length === 1) {
-                $("#course-start-date").datepicker("setDate", moment(helium.classes.course_groups[$(this).val()[0]].start_date, helium.HE_DATE_STRING_CLIENT).toDate());
-                $("#course-end-date").datepicker("setDate", moment(helium.classes.course_groups[$(this).val()[0]].end_date, helium.HE_DATE_STRING_CLIENT).toDate());
+                $("#course-start-date").datepicker("setDate",
+                                                   moment(helium.classes.course_groups[$(this).val()[0]].start_date,
+                                                          helium.HE_DATE_STRING_CLIENT).toDate());
+                $("#course-end-date").datepicker("setDate",
+                                                 moment(helium.classes.course_groups[$(this).val()[0]].end_date,
+                                                        helium.HE_DATE_STRING_CLIENT).toDate());
             }
 
             $("#loading-course-modal").spin(false);
@@ -175,7 +190,8 @@
             $("#sun-time-lbl").html("Time");
             $("#sun-time-lbl-alt").html("Time");
             $("#sun-time, #sun-alt-time").show("fast");
-            $("#mon-time, #mon-alt-time, #tue-time, #tue-alt-time, #wed-time, #wed-alt-time, #thu-time, #thu-alt-time, #fri-time, #fri-alt-time, #sat-time, #sat-alt-time").hide("fast");
+            $("#mon-time, #mon-alt-time, #tue-time, #tue-alt-time, #wed-time, #wed-alt-time, #thu-time, #thu-alt-time, #fri-time, #fri-alt-time, #sat-time, #sat-alt-time")
+                .hide("fast");
             $("#class-days-empty-palette").hide();
             $("#class-days-alt-empty-palette").hide();
         }
@@ -241,7 +257,8 @@
             title: "Unnamed Category " + helium.classes.unnamed_category_index,
             weight: 0,
             average_grade: -1,
-            color: $($("#id_color_select option")[Math.floor(Math.random() * $("#id_color_select option").length)]).val(),
+            color: $($("#id_color_select option")[Math.floor(Math.random() * $("#id_color_select option").length)])
+                .val(),
             course: helium.classes.edit_id
         };
         helium.classes.unnamed_category_index += 1;

@@ -39,13 +39,13 @@ if (welcome_email !== undefined) {
 }
 
 $.ajax({
-    type: "GET",
-    url: API_VERIFY_URL,
-    async: false,
-    success: function (data) {
-        callback(data)
-    },
-    error: function (jqXHR, textStatus, errorThrown) {
-        helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
-    }
-});
+           type: "GET",
+           url: API_VERIFY_URL,
+           async: false,
+           success: function (data) {
+               callback(data)
+           },
+           error: function (jqXHR, textStatus, errorThrown) {
+               helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+           }
+       });

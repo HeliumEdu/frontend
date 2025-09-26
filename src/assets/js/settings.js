@@ -29,16 +29,19 @@ function HeliumSettings() {
         });
 
         $.ajax({
-            type: "GET",
-            url: helium.API_URL + "/feed/externalcalendars/",
-            async: false,
-            dataType: "json",
-            success: function (data) {
-                $.each(data, function (key, externalcalendar) {
-                    helium.settings.create_externalcalendar(externalcalendar.id, externalcalendar.title, externalcalendar.url, externalcalendar.shown_on_calendar, externalcalendar.color);
-                });
-            }
-        });
+                   type: "GET",
+                   url: helium.API_URL + "/feed/externalcalendars/",
+                   async: false,
+                   dataType: "json",
+                   success: function (data) {
+                       $.each(data, function (key, externalcalendar) {
+                           helium.settings.create_externalcalendar(externalcalendar.id, externalcalendar.title,
+                                                                   externalcalendar.url,
+                                                                   externalcalendar.shown_on_calendar,
+                                                                   externalcalendar.color);
+                       });
+                   }
+               });
 
         if ($("#externalcalendars-table-body").children().length === 1) {
             $("#no-externalcalendars").show();
@@ -46,11 +49,13 @@ function HeliumSettings() {
     };
 
     self.email_pending = function (email_changing) {
-        ($("#id_email_verification_status").html('<i class="icon-time bigger-110 orange"></i> Pending verification of ' + email_changing));
+        ($("#id_email_verification_status")
+            .html('<i class="icon-time bigger-110 orange"></i> Pending verification of ' + email_changing));
     };
 
     self.phone_pending = function (phone_changing) {
-        $($("#id_phone_verification_status").html('<i class="icon-time bigger-110 orange"></i> Pending verification of ' + phone_changing));
+        $($("#id_phone_verification_status")
+              .html('<i class="icon-time bigger-110 orange"></i> Pending verification of ' + phone_changing));
         $("#phone_verification_row").show("fast");
     };
 
@@ -58,25 +63,29 @@ function HeliumSettings() {
         var row = $('<tr id="externalcalendar-' + id + '">');
         row.append($('<td>').append('<a class="cursor-hover external-title">' + title + '</a>'));
         row.append($('<td class="hidden-480">').append('<a class="cursor-hover external-url">' + url + '</a>'));
-        row.append($('<td>').append('<input type="checkbox" class="ace shown-on-calendar" ' + (shown_on_calendar ? 'checked="checked"' : '') + '/><span class="lbl" />'));
-        row.append($('<td>').append($('<select class="hide color-picker">' + $("#id_color_select").html() + '</select>')));
-        row.append($('<td>').append('<div class="btn-group"><button type="button" class="btn btn-xs btn-danger delete-externalcalendar"><i class="icon-trash bigger-120"></i></button></div></td></tr>'));
+        row.append($('<td>').append(
+            '<input type="checkbox" class="ace shown-on-calendar" ' + (shown_on_calendar ? 'checked="checked"' : '')
+            + '/><span class="lbl" />'));
+        row.append(
+            $('<td>').append($('<select class="hide color-picker">' + $("#id_color_select").html() + '</select>')));
+        row.append($('<td>').append(
+            '<div class="btn-group"><button type="button" class="btn btn-xs btn-danger delete-externalcalendar"><i class="icon-trash bigger-120"></i></button></div></td></tr>'));
 
         $("#externalcalendars-table-body").append(row);
 
         row.find(".color-picker").simplecolorpicker({
-            picker: true,
-            theme: "glyphicons"
-        });
+                                                        picker: true,
+                                                        theme: "glyphicons"
+                                                    });
         row.find(".color-picker").simplecolorpicker("selectColor", color);
         row.find(".external-title").editable({
-            type: "text",
-            tpl: '<input type="text" maxlength="255">'
-        });
+                                                 type: "text",
+                                                 tpl: '<input type="text" maxlength="255">'
+                                             });
         row.find(".external-url").editable({
-            type: "text",
-            tpl: '<input type="text" maxlength="255">'
-        });
+                                               type: "text",
+                                               tpl: '<input type="text" maxlength="255">'
+                                           });
         row.find(".delete-externalcalendar").on("click", self.delete_externalcalendar);
 
         if ($("#externalcalendars-table-body").children().length === 2) {
@@ -101,7 +110,6 @@ function HeliumSettings() {
         });
     };
 
-
     self.save_externalcalendars = function (form) {
         var dom_id, id;
 
@@ -117,32 +125,39 @@ function HeliumSettings() {
             };
             if (id === "null") {
                 $.ajax({
-                    async: false,
-                    context: form,
-                    data: JSON.stringify(data),
-                    type: 'POST',
-                    url: helium.API_URL + '/feed/externalcalendars/',
-                    error: function (xhr) {
-                        $("#status_preferences").html('Oops, an error occurred while saving changes to external calendars. Was the URL valid?').addClass("alert-warning").removeClass("hidden");
-                    }
-                });
+                           async: false,
+                           context: form,
+                           data: JSON.stringify(data),
+                           type: 'POST',
+                           url: helium.API_URL + '/feed/externalcalendars/',
+                           error: function (xhr) {
+                               $("#status_preferences").html(
+                                   'Oops, an error occurred while saving changes to external calendars. Was the URL valid?')
+                                   .addClass("alert-warning").removeClass("hidden");
+                           }
+                       });
             } else {
                 $.ajax({
-                    async: false,
-                    context: form,
-                    data: JSON.stringify(data),
-                    type: 'PUT',
-                    url: helium.API_URL + '/feed/externalcalendars/' + id + '/',
-                    error: function (xhr) {
-                        $("#status_preferences").html('Oops, an error occurred while saving changes to external calendars. Was the URL valid?').addClass("alert-warning").removeClass("hidden");
-                    }
-                });
+                           async: false,
+                           context: form,
+                           data: JSON.stringify(data),
+                           type: 'PUT',
+                           url: helium.API_URL + '/feed/externalcalendars/' + id + '/',
+                           error: function (xhr) {
+                               $("#status_preferences").html(
+                                   'Oops, an error occurred while saving changes to external calendars. Was the URL valid?')
+                                   .addClass("alert-warning").removeClass("hidden");
+                           }
+                       });
             }
         });
     };
 
     $("#create-externalcalendar").on("click", function () {
-        self.create_externalcalendar("null", 'Holidays', 'https://calendar.google.com/calendar/ical/en.usa%23holiday%40group.v.calendar.google.com/public/basic.ics', false, $($("#id_color_select option")[Math.floor(Math.random() * $("#id_color_select option").length)]).val());
+        self.create_externalcalendar("null", 'Holidays',
+                                     'https://calendar.google.com/calendar/ical/en.usa%23holiday%40group.v.calendar.google.com/public/basic.ics',
+                                     false, $($("#id_color_select option")[Math.floor(
+                Math.random() * $("#id_color_select option").length)]).val());
     });
 
     $("#importexport-form").submit(function (e) {
@@ -151,7 +166,8 @@ function HeliumSettings() {
         e.returnValue = false;
 
         if (!$('#id_file').val()) {
-            $("#status_importexport").html("You must choose a file to import first.").addClass("alert-info").removeClass("hidden");
+            $("#status_importexport").html("You must choose a file to import first.").addClass("alert-info")
+                .removeClass("hidden");
 
             return false;
         }
@@ -163,30 +179,32 @@ function HeliumSettings() {
         helium.clear_form_errors($(this).attr("id"));
 
         $.ajax({
-            processData: false,
-            contentType: false,
-            data: new FormData(this),
-            type: 'POST',
-            url: helium.API_URL + '/importexport/import/',
-            error: function (xhr) {
-                $("#status_importexport").html(JSON.stringify(xhr.responseJSON)).addClass("alert-danger").removeClass("hidden");
+                   processData: false,
+                   contentType: false,
+                   data: new FormData(this),
+                   type: 'POST',
+                   url: helium.API_URL + '/importexport/import/',
+                   error: function (xhr) {
+                       $("#status_importexport").html(JSON.stringify(xhr.responseJSON)).addClass("alert-danger")
+                           .removeClass("hidden");
 
-                $("#import-button").prop("disabled", false);
+                       $("#import-button").prop("disabled", false);
 
-                $("#loading-importexport").spin(false);
-            },
-            success: function () {
-                $("#import-button").prop("disabled", false);
+                       $("#loading-importexport").spin(false);
+                   },
+                   success: function () {
+                       $("#import-button").prop("disabled", false);
 
-                helium.clear_form_errors("importexport-form");
+                       helium.clear_form_errors("importexport-form");
 
-                localStorage.removeItem("filter_courses_" + helium.USER_PREFS.id);
+                       localStorage.removeItem("filter_courses_" + helium.USER_PREFS.id);
 
-                $("#status_importexport").html("Import successful.").addClass("alert-success").removeClass("hidden");
+                       $("#status_importexport").html("Import successful.").addClass("alert-success")
+                           .removeClass("hidden");
 
-                $("#loading-importexport").spin(false);
-            }
-        });
+                       $("#loading-importexport").spin(false);
+                   }
+               });
     });
 
     $("#preferences-form").submit(function (e) {
@@ -202,9 +220,9 @@ function HeliumSettings() {
             var form = $("#preferences-form"), data = form.serializeArray();
             data.push({"name": "show_getting_started", "value": helium.USER_PREFS.settings.show_getting_started});
             data.push({
-                "name": "receive_emails_from_admin",
-                "value": helium.USER_PREFS.settings.receive_emails_from_admin
-            });
+                          "name": "receive_emails_from_admin",
+                          "value": helium.USER_PREFS.settings.receive_emails_from_admin
+                      });
             data.push({"name": "private_slug", "value": helium.USER_PREFS.settings.private_slug});
             data.push({"name": "events_color", "value": $("#id_color_select").val()});
 
@@ -212,44 +230,45 @@ function HeliumSettings() {
 
             $.each(self.to_delete, function (index, id) {
                 $.ajax({
-                    async: false,
-                    type: 'DELETE',
-                    url: helium.API_URL + '/feed/externalcalendars/' + id + '/',
-                    error: function (xhr) {
-                        // TODO: show errors
-                    }
-                });
+                           async: false,
+                           type: 'DELETE',
+                           url: helium.API_URL + '/feed/externalcalendars/' + id + '/',
+                           error: function (xhr) {
+                               // TODO: show errors
+                           }
+                       });
             });
             self.to_delete = [];
 
             self.populate_externalcalendars();
 
             $.ajax({
-                async: false,
-                context: form,
-                data: data,
-                contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
-                type: 'PUT',
-                url: helium.API_URL + '/auth/user/settings/',
-                error: function (xhr) {
-                    if (xhr.hasOwnProperty("responseJSON")) {
-                        $.each(xhr.responseJSON, function (key, value) {
-                            helium.show_error("preferences", key, value);
-                        });
-                    } else {
-                        helium.show_error("", "preferences", helium.planner_api.GENERIC_ERROR_MESSAGE);
-                    }
+                       async: false,
+                       context: form,
+                       data: data,
+                       contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+                       type: 'PUT',
+                       url: helium.API_URL + '/auth/user/settings/',
+                       error: function (xhr) {
+                           if (xhr.hasOwnProperty("responseJSON")) {
+                               $.each(xhr.responseJSON, function (key, value) {
+                                   helium.show_error("preferences", key, value);
+                               });
+                           } else {
+                               helium.show_error("", "preferences", helium.planner_api.GENERIC_ERROR_MESSAGE);
+                           }
 
-                    $("#loading-preferences").spin(false);
-                },
-                success: function () {
-                    helium.clear_form_errors("preferences-form");
+                           $("#loading-preferences").spin(false);
+                       },
+                       success: function () {
+                           helium.clear_form_errors("preferences-form");
 
-                    $("#status_preferences").html("Changes saved.").addClass("alert-success").removeClass("hidden");
+                           $("#status_preferences").html("Changes saved.").addClass("alert-success")
+                               .removeClass("hidden");
 
-                    $("#loading-preferences").spin(false);
-                }
-            });
+                           $("#loading-preferences").spin(false);
+                       }
+                   });
         });
     });
 
@@ -266,44 +285,45 @@ function HeliumSettings() {
             var form = $("#personal-form"), data = form.serializeArray();
 
             $.ajax({
-                async: false,
-                context: form,
-                data: data,
-                contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
-                type: 'PUT',
-                url: helium.API_URL + '/auth/user/profile/',
-                error: function (xhr) {
-                    if (xhr.hasOwnProperty("responseJSON")) {
-                        $.each(xhr.responseJSON, function (key, value) {
-                            helium.show_error("personal", key, value);
-                        });
-                    } else {
-                        helium.show_error("personal", "", helium.planner_api.GENERIC_ERROR_MESSAGE);
-                    }
+                       async: false,
+                       context: form,
+                       data: data,
+                       contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+                       type: 'PUT',
+                       url: helium.API_URL + '/auth/user/profile/',
+                       error: function (xhr) {
+                           if (xhr.hasOwnProperty("responseJSON")) {
+                               $.each(xhr.responseJSON, function (key, value) {
+                                   helium.show_error("personal", key, value);
+                               });
+                           } else {
+                               helium.show_error("personal", "", helium.planner_api.GENERIC_ERROR_MESSAGE);
+                           }
 
-                    $("#loading-personal").spin(false);
-                },
-                success: function (data) {
-                    if (data.phone_changing) {
-                        self.phone_pending(data.phone_changing);
-                    } else {
-                        $("#id_phone").val(data.phone);
+                           $("#loading-personal").spin(false);
+                       },
+                       success: function (data) {
+                           if (data.phone_changing) {
+                               self.phone_pending(data.phone_changing);
+                           } else {
+                               $("#id_phone").val(data.phone);
 
-                        if (data.phone_verified) {
-                            $($("#id_phone_verification_status").html('<i class="icon-ok bigger-110 green"></i> Verified'));
-                        } else {
-                            $($("#id_phone_verification_status").html(''));
-                        }
-                        $("#phone_verification_row").hide("fast");
-                    }
+                               if (data.phone_verified) {
+                                   $($("#id_phone_verification_status")
+                                         .html('<i class="icon-ok bigger-110 green"></i> Verified'));
+                               } else {
+                                   $($("#id_phone_verification_status").html(''));
+                               }
+                               $("#phone_verification_row").hide("fast");
+                           }
 
-                    helium.clear_form_errors("personal-form");
+                           helium.clear_form_errors("personal-form");
 
-                    $("#status_personal").html("Changes saved.").addClass("alert-success").removeClass("hidden");
+                           $("#status_personal").html("Changes saved.").addClass("alert-success").removeClass("hidden");
 
-                    $("#loading-personal").spin(false);
-                }
-            });
+                           $("#loading-personal").spin(false);
+                       }
+                   });
         });
     });
 
@@ -357,39 +377,39 @@ function HeliumSettings() {
             }
 
             $.ajax({
-                async: false,
-                context: form,
-                data: data,
-                contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
-                type: 'PUT',
-                url: helium.API_URL + '/auth/user/',
-                error: function (xhr) {
-                    if (xhr.hasOwnProperty("responseJSON")) {
-                        $.each(xhr.responseJSON, function (key, value) {
-                            helium.show_error("account", key, value);
-                        });
-                    } else {
-                        helium.show_error("account", "", helium.planner_api.GENERIC_ERROR_MESSAGE);
-                    }
+                       async: false,
+                       context: form,
+                       data: data,
+                       contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+                       type: 'PUT',
+                       url: helium.API_URL + '/auth/user/',
+                       error: function (xhr) {
+                           if (xhr.hasOwnProperty("responseJSON")) {
+                               $.each(xhr.responseJSON, function (key, value) {
+                                   helium.show_error("account", key, value);
+                               });
+                           } else {
+                               helium.show_error("account", "", helium.planner_api.GENERIC_ERROR_MESSAGE);
+                           }
 
-                    $("#loading-account").spin(false);
-                },
-                success: function (data) {
-                    if (data.email_changing) {
-                        self.email_pending(data.email_changing);
-                    }
+                           $("#loading-account").spin(false);
+                       },
+                       success: function (data) {
+                           if (data.email_changing) {
+                               self.email_pending(data.email_changing);
+                           }
 
-                    helium.clear_form_errors("account-form");
+                           helium.clear_form_errors("account-form");
 
-                    $("#id_old_password").val("");
-                    $("#id_password").val("");
-                    $("#id_password2").val("");
+                           $("#id_old_password").val("");
+                           $("#id_password").val("");
+                           $("#id_password2").val("");
 
-                    $("#status_account").html("Changes saved.").addClass("alert-success").removeClass("hidden");
+                           $("#status_account").html("Changes saved.").addClass("alert-success").removeClass("hidden");
 
-                    $("#loading-account").spin(false);
-                }
-            });
+                           $("#loading-account").spin(false);
+                       }
+                   });
         });
     });
 
@@ -407,9 +427,12 @@ function HeliumSettings() {
 
             var base_url = helium.API_URL + "/feed/private/" + helium.USER_PREFS.settings.private_slug;
 
-            $("#private-feed-urls").html("<strong>Events: </strong><a href=\"" + base_url + "/events.ics\">" + base_url + "/events.ics</a>" +
-                "<br /><strong>Homework: </strong><a href=\"" + base_url + "/homework.ics\">" + base_url + "/homework.ics</a>" +
-                "<br /><strong>Class Schedule: </strong><a href=\"" + base_url + "/courseschedules.ics\">" + base_url + "/courseschedules.ics</a>");
+            $("#private-feed-urls").html(
+                "<strong>Events: </strong><a href=\"" + base_url + "/events.ics\">" + base_url + "/events.ics</a>" +
+                "<br /><strong>Homework: </strong><a href=\"" + base_url + "/homework.ics\">" + base_url
+                + "/homework.ics</a>" +
+                "<br /><strong>Class Schedule: </strong><a href=\"" + base_url + "/courseschedules.ics\">" + base_url
+                + "/courseschedules.ics</a>");
         }
     };
 
@@ -418,36 +441,41 @@ function HeliumSettings() {
 
         if (helium.USER_PREFS.settings.private_slug === null || helium.USER_PREFS.settings.private_slug === "") {
             $.ajax({
-                async: false,
-                type: 'PUT',
-                url: helium.API_URL + '/feed/private/enable/',
-                error: function () {
-                    $("#status_feed").html('Sorry, an unknown error occurred while trying to enable feeds. Please <a href="/contact">contact support</a>').addClass("alert-warning").removeClass("hidden");
+                       async: false,
+                       type: 'PUT',
+                       url: helium.API_URL + '/feed/private/enable/',
+                       error: function () {
+                           $("#status_feed").html(
+                               'Sorry, an unknown error occurred while trying to enable feeds. Please <a href="/contact">contact support</a>')
+                               .addClass("alert-warning").removeClass("hidden");
 
-                    $("#loading-feed").spin(false);
-                },
-                success: function (data) {
-                    helium.USER_PREFS.settings.private_slug = data.events_private_url.substr(14, data.events_private_url.lastIndexOf('/') - 14);
+                           $("#loading-feed").spin(false);
+                       },
+                       success: function (data) {
+                           helium.USER_PREFS.settings.private_slug =
+                               data.events_private_url.substr(14, data.events_private_url.lastIndexOf('/') - 14);
 
-                    $("#loading-feed").spin(false);
-                }
-            });
+                           $("#loading-feed").spin(false);
+                       }
+                   });
         } else {
             $.ajax({
-                async: false,
-                type: 'PUT',
-                url: helium.API_URL + '/feed/private/disable/',
-                error: function () {
-                    $("#status_feed").html('Sorry, an unknown error occurred while trying to enable feeds. Please <a href="/contact">contact support</a>').addClass("alert-warning").removeClass("hidden");
+                       async: false,
+                       type: 'PUT',
+                       url: helium.API_URL + '/feed/private/disable/',
+                       error: function () {
+                           $("#status_feed").html(
+                               'Sorry, an unknown error occurred while trying to enable feeds. Please <a href="/contact">contact support</a>')
+                               .addClass("alert-warning").removeClass("hidden");
 
-                    $("#loading-feed").spin(false);
-                },
-                success: function () {
-                    helium.USER_PREFS.settings.private_slug = null;
+                           $("#loading-feed").spin(false);
+                       },
+                       success: function () {
+                           helium.USER_PREFS.settings.private_slug = null;
 
-                    $("#loading-feed").spin(false);
-                }
-            });
+                           $("#loading-feed").spin(false);
+                       }
+                   });
         }
 
         self.refresh_feeds();
@@ -455,53 +483,58 @@ function HeliumSettings() {
 
     $("#delete-account").on("click", function () {
         bootbox.dialog({
-            title: "To permanently delete your Helium account <em>and all data you have stored in Helium</em>, confirm your password below.",
-            message: '<input id="delete-account-password" name="delete-account-password" type="password" class="form-control" />',
-            inputType: "password",
-            closeButton: true,
-            onEscape: true,
-            buttons: {
-                cancel: {
-                    label: "Cancel",
-                    className: "btn-default"
-                },
-                success: {
-                    label: "OK",
-                    className: "btn-primary",
-                    callback: function () {
-                        $("#loading-account").spin(helium.SMALL_LOADING_OPTS);
+                           title: "To permanently delete your Helium account <em>and all data you have stored in Helium</em>, confirm your password below.",
+                           message: '<input id="delete-account-password" name="delete-account-password" type="password" class="form-control" />',
+                           inputType: "password",
+                           closeButton: true,
+                           onEscape: true,
+                           buttons: {
+                               cancel: {
+                                   label: "Cancel",
+                                   className: "btn-default"
+                               },
+                               success: {
+                                   label: "OK",
+                                   className: "btn-primary",
+                                   callback: function () {
+                                       $("#loading-account").spin(helium.SMALL_LOADING_OPTS);
 
-                        var data = {
-                            "password": $("input[name='delete-account-password']").val()
-                        };
+                                       var data = {
+                                           "password": $("input[name='delete-account-password']").val()
+                                       };
 
-                        $.ajax({
-                            async: false,
-                            data: JSON.stringify(data),
-                            type: 'DELETE',
-                            url: helium.API_URL + '/auth/user/delete/',
-                            error: function (data) {
-                                if (data !== undefined && data.hasOwnProperty("responseJSON") && data.responseJSON.hasOwnProperty("password")) {
-                                    $("#status_account").html(data.responseJSON.password).addClass("alert-warning").removeClass("hidden");
-                                } else {
-                                    $("#status_account").html('Sorry, an unknown error occurred while trying to delete your account. Please <a href="/contact">contact support</a>').addClass("alert-warning").removeClass("hidden");
-                                }
+                                       $.ajax({
+                                                  async: false,
+                                                  data: JSON.stringify(data),
+                                                  type: 'DELETE',
+                                                  url: helium.API_URL + '/auth/user/delete/',
+                                                  error: function (data) {
+                                                      if (data !== undefined && data.hasOwnProperty("responseJSON")
+                                                          && data.responseJSON.hasOwnProperty("password")) {
+                                                          $("#status_account").html(data.responseJSON.password)
+                                                              .addClass("alert-warning").removeClass("hidden");
+                                                      } else {
+                                                          $("#status_account").html(
+                                                              'Sorry, an unknown error occurred while trying to delete your account. Please <a href="/contact">contact support</a>')
+                                                              .addClass("alert-warning").removeClass("hidden");
+                                                      }
 
-                                $("#loading-account").spin(false);
-                            },
-                            success: function () {
-                                $("#loading-account").spin(false);
+                                                      $("#loading-account").spin(false);
+                                                  },
+                                                  success: function () {
+                                                      $("#loading-account").spin(false);
 
-                                localStorage.setItem("status_type", "warning");
-                                localStorage.setItem("status_msg", "Sorry to see you go! We've deleted all traces of your existence from Helium.");
+                                                      localStorage.setItem("status_type", "warning");
+                                                      localStorage.setItem("status_msg",
+                                                                           "Sorry to see you go! We've deleted all traces of your existence from Helium.");
 
-                                window.location = "/logout";
-                            }
-                        });
-                    }
-                }
-            }
-        });
+                                                      window.location = "/logout";
+                                                  }
+                                              });
+                                   }
+                               }
+                           }
+                       });
     });
 
     $("#export-button").on("click", function (e) {
@@ -509,20 +542,20 @@ function HeliumSettings() {
         e.returnValue = false;
 
         $.ajax({
-            url: helium.API_URL + "/importexport/export/",
-            type: "GET",
-            dataType: "json",
-            success: function (data) {
-                var jsonStr = JSON.stringify(data);
-                var base64 = "data:application/json;charset=utf-8;base64," + btoa(jsonStr);
+                   url: helium.API_URL + "/importexport/export/",
+                   type: "GET",
+                   dataType: "json",
+                   success: function (data) {
+                       var jsonStr = JSON.stringify(data);
+                       var base64 = "data:application/json;charset=utf-8;base64," + btoa(jsonStr);
 
-                $("<a>")
-                    .attr({
-                        "href": base64,
-                        "download": "Helium_" + helium.USER_PREFS.username + ".json"
-                    }).html($("<a>").attr("download")).get(0).click();
-            }
-        });
+                       $("<a>")
+                           .attr({
+                                     "href": base64,
+                                     "download": "Helium_" + helium.USER_PREFS.username + ".json"
+                                 }).html($("<a>").attr("download")).get(0).click();
+                   }
+               });
     });
 }
 

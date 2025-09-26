@@ -62,288 +62,372 @@ module.exports = {
     plugins: [
         // Image assets
         new CopyWebpackPlugin([
-            {
-                from: '**/*.+(png|jpg|jpeg|gif|svg|ico)'
-            }
-        ]),
+                                  {
+                                      from: '**/*.+(png|jpg|jpeg|gif|svg|ico)'
+                                  }
+                              ]),
         // Font assets
         new CopyWebpackPlugin([
-            {
-                from: '**/*.+(woff|otf|eot|tff)'
-            }
-        ]),
+                                  {
+                                      from: '**/*.+(woff|otf|eot|tff)'
+                                  }
+                              ]),
         // Script and style assets
         new CopyWebpackPlugin([
-            {
-                from: '**/*.+(css|js)'
-            }
-        ]),
+                                  {
+                                      from: '**/*.+(css|js)'
+                                  }
+                              ]),
         // Static page assets
         new CopyWebpackPlugin([
-            {
-                from: '**/*.+(txt|xml|html)'
-            }
-        ]),
+                                  {
+                                      from: '**/*.+(txt|xml|html)'
+                                  }
+                              ]),
         // Compile Nunjucks templates into HTML static page assets
         new NunjucksWebpackPlugin({
-            templates: [
-                {
-                    from: path.join("src", "templates", "404.html"),
-                    to: "404.html",
-                    context: defaultContext
-                },
-                {
-                    from: path.join("src", "templates", "500.html"),
-                    to: "500.html",
-                    context: defaultContext
-                },
-                {
-                    from: path.join("src", "templates", "503.html"),
-                    to: "503.html",
-                    context: defaultContext
-                },
-                {
-                    from: path.join("src", "templates", "health.json"),
-                    to: "health.json",
-                    context: defaultContext
-                },
-                {
-                    from: path.join("src", "templates", "index.html"),
-                    to: "index.html",
-                    context: defaultContext
-                },
-                {
-                    from: path.join("src", "templates", "about.html"),
-                    to: "about.html",
-                    context: defaultContext
-                },
-                {
-                    from: path.join("src", "templates", "press.html"),
-                    to: "press.html",
-                    context: defaultContext
-                },
-                {
-                    from: path.join("src", "templates", "privacy.html"),
-                    to: "privacy.html",
-                    context: defaultContext
-                },
-                {
-                    from: path.join("src", "templates", "terms.html"),
-                    to: "terms.html",
-                    context: defaultContext
-                },
-                {
-                    from: path.join("src", "templates", "register.html"),
-                    to: "register.html",
-                    context: _.extend({}, defaultContext, {
-                        "page_javascript": [path.join('assets', 'js', `register.${projectVersion}${min_suffix}.js`)]
-                    })
-                },
-                {
-                    from: path.join("src", "templates", "login.html"),
-                    to: "login.html",
-                    context: _.extend({}, defaultContext, {
-                        "page_javascript": [path.join('assets', 'js', `login.${projectVersion}${min_suffix}.js`)]
-                    })
-                },
-                {
-                    from: path.join("src", "templates", "forgot.html"),
-                    to: "forgot.html",
-                    context: _.extend({}, defaultContext, {
-                        "page_javascript": [path.join('assets', 'js', `forgot.${projectVersion}${min_suffix}.js`)]
-                    })
-                },
-                {
-                    from: path.join("src", "templates", "logout.html"),
-                    to: "logout.html",
-                    context: _.extend({}, defaultContext, {
-                        "page_javascript": [path.join('assets', 'js', `logout.${projectVersion}${min_suffix}.js`)]
-                    })
-                },
-                {
-                    from: path.join("src", "templates", "base.html"),
-                    to: "verify.html",
-                    context: _.extend({}, defaultContext, {
-                        "page_header_javascript": [path.join('assets', 'js', `redirecting.${projectVersion}${min_suffix}.js`)],
-                        "page_javascript": [path.join('assets', 'js', `verify.${projectVersion}${min_suffix}.js`)]
-                    })
-                },
-                {
-                    from: path.join("src", "templates", "base.html"),
-                    to: "support.html",
-                    context: _.extend({}, defaultContext, {
-                        "page_header_javascript": [path.join('assets', 'js', `redirecting.${projectVersion}${min_suffix}.js`)],
-                        "page_javascript": [path.join('assets', 'js', `support.${projectVersion}${min_suffix}.js`)]
-                    })
-                },
-                {
-                    from: path.join("src", "templates", "base.html"),
-                    to: "docs.html",
-                    context: _.extend({}, defaultContext, {
-                        "page_header_javascript": [path.join('assets', 'js', `redirecting.${projectVersion}${min_suffix}.js`)],
-                        "page_javascript": [path.join('assets', 'js', `docs.${projectVersion}${min_suffix}.js`)]
-                    })
-                },
-                {
-                    from: path.join("src", "templates", "base.html"),
-                    to: "status.html",
-                    context: _.extend({}, defaultContext, {
-                        "page_javascript": [path.join('assets', 'js', `status.${projectVersion}${min_suffix}.js`)]
-                    })
-                },
-                {
-                    from: path.join("src", "templates", "base.html"),
-                    to: "admin.html",
-                    context: _.extend({}, defaultContext, {
-                        "page_header_javascript": [path.join('assets', 'js', `redirecting.${projectVersion}${min_suffix}.js`)],
-                        "page_javascript": [path.join('assets', 'js', `admin.${projectVersion}${min_suffix}.js`)]
-                    })
-                },
-                {
-                    from: path.join("src", "templates", "base.html"),
-                    to: "contact.html",
-                    context: _.extend({}, defaultContext, {
-                        "page_header_javascript": [path.join('assets', 'js', `redirecting.${projectVersion}${min_suffix}.js`)],
-                        "page_javascript": [path.join('assets', 'js', `support.${projectVersion}${min_suffix}.js`)]
-                    })
-                },
-                {
-                    from: path.join("src", "templates", "base.html"),
-                    to: "planner/index.html",
-                    context: _.extend({}, defaultContext, {
-                        "page_header_javascript": [path.join('assets', 'js', `redirecting.${projectVersion}${min_suffix}.js`)],
-                        "page_javascript": [path.join('assets', 'js', `planner_index.${projectVersion}${min_suffix}.js`)]
-                    })
-                },
-                {
-                    from: path.join("src", "templates", "base.html"),
-                    to: "tour.html",
-                    context: _.extend({}, defaultContext, {
-                        "page_header_javascript": [path.join('assets', 'js', `redirecting.${projectVersion}${min_suffix}.js`)],
-                        "page_javascript": [path.join('assets', 'js', `tour.${projectVersion}${min_suffix}.js`)]
-                    })
-                },
-                {
-                    from: path.join("src", "templates", "settings.html"),
-                    to: "settings.html",
-                    context: _.extend({}, defaultContext, {
-                        "page_header_javascript": [path.join('assets', 'js', `authenticated.${projectVersion}${min_suffix}.js`)],
-                        "page_stylesheet_pre": [
-                            path.join('assets', 'css', 'vendors', `bootstrap-editable${min_suffix}.css`),
-                            path.join('assets', 'css', 'vendors', `jquery.simplecolorpicker${min_suffix}.css`),
-                            path.join('assets', 'css', 'vendors', `jquery.simplecolorpicker-glyphicons${min_suffix}.css`)
-                        ],
-                        "page_stylesheet": [path.join('assets', 'css', `settings.${projectVersion}${min_suffix}.css`)],
-                        "page_javascript": [
-                            path.join('assets', 'js', 'vendors', `bootstrap-editable${min_suffix}.js`),
-                            path.join('assets', 'js', 'vendors', `jquery.simplecolorpicker${min_suffix}.js`),
-                            path.join('assets', 'js', 'vendors', `bootbox${min_suffix}.js`),
-                            path.join('assets', 'js', `settings.${projectVersion}${min_suffix}.js`)
-                        ]
-                    })
-                },
-                {
-                    from: path.join("src", "templates", "calendar.html"),
-                    to: "planner/calendar.html",
-                    context: _.extend({}, defaultContext, {
-                        "page_header_javascript": [path.join('assets', 'js', `authenticated.${projectVersion}${min_suffix}.js`)],
-                        "page_stylesheet_pre": [
-                            path.join('assets', 'css', 'vendors', `bootstrap-editable${min_suffix}.css`),
-                            path.join('assets', 'css', 'vendors', `fullcalendar${min_suffix}.css`),
-                            path.join('assets', 'css', 'vendors', `datepicker${min_suffix}.css`),
-                            path.join('assets', 'css', 'vendors', `bootstrap-timepicker${min_suffix}.css`),
-                            path.join('assets', 'css', 'vendors', `jquery.simplecolorpicker${min_suffix}.css`),
-                            path.join('assets', 'css', 'vendors', `jquery.simplecolorpicker-glyphicons${min_suffix}.css`),
-                            path.join('assets', 'css', 'vendors', `dropzone${min_suffix}.css`),
-                            path.join('assets', 'css', 'vendors', `jquery.qtip${min_suffix}.css`)
-                        ],
-                        "page_stylesheet_print": [path.join('assets', 'css', 'vendors', `fullcalendar.print${min_suffix}.css`)],
-                        "page_stylesheet": [path.join('assets', 'css', `calendar.${projectVersion}${min_suffix}.css`)],
-                        "page_javascript": [
-                            path.join('assets', 'js', 'vendors', `bootstrap-datepicker${min_suffix}.js`),
-                            path.join('assets', 'js', 'vendors', `bootstrap-timepicker${min_suffix}.js`),
-                            path.join('assets', 'js', 'vendors', `bootstrap-editable${min_suffix}.js`),
-                            path.join('assets', 'js', 'vendors', `bootbox${min_suffix}.js`),
-                            path.join('assets', 'js', 'vendors', `jquery.dataTables${min_suffix}.js`),
-                            path.join('assets', 'js', 'vendors', `jquery.dataTables.bootstrap${min_suffix}.js`),
-                            path.join('assets', 'js', 'vendors', `fullcalendar${min_suffix}.js`),
-                            path.join('assets', 'js', 'vendors', `dropzone${min_suffix}.js`),
-                            path.join('assets', 'js', 'vendors', `jquery.qtip${min_suffix}.js`),
-                            path.join('assets', 'js', 'vendors', `jquery.hotkeys${min_suffix}.js`),
-                            path.join('assets', 'js', 'vendors', `bootstrap-wysiwyg${min_suffix}.js`),
-                            path.join('assets', 'js', `calendar.${projectVersion}${min_suffix}.js`),
-                            path.join('assets', 'js', `calendar-triggers.${projectVersion}${min_suffix}.js`)
-                        ]
-                    })
-                },
-                {
-                    from: path.join("src", "templates", "classes.html"),
-                    to: "planner/classes.html",
-                    context: _.extend({}, defaultContext, {
-                        "page_header_javascript": [path.join('assets', 'js', `authenticated.${projectVersion}${min_suffix}.js`)],
-                        "page_stylesheet_pre": [
-                            path.join('assets', 'css', 'vendors', `bootstrap-editable${min_suffix}.css`),
-                            path.join('assets', 'css', 'vendors', `typeahead.js-bootstrap${min_suffix}.css`),
-                            path.join('assets', 'css', 'vendors', `datepicker${min_suffix}.css`),
-                            path.join('assets', 'css', 'vendors', `bootstrap-timepicker${min_suffix}.css`),
-                            path.join('assets', 'css', 'vendors', `jquery.simplecolorpicker${min_suffix}.css`),
-                            path.join('assets', 'css', 'vendors', `jquery.simplecolorpicker-glyphicons${min_suffix}.css`),
-                            path.join('assets', 'css', 'vendors', `dropzone${min_suffix}.css`)
-                        ],
-                        "page_stylesheet": [path.join('assets', 'css', `classes.${projectVersion}${min_suffix}.css`)],
-                        "page_javascript": [
-                            path.join('assets', 'js', 'vendors', `bootstrap-datepicker${min_suffix}.js`),
-                            path.join('assets', 'js', 'vendors', `bootstrap-timepicker${min_suffix}.js`),
-                            path.join('assets', 'js', 'vendors', `bootstrap-editable${min_suffix}.js`),
-                            path.join('assets', 'js', 'vendors', `typeahead${min_suffix}.js`),
-                            path.join('assets', 'js', 'vendors', `typeaheadjs${min_suffix}.js`),
-                            path.join('assets', 'js', 'vendors', `bootbox${min_suffix}.js`),
-                            path.join('assets', 'js', 'vendors', `jquery.dataTables${min_suffix}.js`),
-                            path.join('assets', 'js', 'vendors', `jquery.dataTables.bootstrap${min_suffix}.js`),
-                            path.join('assets', 'js', 'vendors', `jquery.simplecolorpicker${min_suffix}.js`),
-                            path.join('assets', 'js', 'vendors', `dropzone${min_suffix}.js`),
-                            path.join('assets', 'js', `classes.${projectVersion}${min_suffix}.js`),
-                            path.join('assets', 'js', `classes-triggers.${projectVersion}${min_suffix}.js`)
-                        ]
-                    })
-                },
-                {
-                    from: path.join("src", "templates", "materials.html"),
-                    to: "planner/materials.html",
-                    context: _.extend({}, defaultContext, {
-                        "page_header_javascript": [path.join('assets', 'js', `authenticated.${projectVersion}${min_suffix}.js`)],
-                        "page_stylesheet_pre": [path.join('assets', 'css', 'vendors', `bootstrap-editable.${projectVersion}${min_suffix}.css`)],
-                        "page_stylesheet": [path.join('assets', 'css', `materials.${projectVersion}${min_suffix}.css`)],
-                        "page_javascript": [
-                            path.join('assets', 'js', 'vendors', `bootstrap-editable${min_suffix}.js`),
-                            path.join('assets', 'js', 'vendors', `bootbox${min_suffix}.js`),
-                            path.join('assets', 'js', 'vendors', `jquery.dataTables${min_suffix}.js`),
-                            path.join('assets', 'js', 'vendors', `jquery.dataTables.bootstrap${min_suffix}.js`),
-                            path.join('assets', 'js', 'vendors', `jquery.hotkeys${min_suffix}.js`),
-                            path.join('assets', 'js', 'vendors', `bootstrap-wysiwyg${min_suffix}.js`),
-                            path.join('assets', 'js', `materials.${projectVersion}${min_suffix}.js`),
-                            path.join('assets', 'js', `materials-triggers.${projectVersion}${min_suffix}.js`)
-                        ]
-                    })
-                },
-                {
-                    from: path.join("src", "templates", "grades.html"),
-                    to: "planner/grades.html",
-                    context: _.extend({}, defaultContext, {
-                        "page_header_javascript": [path.join('assets', 'js', `authenticated.${projectVersion}${min_suffix}.js`)],
-                        "page_stylesheet_pre": [path.join('assets', 'css', `grades.${projectVersion}${min_suffix}.css`)],
-                        "page_javascript": [
-                            path.join('assets', 'js', 'vendors', `bootbox${min_suffix}.js`),
-                            path.join('assets', 'js', 'vendors', `jquery.easy-pie-chart${min_suffix}.js`),
-                            path.join('assets', 'js', 'vendors', `jquery.flot${min_suffix}.js`),
-                            path.join('assets', 'js', 'vendors', `jquery.flot.pie${min_suffix}.js`),
-                            path.join('assets', 'js', 'vendors', `jquery.flot.resize${min_suffix}.js`),
-                            path.join('assets', 'js', 'vendors', `jquery.flot.time${min_suffix}.js`),
-                            path.join('assets', 'js', `grades.${projectVersion}${min_suffix}.js`)
-                        ]
-                    })
-                }
-            ]
-        })
+                                      templates: [
+                                          {
+                                              from: path.join("src", "templates", "404.html"),
+                                              to: "404.html",
+                                              context: defaultContext
+                                          },
+                                          {
+                                              from: path.join("src", "templates", "500.html"),
+                                              to: "500.html",
+                                              context: defaultContext
+                                          },
+                                          {
+                                              from: path.join("src", "templates", "503.html"),
+                                              to: "503.html",
+                                              context: defaultContext
+                                          },
+                                          {
+                                              from: path.join("src", "templates", "health.json"),
+                                              to: "health.json",
+                                              context: defaultContext
+                                          },
+                                          {
+                                              from: path.join("src", "templates", "index.html"),
+                                              to: "index.html",
+                                              context: defaultContext
+                                          },
+                                          {
+                                              from: path.join("src", "templates", "about.html"),
+                                              to: "about.html",
+                                              context: defaultContext
+                                          },
+                                          {
+                                              from: path.join("src", "templates", "press.html"),
+                                              to: "press.html",
+                                              context: defaultContext
+                                          },
+                                          {
+                                              from: path.join("src", "templates", "privacy.html"),
+                                              to: "privacy.html",
+                                              context: defaultContext
+                                          },
+                                          {
+                                              from: path.join("src", "templates", "terms.html"),
+                                              to: "terms.html",
+                                              context: defaultContext
+                                          },
+                                          {
+                                              from: path.join("src", "templates", "register.html"),
+                                              to: "register.html",
+                                              context: _.extend({}, defaultContext, {
+                                                  "page_javascript": [path.join('assets', 'js',
+                                                                                `register.${projectVersion}${min_suffix}.js`)]
+                                              })
+                                          },
+                                          {
+                                              from: path.join("src", "templates", "login.html"),
+                                              to: "login.html",
+                                              context: _.extend({}, defaultContext, {
+                                                  "page_javascript": [path.join('assets', 'js',
+                                                                                `login.${projectVersion}${min_suffix}.js`)]
+                                              })
+                                          },
+                                          {
+                                              from: path.join("src", "templates", "forgot.html"),
+                                              to: "forgot.html",
+                                              context: _.extend({}, defaultContext, {
+                                                  "page_javascript": [path.join('assets', 'js',
+                                                                                `forgot.${projectVersion}${min_suffix}.js`)]
+                                              })
+                                          },
+                                          {
+                                              from: path.join("src", "templates", "logout.html"),
+                                              to: "logout.html",
+                                              context: _.extend({}, defaultContext, {
+                                                  "page_javascript": [path.join('assets', 'js',
+                                                                                `logout.${projectVersion}${min_suffix}.js`)]
+                                              })
+                                          },
+                                          {
+                                              from: path.join("src", "templates", "base.html"),
+                                              to: "verify.html",
+                                              context: _.extend({}, defaultContext, {
+                                                  "page_header_javascript": [path.join('assets', 'js',
+                                                                                       `redirecting.${projectVersion}${min_suffix}.js`)],
+                                                  "page_javascript": [path.join('assets', 'js',
+                                                                                `verify.${projectVersion}${min_suffix}.js`)]
+                                              })
+                                          },
+                                          {
+                                              from: path.join("src", "templates", "base.html"),
+                                              to: "support.html",
+                                              context: _.extend({}, defaultContext, {
+                                                  "page_header_javascript": [path.join('assets', 'js',
+                                                                                       `redirecting.${projectVersion}${min_suffix}.js`)],
+                                                  "page_javascript": [path.join('assets', 'js',
+                                                                                `support.${projectVersion}${min_suffix}.js`)]
+                                              })
+                                          },
+                                          {
+                                              from: path.join("src", "templates", "base.html"),
+                                              to: "docs.html",
+                                              context: _.extend({}, defaultContext, {
+                                                  "page_header_javascript": [path.join('assets', 'js',
+                                                                                       `redirecting.${projectVersion}${min_suffix}.js`)],
+                                                  "page_javascript": [path.join('assets', 'js',
+                                                                                `docs.${projectVersion}${min_suffix}.js`)]
+                                              })
+                                          },
+                                          {
+                                              from: path.join("src", "templates", "base.html"),
+                                              to: "status.html",
+                                              context: _.extend({}, defaultContext, {
+                                                  "page_javascript": [path.join('assets', 'js',
+                                                                                `status.${projectVersion}${min_suffix}.js`)]
+                                              })
+                                          },
+                                          {
+                                              from: path.join("src", "templates", "base.html"),
+                                              to: "admin.html",
+                                              context: _.extend({}, defaultContext, {
+                                                  "page_header_javascript": [path.join('assets', 'js',
+                                                                                       `redirecting.${projectVersion}${min_suffix}.js`)],
+                                                  "page_javascript": [path.join('assets', 'js',
+                                                                                `admin.${projectVersion}${min_suffix}.js`)]
+                                              })
+                                          },
+                                          {
+                                              from: path.join("src", "templates", "base.html"),
+                                              to: "contact.html",
+                                              context: _.extend({}, defaultContext, {
+                                                  "page_header_javascript": [path.join('assets', 'js',
+                                                                                       `redirecting.${projectVersion}${min_suffix}.js`)],
+                                                  "page_javascript": [path.join('assets', 'js',
+                                                                                `support.${projectVersion}${min_suffix}.js`)]
+                                              })
+                                          },
+                                          {
+                                              from: path.join("src", "templates", "base.html"),
+                                              to: "planner/index.html",
+                                              context: _.extend({}, defaultContext, {
+                                                  "page_header_javascript": [path.join('assets', 'js',
+                                                                                       `redirecting.${projectVersion}${min_suffix}.js`)],
+                                                  "page_javascript": [path.join('assets', 'js',
+                                                                                `planner_index.${projectVersion}${min_suffix}.js`)]
+                                              })
+                                          },
+                                          {
+                                              from: path.join("src", "templates", "base.html"),
+                                              to: "tour.html",
+                                              context: _.extend({}, defaultContext, {
+                                                  "page_header_javascript": [path.join('assets', 'js',
+                                                                                       `redirecting.${projectVersion}${min_suffix}.js`)],
+                                                  "page_javascript": [path.join('assets', 'js',
+                                                                                `tour.${projectVersion}${min_suffix}.js`)]
+                                              })
+                                          },
+                                          {
+                                              from: path.join("src", "templates", "settings.html"),
+                                              to: "settings.html",
+                                              context: _.extend({}, defaultContext, {
+                                                  "page_header_javascript": [path.join('assets', 'js',
+                                                                                       `authenticated.${projectVersion}${min_suffix}.js`)],
+                                                  "page_stylesheet_pre": [
+                                                      path.join('assets', 'css', 'vendors',
+                                                                `bootstrap-editable${min_suffix}.css`),
+                                                      path.join('assets', 'css', 'vendors',
+                                                                `jquery.simplecolorpicker${min_suffix}.css`),
+                                                      path.join('assets', 'css', 'vendors',
+                                                                `jquery.simplecolorpicker-glyphicons${min_suffix}.css`)
+                                                  ],
+                                                  "page_stylesheet": [path.join('assets', 'css',
+                                                                                `settings.${projectVersion}${min_suffix}.css`)],
+                                                  "page_javascript": [
+                                                      path.join('assets', 'js', 'vendors',
+                                                                `bootstrap-editable${min_suffix}.js`),
+                                                      path.join('assets', 'js', 'vendors',
+                                                                `jquery.simplecolorpicker${min_suffix}.js`),
+                                                      path.join('assets', 'js', 'vendors', `bootbox${min_suffix}.js`),
+                                                      path.join('assets', 'js',
+                                                                `settings.${projectVersion}${min_suffix}.js`)
+                                                  ]
+                                              })
+                                          },
+                                          {
+                                              from: path.join("src", "templates", "calendar.html"),
+                                              to: "planner/calendar.html",
+                                              context: _.extend({}, defaultContext, {
+                                                  "page_header_javascript": [path.join('assets', 'js',
+                                                                                       `authenticated.${projectVersion}${min_suffix}.js`)],
+                                                  "page_stylesheet_pre": [
+                                                      path.join('assets', 'css', 'vendors',
+                                                                `bootstrap-editable${min_suffix}.css`),
+                                                      path.join('assets', 'css', 'vendors',
+                                                                `fullcalendar${min_suffix}.css`),
+                                                      path.join('assets', 'css', 'vendors',
+                                                                `datepicker${min_suffix}.css`),
+                                                      path.join('assets', 'css', 'vendors',
+                                                                `bootstrap-timepicker${min_suffix}.css`),
+                                                      path.join('assets', 'css', 'vendors',
+                                                                `jquery.simplecolorpicker${min_suffix}.css`),
+                                                      path.join('assets', 'css', 'vendors',
+                                                                `jquery.simplecolorpicker-glyphicons${min_suffix}.css`),
+                                                      path.join('assets', 'css', 'vendors',
+                                                                `dropzone${min_suffix}.css`),
+                                                      path.join('assets', 'css', 'vendors',
+                                                                `jquery.qtip${min_suffix}.css`)
+                                                  ],
+                                                  "page_stylesheet_print": [path.join('assets', 'css', 'vendors',
+                                                                                      `fullcalendar.print${min_suffix}.css`)],
+                                                  "page_stylesheet": [path.join('assets', 'css',
+                                                                                `calendar.${projectVersion}${min_suffix}.css`)],
+                                                  "page_javascript": [
+                                                      path.join('assets', 'js', 'vendors',
+                                                                `bootstrap-datepicker${min_suffix}.js`),
+                                                      path.join('assets', 'js', 'vendors',
+                                                                `bootstrap-timepicker${min_suffix}.js`),
+                                                      path.join('assets', 'js', 'vendors',
+                                                                `bootstrap-editable${min_suffix}.js`),
+                                                      path.join('assets', 'js', 'vendors', `bootbox${min_suffix}.js`),
+                                                      path.join('assets', 'js', 'vendors',
+                                                                `jquery.dataTables${min_suffix}.js`),
+                                                      path.join('assets', 'js', 'vendors',
+                                                                `jquery.dataTables.bootstrap${min_suffix}.js`),
+                                                      path.join('assets', 'js', 'vendors',
+                                                                `fullcalendar${min_suffix}.js`),
+                                                      path.join('assets', 'js', 'vendors', `dropzone${min_suffix}.js`),
+                                                      path.join('assets', 'js', 'vendors',
+                                                                `jquery.qtip${min_suffix}.js`),
+                                                      path.join('assets', 'js', 'vendors',
+                                                                `jquery.hotkeys${min_suffix}.js`),
+                                                      path.join('assets', 'js', 'vendors',
+                                                                `bootstrap-wysiwyg${min_suffix}.js`),
+                                                      path.join('assets', 'js',
+                                                                `calendar.${projectVersion}${min_suffix}.js`),
+                                                      path.join('assets', 'js',
+                                                                `calendar-triggers.${projectVersion}${min_suffix}.js`)
+                                                  ]
+                                              })
+                                          },
+                                          {
+                                              from: path.join("src", "templates", "classes.html"),
+                                              to: "planner/classes.html",
+                                              context: _.extend({}, defaultContext, {
+                                                  "page_header_javascript": [path.join('assets', 'js',
+                                                                                       `authenticated.${projectVersion}${min_suffix}.js`)],
+                                                  "page_stylesheet_pre": [
+                                                      path.join('assets', 'css', 'vendors',
+                                                                `bootstrap-editable${min_suffix}.css`),
+                                                      path.join('assets', 'css', 'vendors',
+                                                                `typeahead.js-bootstrap${min_suffix}.css`),
+                                                      path.join('assets', 'css', 'vendors',
+                                                                `datepicker${min_suffix}.css`),
+                                                      path.join('assets', 'css', 'vendors',
+                                                                `bootstrap-timepicker${min_suffix}.css`),
+                                                      path.join('assets', 'css', 'vendors',
+                                                                `jquery.simplecolorpicker${min_suffix}.css`),
+                                                      path.join('assets', 'css', 'vendors',
+                                                                `jquery.simplecolorpicker-glyphicons${min_suffix}.css`),
+                                                      path.join('assets', 'css', 'vendors', `dropzone${min_suffix}.css`)
+                                                  ],
+                                                  "page_stylesheet": [path.join('assets', 'css',
+                                                                                `classes.${projectVersion}${min_suffix}.css`)],
+                                                  "page_javascript": [
+                                                      path.join('assets', 'js', 'vendors',
+                                                                `bootstrap-datepicker${min_suffix}.js`),
+                                                      path.join('assets', 'js', 'vendors',
+                                                                `bootstrap-timepicker${min_suffix}.js`),
+                                                      path.join('assets', 'js', 'vendors',
+                                                                `bootstrap-editable${min_suffix}.js`),
+                                                      path.join('assets', 'js', 'vendors', `typeahead${min_suffix}.js`),
+                                                      path.join('assets', 'js', 'vendors',
+                                                                `typeaheadjs${min_suffix}.js`),
+                                                      path.join('assets', 'js', 'vendors', `bootbox${min_suffix}.js`),
+                                                      path.join('assets', 'js', 'vendors',
+                                                                `jquery.dataTables${min_suffix}.js`),
+                                                      path.join('assets', 'js', 'vendors',
+                                                                `jquery.dataTables.bootstrap${min_suffix}.js`),
+                                                      path.join('assets', 'js', 'vendors',
+                                                                `jquery.simplecolorpicker${min_suffix}.js`),
+                                                      path.join('assets', 'js', 'vendors', `dropzone${min_suffix}.js`),
+                                                      path.join('assets', 'js',
+                                                                `classes.${projectVersion}${min_suffix}.js`),
+                                                      path.join('assets', 'js',
+                                                                `classes-triggers.${projectVersion}${min_suffix}.js`)
+                                                  ]
+                                              })
+                                          },
+                                          {
+                                              from: path.join("src", "templates", "materials.html"),
+                                              to: "planner/materials.html",
+                                              context: _.extend({}, defaultContext, {
+                                                  "page_header_javascript": [path.join('assets', 'js',
+                                                                                       `authenticated.${projectVersion}${min_suffix}.js`)],
+                                                  "page_stylesheet_pre": [path.join('assets', 'css', 'vendors',
+                                                                                    `bootstrap-editable.${projectVersion}${min_suffix}.css`)],
+                                                  "page_stylesheet": [path.join('assets', 'css',
+                                                                                `materials.${projectVersion}${min_suffix}.css`)],
+                                                  "page_javascript": [
+                                                      path.join('assets', 'js', 'vendors',
+                                                                `bootstrap-editable${min_suffix}.js`),
+                                                      path.join('assets', 'js', 'vendors', `bootbox${min_suffix}.js`),
+                                                      path.join('assets', 'js', 'vendors',
+                                                                `jquery.dataTables${min_suffix}.js`),
+                                                      path.join('assets', 'js', 'vendors',
+                                                                `jquery.dataTables.bootstrap${min_suffix}.js`),
+                                                      path.join('assets', 'js', 'vendors',
+                                                                `jquery.hotkeys${min_suffix}.js`),
+                                                      path.join('assets', 'js', 'vendors',
+                                                                `bootstrap-wysiwyg${min_suffix}.js`),
+                                                      path.join('assets', 'js',
+                                                                `materials.${projectVersion}${min_suffix}.js`),
+                                                      path.join('assets', 'js',
+                                                                `materials-triggers.${projectVersion}${min_suffix}.js`)
+                                                  ]
+                                              })
+                                          },
+                                          {
+                                              from: path.join("src", "templates", "grades.html"),
+                                              to: "planner/grades.html",
+                                              context: _.extend({}, defaultContext, {
+                                                  "page_header_javascript": [path.join('assets', 'js',
+                                                                                       `authenticated.${projectVersion}${min_suffix}.js`)],
+                                                  "page_stylesheet_pre": [path.join('assets', 'css',
+                                                                                    `grades.${projectVersion}${min_suffix}.css`)],
+                                                  "page_javascript": [
+                                                      path.join('assets', 'js', 'vendors', `bootbox${min_suffix}.js`),
+                                                      path.join('assets', 'js', 'vendors',
+                                                                `jquery.easy-pie-chart${min_suffix}.js`),
+                                                      path.join('assets', 'js', 'vendors',
+                                                                `jquery.flot${min_suffix}.js`),
+                                                      path.join('assets', 'js', 'vendors',
+                                                                `jquery.flot.pie${min_suffix}.js`),
+                                                      path.join('assets', 'js', 'vendors',
+                                                                `jquery.flot.resize${min_suffix}.js`),
+                                                      path.join('assets', 'js', 'vendors',
+                                                                `jquery.flot.time${min_suffix}.js`),
+                                                      path.join('assets', 'js',
+                                                                `grades.${projectVersion}${min_suffix}.js`)
+                                                  ]
+                                              })
+                                          }
+                                      ]
+                                  })
     ]
 };

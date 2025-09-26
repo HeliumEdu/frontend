@@ -12,7 +12,7 @@ Released container images are published to [Helium's AWS ECR](https://gallery.ec
 ## Prerequisites
 
 - Docker
-- Node (>= 18)
+- Node (>= 20)
 
 ## Getting Started
 

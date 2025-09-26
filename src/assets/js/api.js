@@ -84,14 +84,14 @@ function HeliumPlannerAPI() {
             'jqXHR': jqXHR,
             'textStatus': textStatus,
             'errorThrown': errorThrown
-       }];
-       if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-           var name = Object.keys(jqXHR.responseJSON)[0];
-           if (jqXHR.responseJSON[name].length > 0) {
-               data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-           }
-       }
-       callback(data);
+        }];
+        if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+            var name = Object.keys(jqXHR.responseJSON)[0];
+            if (jqXHR.responseJSON[name].length > 0) {
+                data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
+            }
+        }
+        callback(data);
     }
 
     this.register = function (callback, username, email, password, time_zone) {
@@ -1301,8 +1301,9 @@ function HeliumPlannerAPI() {
             ret_val = $.ajax({
                                  type: "GET",
                                  url: helium.API_URL + "/planner/homework/" + (typeof start !== "undefined"
-                                     ? "?start__gte=" + start : "") + (typeof end !== "undefined" ? "&end__lt=" + end
-                                     : ""),
+                                                                               ? "?start__gte=" + start : "")
+                                      + (typeof end !== "undefined" ? "&end__lt=" + end
+                                                                    : ""),
                                  async: async,
                                  dataType: "json",
                                  success: function (data) {
@@ -1715,8 +1716,8 @@ function HeliumPlannerAPI() {
             ret_val = $.ajax({
                                  type: "GET",
                                  url: helium.API_URL + "/feed/externalcalendars/" + id + "/events/"
-                                     + (start !== "undefined" ? "?start__gte=" + start : "")
-                                     + (end !== "undefined" ? "&end__lt=" + end : ""),
+                                      + (start !== "undefined" ? "?start__gte=" + start : "")
+                                      + (end !== "undefined" ? "&end__lt=" + end : ""),
                                  async: async,
                                  dataType: "json",
                                  success: function (data) {
