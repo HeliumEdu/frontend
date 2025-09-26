@@ -29,7 +29,7 @@ run-devserver: build-dev
 	# during active development, so images don't need to be rebuilt to validate each change.
 	npm start
 
-test: install-dev
+test: build-dev
 	npm run test
 
 build-docker:
