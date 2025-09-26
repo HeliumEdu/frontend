@@ -29,7 +29,6 @@
         "webpack-dev-server": "^3.11.0"
     },
     "dependencies": {
-        "20": "^3.1.9",
         "clean-css-cli": "^4.3.0",
         "clean-webpack-plugin": "^1.0.1",
         "copy-webpack-plugin": "^4.6.0",
