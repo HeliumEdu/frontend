@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+if [[ "$npm_command" != "run-script" ]] && [[ "$npm_command" != "run" ]]; then
+  echo "This script must be run within npm. Try \`npm build-dev\` or \`make build-dev\` instead."
+  exit 1;
+fi
+
+VERSION=$(node-jq -r '.version' package.json)
+CSS_FILES=build/assets/$VERSION/css/*.css
+CSS_VENDOR_FILES=build/assets/$VERSION/css/vendors/*.css
+
+for path in ${CSS_FILES} ${CSS_VENDOR_FILES}
+do
+    if [[ "${path}" == *min.css ]]; then
+        continue;
+    fi
+
+    directory=$(dirname "${path}")
+    filename=$(basename ${path%.*})
+
+    echo "Minifying $filename.css ..."
+
+    cleancss -o ${directory}/${filename}.min.css ${path}
+done
+
+JS_FILES=build/assets/$VERSION/js/*.js
+JS_VENDOR_FILES=build/assets/$VERSION/js/vendors/*.js
+
+for path in ${JS_FILES} ${JS_VENDOR_FILES}
+do
+    if [[ "${path}" == *.min.js ]]; then
+        continue;
+    fi
+
+    directory=$(dirname "${path}")
+    filename=$(basename ${path%.*})
+
+    echo "Minifying $filename.js ..."
+
+    uglifyjs -o ${directory}/${filename}.min.js ${path}
+done

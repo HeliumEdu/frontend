@@ -1,8 +1,11 @@
-{% extends "src/templates/base.html" %}
+{% extends "base/base.html" %}
+
+{% set page_template = "register" %}
 
 {% block title %}{{ PROJECT_NAME }} | Register{% endblock %}
 
 {% block content %}
+hello world
 <div class="main-container">
     <div class="container">
         <div class="page-content">
@@ -74,7 +77,7 @@
                                                        for="id_time_zone">Time zone</label>
 
                                                 <div class="col-sm-8">
-                                                    {% include "src/templates/snippets/timezoneselect.html" %}
+                                                    {% include "snippets/timezoneselect.html" %}
                                                 </div>
                                             </label>
 

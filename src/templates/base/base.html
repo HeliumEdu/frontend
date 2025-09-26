@@ -4,12 +4,12 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <meta name="application-name" content="{{ PROJECT_NAME }}"/>
     <meta name="version" content="{{ PROJECT_VERSION }}"/>
-    <link rel="icon" href="{{ PUBLIC_PATH }}/favicon.ico" type="image/x-icon"/>
-    <link rel="apple-touch-icon" href="{{ PUBLIC_PATH }}/touch-icon.png"/>
-    <link rel="apple-touch-icon" sizes="57x57" href="{{ PUBLIC_PATH }}/touch-icon-57x57.png"/>
-    <link rel="apple-touch-icon" sizes="114x114" href="{{ PUBLIC_PATH }}/touch-icon-114x114.png"/>
-    <link rel="apple-touch-icon" sizes="72x72" href="{{ PUBLIC_PATH }}/touch-icon-72x72.png"/>
-    <link rel="apple-touch-icon" sizes="144x144" href="{{ PUBLIC_PATH }}/touch-icon-144x144.png"/>
+    <link rel="icon" href="{{ ASSETS_PREFIX }}/favicon.ico" type="image/x-icon"/>
+    <link rel="apple-touch-icon" href="{{ ASSETS_PREFIX }}/touch-icon.png"/>
+    <link rel="apple-touch-icon" sizes="57x57" href="{{ ASSETS_PREFIX }}/touch-icon-57x57.png"/>
+    <link rel="apple-touch-icon" sizes="114x114" href="{{ ASSETS_PREFIX }}/touch-icon-114x114.png"/>
+    <link rel="apple-touch-icon" sizes="72x72" href="{{ ASSETS_PREFIX }}/touch-icon-72x72.png"/>
+    <link rel="apple-touch-icon" sizes="144x144" href="{{ ASSETS_PREFIX }}/touch-icon-144x144.png"/>
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
@@ -21,7 +21,7 @@
           content="Helium is an online student planner that lets you organize and color-coordinate your schedule and schoolwork, capture details about every assignment, and plan your study time efficiently."/>
 
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:image" content="{{ PUBLIC_PATH }}/assets/img/logo_square.png">
+    <meta name="twitter:image" content="{{ ASSETS_PREFIX }}/img/logo_square.png">
 
     <meta property="og:locale" content="en_US"/>
     <meta property="og:type" content="website"/>
@@ -30,50 +30,49 @@
           content="Helium is an online student planner that lets you organize and color-coordinate your schedule and schoolwork, capture details about every assignment, and plan your study time efficiently."/>
     <meta property="og:url" content="https://www.heliumedu.com"/>
     <meta property="article:publisher" content="https://www.facebook.com/heliumedu"/>
-    <meta property="og:image" content="{{ PUBLIC_PATH }}/assets/img/logo_facebook.png"/>
-    {% block page_meta_extra %}{% endblock %}
+    <meta property="og:image" content="{{ ASSETS_PREFIX }}/img/logo_facebook.png"/>
 
     <!-- CDN dependencies -->
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.1.1/css/bootstrap.min.css" type="text/css"/>
     <script type="application/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.12.1/jquery.min.js"></script>
 
-    {% for css in page_stylesheet_pre %}
-    <link rel="stylesheet" href="{{ PUBLIC_PATH }}/{{ css }}" type="text/css"/>
+    {% for css in page_stylesheet_pre_base[page_template] %}
+    <link rel="stylesheet" href="{{ ASSETS_PREFIX }}{{ css }}" type="text/css"/>
     {% endfor %}
 
-    {% for css in page_stylesheet_print %}
-    <link rel="stylesheet" href="{{ PUBLIC_PATH }}/{{ css }}" type="text/css" media="print"/>
+    {% for css in page_stylesheet_pre_base_print[page_template] %}
+    <link rel="stylesheet" href="{{ ASSETS_PREFIX }}{{ css }}" type="text/css" media="print"/>
     {% endfor %}
 
     {% for css in base_stylesheet %}
-    <link rel="stylesheet" href="{{ PUBLIC_PATH }}/{{ css }}" type="text/css"/>
+    <link rel="stylesheet" href="{{ ASSETS_PREFIX }}{{ css }}" type="text/css"/>
     {% endfor %}
 
     <!--[if lte IE 8]>
     {% for css in base_ie8_stylesheet %}
-    <link rel="stylesheet" href="{{ PUBLIC_PATH }}/{{ css }}" type="text/css"/>
+    <link rel="stylesheet" href="{{ ASSETS_PREFIX }}{{ css }}" type="text/css"/>
     {% endfor %}
     <![endif]-->
 
     {% for js in base_header_javascript %}
-    <script type="application/javascript" src="{{ PUBLIC_PATH }}/{{ js }}"></script>
+    <script type="application/javascript" src="{{ ASSETS_PREFIX }}{{ js }}"></script>
     {% endfor %}
 
-    {% for js in page_header_javascript %}
-    <script type="application/javascript" src="{{ PUBLIC_PATH }}/{{ js }}"></script>
+    {% for js in page_header_javascript[page_template] %}
+    <script type="application/javascript" src="{{ ASSETS_PREFIX }}{{ js }}"></script>
     {% endfor %}
 
     <!--[if lt IE 9]>
-    {% for js in base_ie9_javascript %}
-    <script type="application/javascript" src="{{ PUBLIC_PATH }}/{{ js }}"></script>
+    {% for js in base_ie9_header_javascript %}
+    <script type="application/javascript" src="{{ ASSETS_PREFIX }}{{ js }}"></script>
     {% endfor %}
     <![endif]-->
 
-    {% for css in page_stylesheet %}
-    <link rel="stylesheet" href="{{ PUBLIC_PATH }}/{{ css }}" type="text/css"/>
+    {% for css in page_stylesheet[page_template] %}
+    <link rel="stylesheet" href="{{ ASSETS_PREFIX }}{{ css }}" type="text/css"/>
     {% endfor %}
 
-    {% include "src/templates/snippets/googleanalytics-js.html" %}
+    {% include "../snippets/googleanalytics-js.html" %}
 </head>
 
 <body class="navbar-fixed">
@@ -90,7 +89,7 @@
                     <span class="icon-bar"></span>
                 </button>
                 <a href="/" class="navbar-brand">
-                    <img src="{{ PUBLIC_PATH }}/assets/img/logo.png" alt="Logo"/>
+                    <img src="{{ ASSETS_PREFIX }}/img/logo.png" alt="Logo"/>
                 </a>
             </div>
 
@@ -182,23 +181,23 @@
             <div class="row social-footer">
                 <div class="pull-right">
                     <a href="https://github.com/HeliumEdu" style="color: #ffffff;" target="_blank">
-                        <img src="{{ PUBLIC_PATH }}/assets/img/github.png" alt="GitHub" width="38" height="38"
+                        <img src="{{ ASSETS_PREFIX }}/img/github.png" alt="GitHub" width="38" height="38"
                              class="inline"/>
                     </a>
                     <a href="https://www.facebook.com/heliumedu" style="color: #ffffff;" target="_blank">
-                        <img src="{{ PUBLIC_PATH }}/assets/img/facebook.png" alt="Facebook" width="38" height="38"
+                        <img src="{{ ASSETS_PREFIX }}/img/facebook.png" alt="Facebook" width="38" height="38"
                              class="inline"/>
                     </a>
                     <a href="https://blog.heliumedu.com" style="color: #ffffff;" target="_blank">
-                        <img src="{{ PUBLIC_PATH }}/assets/img/tumblr.png" alt="Blog" width="38" height="38"
+                        <img src="{{ ASSETS_PREFIX }}/img/tumblr.png" alt="Blog" width="38" height="38"
                              class="inline"/>
                     </a>
                     <a href="https://www.paypal.me/alexdlaird" style="color: #ffffff;" target="_blank">
-                        <img src="{{ PUBLIC_PATH }}/assets/img/paypal.png" alt="PayPal" width="38" height="38"
+                        <img src="{{ ASSETS_PREFIX }}/img/paypal.png" alt="PayPal" width="38" height="38"
                              class="inline"/>
                     </a>
                     <a href="https://www.patreon.com/alexdlaird" style="color: #ffffff;" target="_blank">
-                        <img src="{{ PUBLIC_PATH }}/assets/img/patreon.png" alt="Patreon" width="38" height="38"
+                        <img src="{{ ASSETS_PREFIX }}/img/patreon.png" alt="Patreon" width="38" height="38"
                              class="inline"/>
                     </a>
                 </div>
@@ -226,18 +225,14 @@
         src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.1.1/js/bootstrap.min.js"></script>
 
 {% for js in base_javascript %}
-<script type="application/javascript" src="{{ PUBLIC_PATH }}/{{ js }}"></script>
+<script type="application/javascript" src="{{ ASSETS_PREFIX }}{{ js }}"></script>
 {% endfor %}
 
-{% for js in page_javascript %}
-<script type="application/javascript" src="{{ PUBLIC_PATH }}/{{ js }}"></script>
+{% for js in page_javascript[page_template] %}
+<script type="application/javascript" src="{{ ASSETS_PREFIX }}{{ js }}"></script>
 {% endfor %}
 
-{% for js in redirect_javascript %}
-<script type="application/javascript" src="{{ PUBLIC_PATH }}/{{ js }}"></script>
-{% endfor %}
-
-{% include "src/templates/snippets/structureddata-js.html" %}
+{% include "../snippets/structureddata-js.html" %}
 
 </body>
 </html>

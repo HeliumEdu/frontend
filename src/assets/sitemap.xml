@@ -26,6 +26,11 @@
         <priority>0.5</priority>
     </url>
     <url>
+        <loc>https://www.heliumedu.com/docs</loc>
+        <changefreq>daily</changefreq>
+        <priority>0.5</priority>
+    </url>
+    <url>
         <loc>https://www.heliumedu.com/privacy</loc>
         <changefreq>daily</changefreq>
         <priority>0.5</priority>

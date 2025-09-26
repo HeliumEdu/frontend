@@ -1,4 +1,6 @@
-{% extends "src/templates/base.html" %}
+{% extends "base/base.html" %}
+
+{% set page_template = "planner_calendar" %}
 
 {% block title %}{{ PROJECT_NAME }} | Calendar{% endblock %}
 
@@ -314,7 +316,7 @@
                     <div class="modal-body">
                         <div class="well">
                             <h1 class="grey lighter smaller">
-                                <img src="{{ PUBLIC_PATH }}/assets/img/logo_square.png" width="50" height="50" class="inline"
+                                <img src="{{ ASSETS_PREFIX }}/img/logo_square.png" width="50" height="50" class="inline"
                                      style="margin-top: -15px;"/>
                                 <span>Welcome to Helium!</span>
                             </h1>
@@ -342,7 +344,7 @@
 
                         <div class="row" style="margin-right: 5px; margin-top: -10px; margin-bottom: -25px;">
                             <div>
-                                <a href="https://www.patreon.com/alexdlaird"><img src="{{ PUBLIC_PATH }}/assets/img/support_patreon.png" style="max-width: 30%; padding-left: 15px;" /></a>
+                                <a href="https://www.patreon.com/alexdlaird"><img src="{{ ASSETS_PREFIX }}/img/support_patreon.png" style="max-width: 30%; padding-left: 15px;" /></a>
                             </div>
                         </div>
                     </div>

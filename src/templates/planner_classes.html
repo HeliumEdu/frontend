@@ -1,4 +1,6 @@
-{% extends "src/templates/base.html" %}
+{% extends "base/base.html" %}
+
+{% set page_template = "planner_classes" %}
 
 {% block title %}{{ PROJECT_NAME }} | Classes{% endblock %}
 
@@ -36,7 +38,7 @@
                                     <div class="helper-container">
                                         <div class="well">
                                             <h1 class="grey lighter smaller">
-                                                <img src="{{ PUBLIC_PATH }}/assets/img/logo_square.png" width="50" height="50"
+                                                <img src="{{ ASSETS_PREFIX }}/img/logo_square.png" width="50" height="50"
                                                      class="logo-icon"/>
                                                 Add Your Classes to Get Started
                                             </h1>
@@ -263,7 +265,7 @@
                                                            for="id_color_select">Color</label>
 
                                                     <div class="col-sm-4 col-xs-12">
-                                                        {% include "src/templates/snippets/colorselect.html" %}
+                                                        {% include "snippets/colorselect.html" %}
                                                     </div>
                                                 </div>
                                                 <div class="form-group">

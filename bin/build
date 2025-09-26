@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+if [[ "$npm_command" != "run-script" ]] && [[ "$npm_command" != "run" ]]; then
+  echo "This script must be run within npm. Try \`npm build-dev\` or \`make build-dev\` instead."
+  exit 1;
+fi
+
+VERSION=$(node-jq -r '.version' package.json)
+
+mkdir -p build/assets/$VERSION
+
+cp src/assets/* build/assets
+cp -r src/assets/css build/assets/$VERSION
+cp -r src/assets/font build/assets/$VERSION
+cp -r src/assets/img build/assets/$VERSION
+cp -r src/assets/js build/assets/$VERSION
+
+if [[ "$ENVIRONMENT" != "local" ]]; then
+  MIN_EXT=".min"
+  ./bin/compress
+else
+  MIN_EXT=""
+fi
+
+sed "s/\${DIST_VERSION}/$VERSION/g; s/\${MIN_EXT}/$MIN_EXT/g" config/nj_context.tpl.json > config/nj_context.json
+
+nunjucks "*.html" config/nj_context.json -p src/templates --options config/nj_options.json -o build/
+
+mkdir build/planner
+mv build/planner_index.html build/planner/index.html
+mv build/planner_calendar.html build/planner/calendar.html
+mv build/planner_classes.html build/planner/classes.html
+mv build/planner_materials.html build/planner/materials.html
+mv build/planner_grades.html build/planner/grades.html

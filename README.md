@@ -22,9 +22,8 @@ expert in search of an open source project and interested in joining forces? [Re
 and let us know!
 
 Be aware that this is legacy code, and we would love to have the capacity to completely rewrite it. In its current
-form, [Webpack](https://webpack.js.org/) generates a bundle that is useless and should be ignored,
-[Nunjucks](https://mozilla.github.io/nunjucks/) is being used to process HTML templates, and the way JavaScript and
-Ajax are being used is pretty dated.
+form, [Nunjucks](https://mozilla.github.io/nunjucks/) is being used to process HTML templates, and way JavaScript and Ajax are being used is pretty
+dated.
 
 ## Development
 

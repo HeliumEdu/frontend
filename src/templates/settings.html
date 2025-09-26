@@ -1,4 +1,6 @@
-{% extends "src/templates/base.html" %}
+{% extends "base/base.html" %}
+
+{% set page_template = "settings" %}
 
 {% block title %}{{ PROJECT_NAME }} | Settings{% endblock %}
 
@@ -57,15 +59,15 @@
                             </ul>
 
                             <div class="tab-content no-border padding-24">
-                                {% include "src/templates/snippets/settings/preferencestab.html" %}
+                                {% include "snippets/settings/preferencestab.html" %}
 
-                                {% include "src/templates/snippets/settings/personaltab.html" %}
+                                {% include "snippets/settings/personaltab.html" %}
 
-                                {% include "src/templates/snippets/settings/accounttab.html" %}
+                                {% include "snippets/settings/accounttab.html" %}
 
-                                {% include "src/templates/snippets/settings/feedtab.html" %}
+                                {% include "snippets/settings/feedtab.html" %}
 
-                                {% include "src/templates/snippets/settings/importexporttab.html" %}
+                                {% include "snippets/settings/importexporttab.html" %}
                             </div>
                         </div>
                     </div>

@@ -485,7 +485,7 @@ $.ajax({
            }
        });
 
-if (localStorage.getItem("access_token") !== null && !window.REDIRECT_ROUTE) {
+if (!window.ignore_access_token && localStorage.getItem("access_token") !== null) {
     $.ajax({
                type: "GET",
                url: helium.API_URL + "/auth/user/",

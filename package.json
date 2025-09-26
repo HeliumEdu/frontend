@@ -16,8 +16,6 @@
         "node": ">=20"
     },
     "scripts": {
-        "build": "./bin/minify && cross-env NODE_ENV=production webpack --config webpack.prod.js --mode production",
-        "start": "NODE_ENV=development webpack-dev-server --open --config webpack.dev.js",
         "test": "start-server-and-test start http://localhost:3000 mocha"
     },
     "devDependencies": {

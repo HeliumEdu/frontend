@@ -1,4 +1,4 @@
-.PHONY: all install install-dev run-devserver clean build test build-docker run-docker stop-docker restart-docker publish-docker
+.PHONY: all install install-dev run-devserver clean clean-assets build build-dev test build-docker run-docker stop-docker restart-docker publish-docker
 
 all: test build-docker run-docker
 
@@ -7,24 +7,30 @@ TAG_VERSION ?= latest
 PLATFORM ?= arm64
 
 install:
-	NODE_OPTIONS=--openssl-legacy-provider NODE_ENV=production npm install
+	NODE_ENV=production npm install
 
 install-dev:
-	NODE_OPTIONS=--openssl-legacy-provider npm install
+	npm install
 
-run-devserver: install-dev
+clean-assets:
+	rm -rf build
+
+clean: clean-assets
+	rm -rf node_modules
+
+build: clean-assets install
+	npm run build-deploy
+
+build-dev: clean-assets install-dev
+	npm run build-dev
+
+run-devserver: build-dev
 	# This will start a local dev server that runs the unminified frontend, outside of Docker. This can be useful
 	# during active development, so images don't need to be rebuilt to validate each change.
-	NODE_OPTIONS=--openssl-legacy-provider npm start
-
-clean:
-	rm -rf node_modules build src/assets/js/*.min.js src/assets/js/vendors/*.min.js
-
-build: install
-	NODE_OPTIONS=--openssl-legacy-provider npm run build
+	npm start
 
 test: install-dev
-	NODE_OPTIONS=--openssl-legacy-provider npm run test
+	npm run test
 
 build-docker:
 	docker buildx build -t helium/frontend:$(PLATFORM)-latest -t helium/frontend:$(PLATFORM)-$(TAG_VERSION) --platform=linux/$(PLATFORM) --load .

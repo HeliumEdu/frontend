@@ -1,7 +1,5 @@
 # robots.txt for https://www.heliumedu.com/
 User-agent: *
-Disallow: /admin
 Disallow: /admin/
-Disallow: /planner
 Disallow: /planner/
 Sitemap: https://www.heliumedu.com/sitemap.xml

@@ -1,4 +1,6 @@
-{% extends "src/templates/base.html" %}
+{% extends "base/base.html" %}
+
+{% set page_template = "planner_grades" %}
 
 {% block title %}{{ PROJECT_NAME }} | Grades{% endblock %}
 
@@ -30,7 +32,7 @@
                                     <div class="helper-container">
                                         <div class="well">
                                             <h1 class="grey lighter smaller">
-                                                <img src="{{ PUBLIC_PATH }}/assets/img/logo_square.png" width="50" height="50"
+                                                <img src="{{ ASSETS_PREFIX }}/img/logo_square.png" width="50" height="50"
                                                      class="logo-icon"/>
                                                 Add Your Classes to Get Started
                                             </h1>

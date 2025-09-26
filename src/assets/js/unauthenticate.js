@@ -9,4 +9,5 @@
  * @version 1.11.8
  */
 
-window.REDIRECT_ROUTE = true;
+
+window.ignore_access_token = true;

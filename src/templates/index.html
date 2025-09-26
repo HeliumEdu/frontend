@@ -1,4 +1,4 @@
-{% extends "src/templates/base.html" %}
+{% extends "base/base.html" %}
 
 {% block title %}{{ PROJECT_NAME }} | {{ PROJECT_TAGLINE }}{% endblock %}
 
@@ -15,19 +15,19 @@
         </ol>
         <div class="carousel-inner">
             <div class="item active">
-                <img src="{{ PUBLIC_PATH }}/assets/img/slider_1.png" class="thumbnail" alt="Slider 1"/>
+                <img src="{{ ASSETS_PREFIX }}/img/slider_1.png" class="thumbnail" alt="Slider 1"/>
             </div>
             <div class="item">
-                <img src="{{ PUBLIC_PATH }}/assets/img/slider_2.png" class="thumbnail" alt="Slider 2"/>
+                <img src="{{ ASSETS_PREFIX }}/img/slider_2.png" class="thumbnail" alt="Slider 2"/>
             </div>
             <div class="item">
-                <img src="{{ PUBLIC_PATH }}/assets/img/slider_3.png" class="thumbnail" alt="Slider 3"/>
+                <img src="{{ ASSETS_PREFIX }}/img/slider_3.png" class="thumbnail" alt="Slider 3"/>
             </div>
             <div class="item">
-                <img src="{{ PUBLIC_PATH }}/assets/img/slider_4.png" class="thumbnail" alt="Slider 4"/>
+                <img src="{{ ASSETS_PREFIX }}/img/slider_4.png" class="thumbnail" alt="Slider 4"/>
             </div>
             <div class="item">
-                <img src="{{ PUBLIC_PATH }}/assets/img/slider_5.png" class="thumbnail" alt="Slider 5"/>
+                <img src="{{ ASSETS_PREFIX }}/img/slider_5.png" class="thumbnail" alt="Slider 5"/>
             </div>
         </div>
         <a class="left carousel-control" href="#tour-carousel" role="button" data-slide="prev"><span
@@ -50,7 +50,7 @@
     <div class="container marketing">
         <div class="row">
             <div class="col-lg-4 align-center">
-                <img class="img-circle" src="{{ PUBLIC_PATH }}/assets/img/circle_1.png"
+                <img class="img-circle" src="{{ ASSETS_PREFIX }}/img/circle_1.png"
                      style="width: 140px; height: 140px;"
                      alt="Circle 1"/>
 
@@ -66,7 +66,7 @@
             <div class="space-24 visible-xs"></div>
 
             <div class="col-lg-4 align-center">
-                <img class="img-circle" src="{{ PUBLIC_PATH }}/assets/img/circle_2.png"
+                <img class="img-circle" src="{{ ASSETS_PREFIX }}/img/circle_2.png"
                      style="width: 140px; height: 140px;"
                      alt="Circle 2"/>
 
@@ -81,7 +81,7 @@
             <div class="space-24 visible-xs"></div>
 
             <div class="col-lg-4 align-center">
-                <img class="img-circle" src="{{ PUBLIC_PATH }}/assets/img/circle_3.png"
+                <img class="img-circle" src="{{ ASSETS_PREFIX }}/img/circle_3.png"
                      style="width: 140px; height: 140px;"
                      alt="Circle 3"/>
 
@@ -98,7 +98,7 @@
 
         <div class="row">
             <div class="col-lg-4 align-center">
-                <img class="img-circle" src="{{ PUBLIC_PATH }}/assets/img/circle_4.png"
+                <img class="img-circle" src="{{ ASSETS_PREFIX }}/img/circle_4.png"
                      style="width: 140px; height: 140px;"
                      alt="Circle 4"/>
 
@@ -114,7 +114,7 @@
             <div class="space-24 visible-xs"></div>
 
             <div class="col-lg-4 align-center">
-                <img class="img-circle" src="{{ PUBLIC_PATH }}/assets/img/circle_5.png"
+                <img class="img-circle" src="{{ ASSETS_PREFIX }}/img/circle_5.png"
                      style="width: 140px; height: 140px;"
                      alt="Circle 5"/>
 
@@ -130,7 +130,7 @@
             <div class="space-24 visible-xs"></div>
 
             <div class="col-lg-4 align-center">
-                <img class="img-circle" src="{{ PUBLIC_PATH }}/assets/img/circle_6.png"
+                <img class="img-circle" src="{{ ASSETS_PREFIX }}/img/circle_6.png"
                      style="width: 140px; height: 140px;"
                      alt="Circle 6"/>
 
@@ -167,7 +167,7 @@
                             class="icon-arrow-up icon-on-right"></i></a></p>
             </div>
             <div class="col-md-5">
-                <img class="featurette-image thumbnail img-responsive" src="{{ PUBLIC_PATH }}/assets/img/feature_1.png"
+                <img class="featurette-image thumbnail img-responsive" src="{{ ASSETS_PREFIX }}/img/feature_1.png"
                      alt="Featured 1"/>
             </div>
         </div>
@@ -177,7 +177,7 @@
 
         <div class="row featurette">
             <div class="col-md-5">
-                <img class="featurette-image thumbnail img-responsive" src="{{ PUBLIC_PATH }}/assets/img/feature_2.png"
+                <img class="featurette-image thumbnail img-responsive" src="{{ ASSETS_PREFIX }}/img/feature_2.png"
                      alt="Featured 2"/>
             </div>
             <div class="col-md-7">
@@ -221,7 +221,7 @@
                         class="icon-arrow-up icon-on-right"></i></a></p>
             </div>
             <div class="col-md-5">
-                <img class="featurette-image thumbnail img-responsive" src="{{ PUBLIC_PATH }}/assets/img/feature_3.png"
+                <img class="featurette-image thumbnail img-responsive" src="{{ ASSETS_PREFIX }}/img/feature_3.png"
                      alt="Featured 3"/>
             </div>
         </div>
@@ -231,7 +231,7 @@
 
         <div class="row featurette">
             <div class="col-md-5">
-                <img class="featurette-image thumbnail img-responsive" src="{{ PUBLIC_PATH }}/assets/img/feature_4.png"
+                <img class="featurette-image thumbnail img-responsive" src="{{ ASSETS_PREFIX }}/img/feature_4.png"
                      alt="Featured 4"/>
             </div>
             <div class="col-md-7">
@@ -274,7 +274,7 @@
                         class="icon-arrow-up icon-on-right"></i></a></p>
             </div>
             <div class="col-md-5">
-                <img class="featurette-image thumbnail img-responsive" src="{{ PUBLIC_PATH }}/assets/img/feature_5.png"
+                <img class="featurette-image thumbnail img-responsive" src="{{ ASSETS_PREFIX }}/img/feature_5.png"
                      alt="Featured 5"/>
             </div>
         </div>
@@ -284,7 +284,7 @@
 
         <div class="row featurette">
             <div class="col-md-5">
-                <img class="featurette-image thumbnail img-responsive" src="{{ PUBLIC_PATH }}/assets/img/feature_6.png"
+                <img class="featurette-image thumbnail img-responsive" src="{{ ASSETS_PREFIX }}/img/feature_6.png"
                      alt="Featured 6"/>
             </div>
             <div class="col-md-7">
@@ -335,7 +335,7 @@
                             class="icon-arrow-up icon-on-right"></i></a></p>
             </div>
             <div class="col-md-5">
-                <img class="featurette-image img-responsive img-circle" src="{{ PUBLIC_PATH }}/assets/img/dingo.png"
+                <img class="featurette-image img-responsive img-circle" src="{{ ASSETS_PREFIX }}/img/dingo.png"
                      alt="Mascot"/>
             </div>
         </div>

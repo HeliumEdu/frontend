@@ -1,0 +1,206 @@
+{
+    "PROJECT_NAME": "Helium Student Planner",
+    "PROJECT_TAGLINE": "Lightening Your Course Load",
+    "PROJECT_EMAIL": "contact@heliumedu.com",
+    "PROJECT_VERSION": "1.11.19",
+    "COPYRIGHT_YEAR": 2025,
+    "ASSETS_PREFIX": "/assets/${DIST_VERSION}",
+    "base_header_javascript": [
+        "/js/vendors/ace-extra${MIN_EXT}.js",
+        "/js/vendors/js.cookie${MIN_EXT}.js",
+        "/js/vendors/url${MIN_EXT}.js"
+    ],
+    "base_javascript": [
+        "/js/vendors/moment${MIN_EXT}.js",
+        "/js/vendors/moment-timezone${MIN_EXT}.js",
+        "/js/vendors/jquery.ui.touch-punch${MIN_EXT}.js",
+        "/js/vendors/chosen.jquery${MIN_EXT}.js",
+        "/js/vendors/spin${MIN_EXT}.js",
+        "/js/vendors/jquery.spin${MIN_EXT}.js",
+        "/js/vendors/ace-elements${MIN_EXT}.js",
+        "/js/vendors/ace${MIN_EXT}.js",
+        "/js/base${MIN_EXT}.js",
+        "/js/api${MIN_EXT}.js"
+    ],
+    "base_ie9_header_javascript": [
+        "/js/vendors/html5shiv${MIN_EXT}.js",
+        "/js/vendors/respond${MIN_EXT}.js"
+    ],
+    "base_stylesheet": [
+        "/css/vendors/jquery-ui.full${MIN_EXT}.css",
+        "/css/vendors/chosen${MIN_EXT}.css",
+        "/css/vendors/font-awesome${MIN_EXT}.css",
+        "/css/vendors/ace-fonts${MIN_EXT}.css",
+        "/css/vendors/ace${MIN_EXT}.css",
+        "/css/base${MIN_EXT}.css"
+    ],
+    "base_ie8_stylesheet": [
+        "/css/vendors/ace-ie${MIN_EXT}.css"
+    ],
+    "page_header_javascript": {
+        "verify": [
+            "/js/unauthenticate${MIN_EXT}.js"
+        ],
+        "support": [
+            "/js/unauthenticate${MIN_EXT}.js"
+        ],
+        "docs": [
+            "/js/unauthenticate${MIN_EXT}.js"
+        ],
+        "status": [
+            "/js/unauthenticate${MIN_EXT}.js"
+        ],
+        "settings": [
+            "/js/authenticated${MIN_EXT}.js"
+        ],
+        "planner_index": [
+            "/js/unauthenticate${MIN_EXT}.js"
+        ],
+        "planner_calendar": [
+            "/js/authenticated${MIN_EXT}.js"
+        ],
+        "planner_classes": [
+            "/js/authenticated${MIN_EXT}.js"
+        ],
+        "planner_materials": [
+            "/js/authenticated${MIN_EXT}.js"
+        ],
+        "planner_grades": [
+            "/js/authenticated${MIN_EXT}.js"
+        ]
+    },
+    "page_javascript": {
+        "register": [
+            "/js/register${MIN_EXT}.js"
+        ],
+        "login": [
+            "/js/login${MIN_EXT}.js"
+        ],
+        "forgot": [
+            "/js/forgot${MIN_EXT}.js"
+        ],
+        "logout": [
+            "/js/logout${MIN_EXT}.js"
+        ],
+        "verify": [
+            "/js/verify${MIN_EXT}.js"
+        ],
+        "support": [
+            "/js/support${MIN_EXT}.js"
+        ],
+        "docs": [
+            "/js/docs${MIN_EXT}.js"
+        ],
+        "status": [
+            "/js/status${MIN_EXT}.js"
+        ],
+        "settings": [
+            "/js/vendors/bootstrap-editable${MIN_EXT}.js",
+            "/js/vendors/jquery.simplecolorpicker${MIN_EXT}.js",
+            "/js/vendors/bootbox${MIN_EXT}.js",
+            "/js/settings${MIN_EXT}.js"
+        ],
+        "planner_index": [
+            "/js/planner_index${MIN_EXT}.js"
+        ],
+        "planner_calendar": [
+            "/js/vendors/bootstrap-datepicker${MIN_EXT}.js",
+            "/js/vendors/bootstrap-timepicker${MIN_EXT}.js",
+            "/js/vendors/bootstrap-editable${MIN_EXT}.js",
+            "/js/vendors/bootbox${MIN_EXT}.js",
+            "/js/vendors/jquery.dataTables${MIN_EXT}.js",
+            "/js/vendors/jquery.dataTables.bootstrap${MIN_EXT}.js",
+            "/js/vendors/fullcalendar${MIN_EXT}.js",
+            "/js/vendors/dropzone${MIN_EXT}.js",
+            "/js/vendors/jquery.qtip${MIN_EXT}.js",
+            "/js/vendors/jquery.hotkeys${MIN_EXT}.js",
+            "/js/vendors/bootstrap-wysiwyg${MIN_EXT}.js",
+            "/js/calendar${MIN_EXT}.js",
+            "/js/calendar-triggers${MIN_EXT}.js"
+        ],
+        "planner_classes": [
+            "/js/vendors/bootstrap-datepicker${MIN_EXT}.js",
+            "/js/vendors/bootstrap-timepicker${MIN_EXT}.js",
+            "/js/vendors/bootstrap-editable${MIN_EXT}.js",
+            "/js/vendors/typeahead${MIN_EXT}.js",
+            "/js/vendors/typeaheadjs${MIN_EXT}.js",
+            "/js/vendors/bootbox${MIN_EXT}.js",
+            "/js/vendors/jquery.dataTables${MIN_EXT}.js",
+            "/js/vendors/jquery.dataTables.bootstrap${MIN_EXT}.js",
+            "/js/vendors/jquery.simplecolorpicker${MIN_EXT}.js",
+            "/js/vendors/dropzone${MIN_EXT}.js",
+            "/js/classes${MIN_EXT}.js",
+            "/js/classes-triggers${MIN_EXT}.js"
+        ],
+        "planner_materials": [
+            "/js/vendors/bootstrap-editable${MIN_EXT}.js",
+            "/js/vendors/bootbox${MIN_EXT}.js",
+            "/js/vendors/jquery.dataTables${MIN_EXT}.js",
+            "/js/vendors/jquery.dataTables.bootstrap${MIN_EXT}.js",
+            "/js/vendors/jquery.hotkeys${MIN_EXT}.js",
+            "/js/vendors/bootstrap-wysiwyg${MIN_EXT}.js",
+            "/js/materials${MIN_EXT}.js",
+            "/js/materials-triggers${MIN_EXT}.js"
+        ],
+        "planner_grades": [
+            "/js/vendors/bootbox${MIN_EXT}.js",
+            "/js/vendors/jquery.easy-pie-chart${MIN_EXT}.js",
+            "/js/vendors/jquery.flot${MIN_EXT}.js",
+            "/js/vendors/jquery.flot.pie${MIN_EXT}.js",
+            "/js/vendors/jquery.flot.resize${MIN_EXT}.js",
+            "/js/vendors/jquery.flot.time${MIN_EXT}.js",
+            "/js/grades${MIN_EXT}.js"
+        ]
+    },
+    "page_stylesheet_pre_base": {
+        "settings": [
+            "/css/vendors/bootstrap-editable${MIN_EXT}.css",
+            "/css/vendors/jquery.simplecolorpicker${MIN_EXT}.css",
+            "/css/vendors/jquery.simplecolorpicker-glyphicons${MIN_EXT}.css"
+        ],
+        "planner_calendar": [
+            "/css/vendors/bootstrap-editable${MIN_EXT}.css",
+            "/css/vendors/fullcalendar${MIN_EXT}.css",
+            "/css/vendors/datepicker${MIN_EXT}.css",
+            "/css/vendors/bootstrap-timepicker${MIN_EXT}.css",
+            "/css/vendors/jquery.simplecolorpicker${MIN_EXT}.css",
+            "/css/vendors/jquery.simplecolorpicker-glyphicons${MIN_EXT}.css",
+            "/css/vendors/dropzone${MIN_EXT}.css",
+            "/css/vendors/jquery.qtip${MIN_EXT}.css"
+        ],
+        "planner_classes": [
+            "/css/vendors/bootstrap-editable${MIN_EXT}.css",
+            "/css/vendors/typeahead.js-bootstrap${MIN_EXT}.css",
+            "/css/vendors/datepicker${MIN_EXT}.css",
+            "/css/vendors/bootstrap-timepicker${MIN_EXT}.css",
+            "/css/vendors/jquery.simplecolorpicker${MIN_EXT}.css",
+            "/css/vendors/jquery.simplecolorpicker-glyphicons${MIN_EXT}.css",
+            "/css/vendors/dropzone${MIN_EXT}.css"
+        ],
+        "planner_materials": [
+            "/css/materials${MIN_EXT}.css"
+        ],
+        "planner_grades": [
+            "/css/grades${MIN_EXT}.css"
+        ]
+    },
+    "page_stylesheet_pre_base_print": {
+        "planner_calendar": [
+            "/css/vendors/fullcalendar.print${MIN_EXT}.css"
+        ]
+    },
+    "page_stylesheet": {
+        "settings": [
+            "/css/settings${MIN_EXT}.css"
+        ],
+        "planner_calendar": [
+            "/css/calendar${MIN_EXT}.css"
+        ],
+        "planner_classes": [
+            "/css/classes${MIN_EXT}.css"
+        ],
+        "planner_materials": [
+            "/css/materials${MIN_EXT}.css"
+        ]
+    }
+}
