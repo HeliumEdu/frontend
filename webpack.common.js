@@ -9,6 +9,7 @@ const projectTagline = "Lightening Your Course Load";
 const projectVersion = require("./package.json").version;
 
 const min_suffix = process.env.NODE_ENV === 'production' ? '.min' : '';
+const project_version_prefix = process.env.NODE_ENV === 'production' ? ('.' + projectVersion) : '';
 
 const defaultContext = {
     'PUBLIC_PATH': publicPath,
@@ -24,10 +25,10 @@ const defaultContext = {
         path.join('assets', 'js', 'vendors', `chosen.jquery${min_suffix}.js`),
         path.join('assets', 'js', 'vendors', `spin${min_suffix}.js`),
         path.join('assets', 'js', 'vendors', `jquery.spin${min_suffix}.js`),
-        path.join('assets', 'js', `base.${projectVersion}${min_suffix}.js`),
+        path.join('assets', 'js', `base${project_version_prefix}${min_suffix}.js`),
         path.join('assets', 'js', 'vendors', `ace-elements${min_suffix}.js`),
         path.join('assets', 'js', 'vendors', `ace${min_suffix}.js`),
-        path.join('assets', 'js', `api.${projectVersion}${min_suffix}.js`)
+        path.join('assets', 'js', `api${project_version_prefix}${min_suffix}.js`)
     ],
     'base_header_javascript': [
         path.join('assets', 'js', 'vendors', `ace-extra${min_suffix}.js`),
@@ -44,7 +45,7 @@ const defaultContext = {
         path.join('assets', 'css', 'vendors', `font-awesome${min_suffix}.css`),
         path.join('assets', 'css', 'vendors', `ace-fonts${min_suffix}.css`),
         path.join('assets', 'css', 'vendors', `ace${min_suffix}.css`),
-        path.join('assets', 'css', `base.${projectVersion}${min_suffix}.css`)
+        path.join('assets', 'css', `base${project_version_prefix}${min_suffix}.css`)
     ],
     'base_ie8_stylesheet': [
         path.join('assets', 'css', 'vendors', `ace-ie${min_suffix}.css`)
@@ -55,7 +56,7 @@ module.exports = {
     context: path.resolve(__dirname, "src"),
     entry: './assets/js/base.js',
     output: {
-        filename: path.join('js', `[name].${projectVersion}${min_suffix}.bundle.js`),
+        filename: path.join('js', `[name]${project_version_prefix}${min_suffix}.bundle.js`),
         path: path.resolve(__dirname, 'build'),
         publicPath: publicPath
     },
@@ -137,7 +138,7 @@ module.exports = {
                                               to: "register.html",
                                               context: _.extend({}, defaultContext, {
                                                   "page_javascript": [path.join('assets', 'js',
-                                                                                `register.${projectVersion}${min_suffix}.js`)]
+                                                                                `register${project_version_prefix}${min_suffix}.js`)]
                                               })
                                           },
                                           {
@@ -145,7 +146,7 @@ module.exports = {
                                               to: "login.html",
                                               context: _.extend({}, defaultContext, {
                                                   "page_javascript": [path.join('assets', 'js',
-                                                                                `login.${projectVersion}${min_suffix}.js`)]
+                                                                                `login${project_version_prefix}${min_suffix}.js`)]
                                               })
                                           },
                                           {
@@ -153,7 +154,7 @@ module.exports = {
                                               to: "forgot.html",
                                               context: _.extend({}, defaultContext, {
                                                   "page_javascript": [path.join('assets', 'js',
-                                                                                `forgot.${projectVersion}${min_suffix}.js`)]
+                                                                                `forgot${project_version_prefix}${min_suffix}.js`)]
                                               })
                                           },
                                           {
@@ -161,7 +162,7 @@ module.exports = {
                                               to: "logout.html",
                                               context: _.extend({}, defaultContext, {
                                                   "page_javascript": [path.join('assets', 'js',
-                                                                                `logout.${projectVersion}${min_suffix}.js`)]
+                                                                                `logout${project_version_prefix}${min_suffix}.js`)]
                                               })
                                           },
                                           {
@@ -169,9 +170,9 @@ module.exports = {
                                               to: "verify.html",
                                               context: _.extend({}, defaultContext, {
                                                   "page_header_javascript": [path.join('assets', 'js',
-                                                                                       `redirecting.${projectVersion}${min_suffix}.js`)],
+                                                                                       `redirecting${project_version_prefix}${min_suffix}.js`)],
                                                   "page_javascript": [path.join('assets', 'js',
-                                                                                `verify.${projectVersion}${min_suffix}.js`)]
+                                                                                `verify${project_version_prefix}${min_suffix}.js`)]
                                               })
                                           },
                                           {
@@ -179,9 +180,9 @@ module.exports = {
                                               to: "support.html",
                                               context: _.extend({}, defaultContext, {
                                                   "page_header_javascript": [path.join('assets', 'js',
-                                                                                       `redirecting.${projectVersion}${min_suffix}.js`)],
+                                                                                       `redirecting${project_version_prefix}${min_suffix}.js`)],
                                                   "page_javascript": [path.join('assets', 'js',
-                                                                                `support.${projectVersion}${min_suffix}.js`)]
+                                                                                `support${project_version_prefix}${min_suffix}.js`)]
                                               })
                                           },
                                           {
@@ -189,9 +190,9 @@ module.exports = {
                                               to: "docs.html",
                                               context: _.extend({}, defaultContext, {
                                                   "page_header_javascript": [path.join('assets', 'js',
-                                                                                       `redirecting.${projectVersion}${min_suffix}.js`)],
+                                                                                       `redirecting${project_version_prefix}${min_suffix}.js`)],
                                                   "page_javascript": [path.join('assets', 'js',
-                                                                                `docs.${projectVersion}${min_suffix}.js`)]
+                                                                                `docs${project_version_prefix}${min_suffix}.js`)]
                                               })
                                           },
                                           {
@@ -199,7 +200,7 @@ module.exports = {
                                               to: "status.html",
                                               context: _.extend({}, defaultContext, {
                                                   "page_javascript": [path.join('assets', 'js',
-                                                                                `status.${projectVersion}${min_suffix}.js`)]
+                                                                                `status${project_version_prefix}${min_suffix}.js`)]
                                               })
                                           },
                                           {
@@ -207,9 +208,9 @@ module.exports = {
                                               to: "admin.html",
                                               context: _.extend({}, defaultContext, {
                                                   "page_header_javascript": [path.join('assets', 'js',
-                                                                                       `redirecting.${projectVersion}${min_suffix}.js`)],
+                                                                                       `redirecting${project_version_prefix}${min_suffix}.js`)],
                                                   "page_javascript": [path.join('assets', 'js',
-                                                                                `admin.${projectVersion}${min_suffix}.js`)]
+                                                                                `admin${project_version_prefix}${min_suffix}.js`)]
                                               })
                                           },
                                           {
@@ -217,9 +218,9 @@ module.exports = {
                                               to: "contact.html",
                                               context: _.extend({}, defaultContext, {
                                                   "page_header_javascript": [path.join('assets', 'js',
-                                                                                       `redirecting.${projectVersion}${min_suffix}.js`)],
+                                                                                       `redirecting${project_version_prefix}${min_suffix}.js`)],
                                                   "page_javascript": [path.join('assets', 'js',
-                                                                                `support.${projectVersion}${min_suffix}.js`)]
+                                                                                `support${project_version_prefix}${min_suffix}.js`)]
                                               })
                                           },
                                           {
@@ -227,9 +228,9 @@ module.exports = {
                                               to: "planner/index.html",
                                               context: _.extend({}, defaultContext, {
                                                   "page_header_javascript": [path.join('assets', 'js',
-                                                                                       `redirecting.${projectVersion}${min_suffix}.js`)],
+                                                                                       `redirecting${project_version_prefix}${min_suffix}.js`)],
                                                   "page_javascript": [path.join('assets', 'js',
-                                                                                `planner_index.${projectVersion}${min_suffix}.js`)]
+                                                                                `planner_index${project_version_prefix}${min_suffix}.js`)]
                                               })
                                           },
                                           {
@@ -237,9 +238,9 @@ module.exports = {
                                               to: "tour.html",
                                               context: _.extend({}, defaultContext, {
                                                   "page_header_javascript": [path.join('assets', 'js',
-                                                                                       `redirecting.${projectVersion}${min_suffix}.js`)],
+                                                                                       `redirecting${project_version_prefix}${min_suffix}.js`)],
                                                   "page_javascript": [path.join('assets', 'js',
-                                                                                `tour.${projectVersion}${min_suffix}.js`)]
+                                                                                `tour${project_version_prefix}${min_suffix}.js`)]
                                               })
                                           },
                                           {
@@ -247,7 +248,7 @@ module.exports = {
                                               to: "settings.html",
                                               context: _.extend({}, defaultContext, {
                                                   "page_header_javascript": [path.join('assets', 'js',
-                                                                                       `authenticated.${projectVersion}${min_suffix}.js`)],
+                                                                                       `authenticated${project_version_prefix}${min_suffix}.js`)],
                                                   "page_stylesheet_pre": [
                                                       path.join('assets', 'css', 'vendors',
                                                                 `bootstrap-editable${min_suffix}.css`),
@@ -257,7 +258,7 @@ module.exports = {
                                                                 `jquery.simplecolorpicker-glyphicons${min_suffix}.css`)
                                                   ],
                                                   "page_stylesheet": [path.join('assets', 'css',
-                                                                                `settings.${projectVersion}${min_suffix}.css`)],
+                                                                                `settings${project_version_prefix}${min_suffix}.css`)],
                                                   "page_javascript": [
                                                       path.join('assets', 'js', 'vendors',
                                                                 `bootstrap-editable${min_suffix}.js`),
@@ -265,7 +266,7 @@ module.exports = {
                                                                 `jquery.simplecolorpicker${min_suffix}.js`),
                                                       path.join('assets', 'js', 'vendors', `bootbox${min_suffix}.js`),
                                                       path.join('assets', 'js',
-                                                                `settings.${projectVersion}${min_suffix}.js`)
+                                                                `settings${project_version_prefix}${min_suffix}.js`)
                                                   ]
                                               })
                                           },
@@ -274,7 +275,7 @@ module.exports = {
                                               to: "planner/calendar.html",
                                               context: _.extend({}, defaultContext, {
                                                   "page_header_javascript": [path.join('assets', 'js',
-                                                                                       `authenticated.${projectVersion}${min_suffix}.js`)],
+                                                                                       `authenticated${project_version_prefix}${min_suffix}.js`)],
                                                   "page_stylesheet_pre": [
                                                       path.join('assets', 'css', 'vendors',
                                                                 `bootstrap-editable${min_suffix}.css`),
@@ -296,7 +297,7 @@ module.exports = {
                                                   "page_stylesheet_print": [path.join('assets', 'css', 'vendors',
                                                                                       `fullcalendar.print${min_suffix}.css`)],
                                                   "page_stylesheet": [path.join('assets', 'css',
-                                                                                `calendar.${projectVersion}${min_suffix}.css`)],
+                                                                                `calendar${project_version_prefix}${min_suffix}.css`)],
                                                   "page_javascript": [
                                                       path.join('assets', 'js', 'vendors',
                                                                 `bootstrap-datepicker${min_suffix}.js`),
@@ -319,9 +320,9 @@ module.exports = {
                                                       path.join('assets', 'js', 'vendors',
                                                                 `bootstrap-wysiwyg${min_suffix}.js`),
                                                       path.join('assets', 'js',
-                                                                `calendar.${projectVersion}${min_suffix}.js`),
+                                                                `calendar${project_version_prefix}${min_suffix}.js`),
                                                       path.join('assets', 'js',
-                                                                `calendar-triggers.${projectVersion}${min_suffix}.js`)
+                                                                `calendar-triggers${project_version_prefix}${min_suffix}.js`)
                                                   ]
                                               })
                                           },
@@ -330,7 +331,7 @@ module.exports = {
                                               to: "planner/classes.html",
                                               context: _.extend({}, defaultContext, {
                                                   "page_header_javascript": [path.join('assets', 'js',
-                                                                                       `authenticated.${projectVersion}${min_suffix}.js`)],
+                                                                                       `authenticated${project_version_prefix}${min_suffix}.js`)],
                                                   "page_stylesheet_pre": [
                                                       path.join('assets', 'css', 'vendors',
                                                                 `bootstrap-editable${min_suffix}.css`),
@@ -347,7 +348,7 @@ module.exports = {
                                                       path.join('assets', 'css', 'vendors', `dropzone${min_suffix}.css`)
                                                   ],
                                                   "page_stylesheet": [path.join('assets', 'css',
-                                                                                `classes.${projectVersion}${min_suffix}.css`)],
+                                                                                `classes${project_version_prefix}${min_suffix}.css`)],
                                                   "page_javascript": [
                                                       path.join('assets', 'js', 'vendors',
                                                                 `bootstrap-datepicker${min_suffix}.js`),
@@ -367,9 +368,9 @@ module.exports = {
                                                                 `jquery.simplecolorpicker${min_suffix}.js`),
                                                       path.join('assets', 'js', 'vendors', `dropzone${min_suffix}.js`),
                                                       path.join('assets', 'js',
-                                                                `classes.${projectVersion}${min_suffix}.js`),
+                                                                `classes${project_version_prefix}${min_suffix}.js`),
                                                       path.join('assets', 'js',
-                                                                `classes-triggers.${projectVersion}${min_suffix}.js`)
+                                                                `classes-triggers${project_version_prefix}${min_suffix}.js`)
                                                   ]
                                               })
                                           },
@@ -378,11 +379,11 @@ module.exports = {
                                               to: "planner/materials.html",
                                               context: _.extend({}, defaultContext, {
                                                   "page_header_javascript": [path.join('assets', 'js',
-                                                                                       `authenticated.${projectVersion}${min_suffix}.js`)],
+                                                                                       `authenticated${project_version_prefix}${min_suffix}.js`)],
                                                   "page_stylesheet_pre": [path.join('assets', 'css', 'vendors',
-                                                                                    `bootstrap-editable.${projectVersion}${min_suffix}.css`)],
+                                                                                    `bootstrap-editable${project_version_prefix}${min_suffix}.css`)],
                                                   "page_stylesheet": [path.join('assets', 'css',
-                                                                                `materials.${projectVersion}${min_suffix}.css`)],
+                                                                                `materials${project_version_prefix}${min_suffix}.css`)],
                                                   "page_javascript": [
                                                       path.join('assets', 'js', 'vendors',
                                                                 `bootstrap-editable${min_suffix}.js`),
@@ -396,9 +397,9 @@ module.exports = {
                                                       path.join('assets', 'js', 'vendors',
                                                                 `bootstrap-wysiwyg${min_suffix}.js`),
                                                       path.join('assets', 'js',
-                                                                `materials.${projectVersion}${min_suffix}.js`),
+                                                                `materials${project_version_prefix}${min_suffix}.js`),
                                                       path.join('assets', 'js',
-                                                                `materials-triggers.${projectVersion}${min_suffix}.js`)
+                                                                `materials-triggers${project_version_prefix}${min_suffix}.js`)
                                                   ]
                                               })
                                           },
@@ -407,9 +408,9 @@ module.exports = {
                                               to: "planner/grades.html",
                                               context: _.extend({}, defaultContext, {
                                                   "page_header_javascript": [path.join('assets', 'js',
-                                                                                       `authenticated.${projectVersion}${min_suffix}.js`)],
+                                                                                       `authenticated${project_version_prefix}${min_suffix}.js`)],
                                                   "page_stylesheet_pre": [path.join('assets', 'css',
-                                                                                    `grades.${projectVersion}${min_suffix}.css`)],
+                                                                                    `grades${project_version_prefix}${min_suffix}.css`)],
                                                   "page_javascript": [
                                                       path.join('assets', 'js', 'vendors', `bootbox${min_suffix}.js`),
                                                       path.join('assets', 'js', 'vendors',
@@ -423,7 +424,7 @@ module.exports = {
                                                       path.join('assets', 'js', 'vendors',
                                                                 `jquery.flot.time${min_suffix}.js`),
                                                       path.join('assets', 'js',
-                                                                `grades.${projectVersion}${min_suffix}.js`)
+                                                                `grades${project_version_prefix}${min_suffix}.js`)
                                                   ]
                                               })
                                           }
