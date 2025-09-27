@@ -5,28 +5,34 @@ if [[ "$npm_command" != "run-script" ]] && [[ "$npm_command" != "run" ]]; then
   exit 1;
 fi
 
-VERSION=$(node-jq -r '.version' package.json)
+VERSION=$(node -p "require('./package.json').version")
+
+echo "Building assets for $ENVIRONMENT with $VERSION"
 
 mkdir -p build/assets/$VERSION
 
-cp src/assets/* build/assets
+cp src/assets/* build/assets 2>/dev/null
 cp -r src/assets/css build/assets/$VERSION
-cp -r src/assets/font build/assets/$VERSION
 cp -r src/assets/img build/assets/$VERSION
 cp -r src/assets/js build/assets/$VERSION
 
-if [[ "$ENVIRONMENT" != "local" ]]; then
-  MIN_EXT=".min"
-  ./bin/compress
-else
-  MIN_EXT=""
-fi
+sed "s/\${DIST_VERSION}/$VERSION/g" config/nj_context.tpl.json > config/nj_context.json
 
-sed "s/\${DIST_VERSION}/$VERSION/g; s/\${MIN_EXT}/$MIN_EXT/g" config/nj_context.tpl.json > config/nj_context.json
+if [[ "$ENVIRONMENT" != "local" ]]; then
+  ./bin/compress
+
+  find build/assets/$VERSION -type f -name '*.css' ! -name '*.min.css' -delete
+  find build/assets/$VERSION -type f -name '*.js' ! -name '*.min.js' -delete
+
+  rsync -avh build/assets/$VERSION/css/vendors/ build/assets/$VERSION/css
+  rsync -avh build/assets/$VERSION/js/vendors/ build/assets/$VERSION/js
+  rm -rf build/assets/$VERSION/js/vendors/
+  rm -rf build/assets/$VERSION/css/vendors/
+fi
 
 nunjucks "*.html" config/nj_context.json -p src/templates --options config/nj_options.json -o build/
 
-mkdir build/planner
+mkdir -p build/planner
 mv build/planner_index.html build/planner/index.html
 mv build/planner_calendar.html build/planner/calendar.html
 mv build/planner_classes.html build/planner/classes.html

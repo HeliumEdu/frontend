@@ -1,41 +1,119 @@
-#!/usr/bin/env bash
+#!/usr/bin/env python3
 
-if [[ "$npm_command" != "run-script" ]] && [[ "$npm_command" != "run" ]]; then
-  echo "This script must be run within npm. Try \`npm build-dev\` or \`make build-dev\` instead."
-  exit 1;
-fi
+import json
+import os
+import subprocess
 
-VERSION=$(node-jq -r '.version' package.json)
-CSS_FILES=build/assets/$VERSION/css/*.css
-CSS_VENDOR_FILES=build/assets/$VERSION/css/vendors/*.css
+with open(os.path.join("config", "nj_context.json")) as context_file:
+    context = json.loads(context_file.read())
 
-for path in ${CSS_FILES} ${CSS_VENDOR_FILES}
-do
-    if [[ "${path}" == *min.css ]]; then
-        continue;
-    fi
 
-    directory=$(dirname "${path}")
-    filename=$(basename ${path%.*})
+def compress(path, ext):
+    path_ext_stripped = path.removesuffix(f".{ext}")
 
-    echo "Minifying $filename.css ..."
+    build_path = os.path.join("build", "assets", context["PROJECT_VERSION"], path_ext_stripped)
 
-    cleancss -o ${directory}/${filename}.min.css ${path}
-done
+    if ext == "css":
+        subprocess.run(["cleancss", "-O1", "'all:on;specialComments:0'", "-o", f"{build_path}.min.{ext}", f"{build_path}.{ext}"], check=True)
+    elif ext == "js":
+        subprocess.run(["uglifyjs", "--compress", "--mangle", "-o", f"{build_path}.min.{ext}", f"{build_path}.{ext}"], check=True)
+    else:
+        raise TypeError(f"Unsupported file type: {ext}")
 
-JS_FILES=build/assets/$VERSION/js/*.js
-JS_VENDOR_FILES=build/assets/$VERSION/js/vendors/*.js
+    return f"/{path_ext_stripped}.min.{ext}"
 
-for path in ${JS_FILES} ${JS_VENDOR_FILES}
-do
-    if [[ "${path}" == *.min.js ]]; then
-        continue;
-    fi
 
-    directory=$(dirname "${path}")
-    filename=$(basename ${path%.*})
+def combine_base_and_page(base_key, page_key, bundle_output_prefix, ext):
+    """
+    Combine all files in the base and page keys in to a single file, bundled in to a new entry that will be the only
+    entry in the page key.
+    """
+    base_files_combined = ""
+    for file in context[base_key]:
+        filename = os.path.join("build", "assets", context["PROJECT_VERSION"], *file.split("/"))
+        with open(filename) as f:
+            base_files_combined += f.read()
 
-    echo "Minifying $filename.js ..."
+    base_bundle_name = f"base.{bundle_output_prefix}.bundle.{ext}"
 
-    uglifyjs -o ${directory}/${filename}.min.js ${path}
-done
+    with open(os.path.join("build", "assets", context["PROJECT_VERSION"], ext, base_bundle_name), "w") as f:
+        f.write(base_files_combined)
+    compressed_base_bundle_path = compress(os.path.join(ext, base_bundle_name), ext)
+
+    for page in context[page_key]:
+        page_files_combined = base_files_combined
+        for file in context[page_key][page]:
+            filename = os.path.join("build", "assets", context["PROJECT_VERSION"], *file.split("/"))
+            with open(filename) as f:
+                page_files_combined += f.read()
+
+        page_bundle_name = f"{page}.{bundle_output_prefix}.bundle.{ext}"
+
+        with open(os.path.join("build", "assets", context["PROJECT_VERSION"], ext, page_bundle_name), "w") as f:
+            f.write(page_files_combined)
+
+        compressed_bundle_path = compress(os.path.join(ext, page_bundle_name), ext)
+        print("Compressed " + str(
+            len(context[base_key]) + len(context[page_key][page])) + f" files in to {compressed_bundle_path}")
+
+        context[page_key][page] = [compressed_bundle_path]
+
+    # If no page-specific entry exists, add one with just the base bundle
+    for page in os.listdir(os.path.join("src", "templates")):
+        if not page.endswith(".html"):
+            continue
+
+        page_name = page.removesuffix(".html")
+
+        if page_name not in context[page_key].keys():
+            context[page_key][page_name] = [compressed_base_bundle_path]
+
+    context[base_key] = []
+
+
+def combine_group(key, bundle_output_prefix, ext, page=None):
+    """
+    Combine all files in the key in to a single file, bundled in to a new entry that will be the only
+    entry in the page key.
+    """
+    if not page:
+        files = context[key]
+    else:
+        files = context[key][page]
+
+    files_combined = ""
+    for file in files:
+        filename = os.path.join("build", "assets", context["PROJECT_VERSION"], *file.split("/"))
+        with open(filename) as f:
+            files_combined += f.read()
+
+    bundle_name = f"{bundle_output_prefix}.bundle.{ext}"
+    if page:
+        bundle_name = f"{page}.{bundle_name}"
+    with open(os.path.join("build", "assets", context["PROJECT_VERSION"], ext, bundle_name), "w") as f:
+        f.write(files_combined)
+
+    compressed_bundle_path = compress(os.path.join(ext, bundle_name), ext)
+    print("Compressed " + str(len(files)) + f" files in to {compressed_bundle_path}")
+    if not page:
+        context[key] = [compressed_bundle_path]
+    else:
+        context[key][page] = [compressed_bundle_path]
+
+
+combine_base_and_page("base_header_javascript", "page_header_javascript", "header", "js")
+combine_base_and_page("base_javascript", "page_javascript", "page", "js")
+
+combine_base_and_page("base_stylesheet", "page_stylesheet", "page", "css")
+
+for page in context["page_stylesheet_pre_base"]:
+    combine_group("page_stylesheet_pre_base", "header", "css", page)
+for page in context["page_stylesheet_pre_base_print"]:
+    combine_group("page_stylesheet_pre_base_print", "header_print", "css", page)
+
+combine_group("base_ie9_header_javascript", "ie9.header", "js")
+combine_group("base_ie8_stylesheet", "ie8.header", "css")
+
+# Write context with updated bundles back to Nunjucks config file
+with open(os.path.join("config", "nj_context.json"), "w") as context_file:
+    context_file.write(json.dumps(context, indent=4))

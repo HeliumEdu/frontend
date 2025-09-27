@@ -48,6 +48,10 @@
     <link rel="stylesheet" href="{{ ASSETS_PREFIX }}{{ css }}" type="text/css"/>
     {% endfor %}
 
+    {% for css in page_stylesheet[page_template] %}
+    <link rel="stylesheet" href="{{ ASSETS_PREFIX }}{{ css }}" type="text/css"/>
+    {% endfor %}
+
     <!--[if lte IE 8]>
     {% for css in base_ie8_stylesheet %}
     <link rel="stylesheet" href="{{ ASSETS_PREFIX }}{{ css }}" type="text/css"/>
@@ -67,10 +71,6 @@
     <script type="application/javascript" src="{{ ASSETS_PREFIX }}{{ js }}"></script>
     {% endfor %}
     <![endif]-->
-
-    {% for css in page_stylesheet[page_template] %}
-    <link rel="stylesheet" href="{{ ASSETS_PREFIX }}{{ css }}" type="text/css"/>
-    {% endfor %}
 
     {% include "../snippets/googleanalytics-js.html" %}
 </head>
