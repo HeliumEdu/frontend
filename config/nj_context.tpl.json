@@ -2,7 +2,7 @@
     "PROJECT_NAME": "Helium Student Planner",
     "PROJECT_TAGLINE": "Lightening Your Course Load",
     "PROJECT_EMAIL": "contact@heliumedu.com",
-    "PROJECT_VERSION": "1.11.19",
+    "PROJECT_VERSION": "${DIST_VERSION}",
     "COPYRIGHT_YEAR": 2025,
     "ASSETS_PREFIX": "/assets/${DIST_VERSION}",
     "base_header_javascript": [
