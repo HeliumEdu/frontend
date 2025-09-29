@@ -2,9 +2,5 @@ services:
   frontend:
     image: ${FRONTEND_IMAGE:-helium/frontend:${PLATFORM:-arm64}-latest}
     env_file: .env
-    volumes:
-      - type: bind
-        source: ./.env
-        target: /app/.env
     ports:
       - 3000:3000
