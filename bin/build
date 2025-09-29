@@ -41,3 +41,9 @@ mv build/planner_calendar.html build/planner/calendar.html
 mv build/planner_classes.html build/planner/classes.html
 mv build/planner_materials.html build/planner/materials.html
 mv build/planner_grades.html build/planner/grades.html
+
+# Pull top-level assets up
+mv build/assets/favicon.ico build
+mv build/assets/favicon.png build
+mv build/assets/robots.txt build
+mv build/assets/sitemap.xml build
