@@ -1,0 +1,4 @@
+{
+    "health": "ok",
+    "version": "${DIST_VERSION}"
+}

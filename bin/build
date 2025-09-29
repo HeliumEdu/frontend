@@ -16,6 +16,9 @@ cp -r src/assets/css build/assets/$VERSION
 cp -r src/assets/img build/assets/$VERSION
 cp -r src/assets/js build/assets/$VERSION
 
+sed "s/\${DIST_VERSION}/$VERSION/g" build/assets/info.tpl.json > build/assets/info.json
+rm build/assets/info.tpl.json
+
 sed "s/\${DIST_VERSION}/$VERSION/g" config/nj_context.tpl.json > config/nj_context.json
 
 if [[ "$ENVIRONMENT" != "local" ]]; then
