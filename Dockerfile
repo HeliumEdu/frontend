@@ -9,7 +9,10 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /app
 
-COPY . .
+COPY bin bin
+COPY config config
+COPY src src
+COPY package*.json .
 
 RUN npm install
 RUN npm run build-deploy
