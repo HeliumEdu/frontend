@@ -49,6 +49,6 @@ publish-docker: build-docker
 	docker tag helium/frontend:$(PLATFORM)-$(TAG_VERSION) public.ecr.aws/heliumedu/helium/frontend:$(PLATFORM)-$(TAG_VERSION)
 	docker push public.ecr.aws/heliumedu/helium/frontend:$(PLATFORM)-$(TAG_VERSION)
 
-	docker create --name frontend-frontend-1 helium/frontend:$(PLATFORM)-$(TAG_VERSION)
-	docker cp frontend-frontend-1:/app build
+	docker create --name frontend helium/frontend:$(PLATFORM)-$(TAG_VERSION)
+	docker cp frontend:/app build
 	aws s3 sync build "s3://heliumedu/helium/frontend/$(TAG_VERSION)"
