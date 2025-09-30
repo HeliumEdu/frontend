@@ -19,7 +19,7 @@
         "build-dev": "ENVIRONMENT=local ./bin/build",
         "build-deploy": "ENVIRONMENT=prod ./bin/build",
         "start": "http-server ./build -p 3000 -a localhost -d false -o",
-        "test": "start-server-and-test start http://localhost:3000 mocha"
+        "test": "npm run build-dev && npm run build-deploy"
     },
     "devDependencies": {
         "chai": "^6.0.1",
