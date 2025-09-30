@@ -8,7 +8,7 @@
  *  project and interested in joining forces? Reach out and let us know! contact@alexlaird.com
  *
  * @license MIT
- * @version 1.11.35
+ * @version 1.11.37
  */
 
 localStorage.setItem("refresh_token_lock", "false");
