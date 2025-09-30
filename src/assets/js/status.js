@@ -6,7 +6,7 @@
  * project and interested in joining forces? Reach out and let us know! contact@alexlaird.com
  *
  * @license MIT
- * @version 1.11.37
+ * @version 1.11.38
  */
 
 window.location.replace(window.API_URL + "/status");
