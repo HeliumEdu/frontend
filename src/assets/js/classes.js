@@ -40,7 +40,7 @@ function HeliumClasses() {
     this.categories_to_delete = [];
     this.attachments_to_delete = [];
 
-    var self = this;
+    let self = this;
 
     /*******************************************
      * Functions
@@ -96,7 +96,7 @@ function HeliumClasses() {
      * @return true if the name is unique, false otherwise
      */
     this.check_category_names = function (value) {
-        var valid = true, id, category_id, type;
+        let valid = true, id, category_id, type;
         $.each($("tr[id^='category-']"), function () {
             if (valid) {
                 id = $(this).attr("id");
@@ -122,7 +122,7 @@ function HeliumClasses() {
      * @return the total value of all weights
      */
     this.get_total_weights = function (skip_id, value) {
-        var weight_total = 0, id, category_id, weight;
+        let weight_total = 0, id, category_id, weight;
         $.each($("tr[id^='category-']"), function () {
             id = $(this).attr("id");
             category_id = id.split("-")[1];
@@ -144,7 +144,7 @@ function HeliumClasses() {
     };
 
     this.update_total_category_weights = function (total_weights) {
-        var total_weights_row;
+        let total_weights_row;
 
         if (total_weights > 0) {
             total_weights_row = $("<tr><td class=\"align-right\"></td><td></td><td></td><td></td></tr>");
@@ -167,7 +167,7 @@ function HeliumClasses() {
      * @param unsaved true if the category being added has not yet been saved to the database
      */
     this.add_category_to_table = function (category, unsaved) {
-        var unsaved_string, row;
+        let unsaved_string, row;
         $("#no-categories").hide();
         unsaved_string = "";
         if (unsaved) {
@@ -193,7 +193,7 @@ function HeliumClasses() {
                                                                                     });
         $("#category-" + category.id + unsaved_string + "-color").simplecolorpicker("selectColor", category.color);
         $("#category-" + category.id + unsaved_string + "-color").on("change", function () {
-            var id = $(this).attr("id").split("category-")[1].split("-color")[0],
+            let id = $(this).attr("id").split("category-")[1].split("-color")[0],
                 parent_id = $(this).parent().parent().attr("id");
             if (id.split("-").length === 2) {
                 id = id.split("-")[1];
@@ -211,7 +211,7 @@ function HeliumClasses() {
                                                                                   local: self.CATEGORY_SUGGESTIONS
                                                                               },
                                                                               success: function (response, newValue) {
-                                                                                  var id = $(this).attr("id")
+                                                                                  let id = $(this).attr("id")
                                                                                           .split("category-")[1].split(
                                                                                           "-type")[0],
                                                                                       parent_id = $(this).parent()
@@ -229,7 +229,7 @@ function HeliumClasses() {
                                                                                                       + "-modified");
                                                                                   }
 
-                                                                                  for (var i = 0; i
+                                                                                  for (let i = 0; i
                                                                                                   < self.CATEGORY_SUGGESTIONS.length;
                                                                                        ++i) {
                                                                                       if (self.CATEGORY_SUGGESTIONS[i].value
@@ -248,7 +248,7 @@ function HeliumClasses() {
                                                                               type: "text",
                                                                               tpl: '<input type="text" maxlength="255">',
                                                                               validate: function (value) {
-                                                                                  var response = "";
+                                                                                  let response = "";
                                                                                   if (!/\S/.test(value)) {
                                                                                       response =
                                                                                           "This category name cannot be empty.";
@@ -264,7 +264,7 @@ function HeliumClasses() {
                                                                                 display: function (value) {
                                                                                     // If no weight is given, just
                                                                                     // display N/A
-                                                                                    var response = "N/A";
+                                                                                    let response = "N/A";
                                                                                     if (parseFloat(value) !== 0) {
                                                                                         value =
                                                                                             helium.calculate_to_percent(
@@ -274,7 +274,7 @@ function HeliumClasses() {
                                                                                     $(this).html(response);
                                                                                 },
                                                                                 success: function () {
-                                                                                    var id = $(this).attr("id")
+                                                                                    let id = $(this).attr("id")
                                                                                             .split("category-")[1].split(
                                                                                             "-weight")[0],
                                                                                         parent_id = $(this).parent()
@@ -295,7 +295,7 @@ function HeliumClasses() {
                                                                                 type: "text",
                                                                                 tpl: '<input type="text" maxlength="10">',
                                                                                 validate: function (value) {
-                                                                                    var response = "", total_weights,
+                                                                                    let response = "", total_weights,
                                                                                         total_weights_row;
                                                                                     // If the value is empty or set to
                                                                                     // N/A, the weight is given a value
@@ -378,8 +378,8 @@ function HeliumClasses() {
                             "You can't delete the \"Uncategorized\" category when there are assignments in it.");
                     }
                 } else {
-                    var dom_id = $(this).attr("id");
-                    var id = dom_id.split("-");
+                    const dom_id = $(this).attr("id");
+                    let id = dom_id.split("-");
                     id = id[id.length - 1];
                     if (id !== "unsaved") {
                         helium.classes.categories_to_delete.push(id);
@@ -404,7 +404,7 @@ function HeliumClasses() {
      * Create a new course in the currently open course group.
      */
     this.create_course_for_group_btn = function () {
-        var i = 0, data;
+        let i = 0, data;
 
         self.edit = false;
         self.categories_to_delete = [];
@@ -496,7 +496,7 @@ function HeliumClasses() {
             $("#course-group-error").html(helium.get_error_msg(data));
             $("#course-group-error").parent().show("fast");
         } else {
-            var course_group_div, div, table_div;
+            let course_group_div, div, table_div;
             $("#course-group-tabs").prepend(
                 "<li><a data-toggle=\"tab\" href=\"#course-group-" + data.id + "\"><i class=\"icon-book r-110\"></i> "
                 + data.title + (!data.shown_on_calendar ? " (H)" : "") + "</a></li>");
@@ -579,7 +579,7 @@ function HeliumClasses() {
      * Resort course groups by start date.
      */
     this.resort_course_groups = function () {
-        var group_tabs = $('a[href^="#course-group-"]'), swapped = true, i = 1, tab, tab_date, prev_tab, prev_tab_date,
+        let group_tabs = $('a[href^="#course-group-"]'), swapped = true, i = 1, tab, tab_date, prev_tab, prev_tab_date,
             prev;
         // Good 'ol bubble sort the entries
         while (swapped) {
@@ -674,7 +674,7 @@ function HeliumClasses() {
     this.edit_course_group_btn = function (selector) {
         helium.ajax_error_occurred = false;
 
-        var course_group, start_date, end_date;
+        let course_group, start_date, end_date;
         if (!self.edit) {
             $("#loading-courses").spin(helium.SMALL_LOADING_OPTS);
 
@@ -720,7 +720,7 @@ function HeliumClasses() {
     this.delete_course_group_btn = function (selector) {
         helium.ajax_error_occurred = false;
 
-        var id = selector.attr("id").split("delete-course-group-")[1];
+        const id = selector.attr("id").split("delete-course-group-")[1];
         bootbox.dialog({
                            message: "Deleting this group will permanently delete all classes and homework associated with it.",
                            buttons: {
@@ -737,7 +737,7 @@ function HeliumClasses() {
                                                bootbox.alert(helium.get_error_msg(data));
                                            } else {
                                                $("#course-group-" + id).slideUp("fast", function () {
-                                                   var parent = $('a[href="#course-group-' + id + '"]').parent();
+                                                   const parent = $('a[href="#course-group-' + id + '"]').parent();
                                                    if (parent.prev().length > 0) {
                                                        parent.prev().find("a").tab("show");
                                                    } else if (parent.next().length > 0 && !parent.next()
@@ -768,8 +768,8 @@ function HeliumClasses() {
      * Delete an attachment from the list of attachments.
      */
     this.delete_attachment = function (data) {
-        var dom_id = $(this).attr("id");
-        var id = dom_id.split("-");
+        const dom_id = $(this).attr("id");
+        let id = dom_id.split("-");
         id = id[id.length - 1];
         helium.classes.attachments_to_delete.push(id);
 
@@ -793,7 +793,7 @@ function HeliumClasses() {
     this.edit_course_btn = function (selector, show_details) {
         helium.ajax_error_occurred = false;
 
-        var start_date, end_date, i = 0, course, total_weights = 0;
+        let start_date, end_date, i = 0, course, total_weights = 0;
         if (!self.edit) {
             $("#loading-courses").spin(helium.SMALL_LOADING_OPTS);
 
@@ -819,7 +819,7 @@ function HeliumClasses() {
                 } else {
                     course = data;
 
-                    var schedule = course.schedules.length > 0 ? course.schedules[0] : null;
+                    const schedule = course.schedules.length > 0 ? course.schedules[0] : null;
 
                     // Change display to the correct course group tab
                     $('a[href="#course-group-' + course.course_group + '"]').tab("show");
@@ -982,8 +982,8 @@ function HeliumClasses() {
     this.delete_course_btn = function (selector) {
         helium.ajax_error_occurred = false;
 
-        var id = selector.attr("id").split("delete-course-")[1];
-        var course_group_id = parseInt(
+        const id = selector.attr("id").split("delete-course-")[1];
+        const course_group_id = parseInt(
             selector.closest("[id^='course-group-table-']").attr('id').split('course-group-table-body-')[1]);
         bootbox.dialog({
                            message: "Deleting this class will permanently delete all homework associated with it and will remove this class from all groups.",
@@ -1052,9 +1052,9 @@ function HeliumClasses() {
     };
 
     this.get_schedule = function (course_data) {
-        var schedule_str = "", time_output = false;
+        let schedule_str = "", time_output = false;
         if (course_data.schedules.length > 0 && self.has_schedule(course_data.schedules[0])) {
-            var schedule = course_data.schedules[0];
+            const schedule = course_data.schedules[0];
 
             if (self.same_time(schedule)) {
                 schedule_str =
@@ -1162,7 +1162,7 @@ function HeliumClasses() {
      * @param table the course group table in which to add the course
      */
     this.add_course_to_groups = function (course_data, table) {
-        var row = table.row.add(
+        const row = table.row.add(
                 ["<span class=\"label label-sm\" style=\"background-color: " + course_data.color + " !important\">"
                  + (course_data.website !== "" ? "<a target=\"_blank\" href=\"" + course_data.website
                  + "\" class=\"course-title-with-link\">" + course_data.title
@@ -1198,7 +1198,7 @@ function HeliumClasses() {
      * Initialize date/time attributes.
      */
     this.initialize_datetime = function () {
-        var start_date, end_date, start_time, end_time;
+        let start_date, end_date, start_time, end_time;
 
         $(".date-picker").datepicker({
                                          autoclose: true,
@@ -1346,7 +1346,7 @@ function HeliumClasses() {
     this.save_course = function () {
         helium.ajax_error_occurred = false;
 
-        var course_title = $("#course-title").val(), course_start_date = $("#course-start-date").val(),
+        let course_title = $("#course-title").val(), course_start_date = $("#course-start-date").val(),
             course_end_date = $("#course-end-date").val(), start_date, end_date, data, different_times, sun_start_time,
             sun_end_time, sun_alt_start_time, sun_alt_end_time;
 
@@ -1385,7 +1385,7 @@ function HeliumClasses() {
             // If a course group was created, wait for that call to complete before proceeding
             $.when.apply(this, self.ajax_calls).done(function () {
                 if (!helium.ajax_error_occurred) {
-                    var categories_data = [], id;
+                    let categories_data = [], id;
                     different_times = $("#course-schedule-has-different-times").is(":checked");
                     sun_start_time =
                         moment($("#course-sun-start-time").val(), helium.HE_TIME_STRING_CLIENT)
@@ -1440,7 +1440,7 @@ function HeliumClasses() {
                                 $("#course-error").html(helium.get_error_msg(data));
                                 $("#course-error").parent().show("fast");
                             } else {
-                                var course_schedule_data = {
+                                const course_schedule_data = {
                                     "days_of_week": ($("#course-schedule-sun").hasClass("active") ? "1" : "0") + ($(
                                         "#course-schedule-mon").hasClass("active") ? "1" : "0") + ($(
                                         "#course-schedule-tue").hasClass("active") ? "1" : "0") + ($(
@@ -1545,7 +1545,7 @@ function HeliumClasses() {
                                         helium.classes.categories_to_delete = [];
                                         helium.classes.attachments_to_delete = [];
 
-                                        var row_div = $("#course-" + data.id);
+                                        const row_div = $("#course-" + data.id);
                                         self.course_group_table[data.course_group.toString()].cell(row_div, 0).data(
                                             "<span class=\"label label-sm\" style=\"background-color: " + data.color
                                             + " !important\">" + (data.website !== "" ? "<a target=\"_blank\" href=\""
@@ -1604,7 +1604,7 @@ function HeliumClasses() {
                                 $("#course-error").html(helium.get_error_msg(data));
                                 $("#course-error").parent().show("fast");
                             } else {
-                                var course_schedule_data = {
+                                const course_schedule_data = {
                                     "days_of_week": ($("#course-schedule-sun").hasClass("active") ? "1" : "0") + ($(
                                         "#course-schedule-mon").hasClass("active") ? "1" : "0") + ($(
                                         "#course-schedule-tue").hasClass("active") ? "1" : "0") + ($(
@@ -1713,7 +1713,8 @@ function HeliumClasses() {
                                             localStorage.setItem("filter_courses_" + helium.USER_PREFS.id);
                                         }
 
-                                        var course_ids = localStorage.getItem("filter_courses_" + helium.USER_PREFS.id)
+                                        const course_ids = localStorage.getItem(
+                                            "filter_courses_" + helium.USER_PREFS.id)
                                             .split(",");
                                         course_ids.push(data.id);
                                         localStorage.setItem("filter_courses_" + helium.USER_PREFS.id,
@@ -1761,7 +1762,7 @@ function HeliumClasses() {
      * Refresh the list of course groups.
      */
     this.refresh_course_groups = function () {
-        var id, title;
+        let id, title;
         self.course_groups = {};
         $("table[id^='course-group-table-']").each(function () {
             id = $(this).attr("id").split("course-group-table-")[1];
@@ -1833,7 +1834,7 @@ $(document).ready(function () {
     helium.classes.refresh_course_groups();
 
     $("table[id^='course-group-table-']").each(function () {
-        var id = $(this).attr("id").split("course-group-table-")[1].split("_")[0], i = 0;
+        let id = $(this).attr("id").split("course-group-table-")[1].split("_")[0], i = 0;
 
         if (!helium.ajax_error_occurred) {
             helium.classes.ajax_calls.push(helium.planner_api.get_courses_by_course_group_id(function (data) {
@@ -1863,7 +1864,7 @@ $(document).ready(function () {
              * Check cookies for triggers passed in
              ******************************************/
             if (localStorage.getItem("edit_categories") === "true") {
-                var course_id = localStorage.getItem("course_id");
+                const course_id = localStorage.getItem("course_id");
 
                 helium.classes.edit_course_btn($("#edit-course-" + course_id), false);
                 $("a[href='#course-panel-tab-3']").tab("show");

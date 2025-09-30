@@ -19,7 +19,7 @@
 function HeliumSettings() {
     "use strict";
 
-    var self = this;
+    let self = this;
 
     self.to_delete = [];
 
@@ -60,7 +60,7 @@ function HeliumSettings() {
     };
 
     self.create_externalcalendar = function (id, title, url, shown_on_calendar, color) {
-        var row = $('<tr id="externalcalendar-' + id + '">');
+        const row = $('<tr id="externalcalendar-' + id + '">');
         row.append($('<td>').append('<a class="cursor-hover external-title">' + title + '</a>'));
         row.append($('<td class="hidden-480">').append('<a class="cursor-hover external-url">' + url + '</a>'));
         row.append($('<td>').append(
@@ -94,7 +94,7 @@ function HeliumSettings() {
     };
 
     self.delete_externalcalendar = function () {
-        var row = $(this).parent().parent().parent(), dom_id, id;
+        let row = $(this).parent().parent().parent(), dom_id, id;
         row.hide("fast", function () {
             dom_id = $(this).attr("id");
             id = dom_id.split("-");
@@ -111,13 +111,13 @@ function HeliumSettings() {
     };
 
     self.save_externalcalendars = function (form) {
-        var dom_id, id;
+        let dom_id, id;
 
         $.each(form.find("tr[id^='externalcalendar-']"), function () {
             dom_id = $(this).attr("id");
             id = dom_id.split("-");
             id = id[id.length - 1];
-            var data = {
+            const data = {
                 title: $(this).find(".external-title").html(),
                 url: $(this).find(".external-url").html(),
                 color: $(this).find(".color-picker").val(),
@@ -217,7 +217,7 @@ function HeliumSettings() {
         helium.clear_form_errors($(this).attr("id"));
 
         $.ajax().always(function () {
-            var form = $("#preferences-form"), data = form.serializeArray();
+            const form = $("#preferences-form"), data = form.serializeArray();
             data.push({"name": "show_getting_started", "value": helium.USER_PREFS.settings.show_getting_started});
             data.push({
                           "name": "receive_emails_from_admin",
@@ -282,7 +282,7 @@ function HeliumSettings() {
         helium.clear_form_errors($(this).attr("id"));
 
         $.ajax().always(function () {
-            var form = $("#personal-form"), data = form.serializeArray();
+            const form = $("#personal-form"), data = form.serializeArray();
 
             $.ajax({
                        async: false,
@@ -338,7 +338,7 @@ function HeliumSettings() {
 
         if ($("#id_old_password").val() !== '' || $("#id_password").val() !== '' || $("#id_password2").val() !== '') {
             // If one is present, all three must be present
-            var has_error = false;
+            let has_error = false;
             if ($("#id_old_password").val() === '') {
                 helium.show_error("account", "old_password", "This field is required.");
 
@@ -368,9 +368,9 @@ function HeliumSettings() {
         }
 
         $.ajax().always(function () {
-            var form = $("#account-form"), data = form.serializeArray();
+            const form = $("#account-form"), data = form.serializeArray();
 
-            for (var i = data.length - 1; i >= 0; --i) {
+            for (let i = data.length - 1; i >= 0; --i) {
                 if (data[i].name.indexOf('password') !== -1 && data[i].value == '') {
                     data.splice(i);
                 }
@@ -425,7 +425,7 @@ function HeliumSettings() {
             $("#enable-disable-feed").addClass("btn-warning");
             $("#enable-disable-feed").html('<i class="icon-check-minus"></i>Disable Private Feeds');
 
-            var base_url = helium.API_URL + "/feed/private/" + helium.USER_PREFS.settings.private_slug;
+            const base_url = helium.API_URL + "/feed/private/" + helium.USER_PREFS.settings.private_slug;
 
             $("#private-feed-urls").html(
                 "<strong>Events: </strong><a href=\"" + base_url + "/events.ics\">" + base_url + "/events.ics</a>" +
@@ -499,7 +499,7 @@ function HeliumSettings() {
                                    callback: function () {
                                        $("#loading-account").spin(helium.SMALL_LOADING_OPTS);
 
-                                       var data = {
+                                       const data = {
                                            "password": $("input[name='delete-account-password']").val()
                                        };
 
@@ -546,8 +546,8 @@ function HeliumSettings() {
                    type: "GET",
                    dataType: "json",
                    success: function (data) {
-                       var jsonStr = JSON.stringify(data);
-                       var base64 = "data:application/json;charset=utf-8;base64," + btoa(jsonStr);
+                       const jsonStr = JSON.stringify(data);
+                       const base64 = "data:application/json;charset=utf-8;base64," + btoa(jsonStr);
 
                        $("<a>")
                            .attr({

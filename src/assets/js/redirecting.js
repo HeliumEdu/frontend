@@ -6,7 +6,7 @@
  *  project and interested in joining forces? Reach out and let us know! contact@alexlaird.com
  *
  * @license MIT
- * @version 1.11.13
+ * @version 1.11.20
  */
 
-window.location.replace(helium.SITE_URL + "planner/calendar");
+window.REDIRECTING = true;

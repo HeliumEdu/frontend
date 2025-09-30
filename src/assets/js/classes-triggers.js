@@ -15,7 +15,6 @@
  * Triggers
  ******************************************/
 
-// Be responsible; don't clutter the global namespace
 (function () {
     "use strict";
     $("#course-group-modal").on("shown.bs.modal", function () {
@@ -35,7 +34,7 @@
     $("#save-course-group").on("click", function () {
         helium.ajax_error_occurred = false;
 
-        var course_group_title = $("#course-group-title").val(),
+        let course_group_title = $("#course-group-title").val(),
             course_group_start_date = $("#course-group-start-date").val(),
             course_group_end_date = $("#course-group-end-date").val(), data;
 
@@ -62,7 +61,7 @@
                         $("#course-group-error").html(helium.get_error_msg(data));
                         $("#course-group-error").parent().show("fast");
                     } else {
-                        var course_group = data;
+                        const course_group = data;
                         $('a[href="#course-group-' + course_group.id + '"]').html(
                             "<i class=\"icon-book r-110\"></i> <span class=\"hidden-xs\">" + course_group.title
                             + (!course_group.shown_on_calendar ? " (H)" : "") + "</span>");
@@ -155,7 +154,7 @@
                     $("#course-error").html(helium.get_error_msg(data));
                     $("#course-error").parent().show("fast");
                 } else {
-                    var courses_added = [];
+                    const courses_added = [];
                     $.each(data, function (i, course) {
                         if ($.inArray(course.id, courses_added) === -1) {
                             if (!helium.classes.edit || course.id !== helium.classes.edit_id) {
@@ -207,7 +206,7 @@
     });
 
     $(".course-schedule-btn").on("click", function () {
-        var day = $(this).attr("id").split("course-schedule-")[1], any_shown = false;
+        let day = $(this).attr("id").split("course-schedule-")[1], any_shown = false;
         if ($("#course-schedule-has-different-times").is(":checked")) {
             if ($(this).hasClass("active")) {
                 $("#" + day + "-time").hide("fast");
@@ -220,7 +219,7 @@
     });
 
     $("#course-website").on("focusout", function () {
-        var value = $(this).val();
+        let value = $(this).val();
         if (value !== "") {
             if (value.indexOf("http://") !== 0 && value.indexOf("https://") !== 0) {
                 value = "http://" + value;
@@ -248,7 +247,7 @@
     });
 
     $("#create-category").on("click", function () {
-        var data;
+        let data;
         while (!helium.classes.check_category_names("Unnamed Category" + " " + helium.classes.unnamed_category_index)) {
             helium.classes.unnamed_category_index += 1;
         }

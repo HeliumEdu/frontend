@@ -17,7 +17,7 @@ $("#forgot-form").submit(function (e) {
     e.preventDefault();
     e.returnValue = false;
 
-    var email = $("#id_email").val();
+    const email = $("#id_email").val();
 
     helium.planner_api.forgot(function (data) {
         if (helium.data_has_err_msg(data)) {

@@ -24,10 +24,10 @@ $.ajaxSetup({
                         // Using the CSRFToken value acquired earlier
                         jqXHR.setRequestHeader("X-CSRFToken", Cookies.get("csrftoken"));
                     }
-                    var access_token = localStorage.getItem("access_token");
+                    const access_token = localStorage.getItem("access_token");
                     if (access_token !== null &&
-                        options.url != helium.API_URL + "/auth/token/refresh/" &&
-                        options.url != helium.API_URL + "/info/") {
+                        options.url !== helium.API_URL + "/info/" &&
+                        options.url !== helium.API_URL + "/auth/token/refresh/") {
                         helium.check_token_exp();
 
                         jqXHR.setRequestHeader("Authorization", "Bearer " + access_token);
@@ -56,22 +56,14 @@ function Helium() {
     ];
 
     // Variables to establish the current request/page the user is accessing
-    this.SITE_HOST = location.host + "/";
-    this.SITE_URL = location.protocol + "//" + this.SITE_HOST;
-    if (this.SITE_URL === "http://localhost:3000/" || this.SITE_URL === "http://127.0.0.1:3000/") {
-        this.API_URL = "http://localhost:8000";
-    } else if (this.SITE_URL === "https://www.heliumedu.com/") {
-        // Prod
-        this.API_URL = "https://api.heliumedu.com";
-    } else {
-        // Env-prefixed
-        this.API_URL = this.SITE_URL.replace("www", "api");
-    }
+    this.APP_URL = window.APP_URL;
+    this.API_URL = window.API_URL;
     this.CURRENT_PAGE_URL = document.URL;
-    this.CURRENT_PAGE = this.CURRENT_PAGE_URL.split(this.SITE_URL)[1];
+    this.CURRENT_PAGE = this.CURRENT_PAGE_URL.split(this.APP_URL)[1];
     if (this.CURRENT_PAGE.substr(-1) === "/") {
         this.CURRENT_PAGE = this.CURRENT_PAGE.substr(0, this.CURRENT_PAGE.length - 1);
     }
+
     // This object gets initialized in the base template
     this.USER_PREFS = {};
 
@@ -85,24 +77,6 @@ function Helium() {
     this.HE_DATE_TIME_STRING_CLIENT = this.HE_DATE_STRING_CLIENT + " " + this.HE_TIME_STRING_CLIENT;
     this.HE_REMINDER_DATE_STRING = "ddd, MMM DD";
 
-    // Options for loading spin presets
-    this.LARGE_LOADING_OPTS = {
-        lines: 13,
-        length: 10,
-        width: 5,
-        radius: 15,
-        corners: 1,
-        rotate: 0,
-        direction: 1,
-        color: "#000",
-        speed: 1,
-        trail: 60,
-        shadow: false,
-        hwaccel: false,
-        zIndex: 200,
-        top: "200px",
-        left: "auto"
-    };
     this.SMALL_LOADING_OPTS = {
         lines: 13,
         length: 4,
@@ -152,13 +126,13 @@ function Helium() {
      * Check if the access token currently in localStorage has expired and needs refreshed.
      */
     this.check_token_exp = function () {
-        var refresh_token = localStorage.getItem("refresh_token")
+        const refresh_token = localStorage.getItem("refresh_token");
         if (refresh_token === null || localStorage.getItem("refresh_token_lock") === "true") {
             return;
         }
         localStorage.setItem("refresh_token_lock", "true");
 
-        var refresh_time = new Date((localStorage.getItem("access_token_exp") - 90) * 1000);
+        const refresh_time = new Date((localStorage.getItem("access_token_exp") - 90) * 1000);
         if (new Date() > refresh_time) {
             $.ajax({
                        type: "POST",
@@ -173,7 +147,7 @@ function Helium() {
 
                            localStorage.setItem("refresh_token_lock", "false");
                        },
-                       error: function (jqXHR, textStatus, errorThrown) {
+                       error: function () {
                            helium.clear_access_token();
 
                            localStorage.setItem("status_type", "warning");
@@ -199,9 +173,9 @@ function Helium() {
      * @param token The JWT token to parse
      */
     this.parse_jwt = function (token) {
-        var base64_url = token.split('.')[1];
-        var base64 = base64_url.replace(/-/g, '+').replace(/_/g, '/');
-        var json_payload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
+        const base64_url = token.split('.')[1];
+        const base64 = base64_url.replace(/-/g, '+').replace(/_/g, '/');
+        const json_payload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
             return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
         }).join(''));
 
@@ -216,7 +190,7 @@ function Helium() {
      * @return the percentage value from the given string, or the last_good_value, if the given string was invalid
      */
     this.calculate_to_percent = function (value, last_good_value) {
-        var split;
+        let split;
         // Remove any spaces before we try to be smart
         value = value.replace(/\s/g, "");
         // Drop the percent, if it exists
@@ -257,7 +231,7 @@ function Helium() {
      * @param grade
      */
     this.grade_for_display = function (grade) {
-        var split, value;
+        let split, value;
         if (grade.indexOf("/") !== -1) {
             split = grade.split("/");
             value = (parseFloat(split[0]) / parseFloat(split[1])) * 100;
@@ -272,12 +246,12 @@ function Helium() {
      * Checks if data from the return of an Ajax call is valid or contains an error message.
      *
      * Note that value comparisons in this function are intentionally fuzzy, as they returned data type may not
-     * necessarily be know.
+     * necessarily be known.
      *
      * @param data the returned data object
      */
     this.data_has_err_msg = function (data) {
-        return data != undefined && data.length === 1 && data[0].hasOwnProperty("err_msg");
+        return data !== undefined && data.length === 1 && data[0].hasOwnProperty("err_msg");
     };
 
     /**
@@ -286,7 +260,7 @@ function Helium() {
      * @returns An HTML formatted error response.
      */
     this.get_error_msg = function (data) {
-        var response = data[0];
+        const response = data[0];
         // If responseJSON exists, we can likely find a more detailed message to be parsed
         if (response.hasOwnProperty('jqXHR') && response.jqXHR.hasOwnProperty('responseJSON')) {
             if (response.jqXHR.responseJSON.hasOwnProperty('detail')) {
@@ -302,11 +276,11 @@ function Helium() {
     };
 
     this.bytes_to_size = function (bytes) {
-        var sizes = ['bytes', 'KB', 'MB', 'GB', 'TB'];
+        const sizes = ['bytes', 'KB', 'MB', 'GB', 'TB'];
         if (bytes === 0) {
             return '0 ' + sizes[0];
         }
-        var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+        const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
         return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
     };
 
@@ -334,18 +308,19 @@ function Helium() {
     };
 
     this.show_error = function (form_id, selector, error_msg) {
-        if ($("#status_" + selector).length > 0) {
+        const status_tag = $("#status_" + selector);
+        if (status_tag.length > 0) {
             $($("#id_" + selector).parent()).addClass("has-error");
-            $("#status_" + selector).html(error_msg).removeClass("hidden");
+            status_tag.html(error_msg).removeClass("hidden");
         } else {
             $("#status_" + form_id).html(error_msg).addClass("alert-warning").removeClass("hidden");
         }
     };
 
     this.add_reminder_to_page = function (data) {
-        var type = "system";
-        var start = moment(data.start_of_range);
-        var id_str = "reminder-system-" + data.id;
+        let type = "system";
+        let start = moment(data.start_of_range);
+        let id_str = "reminder-system-" + data.id;
         if (data.homework !== null) {
             type = "homework";
             id_str = "reminder-for-homework-" + data.homework.id;
@@ -356,15 +331,15 @@ function Helium() {
             start = moment(data.event.start);
         }
 
-        var list_item = $('<li id="reminder-popup-' + data.id
-                          + '" class="reminder-popup"><button type="button" class="close reminder-close"><i class="icon-remove"></i></button></li>');
-        var reminder_body = $(
+        const list_item = $('<li id="reminder-popup-' + data.id
+                            + '" class="reminder-popup"><button type="button" class="close reminder-close"><i class="icon-remove"></i></button></li>');
+        const reminder_body = $(
             '<span class="reminder-msg-body' + (location.href.indexOf('/planner/calendar') !== -1 ? ' cursor-hover'
                                                                                                   : '') + '" id="'
             + id_str + '"></span>');
         list_item.append(reminder_body);
 
-        var msg_body = $('<span class="msg-body">');
+        const msg_body = $('<span class="msg-body">');
         reminder_body.append(msg_body);
         if (type === "homework") {
             msg_body.append(
@@ -376,7 +351,7 @@ function Helium() {
                 + '</span>');
         }
 
-        var msg_time = $('<span class="msg-time">');
+        const msg_time = $('<span class="msg-time">');
         reminder_body.append(msg_time);
         msg_time.append('<i class="icon-time"></i>');
         msg_time.append('<span>&nbsp;' + start.format(helium.HE_REMINDER_DATE_STRING) + ' at ' + start.format(
@@ -385,7 +360,7 @@ function Helium() {
         list_item.find('.reminder-close').on("click", function () {
             helium.ajax_error_occurred = false;
 
-            var put_data = {
+            const put_data = {
                 'sent': true
             }, reminder_div = $(this).parent();
             helium.planner_api.edit_reminder(function (data) {
@@ -394,26 +369,28 @@ function Helium() {
 
                     bootbox.alert(helium.get_error_msg(data));
                 } else {
-                    var new_count = parseInt($("#reminder-bell-count").text()) - 1;
+                    const reminder_bell_tag = $("#reminder-bell-count");
+                    const new_count = parseInt(reminder_bell_tag.text()) - 1;
                     reminder_div.hide();
 
-                    $("#reminder-bell-count").html(new_count + " Reminder" + (new_count > 1 ? "s" : ""));
-                    $("#reminder-bell-alt-count").html(new_count);
+                    reminder_bell_tag.html(new_count + " Reminder" + (new_count > 1 ? "s" : ""));
+                    const reminder_bell_alt_tag = $("#reminder-bell-alt-count");
+                    reminder_bell_alt_tag.html(new_count);
                     if (new_count === 0) {
-                        $("#reminder-bell-alt-count").hide("fast");
+                        reminder_bell_alt_tag.hide("fast");
                     }
                 }
             }, data.id, put_data, true, true);
         });
         if (location.href.indexOf('/planner/calendar') !== -1) {
             list_item.find('[id^="reminder-for-"]').on("click", function () {
-                var id = $(this).attr("id").split("reminder-for-")[1];
+                let id = $(this).attr("id").split("reminder-for-")[1];
                 if (id.indexOf("event-") !== -1) {
                     id = id.replace("-", "_");
                 } else {
                     id = id.split("-")[1];
                 }
-                var reminder_id = $(this).parent().attr("id").split("-")[2];
+                const reminder_id = $(this).parent().attr("id").split("-")[2];
 
                 helium.calendar.current_calendar_item = $("#calendar").fullCalendar("clientEvents", [id])[0];
                 // First resort is to look in the calendar's cache, but if the event isn't found there we'll have to
@@ -421,7 +398,7 @@ function Helium() {
                 if (helium.calendar.current_calendar_item === undefined) {
                     helium.calendar.loading_div.spin(helium.SMALL_LOADING_OPTS);
 
-                    var callback = function (data) {
+                    const callback = function (data) {
                         if (helium.data_has_err_msg(data)) {
                             helium.ajax_error_occurred = true;
                             helium.calendar.loading_div.spin(false);
@@ -460,18 +437,19 @@ function Helium() {
             });
 
             $("#reminder-bell-count").html(data.length + " Reminder" + (data.length > 1 ? "s" : ""));
-            $("#reminder-bell-alt-count").html(data.length);
+            const reminder_bell_alt_tag = $("#reminder-bell-alt-count");
+            reminder_bell_alt_tag.html(data.length);
             if (data.length > 0) {
-                $("#reminder-bell-alt-count").show("fast");
+                reminder_bell_alt_tag.show("fast");
             } else {
-                $("#reminder-bell-alt-count").hide("fast");
+                reminder_bell_alt_tag.hide("fast");
             }
         }
     };
 }
 
 // Initialize the Helium object
-var helium = new Helium();
+const helium = new Helium();
 
 helium.check_token_exp();
 
@@ -485,7 +463,7 @@ $.ajax({
            }
        });
 
-if (!window.ignore_access_token && localStorage.getItem("access_token") !== null) {
+if (!window.REDIRECTING && localStorage.getItem("access_token") !== null) {
     $.ajax({
                type: "GET",
                url: helium.API_URL + "/auth/user/",
@@ -509,7 +487,7 @@ if (!window.ignore_access_token && localStorage.getItem("access_token") !== null
 $(window).on("load", function () {
     "use strict";
 
-    var current_nav = $('a[href="' + window.location.pathname + '"]');
+    const current_nav = $('a[href="' + window.location.pathname + '"]');
     if (current_nav) {
         if (window.location.pathname === "/settings") {
             $("#authenticated-dropdown-nav").addClass("active");

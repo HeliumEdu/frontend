@@ -9,4 +9,4 @@
  * @version 1.11.8
  */
 
-window.location.replace(helium.API_URL + "/status");
+window.location.replace(window.API_URL + "/status");

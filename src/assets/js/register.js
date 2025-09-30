@@ -17,11 +17,11 @@ $("#register-form").submit(function (e) {
     e.preventDefault();
     e.returnValue = false;
 
-    var username = $("#id_username").val();
-    var email = $("#id_email").val();
-    var password1 = $("#id_password1").val();
-    var password2 = $("#id_password2").val();
-    var time_zone = $("#id_time_zone").val();
+    const username = $("#id_username").val();
+    const email = $("#id_email").val();
+    const password1 = $("#id_password1").val();
+    const password2 = $("#id_password2").val();
+    const time_zone = $("#id_time_zone").val();
 
     if (password1 !== password2) {
         $("#status").html("You must enter matching passwords.").addClass("alert-warning").removeClass("hidden");

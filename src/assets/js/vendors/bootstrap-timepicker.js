@@ -35,7 +35,7 @@
         constructor: Timepicker,
 
         _init: function () {
-            var self = this;
+            let self = this;
 
             if (this.$element.parent().hasClass('input-append') || this.$element.parent().hasClass('input-prepend')) {
                 this.$element.parent('.input-append, .input-prepend').find('.add-on').on({
@@ -663,7 +663,7 @@
                 return;
             }
 
-            var self = this;
+            let self = this;
             $(document).on('mousedown.timepicker', function (e) {
                 // Clicked outside the timepicker, hide it
                 if ($(e.target).closest('.bootstrap-timepicker-widget').length === 0) {

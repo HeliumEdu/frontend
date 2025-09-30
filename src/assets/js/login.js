@@ -17,14 +17,14 @@ $("#login-form").submit(function (e) {
     e.preventDefault();
     e.returnValue = false;
 
-    var username = $("#id_username").val();
-    var password = $("#id_password").val();
+    const username = $("#id_username").val();
+    const password = $("#id_password").val();
 
     helium.planner_api.login(function (data) {
         if (helium.data_has_err_msg(data)) {
             $("#status").html(helium.get_error_msg(data)).addClass("alert-warning").removeClass("hidden");
         } else {
-            var next = url('?next');
+            const next = url('?next');
 
             if (next !== undefined) {
                 window.location.href = next;
@@ -38,8 +38,8 @@ $("#login-form").submit(function (e) {
 $(window).on("load", function () {
     "use strict";
 
-    var status_type = localStorage.getItem("status_type");
-    var status_msg = localStorage.getItem("status_msg");
+    const status_type = localStorage.getItem("status_type");
+    const status_msg = localStorage.getItem("status_msg");
 
     if (status_type !== null && status_msg !== null) {
         $("#status").html(status_msg).addClass("alert-" + status_type).removeClass("hidden");

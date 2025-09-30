@@ -9,4 +9,12 @@
  * @version 1.11.8
  */
 
-window.location.replace(helium.INFO.support_url);
+$.ajax({
+           type: "GET",
+           url: window.API_URL + "/info/",
+           async: false,
+           dataType: "json",
+           success: function (data) {
+               window.location.replace(data.support_url);
+           }
+       });

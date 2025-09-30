@@ -24,7 +24,7 @@
         constructor: SimpleColorPicker,
 
         init: function(type, select, options) {
-            var self = this;
+            let self = this;
 
             self.type = type;
 
@@ -110,7 +110,7 @@
          * @param color the hexadecimal color to select, ex: '#fbd75b'
          */
         selectColor: function(color) {
-            var self = this;
+            let self = this;
 
             var $colorSpan = self.$colorList.find('> span.color').filter(function() {
                 return $(this).data('color').toLowerCase() === color.toLowerCase();

@@ -3,8 +3,9 @@
  *
  * JavaScript API for requests into server-side functionality for /planner pages.
  *
- * FIXME: This implementation is pretty crude compared to modern standards and will be completely overhauled in favor
- * of a framework once the open source migration is completed.
+ * FIXME: Be aware that this is legacy code, and we would love to have the capacity to completely rewrite it.
+ *  The way JavaScript and Ajax are being used is pretty dated. Are you a frontend expert in search of an open source
+ *  project and interested in joining forces? Reach out and let us know! contact@alexlaird.com
  *
  * @license MIT
  * @version 1.11.20
@@ -37,7 +38,6 @@ function HeliumPlannerAPI() {
     this.attachment = {};
     this.attachments_by_course_id = {};
     this.homework_by_user_id = {};
-    this.homework_by_course_id = {};
     this.homework = {};
     this.event = {};
     this.events_by_user_id = {};
@@ -46,53 +46,8 @@ function HeliumPlannerAPI() {
     this.class_schedules = {};
     this.reminder = {};
     this.reminders_by_user_id = {};
-    this.reminders_by_calendar_item = {};
 
-    var self = this;
-
-    /**
-     * Clear all cache variables to force calls to get fresh data from the database.
-     */
-    this.clear_all_caches = function () {
-        self.course_groups_by_user_id = {};
-        self.course_group = {};
-        self.courses_by_course_group_id = {};
-        self.courses_by_user_id = {};
-        self.course = {};
-        self.material_group = {};
-        self.materials_by_material_group_id = {};
-        self.materials_by_course_id = {};
-        self.material = {};
-        self.category_names = null;
-        self.categories_by_course_id = {};
-        self.category = {};
-        self.homework_by_user_id = {};
-        self.homework_by_course_id = {};
-        self.homework = {};
-        self.event = {};
-        self.events_by_user_id = {};
-        self.external_calendars_by_user_id = {};
-        self.external_calendar_feed = {};
-        self.reminder = {};
-        self.reminders_by_user_id = {};
-        self.reminders_by_calendar_item = {};
-    };
-
-    this.api_error = function (jqXHR, textStatus, errorThrown, callback) {
-        var data = [{
-            'err_msg': self.GENERIC_ERROR_MESSAGE,
-            'jqXHR': jqXHR,
-            'textStatus': textStatus,
-            'errorThrown': errorThrown
-        }];
-        if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
-            var name = Object.keys(jqXHR.responseJSON)[0];
-            if (jqXHR.responseJSON[name].length > 0) {
-                data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];
-            }
-        }
-        callback(data);
-    }
+    let self = this;
 
     this.register = function (callback, username, email, password, time_zone) {
         return $.ajax({
@@ -105,7 +60,7 @@ function HeliumPlannerAPI() {
                               callback(data)
                           },
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -124,13 +79,13 @@ function HeliumPlannerAPI() {
                               callback(data);
                           },
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
 
     this.logout = function (callback, async) {
-        var refreshToken = localStorage.getItem("refresh_token");
+        const refreshToken = localStorage.getItem("refresh_token");
         if (refreshToken === null) {
             callback({});
         }
@@ -147,7 +102,7 @@ function HeliumPlannerAPI() {
                               callback(data);
                           },
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -161,7 +116,7 @@ function HeliumPlannerAPI() {
                               callback(data)
                           },
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -185,7 +140,7 @@ function HeliumPlannerAPI() {
                           dataType: "json",
                           success: callback,
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -207,7 +162,7 @@ function HeliumPlannerAPI() {
                           dataType: "json",
                           success: callback,
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -224,7 +179,7 @@ function HeliumPlannerAPI() {
     this.get_course_groups = function (callback, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
-        var ret_val = null;
+        let ret_val;
 
         if (use_cache && self.course_groups_by_user_id.hasOwnProperty(helium.USER_PREFS.id)) {
             ret_val = callback(self.course_groups_by_user_id[helium.USER_PREFS.id]);
@@ -239,7 +194,7 @@ function HeliumPlannerAPI() {
                                      callback(self.course_groups_by_user_id[helium.USER_PREFS.id]);
                                  },
                                  error: function (jqXHR, textStatus, errorThrown) {
-                                     helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                                     document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                                  }
                              });
         }
@@ -259,7 +214,7 @@ function HeliumPlannerAPI() {
     this.get_course_group = function (callback, id, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
-        var ret_val = null;
+        let ret_val;
 
         if (use_cache && self.course_group.hasOwnProperty(id)) {
             ret_val = callback(self.course_group[id]);
@@ -274,7 +229,7 @@ function HeliumPlannerAPI() {
                                      callback(self.course_group[id]);
                                  },
                                  error: function (jqXHR, textStatus, errorThrown) {
-                                     helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                                     document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                                  }
                              });
         }
@@ -300,7 +255,7 @@ function HeliumPlannerAPI() {
                           dataType: "json",
                           success: callback,
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -325,7 +280,7 @@ function HeliumPlannerAPI() {
                           dataType: "json",
                           success: callback,
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -349,7 +304,7 @@ function HeliumPlannerAPI() {
                           dataType: "json",
                           success: callback,
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -367,7 +322,7 @@ function HeliumPlannerAPI() {
     this.get_courses_by_course_group_id = function (callback, id, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
-        var ret_val = null;
+        let ret_val;
 
         if (use_cache && self.courses_by_course_group_id.hasOwnProperty(id)) {
             ret_val = callback(self.courses_by_course_group_id[id]);
@@ -382,7 +337,7 @@ function HeliumPlannerAPI() {
                                      callback(self.courses_by_course_group_id[id]);
                                  },
                                  error: function (jqXHR, textStatus, errorThrown) {
-                                     helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                                     document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                                  }
                              });
         }
@@ -402,7 +357,7 @@ function HeliumPlannerAPI() {
     this.get_all_courses_by_user_id = function (callback, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
-        var ret_val = null;
+        let ret_val;
 
         if (use_cache && self.courses_by_user_id.hasOwnProperty(helium.USER_PREFS.id)) {
             ret_val = callback(self.courses_by_user_id[helium.USER_PREFS.id]);
@@ -417,7 +372,7 @@ function HeliumPlannerAPI() {
                                      callback(self.courses_by_user_id[helium.USER_PREFS.id]);
                                  },
                                  error: function (jqXHR, textStatus, errorThrown) {
-                                     helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                                     document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                                  }
                              });
         }
@@ -437,7 +392,7 @@ function HeliumPlannerAPI() {
     this.get_courses = function (callback, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
-        var ret_val = null;
+        let ret_val;
 
         if (use_cache && self.courses_by_user_id.hasOwnProperty(helium.USER_PREFS.id)) {
             ret_val = callback(self.courses_by_user_id[helium.USER_PREFS.id]);
@@ -452,7 +407,7 @@ function HeliumPlannerAPI() {
                                      callback(self.courses_by_user_id[helium.USER_PREFS.id]);
                                  },
                                  error: function (jqXHR, textStatus, errorThrown) {
-                                     helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                                     document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                                  }
                              });
         }
@@ -474,7 +429,7 @@ function HeliumPlannerAPI() {
     this.get_class_schedule_events = function (callback, course_group_id, course_id, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
-        var ret_val = null;
+        let ret_val;
 
         if (use_cache && self.class_schedules.hasOwnProperty(course_id)) {
             ret_val = callback(self.class_schedules[course_id]);
@@ -490,7 +445,7 @@ function HeliumPlannerAPI() {
                                      callback(self.class_schedules[course_id]);
                                  },
                                  error: function (jqXHR, textStatus, errorThrown) {
-                                     helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                                     document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                                  }
                              });
         }
@@ -511,7 +466,7 @@ function HeliumPlannerAPI() {
     this.get_course = function (callback, course_group_id, id, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
-        var ret_val = null;
+        let ret_val;
 
         if (use_cache && self.course.hasOwnProperty(id)) {
             ret_val = callback(self.course[id]);
@@ -527,7 +482,7 @@ function HeliumPlannerAPI() {
                                      callback(self.course[id]);
                                  },
                                  error: function (jqXHR, textStatus, errorThrown) {
-                                     helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                                     document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                                  }
                              });
         }
@@ -558,7 +513,7 @@ function HeliumPlannerAPI() {
                           dataType: "json",
                           success: callback,
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -588,7 +543,7 @@ function HeliumPlannerAPI() {
                           dataType: "json",
                           success: callback,
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -616,7 +571,7 @@ function HeliumPlannerAPI() {
                           dataType: "json",
                           success: callback,
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -641,7 +596,7 @@ function HeliumPlannerAPI() {
                           dataType: "json",
                           success: callback,
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -667,7 +622,7 @@ function HeliumPlannerAPI() {
                           dataType: "json",
                           success: callback,
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -695,7 +650,7 @@ function HeliumPlannerAPI() {
                           dataType: "json",
                           success: callback,
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -712,7 +667,7 @@ function HeliumPlannerAPI() {
     this.get_material_groups = function (callback, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
-        var ret_val = null;
+        let ret_val;
 
         if (use_cache && self.material_groups_by_user_id.hasOwnProperty(helium.USER_PREFS.id)) {
             ret_val = callback(self.material_groups_by_user_id[helium.USER_PREFS.id]);
@@ -727,7 +682,7 @@ function HeliumPlannerAPI() {
                                      callback(self.material_groups_by_user_id[helium.USER_PREFS.id]);
                                  },
                                  error: function (jqXHR, textStatus, errorThrown) {
-                                     helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                                     document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                                  }
                              });
         }
@@ -747,7 +702,7 @@ function HeliumPlannerAPI() {
     this.get_material_group = function (callback, id, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
-        var ret_val = null;
+        let ret_val;
 
         if (use_cache && self.material_group.hasOwnProperty(id)) {
             ret_val = callback(self.material_group[id]);
@@ -762,7 +717,7 @@ function HeliumPlannerAPI() {
                                      callback(self.material_group[id]);
                                  },
                                  error: function (jqXHR, textStatus, errorThrown) {
-                                     helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                                     document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                                  }
                              });
         }
@@ -788,7 +743,7 @@ function HeliumPlannerAPI() {
                           dataType: "json",
                           success: callback,
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -814,7 +769,7 @@ function HeliumPlannerAPI() {
                           dataType: "json",
                           success: callback,
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -837,7 +792,7 @@ function HeliumPlannerAPI() {
                           dataType: "json",
                           success: callback,
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -854,7 +809,7 @@ function HeliumPlannerAPI() {
     this.get_materials_by_course_id = function (callback, id, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
-        var ret_val = null;
+        let ret_val;
 
         if (use_cache && self.materials_by_course_id.hasOwnProperty(id)) {
             ret_val = callback(self.materials_by_course_id[id]);
@@ -869,7 +824,7 @@ function HeliumPlannerAPI() {
                                      callback(self.materials_by_course_id[id]);
                                  },
                                  error: function (jqXHR, textStatus, errorThrown) {
-                                     helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                                     document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                                  }
                              });
         }
@@ -890,7 +845,7 @@ function HeliumPlannerAPI() {
     this.get_material = function (callback, material_group_id, id, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
-        var ret_val = null;
+        let ret_val;
 
         if (use_cache && self.material.hasOwnProperty(id)) {
             ret_val = callback(self.material[id]);
@@ -906,7 +861,7 @@ function HeliumPlannerAPI() {
                                      callback(self.material[id]);
                                  },
                                  error: function (jqXHR, textStatus, errorThrown) {
-                                     helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                                     document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                                  }
                              });
         }
@@ -927,7 +882,7 @@ function HeliumPlannerAPI() {
     this.get_materials_by_material_group_id = function (callback, id, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
-        var ret_val = null;
+        let ret_val;
 
         if (use_cache && self.materials_by_material_group_id.hasOwnProperty(id)) {
             ret_val = callback(self.materials_by_material_group_id[id]);
@@ -942,7 +897,7 @@ function HeliumPlannerAPI() {
                                      callback(self.materials_by_material_group_id[id]);
                                  },
                                  error: function (jqXHR, textStatus, errorThrown) {
-                                     helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                                     document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                                  }
                              });
         }
@@ -969,7 +924,7 @@ function HeliumPlannerAPI() {
                           dataType: "json",
                           success: callback,
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -996,7 +951,7 @@ function HeliumPlannerAPI() {
                           dataType: "json",
                           success: callback,
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -1021,7 +976,7 @@ function HeliumPlannerAPI() {
                           dataType: "json",
                           success: callback,
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -1037,7 +992,7 @@ function HeliumPlannerAPI() {
     this.get_category_names = function (callback, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
-        var ret_val = null;
+        let ret_val;
 
         if (use_cache && self.category_names !== null) {
             ret_val = callback(self.category_names);
@@ -1055,7 +1010,7 @@ function HeliumPlannerAPI() {
                                      callback(self.category_names);
                                  },
                                  error: function (jqXHR, textStatus, errorThrown) {
-                                     helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                                     document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                                  }
                              });
         }
@@ -1077,7 +1032,7 @@ function HeliumPlannerAPI() {
     this.get_categories_by_course_id = function (callback, course_group_id, id, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
-        var ret_val = null;
+        let ret_val;
 
         if (use_cache && self.categories_by_course_id.hasOwnProperty(id)) {
             ret_val = callback(self.categories_by_course_id[id]);
@@ -1093,45 +1048,7 @@ function HeliumPlannerAPI() {
                                      callback(self.categories_by_course_id[id]);
                                  },
                                  error: function (jqXHR, textStatus, errorThrown) {
-                                     helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
-                                 }
-                             });
-        }
-
-        return ret_val;
-    };
-
-    /**
-     * Compile the Category for the given ID and pass the values to the given callback function in JSON format.
-     *
-     * @param callback function to pass response data and call after completion
-     * @param course_group_id the ID of the CourseGroup
-     * @param course_id the ID of the Course
-     * @param id the ID of the Category
-     * @param async true if call should be async, false otherwise (default is true)
-     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
-     *     refresh the cache (default to false)
-     */
-    this.get_category = function (callback, course_group_id, course_id, id, async, use_cache) {
-        async = typeof async === "undefined" ? true : async;
-        use_cache = typeof use_cache === "undefined" ? false : use_cache;
-        var ret_val = null;
-
-        if (use_cache && self.category.hasOwnProperty(id)) {
-            ret_val = callback(self.category[id]);
-        } else {
-            ret_val = $.ajax({
-                                 type: "GET",
-                                 url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/"
-                                      + course_id + "/categories/" + id + "/",
-                                 async: async,
-                                 dataType: "json",
-                                 success: function (data) {
-                                     self.category[id] = data;
-                                     callback(self.category[id]);
-                                 },
-                                 error: function (jqXHR, textStatus, errorThrown) {
-                                     helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                                     document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                                  }
                              });
         }
@@ -1161,7 +1078,7 @@ function HeliumPlannerAPI() {
                           dataType: "json",
                           success: callback,
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -1190,7 +1107,7 @@ function HeliumPlannerAPI() {
                           dataType: "json",
                           success: callback,
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -1217,7 +1134,7 @@ function HeliumPlannerAPI() {
                           dataType: "json",
                           success: callback,
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -1235,7 +1152,7 @@ function HeliumPlannerAPI() {
     this.get_attachments_by_course_id = function (callback, id, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
-        var ret_val = null;
+        let ret_val;
 
         if (use_cache && self.attachments_by_course_id.hasOwnProperty(id)) {
             ret_val = callback(self.attachments_by_course_id[id]);
@@ -1250,7 +1167,7 @@ function HeliumPlannerAPI() {
                                      callback(self.categories_by_course_id[id]);
                                  },
                                  error: function (jqXHR, textStatus, errorThrown) {
-                                     helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                                     document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                                  }
                              });
         }
@@ -1277,7 +1194,7 @@ function HeliumPlannerAPI() {
                           dataType: "json",
                           success: callback,
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -1289,11 +1206,13 @@ function HeliumPlannerAPI() {
      * @param async true if call should be async, false otherwise (default is true)
      * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
      *     refresh the cache (default to false)
+     * @param start The start time window
+     * @param end The end time window
      */
     this.get_homework_by_user = function (callback, async, use_cache, start, end) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
-        var ret_val = null;
+        let ret_val;
 
         if (use_cache && self.homework_by_user_id.hasOwnProperty(helium.USER_PREFS.id)) {
             ret_val = callback(self.homework_by_user_id[helium.USER_PREFS.id]);
@@ -1311,44 +1230,7 @@ function HeliumPlannerAPI() {
                                      callback(self.homework_by_user_id[helium.USER_PREFS.id]);
                                  },
                                  error: function (jqXHR, textStatus, errorThrown) {
-                                     helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
-                                 }
-                             });
-        }
-
-        return ret_val;
-    };
-
-    /**
-     * Compile all Homework for the given Course ID and pass the values to the given callback function in JSON format.
-     *
-     * @param callback function to pass response data and call after completion
-     * @param course_group_id the ID of the CourseGroup with which to associate
-     * @param id the ID of the Course with which to associate
-     * @param async true if call should be async, false otherwise (default is true)
-     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
-     *     refresh the cache (default to false)
-     */
-    this.get_homework_by_course_id = function (callback, course_group_id, id, async, use_cache) {
-        async = typeof async === "undefined" ? true : async;
-        use_cache = typeof use_cache === "undefined" ? false : use_cache;
-        var ret_val = null;
-
-        if (use_cache && self.homework_by_course_id.hasOwnProperty(id)) {
-            ret_val = callback(self.homework_by_course_id[id]);
-        } else {
-            ret_val = $.ajax({
-                                 type: "GET",
-                                 url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + id
-                                      + "/homework/",
-                                 async: async,
-                                 dataType: "json",
-                                 success: function (data) {
-                                     self.homework_by_course_id[id] = data;
-                                     callback(self.homework_by_course_id[id]);
-                                 },
-                                 error: function (jqXHR, textStatus, errorThrown) {
-                                     helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                                     document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                                  }
                              });
         }
@@ -1370,7 +1252,7 @@ function HeliumPlannerAPI() {
     this.get_homework = function (callback, course_group_id, course_id, id, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
-        var ret_val = null;
+        let ret_val;
 
         if (use_cache && self.homework.hasOwnProperty(id)) {
             ret_val = callback(self.homework[id]);
@@ -1386,29 +1268,9 @@ function HeliumPlannerAPI() {
                                      callback(self.homework[id]);
                                  },
                                  error: function (jqXHR, textStatus, errorThrown) {
-                                     helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                                     document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                                  }
                              });
-        }
-
-        return ret_val;
-    };
-
-    this.get_homework_by_id = function (callback, id, use_cache) {
-        use_cache = typeof use_cache === "undefined" ? false : use_cache;
-        var ret_val = null;
-
-        if (use_cache && self.homework.hasOwnProperty(id)) {
-            ret_val = callback(self.homework[id]);
-        } else {
-            ret_val = this.get_homework_by_user(function (data) {
-                $.each(data, function (index, homework) {
-                    if (homework.id == id) {
-                        self.homework[id] = homework;
-                        callback(self.homework[id]);
-                    }
-                });
-            }, false, use_cache);
         }
 
         return ret_val;
@@ -1436,7 +1298,7 @@ function HeliumPlannerAPI() {
                           dataType: "json",
                           success: callback,
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -1468,7 +1330,7 @@ function HeliumPlannerAPI() {
                           dataType: "json",
                           success: callback,
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -1496,7 +1358,7 @@ function HeliumPlannerAPI() {
                           dataType: "json",
                           success: callback,
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -1508,11 +1370,13 @@ function HeliumPlannerAPI() {
      * @param async true if call should be async, false otherwise (default is true)
      * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
      *     refresh the cache (default to false)
+     * @param start The start time window
+     * @param end The end time window
      */
     this.get_events = function (callback, async, use_cache, start, end) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
-        var ret_val = null;
+        let ret_val;
 
         if (use_cache && self.events_by_user_id.hasOwnProperty(helium.USER_PREFS.id)) {
             ret_val = callback(self.events_by_user_id[helium.USER_PREFS.id]);
@@ -1528,7 +1392,7 @@ function HeliumPlannerAPI() {
                                      callback(self.events_by_user_id[helium.USER_PREFS.id]);
                                  },
                                  error: function (jqXHR, textStatus, errorThrown) {
-                                     helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                                     document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                                  }
                              });
         }
@@ -1548,7 +1412,7 @@ function HeliumPlannerAPI() {
     this.get_event = function (callback, id, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
-        var ret_val = null;
+        let ret_val;
 
         if (id.lastIndexOf("event_", 0) === 0) {
             id = id.substr(6);
@@ -1567,7 +1431,7 @@ function HeliumPlannerAPI() {
                                      callback(self.event[id]);
                                  },
                                  error: function (jqXHR, textStatus, errorThrown) {
-                                     helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                                     document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                                  }
                              });
         }
@@ -1593,7 +1457,7 @@ function HeliumPlannerAPI() {
                           dataType: "json",
                           success: callback,
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -1626,7 +1490,7 @@ function HeliumPlannerAPI() {
                           dataType: "json",
                           success: callback,
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -1655,7 +1519,7 @@ function HeliumPlannerAPI() {
                           dataType: "json",
                           success: callback,
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -1672,7 +1536,7 @@ function HeliumPlannerAPI() {
     this.get_external_calendars = function (callback, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
-        var ret_val = null;
+        let ret_val;
 
         if (use_cache && self.external_calendars_by_user_id.hasOwnProperty(helium.USER_PREFS.id)) {
             ret_val = callback(self.external_calendars_by_user_id[helium.USER_PREFS.id]);
@@ -1687,7 +1551,7 @@ function HeliumPlannerAPI() {
                                      callback(self.external_calendars_by_user_id[helium.USER_PREFS.id]);
                                  },
                                  error: function (jqXHR, textStatus, errorThrown) {
-                                     helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                                     document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                                  }
                              });
         }
@@ -1704,11 +1568,13 @@ function HeliumPlannerAPI() {
      * @param async true if call should be async, false otherwise (default is true)
      * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
      *     refresh the cache (default to false)
+     * @param start The start time window
+     * @param end The end time window
      */
     this.get_external_calendar_feed = function (callback, id, async, use_cache, start, end) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
-        var ret_val = null;
+        let ret_val;
 
         if (use_cache && self.external_calendar_feed.hasOwnProperty(id)) {
             ret_val = callback(self.external_calendar_feed[id]);
@@ -1725,7 +1591,7 @@ function HeliumPlannerAPI() {
                                      callback(self.external_calendar_feed[id]);
                                  },
                                  error: function (jqXHR, textStatus, errorThrown) {
-                                     helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                                     document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                                  }
                              });
         }
@@ -1744,7 +1610,7 @@ function HeliumPlannerAPI() {
     this.get_reminders = function (callback, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
-        var ret_val = null;
+        let ret_val;
 
         if (use_cache && self.reminders_by_user_id.hasOwnProperty(helium.USER_PREFS.id)) {
             ret_val = callback(self.reminders_by_user_id[helium.USER_PREFS.id]);
@@ -1760,47 +1626,7 @@ function HeliumPlannerAPI() {
                                      callback(self.reminders_by_user_id[helium.USER_PREFS.id]);
                                  },
                                  error: function (jqXHR, textStatus, errorThrown) {
-                                     helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
-                                 }
-                             });
-        }
-
-        return ret_val;
-    };
-
-    /**
-     * Compile all Reminders for the given calendar item (Homework or Event) and pass the values to the given callback
-     * function in JSON format.
-     *
-     * @param callback function to pass response data and call after completion
-     * @param id the ID of the user with which to associate
-     * @param calendar_item_type true if the item is an event, false otherwise
-     * @param async true if call should be async, false otherwise (default is true)
-     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
-     *     refresh the cache (default to false)
-     */
-    this.get_reminders_by_calendar_item = function (callback, id, calendar_item_type, async, use_cache) {
-        async = typeof async === "undefined" ? true : async;
-        use_cache = typeof use_cache === "undefined" ? false : use_cache;
-        var ret_val = null;
-
-        if (use_cache && self.reminders_by_calendar_item.hasOwnProperty(id)) {
-            ret_val = callback(self.reminders_by_calendar_item[id]);
-        } else {
-            var query = calendar_item_type == "0" ? "event=" + id : "homework=" + id;
-
-            ret_val = $.ajax({
-                                 type: "GET",
-                                 url: helium.API_URL + "/planner/reminders/?" + query,
-                                 data: {calendar_item_type: calendar_item_type},
-                                 async: async,
-                                 dataType: "json",
-                                 success: function (data) {
-                                     self.reminders_by_calendar_item[id] = data;
-                                     callback(self.reminders_by_calendar_item[id]);
-                                 },
-                                 error: function (jqXHR, textStatus, errorThrown) {
-                                     helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                                     document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                                  }
                              });
         }
@@ -1826,7 +1652,7 @@ function HeliumPlannerAPI() {
                           dataType: "json",
                           success: callback,
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -1843,7 +1669,7 @@ function HeliumPlannerAPI() {
     this.get_reminder = function (callback, id, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
-        var ret_val = null;
+        let ret_val;
 
         if (use_cache && self.reminder.hasOwnProperty(id)) {
             ret_val = callback(self.reminder[id]);
@@ -1858,7 +1684,7 @@ function HeliumPlannerAPI() {
                                      callback(self.reminder[id]);
                                  },
                                  error: function (jqXHR, textStatus, errorThrown) {
-                                     helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                                     document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                                  }
                              });
         }
@@ -1891,7 +1717,7 @@ function HeliumPlannerAPI() {
                           dataType: "json",
                           success: callback,
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -1919,7 +1745,7 @@ function HeliumPlannerAPI() {
                           dataType: "json",
                           success: callback,
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -1939,7 +1765,7 @@ function HeliumPlannerAPI() {
             id = id.substr(6);
         }
 
-        var query = calendar_item_type == "0" ? "event=" + id : "homework=" + id;
+        const query = calendar_item_type === "0" ? "event=" + id : "homework=" + id;
         return $.ajax({
                           type: "GET",
                           url: helium.API_URL + "/planner/attachments/?" + query,
@@ -1948,35 +1774,7 @@ function HeliumPlannerAPI() {
                           dataType: "json",
                           success: callback,
                           error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
-                          }
-                      });
-    };
-
-    this.enable_feed = function (callback, feed_type, id, async) {
-        async = typeof async === "undefined" ? true : async;
-        return $.ajax({
-                          type: "PUT",
-                          url: helium.API_URL + "/feeds/enable-external/",
-                          async: async,
-                          dataType: "json",
-                          success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
-                          }
-                      });
-    };
-
-    this.disable_feed = function (callback, feed_type, id, async) {
-        async = typeof async === "undefined" ? true : async;
-        return $.ajax({
-                          type: "PUT",
-                          url: helium.API_URL + "/feeds/disable-external/",
-                          async: async,
-                          dataType: "json",
-                          success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              helium.planner_api.api_error(jqXHR, textStatus, errorThrown, callback);
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });
     };
@@ -1985,7 +1783,7 @@ function HeliumPlannerAPI() {
 // Initialize HeliumPlannerAPI and give a reference to the Helium object
 helium.planner_api = new HeliumPlannerAPI();
 
-if (!window.ignore_access_token && localStorage.getItem("access_token") !== null) {
+if (!window.REDIRECTING && localStorage.getItem("access_token") !== null) {
     helium.planner_api.get_reminders(function (data) {
         helium.process_reminders(data);
     });

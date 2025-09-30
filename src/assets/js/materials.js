@@ -35,7 +35,7 @@ function HeliumMaterials() {
     this.edit_id = -1;
     this.courses = {};
 
-    var self = this;
+    let self = this;
 
     /*******************************************
      * Functions
@@ -117,7 +117,7 @@ function HeliumMaterials() {
             $("#material-group-error").html(helium.get_error_msg(data));
             $("#material-group-error").parent().show("fast");
         } else {
-            var input_tab, material_group_div, div, table_div;
+            let input_tab, material_group_div, div, table_div;
             $.each($('a[href^="#material-group-"]'), function (index, tab) {
                 if (!input_tab && data.title < $.trim($(tab).text())) {
                     input_tab = tab;
@@ -215,7 +215,7 @@ function HeliumMaterials() {
 
                     bootbox.alert(helium.get_error_msg(data));
                 } else {
-                    var material_group = data;
+                    const material_group = data;
                     $("#material-group-title").val(material_group.title);
                     $("#material-group-shown-on-calendar").prop("checked", !material_group.shown_on_calendar);
 
@@ -235,7 +235,7 @@ function HeliumMaterials() {
     this.delete_material_group_btn = function (selector) {
         helium.ajax_error_occurred = false;
 
-        var id = selector.attr("id").split("delete-material-group-")[1];
+        const id = selector.attr("id").split("delete-material-group-")[1];
         bootbox.dialog({
                            message: "Deleting this group will permanently delete all materials associated with it.",
                            buttons: {
@@ -252,7 +252,7 @@ function HeliumMaterials() {
                                                bootbox.alert(helium.get_error_msg(data));
                                            } else {
                                                $("#material-group-" + id).slideUp("fast", function () {
-                                                   var parent = $('a[href="#material-group-' + id + '"]').parent();
+                                                   const parent = $('a[href="#material-group-' + id + '"]').parent();
                                                    if (parent.prev().length > 0) {
                                                        parent.prev().find("a").tab("show");
                                                    } else if (parent.next().length > 0 && !parent.next()
@@ -305,7 +305,7 @@ function HeliumMaterials() {
 
                     bootbox.alert(helium.get_error_msg(data));
                 } else {
-                    var material = data;
+                    const material = data;
 
                     // Change display to the correct material group tab
                     $('a[href="#material-group-' + material.material_group + '"]').tab("show");
@@ -342,8 +342,8 @@ function HeliumMaterials() {
     this.delete_material_btn = function (selector) {
         helium.ajax_error_occurred = false;
 
-        var id = selector.attr("id").split("delete-material-")[1];
-        var material_group_id = parseInt(
+        const id = selector.attr("id").split("delete-material-")[1];
+        const material_group_id = parseInt(
             selector.closest("[id^='material-group-table-']").attr('id').split('material-group-table-body-')[1]);
         bootbox.dialog({
                            message: "Are you sure you want to delete this material?",
@@ -386,7 +386,7 @@ function HeliumMaterials() {
      * @param table the material group table in which to add the material
      */
     this.add_material_to_group = function (material_data, table) {
-        var row = table.row.add(
+        const row = table.row.add(
                 [material_data.website !== "" ? "<a target=\"_blank\" class=\"material-with-link\" href=\""
                                                 + material_data.website + "\">" + material_data.title + "</a>"
                                               : material_data.title, material_data.price,
@@ -419,7 +419,7 @@ function HeliumMaterials() {
      * @param ids of courses
      */
     this.get_course_names = function (ids) {
-        var course_names = "", i = 0;
+        let course_names = "", i = 0;
 
         for (i = 0; i < ids.length; i += 1) {
             course_names +=
@@ -434,7 +434,7 @@ function HeliumMaterials() {
      * Resort material groups alphabetically.
      */
     this.resort_material_groups = function () {
-        var group_tabs = $('a[href^="#material-group-"]'), swapped = true, i = 1, tab = null, prev_tab = null,
+        let group_tabs = $('a[href^="#material-group-"]'), swapped = true, i = 1, tab = null, prev_tab = null,
             prev = null;
 
         // Good 'ol bubble sort the entries
@@ -523,7 +523,7 @@ $(document).ready(function () {
     $.when.apply(this, helium.materials.ajax_calls).done(function () {
         if (!helium.ajax_error_occurred) {
             $("table[id^='material-group-table-']").each(function () {
-                var i = 0, id = $(this).attr("id").split("material-group-table-")[1], table_div = $(this);
+                let i = 0, id = $(this).attr("id").split("material-group-table-")[1], table_div = $(this);
 
                 if (!helium.ajax_error_occurred) {
                     helium.materials.ajax_calls.push(
@@ -561,7 +561,7 @@ $(document).ready(function () {
     });
 
     $("#material-group-title").on('keydown', function (event) {
-        var x = event.which;
+        const x = event.which;
         if (x === 13) {
             event.preventDefault();
         }

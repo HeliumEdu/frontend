@@ -15,7 +15,6 @@
  * Triggers
  ******************************************/
 
-// Be responsible; don't clutter the global namespace
 (function () {
     "use strict";
 
@@ -36,7 +35,7 @@
     $("#save-material-group").on("click", function () {
         helium.ajax_error_occurred = false;
 
-        var material_group_title = $("#material-group-title").val(), data;
+        let material_group_title = $("#material-group-title").val(), data;
 
         helium.materials.clear_material_group_errors();
 
@@ -57,7 +56,7 @@
                         $("#material-group-error").html(helium.get_error_msg(data));
                         $("#material-group-error").parent().show("fast");
                     } else {
-                        var material_group = data;
+                        const material_group = data;
                         $('a[href="#material-group-' + data.id + '"]').html("<i class=\"icon-briefcase r-110\"></i> <span class=\"hidden-xs\">" + material_group.title + (!material_group.shown_on_calendar ? " (H)" : "") + "</span>");
                         $("#material-group-title-" + data.id).html(material_group.title + (!material_group.shown_on_calendar ? " (Hidden)" : ""));
 
@@ -101,7 +100,7 @@
 
     // Material components
     $("#material-website").on("focusout", function () {
-        var value = $(this).val();
+        let value = $(this).val();
         if (value !== "") {
             if (value.indexOf("http://") !== 0 && value.indexOf("https://") !== 0) {
                 value = "http://" + value;
@@ -117,7 +116,7 @@
     $("#save-material").on("click", function () {
         helium.ajax_error_occurred = false;
 
-        var material_title = $("#material-title").val(), data;
+        let material_title = $("#material-title").val(), data;
 
         helium.materials.clear_material_errors();
 
@@ -170,7 +169,7 @@
                                 $("#material-error").html(helium.get_error_msg(data));
                                 $("#material-error").parent().show("fast");
                             } else {
-                                var row_div = $("#material-" + data.id);
+                                const row_div = $("#material-" + data.id);
                                 helium.materials.material_group_table[data.material_group].cell(row_div, 0).data(data.website !== "" ? "<a target=\"_blank\" href=\"" + data.website + "\">" + data.title + "</a>" : data.title);
                                 helium.materials.material_group_table[data.material_group].cell(row_div, 1).data(data.price);
                                 helium.materials.material_group_table[data.material_group].cell(row_div, 2).data(helium.MATERIAL_STATUS_CHOICES[data.status]);

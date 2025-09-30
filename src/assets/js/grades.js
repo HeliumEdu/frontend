@@ -19,7 +19,6 @@
 function HeliumGrades() {
     "use strict";
 
-    this.ajax_calls = [];
     this.course_groups = null;
     this.courses_for_course_group = null;
     this.categories_for_course = null;
@@ -61,23 +60,24 @@ function HeliumGrades() {
             $("#course-group-tabs").prepend('<li><a data-toggle="tab" href="#course-group-container-' + data.id
                                             + '"><i class="icon-book r-110"></i><span class="hidden-xs">' + data.title
                                             + (!data.shown_on_calendar ? " (H)" : "") + '</span></a></li>');
-            var container = $('<div id="course-group-container-' + data.id + '" class="tab-pane"></div>');
-            var details = $('<div id="details-for-course-group-' + data.id + '" class="col-sm-12 infobox-container">');
+            const container = $('<div id="course-group-container-' + data.id + '" class="tab-pane"></div>');
+            const details = $(
+                '<div id="details-for-course-group-' + data.id + '" class="col-sm-12 infobox-container">');
             container.append(details);
             $("#course-group-tab-content").append(container);
 
-            var days_remaining = data.num_days - data.num_days_completed;
+            let days_remaining = data.num_days - data.num_days_completed;
             if (days_remaining < 0) {
                 days_remaining = 0;
             }
-            var percent_thru = (data.num_days_completed / data.num_days) * 100;
+            let percent_thru = (data.num_days_completed / data.num_days) * 100;
             if (percent_thru > 100) {
                 percent_thru = 100;
             }
             if (isNaN(percent_thru)) {
                 percent_thru = 0;
             }
-            var percent_completed = (data.num_homework_completed / data.num_homework) * 100;
+            let percent_completed = (data.num_homework_completed / data.num_homework) * 100;
             if (percent_completed > 100) {
                 percent_completed = 100;
             }
@@ -154,7 +154,7 @@ $(document).ready(function () {
      * Initialize component libraries
      ******************************************/
     $('.easy-pie-chart.percentage').each(function () {
-        var $box = $(this).closest(".infobox"),
+        const $box = $(this).closest(".infobox"),
             barColor = $(this).data("color") || (!$box.hasClass("infobox-dark") ? $box.css("color")
                                                                                 : "rgba(255,255,255,0.95)"),
             trackColor = barColor === "rgba(255,255,255,0.95)" ? "rgba(255,255,255,0.25)" : "#E2E2E2",
@@ -171,7 +171,8 @@ $(document).ready(function () {
     });
 
     $(".sparkline").each(function () {
-        var $box = $(this).closest(".infobox"), barColor = !$box.hasClass("infobox-dark") ? $box.css("color") : "#FFF";
+        const $box = $(this).closest(".infobox"),
+            barColor = !$box.hasClass("infobox-dark") ? $box.css("color") : "#FFF";
         $(this).sparkline("html", {
             tagValuesAttribute: "data-values",
             type: "bar",
@@ -215,7 +216,7 @@ $(document).ready(function () {
 
             // Build line graph for each course group
             $("div[id^='course-group-container-']").each(function () {
-                var id = $(this).attr("id").split("course-group-container-")[1].split("_")[0], course_div,
+                let id = $(this).attr("id").split("course-group-container-")[1].split("_")[0], course_div,
                     course_body_div, grade_distribution_string, weight_pie_div, grade_by_weight_pie_div, course_grade,
                     category_table, category_table_body, chart_data_weight, chart_data_grade_by_weight,
                     data_for_plot = [], i = 0, j = 0, course, course_grades, data_for_group = 0, data = [], category,
@@ -262,7 +263,8 @@ $(document).ready(function () {
                             hoverable: true
                         }
                     };
-                $("#course-group-chart-" + id).css({"width": "100%", "height": "220px"});
+                const course_group_chart_tag = $("#course-group-chart-" + id);
+                course_group_chart_tag.css({"width": "100%", "height": "220px"});
                 course_list = $("#course-group-piechart-" + id);
                 course_list.append("<div class=\"space-24\"></div>");
 
@@ -360,7 +362,7 @@ $(document).ready(function () {
 
                     $.plot("#course-group-chart-" + id, data_for_plot, group_plot_details);
 
-                    $("#course-group-chart-" + id).bind("plothover", function (event, pos, item) {
+                    course_group_chart_tag.bind("plothover", function (event, pos, item) {
                         if (item) {
                             $("#plot-tooltip").html((Math.round(item.datapoint[1] * 100) / 100) + "%").css({
                                                                                                                top: pos.pageY
@@ -379,7 +381,7 @@ $(document).ready(function () {
                 }
 
                 if (data_for_group === 0) {
-                    $("#course-group-chart-" + id).parent().parent().parent().remove();
+                    course_group_chart_tag.parent().parent().parent().remove();
                     $("#details-for-course-group-" + id).after(
                         "<div class=\"row\"><div class=\"col-xs-12 col-sm-8 col-sm-offset-2 col-xs-12 well\">We can't calculate any grades for you if you don't have both <a href=\"/planner/classes\">classes</a> and <a href=\"/planner/calendar\">assignments</a>. Once you've entered these, head back here to check your grades!</div></div>");
                 }

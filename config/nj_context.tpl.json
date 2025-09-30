@@ -8,7 +8,8 @@
     "base_header_javascript": [
         "/js/vendors/ace-extra.js",
         "/js/vendors/js.cookie.js",
-        "/js/vendors/url.js"
+        "/js/vendors/url.js",
+        "/js/base-global.js"
     ],
     "base_javascript": [
         "/js/vendors/moment.js",
@@ -38,23 +39,25 @@
         "/css/vendors/ace-ie.css"
     ],
     "page_header_javascript": {
-        "verify": [
-            "/js/unauthenticate.js"
-        ],
         "support": [
-            "/js/unauthenticate.js"
+            "/js/redirecting.js",
+            "/js/support.js"
         ],
         "docs": [
-            "/js/unauthenticate.js"
+            "/js/redirecting.js",
+            "/js/docs.js"
         ],
         "status": [
-            "/js/unauthenticate.js"
+            "/js/redirecting.js",
+            "/js/status.js"
         ],
-        "settings": [
-            "/js/authenticated.js"
+        "verify": [
+            "/js/redirecting.js",
+            "/js/verify.js"
         ],
         "planner_index": [
-            "/js/unauthenticate.js"
+            "/js/redirecting.js",
+            "/js/planner-index.js"
         ],
         "planner_calendar": [
             "/js/authenticated.js"
@@ -66,6 +69,9 @@
             "/js/authenticated.js"
         ],
         "planner_grades": [
+            "/js/authenticated.js"
+        ],
+        "settings": [
             "/js/authenticated.js"
         ]
     },
@@ -82,26 +88,11 @@
         "logout": [
             "/js/logout.js"
         ],
-        "verify": [
-            "/js/verify.js"
-        ],
-        "support": [
-            "/js/support.js"
-        ],
-        "docs": [
-            "/js/docs.js"
-        ],
-        "status": [
-            "/js/status.js"
-        ],
         "settings": [
             "/js/vendors/bootstrap-editable.js",
             "/js/vendors/jquery.simplecolorpicker.js",
             "/js/vendors/bootbox.js",
             "/js/settings.js"
-        ],
-        "planner_index": [
-            "/js/planner_index.js"
         ],
         "planner_calendar": [
             "/js/vendors/bootstrap-datepicker.js",

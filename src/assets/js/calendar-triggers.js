@@ -15,17 +15,16 @@
  * Triggers
  ******************************************/
 
-// Be responsible; don't clutter the global namespace
 (function () {
     "use strict";
 
     $("body").on("mouseenter", "[id^='calendar-filter-course-']", function () {
-        var element = $(this).find("span");
+        const element = $(this).find("span");
         element.attr("course_color", element.attr("style")).attr("style", "color: #fff !important;");
     });
 
     $("body").on("mouseleave", "[id^='calendar-filter-course-']", function () {
-        var element = $(this).find("span");
+        const element = $(this).find("span");
         element.attr("style", element.attr("course_color")).attr("course_color", null);
     });
 
@@ -42,13 +41,13 @@
     $("body").on("click", ".calendar-homework-checkbox", function () {
         helium.ajax_error_occurred = false;
 
-        var completed = $(this).is(":checked"),
+        let completed = $(this).is(":checked"),
             homework_id = $(this).attr("id").split("calendar-homework-checkbox-")[1], data;
         helium.calendar.loading_div.spin(helium.SMALL_LOADING_OPTS);
 
-        var homework = $("#calendar").fullCalendar("clientEvents", [homework_id])[0];
+        const homework = $("#calendar").fullCalendar("clientEvents", [homework_id])[0];
 
-        var course = helium.calendar.courses[homework.course];
+        const course = helium.calendar.courses[homework.course];
 
         data = {"completed": completed};
         helium.planner_api.edit_homework(function (data) {
@@ -105,7 +104,7 @@
     $("#homework-completed").on("change", function () {
         // Ensure all AJAX calls are complete before proceeding
         $.when.apply(this, helium.calendar.ajax_calls).done(function () {
-            var selected;
+            let selected;
             if ($("#homework-completed").is(":checked") && !$("#homework-event-switch").is(":checked")) {
                 $("#loading-homework-modal").spin(helium.SMALL_LOADING_OPTS);
 
@@ -184,7 +183,7 @@
     $("#homework-class").on("change", function () {
         helium.ajax_error_occurred = false;
 
-        var course, month_view, month_or_list_view, start_time, end_time, day_of_week, on_days, i = 0,
+        let course, month_view, month_or_list_view, start_time, end_time, day_of_week, on_days, i = 0,
             materials_callback, materials_load;
         $("#loading-homework-modal").spin(helium.SMALL_LOADING_OPTS);
         $("#homework-materials").attr("disabled", true).trigger("chosen:updated");
@@ -220,7 +219,7 @@
 
                     if ((month_or_list_view || helium.calendar.all_day) && course.schedules.length > 0
                         && helium.calendar.has_schedule(course.schedules[0])) {
-                        var schedule = course.schedules[0];
+                        const schedule = course.schedules[0];
 
                         start_time = moment(schedule.sun_start_time, helium.HE_TIME_STRING_SERVER);
                         end_time = moment(schedule.sun_end_time, helium.HE_TIME_STRING_SERVER);
@@ -306,7 +305,7 @@
 
         helium.calendar.set_timing_fields();
 
-        var materials_callback = function (data) {
+        materials_callback = function (data) {
             if (helium.data_has_err_msg(data)) {
                 helium.ajax_error_occurred = true;
                 $("#loading-homework-modal").spin(false);
@@ -347,7 +346,7 @@
                         $("#homework-error").html(helium.get_error_msg(data));
                         $("#homework-error").parent().show("fast");
                     } else {
-                        var course, weight_tag;
+                        let course, weight_tag;
                         $("#homework-category").find("option").remove();
                         $.each(data, function (index, category) {
                             helium.planner_api.get_courses(function (data) {
@@ -413,7 +412,7 @@
     });
 
     $("#homework-grade").on("focusout", function () {
-        var value = $(this).val(), split;
+        let value = $(this).val(), split;
         if (value !== "") {
             // Cleanup the string in the text field a bit
             value = $.trim(value);
@@ -491,7 +490,7 @@
     });
 
     $("#create-reminder").on("click", function () {
-        var data = {
+        const data = {
             id: helium.calendar.reminder_unsaved_pk,
             message: "Reminder for " + ($.trim($("#homework-title").val()) !== "" ? $("#homework-title").val() : ($(
                 "#homework-event-switch").is(":checked") ? "New Event" : "New Assignment")),

@@ -260,7 +260,7 @@
          */
 
         Emitter.prototype.once = function(event, fn){
-            var self = this;
+            let self = this;
             this._callbacks = this._callbacks || {};
 
             function on() {

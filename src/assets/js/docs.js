@@ -9,4 +9,4 @@
  * @version 1.11.8
  */
 
-window.location.replace(helium.API_URL + "/docs");
+window.location.replace(window.API_URL + "/docs");

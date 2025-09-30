@@ -2,7 +2,7 @@ import {Browser, Builder, until} from 'selenium-webdriver';
 import * as chrome from 'selenium-webdriver/chrome.js';
 import {expect} from 'chai';
 
-var driver;
+let driver;
 
 let options = new chrome.Options();
 options.addArguments('--headless=new');

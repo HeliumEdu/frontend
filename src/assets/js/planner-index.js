@@ -9,4 +9,4 @@
  * @version 1.11.13
  */
 
-window.location.replace(helium.SITE_URL);
+window.location.replace(window.APP_URL + "planner/calendar");

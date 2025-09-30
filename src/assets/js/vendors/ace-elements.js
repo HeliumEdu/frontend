@@ -10,7 +10,7 @@ jQuery(function() {
 	var hasFileReader = 'FileReader' in window;
 
 	var Ace_File_Input = function(element , settings) {
-		var self = this;
+		let self = this;
 		this.settings = $.extend({}, $.fn.ace_file_input.defaults, settings);
 
 		this.$element = $(element);
@@ -35,7 +35,7 @@ jQuery(function() {
 
 
 	Ace_File_Input.prototype.apply_settings = function() {
-		var self = this;
+		let self = this;
 		var remove_btn = !!this.settings.icon_remove;
 
 		this.multi = this.$element.attr('multiple') && multiplible;
@@ -102,7 +102,7 @@ jQuery(function() {
 						&&
 						( (type.length > 0 && type.match('image')) || (type.length == 0 && fileIcon == 'icon-picture') )//the second one is for Android's default browser which gives an empty text for file.type
 				if(can_preview) {
-					var self = this;
+					let self = this;
 					$.when(preview_image.call(this, files[i])).fail(function(result){
 						//called on failure to load preview
 						if(self.settings.preview_error) self.settings.preview_error.call(self, filename, result.code);
@@ -168,7 +168,7 @@ jQuery(function() {
 
 
 	var enable_drop_functionality = function() {
-		var self = this;
+		let self = this;
 		var dropbox = this.element.parentNode;		
 		$(dropbox).on('dragenter', function(e){
 			e.preventDefault();
@@ -248,7 +248,7 @@ jQuery(function() {
 
 
 	var preview_image = function(file) {
-		var self = this;
+		let self = this;
 		var $span = self.$label.find('.file-name:last');//it should be out of onload, otherwise all onloads may target the same span because of delays
 		
 		var deferred = new $.Deferred
