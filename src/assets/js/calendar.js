@@ -837,7 +837,7 @@ function HeliumCalendar() {
 
                                 if (localStorage.getItem("filter_search_string") === null
                                     || calendar_item.title.toLowerCase()
-                                        .indexOf(localStorage.getItem("filter_search_string")) !== -1) {
+                                        .indexOf(localStorage.getItem("filter_search_string").toLowerCase()) !== -1) {
                                     events.push(
                                         {
                                             id: "ext_" + external_calendar.id + "_" + calendar_item.id,
@@ -884,9 +884,9 @@ function HeliumCalendar() {
 
                     if (localStorage.getItem("filter_search_string") === null ||
                         calendar_item.title.toLowerCase()
-                            .indexOf(localStorage.getItem("filter_search_string")) !== -1 ||
+                            .indexOf(localStorage.getItem("filter_search_string").toLowerCase()) !== -1 ||
                         calendar_item.comments.toLowerCase()
-                            .indexOf(localStorage.getItem("filter_search_string")) !== -1) {
+                            .indexOf(localStorage.getItem("filter_search_string").toLowerCase()) !== -1) {
                         events.push(
                             {
                                 id: "event_" + calendar_item.id,
@@ -933,13 +933,13 @@ function HeliumCalendar() {
                     // Check if any filters are applied and failing, in which case continue before adding the item
                     if (localStorage.getItem("filter_search_string") !== null &&
                         calendar_item.title.toLowerCase()
-                            .indexOf(localStorage.getItem("filter_search_string")) === -1 &&
+                            .indexOf(localStorage.getItem("filter_search_string").toLowerCase()) === -1 &&
                         calendar_item.comments.toLowerCase()
-                            .indexOf(localStorage.getItem("filter_search_string")) === -1 &&
+                            .indexOf(localStorage.getItem("filter_search_string").toLowerCase()) === -1 &&
                         helium.calendar.categories[calendar_item.category].title.toLowerCase()
-                            .indexOf(localStorage.getItem("filter_search_string")) === -1 &&
+                            .indexOf(localStorage.getItem("filter_search_string").toLowerCase()) === -1 &&
                         course.title.toLowerCase()
-                            .indexOf(localStorage.getItem("filter_search_string")) === -1) {
+                            .indexOf(localStorage.getItem("filter_search_string").toLowerCase()) === -1) {
                         return true;
                     }
                     if (localStorage.getItem("filter_complete") !== null &&
@@ -1012,7 +1012,7 @@ function HeliumCalendar() {
 
                         if (localStorage.getItem("filter_search_string") === null ||
                             calendar_item.title.toLowerCase()
-                                .indexOf(localStorage.getItem("filter_search_string")) !== -1) {
+                                .indexOf(localStorage.getItem("filter_search_string").toLowerCase()) !== -1) {
                             events.push(
                                 {
                                     id: "class_" + course.id + "_" + calendar_item.id,
