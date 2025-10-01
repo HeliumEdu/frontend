@@ -1691,7 +1691,7 @@ function HeliumClasses() {
                                         helium.classes.attachments_to_delete = [];
 
                                         if (localStorage.getItem("filter_courses_" + helium.USER_PREFS.id) === null) {
-                                            localStorage.setItem("filter_courses_" + helium.USER_PREFS.id);
+                                            localStorage.setItem("filter_courses_" + helium.USER_PREFS.id, "");
                                         }
 
                                         const course_ids = localStorage.getItem(
@@ -1842,7 +1842,7 @@ $(document).ready(function () {
     $.when.apply(this, helium.classes.ajax_calls).done(function () {
         if (!helium.ajax_error_occurred) {
             /*******************************************
-             * Check cookies for triggers passed in
+             * Check storage for triggers passed in
              ******************************************/
             if (localStorage.getItem("edit_categories") === "true") {
                 const course_id = localStorage.getItem("course_id");
