@@ -255,7 +255,7 @@ function HeliumSettings() {
                                    helium.show_error("preferences", key, value);
                                });
                            } else {
-                               helium.show_error("", "preferences", helium.planner_api.GENERIC_ERROR_MESSAGE);
+                               helium.show_error("", "preferences", document.GENERIC_ERROR_MESSAGE);
                            }
 
                            $("#loading-preferences").spin(false);
@@ -297,7 +297,7 @@ function HeliumSettings() {
                                    helium.show_error("personal", key, value);
                                });
                            } else {
-                               helium.show_error("personal", "", helium.planner_api.GENERIC_ERROR_MESSAGE);
+                               helium.show_error("personal", "", document.GENERIC_ERROR_MESSAGE);
                            }
 
                            $("#loading-personal").spin(false);
@@ -389,7 +389,7 @@ function HeliumSettings() {
                                    helium.show_error("account", key, value);
                                });
                            } else {
-                               helium.show_error("account", "", helium.planner_api.GENERIC_ERROR_MESSAGE);
+                               helium.show_error("account", "", document.GENERIC_ERROR_MESSAGE);
                            }
 
                            $("#loading-account").spin(false);

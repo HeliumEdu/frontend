@@ -1056,7 +1056,7 @@ function HeliumCalendar() {
         }).fail(function () {
             self.loading_div.spin(false);
 
-            bootbox.alert(helium.planner_api.GENERIC_ERROR_MESSAGE);
+            bootbox.alert(document.GENERIC_ERROR_MESSAGE);
         });
     };
 
@@ -2338,14 +2338,14 @@ $(document).ready(function () {
                                 if (helium.calendar.current_calendar_item.calendar_item_type
                                     === 0) {
                                     $("#homework-error").html(
-                                        "The event is saved, but an error occurred while uploading attachments. If the error persists, <a href=\"https://github.com/HeliumEdu/platform/issues/new/choose\">open a ticket</a>.");
+                                        "The event is saved, but an error occurred while uploading attachments. If the error persists, <a href=\"" + helium.INFO.support_url + "\">open a ticket</a>.");
                                 } else {
                                     $("#homework-error").html(
-                                        "The assignment is saved, but an error occurred while uploading attachments. If the error persists, <a href=\"https://github.com/HeliumEdu/platform/issues/new/choose\">open a ticket</a>.");
+                                        "The assignment is saved, but an error occurred while uploading attachments. If the error persists, <a href=\"" + helium.INFO.support_url + "\">open a ticket</a>.");
                                 }
                             } else {
                                 $("#homework-error").html(
-                                    "An unknown error occurred with attachments. If the error persists, <a href=\"https://github.com/HeliumEdu/platform/issues/new/choose\">open a ticket</a>.");
+                                    "An unknown error occurred with attachments. If the error persists, <a href=\"" + helium.INFO.support_url + "\">open a ticket</a>.");
                             }
                             $("#homework-error").parent().show("fast");
 
