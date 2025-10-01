@@ -159,19 +159,20 @@ function HeliumMaterials() {
                 self.delete_material_group_btn($(this));
             });
 
-            table_div = div.find("#material-group-table-" + data.id).dataTable({
-                                                                                   aoColumns: [
-                                                                                       null, {sClass: "hidden-xs"},
-                                                                                       {sClass: "hidden-xs"},
-                                                                                       {sClass: "hidden-xs"}, null, {
-                                                                                           bSortable: false,
-                                                                                           bSearchable: false,
-                                                                                           sClass: "hidden-xs",
-                                                                                           sWidth: "90px"
-                                                                                       }
-                                                                                   ],
-                                                                                   stateSave: true
-                                                                               });
+            table_div = div.find("#material-group-table-" + data.id).dataTable(
+                {
+                    aoColumns: [
+                        null, {sClass: "hidden-xs"},
+                        {sClass: "hidden-xs"},
+                        {sClass: "hidden-xs"}, null, {
+                            bSortable: false,
+                            bSearchable: false,
+                            sClass: "hidden-xs",
+                            sWidth: "90px"
+                        }
+                    ],
+                    stateSave: true
+                });
             self.material_group_table[data.id] = table_div.DataTable();
             table_div.parent().find("#material-group-table-" + data.id + "_length").addClass("hidden-print");
             table_div.parent().find("#material-group-table-" + data.id + "_filter").addClass("hidden-print");
@@ -236,46 +237,47 @@ function HeliumMaterials() {
         helium.ajax_error_occurred = false;
 
         const id = selector.attr("id").split("delete-material-group-")[1];
-        bootbox.dialog({
-                           message: "Deleting this group will permanently delete all materials associated with it.",
-                           buttons: {
-                               "delete": {
-                                   "label": '<i class="icon-trash"></i> Delete',
-                                   "className": "btn-sm btn-danger",
-                                   "callback": function () {
-                                       $("#loading-materials").spin(helium.SMALL_LOADING_OPTS);
-                                       helium.planner_api.delete_material_group(function (data) {
-                                           if (helium.data_has_err_msg(data)) {
-                                               helium.ajax_error_occurred = true;
-                                               $("#loading-materials").spin(false);
+        bootbox.dialog(
+            {
+                message: "Deleting this group will permanently delete all materials associated with it.",
+                buttons: {
+                    "delete": {
+                        "label": '<i class="icon-trash"></i> Delete',
+                        "className": "btn-sm btn-danger",
+                        "callback": function () {
+                            $("#loading-materials").spin(helium.SMALL_LOADING_OPTS);
+                            helium.planner_api.delete_material_group(function (data) {
+                                if (helium.data_has_err_msg(data)) {
+                                    helium.ajax_error_occurred = true;
+                                    $("#loading-materials").spin(false);
 
-                                               bootbox.alert(helium.get_error_msg(data));
-                                           } else {
-                                               $("#material-group-" + id).slideUp("fast", function () {
-                                                   const parent = $('a[href="#material-group-' + id + '"]').parent();
-                                                   if (parent.prev().length > 0) {
-                                                       parent.prev().find("a").tab("show");
-                                                   } else if (parent.next().length > 0 && !parent.next()
-                                                       .is($("#create-material-group-li"))) {
-                                                       parent.next().find("a").tab("show");
-                                                   } else {
-                                                       $("#no-materials-tab").addClass("active");
-                                                   }
+                                    bootbox.alert(helium.get_error_msg(data));
+                                } else {
+                                    $("#material-group-" + id).slideUp("fast", function () {
+                                        const parent = $('a[href="#material-group-' + id + '"]').parent();
+                                        if (parent.prev().length > 0) {
+                                            parent.prev().find("a").tab("show");
+                                        } else if (parent.next().length > 0 && !parent.next()
+                                            .is($("#create-material-group-li"))) {
+                                            parent.next().find("a").tab("show");
+                                        } else {
+                                            $("#no-materials-tab").addClass("active");
+                                        }
 
-                                                   $(this).remove();
-                                                   $('a[href="#material-group-' + id + '"]').parent().remove();
-                                                   $("#loading-materials").spin(false);
-                                               });
-                                           }
-                                       }, id);
-                                   }
-                               },
-                               "cancel": {
-                                   "label": '<i class="icon-remove"></i> Cancel',
-                                   "className": "btn-sm"
-                               }
-                           }
-                       });
+                                        $(this).remove();
+                                        $('a[href="#material-group-' + id + '"]').parent().remove();
+                                        $("#loading-materials").spin(false);
+                                    });
+                                }
+                            }, id);
+                        }
+                    },
+                    "cancel": {
+                        "label": '<i class="icon-remove"></i> Cancel',
+                        "className": "btn-sm"
+                    }
+                }
+            });
     };
 
     /**
@@ -345,38 +347,39 @@ function HeliumMaterials() {
         const id = selector.attr("id").split("delete-material-")[1];
         const material_group_id = parseInt(
             selector.closest("[id^='material-group-table-']").attr('id').split('material-group-table-body-')[1]);
-        bootbox.dialog({
-                           message: "Are you sure you want to delete this material?",
-                           buttons: {
-                               "delete": {
-                                   "label": '<i class="icon-trash"></i> Delete',
-                                   "className": "btn-sm btn-danger",
-                                   "callback": function () {
-                                       $("#loading-materials").spin(helium.SMALL_LOADING_OPTS);
-                                       self.ajax_calls.push(helium.planner_api.delete_material(function (data) {
-                                           if (helium.data_has_err_msg(data)) {
-                                               helium.ajax_error_occurred = true;
-                                               $("#loading-materials").spin(false);
+        bootbox.dialog(
+            {
+                message: "Are you sure you want to delete this material?",
+                buttons: {
+                    "delete": {
+                        "label": '<i class="icon-trash"></i> Delete',
+                        "className": "btn-sm btn-danger",
+                        "callback": function () {
+                            $("#loading-materials").spin(helium.SMALL_LOADING_OPTS);
+                            self.ajax_calls.push(helium.planner_api.delete_material(function (data) {
+                                if (helium.data_has_err_msg(data)) {
+                                    helium.ajax_error_occurred = true;
+                                    $("#loading-materials").spin(false);
 
-                                               bootbox.alert(helium.get_error_msg(data));
-                                           } else {
-                                               $("#material-" + id).slideUp("fast", function () {
-                                                   self.material_group_table[$("#material-group-tabs li.active a")
-                                                       .attr("href").split("#material-group-")[1]].row($(this)).remove()
-                                                       .draw();
+                                    bootbox.alert(helium.get_error_msg(data));
+                                } else {
+                                    $("#material-" + id).slideUp("fast", function () {
+                                        self.material_group_table[$("#material-group-tabs li.active a")
+                                            .attr("href").split("#material-group-")[1]].row($(this)).remove()
+                                            .draw();
 
-                                                   $("#loading-materials").spin(false);
-                                               });
-                                           }
-                                       }, material_group_id, id));
-                                   }
-                               },
-                               "cancel": {
-                                   "label": '<i class="icon-remove"></i> Cancel',
-                                   "className": "btn-sm"
-                               }
-                           }
-                       });
+                                        $("#loading-materials").spin(false);
+                                    });
+                                }
+                            }, material_group_id, id));
+                        }
+                    },
+                    "cancel": {
+                        "label": '<i class="icon-remove"></i> Cancel',
+                        "className": "btn-sm"
+                    }
+                }
+            });
     };
 
     /**

@@ -203,8 +203,8 @@
                     helium.calendar.current_course_group_id = course.course_group;
                     month_view = $("#calendar").fullCalendar("getView").name === helium.calendar.DEFAULT_VIEWS[0];
                     month_or_list_view =
-                        $("#calendar").fullCalendar("getView").name === helium.calendar.DEFAULT_VIEWS[0] || $(
-                                                                        "#calendar").fullCalendar("getView").name === helium.calendar.DEFAULT_VIEWS[3];
+                        $("#calendar").fullCalendar("getView").name === helium.calendar.DEFAULT_VIEWS[0]
+                        || $("#calendar").fullCalendar("getView").name === helium.calendar.DEFAULT_VIEWS[3];
                     if (month_view) {
                         if (helium.calendar.start.toDate().toDateString() !== helium.calendar.end.toDate()
                             .toDateString()) {
@@ -286,9 +286,9 @@
                             helium.calendar.end.minute(
                                 start_time.minutes() + helium.USER_PREFS.settings.all_day_offset);
                         }
-                    } else if (((month_view && course.schedules.length == 0) || (course.schedules.length > 0
-                                                                                 && !helium.calendar.has_schedule(
-                            course.schedules[0]))) || helium.calendar.all_day) {
+                    } else if (((month_view && course.schedules.length == 0) ||
+                               (course.schedules.length > 0 && !helium.calendar.has_schedule(course.schedules[0])))
+                               || helium.calendar.all_day) {
                         helium.calendar.start.hour(12);
                         helium.calendar.start.minute(0);
                         helium.calendar.end.hour(12);

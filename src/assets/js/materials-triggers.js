@@ -159,6 +159,8 @@
                     };
                     if ($("#material-courses").val()) {
                         data["courses"] = $("#material-courses").val();
+                    } else {
+                        data["courses"] = [];
                     }
                     if (helium.materials.edit) {
                         helium.planner_api.edit_material(function (data) {

@@ -204,134 +204,111 @@ function HeliumClasses() {
         });
 
         // Bind attributes within added row
-        $("#category-" + category.id + unsaved_string + "-type").editable({
-                                                                              value: category.title,
-                                                                              typeahead: {
-                                                                                  name: "categories",
-                                                                                  local: self.CATEGORY_SUGGESTIONS
-                                                                              },
-                                                                              success: function (response, newValue) {
-                                                                                  let id = $(this).attr("id")
-                                                                                          .split("category-")[1].split(
-                                                                                          "-type")[0],
-                                                                                      parent_id = $(this).parent()
-                                                                                          .parent().attr("id");
-                                                                                  if (id.split("-").length === 2) {
-                                                                                      id = id.split("-")[1];
-                                                                                  }
-                                                                                  if (parent_id.indexOf("unsaved")
-                                                                                      === -1 && parent_id.indexOf(
-                                                                                          "modified") === -1) {
-                                                                                      $(this).parent().parent()
-                                                                                          .attr("id", $(this).parent()
-                                                                                                          .parent()
-                                                                                                          .attr("id")
-                                                                                                      + "-modified");
-                                                                                  }
+        $("#category-" + category.id + unsaved_string + "-type").editable(
+            {
+                value: category.title,
+                typeahead: {
+                    name: "categories",
+                    local: self.CATEGORY_SUGGESTIONS
+                },
+                success: function (response, newValue) {
+                    let id = $(this).attr("id").split("category-")[1].split("-type")[0],
+                        parent_id = $(this).parent()
+                            .parent().attr("id");
+                    if (id.split("-").length === 2) {
+                        id = id.split("-")[1];
+                    }
+                    if (parent_id.indexOf("unsaved") === -1 && parent_id.indexOf(
+                        "modified") === -1) {
+                        $(this).parent().parent().attr("id", $(this).parent().parent().attr("id") + "-modified");
+                    }
 
-                                                                                  for (let i = 0; i
-                                                                                                  < self.CATEGORY_SUGGESTIONS.length;
-                                                                                       ++i) {
-                                                                                      if (self.CATEGORY_SUGGESTIONS[i].value
-                                                                                          == newValue) {
-                                                                                          $("[id^='category-"
-                                                                                            + parent_id.split("-")[1]
-                                                                                            + "'][id$='-color']")
-                                                                                              .simplecolorpicker(
-                                                                                                  "selectColor",
-                                                                                                  self.CATEGORY_SUGGESTIONS[i].color);
+                    for (let i = 0; i < self.CATEGORY_SUGGESTIONS.length; ++i) {
+                        if (self.CATEGORY_SUGGESTIONS[i].value == newValue) {
+                            $("[id^='category-" + parent_id.split("-")[1] + "'][id$='-color']")
+                                .simplecolorpicker("selectColor", self.CATEGORY_SUGGESTIONS[i].color);
 
-                                                                                          break;
-                                                                                      }
-                                                                                  }
-                                                                              },
-                                                                              type: "text",
-                                                                              tpl: '<input type="text" maxlength="255">',
-                                                                              validate: function (value) {
-                                                                                  let response = "";
-                                                                                  if (!/\S/.test(value)) {
-                                                                                      response =
-                                                                                          "This category name cannot be empty.";
-                                                                                  } else if (!self.check_category_names(
-                                                                                      value)) {
-                                                                                      response =
-                                                                                          "This category name already exists.";
-                                                                                  }
-                                                                                  return response;
-                                                                              }
-                                                                          });
-        $("#category-" + category.id + unsaved_string + "-weight").editable({
-                                                                                display: function (value) {
-                                                                                    // If no weight is given, just
-                                                                                    // display N/A
-                                                                                    let response = "N/A";
-                                                                                    if (parseFloat(value) !== 0) {
-                                                                                        value =
-                                                                                            helium.calculate_to_percent(
-                                                                                                value, "");
-                                                                                        response = value;
-                                                                                    }
-                                                                                    $(this).html(response);
-                                                                                },
-                                                                                success: function () {
-                                                                                    let id = $(this).attr("id")
-                                                                                            .split("category-")[1].split(
-                                                                                            "-weight")[0],
-                                                                                        parent_id = $(this).parent()
-                                                                                            .parent().attr("id");
-                                                                                    if (id.split("-").length === 2) {
-                                                                                        id = id.split("-")[1];
-                                                                                    }
-                                                                                    if (parent_id.indexOf("unsaved")
-                                                                                        === -1 && parent_id.indexOf(
-                                                                                            "modified") === -1) {
-                                                                                        $(this).parent().parent()
-                                                                                            .attr("id", $(this).parent()
-                                                                                                            .parent()
-                                                                                                            .attr("id")
-                                                                                                        + "-modified");
-                                                                                    }
-                                                                                },
-                                                                                type: "text",
-                                                                                tpl: '<input type="text" maxlength="10">',
-                                                                                validate: function (value) {
-                                                                                    let response = "", total_weights,
-                                                                                        total_weights_row;
-                                                                                    // If the value is empty or set to
-                                                                                    // N/A, the weight is given a value
-                                                                                    // of 0
-                                                                                    if (!/\S/.test(value) || value
-                                                                                        === "N/A") {
-                                                                                        response = {newValue: "0"};
-                                                                                    } else {
-                                                                                        // If the value isn't already a
-                                                                                        // digit, try to calculate it
-                                                                                        // to one (if possible)
-                                                                                        if (isNaN(value)) {
-                                                                                            value =
-                                                                                                helium.calculate_to_percent(
-                                                                                                    value, response)
-                                                                                                    .substring(0,
-                                                                                                               value.length
-                                                                                                               - 1);
-                                                                                        }
-                                                                                        total_weights =
-                                                                                            self.get_total_weights(
-                                                                                                category.id, value);
-                                                                                        if (parseFloat(value) < 0) {
-                                                                                            response = {newValue: "0"};
-                                                                                        } else if (total_weights
-                                                                                                   > 100) {
-                                                                                            response =
-                                                                                                "Weights cannot total more than 100%.";
-                                                                                        } else {
-                                                                                            self.update_total_category_weights(
-                                                                                                total_weights);
-                                                                                        }
-                                                                                    }
-                                                                                    return response;
-                                                                                }
-                                                                            });
+                            break;
+                        }
+                    }
+                },
+                type: "text",
+                tpl: '<input type="text" maxlength="255">',
+                validate: function (value) {
+                    let response = "";
+                    if (!/\S/.test(value)) {
+                        response =
+                            "This category name cannot be empty.";
+                    } else if (!self.check_category_names(
+                        value)) {
+                        response =
+                            "This category name already exists.";
+                    }
+                    return response;
+                }
+            });
+        $("#category-" + category.id + unsaved_string + "-weight").editable(
+            {
+                display: function (value) {
+                    // If no weight is given, just
+                    // display N/A
+                    let response = "N/A";
+                    if (parseFloat(value) !== 0) {
+                        value = helium.calculate_to_percent(value, "");
+                        response = value;
+                    }
+                    $(this).html(response);
+                },
+                success: function () {
+                    let id = $(this).attr("id").split("category-")[1].split("-weight")[0],
+                        parent_id = $(this).parent().parent().attr("id");
+                    if (id.split("-").length === 2) {
+                        id = id.split("-")[1];
+                    }
+                    if (parent_id.indexOf("unsaved") === -1 && parent_id.indexOf("modified") === -1) {
+                        $(this).parent().parent().attr("id", $(this).parent().parent().attr("id") + "-modified");
+                    }
+                },
+                type: "text",
+                tpl: '<input type="text" maxlength="10">',
+                validate: function (value) {
+                    let response = "", total_weights,
+                        total_weights_row;
+                    // If the value is empty or set to
+                    // N/A, the weight is given a value
+                    // of 0
+                    if (!/\S/.test(value) || value
+                        === "N/A") {
+                        response = {newValue: "0"};
+                    } else {
+                        // If the value isn't already a
+                        // digit, try to calculate it
+                        // to one (if possible)
+                        if (isNaN(value)) {
+                            value =
+                                helium.calculate_to_percent(
+                                    value, response)
+                                    .substring(0,
+                                               value.length
+                                               - 1);
+                        }
+                        total_weights =
+                            self.get_total_weights(
+                                category.id, value);
+                        if (parseFloat(value) < 0) {
+                            response = {newValue: "0"};
+                        } else if (total_weights
+                                   > 100) {
+                            response =
+                                "Weights cannot total more than 100%.";
+                        } else {
+                            self.update_total_category_weights(
+                                total_weights);
+                        }
+                    }
+                    return response;
+                }
+            });
 
         if (unsaved) {
             $("#delete-category-" + category.id + unsaved_string).on("click", function () {
@@ -347,32 +324,33 @@ function HeliumClasses() {
                 // We can only delete this category if it is not named "Uncategorized", or if the category is empty
                 if (category.num_homework > 0) {
                     if (category.title !== "Uncategorized") {
-                        bootbox.dialog({
-                                           message: "After you save the changes to this class, all assignments attached to this category will become uncategorized.",
-                                           buttons: {
-                                               "delete": {
-                                                   "label": '<i class="icon-trash"></i> ' + "Delete",
-                                                   "className": "btn-sm btn-danger",
-                                                   "callback": function () {
-                                                       helium.classes.categories_to_delete.push(category.id);
+                        bootbox.dialog(
+                            {
+                                message: "After you save the changes to this class, all assignments attached to this category will become uncategorized.",
+                                buttons: {
+                                    "delete": {
+                                        "label": '<i class="icon-trash"></i> ' + "Delete",
+                                        "className": "btn-sm btn-danger",
+                                        "callback": function () {
+                                            helium.classes.categories_to_delete.push(category.id);
 
-                                                       if ($("#categories-table-body").children().length === 2) {
-                                                           $("#no-categories").show();
-                                                       }
-                                                       $("#category-" + category.id).hide("fast", function () {
-                                                           $(this).remove();
-                                                           if ($("#categories-table-body").children().length === 2) {
-                                                               $("#no-categories").show();
-                                                           }
-                                                       });
-                                                   }
-                                               },
-                                               "cancel": {
-                                                   "label": '<i class="icon-remove"></i> ' + "Cancel",
-                                                   "className": "btn-sm"
-                                               }
-                                           }
-                                       });
+                                            if ($("#categories-table-body").children().length === 2) {
+                                                $("#no-categories").show();
+                                            }
+                                            $("#category-" + category.id).hide("fast", function () {
+                                                $(this).remove();
+                                                if ($("#categories-table-body").children().length === 2) {
+                                                    $("#no-categories").show();
+                                                }
+                                            });
+                                        }
+                                    },
+                                    "cancel": {
+                                        "label": '<i class="icon-remove"></i> ' + "Cancel",
+                                        "className": "btn-sm"
+                                    }
+                                }
+                            });
                     } else {
                         bootbox.alert(
                             "You can't delete the \"Uncategorized\" category when there are assignments in it.");
@@ -531,26 +509,27 @@ function HeliumClasses() {
                 self.delete_course_group_btn($(this));
             });
 
-            table_div = div.find("#course-group-table-" + data.id).dataTable({
-                                                                                 aoColumns: [
-                                                                                     {sWidth: "200px"},
-                                                                                     {
-                                                                                         sType: "date",
-                                                                                         sClass: "hidden-xs",
-                                                                                         sWidth: "120px"
-                                                                                     },
-                                                                                     null,
-                                                                                     {sClass: "hidden-xs"},
-                                                                                     null,
-                                                                                     {
-                                                                                         sClass: "hidden-xs",
-                                                                                         bSortable: false,
-                                                                                         bSearchable: false,
-                                                                                         sWidth: "90px"
-                                                                                     }
-                                                                                 ],
-                                                                                 stateSave: true
-                                                                             });
+            table_div = div.find("#course-group-table-" + data.id).dataTable(
+                {
+                    aoColumns: [
+                        {sWidth: "200px"},
+                        {
+                            sType: "date",
+                            sClass: "hidden-xs",
+                            sWidth: "120px"
+                        },
+                        null,
+                        {sClass: "hidden-xs"},
+                        null,
+                        {
+                            sClass: "hidden-xs",
+                            bSortable: false,
+                            bSearchable: false,
+                            sWidth: "90px"
+                        }
+                    ],
+                    stateSave: true
+                });
             self.course_group_table[data.id] = table_div.DataTable();
             table_div.parent().find("#course-group-table-" + data.id + "_length").addClass("hidden-print");
             table_div.parent().find("#course-group-table-" + data.id + "_filter").addClass("hidden-print");
@@ -721,47 +700,48 @@ function HeliumClasses() {
         helium.ajax_error_occurred = false;
 
         const id = selector.attr("id").split("delete-course-group-")[1];
-        bootbox.dialog({
-                           message: "Deleting this group will permanently delete all classes and homework associated with it.",
-                           buttons: {
-                               "delete": {
-                                   "label": '<i class="icon-trash"></i> Delete',
-                                   "className": "btn-sm btn-danger",
-                                   "callback": function () {
-                                       $("#loading-courses").spin(helium.SMALL_LOADING_OPTS);
-                                       helium.planner_api.delete_course_group(function (data) {
-                                           if (helium.data_has_err_msg(data)) {
-                                               helium.ajax_error_occurred = true;
-                                               $("#loading-courses").spin(false);
+        bootbox.dialog(
+            {
+                message: "Deleting this group will permanently delete all classes and homework associated with it.",
+                buttons: {
+                    "delete": {
+                        "label": '<i class="icon-trash"></i> Delete',
+                        "className": "btn-sm btn-danger",
+                        "callback": function () {
+                            $("#loading-courses").spin(helium.SMALL_LOADING_OPTS);
+                            helium.planner_api.delete_course_group(function (data) {
+                                if (helium.data_has_err_msg(data)) {
+                                    helium.ajax_error_occurred = true;
+                                    $("#loading-courses").spin(false);
 
-                                               bootbox.alert(helium.get_error_msg(data));
-                                           } else {
-                                               $("#course-group-" + id).slideUp("fast", function () {
-                                                   const parent = $('a[href="#course-group-' + id + '"]').parent();
-                                                   if (parent.prev().length > 0) {
-                                                       parent.prev().find("a").tab("show");
-                                                   } else if (parent.next().length > 0 && !parent.next()
-                                                       .is($("#create-course-group-li"))) {
-                                                       parent.next().find("a").tab("show");
-                                                   } else {
-                                                       $("#no-classes-tab").addClass("active");
-                                                   }
+                                    bootbox.alert(helium.get_error_msg(data));
+                                } else {
+                                    $("#course-group-" + id).slideUp("fast", function () {
+                                        const parent = $('a[href="#course-group-' + id + '"]').parent();
+                                        if (parent.prev().length > 0) {
+                                            parent.prev().find("a").tab("show");
+                                        } else if (parent.next().length > 0 && !parent.next()
+                                            .is($("#create-course-group-li"))) {
+                                            parent.next().find("a").tab("show");
+                                        } else {
+                                            $("#no-classes-tab").addClass("active");
+                                        }
 
-                                                   $(this).remove();
-                                                   $('a[href="#course-group-' + id + '"]').parent().remove();
-                                                   delete self.course_groups[id];
-                                                   $("#loading-courses").spin(false);
-                                               });
-                                           }
-                                       }, id);
-                                   }
-                               },
-                               "cancel": {
-                                   "label": '<i class="icon-remove"></i> Cancel',
-                                   "className": "btn-sm"
-                               }
-                           }
-                       });
+                                        $(this).remove();
+                                        $('a[href="#course-group-' + id + '"]').parent().remove();
+                                        delete self.course_groups[id];
+                                        $("#loading-courses").spin(false);
+                                    });
+                                }
+                            }, id);
+                        }
+                    },
+                    "cancel": {
+                        "label": '<i class="icon-remove"></i> Cancel',
+                        "className": "btn-sm"
+                    }
+                }
+            });
     };
 
     /**
@@ -985,38 +965,39 @@ function HeliumClasses() {
         const id = selector.attr("id").split("delete-course-")[1];
         const course_group_id = parseInt(
             selector.closest("[id^='course-group-table-']").attr('id').split('course-group-table-body-')[1]);
-        bootbox.dialog({
-                           message: "Deleting this class will permanently delete all homework associated with it and will remove this class from all groups.",
-                           buttons: {
-                               "delete": {
-                                   "label": '<i class="icon-trash"></i> Delete',
-                                   "className": "btn-sm btn-danger",
-                                   "callback": function () {
-                                       $("#loading-courses").spin(helium.SMALL_LOADING_OPTS);
-                                       self.ajax_calls.push(helium.planner_api.delete_course(function (data) {
-                                           if (helium.data_has_err_msg(data)) {
-                                               helium.ajax_error_occurred = true;
-                                               $("#loading-courses").spin(false);
+        bootbox.dialog(
+            {
+                message: "Deleting this class will permanently delete all homework associated with it and will remove this class from all groups.",
+                buttons: {
+                    "delete": {
+                        "label": '<i class="icon-trash"></i> Delete',
+                        "className": "btn-sm btn-danger",
+                        "callback": function () {
+                            $("#loading-courses").spin(helium.SMALL_LOADING_OPTS);
+                            self.ajax_calls.push(helium.planner_api.delete_course(function (data) {
+                                if (helium.data_has_err_msg(data)) {
+                                    helium.ajax_error_occurred = true;
+                                    $("#loading-courses").spin(false);
 
-                                               bootbox.alert(helium.get_error_msg(data));
-                                           } else {
-                                               $("#course-" + id).slideUp("fast", function () {
-                                                   self.course_group_table[$("#course-group-tabs li.active a")
-                                                       .attr("href").split("#course-group-")[1]].row($(this)).remove()
-                                                       .draw();
+                                    bootbox.alert(helium.get_error_msg(data));
+                                } else {
+                                    $("#course-" + id).slideUp("fast", function () {
+                                        self.course_group_table[$("#course-group-tabs li.active a")
+                                            .attr("href").split("#course-group-")[1]].row($(this)).remove()
+                                            .draw();
 
-                                                   $("#loading-courses").spin(false);
-                                               });
-                                           }
-                                       }, course_group_id, id));
-                                   }
-                               },
-                               "cancel": {
-                                   "label": '<i class="icon-remove"></i> Cancel',
-                                   "className": "btn-sm"
-                               }
-                           }
-                       });
+                                        $("#loading-courses").spin(false);
+                                    });
+                                }
+                            }, course_group_id, id));
+                        }
+                    },
+                    "cancel": {
+                        "label": '<i class="icon-remove"></i> Cancel',
+                        "className": "btn-sm"
+                    }
+                }
+            });
     };
 
     // FIXME: these course-related functions should be prototyped off a Course object after the open source migration
@@ -1710,7 +1691,7 @@ function HeliumClasses() {
                                         helium.classes.attachments_to_delete = [];
 
                                         if (localStorage.getItem("filter_courses_" + helium.USER_PREFS.id) === null) {
-                                            localStorage.setItem("filter_courses_" + helium.USER_PREFS.id);
+                                            localStorage.setItem("filter_courses_" + helium.USER_PREFS.id, "");
                                         }
 
                                         const course_ids = localStorage.getItem(
@@ -1861,7 +1842,7 @@ $(document).ready(function () {
     $.when.apply(this, helium.classes.ajax_calls).done(function () {
         if (!helium.ajax_error_occurred) {
             /*******************************************
-             * Check cookies for triggers passed in
+             * Check storage for triggers passed in
              ******************************************/
             if (localStorage.getItem("edit_categories") === "true") {
                 const course_id = localStorage.getItem("course_id");
@@ -1883,40 +1864,41 @@ $(document).ready(function () {
 
     Dropzone.autoDiscover = false;
     try {
-        $(".dropzone").dropzone({
-                                    maxFilesize: 10,
-                                    addRemoveLinks: true,
-                                    autoProcessQueue: false,
-                                    uploadMultiple: true,
-                                    parallelUploads: 10,
-                                    dictDefaultMessage: "<span class=\"bigger-150 bolder\"><i class=\"icon-caret-right red\"></i> Drop file</span> to upload <span class=\"smaller-80 grey\">(or click)</span> <br /> <i class=\"upload-icon icon-cloud-upload blue icon-3x\"></i>",
-                                    dictResponseError: "Error while uploading file!",
-                                    previewTemplate: "<div class=\"dz-preview dz-file-preview\">\n  <div class=\"dz-details\">\n    <div class=\"dz-filename\"><span data-dz-name></span></div>\n    <div class=\"dz-size\" data-dz-size></div>\n    <img data-dz-thumbnail />\n  </div>\n  <div class=\"progress progress-small progress-striped active\"><div class=\"progress-bar progress-bar-success\" data-dz-uploadprogress></div></div>\n  <div class=\"dz-success-mark\"><span></span></div>\n  <div class=\"dz-error-mark\"><span></span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
-                                    init: function () {
-                                        helium.classes.dropzone = this;
+        $(".dropzone").dropzone(
+            {
+                maxFilesize: 10,
+                addRemoveLinks: true,
+                autoProcessQueue: false,
+                uploadMultiple: true,
+                parallelUploads: 10,
+                dictDefaultMessage: "<span class=\"bigger-150 bolder\"><i class=\"icon-caret-right red\"></i> Drop file</span> to upload <span class=\"smaller-80 grey\">(or click)</span> <br /> <i class=\"upload-icon icon-cloud-upload blue icon-3x\"></i>",
+                dictResponseError: "Error while uploading file!",
+                previewTemplate: "<div class=\"dz-preview dz-file-preview\">\n  <div class=\"dz-details\">\n    <div class=\"dz-filename\"><span data-dz-name></span></div>\n    <div class=\"dz-size\" data-dz-size></div>\n    <img data-dz-thumbnail />\n  </div>\n  <div class=\"progress progress-small progress-striped active\"><div class=\"progress-bar progress-bar-success\" data-dz-uploadprogress></div></div>\n  <div class=\"dz-success-mark\"><span></span></div>\n  <div class=\"dz-error-mark\"><span></span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
+                init: function () {
+                    helium.classes.dropzone = this;
 
-                                        this.on("sendingmultiple", function (na, xhr, form_data) {
-                                            xhr.setRequestHeader("Authorization",
-                                                                 "Bearer " + localStorage.getItem("access_token"));
-                                            form_data.append("course", helium.classes.edit_id);
-                                        });
-                                        this.on("successmultiple", function (files) {
-                                            $("#loading-course-modal").spin(false);
-                                            $("#course-modal").modal("hide");
-                                        });
-                                        this.on("errormultiple", function () {
-                                            $("#loading-course-modal").spin(false);
+                    this.on("sendingmultiple", function (na, xhr, form_data) {
+                        xhr.setRequestHeader("Authorization",
+                                             "Bearer " + localStorage.getItem("access_token"));
+                        form_data.append("course", helium.classes.edit_id);
+                    });
+                    this.on("successmultiple", function (files) {
+                        $("#loading-course-modal").spin(false);
+                        $("#course-modal").modal("hide");
+                    });
+                    this.on("errormultiple", function () {
+                        $("#loading-course-modal").spin(false);
 
-                                            $("#course-error").html(
-                                                "The class is saved, but an error occurred while uploading attachments. If the error persists, <a href=\"https://github.com/HeliumEdu/platform/issues/new/choose\">open a ticket</a>.");
-                                            $("#course-error").parent().show("fast");
+                        $("#course-error").html(
+                            "The class is saved, but an error occurred while uploading attachments. If the error persists, <a href=\"https://github.com/HeliumEdu/platform/issues/new/choose\">open a ticket</a>.");
+                        $("#course-error").parent().show("fast");
 
-                                            $("a[href='#course-panel-tab-4']").tab("show");
+                        $("a[href='#course-panel-tab-4']").tab("show");
 
-                                            helium.classes.dropzone.removeAllFiles();
-                                        });
-                                    }
-                                });
+                        helium.classes.dropzone.removeAllFiles();
+                    });
+                }
+            });
     } catch (e) {
         helium.classes.dropzone = null;
         bootbox.alert("Attachments are not supported in older browsers.");

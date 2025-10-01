@@ -35,11 +35,12 @@ function HeliumGrades() {
 
     this.pie_hover = function (event, pos, item) {
         if (item) {
-            $("#plot-tooltip").html(Math.round(item.datapoint[0]) + "%").css({
-                                                                                 top: pos.pageY - 25,
-                                                                                 left: pos.pageX + 5,
-                                                                                 "z-index": 100
-                                                                             }).fadeIn("fast");
+            $("#plot-tooltip").html(Math.round(item.datapoint[0]) + "%").css(
+                {
+                    top: pos.pageY - 25,
+                    left: pos.pageX + 5,
+                    "z-index": 100
+                }).fadeIn("fast");
         } else {
             $("#plot-tooltip").hide();
         }
@@ -364,13 +365,12 @@ $(document).ready(function () {
 
                     course_group_chart_tag.bind("plothover", function (event, pos, item) {
                         if (item) {
-                            $("#plot-tooltip").html((Math.round(item.datapoint[1] * 100) / 100) + "%").css({
-                                                                                                               top: pos.pageY
-                                                                                                                    - 25,
-                                                                                                               left: pos.pageX
-                                                                                                                     + 5,
-                                                                                                               "z-index": 100
-                                                                                                           })
+                            $("#plot-tooltip").html((Math.round(item.datapoint[1] * 100) / 100) + "%").css(
+                                {
+                                    top: pos.pageY - 25,
+                                    left: pos.pageX + 5,
+                                    "z-index": 100
+                                })
                                 .fadeIn("fast");
                         } else {
                             $("#plot-tooltip").hide();
