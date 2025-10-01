@@ -530,8 +530,8 @@ function HeliumCalendar() {
                                 // Set the preferred IDs, which will be set when the global event is triggered
                                 // selecting the course
                                 self.preferred_material_ids = [];
-                                $.each(calendar_item_fields.materials, function (index, material) {
-                                    self.preferred_material_ids.push(material.id);
+                                $.each(calendar_item_fields.materials, function (index, id) {
+                                    self.preferred_material_ids.push(id);
                                 });
                                 self.preferred_category_name = null;
                                 self.preferred_category_id = calendar_item_fields.category;
@@ -689,7 +689,7 @@ function HeliumCalendar() {
         refetch = typeof refetch === "undefined" ? true : refetch;
 
         let categories = $("[id^='calendar-filter-category-']"), calendar_search = $("#calendar-search").val(),
-            course_ids = "", calendar_ids = "", category_names = "";
+            category_names = "";
 
         // Whether to filter by a search string
         localStorage.setItem("filter_search_string", calendar_search);
@@ -758,7 +758,7 @@ function HeliumCalendar() {
         }
 
         // If all filters are off, clear the filter title
-        if (calendar_ids === "" && course_ids === "" && category_names === "" &&
+        if (category_names === "" &&
             !$("#calendar-filter-complete").children().find("input").prop("checked") &&
             !$("#calendar-filter-incomplete").children().find("input").prop("checked") &&
             !$("#calendar-filter-overdue").children().find("input").prop("checked") &&
@@ -792,6 +792,13 @@ function HeliumCalendar() {
             course_ids = course_ids.substring(0, course_ids.length - 1);
         }
         localStorage.setItem("filter_courses_" + helium.USER_PREFS.id, course_ids);
+
+        // If all class filters are check, clear the filter title
+        if (courses.size() !== course_ids.split(",").length) {
+            $("#classes-button-title").html("Classes (On)");
+        } else {
+            $("#classes-button-title").html("Classes");
+        }
 
         if (refetch) {
             $("#calendar").fullCalendar("refetchEvents");
@@ -1122,10 +1129,9 @@ function HeliumCalendar() {
                         element.qtip(
                             {
                                 content: {
-                                    title: "<strong>" + event.title_no_format
-                                           + "</strong>",
-                                    text: "<div class=\"row\"><div class=\"col-xs-12\"><strong>When:</strong> "
-                                          + start +
+                                    title: "<strong>" + event.title_no_format + "</strong>",
+                                    text: "<div class=\"row\"><div class=\"col-xs-12\">"
+                                          + "<strong>When:</strong> " + start +
                                           (event.show_end_time && end ? (" to " + end) : "") +
                                           "</div></div>" +
                                           (event.calendar_item_type === 1
@@ -1343,16 +1349,6 @@ function HeliumCalendar() {
         return titles;
     };
 
-    this.get_attachments_from_data = function (data) {
-        let titles = "";
-
-        $.each(data, function (index, item) {
-            titles += '<a href="' + item.attachment + '" download>' + item.title + '</a>&nbsp;';
-        });
-
-        return titles;
-    };
-
     this.get_materials_from_ids = function (data) {
         const titles = [];
 
@@ -1361,6 +1357,16 @@ function HeliumCalendar() {
         });
 
         return titles.join(", ");
+    };
+
+    this.get_attachments_from_data = function (data) {
+        let titles = "";
+
+        $.each(data, function (index, item) {
+            titles += '<a href="' + item.attachment + '" download>' + item.title + '</a>&nbsp;';
+        });
+
+        return titles;
     };
 
     this.get_material_ids_for_course = function (course) {
@@ -1818,6 +1824,8 @@ function HeliumCalendar() {
             };
             if ($("#homework-materials").val()) {
                 data["materials"] = $("#homework-materials").val();
+            } else {
+                data["materials"] = []
             }
             if (self.edit) {
                 if (self.current_calendar_item.calendar_item_type === 1) {
