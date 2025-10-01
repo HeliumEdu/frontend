@@ -1,6 +1,6 @@
 {
     "name": "helium-frontend",
-  "version": "1.11.41",
+    "version": "1.11.41",
     "description": "Frontend for Helium Student Planner",
     "author": "Alex Laird",
     "license": "MIT",
@@ -22,12 +22,7 @@
         "test": "npm run build-dev && npm run build-deploy"
     },
     "devDependencies": {
-        "chai": "^6.0.1",
-        "chromedriver": "^140.0.0",
-        "http-server": "^14.1.1",
-        "mocha": "^11.7.2",
-        "selenium-webdriver": "^4.33.0",
-        "start-server-and-test": "^2.1.2"
+        "http-server": "^14.1.1"
     },
     "dependencies": {
         "chokidar": "^4.0.3",
