@@ -1148,10 +1148,10 @@ function HeliumCalendar() {
                                               && helium.calendar.courses[event.course].room.replace(
                                                   /\s/g, "").length > 0 ? " in "
                                           + helium.calendar.courses[event.course].room : "") + "</div></div>" : "")
-                                          + (event.materials.length > 0 && helium.calendar.get_materials_from_ids(
+                                          + (event.materials.length > 0 && helium.calendar.get_materials_titles_no_format_from_ids(
                                             event.materials)
                                              ? "<div class=\"row\"><div class=\"col-xs-12\"><strong>Materials:</strong> "
-                                          + helium.calendar.get_materials_from_ids(
+                                          + helium.calendar.get_materials_titles_no_format_from_ids(
                                                 event.materials) + "</div></div>" : "") + (
                                               event.calendar_item_type === 1
                                               && event.completed && event.current_grade
@@ -1337,10 +1337,14 @@ function HeliumCalendar() {
         self.update_filter_checkbox($(this));
     };
 
-    this.get_material_styled_titles_from_data = function (data) {
+    this.get_materials_titles_from_ids = function (data) {
         let titles = "";
 
         $.each(data, function (index, id) {
+            if (!helium.calendar.material_groups[helium.calendar.materials[id].material_group].shown_on_calendar) {
+                return true;
+            }
+
             titles +=
                 '<span class="label label-info arrowed-right" style="padding-top: 2px;">'
                 + helium.calendar.materials[id].title + "</span>&nbsp;";
@@ -1349,10 +1353,14 @@ function HeliumCalendar() {
         return titles;
     };
 
-    this.get_materials_from_ids = function (data) {
+    this.get_materials_titles_no_format_from_ids = function (data) {
         const titles = [];
 
         $.each(data, function (index, id) {
+            if (!helium.calendar.material_groups[helium.calendar.materials[id].material_group].shown_on_calendar) {
+                return true;
+            }
+
             titles.push(helium.calendar.materials[id].title);
         });
 
@@ -1373,7 +1381,7 @@ function HeliumCalendar() {
         const ids = [];
 
         $.each(helium.calendar.materials, function (index, material) {
-            if ($.inArray(course.id, material.courses)) {
+            if ($.inArray(course.id, material.courses) !== -1) {
                 ids.push(material.id);
             }
         });
