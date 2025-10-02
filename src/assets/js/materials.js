@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 Helium Edu
+ * Copyright (c) 2025 Helium Edu
  *
  * JavaScript functionality for persistence and the HeliumMaterials object on the /planner/materials page.
  *

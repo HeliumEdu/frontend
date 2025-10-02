@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 Helium Edu
+ * Copyright (c) 2025 Helium Edu
  *
  * JavaScript functionality for triggers on the the /planner/calendar page.
  *
