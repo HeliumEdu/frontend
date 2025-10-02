@@ -2737,7 +2737,7 @@
                     event = events[evt];
                     if (event) {
                         row = $(t.dataTable.row.add([event.calendar_item_type === 1 ? ("<input id=\"homework-completed-" + event.id + "\" type=\"checkbox\" class=\"ace\"" + (event.completed ? " checked=\"checked\"" : "") + " /><span class=\"lbl\" style=\"margin-top: -5px;\" />") : "",
-                                                     event.title_no_format, formatDate(event.start, "MMM D, YYYY") + (!event.all_day ? formatDate(event.start, " h:mm a") : ""),
+                                                     event.title_no_format, formatDate(event.start, "MMM D, YYYY") + (!event.allDay ? formatDate(event.start, " h:mm a") : ""),
                                                      "<span class=\"label label-sm\" style=\"background-color: " + event.color + " !important\">" + (event.course !== null ? helium.calendar.courses[event.course].title : "") + "</span>", event.calendar_item_type === 1 ?
                                                      (event.category !== null ? ("<span class=\"label label-sm\" style=\"background-color: " + helium.calendar.categories[event.category].color + " !important\">" + helium.calendar.categories[event.category].title + "</span>") : "") : "",
                                                      event.calendar_item_type === 1 || event.calendar_item_type === 3 ? helium.calendar.get_materials_titles_badges_from_ids(event.materials) : "",
