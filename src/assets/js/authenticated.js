@@ -6,7 +6,7 @@
  * project and interested in joining forces? Reach out and let us know! contact@alexlaird.com
  *
  * @license MIT
- * @version 1.11.38
+ * @version 1.11.54
  */
 
 window.PRIVILEGED_ROUTE = true;
