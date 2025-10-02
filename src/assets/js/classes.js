@@ -418,19 +418,19 @@ function HeliumClasses() {
         $("#course-schedule-fri").removeClass("active");
         $("#course-schedule-sat").removeClass("active");
         $("#course-sun-start-time").timepicker("setTime", "12:00 PM");
-        $("#course-sun-end-time").timepicker("setTime", "12:00 PM");
+        $("#course-sun-end-time").timepicker("setTime", "1:00 PM");
         $("#course-mon-start-time").timepicker("setTime", "12:00 PM");
-        $("#course-mon-end-time").timepicker("setTime", "12:00 PM");
+        $("#course-mon-end-time").timepicker("setTime", "1:00 PM");
         $("#course-tue-start-time").timepicker("setTime", "12:00 PM");
-        $("#course-tue-end-time").timepicker("setTime", "12:00 PM");
+        $("#course-tue-end-time").timepicker("setTime", "1:00 PM");
         $("#course-wed-start-time").timepicker("setTime", "12:00 PM");
-        $("#course-wed-end-time").timepicker("setTime", "12:00 PM");
+        $("#course-wed-end-time").timepicker("setTime", "1:00 PM");
         $("#course-thu-start-time").timepicker("setTime", "12:00 PM");
-        $("#course-thu-end-time").timepicker("setTime", "12:00 PM");
+        $("#course-thu-end-time").timepicker("setTime", "1:00 PM");
         $("#course-fri-start-time").timepicker("setTime", "12:00 PM");
-        $("#course-fri-end-time").timepicker("setTime", "12:00 PM");
+        $("#course-fri-end-time").timepicker("setTime", "1:00 PM");
         $("#course-sat-start-time").timepicker("setTime", "12:00 PM");
-        $("#course-sat-end-time").timepicker("setTime", "12:00 PM");
+        $("#course-sat-end-time").timepicker("setTime", "1:00 PM");
 
         $("#course-schedule-has-different-times").prop("checked", false).trigger("change");
 
