@@ -1086,8 +1086,8 @@ function HeliumCalendar() {
                     self.is_resizing_calendar_item = false;
                 },
                 eventRender: function (event, element) {
-                    element.find(".fc-event-title").html("<strong>" + event.title + "</strong>, " + moment(event.start)
-                        .format(helium.HE_TIME_STRING_CLIENT));
+                    element.find(".fc-event-title").html("<strong>" + event.title + "</strong>" + (!event.allDay ? ", " + moment(event.start)
+                        .format(helium.HE_TIME_STRING_CLIENT) : ""));
 
                     if (event.url === undefined) {
                         let start, end = null, course_string;
@@ -2338,14 +2338,14 @@ $(document).ready(function () {
                                 if (helium.calendar.current_calendar_item.calendar_item_type
                                     === 0) {
                                     $("#homework-error").html(
-                                        "The event is saved, but an error occurred while uploading attachments. If the error persists, <a href=\"" + helium.INFO.support_url + "\">open a ticket</a>.");
+                                        "The event is saved, but an error occurred while uploading attachments. If the error persists, <a href=\"https://support.heliumedu.com\">open a ticket</a>.");
                                 } else {
                                     $("#homework-error").html(
-                                        "The assignment is saved, but an error occurred while uploading attachments. If the error persists, <a href=\"" + helium.INFO.support_url + "\">open a ticket</a>.");
+                                        "The assignment is saved, but an error occurred while uploading attachments. If the error persists, <a href=\"https://support.heliumedu.com\">open a ticket</a>.");
                                 }
                             } else {
                                 $("#homework-error").html(
-                                    "An unknown error occurred with attachments. If the error persists, <a href=\"" + helium.INFO.support_url + "\">open a ticket</a>.");
+                                    "An unknown error occurred with attachments. If the error persists, <a href=\"https://support.heliumedu.com\">open a ticket</a>.");
                             }
                             $("#homework-error").parent().show("fast");
 
