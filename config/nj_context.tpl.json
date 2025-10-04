@@ -59,14 +59,6 @@
             "/js/redirecting.js",
             "/js/planner-index.js"
         ],
-        "calendar": [
-            "/js/redirecting.js",
-            "/js/planner-index.js"
-        ],
-        "calendar_index": [
-            "/js/redirecting.js",
-            "/js/planner-index.js"
-        ],
         "planner_calendar": [
             "/js/authenticated.js"
         ],

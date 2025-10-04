@@ -9,12 +9,4 @@
  * @version 1.11.38
  */
 
-$.ajax({
-           type: "GET",
-           url: window.API_URL + "/info/",
-           async: false,
-           dataType: "json",
-           success: function (data) {
-               window.location.replace(data.support_url);
-           }
-       });
+window.location.replace("https://support.heliumedu.com");

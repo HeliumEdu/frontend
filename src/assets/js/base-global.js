@@ -40,20 +40,7 @@ document.LARGE_LOADING_OPTS = {
     left: "auto"
 };
 
-$.ajax({
-           type: "GET",
-           url: window.API_URL + "/info/",
-           dataType: "json",
-           success: function (data) {
-               document.GENERIC_ERROR_MESSAGE =
-                   "Oops, an unknown error has occurred. If the issue persists, <a href=\"" + data.support_url
-                   + "\">open a ticket</a>.";
-           },
-           error: function () {
-               document.GENERIC_ERROR_MESSAGE =
-                   "Oops, an unknown error has occurred. Please refresh the page and try again.";
-           }
-       });
+document.GENERIC_ERROR_MESSAGE = "Oops, an unknown error has occurred. If the issue persists, <a href=\"https://support.heliumedu.com\">open a ticket</a>.";
 
 document.API_ERROR_FUNCTION = function (jqXHR, textStatus, errorThrown, callback) {
     let data = [{

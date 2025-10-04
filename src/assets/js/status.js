@@ -9,4 +9,4 @@
  * @version 1.11.38
  */
 
-window.location.replace(window.API_URL + "/status");
+window.location.replace("https://status.heliumedu.com");

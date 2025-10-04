@@ -7,7 +7,7 @@ fi
 
 VERSION=$(node -p "require('./package.json').version")
 
-echo "Building assets for $ENVIRONMENT with $VERSION"
+echo "Building assets for $ENVIRONMENT with $VERSION ..."
 
 mkdir -p build/assets/$VERSION
 
@@ -33,16 +33,38 @@ if [[ "$ENVIRONMENT" != "local" ]]; then
   rm -rf build/assets/$VERSION/css/vendors/
 fi
 
+echo ""
+
 nunjucks "*.html" config/nj_context.json -p src/templates --options config/nj_options.json -o build/
+
+printf "\nMoving files in to place for paths, including trailing slash ..."
 
 mkdir -p build/planner
 mv build/planner_index.html build/planner/index.html
-mkdir -p build/calendar
-mv build/calendar_index.html build/calendar/index.html
 mv build/planner_calendar.html build/planner/calendar.html
 mv build/planner_classes.html build/planner/classes.html
 mv build/planner_materials.html build/planner/materials.html
 mv build/planner_grades.html build/planner/grades.html
+cp build/planner/index.html build/calendar.html
+cp build/planner/index.html build/planner.html
+cp build/planner/index.html build/app.html
+cp build/support.html build/contact.html
+
+find "build" -type f -not -path "build/assets/*" -print0 | while IFS= read -r -d $'\0' file; do
+    path="${file#build/}"
+    path_no_ext="${path%.*}"
+
+    # Filter out error pages (which have all numeric values)
+    if [[ "$path_no_ext" =~ ^[0-9]+$ ]]; then
+      continue
+    fi
+
+    echo "Processing file: $file"
+
+    # Build out files so URIs work with and without trailing slash
+    mkdir -p "build/$path_no_ext"
+    cp $file "build/$path_no_ext/index.html"
+done
 
 # Pull top-level assets up
 mv build/assets/favicon.ico build
