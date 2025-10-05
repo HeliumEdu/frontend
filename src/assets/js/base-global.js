@@ -14,13 +14,18 @@
 window.APP_URL = location.protocol + "//" + location.host + "/";
 if (window.APP_URL === "http://localhost:3000/" || window.APP_URL === "http://127.0.0.1:3000/") {
     window.API_URL = "http://localhost:8000";
+    window.SUPPORT_URL = "https://support.heliumedu.com"
 } else if (window.APP_URL === "https://www.heliumedu.com/") {
     // Prod
     window.API_URL = "https://api.heliumedu.com";
+    window.SUPPORT_URL = "https://support.heliumedu.com"
 } else {
     // Env-prefixed
     window.API_URL = window.APP_URL.replace("www", "api");
+    window.SUPPORT_URL = window.APP_URL.replace("www", "support");
 }
+
+document.GENERIC_ERROR_MESSAGE = "Oops, an unknown error has occurred. If the issue persists, <a href=\"" + window.SUPPORT_URL + "\">open a ticket</a>.";
 
 document.LARGE_LOADING_OPTS = {
     lines: 13,
@@ -39,8 +44,6 @@ document.LARGE_LOADING_OPTS = {
     top: "200px",
     left: "auto"
 };
-
-document.GENERIC_ERROR_MESSAGE = "Oops, an unknown error has occurred. If the issue persists, <a href=\"https://support.heliumedu.com\">open a ticket</a>.";
 
 document.API_ERROR_FUNCTION = function (jqXHR, textStatus, errorThrown, callback) {
     let data = [{

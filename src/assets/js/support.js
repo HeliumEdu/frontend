@@ -9,4 +9,4 @@
  * @version 1.11.55
  */
 
-window.location.replace("https://support.heliumedu.com");
+window.location.replace(window.SUPPORT_URL);
