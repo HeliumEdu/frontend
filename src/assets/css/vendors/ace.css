@@ -12364,7 +12364,7 @@ ul.attachment-list > li {
 }
 
 /* full calendar */
-.fc-toolbar > h2 {
+.fc-toolbar h2 {
     font-size: 22px;
     color: #65A0CE;
 }
@@ -12423,7 +12423,8 @@ ul.attachment-list > li {
     border-color: transparent;
 }
 
-.fc-event-vert .fc-event-content {
+.fc-event .fc-content {
+    padding-top: 1px;
     padding-left: 1px;
     padding-right: 1px;
 }

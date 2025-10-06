@@ -1077,6 +1077,7 @@ function HeliumCalendar() {
                 eventClick: self.edit_calendar_item_btn,
                 eventDrop: self.drop_calendar_item,
                 eventResize: self.resize_calendar_item,
+                displayEventTime: false,
                 weekNumbersWithinDays: true,
                 nowIndicator: true,
                 eventResizeStart: function () {
@@ -1089,9 +1090,11 @@ function HeliumCalendar() {
 
                 },
                 eventRender: function (event, element) {
-                    element.find(".fc-event .fc-title")
-                        .html("<strong>" + event.title + "</strong>" + (!event.allDay ? ", " + moment(event.start)
-                            .format(helium.HE_TIME_STRING_CLIENT) : ""));
+                    let html_title = "<strong>" + event.title + "</strong>" + (!event.allDay ? ", " + moment(event.start)
+                        .format(helium.HE_TIME_STRING_CLIENT) : "");
+
+                    element.find(".fc-title").html(html_title);
+                    element.find(".fc-list-item-title").html(html_title);
 
                     if (event.url === undefined) {
                         let start, end = null, course_string;

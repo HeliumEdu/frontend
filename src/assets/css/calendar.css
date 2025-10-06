@@ -29,10 +29,6 @@ body {
     font-size: 15px;
 }
 
-.fc-event-time {
-    display: none;
-}
-
 #calendar-classes, #calendar-filters {
     margin-right: 6px;
     margin-top: -2px;
@@ -96,6 +92,10 @@ ul.dropdown-menu-form {
 
 #calendar-classes-list a > input, #calendar-filter-list a > input {
     margin-left: -5px;
+}
+
+.calendar-homework-checkbox {
+    padding-top: 3px !important;
 }
 
 a.fc-event:hover {
