@@ -111,9 +111,6 @@ for page in context["page_stylesheet_pre_base"]:
 for page in context["page_stylesheet_pre_base_print"]:
     combine_group("page_stylesheet_pre_base_print", "header_print", "css", page)
 
-combine_group("base_ie9_header_javascript", "ie9.header", "js")
-combine_group("base_ie8_stylesheet", "ie8.header", "css")
-
 # Write context with updated bundles back to Nunjucks config file
 with open(os.path.join("config", "nj_context.json"), "w") as context_file:
     context_file.write(json.dumps(context, indent=4))

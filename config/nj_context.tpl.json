@@ -23,10 +23,6 @@
         "/js/base.js",
         "/js/api.js"
     ],
-    "base_ie9_header_javascript": [
-        "/js/vendors/html5shiv.js",
-        "/js/vendors/respond.js"
-    ],
     "base_stylesheet": [
         "/css/vendors/jquery-ui.full.css",
         "/css/vendors/chosen.css",
@@ -34,9 +30,6 @@
         "/css/vendors/ace-fonts.css",
         "/css/vendors/ace.css",
         "/css/base.css"
-    ],
-    "base_ie8_stylesheet": [
-        "/css/vendors/ace-ie.css"
     ],
     "page_header_javascript": {
         "support": [

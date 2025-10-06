@@ -566,11 +566,12 @@ function HeliumClasses() {
             for (i = 1; i < group_tabs.length; i += 1) {
                 tab = group_tabs[i];
                 tab_date =
-                    moment($("#course-group-" + $(tab).attr("href").split("#course-group-")[1] + "-start-date").html());
+                    moment($("#course-group-" + $(tab).attr("href").split("#course-group-")[1] + "-start-date").html(),
+                           helium.HE_DATE_STRING_CLIENT);
                 prev_tab = group_tabs[i - 1];
                 prev_tab_date =
                     moment($("#course-group-" + $(prev_tab).attr("href").split("#course-group-")[1] + "-start-date")
-                               .html());
+                               .html(), helium.HE_DATE_STRING_CLIENT);
                 if (tab_date > prev_tab_date) {
                     $(prev_tab).parent().before($(tab).parent());
 
