@@ -1077,6 +1077,7 @@ function HeliumCalendar() {
                 eventClick: self.edit_calendar_item_btn,
                 eventDrop: self.drop_calendar_item,
                 eventResize: self.resize_calendar_item,
+                weekNumbersWithinDays: true,
                 nowIndicator: true,
                 eventResizeStart: function () {
                     self.is_resizing_calendar_item = true;
@@ -1199,7 +1200,7 @@ function HeliumCalendar() {
                     left: "today prev,next title",
                     right: self.DEFAULT_VIEWS.toString()
                 },
-                lang: 'en',
+                locale: 'en',
                 loading: function (loading, view) {
                     if (self.loading_div) {
                         if (loading) {
