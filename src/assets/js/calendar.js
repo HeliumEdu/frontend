@@ -19,7 +19,7 @@
 function HeliumCalendar() {
     "use strict";
 
-    this.DEFAULT_VIEWS = ["month", "agendaWeek", "agendaDay", "list"];
+    this.DEFAULT_VIEWS = ["month", "agendaWeek", "agendaDay", "listWeek"];
     this.DONE_TYPING_INTERVAL = 500;
     this.QTIP_SHOW_INTERVAL = 250;
     this.QTIP_HIDE_INTERVAL = 500;
@@ -1078,18 +1078,17 @@ function HeliumCalendar() {
                 eventDrop: self.drop_calendar_item,
                 eventResize: self.resize_calendar_item,
                 nowIndicator: true,
-                themeSystem: 'bootstrap3',
                 eventResizeStart: function () {
                     self.is_resizing_calendar_item = true;
                 },
                 eventResizeStop: function () {
                     self.is_resizing_calendar_item = false;
                 },
-                eventRenderAll: function (view) {
+                eventAfterAllRender: function (view) {
 
                 },
                 eventRender: function (event, element) {
-                    element.find(".fc-event-title")
+                    element.find(".fc-event .fc-title")
                         .html("<strong>" + event.title + "</strong>" + (!event.allDay ? ", " + moment(event.start)
                             .format(helium.HE_TIME_STRING_CLIENT) : ""));
 
@@ -1236,14 +1235,14 @@ function HeliumCalendar() {
 
         // Customize the calendar header
         $(".fc-toolbar .fc-right").prepend(
-            "<div class=\"btn-group\" id=\"calendar-filters\"><button data-toggle=\"dropdown\" class=\"btn btn-sm dropdown-toggle\"><span id=\"filter-button-title\">Filter</span><span class=\"icon-caret-down icon-on-right\"></span></button><ul id=\"calendar-filter-list\" class=\"dropdown-menu dropdown-menu-form pull-right\" role=\"menu\"><li id=\"filter-clear\"><a class=\"cursor-hover\">Clear Filters</a></li></ul></div>");
+            "<div class=\"btn-group\" id=\"calendar-filters\"><button data-toggle=\"dropdown\" class=\"fc-button fc-state-default btn btn-sm dropdown-toggle\"><span id=\"filter-button-title\">Filter</span><span class=\"icon-caret-down icon-on-right\"></span></button><ul id=\"calendar-filter-list\" class=\"dropdown-menu dropdown-menu-form pull-right\" role=\"menu\"><li id=\"filter-clear\"><a class=\"cursor-hover\">Clear Filters</a></li></ul></div>");
         $(".fc-toolbar .fc-right").prepend(
-            "<div class=\"btn-group\" id=\"calendar-classes\"><button data-toggle=\"dropdown\" class=\"btn btn-sm dropdown-toggle\"><span id=\"classes-button-title\">Classes</span><span class=\"icon-caret-down icon-on-right\"></span></button><ul id=\"calendar-classes-list\" class=\"dropdown-menu dropdown-menu-form pull-right\" role=\"menu\"></ul></div>");
+            "<div class=\"btn-group\" id=\"calendar-classes\"><button data-toggle=\"dropdown\" class=\"fc-button fc-state-default btn btn-sm dropdown-toggle\"><span id=\"classes-button-title\">Classes</span><span class=\"icon-caret-down icon-on-right\"></span></button><ul id=\"calendar-classes-list\" class=\"dropdown-menu dropdown-menu-form pull-right\" role=\"menu\"></ul></div>");
         $(".fc-toolbar .fc-right").append(
             "<span class=\"input-icon\" id=\"search-bar\"><input type=\"text\" placeholder=\"Search ...\" class=\"input-sm search-query\" id=\"calendar-search\" autocomplete=\"off\" /><i class=\"icon-search nav-search-icon\"></i></span>");
         $(".fc-toolbar, .fc-button").addClass("hidden-print");
         $(".fc-toolbar .fc-right").addClass("hidden-print");
-        $(".fc-button-month, .fc-button-agendaWeek, #calendar-filters, #search-bar").addClass("hidden-xs");
+        $(".fc-month-button, .fc-agendaWeek-button, #calendar-filters, #search-bar").addClass("hidden-xs");
         $("#loading-calendar").spin(false);
         self.loading_div =
             $(".fc-toolbar .fc-left").append(
