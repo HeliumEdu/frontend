@@ -377,7 +377,7 @@
         // Apply overrides to the current language's data
 
         var langData = createObject( // make a cheap clone
-            moment.langData(options.lang));
+            moment.localeData(options.lang));
 
         if (options.monthNames) {
             langData._months = options.monthNames;
@@ -906,13 +906,13 @@
 
 
         function prevYear() {
-            date.add('years', -1);
+            date.add(-1, 'years');
             renderView();
         }
 
 
         function nextYear() {
-            date.add('years', 1);
+            date.add(1, 'years');
             renderView();
         }
 
@@ -2654,8 +2654,8 @@
             $('.fc-header span.fc-button-prev').addClass('fc-state-disabled');
             $('.fc-header span.fc-button-next').addClass('fc-state-disabled');
 
-            t.start = date.clone().stripTime().subtract('years', 10);
-            t.end = date.clone().stripTime().add('years', 10);
+            t.start = date.clone().stripTime().subtract(10, 'years');
+            t.end = date.clone().stripTime().add(10, 'years');
 
             t.title = "Assignments List";
 
@@ -2847,7 +2847,7 @@
 
 
         function incrementDate(date, delta) {
-            return date.clone().stripTime().add('months', delta).startOf('month');
+            return date.clone().stripTime().add(delta, 'months').startOf('month');
         }
 
 
@@ -2856,7 +2856,7 @@
             $('.fc-header span.fc-button-next').removeClass('fc-state-disabled');
 
             t.intervalStart = date.clone().stripTime().startOf('month');
-            t.intervalEnd = t.intervalStart.clone().add('months', 1);
+            t.intervalEnd = t.intervalStart.clone().add(1, 'months');
 
             t.start = t.intervalStart.clone();
             t.start = t.skipHiddenDays(t.start); // move past the first week if no visible days
@@ -2865,14 +2865,14 @@
 
             t.end = t.intervalEnd.clone();
             t.end = t.skipHiddenDays(t.end, -1, true); // move in from the last week if no visible days
-            t.end.add('days', (7 - t.end.weekday()) % 7); // move to end of week if not already
+            t.end.add((7 - t.end.weekday()) % 7, 'days'); // move to end of week if not already
             t.end = t.skipHiddenDays(t.end, -1, true); // move in from the last invisible days of the week
 
             var rowCnt = Math.ceil( // need to ceil in case there are hidden days
                 t.end.diff(t.start, 'weeks', true) // returnfloat=true
             );
             if (t.opt('weekMode') == 'fixed') {
-                t.end.add('weeks', 6 - rowCnt);
+                t.end.add(6 - rowCnt, 'weeks');
                 rowCnt = 6;
             }
 
@@ -2903,7 +2903,7 @@
 
 
         function incrementDate(date, delta) {
-            return date.clone().stripTime().add('weeks', delta).startOf('week');
+            return date.clone().stripTime().add(delta, 'weeks').startOf('week');
         }
 
 
@@ -2912,7 +2912,7 @@
             $('.fc-header span.fc-button-next').removeClass('fc-state-disabled');
 
             t.intervalStart = date.clone().stripTime().startOf('week');
-            t.intervalEnd = t.intervalStart.clone().add('weeks', 1);
+            t.intervalEnd = t.intervalStart.clone().add(1, 'weeks');
 
             t.start = t.skipHiddenDays(t.intervalStart);
             t.end = t.skipHiddenDays(t.intervalEnd, -1, true);
@@ -2946,7 +2946,7 @@
 
 
         function incrementDate(date, delta) {
-            var out = date.clone().stripTime().add('days', delta);
+            var out = date.clone().stripTime().add(delta, 'days');
             out = t.skipHiddenDays(out, delta < 0 ? -1 : 1);
             return out;
         }
@@ -2957,7 +2957,7 @@
             $('.fc-header span.fc-button-next').removeClass('fc-state-disabled');
 
             t.start = t.intervalStart = date.clone().stripTime();
-            t.end = t.intervalEnd = t.start.clone().add('days', 1);
+            t.end = t.intervalEnd = t.start.clone().add(1, 'days');
 
             t.title = calendar.formatDate(t.start, t.opt('titleFormat'));
 
@@ -3317,7 +3317,7 @@
 
 
         function defaultSelectionEnd(start) {
-            return start.clone().stripTime().add('days', 1);
+            return start.clone().stripTime().add(1, 'days');
         }
 
 
@@ -3480,7 +3480,7 @@
 
 
         function incrementDate(date, delta) {
-            return date.clone().stripTime().add('weeks', delta).startOf('week');
+            return date.clone().stripTime().add(delta, 'weeks').startOf('week');
         }
 
 
@@ -3489,7 +3489,7 @@
             $('.fc-header span.fc-button-next').removeClass('fc-state-disabled');
 
             t.intervalStart = date.clone().stripTime().startOf('week');
-            t.intervalEnd = t.intervalStart.clone().add('weeks', 1);
+            t.intervalEnd = t.intervalStart.clone().add(1, 'weeks');
 
             t.start = t.skipHiddenDays(t.intervalStart);
             t.end = t.skipHiddenDays(t.intervalEnd, -1, true);
@@ -3523,7 +3523,7 @@
 
 
         function incrementDate(date, delta) {
-            var out = date.clone().stripTime().add('days', delta);
+            var out = date.clone().stripTime().add(delta, 'days');
             out = t.skipHiddenDays(out, delta < 0 ? -1 : 1);
             return out;
         }
@@ -3534,7 +3534,7 @@
             $('.fc-header span.fc-button-next').removeClass('fc-state-disabled');
 
             t.start = t.intervalStart = date.clone().stripTime();
-            t.end = t.intervalEnd = t.start.clone().add('days', 1);
+            t.end = t.intervalEnd = t.start.clone().add(1, 'days');
 
             t.title = calendar.formatDate(t.start, t.opt('titleFormat'));
 
@@ -4093,7 +4093,7 @@
             for (var i = 0; i < colCnt; i++) { // loop through the day columns
 
                 var dayStart = cellToDate(0, i);
-                var dayEnd = dayStart.clone().add('days', 1);
+                var dayEnd = dayStart.clone().add(1, 'days');
 
                 var stretchStart = dayStart < overlayStart ? overlayStart : dayStart; // the max of the two
                 var stretchEnd = dayEnd < overlayEnd ? dayEnd : overlayEnd; // the min of the two
@@ -4249,7 +4249,7 @@
             if (start.hasTime()) {
                 return start.clone().add(slotDuration);
             } else {
-                return start.clone().add('days', 1);
+                return start.clone().add(1, 'days');
             }
         }
 
@@ -4746,7 +4746,7 @@
 
                             if (!cell.row) { // on full-days
 
-                                renderDayOverlay(event.start.clone().add('days', dayDelta), getEventEnd(event).add('days', dayDelta));
+                                renderDayOverlay(event.start.clone().add(dayDelta), 'days', getEventEnd(event).add(dayDelta, 'days'));
 
                                 resetElement();
                             } else { // mouse is over bottom slots
@@ -4786,7 +4786,7 @@
                         showEvents(event, eventElement);
                     } else { // changed!
 
-                        var eventStart = event.start.clone().add('days', dayDelta); // already assumed to have a stripped time
+                        var eventStart = event.start.clone().add(dayDelta, 'days'); // already assumed to have a stripped time
                         var snapTime;
                         var snapIndex;
                         if (!allDay) {
@@ -4892,11 +4892,11 @@
 
                         // compute new dates
                         if (isAllDay) {
-                            eventStart = event.start.clone().stripTime().add('days', dayDelta);
+                            eventStart = event.start.clone().stripTime().add(dayDelta, 'days');
                             eventEnd = eventStart.clone().add(calendar.defaultAllDayEventDuration);
                         } else {
-                            eventStart = event.start.clone().add(snapDelta * snapDuration).add('days', dayDelta);
-                            eventEnd = getEventEnd(event).add(snapDelta * snapDuration).add('days', dayDelta);
+                            eventStart = event.start.clone().add(snapDelta * snapDuration).add(dayDelta, 'days');
+                            eventEnd = getEventEnd(event).add(snapDelta * snapDuration).add(dayDelta, 'days');
                         }
 
                         updateUI();
@@ -5502,7 +5502,7 @@
             var out = date.clone();
             inc = inc || 1;
             while (isHiddenDayHash[(out.day() + (isExclusive ? inc : 0) + 7) % 7]) {
-                out.add('days', inc);
+                out.add(inc, 'days');
             }
             return out;
         }
@@ -5555,7 +5555,7 @@
 
         // day offset -> date
         function dayOffsetToDate(dayOffset) {
-            return t.start.clone().add('days', dayOffset);
+            return t.start.clone().add(dayOffset, 'days');
         }
 
 
@@ -6218,8 +6218,8 @@
                             var origCellDate = cellToDate(origCell);
                             var cellDate = cellToDate(cell);
                             dayDelta = cellDate.diff(origCellDate, 'days');
-                            eventStart = event.start.clone().add('days', dayDelta);
-                            renderDayOverlay(eventStart, getEventEnd(event).add('days', dayDelta));
+                            eventStart = event.start.clone().add(dayDelta, 'days');
+                            renderDayOverlay(eventStart, getEventEnd(event).add(dayDelta, 'days'));
                         } else {
                             dayDelta = 0;
                         }
@@ -6284,7 +6284,7 @@
 
                         dayDelta = cellOffsetToDayOffset(cellOffset) - cellOffsetToDayOffset(origCellOffset);
 
-                        eventEnd = getEventEnd(event).add('days', dayDelta); // assumed to already have a stripped time
+                        eventEnd = getEventEnd(event).add(dayDelta, 'days'); // assumed to already have a stripped time
 
                         if (dayDelta) {
                             eventCopy.end = eventEnd;
@@ -6464,7 +6464,7 @@
                     clearSelection();
                     if (cell && getIsCellAllDay(cell)) {
                         dates = [cellToDate(origCell), cellToDate(cell)].sort(dateCompare);
-                        renderSelection(dates[0], dates[1].clone().add('days', 1) // make exclusive
+                        renderSelection(dates[0], dates[1].clone().add(1, 'days') // make exclusive
                         );
                     } else {
                         dates = null;
@@ -6476,7 +6476,7 @@
                         if (+dates[0] == +dates[1]) {
                             reportDayClick(dates[0], ev);
                         }
-                        reportSelection(dates[0], dates[1].clone().add('days', 1), // make exclusive
+                        reportSelection(dates[0], dates[1].clone().add(1, 'days'), // make exclusive
                             ev);
                     }
                 });

@@ -37,7 +37,7 @@ echo ""
 
 nunjucks "*.html" config/nj_context.json -p src/templates --options config/nj_options.json -o build/
 
-printf "\nMoving files in to place for paths, including trailing slash ..."
+printf "\nMoving files in to place for paths, including trailing slash ...\n"
 
 mkdir -p build/planner
 mv build/planner_index.html build/planner/index.html
