@@ -34,7 +34,7 @@
 
     <!-- CDN dependencies -->
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.1.1/css/bootstrap.min.css" type="text/css"/>
-    <script type="application/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.12.1/jquery.min.js"></script>
+    <script type="application/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
 
     {% for css in page_stylesheet_pre_base[page_template] %}
     <link rel="stylesheet" href="{{ ASSETS_PREFIX }}{{ css }}" type="text/css"/>
@@ -52,12 +52,6 @@
     <link rel="stylesheet" href="{{ ASSETS_PREFIX }}{{ css }}" type="text/css"/>
     {% endfor %}
 
-    <!--[if lte IE 8]>
-    {% for css in base_ie8_stylesheet %}
-    <link rel="stylesheet" href="{{ ASSETS_PREFIX }}{{ css }}" type="text/css"/>
-    {% endfor %}
-    <![endif]-->
-
     {% for js in base_header_javascript %}
     <script type="application/javascript" src="{{ ASSETS_PREFIX }}{{ js }}"></script>
     {% endfor %}
@@ -65,12 +59,6 @@
     {% for js in page_header_javascript[page_template] %}
     <script type="application/javascript" src="{{ ASSETS_PREFIX }}{{ js }}"></script>
     {% endfor %}
-
-    <!--[if lt IE 9]>
-    {% for js in base_ie9_header_javascript %}
-    <script type="application/javascript" src="{{ ASSETS_PREFIX }}{{ js }}"></script>
-    {% endfor %}
-    <![endif]-->
 
     {% include "../snippets/googleanalytics-js.html" %}
 </head>
