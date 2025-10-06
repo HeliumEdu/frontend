@@ -1085,9 +1085,13 @@ function HeliumCalendar() {
                 eventResizeStop: function () {
                     self.is_resizing_calendar_item = false;
                 },
+                eventRenderAll: function (view) {
+
+                },
                 eventRender: function (event, element) {
-                    element.find(".fc-event-title").html("<strong>" + event.title + "</strong>" + (!event.allDay ? ", " + moment(event.start)
-                        .format(helium.HE_TIME_STRING_CLIENT) : ""));
+                    element.find(".fc-event-title")
+                        .html("<strong>" + event.title + "</strong>" + (!event.allDay ? ", " + moment(event.start)
+                            .format(helium.HE_TIME_STRING_CLIENT) : ""));
 
                     if (event.url === undefined) {
                         let start, end = null, course_string;
@@ -1148,7 +1152,8 @@ function HeliumCalendar() {
                                               && helium.calendar.courses[event.course].room.replace(
                                                   /\s/g, "").length > 0 ? " in "
                                           + helium.calendar.courses[event.course].room : "") + "</div></div>" : "")
-                                          + (event.materials.length > 0 && helium.calendar.get_materials_titles_bullets_from_ids(
+                                          + (event.materials.length > 0
+                                             && helium.calendar.get_materials_titles_bullets_from_ids(
                                             event.materials)
                                              ? "<div class=\"row\"><div class=\"col-xs-12\"><strong>Materials:</strong> "
                                           + helium.calendar.get_materials_titles_bullets_from_ids(
@@ -1209,10 +1214,19 @@ function HeliumCalendar() {
                 selectable: true,
                 selectHelper: true,
                 select: self.add_calendar_item_btn,
-                titleFormat: {
-                    month: "MMMM YYYY",
-                    week: "MMM D YYYY",
-                    day: "ddd, MMM D, YYYY"
+                views: {
+                    month: {
+                        titleFormat: "MMMM YYYY"
+                    },
+                    week: {
+                        titleFormat: "MMM D YYYY"
+                    },
+                    day: {
+                        titleFormat: "ddd, MMM D, YYYY"
+                    },
+                    list: {
+                        titleFormat: "MMM D YYYY"
+                    }
                 }
             });
 
@@ -1221,18 +1235,18 @@ function HeliumCalendar() {
         self.last_good_end_date.add(helium.USER_PREFS.settings.all_day_offset, "minutes");
 
         // Customize the calendar header
-        $(".fc-header-right").prepend(
+        $(".fc-toolbar .fc-right").prepend(
             "<div class=\"btn-group\" id=\"calendar-filters\"><button data-toggle=\"dropdown\" class=\"btn btn-sm dropdown-toggle\"><span id=\"filter-button-title\">Filter</span><span class=\"icon-caret-down icon-on-right\"></span></button><ul id=\"calendar-filter-list\" class=\"dropdown-menu dropdown-menu-form pull-right\" role=\"menu\"><li id=\"filter-clear\"><a class=\"cursor-hover\">Clear Filters</a></li></ul></div>");
-        $(".fc-header-right").prepend(
+        $(".fc-toolbar .fc-right").prepend(
             "<div class=\"btn-group\" id=\"calendar-classes\"><button data-toggle=\"dropdown\" class=\"btn btn-sm dropdown-toggle\"><span id=\"classes-button-title\">Classes</span><span class=\"icon-caret-down icon-on-right\"></span></button><ul id=\"calendar-classes-list\" class=\"dropdown-menu dropdown-menu-form pull-right\" role=\"menu\"></ul></div>");
-        $(".fc-header-right").append(
+        $(".fc-toolbar .fc-right").append(
             "<span class=\"input-icon\" id=\"search-bar\"><input type=\"text\" placeholder=\"Search ...\" class=\"input-sm search-query\" id=\"calendar-search\" autocomplete=\"off\" /><i class=\"icon-search nav-search-icon\"></i></span>");
-        $(".fc-header-space, .fc-button").addClass("hidden-print");
-        $(".fc-header-right").addClass("hidden-print");
+        $(".fc-toolbar, .fc-button").addClass("hidden-print");
+        $(".fc-toolbar .fc-right").addClass("hidden-print");
         $(".fc-button-month, .fc-button-agendaWeek, #calendar-filters, #search-bar").addClass("hidden-xs");
         $("#loading-calendar").spin(false);
         self.loading_div =
-            $(".fc-header-left").append(
+            $(".fc-toolbar .fc-left").append(
                 "<div id=\"fullcalendar-loading\" class=\"loading-mini\" style=\"padding-left: 25px; padding-top: 2px;\"><div id=\"loading-fullcalendar\"></div></div>")
                 .find("#loading-fullcalendar");
 
@@ -2338,14 +2352,17 @@ $(document).ready(function () {
                                 if (helium.calendar.current_calendar_item.calendar_item_type
                                     === 0) {
                                     $("#homework-error").html(
-                                        "The event is saved, but an error occurred while uploading attachments. If the error persists, <a href=\"" + window.SUPPORT_URL + "\">open a ticket</a>.");
+                                        "The event is saved, but an error occurred while uploading attachments. If the error persists, <a href=\""
+                                        + window.SUPPORT_URL + "\">open a ticket</a>.");
                                 } else {
                                     $("#homework-error").html(
-                                        "The assignment is saved, but an error occurred while uploading attachments. If the error persists, <a href=\"" + window.SUPPORT_URL + "\">open a ticket</a>.");
+                                        "The assignment is saved, but an error occurred while uploading attachments. If the error persists, <a href=\""
+                                        + window.SUPPORT_URL + "\">open a ticket</a>.");
                                 }
                             } else {
                                 $("#homework-error").html(
-                                    "An unknown error occurred with attachments. If the error persists, <a href=\"" + window.SUPPORT_URL + "\">open a ticket</a>.");
+                                    "An unknown error occurred with attachments. If the error persists, <a href=\""
+                                    + window.SUPPORT_URL + "\">open a ticket</a>.");
                             }
                             $("#homework-error").parent().show("fast");
 

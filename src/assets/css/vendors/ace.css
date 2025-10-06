@@ -12364,7 +12364,7 @@ ul.attachment-list > li {
 }
 
 /* full calendar */
-.fc-header-title > h2 {
+.fc-toolbar > h2 {
     font-size: 22px;
     color: #65A0CE;
 }
@@ -12509,16 +12509,12 @@ ul.attachment-list > li {
     top: -40px;
 }
 
-.widget-main .fc > .fc-header {
+.widget-main .fc > .fc-toolbar {
     position: relative;
     z-index: 10;
 }
 
-.widget-main .fc .fc-header-space {
-    padding-left: 2px;
-}
-
-.widget-main .fc-header-title > h2 {
+.widget-main .fc-toolbar > h2 {
     font-size: 18px;
     line-height: 36px;
 }
@@ -12535,7 +12531,7 @@ ul.attachment-list > li {
 
 /* calendar */
 @media only screen and (max-width: 480px) {
-    .fc-header td {
+    .fc-toolbar td {
         display: block;
         width: auto;
         text-align: left;
