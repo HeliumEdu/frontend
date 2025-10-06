@@ -6,12 +6,15 @@
     "COPYRIGHT_YEAR": 2025,
     "ASSETS_PREFIX": "/assets/${DIST_VERSION}",
     "base_header_javascript": [
+        "/js/vendors/jquery.js",
         "/js/vendors/ace-extra.js",
         "/js/vendors/js.cookie.js",
         "/js/vendors/url.js",
         "/js/base-global.js"
     ],
     "base_javascript": [
+        "/js/vendors/jquery-ui.js",
+        "/js/vendors/bootstrap.js",
         "/js/vendors/moment.js",
         "/js/vendors/moment-timezone.js",
         "/js/vendors/jquery.ui.touch-punch.js",
@@ -24,6 +27,7 @@
         "/js/api.js"
     ],
     "base_stylesheet": [
+        "/css/vendors/bootstrap.css",
         "/css/vendors/jquery-ui.full.css",
         "/css/vendors/chosen.css",
         "/css/vendors/font-awesome.css",
