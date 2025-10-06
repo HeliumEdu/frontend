@@ -546,7 +546,7 @@ function HeliumSettings() {
                    type: "GET",
                    dataType: "json",
                    success: function (data) {
-                       const jsonStr = JSON.stringify(data);
+                       const jsonStr = JSON.stringify(new TextEncoder().encode(data));
                        const base64 = "data:application/json;charset=utf-8;base64," + btoa(jsonStr);
 
                        $("<a>")
