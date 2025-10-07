@@ -871,8 +871,8 @@ function HeliumCalendar() {
                                         });
                                 }
                             });
-                        }, external_calendar.id, true, false, start.toISOString() + "T00:00Z", end.toISOString()
-                                                                                               + "T00:00Z"));
+                        }, external_calendar.id, true, false, start.toISOString(), end.toISOString()
+                                                                                   + "T00:00Z"));
                     }
                 });
             }, false, true);
@@ -917,7 +917,7 @@ function HeliumCalendar() {
                             });
                     }
                 });
-            }, true, false, start.toISOString() + "T00:00Z", end.toISOString() + "T00:00Z"));
+            }, true, false, start.toISOString(), end.toISOString()));
         }
 
         if (localStorage.getItem("filter_show_homework") === null ||
@@ -991,7 +991,7 @@ function HeliumCalendar() {
                             reminders: calendar_item.reminders
                         });
                 });
-            }, true, false, start.toISOString() + "T00:00Z", end.toISOString() + "T00:00Z"));
+            }, true, false, start.toISOString(), end.toISOString()));
         }
 
         if (localStorage.getItem("filter_show_class") === null ||
@@ -1239,7 +1239,13 @@ function HeliumCalendar() {
                         titleFormat: "ddd, MMM D, YYYY"
                     },
                     assignmentsList: {
-                        buttonText: 'list'
+                        buttonText: 'list',
+                        visibleRange: function (currentDate) {
+                            return {
+                                start: currentDate.clone().stripTime().subtract(10, 'years'),
+                                end: currentDate.clone().stripTime().add(10, 'years')
+                            };
+                        }
                     },
                     list: {
                         titleFormat: "MMM D YYYY"
@@ -2427,11 +2433,6 @@ function HeliumCalendar() {
                                                                 overflowX: 'hidden',
                                                                 overflowY: 'auto'
                                                             });
-
-                this.renderUnzonedRange = new $.fullCalendar.UnzonedRange(
-                    moment().stripTime().subtract(10, 'years'),
-                    moment().stripTime().add(10, 'years')
-                );
             },
 
             renderSkeleton: function () {
