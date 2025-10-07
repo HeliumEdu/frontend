@@ -175,7 +175,7 @@ function Helium() {
     this.parse_jwt = function (token) {
         const base64_url = token.split('.')[1];
         const base64 = base64_url.replace(/-/g, '+').replace(/_/g, '/');
-        const json_payload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
+        const json_payload = decodeURIComponent(atob(base64).split('').map(function (c) {
             return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
         }).join(''));
 
