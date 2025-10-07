@@ -1098,9 +1098,6 @@ function HeliumCalendar() {
                 eventResizeStop: function () {
                     self.is_resizing_calendar_item = false;
                 },
-                eventAfterAllRender: function (view) {
-                    console.log("hello world");
-                },
                 eventRender: function (event, element) {
                     let html_title = "<strong>" + event.title + "</strong>" + (!event.allDay ? ", " + moment(
                         event.start)
@@ -2176,30 +2173,305 @@ function HeliumCalendar() {
     };
 }
 
-$.fullCalendar.views.assignmentsList = $.fullCalendar.views.list.class.extend(
-    {
-        // title: "test",
+(function () {
+    function subtractInnerElHeight(outerEl, innerEl) {
+        const both = outerEl.add(innerEl);
+        let diff;
 
+        both.css({
+                     position: 'relative',
+                     left: -1
+                 });
+        diff = outerEl.outerHeight() - innerEl.outerHeight();
+        both.css({position: '', left: ''});
 
-        initialize: function() {
-            // called once when the view is instantiated, when the user switches to the view.
-            // initialize member variables or do other setup tasks.
-        },
+        return diff;
+    }
 
-        renderEvents: function(events) {
-            // $.fullCalendar.views.list.class.prototype.renderEvents.call(this, events);
-        },
+    const ListViewGrid = $.fullCalendar.Grid.extend(
+        {
+            dayDates: null,
+            dayRanges: null,
+            segSelector: '.fc-list-item',
+            hasDayInteractions: false,
 
-        renderSelection: function(range) {
-            // accepts a {start,end} object made of Moments, and must render the selection
+            rangeUpdated: function () {
+                const calendar = this.view.calendar;
+                const dayStart = calendar.msToUtcMoment(this.unzonedRange.startMs, true);
+                const viewEnd = calendar.msToUtcMoment(this.unzonedRange.endMs, true);
+                const dayDates = [];
+                const dayRanges = [];
 
-            console.info("hello world");
-        },
+                while (dayStart < viewEnd) {
+                    dayDates.push(dayStart.clone());
 
-        destroyEvents: function() {
-            // $.fullCalendar.views.list.class.prototype.destroyEvents.call(this);
-        },
-    });
+                    dayRanges.push(new $.fullCalendar.UnzonedRange(
+                        dayStart,
+                        dayStart.clone().add(1, 'day')
+                    ));
+
+                    dayStart.add(1, 'day');
+                }
+
+                this.dayDates = dayDates;
+                this.dayRanges = dayRanges;
+            },
+
+            componentFootprintToSegs: function (footprint) {
+                const view = this.view;
+                const dayRanges = this.dayRanges;
+                let dayIndex;
+                let segRange;
+                let seg;
+                const segs = [];
+
+                for (dayIndex = 0; dayIndex < dayRanges.length; dayIndex++) {
+                    segRange = footprint.unzonedRange.intersect(dayRanges[dayIndex]);
+
+                    if (segRange) {
+                        seg = {
+                            startMs: segRange.startMs,
+                            endMs: segRange.endMs,
+                            isStart: segRange.isStart,
+                            isEnd: segRange.isEnd,
+                            dayIndex: dayIndex
+                        };
+
+                        segs.push(seg);
+
+                        if (
+                            !seg.isEnd && !footprint.isAllDay &&
+                            footprint.unzonedRange.endMs < dayRanges[dayIndex + 1].startMs + view.nextDayThreshold
+                        ) {
+                            seg.endMs = footprint.unzonedRange.endMs;
+                            seg.isEnd = true;
+                            break;
+                        }
+                    }
+                }
+
+                return segs;
+            },
+
+            computeEventTimeFormat: function () {
+                return this.opt('mediumTimeFormat');
+            },
+
+            handleSegClick: function (seg, ev) {
+                let url;
+
+                $.fullCalendar.Grid.prototype.handleSegClick.apply(this, arguments);
+
+                if (!$(ev.target).closest('a[href]').length) {
+                    url = seg.footprint.eventDef.url;
+
+                    if (url && !ev.isDefaultPrevented()) {
+                        window.location.href = url;
+                    }
+                }
+            },
+
+            renderFgSegs: function (segs) {
+                segs = this.renderFgSegEls(segs);
+
+                if (!segs.length) {
+                    this.renderEmptyMessage();
+                } else {
+                    this.renderSegList(segs);
+                }
+
+                return segs;
+            },
+
+            renderEmptyMessage: function () {
+                this.el.html(
+                    '<div class="fc-list-empty-wrap2">' +
+                    '<div class="fc-list-empty-wrap1">' +
+                    '<div class="fc-list-empty">' +
+                    $.fullCalendar.htmlEscape(this.opt('noEventsMessage')) +
+                    '</div>' +
+                    '</div>' +
+                    '</div>'
+                );
+            },
+
+            renderSegList: function (allSegs) {
+                const segsByDay = this.groupSegsByDay(allSegs);
+                let dayIndex;
+                let daySegs;
+                let i;
+                const tableEl = $(
+                    '<table class="fc-list-table ' + this.view.calendar.theme.getClass('tableList')
+                    + '"><tbody/></table>');
+                const tbodyEl = tableEl.find('tbody');
+
+                for (dayIndex = 0; dayIndex < segsByDay.length; dayIndex++) {
+                    daySegs = segsByDay[dayIndex];
+
+                    if (daySegs) {
+                        tbodyEl.append(this.dayHeaderHtml(this.dayDates[dayIndex]));
+
+                        this.sortEventSegs(daySegs);
+
+                        for (i = 0; i < daySegs.length; i++) {
+                            tbodyEl.append(daySegs[i].el);
+                        }
+                    }
+                }
+
+                this.el.empty().append(tableEl);
+            },
+
+            groupSegsByDay: function (segs) {
+                const segsByDay = [];
+                let i, seg;
+
+                for (i = 0; i < segs.length; i++) {
+                    seg = segs[i];
+                    (segsByDay[seg.dayIndex] || (segsByDay[seg.dayIndex] = []))
+                        .push(seg);
+                }
+
+                return segsByDay;
+            },
+
+            dayHeaderHtml: function (dayDate) {
+                const view = this.view;
+                const mainFormat = this.opt('listDayFormat');
+                const altFormat = this.opt('listDayAltFormat');
+
+                return '<tr class="fc-list-heading" data-date="' + dayDate.format('YYYY-MM-DD') + '">' +
+                       '<td class="' + view.calendar.theme.getClass('widgetHeader') + '" colspan="3">' +
+                       (mainFormat ?
+                        view.buildGotoAnchorHtml(
+                            dayDate,
+                            {'class': 'fc-list-heading-main'},
+                            $.fullCalendar.htmlEscape(dayDate.format(mainFormat))
+                        ) :
+                        '') +
+                       (altFormat ?
+                        view.buildGotoAnchorHtml(
+                            dayDate,
+                            {'class': 'fc-list-heading-alt'},
+                            $.fullCalendar.htmlEscape(dayDate.format(altFormat))
+                        ) :
+                        '') +
+                       '</td>' +
+                       '</tr>';
+            },
+
+            fgSegHtml: function (seg) {
+                const view = this.view;
+                const calendar = view.calendar;
+                const theme = calendar.theme;
+                const classes = ['fc-list-item'].concat(this.getSegCustomClasses(seg));
+                const bgColor = this.getSegBackgroundColor(seg);
+                const eventFootprint = seg.footprint;
+                const eventDef = eventFootprint.eventDef;
+                const componentFootprint = eventFootprint.componentFootprint;
+                const url = eventDef.url;
+                let timeHtml;
+
+                if (componentFootprint.isAllDay) {
+                    timeHtml = view.getAllDayHtml();
+                } else if (view.isMultiDayRange(componentFootprint.unzonedRange)) {
+                    if (seg.isStart || seg.isEnd) {
+                        timeHtml = $.fullCalendar.htmlEscape(this._getEventTimeText(
+                            calendar.msToMoment(seg.startMs),
+                            calendar.msToMoment(seg.endMs),
+                            componentFootprint.isAllDay
+                        ));
+                    } else {
+                        timeHtml = view.getAllDayHtml();
+                    }
+                } else {
+                    timeHtml = $.fullCalendar.htmlEscape(this.getEventTimeText(eventFootprint));
+                }
+
+                if (url) {
+                    classes.push('fc-has-url');
+                }
+
+                return '<tr class="' + classes.join(' ') + '">' +
+                       (this.displayEventTime ?
+                       '<td class="fc-list-item-time ' + theme.getClass('widgetContent') + '">' +
+                       (timeHtml || '') +
+                       '</td>' :
+                        '') +
+                       '<td class="fc-list-item-marker ' + theme.getClass('widgetContent') + '">' +
+                       '<span class="fc-event-dot"' +
+                       (bgColor ?
+                       ' style="background-color:' + bgColor + '"' :
+                        '') +
+                       '></span>' +
+                       '</td>' +
+                       '<td class="fc-list-item-title ' + theme.getClass('widgetContent') + '">' +
+                       '<a' + (url ? ' href="' + $.fullCalendar.htmlEscape(url) + '"' : '') + '>' +
+                       $.fullCalendar.htmlEscape(eventDef.title || '') +
+                       '</a>' +
+                       '</td>' +
+                       '</tr>';
+            }
+        });
+
+    $.fullCalendar.views.assignmentsList = $.fullCalendar.View.extend(
+        {
+            grid: null,
+            scroller: null,
+
+            initialize: function () {
+                this.grid = new ListViewGrid(this);
+                this.addChild(this.grid);
+
+                this.scroller = new $.fullCalendar.Scroller({
+                                                                overflowX: 'hidden',
+                                                                overflowY: 'auto'
+                                                            });
+
+                this.renderUnzonedRange = new $.fullCalendar.UnzonedRange(
+                    moment().stripTime().subtract(10, 'years'),
+                    moment().stripTime().add(10, 'years')
+                );
+            },
+
+            renderSkeleton: function () {
+                this.el.addClass(
+                    'fc-list-view ' +
+                    this.calendar.theme.getClass('listView')
+                );
+
+                this.scroller.render();
+                this.scroller.el.appendTo(this.el);
+
+                this.grid.setElement(this.scroller.scrollEl);
+            },
+
+            unrenderSkeleton: function () {
+                this.scroller.destroy();
+            },
+
+            setHeight: function (totalHeight, isAuto) {
+                this.scroller.setHeight(this.computeScrollerHeight(totalHeight));
+            },
+
+            computeScrollerHeight: function (totalHeight) {
+                return totalHeight -
+                       subtractInnerElHeight(this.el, this.scroller.el);
+            },
+
+            renderDates: function () {
+                this.grid.setRange(this.renderUnzonedRange);
+            },
+
+            isEventDefResizable: function (eventDef) {
+                return false;
+            },
+
+            isEventDefDraggable: function (eventDef) {
+                return false;
+            }
+        });
+})();
 
 // Initialize HeliumClasses and give a reference to the Helium object
 helium.calendar = new HeliumCalendar();
