@@ -19,7 +19,7 @@
 function HeliumCalendar() {
     "use strict";
 
-    this.DEFAULT_VIEWS = ["month", "agendaWeek", "agendaDay", "assignmentsList"];
+    this.DEFAULT_VIEWS = ["month", "agendaWeek", "agendaDay", "assignmentsList", "listWeek"];
     this.DONE_TYPING_INTERVAL = 500;
     this.QTIP_SHOW_INTERVAL = 250;
     this.QTIP_HIDE_INTERVAL = 500;
@@ -1248,6 +1248,7 @@ function HeliumCalendar() {
                         }
                     },
                     list: {
+                        buttonText: 'schedule',
                         titleFormat: "MMM D YYYY"
                     }
                 }
@@ -2456,8 +2457,7 @@ function HeliumCalendar() {
             },
 
             computeScrollerHeight: function (totalHeight) {
-                return totalHeight -
-                       subtractInnerElHeight(this.el, this.scroller.el);
+                return totalHeight - subtractInnerElHeight(this.el, this.scroller.el);
             },
 
             renderDates: function () {
