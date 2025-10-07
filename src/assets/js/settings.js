@@ -546,12 +546,15 @@ function HeliumSettings() {
                    type: "GET",
                    dataType: "json",
                    success: function (data) {
-                       const jsonStr = JSON.stringify(new TextEncoder().encode(data));
-                       const base64 = "data:application/json;charset=utf-8;base64," + btoa(jsonStr);
+                       const jsonStr = JSON.stringify(data);
+                       const blob = new Blob([jsonStr], {
+                           type: "application/json;charset=utf-8"
+                       });
+                       const url = URL.createObjectURL(blob);
 
                        $("<a>")
                            .attr({
-                                     "href": base64,
+                                     "href": url,
                                      "download": "Helium_" + helium.USER_PREFS.username + ".json"
                                  }).html($("<a>").attr("download")).get(0).click();
                    }
