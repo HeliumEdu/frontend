@@ -52,7 +52,9 @@ document.API_ERROR_FUNCTION = function (jqXHR, textStatus, errorThrown, callback
         'textStatus': textStatus,
         'errorThrown': errorThrown
     }];
-    if (jqXHR.hasOwnProperty('responseJSON') && Object.keys(jqXHR.responseJSON).length > 0) {
+    if (jqXHR.hasOwnProperty('responseJSON') &&
+        jqXHR.responseJSON !== undefined &&
+        Object.keys(jqXHR.responseJSON).length > 0) {
         let name = Object.keys(jqXHR.responseJSON)[0];
         if (jqXHR.responseJSON[name].length > 0) {
             data[0]['err_msg'] = jqXHR.responseJSON[Object.keys(jqXHR.responseJSON)[0]][0];

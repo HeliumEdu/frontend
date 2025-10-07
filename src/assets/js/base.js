@@ -262,14 +262,14 @@ function Helium() {
     this.get_error_msg = function (data) {
         const response = data[0];
         // If responseJSON exists, we can likely find a more detailed message to be parsed
-        if (response.hasOwnProperty('jqXHR') && response.jqXHR.hasOwnProperty('responseJSON')) {
-            if (response.jqXHR.responseJSON.hasOwnProperty('detail')) {
-                return response.jqXHR.responseJSON.detail;
-                // TODO: we could parse more API responses here, but may make more sense to just wait and improve error
-                // handling when we rebuild the entire UI
-            } else {
-                return response.err_msg
-            }
+        if (response.hasOwnProperty('jqXHR') &&
+            response.jqXHR !== undefined &&
+            response.jqXHR.hasOwnProperty('responseJSON') &&
+            response.jqXHR.responseJSON !== undefined &&
+            response.jqXHR.responseJSON.hasOwnProperty('detail')) {
+            // TODO: we could parse more API responses here, but may make more sense to just wait and improve error
+            //  handling when we rebuild the entire UI
+            return response.jqXHR.responseJSON.detail;
         } else {
             return response.err_msg
         }
