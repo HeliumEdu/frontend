@@ -19,7 +19,7 @@
 function HeliumCalendar() {
     "use strict";
 
-    this.DEFAULT_VIEWS = ["month", "agendaWeek", "agendaDay", "listWeek"];
+    this.DEFAULT_VIEWS = ["month", "agendaWeek", "agendaDay", "assignmentsList"];
     this.DONE_TYPING_INTERVAL = 500;
     this.QTIP_SHOW_INTERVAL = 250;
     this.QTIP_HIDE_INTERVAL = 500;
@@ -48,7 +48,6 @@ function HeliumCalendar() {
     this.last_search_string = "";
     this.dropzone = null;
     this.is_resizing_calendar_item = false;
-    this.listViewLoaded = false;
     this.course_groups = {};
     this.courses = {};
 
@@ -475,7 +474,7 @@ function HeliumCalendar() {
                                                                                                            : "external");
             h_e_id = calendar_item.calendar_item_type === 0 ? calendar_item.id.substr(6) : calendar_item.id;
 
-            if (($("#calendar").fullCalendar("getView").name === "list" || $(
+            if (($("#calendar").fullCalendar("getView").name === "assignmentsList" || $(
                                                                  "#calendar-" + h_e_str + "-checkbox-" + h_e_id).is(":checked") === calendar_item.completed
                  || calendar_item.completed === undefined)) {
                 // If the checkbox and homework field for "completed" match, the homework was clicked, so open the modal
@@ -672,7 +671,7 @@ function HeliumCalendar() {
         // The comparison operators here are intentionally vague, as they check for both null and undefined
         if ($(document).width() < 768 && self.last_view === null) {
             if (calendar.fullCalendar("getView").name !== "agendaDay" && calendar.fullCalendar("getView").name
-                !== "list") {
+                !== "assignmentsList") {
                 self.last_view = calendar.fullCalendar("getView").name;
                 calendar.fullCalendar("changeView", "agendaDay");
             }
@@ -813,7 +812,7 @@ function HeliumCalendar() {
                 '<input id="calendar-homework-checkbox-' + calendar_item.id
                 + '" type="checkbox" class="ace calendar-homework-checkbox"' + (calendar_item.completed
                                                                                 ? ' checked="checked"' : '')
-                + '"><span class="lbl" style="margin-top: -3px;"></span>' + title;
+                + '"><span class="lbl" style="margin-top: -3px; margin-right: 3px;"></span>' + title;
 
             return title;
         } else {
@@ -1077,9 +1076,22 @@ function HeliumCalendar() {
                 eventClick: self.edit_calendar_item_btn,
                 eventDrop: self.drop_calendar_item,
                 eventResize: self.resize_calendar_item,
+                noEventsMessage: "Nothing to see here. Change the date or filters.",
                 displayEventTime: false,
                 weekNumbersWithinDays: true,
+                eventLimit: true,
                 nowIndicator: true,
+                viewRender: function (view, element) {
+                    if (view.name === 'assignmentsList') {
+                        $(".fc-toolbar h2").text("Assignments List");
+
+                        $('.fc-toolbar .fc-prev-button').addClass('fc-state-disabled');
+                        $('.fc-toolbar .fc-next-button').addClass('fc-state-disabled');
+                    } else {
+                        $('.fc-toolbar .fc-prev-button').removeClass('fc-state-disabled');
+                        $('.fc-toolbar .fc-next-button').removeClass('fc-state-disabled');
+                    }
+                },
                 eventResizeStart: function () {
                     self.is_resizing_calendar_item = true;
                 },
@@ -1087,10 +1099,11 @@ function HeliumCalendar() {
                     self.is_resizing_calendar_item = false;
                 },
                 eventAfterAllRender: function (view) {
-
+                    console.log("hello world");
                 },
                 eventRender: function (event, element) {
-                    let html_title = "<strong>" + event.title + "</strong>" + (!event.allDay ? ", " + moment(event.start)
+                    let html_title = "<strong>" + event.title + "</strong>" + (!event.allDay ? ", " + moment(
+                        event.start)
                         .format(helium.HE_TIME_STRING_CLIENT) : "");
 
                     element.find(".fc-title").html(html_title);
@@ -1133,7 +1146,8 @@ function HeliumCalendar() {
                                            + helium.calendar.courses[event.course].title
                                            + (helium.calendar.courses[event.course].website.replace(/\s/g, "").length
                                               > 0 ? "</a>" : "")) : "";
-                        element.qtip(
+
+                        element.find(".fc-content:has(.fc-title)").qtip(
                             {
                                 content: {
                                     title: "<strong>" + event.title_no_format + "</strong>",
@@ -1155,7 +1169,7 @@ function HeliumCalendar() {
                                               && helium.calendar.courses[event.course].room.replace(
                                                   /\s/g, "").length > 0 ? " in "
                                           + helium.calendar.courses[event.course].room : "") + "</div></div>" : "")
-                                          + (event.materials.length > 0
+                                          + (event.materials !== undefined && event.materials.length > 0
                                              && helium.calendar.get_materials_titles_bullets_from_ids(
                                             event.materials)
                                              ? "<div class=\"row\"><div class=\"col-xs-12\"><strong>Materials:</strong> "
@@ -1174,7 +1188,7 @@ function HeliumCalendar() {
                                                     event.comments) + "</div></div>"
                                                : ""
                                           ) + (
-                                              event.attachments.length > 0
+                                              event.attachments !== undefined && event.attachments.length > 0
                                               ? "<div class=\"row\"><div class=\"col-xs-12\"><strong>Attachments:</strong> "
                                           + helium.calendar.get_attachments_from_data(
                                                       event.attachments)
@@ -1226,6 +1240,9 @@ function HeliumCalendar() {
                     },
                     day: {
                         titleFormat: "ddd, MMM D, YYYY"
+                    },
+                    assignmentsList: {
+                        buttonText: 'list'
                     },
                     list: {
                         titleFormat: "MMM D YYYY"
@@ -1423,7 +1440,7 @@ function HeliumCalendar() {
                 .find("#loading-filters");
         loading_filters.spin(helium.FILTER_LOADING_OPTS);
         $("#calendar-filter-list").append(
-            "<li class=\"divider\"></li><li id=\"calendar-filter-homework\"><a class=\"checkbox cursor-hover\"><input type=\"checkbox\"/> &nbsp;<span>Assignments</span></a></li><li id=\"calendar-filter-events\"><a class=\"checkbox cursor-hover\"><input type=\"checkbox\"/> &nbsp;<span>Events</span></a></li><li id=\"calendar-filter-class\"><a class=\"checkbox cursor-hover\"><input type=\"checkbox\"/> &nbsp;<span>Class Schedule</span></a></li><li id=\"calendar-filter-external\"><a class=\"checkbox cursor-hover\"><input type=\"checkbox\"/> &nbsp;<span>External Calendar</span></a></li><li class=\"divider\"></li><li id=\"calendar-filter-complete\"><a class=\"checkbox cursor-hover\"><input type=\"checkbox\"/> &nbsp;<span>Complete</span></a></li><li id=\"calendar-filter-incomplete\"><a class=\"checkbox cursor-hover\"><input type=\"checkbox\" /> &nbsp;<span>Incomplete</span></a></li><li id=\"calendar-filter-overdue\"><a class=\"checkbox cursor-hover\"><input type=\"checkbox\" /> &nbsp;<span>Overdue</span></a></li>");
+            "<li class=\"divider\"></li><li id=\"calendar-filter-homework\"><a class=\"checkbox cursor-hover\"><input name=\"assignments\" type=\"checkbox\"/> &nbsp;<span>Assignments</span></a></li><li id=\"calendar-filter-events\"><a class=\"checkbox cursor-hover\"><input name=\"events\" type=\"checkbox\"/> &nbsp;<span>Events</span></a></li><li id=\"calendar-filter-class\"><a class=\"checkbox cursor-hover\"><input name=\"class-schedule\" type=\"checkbox\"/> &nbsp;<span>Class Schedule</span></a></li><li id=\"calendar-filter-external\"><a class=\"checkbox cursor-hover\"><input name=\"external-calendar\" type=\"checkbox\"/> &nbsp;<span>External Calendar</span></a></li><li class=\"divider\"></li><li id=\"calendar-filter-complete\"><a class=\"checkbox cursor-hover\"><input name=\"complete\" type=\"checkbox\"/> &nbsp;<span>Complete</span></a></li><li id=\"calendar-filter-incomplete\"><a class=\"checkbox cursor-hover\"><input name=\"incomplete\" type=\"checkbox\" /> &nbsp;<span>Incomplete</span></a></li><li id=\"calendar-filter-overdue\"><a class=\"checkbox cursor-hover\"><input name=\"overdue\" type=\"checkbox\" /> &nbsp;<span>Overdue</span></a></li>");
         $("#calendar-filter-homework input").on("click", self.event_stop_propagation)
             .on("change", self.refresh_filters);
         $("#calendar-filter-homework a").on("click", self.update_filter_checkbox_from_event);
@@ -1453,7 +1470,8 @@ function HeliumCalendar() {
                 }
 
                 $("#calendar-classes-list").append("<li id=\"calendar-filter-course-" + courses[i].id
-                                                   + "\"><a class=\"checkbox cursor-hover filter-course-title\"><input type=\"checkbox\" "
+                                                   + "\"><a class=\"checkbox cursor-hover filter-course-title\"><input type=\"checkbox\" name=\"course-"
+                                                   + courses[i].id + "\""
                                                    + ($.inArray(courses[i].id.toString(), course_ids) !== -1
                                                       ? "checked=\"checked\"" : "") + "/> &nbsp;<span style=\"color: "
                                                    + courses[i].color + "\">" + courses[i].title + "</span></a></li>");
@@ -1498,7 +1516,8 @@ function HeliumCalendar() {
                             categories.push(slug);
                             $("#calendar-filter-list").append(
                                 "<li id=\"calendar-filter-category-" + data[i].id + "\" data-str=\"" + data[i].title
-                                + "\"><a class=\"checkbox cursor-hover\"><input type=\"checkbox\" /> &nbsp;<span>"
+                                + "\"><a class=\"checkbox cursor-hover\"><input name=\"category-" + data[i].id
+                                + "\" type=\"checkbox\" /> &nbsp;<span>"
                                 + data[i].title + "</span></a></li>");
                             $("#calendar-filter-category-" + data[i].id + " input")
                                 .on("click", self.event_stop_propagation)
@@ -2156,6 +2175,31 @@ function HeliumCalendar() {
         }
     };
 }
+
+$.fullCalendar.views.assignmentsList = $.fullCalendar.views.list.class.extend(
+    {
+        // title: "test",
+
+
+        initialize: function() {
+            // called once when the view is instantiated, when the user switches to the view.
+            // initialize member variables or do other setup tasks.
+        },
+
+        renderEvents: function(events) {
+            // $.fullCalendar.views.list.class.prototype.renderEvents.call(this, events);
+        },
+
+        renderSelection: function(range) {
+            // accepts a {start,end} object made of Moments, and must render the selection
+
+            console.info("hello world");
+        },
+
+        destroyEvents: function() {
+            // $.fullCalendar.views.list.class.prototype.destroyEvents.call(this);
+        },
+    });
 
 // Initialize HeliumClasses and give a reference to the Helium object
 helium.calendar = new HeliumCalendar();
