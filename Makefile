@@ -24,9 +24,9 @@ build: clean-assets install
 build-dev: clean-assets install-dev
 	npm run build-dev
 
-run-devserver: build-dev
+run-devserver: clean-assets install-dev
 	# This will start a local dev server that runs the unminified frontend, outside of Docker. This can be useful
-	# during active development, so images don't need to be rebuilt to validate each change.
+	# during active development, so container images don't need to be rebuilt to validate each change.
 	npm start
 
 test: build-dev
