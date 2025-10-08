@@ -131,3 +131,20 @@ input[type=checkbox].ace.ace-switch:checked + .lbl::before {
 #homework-grade-percent {
     margin-top: 5px;
 }
+
+.fc-row table th {
+    border-top: 0 hidden transparent; /* no top border on first row */
+}
+
+.fc-list-table th {
+    border-width: 1px 0 0;
+    padding: 8px 14px;
+}
+
+.fc-list-table th {
+    border-top-width: 0;
+}
+
+.fc-list-heading th {
+    font-weight: bold;
+}

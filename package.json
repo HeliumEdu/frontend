@@ -18,7 +18,7 @@
     "scripts": {
         "build-dev": "ENVIRONMENT=local ./bin/build",
         "build-deploy": "ENVIRONMENT=prod ./bin/build",
-        "start": "http-server ./build -p 3000 -a localhost -d false -o",
+        "start": "http-server ./build -p 3000 -a localhost -d false -o -c-1",
         "test": "npm run build-dev && npm run build-deploy"
     },
     "devDependencies": {
