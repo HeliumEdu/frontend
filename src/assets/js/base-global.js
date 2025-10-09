@@ -8,7 +8,7 @@
  * project and interested in joining forces? Reach out and let us know! contact@alexlaird.com
  *
  * @license MIT
- * @version 1.11.57
+ * @version 1.12.0
  */
 
 window.APP_URL = location.protocol + "//" + location.host + "/";
