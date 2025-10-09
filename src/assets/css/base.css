@@ -313,3 +313,9 @@ span.twitter-typeahead > input.form-control.input-sm.tt-query {
 .arrow-down-icon:before {
     content: "\f063";
 }
+
+@media print {
+    .dataTable th[class*=sort]:after {
+        display: none;
+    }
+}

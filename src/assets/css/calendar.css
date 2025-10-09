@@ -39,7 +39,7 @@ body {
 }
 
 #calendar-filter-list li,
-#calendar-classes li{
+#calendar-classes li {
     text-align: right;
 }
 
@@ -150,7 +150,7 @@ input[type=checkbox].ace.ace-switch:checked + .lbl::before {
 .fc-view-container .fc-assignmentsList-view *:before,
 .fc-view-container .fc-listWeek-view *:before,
 .fc-view-container .fc-assignmentsList-view *:after,
-.fc-view-container .fc-listWeek-view *:after{
+.fc-view-container .fc-listWeek-view *:after {
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;

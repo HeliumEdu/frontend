@@ -275,6 +275,7 @@ $(document).ready(function () {
                         course = helium.grades.courses_for_course_group[id][i];
                         course_grades = helium.grades.grade_points_for_course_group[id][course.id];
 
+                        // TODO: when printing, the flot chart overflows the right margin
                         course_div =
                             course_list.append("<div id=\"course-body-" + course.id
                                                + "\" class=\"widget-box collapsed\"><div class=\"widget-header widget-header-flat widget-header-small\"><h5><i class=\"icon-signal\"></i> <span>"

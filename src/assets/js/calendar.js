@@ -1102,7 +1102,7 @@ function HeliumCalendar() {
                 displayEventTime: false,
                 weekNumbersWithinDays: true,
                 // TODO: make this configurable in settings
-                eventLimit: true,
+                eventLimit: false,
                 nowIndicator: true,
                 viewRender: self.refresh_view,
                 eventAfterAllRender: self.refresh_view,
@@ -1125,7 +1125,7 @@ function HeliumCalendar() {
                     element.find(".fc-title").html(event.checkbox + html_title);
 
                     element.find(".fc-list-item-marker").html(event.checkbox);
-                    element.find(".fc-assignmentList-item-title").html(html_title)
+                    element.find(".fc-assignmentList-item-title").html(title)
 
                     element.find(".fc-list-item-title").html(html_title_with_label)
 
@@ -1228,7 +1228,7 @@ function HeliumCalendar() {
                                     solo: true,
                                     delay: self.QTIP_SHOW_INTERVAL
                                 },
-                                style: {classes: "qtip-bootstrap"}
+                                style: {classes: "qtip-bootstrap hidden-print"}
                             });
                     }
                 },
@@ -2421,10 +2421,10 @@ function HeliumCalendar() {
                         ],
                         order: [2, "asc"],
                         aoColumns: [
-                            {bSearchable: false, sWidth: "60px", orderDataType: "dom-checkbox"},
+                            {bSearchable: false, sClass: "hidden-xs", sWidth: "60px", orderDataType: "dom-checkbox"},
                             null,
                             {sType: "date", sWidth: "180px"},
-                            {sClass: "hidden-xs"},
+                            null,
                             {sClass: "hidden-xs"},
                             {sClass: "hidden-xs"},
                             {sClass: "hidden-xs", sWidth: "110px"},
@@ -2443,7 +2443,7 @@ function HeliumCalendar() {
 
                 // Add an "Add" button to list view
                 $($("#calendar-list-table_wrapper .row .col-xs-6")[1]).append(
-                    "<div class=\"pull-right hidden-print\"><button id=\"create-event\" type=\"button\" class=\"btn btn-primary btn-xs\"><i class=\"icon-plus\"></i>&nbsp;Event</button> <button id=\"create-homework\" type=\"button\" class=\"btn btn-primary btn-xs\"><i class=\"icon-plus\"></i>&nbsp;Assignment</button></div>");
+                    "<div class=\"pull-right hidden-print\"><button id=\"create-homework\" type=\"button\" class=\"btn btn-primary btn-xs\"><i class=\"icon-plus\"></i>&nbsp;Assignment</button></div>");
 
                 // If the course array is empty
                 if ($("[id^='calendar-filter-course-']").length === 0) {
