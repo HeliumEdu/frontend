@@ -460,7 +460,9 @@ function HeliumCalendar() {
      *
      * @param calendar_item the homework or event being edited
      */
-    this.edit_calendar_item_btn = function (calendar_item) {
+    this.edit_calendar_item_btn = function (calendar_item, jsEvent) {
+        jsEvent.preventDefault();
+
         let h_e_str, h_e_id;
 
         helium.ajax_error_occurred = false;
@@ -675,7 +677,7 @@ function HeliumCalendar() {
             if (calendar.fullCalendar("getView").name !== "agendaDay" && calendar.fullCalendar("getView").name
                 !== "assignmentsList") {
                 self.last_view = calendar.fullCalendar("getView").name;
-                calendar.fullCalendar("changeView", "agendaDay");
+                calendar.fullCalendar("changeView", "listWeek");
             }
         } else if ($(document).width() >= 768 && self.last_view !== null) {
             calendar.fullCalendar("changeView", self.last_view);
@@ -1064,6 +1066,30 @@ function HeliumCalendar() {
         });
     };
 
+    this.refresh_view = function (view, element) {
+        if (view.name === 'assignmentsList') {
+            $(".fc-toolbar h2").text("Assignments List");
+
+            $('.fc-toolbar .fc-prev-button').addClass('fc-state-disabled');
+            $('.fc-toolbar .fc-next-button').addClass('fc-state-disabled');
+
+            $('#calendar-filter-homework').addClass('hidden');
+            $('#calendar-filter-events').addClass('hidden');
+            $('#calendar-filter-class').addClass('hidden');
+            $('#calendar-filter-external').addClass('hidden');
+            $('#calendar-filter-external').next().addClass('hidden');
+        } else {
+            $('.fc-toolbar .fc-prev-button').removeClass('fc-state-disabled');
+            $('.fc-toolbar .fc-next-button').removeClass('fc-state-disabled');
+
+            $('#calendar-filter-homework').removeClass('hidden');
+            $('#calendar-filter-events').removeClass('hidden');
+            $('#calendar-filter-class').removeClass('hidden');
+            $('#calendar-filter-external').removeClass('hidden');
+            $('#calendar-filter-external').next().removeClass('hidden');
+        }
+    };
+
     /**
      * Initialize the FullCalendar plugin.
      */
@@ -1086,17 +1112,8 @@ function HeliumCalendar() {
                 weekNumbersWithinDays: true,
                 eventLimit: true,
                 nowIndicator: true,
-                viewRender: function (view, element) {
-                    if (view.name === 'assignmentsList') {
-                        $(".fc-toolbar h2").text("Assignments List");
-
-                        $('.fc-toolbar .fc-prev-button').addClass('fc-state-disabled');
-                        $('.fc-toolbar .fc-next-button').addClass('fc-state-disabled');
-                    } else {
-                        $('.fc-toolbar .fc-prev-button').removeClass('fc-state-disabled');
-                        $('.fc-toolbar .fc-next-button').removeClass('fc-state-disabled');
-                    }
-                },
+                viewRender: self.refresh_view,
+                eventAfterAllRender: self.refresh_view,
                 eventResizeStart: function () {
                     self.is_resizing_calendar_item = true;
                 },
@@ -1160,7 +1177,7 @@ function HeliumCalendar() {
                                 + (helium.calendar.courses[event.course].website.replace(/\s/g, "").length
                                 > 0 ? "</a>" : "")) : "";
 
-                        element.find(".fc-content:has(.fc-title)").qtip(
+                        element.find(".fc-content:has(.fc-title)").parent().qtip(
                             {
                                 content: {
                                     title: "<strong>" + event.title_no_format + "</strong>",
@@ -1569,9 +1586,9 @@ function HeliumCalendar() {
                 $("#homework-error").html(helium.get_error_msg(data));
                 $("#homework-error").parent().show("fast");
             } else {
-                $("#calendar").fullCalendar("removeEvents", self.current_calendar_item.id);
-                $("#calendar").fullCalendar("refresh");
                 $("#calendar").fullCalendar("unselect");
+                $("#calendar").fullCalendar("removeEvents", self.current_calendar_item.id);
+                $("#calendar").fullCalendar("refetchEvents");
 
                 self.nullify_calendar_item_persistence();
 
@@ -2310,6 +2327,8 @@ function HeliumCalendar() {
                     this.renderSegList(segs);
                 }
 
+                this.latestBeforeToday = this.view.start;
+
                 // TODO: this has been refactored, but does not yet function correctly
                 for (let seg of segs) {
                     let eventDef = seg.footprint.eventDef;
@@ -2499,10 +2518,16 @@ function HeliumCalendar() {
     $.fullCalendar.views.assignmentsList = $.fullCalendar.View.extend(
         {
             grid: null,
+            scroller: null,
 
             initialize: function () {
                 this.grid = new ListViewGrid(this);
                 this.addChild(this.grid);
+
+                this.scroller = new $.fullCalendar.Scroller({
+                    overflowX: 'hidden',
+                    overflowY: 'auto'
+                });
             },
 
             renderSkeleton: function () {
@@ -2511,6 +2536,18 @@ function HeliumCalendar() {
                     this.calendar.theme.getClass('listView')
                 );
 
+                this.scroller.render();
+                this.scroller.el.appendTo(this.el);
+
+                this.grid.setElement(this.scroller.scrollEl);
+            },
+
+            setHeight: function (totalHeight, isAuto) {
+                this.scroller.setHeight(this.computeScrollerHeight(totalHeight));
+            },
+
+            computeScrollerHeight: function (totalHeight) {
+                return totalHeight - subtractInnerElHeight(this.el, this.scroller.el);
                 this.grid.setElement(this.el);
             },
 
