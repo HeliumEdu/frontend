@@ -171,7 +171,10 @@ function HeliumMaterials() {
                             sWidth: "90px"
                         }
                     ],
-                    stateSave: true
+                    stateSave: true,
+                    oLanguage: {
+                        sEmptyTable: "Create materials to get started."
+                    }
                 });
             self.material_group_table[data.id] = table_div.DataTable();
             table_div.parent().find("#material-group-table-" + data.id + "_length").addClass("hidden-print");

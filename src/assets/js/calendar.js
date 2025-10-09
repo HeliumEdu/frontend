@@ -473,7 +473,7 @@ function HeliumCalendar() {
         } else {
             // If the click is found to be outside of the checkbox, open the modal, otherwise do nothing (as it will
             // defer to the checkbox's click handler to update the save state)
-            if (!$(jsEvent.target).is(':checkbox')) {
+            if (jsEvent === undefined || !$(jsEvent.target).is(':checkbox')) {
                 if (!self.edit) {
                     self.loading_div.spin(helium.SMALL_LOADING_OPTS);
                     self.init_calendar_item = true;
@@ -1096,7 +1096,7 @@ function HeliumCalendar() {
                 eventClick: self.edit_calendar_item_btn,
                 eventDrop: self.drop_calendar_item,
                 eventResize: self.resize_calendar_item,
-                noEventsMessage: "Nothing to see here. Change the date or filters.",
+                noEventsMessage: "Nothing to see here. Change the date or filters, or use another view to add items.",
                 displayEventTime: false,
                 weekNumbersWithinDays: true,
                 // TODO: make this configurable in settings
@@ -1112,23 +1112,17 @@ function HeliumCalendar() {
                 },
                 eventRender: function (event, element) {
                     let title = event.title;
-                    let list_title;
-                    if (event.calendar_item_type === 0 || event.calendar_item_type === 3) {
-                        list_title = '<span class="label label-sm" style="background-color: ' + event.color + ' !important">' + title + "</span>";
-                    } else {
-                        title = "<strong>" + title + "</strong>";
-                        list_title = title;
-                    }
+                    let title_with_label = '<span class="label label-sm" style="background-color: ' + event.color + ' !important">' + title + "</span>";
 
                     let html_title = title + (!event.allDay ? ", " + moment(event.start).format(helium.HE_TIME_STRING_CLIENT) : "");
-                    let html_list_title = list_title + (!event.allDay ? (event.calendar_item_type !== 0 && event.calendar_item_type !== 3 ? ", " : " ") + moment(event.start).format(helium.HE_TIME_STRING_CLIENT) : "");
+                    let html_title_with_label = title_with_label + (!event.allDay ? " " + moment(event.start).format(helium.HE_TIME_STRING_CLIENT) : "");
 
                     element.find(".fc-title").html(event.checkbox + html_title);
 
                     element.find(".fc-list-item-marker").html(event.checkbox);
-                    element.find(".fc-list-item-title").html(html_list_title)
+                    element.find(".fc-assignmentList-item-title").html(html_title)
 
-                    element.find(".fc-list-item-marker").html(event.checkbox);
+                    element.find(".fc-list-item-title").html(html_title_with_label)
 
                     if (event.url === undefined) {
                         let start, end = null, course_string;
@@ -2312,11 +2306,7 @@ function HeliumCalendar() {
 
                 segs = this.renderFgSegEls(segs);
 
-                if (!segs.length) {
-                    this.renderEmptyMessage();
-                } else {
-                    this.renderSegList(segs);
-                }
+                this.renderSegList(segs);
 
                 this.latestBeforeToday = this.view.start;
 
@@ -2432,7 +2422,10 @@ function HeliumCalendar() {
                             {sClass: "hidden-xs", sWidth: "110px"},
                             {sWidth: "110px"}
                         ],
-                        stateSave: true
+                        stateSave: true,
+                        oLanguage: {
+                            sEmptyTable: "Nothing to see here. Change the date or filters, or add items."
+                        }
                     }).DataTable();
 
                 tableEl.parent().find("#calendar-list-table_length").addClass("hidden-print");
