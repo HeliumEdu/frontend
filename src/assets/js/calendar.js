@@ -19,7 +19,7 @@
 function HeliumCalendar() {
     "use strict";
 
-    // TODO: change order here so "list" is the far right item, but this needs to be done in conjuction with backend changes
+    // TODO: change order here so "list" is the far right item, but this needs to be done in conjunction with backend changes
     // TODO: add backend migration to support new agenda view as default
     this.DEFAULT_VIEWS = ["month", "agendaWeek", "agendaDay", "assignmentsList", "listWeek"];
     this.DONE_TYPING_INTERVAL = 500;
@@ -1117,7 +1117,7 @@ function HeliumCalendar() {
                     let html_list_title = list_title + (!event.allDay ? (event.calendar_item_type !== 3 ? ", " : " ") + moment(event.start).format(helium.HE_TIME_STRING_CLIENT) : "");
 
                     element.find(".fc-title").html(event.checkbox + html_title);
-                    // TODO: in agenda view for non-homework items, make sure width of column still matches checkbox column
+
                     element.find(".fc-list-item-marker").html(event.checkbox);
                     element.find(".fc-list-item-title").html(html_list_title)
 
@@ -2444,7 +2444,6 @@ function HeliumCalendar() {
                 tableEl.wrap('<div class="row"></div>');
 
                 // Add an "Add" button to list view
-                // TODO: this is not properly pulling to the right
                 $($("#calendar-list-table_wrapper .row .col-xs-6")[1]).append("<div class=\"pull-right hidden-print\"><button id=\"create-event\" type=\"button\" class=\"btn btn-primary btn-xs\"><i class=\"icon-plus\"></i>&nbsp;Event</button> <button id=\"create-homework\" type=\"button\" class=\"btn btn-primary btn-xs\"><i class=\"icon-plus\"></i>&nbsp;Assignment</button></div>");
 
                 // If the course array is empty
@@ -2483,8 +2482,6 @@ function HeliumCalendar() {
                     return "";
                 }
 
-                // TODO: fix styling to shrink everything to match how it looked in v2
-                // TODO: fix styling so delete homework doesn't have an underline
                 return '<tr class="' + classes.join(' ') + '">' +
                     '<td class="' + theme.getClass('widgetContent') + '">' + eventDef.miscProps.checkbox + '</td>' +
                     '<td class="fc-assignmentList-item-title ' + theme.getClass('widgetContent') + '">' + eventDef.title + '</td>' +
