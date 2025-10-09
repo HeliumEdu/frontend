@@ -133,7 +133,7 @@ input[type=checkbox].ace.ace-switch:checked + .lbl::before {
 }
 
 .fc-row table th {
-    border-top: 0 hidden transparent; /* no top border on first row */
+    border-top: 0 hidden transparent;
 }
 
 .fc-list-table th {
