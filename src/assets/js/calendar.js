@@ -1700,7 +1700,7 @@ function HeliumCalendar() {
         row =
             "<tr id=\"reminder-" + reminder.id + unsaved_string
             + "\"><td><a class=\"cursor-hover\" data-type=\"textarea\" id=\"reminder-" + reminder.id + unsaved_string
-            + "-message\">" + reminder.message + "</a></td><td><select id=\"reminder-" + reminder.id + unsaved_string
+            + "-message\">" + $.fullCalendar.htmlEscape(reminder.message) + "</a></td><td><select id=\"reminder-" + reminder.id + unsaved_string
             + "-type\">" + type_options + "</select> <a class=\"cursor-hover\" data-type=\"text\" id=\"reminder-"
             + reminder.id + unsaved_string + "-offset\">" + reminder.offset + "</a> <select id=\"reminder-"
             + reminder.id + unsaved_string + "-offset-type\">" + offset_type_options
