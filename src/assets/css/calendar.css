@@ -145,9 +145,12 @@ input[type=checkbox].ace.ace-switch:checked + .lbl::before {
 }
 
 /* undo what fullcalendar 3 does, as it causes everything to be way bigger */
-.fc-view-container *,
-.fc-view-container *:before,
-.fc-view-container *:after {
+.fc-view-container .fc-assignmentsList-view *,
+.fc-view-container .fc-listWeek-view *,
+.fc-view-container .fc-assignmentsList-view *:before,
+.fc-view-container .fc-listWeek-view *:before,
+.fc-view-container .fc-assignmentsList-view *:after,
+.fc-view-container .fc-listWeek-view *:after{
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
