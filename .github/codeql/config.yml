@@ -1,2 +1,2 @@
 paths-ignore:
-    - '**/vendor/**'
+    - src/assets/js/vendors/**
