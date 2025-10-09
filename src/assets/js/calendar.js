@@ -461,8 +461,6 @@ function HeliumCalendar() {
      * @param calendar_item the homework or event being edited
      */
     this.edit_calendar_item_btn = function (calendar_item, jsEvent) {
-        jsEvent.preventDefault();
-
         let h_e_str, h_e_id;
 
         helium.ajax_error_occurred = false;
@@ -473,16 +471,9 @@ function HeliumCalendar() {
             window.open(calendar_item.url);
             ret_val = false;
         } else {
-            h_e_str =
-                calendar_item.calendar_item_type === 0 ? "event" : (calendar_item.calendar_item_type === 1 ? "homework"
-                    : "external");
-            h_e_id = calendar_item.calendar_item_type === 0 ? calendar_item.id.substr(6) : calendar_item.id;
-
-            if (($("#calendar").fullCalendar("getView").name === "assignmentsList" || $(
-                    "#calendar-" + h_e_str + "-checkbox-" + h_e_id).is(":checked") === calendar_item.completed
-                || calendar_item.completed === undefined)) {
-                // If the checkbox and homework field for "completed" match, the homework was clicked, so open the modal
-                // Alternatively, if the "completed" field does not exist, this is an event, so open the model
+            // If the click is found to be outside of the checkbox, open the modal, otherwise do nothing (as it will
+            // defer to the checkbox's click handler to update the save state)
+            if (!$(jsEvent.target).is(':checkbox')) {
                 if (!self.edit) {
                     self.loading_div.spin(helium.SMALL_LOADING_OPTS);
                     self.init_calendar_item = true;
@@ -627,8 +618,6 @@ function HeliumCalendar() {
                     }
                 }
             } else {
-                // If the checkbox and homework field for "completed" don't match, the checkbox was clicked, so that
-                // trigger will handle the save
                 self.current_calendar_item = calendar_item;
             }
         }
@@ -1110,6 +1099,7 @@ function HeliumCalendar() {
                 noEventsMessage: "Nothing to see here. Change the date or filters.",
                 displayEventTime: false,
                 weekNumbersWithinDays: true,
+                // TODO: make this configurable in settings
                 eventLimit: true,
                 nowIndicator: true,
                 viewRender: self.refresh_view,
@@ -1123,15 +1113,15 @@ function HeliumCalendar() {
                 eventRender: function (event, element) {
                     let title = event.title;
                     let list_title;
-                    if (event.calendar_item_type === 3) {
+                    if (event.calendar_item_type === 0 || event.calendar_item_type === 3) {
                         list_title = '<span class="label label-sm" style="background-color: ' + event.color + ' !important">' + title + "</span>";
                     } else {
                         title = "<strong>" + title + "</strong>";
                         list_title = title;
                     }
 
-                    let html_title = title + (!event.allDay ? (event.calendar_item_type !== 3 ? ", " : " ") + moment(event.start).format(helium.HE_TIME_STRING_CLIENT) : "");
-                    let html_list_title = list_title + (!event.allDay ? (event.calendar_item_type !== 3 ? ", " : " ") + moment(event.start).format(helium.HE_TIME_STRING_CLIENT) : "");
+                    let html_title = title + (!event.allDay ? ", " + moment(event.start).format(helium.HE_TIME_STRING_CLIENT) : "");
+                    let html_list_title = list_title + (!event.allDay ? (event.calendar_item_type !== 0 && event.calendar_item_type !== 3 ? ", " : " ") + moment(event.start).format(helium.HE_TIME_STRING_CLIENT) : "");
 
                     element.find(".fc-title").html(event.checkbox + html_title);
 
@@ -1883,7 +1873,7 @@ function HeliumCalendar() {
 
             // In the event that all-day was not checked, but the timed event spans multiple days, still correct for
             // the all-day offset
-            if (!$("#homework-all-day").is(":checked") && !moment(start.isSame(end, "day"))) {
+            if (!$("#homework-all-day").is(":checked") && !start.isSame(end, "day")) {
                 end = end.add(1, "days");
             }
 
@@ -2206,6 +2196,7 @@ function HeliumCalendar() {
 
         self.current_calendar_item = $("#calendar").fullCalendar("clientEvents", [calendar_item.id])[0];
         // Only update the calendar's event if the event is currently rendered on the calendar
+        // TODO: after v3 upgrade, this is no longer causing the updated event to re-render
         if (self.current_calendar_item !== undefined) {
             $("#calendar").fullCalendar("updateEvent", self.current_calendar_item);
             $("#calendar").fullCalendar("unselect");
@@ -2329,15 +2320,14 @@ function HeliumCalendar() {
 
                 this.latestBeforeToday = this.view.start;
 
-                // TODO: this has been refactored, but does not yet function correctly
                 for (let seg of segs) {
                     let eventDef = seg.footprint.eventDef;
                     let row = $(seg.el[0]);
 
                     row.attr("id", "homework-table-row-" + eventDef.id);
 
+                    // TODO: this currently doesn't work after the v3 migration, something about click handling has changed
                     row.find("#homework-completed-" + eventDef.id).on("click", function (e) {
-                        e.stopPropagation();
                         helium.ajax_error_occurred = false;
 
                         let calendar_item, id = $(this).attr("id").split("homework-completed-")[1], data;
@@ -2370,21 +2360,10 @@ function HeliumCalendar() {
                         }
                     });
 
-                    row.find("#delete-homework-" + eventDef.id).on("click", function (e) {
-                        e.stopPropagation();
-
-                        helium.calendar.loading_div.spin(helium.SMALL_LOADING_OPTS);
-
-                        let id = $(this).attr("id").split("delete-homework-")[1];
-                        helium.calendar.current_calendar_item = $("#calendar").fullCalendar("clientEvents", [id])[0];
-
-                        helium.calendar.delete_calendar_item(helium.calendar.current_calendar_item);
-                    });
-
                     // Check if we've reached today's date
                     if (!this.dataTable !== null && eventDef.dateProfile.start.unix() < moment().stripZone().unix() &&
                         eventDef.dateProfile.start.unix() > this.latestBeforeToday.unix()) {
-                        this.latestBeforeToday = eventDef.start;
+                        this.latestBeforeToday = eventDef.dateProfile.start;
                         this.latestRow = row;
                     }
                 }
@@ -2451,8 +2430,7 @@ function HeliumCalendar() {
                             {sClass: "hidden-xs"},
                             {sClass: "hidden-xs"},
                             {sClass: "hidden-xs", sWidth: "110px"},
-                            {sWidth: "110px"},
-                            {sClass: "hidden-xs", bSortable: false, bSearchable: false, sWidth: "90px"}
+                            {sWidth: "110px"}
                         ],
                         stateSave: true
                     }).DataTable();
@@ -2485,7 +2463,6 @@ function HeliumCalendar() {
                     + '<th class=' + view.calendar.theme.getClass('widgetHeader') + '>Materials</th>'
                     + '<th class=' + view.calendar.theme.getClass('widgetHeader') + '>Priority</th>'
                     + '<th class=' + view.calendar.theme.getClass('widgetHeader') + '>Grade</th>'
-                    + '<th class=' + view.calendar.theme.getClass('widgetHeader') + '></th>'
                     + '</tr></thead>';
             },
 
@@ -2510,7 +2487,6 @@ function HeliumCalendar() {
                     '<td class="' + theme.getClass('widgetContent') + '">' + (eventDef.miscProps.calendar_item_type === 1 || eventDef.miscProps.calendar_item_type === 3 ? helium.calendar.get_materials_titles_badges_from_ids(eventDef.miscProps.materials) : "") + '</td>' +
                     '<td class="' + theme.getClass('widgetContent') + '">' + (eventDef.miscProps.calendar_item_type === 0 || eventDef.miscProps.calendar_item_type === 1 ? "<div class=\"progress progress-mini progress-striped\" style=\"margin-top: 6px; margin-bottom: 0;\"><div class=\"progress-bar progress-bar-success\" style=\"width: " + eventDef.miscProps.priority + "%;\"><span class=\"hidden\">" + eventDef.miscProps.priority + "</span></div></div>" : "") + '</td>' +
                     '<td class="' + theme.getClass('widgetContent') + '">' + (eventDef.miscProps.completed && eventDef.miscProps.current_grade !== "-1/100" ? "<span class=\"badge badge-info\">" + helium.grade_for_display(eventDef.miscProps.current_grade) + "</span>" : "") + '</td>' +
-                    '<td class="' + theme.getClass('widgetContent') + '">' + (eventDef.miscProps.calendar_item_type === 0 || eventDef.miscProps.calendar_item_type === 1 ? "<a class=\"red cursor-hover\" id=\"delete-homework-" + eventDef.miscProps.id + "\"><i class=\"icon-trash bigger-130\"></i></a></div>" : "") + '</td>' +
                     '</tr>';
             }
         });
