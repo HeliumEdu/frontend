@@ -51,3 +51,4 @@ $(window).on("load", function () {
     $("#id_time_zone").trigger("change");
     $("#id_time_zone").trigger("chosen:updated")
 }());
+
