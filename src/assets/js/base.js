@@ -167,6 +167,10 @@ function Helium() {
         localStorage.removeItem("access_token_exp");
     }
 
+    this.str_not_empty = function (str) {
+        return str !== undefined && str !== null && str.trim() !== '';
+    }
+
     /**
      * Parse the given JWT token to JSON.
      *
@@ -472,7 +476,7 @@ if (!window.REDIRECTING && localStorage.getItem("access_token") !== null) {
                success: function (data) {
                    $.extend(helium.USER_PREFS, data);
 
-                   if (helium.USER_PREFS.profile.phone !== null) {
+                   if (helium.USER_PREFS.profile !== null && helium.USER_PREFS.profile.phone !== null) {
                        helium.REMINDER_TYPE_CHOICES.push("Text");
                    }
                },

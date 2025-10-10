@@ -422,8 +422,9 @@ function HeliumPlannerAPI() {
      * @param async true if call should be async, false otherwise (default is true)
      * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
      *     refresh the cache (default to false)
+     * @param search A search string to filter by
      */
-    this.get_class_schedule_events = function (callback, course_group_id, course_id, async, use_cache) {
+    this.get_class_schedule_events = function (callback, course_group_id, course_id, async, use_cache, search) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
         let ret_val;
@@ -434,7 +435,8 @@ function HeliumPlannerAPI() {
             ret_val = $.ajax({
                                  type: "GET",
                                  url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/"
-                                      + course_id + "/courseschedules/events/",
+                                      + course_id + "/courseschedules/events/"
+                                      + (helium.str_not_empty(search) ? "?search=" + search : ""),
                                  async: async,
                                  dataType: "json",
                                  success: function (data) {
@@ -1205,8 +1207,14 @@ function HeliumPlannerAPI() {
      *     refresh the cache (default to false)
      * @param start The start time window
      * @param end The end time window
+     * @param courses A CSV string of course IDs to filter
+     * @param categories A CSV string of category titles to filter
+     * @param completed Filter by completed
+     * @param overdue Filter by overdue
+     * @param search A search string to filter by
      */
-    this.get_homework_by_user = function (callback, async, use_cache, start, end) {
+    this.get_homework_by_user = function (callback, async, use_cache, start, end, courses, categories, completed,
+                                          overdue, search) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
         let ret_val;
@@ -1216,10 +1224,16 @@ function HeliumPlannerAPI() {
         } else {
             ret_val = $.ajax({
                                  type: "GET",
-                                 url: helium.API_URL + "/planner/homework/" + (typeof start !== "undefined"
-                                                                               ? "?start__gte=" + start : "")
-                                      + (typeof end !== "undefined" ? "&end__lt=" + end
-                                                                    : ""),
+                                 url: helium.API_URL + "/planner/homework/?shown_on_calendar=true"
+                                      + (start !== undefined ? "&start__gte=" + start : "")
+                                      + (end !== undefined ? "&end__lt=" + end : "")
+                                      + (helium.str_not_empty(courses) ? "&course__id__in=" + courses.split(
+                                         ",") : "")
+                                      + (helium.str_not_empty(categories) ? "&category__title__in="
+                                      + categories.split(",") : "")
+                                      + (helium.str_not_empty(completed) ? "&completed=" + completed : "")
+                                      + (helium.str_not_empty(overdue) ? "&overdue=" + overdue : "")
+                                      + (helium.str_not_empty(search) ? "&search=" + search : ""),
                                  async: async,
                                  dataType: "json",
                                  success: function (data) {
@@ -1369,8 +1383,9 @@ function HeliumPlannerAPI() {
      *     refresh the cache (default to false)
      * @param start The start time window
      * @param end The end time window
+     * @param search A search string to filter by
      */
-    this.get_events = function (callback, async, use_cache, start, end) {
+    this.get_events = function (callback, async, use_cache, start, end, search) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
         let ret_val;
@@ -1380,8 +1395,10 @@ function HeliumPlannerAPI() {
         } else {
             ret_val = $.ajax({
                                  type: "GET",
-                                 url: helium.API_URL + "/planner/events/" + (start !== "undefined" ? "?start__gte="
-                                      + start : "") + (end !== "undefined" ? "&end__lt=" + end : ""),
+                                 url: helium.API_URL + "/planner/events/"
+                                      + (start !== undefined ? "?start__gte=" + start : "")
+                                      + (end !== undefined ? "&end__lt=" + end : "")
+                                      + (helium.str_not_empty(search) ? "&search=" + search : ""),
                                  async: async,
                                  dataType: "json",
                                  success: function (data) {
@@ -1529,8 +1546,9 @@ function HeliumPlannerAPI() {
      * @param async true if call should be async, false otherwise (default is true)
      * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
      *     refresh the cache (default to false)
+     * @param shown_on_calendar Only fetch enabled calendars
      */
-    this.get_external_calendars = function (callback, async, use_cache) {
+    this.get_external_calendars = function (callback, async, use_cache, shown_on_calendar) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
         let ret_val;
@@ -1540,7 +1558,9 @@ function HeliumPlannerAPI() {
         } else {
             ret_val = $.ajax({
                                  type: "GET",
-                                 url: helium.API_URL + "/feed/externalcalendars/",
+                                 url: helium.API_URL + "/feed/externalcalendars/"
+                                      + (shown_on_calendar !== undefined && shown_on_calendar !== null
+                                         ? "?shown_on_calendar=" + shown_on_calendar : ""),
                                  async: async,
                                  dataType: "json",
                                  success: function (data) {
@@ -1567,8 +1587,9 @@ function HeliumPlannerAPI() {
      *     refresh the cache (default to false)
      * @param start The start time window
      * @param end The end time window
+     * @param search A search string to filter by
      */
-    this.get_external_calendar_feed = function (callback, id, async, use_cache, start, end) {
+    this.get_external_calendar_feed = function (callback, id, async, use_cache, start, end, search) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
         let ret_val;
@@ -1579,8 +1600,9 @@ function HeliumPlannerAPI() {
             ret_val = $.ajax({
                                  type: "GET",
                                  url: helium.API_URL + "/feed/externalcalendars/" + id + "/events/"
-                                      + (start !== "undefined" ? "?start__gte=" + start : "")
-                                      + (end !== "undefined" ? "&end__lt=" + end : ""),
+                                      + (start !== undefined ? "?start__gte=" + start : "")
+                                      + (end !== undefined ? "&end__lt=" + end : "")
+                                      + (helium.str_not_empty(search) ? "&search=" + search : ""),
                                  async: async,
                                  dataType: "json",
                                  success: function (data) {
