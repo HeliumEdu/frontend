@@ -1,5 +1,5 @@
 var _rollbarConfig = {
-    accessToken: "${ROLLBAR_CLIENT_ACCESS_TOKEN}",
+    accessToken: "${ROLLBAR_FRONTEND_CLIENT_ACCESS_TOKEN}",
     captureUncaught: true,
     captureUnhandledRejections: true,
     payload: {
