@@ -13,6 +13,7 @@
         "/js/base-global.js"
     ],
     "base_javascript": [
+        "/js/rollbar.js",
         "/js/vendors/jquery-ui.js",
         "/js/vendors/bootstrap.js",
         "/js/vendors/moment.js",

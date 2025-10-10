@@ -8,7 +8,7 @@
  * project and interested in joining forces? Reach out and let us know! contact@alexlaird.com
  *
  * @license MIT
- * @version 1.11.62
+ * @version 1.12.2
  */
 
 /**
@@ -197,7 +197,7 @@ function HeliumSettings() {
 
                        helium.clear_form_errors("importexport-form");
 
-                       localStorage.removeItem("filter_courses_" + helium.USER_PREFS.id);
+                       localStorage.removeItem("filter_courses");
 
                        $("#status_importexport").html("Import successful.").addClass("alert-success")
                            .removeClass("hidden");

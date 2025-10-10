@@ -5,6 +5,7 @@ all: test build-docker run-docker
 SHELL := /usr/bin/env bash
 TAG_VERSION ?= latest
 PLATFORM ?= arm64
+ENVIRONMENT ?= prod
 
 install:
 	NODE_ENV=production npm install
@@ -19,7 +20,7 @@ clean: clean-assets
 	rm -rf node_modules
 
 build: clean-assets install
-	npm run build-deploy
+	npm run build
 
 build-dev: clean-assets install-dev
 	npm run build-dev
@@ -33,7 +34,7 @@ test: build-dev
 	npm run test
 
 build-docker:
-	docker buildx build -t helium/frontend:$(PLATFORM)-latest -t helium/frontend:$(PLATFORM)-$(TAG_VERSION) --platform=linux/$(PLATFORM) --load .
+	docker buildx build --build-arg ENVIRONMENT=$(ENVIRONMENT) -t helium/frontend:$(PLATFORM)-latest -t helium/frontend:$(PLATFORM)-$(TAG_VERSION) --platform=linux/$(PLATFORM) --load .
 
 run-docker:
 	docker compose up -d

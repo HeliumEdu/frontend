@@ -8,7 +8,7 @@
  * project and interested in joining forces? Reach out and let us know! contact@alexlaird.com
  *
  * @license MIT
- * @version 1.11.62
+ * @version 1.12.2
  */
 
 localStorage.setItem("refresh_token_lock", "false");
@@ -165,6 +165,10 @@ function Helium() {
         localStorage.removeItem("access_token");
         localStorage.removeItem("refresh_token");
         localStorage.removeItem("access_token_exp");
+    }
+
+    this.str_not_empty = function (str) {
+        return str !== undefined && str !== null && str.trim() !== '';
     }
 
     /**
@@ -472,7 +476,7 @@ if (!window.REDIRECTING && localStorage.getItem("access_token") !== null) {
                success: function (data) {
                    $.extend(helium.USER_PREFS, data);
 
-                   if (helium.USER_PREFS.profile.phone !== null) {
+                   if (helium.USER_PREFS.profile !== null && helium.USER_PREFS.profile.phone !== null) {
                        helium.REMINDER_TYPE_CHOICES.push("Text");
                    }
                },
