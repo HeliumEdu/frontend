@@ -1694,16 +1694,9 @@ function HeliumClasses() {
                                         helium.classes.categories_to_delete = [];
                                         helium.classes.attachments_to_delete = [];
 
-                                        if (localStorage.getItem("filter_courses_" + helium.USER_PREFS.id) === null) {
-                                            localStorage.setItem("filter_courses_" + helium.USER_PREFS.id, "");
-                                        }
-
-                                        const course_ids = localStorage.getItem(
-                                            "filter_courses_" + helium.USER_PREFS.id)
-                                            .split(",");
+                                        const course_ids = localStorage.getItem("filter_courses").split(",");
                                         course_ids.push(data.id);
-                                        localStorage.setItem("filter_courses_" + helium.USER_PREFS.id,
-                                            course_ids.join(","));
+                                        localStorage.setItem("filter_courses", course_ids.join(","));
 
                                         self.add_course_to_groups(data,
                                             self.course_group_table[data.course_group.toString()]);

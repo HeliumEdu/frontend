@@ -197,7 +197,7 @@ function HeliumSettings() {
 
                        helium.clear_form_errors("importexport-form");
 
-                       localStorage.removeItem("filter_courses_" + helium.USER_PREFS.id);
+                       localStorage.removeItem("filter_courses");
 
                        $("#status_importexport").html("Import successful.").addClass("alert-success")
                            .removeClass("hidden");

@@ -160,7 +160,7 @@ function HeliumCalendar() {
         localStorage.removeItem("filter_categories");
         localStorage.removeItem("filter_complete");
         localStorage.removeItem("filter_overdue");
-        localStorage.removeItem("filter_courses_" + helium.USER_PREFS.id);
+        localStorage.removeItem("filter_courses");
     };
 
     /**
@@ -785,7 +785,7 @@ function HeliumCalendar() {
         if (course_ids.match(/,$/)) {
             course_ids = course_ids.substring(0, course_ids.length - 1);
         }
-        localStorage.setItem("filter_courses_" + helium.USER_PREFS.id, course_ids);
+        localStorage.setItem("filter_courses", course_ids);
 
         // If all class filters are check, clear the filter title
         if (courses.size() !== course_ids.split(",").length) {
@@ -862,7 +862,7 @@ function HeliumCalendar() {
                     }, external_calendar.id, true, false, start.toISOString(), end.toISOString(), localStorage.getItem(
                         "filter_search_string")));
                 });
-            }, false, true, true);
+            }, false, false, true);
         }
 
         if (localStorage.getItem("filter_show_events") === null ||
@@ -939,7 +939,7 @@ function HeliumCalendar() {
                         });
                 });
             }, true, false, start.toISOString(), end.toISOString(),
-                        localStorage.getItem("filter_courses_" + helium.USER_PREFS.id),
+                        localStorage.getItem("filter_courses"),
                         localStorage.getItem("filter_categories"),
                         localStorage.getItem("filter_complete"),
                         localStorage.getItem("filter_overdue"),
@@ -954,7 +954,7 @@ function HeliumCalendar() {
                 }
 
                 if ($.inArray(course.id.toString(),
-                              localStorage.getItem("filter_courses_" + helium.USER_PREFS.id)
+                              localStorage.getItem("filter_courses")
                                   .split(",")) === -1) {
                     return true;
                 }
@@ -994,7 +994,7 @@ function HeliumCalendar() {
                                 reminders: []
                             });
                     });
-                }, helium.calendar.courses[course.id].course_group, course.id, true, true, localStorage.getItem("filter_search_string")));
+                }, helium.calendar.courses[course.id].course_group, course.id, true, false, localStorage.getItem("filter_search_string")));
             });
         }
 
@@ -1272,8 +1272,8 @@ function HeliumCalendar() {
                     }
                 });
 
-                if (localStorage.getItem("filter_courses_" + helium.USER_PREFS.id) === null) {
-                    localStorage.setItem("filter_courses_" + helium.USER_PREFS.id, course_ids.join(","));
+                if (localStorage.getItem("filter_courses") === null) {
+                    localStorage.setItem("filter_courses", course_ids.join(","));
                 }
 
                 $("#calendar").fullCalendar("addEventSource", self.refresh_calendar_items);
@@ -1321,7 +1321,7 @@ function HeliumCalendar() {
             if ($("#calendar-search").val() !== self.last_search_string) {
                 clearTimeout(self.typing_timer);
                 self.typing_timer = setTimeout(function () {
-                    self.refresh_filters(false);
+                    self.refresh_filters(true);
                     self.refresh_classes();
                 }, self.DONE_TYPING_INTERVAL);
             }
@@ -1436,7 +1436,7 @@ function HeliumCalendar() {
         $("#calendar-filter-overdue a").on("click", self.update_filter_checkbox_from_event);
 
         // Initialize course filters
-        const course_ids = localStorage.getItem("filter_courses_" + helium.USER_PREFS.id).split(",");
+        const course_ids = localStorage.getItem("filter_courses").split(",");
         let courses_added = 0;
         if (courses.length > 0) {
             for (i = 0; i < courses.length; i += 1) {
