@@ -1,5 +1,7 @@
 FROM ubuntu:24.04 AS build
 
+ARG ENVIRONMENT=prod
+
 RUN apt-get --fix-missing update
 RUN apt-get install -y curl gnupg
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
@@ -15,7 +17,7 @@ COPY src src
 COPY package*.json .
 
 RUN npm install
-RUN npm run build-deploy
+RUN npm run build
 
 ######################################################################
 
