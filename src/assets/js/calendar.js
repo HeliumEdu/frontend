@@ -718,7 +718,7 @@ function HeliumCalendar() {
         // Check if we should filter by selected categories
         $.each(categories, function () {
             if ($(this).children().find("input").prop("checked")) {
-                category_names += (encodeURIComponent($(this).attr("data-str")) + ",");
+                category_names += (encodeURIComponent("'" + $(this).attr("data-str")) + "',");
             }
         });
         if (category_names.match(/,$/)) {
