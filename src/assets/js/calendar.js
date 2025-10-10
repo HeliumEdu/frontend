@@ -1310,6 +1310,12 @@ function HeliumCalendar() {
         $.when.apply(this, helium.calendar.ajax_calls).done(function () {
             $("#calendar").fullCalendar("addEventSource", self.refresh_calendar_items);
 
+            $("#homework-class").chosen({
+                                            width: "100%",
+                                            search_contains: true,
+                                            no_results_text: "No classes match"
+                                        });
+
             self.adjust_calendar_size();
 
             // Throw up the Getting Started modal if necessary
@@ -1317,7 +1323,7 @@ function HeliumCalendar() {
                 $("#getting-started-modal").modal("show");
             }
 
-            self.initialize_filters(self.courses);
+            self.initialize_filters();
             self.initialize_search_bindings();
 
             $("#filter-clear").on("click", function () {
@@ -1428,10 +1434,8 @@ function HeliumCalendar() {
 
     /**
      * Initialize the filters.
-     *
-     * @param courses the courses to be included in the filter
      */
-    this.initialize_filters = function (courses) {
+    this.initialize_filters = function () {
         let i = 0, loading_filters;
 
         loading_filters =
@@ -1463,31 +1467,31 @@ function HeliumCalendar() {
         // Initialize course filters
         const course_ids = localStorage.getItem("filter_courses").split(",");
         let courses_added = 0;
-        if (courses.length > 0) {
-            for (i = 0; i < courses.length; i += 1) {
-                if (!helium.calendar.course_groups[courses[i].course_group].shown_on_calendar) {
-                    continue;
+        if (Object.keys(helium.calendar.courses).length > 0) {
+            $.each(helium.calendar.courses, function(index, course) {
+                if (!helium.calendar.course_groups[course.course_group].shown_on_calendar) {
+                    return true;
                 }
 
-                $("#calendar-classes-list").append("<li id=\"calendar-filter-course-" + courses[i].id
+                $("#calendar-classes-list").append("<li id=\"calendar-filter-course-" + course.id
                                                    + "\"><a class=\"checkbox cursor-hover filter-course-title\"><input type=\"checkbox\" name=\"course-"
-                                                   + courses[i].id + "\""
-                                                   + ($.inArray(courses[i].id.toString(), course_ids) !== -1
+                                                   + course.id + "\""
+                                                   + ($.inArray(course.id.toString(), course_ids) !== -1
                                                       ? "checked=\"checked\"" : "") + "/> &nbsp;<span style=\"color: "
-                                                   + courses[i].color + "\">" + courses[i].title + "</span></a></li>");
-                $("#calendar-filter-course-" + courses[i].id + " input").on("click", self.event_stop_propagation)
+                                                   + course.color + "\">" + course.title + "</span></a></li>");
+                $("#calendar-filter-course-" + course.id + " input").on("click", self.event_stop_propagation)
                     .on("change", self.refresh_classes);
-                $("#calendar-filter-course-" + courses[i].id + " a").on("click", function () {
+                $("#calendar-filter-course-" + course.id + " a").on("click", function () {
                     let checkbox;
                     checkbox = $($(this).children()[0]);
                     checkbox.prop("checked", !checkbox.is(":checked")).trigger("change");
                 });
 
                 courses_added += 1;
-            }
+            });
         }
 
-        if (courses_added == 0) {
+        if (courses_added === 0) {
             $("#calendar-classes button").attr("disabled", "disabled");
             $("#calendar-filters button").attr("disabled", "disabled");
         }
