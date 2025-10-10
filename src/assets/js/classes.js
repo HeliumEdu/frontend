@@ -1694,7 +1694,7 @@ function HeliumClasses() {
                                         helium.classes.categories_to_delete = [];
                                         helium.classes.attachments_to_delete = [];
 
-                                        const course_ids = localStorage.getItem("filter_courses").split(",");
+                                        const course_ids = (localStorage.getItem("filter_courses") || "").split(",");
                                         course_ids.push(data.id);
                                         localStorage.setItem("filter_courses", course_ids.join(","));
 

@@ -1321,7 +1321,7 @@ function HeliumCalendar() {
             if ($("#calendar-search").val() !== self.last_search_string) {
                 clearTimeout(self.typing_timer);
                 self.typing_timer = setTimeout(function () {
-                    self.refresh_filters(true);
+                    self.refresh_filters(false);
                     self.refresh_classes();
                 }, self.DONE_TYPING_INTERVAL);
             }
