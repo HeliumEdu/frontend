@@ -167,6 +167,10 @@ function Helium() {
         localStorage.removeItem("access_token_exp");
     }
 
+    this.str_not_empty = function (str) {
+        return str !== undefined && str !== null && str.trim() !== '';
+    }
+
     /**
      * Parse the given JWT token to JSON.
      *
