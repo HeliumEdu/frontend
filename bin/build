@@ -5,16 +5,22 @@ if [[ "$npm_command" != "run-script" ]] && [[ "$npm_command" != "run" ]]; then
   exit 1;
 fi
 
+set -e
+
 VERSION=$(node -p "require('./package.json').version")
 
 echo "Building assets for $ENVIRONMENT with $VERSION ..."
 
 mkdir -p build/assets/$VERSION
 
-cp src/assets/* build/assets 2>/dev/null
+
+cp src/assets/*.* build/assets
 cp -r src/assets/css build/assets/$VERSION
 cp -r src/assets/img build/assets/$VERSION
 cp -r src/assets/js build/assets/$VERSION
+
+sed "s/\${DIST_VERSION}/$VERSION/g; s/\${DIST_ENV}/$ENVIRONMENT/g" build/assets/$VERSION/js/rollbar.tpl.js > build/assets/$VERSION/js/rollbar.js
+rm build/assets/$VERSION/js/rollbar.tpl.js
 
 sed "s/\${DIST_VERSION}/$VERSION/g" build/assets/info.tpl.json > build/assets/info.json
 rm build/assets/info.tpl.json
