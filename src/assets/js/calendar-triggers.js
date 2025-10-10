@@ -38,7 +38,6 @@
                                               null, 0);
     });
 
-    // TODO: this currently doesn't work after the v3 migration, something about click handling has changed
     $("body").on("click", ".calendar-homework-checkbox", function (e) {
         e.preventDefault();
 
