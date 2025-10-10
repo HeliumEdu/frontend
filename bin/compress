@@ -16,6 +16,7 @@ def compress(path, ext):
     if ext == "css":
         subprocess.run(["cleancss", "-O1", "'all:on;specialComments:0'", "-o", f"{build_path}.min.{ext}", f"{build_path}.{ext}"], check=True)
     elif ext == "js":
+        # TODO: update this to produce source maps too, but may need to switch away from this CLI tool
         subprocess.run(["uglifyjs", "--compress", "--mangle", "-o", f"{build_path}.min.{ext}", f"{build_path}.{ext}"], check=True)
     else:
         raise TypeError(f"Unsupported file type: {ext}")
