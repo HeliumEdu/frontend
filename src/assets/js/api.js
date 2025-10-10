@@ -429,8 +429,9 @@ function HeliumPlannerAPI() {
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
         let ret_val;
 
-        if (use_cache && self.class_schedules.hasOwnProperty(course_id)) {
-            ret_val = callback(self.class_schedules[course_id]);
+        let cache_key = course_id + search;
+        if (use_cache && self.class_schedules.hasOwnProperty(cache_key)) {
+            ret_val = callback(self.class_schedules[cache_key]);
         } else {
             ret_val = $.ajax({
                                  type: "GET",
@@ -440,8 +441,8 @@ function HeliumPlannerAPI() {
                                  async: async,
                                  dataType: "json",
                                  success: function (data) {
-                                     self.class_schedules[course_id] = data;
-                                     callback(self.class_schedules[course_id]);
+                                     self.class_schedules[cache_key] = data;
+                                     callback(self.class_schedules[cache_key]);
                                  },
                                  error: function (jqXHR, textStatus, errorThrown) {
                                      document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
@@ -1219,8 +1220,9 @@ function HeliumPlannerAPI() {
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
         let ret_val;
 
-        if (use_cache && self.homework_by_user_id.hasOwnProperty(helium.USER_PREFS.id)) {
-            ret_val = callback(self.homework_by_user_id[helium.USER_PREFS.id]);
+        let cache_key = start + end + courses + categories + completed + overdue + search;
+        if (use_cache && self.homework_by_user_id.hasOwnProperty(cache_key)) {
+            ret_val = callback(self.homework_by_user_id[cache_key]);
         } else {
             ret_val = $.ajax({
                                  type: "GET",
@@ -1237,8 +1239,8 @@ function HeliumPlannerAPI() {
                                  async: async,
                                  dataType: "json",
                                  success: function (data) {
-                                     self.homework_by_user_id[helium.USER_PREFS.id] = data;
-                                     callback(self.homework_by_user_id[helium.USER_PREFS.id]);
+                                     self.homework_by_user_id[cache_key] = data;
+                                     callback(self.homework_by_user_id[cache_key]);
                                  },
                                  error: function (jqXHR, textStatus, errorThrown) {
                                      document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
@@ -1390,8 +1392,9 @@ function HeliumPlannerAPI() {
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
         let ret_val;
 
-        if (use_cache && self.events_by_user_id.hasOwnProperty(helium.USER_PREFS.id)) {
-            ret_val = callback(self.events_by_user_id[helium.USER_PREFS.id]);
+        let cache_key = start + end + search;
+        if (use_cache && self.events_by_user_id.hasOwnProperty(cache_key)) {
+            ret_val = callback(self.events_by_user_id[cache_key]);
         } else {
             ret_val = $.ajax({
                                  type: "GET",
@@ -1402,8 +1405,8 @@ function HeliumPlannerAPI() {
                                  async: async,
                                  dataType: "json",
                                  success: function (data) {
-                                     self.events_by_user_id[helium.USER_PREFS.id] = data;
-                                     callback(self.events_by_user_id[helium.USER_PREFS.id]);
+                                     self.events_by_user_id[cache_key] = data;
+                                     callback(self.events_by_user_id[cache_key]);
                                  },
                                  error: function (jqXHR, textStatus, errorThrown) {
                                      document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
@@ -1594,8 +1597,9 @@ function HeliumPlannerAPI() {
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
         let ret_val;
 
-        if (use_cache && self.external_calendar_feed.hasOwnProperty(id)) {
-            ret_val = callback(self.external_calendar_feed[id]);
+        let cache_key = id + start + end + search;
+        if (use_cache && self.external_calendar_feed.hasOwnProperty(cache_key)) {
+            ret_val = callback(self.external_calendar_feed[cache_key]);
         } else {
             ret_val = $.ajax({
                                  type: "GET",
@@ -1606,8 +1610,8 @@ function HeliumPlannerAPI() {
                                  async: async,
                                  dataType: "json",
                                  success: function (data) {
-                                     self.external_calendar_feed[id] = data;
-                                     callback(self.external_calendar_feed[id]);
+                                     self.external_calendar_feed[cache_key] = data;
+                                     callback(self.external_calendar_feed[cache_key]);
                                  },
                                  error: function (jqXHR, textStatus, errorThrown) {
                                      document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);

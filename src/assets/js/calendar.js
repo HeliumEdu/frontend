@@ -859,10 +859,10 @@ function HeliumCalendar() {
                                     reminders: []
                                 });
                         });
-                    }, external_calendar.id, true, false, start.toISOString(), end.toISOString(), localStorage.getItem(
+                    }, external_calendar.id, true, true, start.toISOString(), end.toISOString(), localStorage.getItem(
                         "filter_search_string")));
                 });
-            }, false, false, true);
+            }, false, true, true);
         }
 
         if (localStorage.getItem("filter_show_events") === null ||
@@ -899,7 +899,7 @@ function HeliumCalendar() {
                             reminders: calendar_item.reminders
                         });
                 });
-            }, true, false, start.toISOString(), end.toISOString(), localStorage.getItem("filter_search_string")));
+            }, true, true, start.toISOString(), end.toISOString(), localStorage.getItem("filter_search_string")));
         }
 
         if (localStorage.getItem("filter_show_homework") === null ||
@@ -938,7 +938,7 @@ function HeliumCalendar() {
                             reminders: calendar_item.reminders
                         });
                 });
-            }, true, false, start.toISOString(), end.toISOString(),
+            }, true, true, start.toISOString(), end.toISOString(),
                         localStorage.getItem("filter_courses"),
                         localStorage.getItem("filter_categories"),
                         localStorage.getItem("filter_complete"),
@@ -994,7 +994,7 @@ function HeliumCalendar() {
                                 reminders: []
                             });
                     });
-                }, helium.calendar.courses[course.id].course_group, course.id, true, false, localStorage.getItem("filter_search_string")));
+                }, helium.calendar.courses[course.id].course_group, course.id, true, true, localStorage.getItem("filter_search_string")));
             });
         }
 
