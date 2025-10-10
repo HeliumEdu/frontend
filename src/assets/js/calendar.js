@@ -718,14 +718,14 @@ function HeliumCalendar() {
         // Check if we should filter by selected categories
         $.each(categories, function () {
             if ($(this).children().find("input").prop("checked")) {
-                category_names += ($(this).attr("data-str") + ",");
+                category_names += (encodeURIComponent($(this).attr("data-str")) + ",");
             }
         });
         if (category_names.match(/,$/)) {
             category_names = category_names.substring(0, category_names.length - 1);
         }
         if (category_names !== "") {
-            localStorage.setItem("filter_categories", encodeURIComponent(category_names));
+            localStorage.setItem("filter_categories", category_names);
         } else {
             localStorage.removeItem("filter_categories");
         }
