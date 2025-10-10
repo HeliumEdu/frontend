@@ -788,8 +788,9 @@ function HeliumCalendar() {
         }
         localStorage.setItem("filter_courses", course_ids);
 
-        // If all class filters are check, clear the filter title
-        if (courses.size() !== course_ids.split(",").length) {
+        // If all class (or none) filters are check, clear the filter title
+        if (courses.size() !== course_ids.split(",").length
+            && course_ids !== "") {
             $("#classes-button-title").html("Classes (On)");
         } else {
             $("#classes-button-title").html("Classes");
