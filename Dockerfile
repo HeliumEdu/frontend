@@ -1,7 +1,6 @@
 FROM ubuntu:24.04 AS build
 
 ARG ENVIRONMENT=prod
-ARG FRONTEND_ROLLBAR_CLIENT_ITEM_ACCESS_TOKEN="hamster"
 
 RUN apt-get --fix-missing update
 RUN apt-get install -y curl gnupg
@@ -18,7 +17,8 @@ COPY src src
 COPY package*.json .
 
 RUN npm install
-RUN npm run build
+RUN --mount=type=secret,id=frontend_rollbar_client_item_access_token,env=FRONTEND_ROLLBAR_CLIENT_ITEM_ACCESS_TOKEN \
+    npm run build
 
 ######################################################################
 

@@ -34,7 +34,7 @@ test: build-dev
 	npm run test
 
 build-docker:
-	docker buildx build --build-arg ENVIRONMENT=$(ENVIRONMENT) --build-arg FRONTEND_ROLLBAR_CLIENT_ITEM_ACCESS_TOKEN=$(FRONTEND_ROLLBAR_CLIENT_ITEM_ACCESS_TOKEN) -t helium/frontend:$(PLATFORM)-latest -t helium/frontend:$(PLATFORM)-$(TAG_VERSION) --platform=linux/$(PLATFORM) --load .
+	docker buildx build --build-arg ENVIRONMENT=$(ENVIRONMENT) --secret id=frontend_rollbar_client_item_access_token,env=FRONTEND_ROLLBAR_CLIENT_ITEM_ACCESS_TOKEN -t helium/frontend:$(PLATFORM)-latest -t helium/frontend:$(PLATFORM)-$(TAG_VERSION) --platform=linux/$(PLATFORM) --load .
 
 run-docker:
 	docker compose up -d
