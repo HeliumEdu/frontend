@@ -1998,13 +1998,8 @@ function HeliumCalendar() {
                             if (self.dropzone !== null && self.dropzone.getQueuedFiles().length > 0) {
                                 self.dropzone.processQueue();
                             } else {
-                                self.current_calendar_item =
-                                    $("#calendar").fullCalendar("clientEvents", [calendar_item.id])[0];
-                                // Only update the calendar's event if the event is currently rendered on the calendar
-                                if (self.current_calendar_item !== undefined) {
-                                    $("#calendar").fullCalendar("updateEvent", self.current_calendar_item);
-                                    $("#calendar").fullCalendar("unselect");
-                                }
+                                $("#calendar").fullCalendar("updateEvent", self.current_calendar_item);
+                                $("#calendar").fullCalendar("unselect");
 
                                 $("#loading-homework-modal").spin(false);
                                 $("#homework-modal").modal("hide");
@@ -2096,9 +2091,9 @@ function HeliumCalendar() {
                             self.last_good_date = moment(calendar_item.start);
                             self.last_good_end_date = moment(calendar_item.end);
 
+                            self.current_calendar_item = $("#calendar").fullCalendar("clientEvents", calendar_item.id)[0];
+
                             if (self.dropzone !== null && self.dropzone.getQueuedFiles().length > 0) {
-                                self.current_calendar_item =
-                                    $("#calendar").fullCalendar("clientEvents", calendar_item.id)[0];
                                 self.dropzone.processQueue();
                             } else {
                                 $("#calendar").fullCalendar("unselect");
