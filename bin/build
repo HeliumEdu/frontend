@@ -21,10 +21,14 @@ cp -r src/assets/js build/assets/$VERSION
 
 
 if [[ -z "${FRONTEND_ROLLBAR_CLIENT_ITEM_ACCESS_TOKEN}" ]]; then
+  echo "Building bundle without Rollbar"
+
   # If no client-side access token is in the env, store an empty file to disable Rollbar
   touch build/assets/$VERSION/js/rollbar.js
   rm build/assets/$VERSION/js/rollbar.tpl.js
 else
+  echo "Building Rollbar bundle with client token"
+
   sed "s/\${DIST_VERSION}/$VERSION/g; s/\${DIST_ENV}/$ENVIRONMENT/; s/\${FRONTEND_ROLLBAR_CLIENT_ITEM_ACCESS_TOKEN}/$FRONTEND_ROLLBAR_CLIENT_ITEM_ACCESS_TOKEN/g" build/assets/$VERSION/js/rollbar.tpl.js > build/assets/$VERSION/js/rollbar.js
   rm build/assets/$VERSION/js/rollbar.tpl.js
 fi
