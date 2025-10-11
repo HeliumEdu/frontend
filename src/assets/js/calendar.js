@@ -1639,6 +1639,7 @@ function HeliumCalendar() {
                     reminders: calendar_item.reminders
                 });
                 event = $("#calendar").fullCalendar("clientEvents", [calendar_item.id])[0];
+                $("#calendar").fullCalendar("refetchEvents");
 
                 self.edit = false;
                 self.edit_calendar_item_btn(event);
@@ -1998,7 +1999,6 @@ function HeliumCalendar() {
                             if (self.dropzone !== null && self.dropzone.getQueuedFiles().length > 0) {
                                 self.dropzone.processQueue();
                             } else {
-                                $("#calendar").fullCalendar("updateEvent", self.current_calendar_item);
                                 $("#calendar").fullCalendar("unselect");
 
                                 $("#loading-homework-modal").spin(false);
@@ -2065,6 +2065,7 @@ function HeliumCalendar() {
                             attachments: calendar_item.attachments,
                             reminders: calendar_item.reminders
                         });
+                        $("#calendar").fullCalendar("refetchEvents");
 
                         if (!helium.ajax_error_occurred) {
                             $.each(reminders_data, function (i, reminder_data) {
@@ -2193,6 +2194,7 @@ function HeliumCalendar() {
 
         $("#calendar").fullCalendar("updateEvent", self.current_calendar_item);
         $("#calendar").fullCalendar("unselect");
+        $("#calendar").fullCalendar("refetchEvents");
     };
 }
 
@@ -2742,6 +2744,7 @@ $(document).ready(function () {
                                                                                          $("#calendar").fullCalendar("updateEvent",
                                                                                                                      helium.calendar.current_calendar_item);
                                                                                          $("#calendar").fullCalendar("unselect");
+                                                                                         $("#calendar").fullCalendar("refetchEvents");
 
                                                                                          $("#loading-homework-modal").spin(false);
                                                                                          $("#homework-modal").modal("hide");
