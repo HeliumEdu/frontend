@@ -29,9 +29,9 @@ body {
     font-size: 15px;
 }
 
-#calendar-classes, #calendar-filters {
+#calendar-classes, #calendar-filters, #create-homework {
     margin-right: 6px;
-    margin-top: -2px;
+    /*margin-top: -2px;*/
 }
 
 #calendar-classes-list, #calendar-filter-list {
@@ -82,7 +82,7 @@ body {
 
 #search-bar {
     margin-left: 10px;
-    margin-top: -2px;
+    margin-top: -1px;
 }
 
 #edit-categories {

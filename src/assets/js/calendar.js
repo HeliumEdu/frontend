@@ -1250,9 +1250,12 @@ function HeliumCalendar() {
 
         // Customize the calendar header
         $(".fc-toolbar .fc-right").prepend(
-            "<div class=\"btn-group\" id=\"calendar-filters\"><button data-toggle=\"dropdown\" class=\"fc-button fc-state-default btn btn-sm dropdown-toggle\"><span id=\"filter-button-title\">Filter</span><span class=\"icon-caret-down icon-on-right\"></span></button><ul id=\"calendar-filter-list\" class=\"dropdown-menu dropdown-menu-form pull-right\" role=\"menu\"><li id=\"filter-clear\"><a class=\"cursor-hover\">Clear Filters</a></li></ul></div>");
+            "<div class=\"fc-button-group\">"
+            + "<div class='btn-group' id=\"calendar-classes\"><button data-toggle=\"dropdown\" class=\"fc-button fc-state-default btn btn-sm dropdown-toggle\"><span id=\"classes-button-title\">Classes</span><span class=\"icon-caret-down icon-on-right\"></span></button><ul id=\"calendar-classes-list\" class=\"dropdown-menu dropdown-menu-form pull-right\" role=\"menu\"></ul></div>"
+            + "<div class='btn-group' id=\"calendar-filters\"><button data-toggle=\"dropdown\" class=\"fc-button fc-state-default btn btn-sm dropdown-toggle\"><span id=\"filter-button-title\">Filter</span><span class=\"icon-caret-down icon-on-right\"></span></button><ul id=\"calendar-filter-list\" class=\"dropdown-menu dropdown-menu-form pull-right\" role=\"menu\"><li id=\"filter-clear\"><a class=\"cursor-hover\">Clear Filters</a></li></ul></div>"
+            + "</div>");
         $(".fc-toolbar .fc-right").prepend(
-            "<div class=\"btn-group\" id=\"calendar-classes\"><button data-toggle=\"dropdown\" class=\"fc-button fc-state-default btn btn-sm dropdown-toggle\"><span id=\"classes-button-title\">Classes</span><span class=\"icon-caret-down icon-on-right\"></span></button><ul id=\"calendar-classes-list\" class=\"dropdown-menu dropdown-menu-form pull-right\" role=\"menu\"></ul></div>");
+            "<div class=\"btn-group\"><button id=\"create-homework\" type=\"button\" class=\"fc-button btn btn-primary btn-sm btn-xs\"><i class=\"icon-plus\"></i></button></div>");
         $(".fc-toolbar .fc-right").append(
             "<span class=\"input-icon\" id=\"search-bar\"><input type=\"text\" placeholder=\"Search ...\" class=\"input-sm search-query\" id=\"calendar-search\" autocomplete=\"off\" /><i class=\"icon-search nav-search-icon\"></i></span>");
         $(".fc-toolbar, .fc-button").addClass("hidden-print");
@@ -1479,7 +1482,7 @@ function HeliumCalendar() {
         const course_ids = localStorage.getItem("filter_courses").split(",");
         let courses_added = 0;
         if (Object.keys(helium.calendar.courses).length > 0) {
-            $.each(helium.calendar.courses, function(index, course) {
+            $.each(helium.calendar.courses, function (index, course) {
                 if (!helium.calendar.course_groups[course.course_group].shown_on_calendar) {
                     return true;
                 }
@@ -1505,9 +1508,6 @@ function HeliumCalendar() {
         if (courses_added === 0) {
             $("#calendar-classes button").attr("disabled", "disabled");
             $("#calendar-filters button").attr("disabled", "disabled");
-        }
-
-        if ($("[id^='calendar-classes-course-']").length === 0) {
             $("#create-homework").attr("disabled", "disabled");
         } else {
             $("#create-homework").removeAttr("disabled");
@@ -2433,17 +2433,6 @@ function HeliumCalendar() {
                 tableEl.parent().find("#calendar-list-table_info").parent().parent().addClass("hidden-print");
 
                 tableEl.wrap('<div class="row"></div>');
-
-                // Add an "Add" button to list view
-                $($("#calendar-list-table_wrapper .row .col-xs-6")[1]).append(
-                    "<div class=\"pull-right hidden-print\"><button id=\"create-homework\" type=\"button\" class=\"btn btn-primary btn-xs\"><i class=\"icon-plus\"></i>&nbsp;Assignment</button></div>");
-
-                // If the course array is empty
-                if ($("[id^='calendar-filter-course-']").length === 0) {
-                    $("#create-homework").attr("disabled", "disabled");
-                } else {
-                    $("#create-homework").removeAttr("disabled");
-                }
             },
 
             headerHtml: function () {
