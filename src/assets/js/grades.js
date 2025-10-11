@@ -328,14 +328,14 @@ $(document).ready(function () {
                         if (helium.grades.categories_for_course[course.id].length > 0) {
                             grade_distribution_string =
                                 course.has_weighted_grading
-                                ? ("<div class=\"col-xs-12 col-sm-3\"><div class=\"row\"><h5>Weight Distribution</h5><hr /></div><div id=\"course-weight-piechart-"
+                                ? ("<div class=\"col-xs-12 col-md-3\"><div class=\"row\"><h5>Weight Distribution</h5><hr /></div><div id=\"course-weight-piechart-"
                                    + course.id
-                                   + "\"></div></div><div class=\"col-xs-12 col-sm-3\"><div class=\"row\"><h5>Current Grade Distribution</h5><hr /></div><div id=\"course-grade-by-weight-piechart-"
+                                   + "\"></div></div><div class=\"col-xs-12 col-md-3\"><div class=\"row\"><h5>Current Grade Distribution</h5><hr /></div><div id=\"course-grade-by-weight-piechart-"
                                    + course.id + "\"></div></div>") : "";
                             course_body_div =
                                 course_div.find("#course-body-" + course.id).append(
                                     "<div class=\"widget-body\"><div class=\"widget-main\">" + grade_distribution_string
-                                    + "<div class=\"row\"><div class=\"col-xs-12 col-sm-" + (course.has_weighted_grading
+                                    + "<div class=\"row\"><div class=\"col-xs-12 col-md-" + (course.has_weighted_grading
                                                                                              ? "6" : "12") + "\">" + $(
                                                                                                  "<div />").append(category_table.clone()).html()
                                     + "</div><div class=\"col-xs-12 col-sm-4\"></div></div></div></div></div>");
