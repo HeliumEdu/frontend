@@ -206,7 +206,7 @@
                     month_view = $("#calendar").fullCalendar("getView").name === helium.calendar.DEFAULT_VIEWS[0];
                     month_or_list_view =
                         $("#calendar").fullCalendar("getView").name === helium.calendar.DEFAULT_VIEWS[0]
-                        || $("#calendar").fullCalendar("getView").name === helium.calendar.DEFAULT_VIEWS[3];
+                        || $("#calendar").fullCalendar("getView").name === helium.calendar.DEFAULT_VIEWS[4];
                     if (month_view) {
                         if (helium.calendar.start.toDate().toDateString() !== helium.calendar.end.toDate()
                             .toDateString()) {

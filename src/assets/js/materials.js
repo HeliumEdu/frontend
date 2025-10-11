@@ -480,7 +480,9 @@ $(document).ready(function () {
     /*******************************************
      * Initialize component libraries
      ******************************************/
-    $("#material-courses").chosen({width: "100%", search_contains: true, no_results_text: "No classes match"});
+    if ($(window).width() > 768) {
+        $("#material-courses").chosen({width: "100%", search_contains: true, no_results_text: "No classes match"});
+    }
 
     bootbox.setDefaults({
                             locale: 'en'

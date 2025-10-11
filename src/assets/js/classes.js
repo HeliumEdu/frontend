@@ -1341,8 +1341,8 @@ function HeliumClasses() {
         if (/\S/.test(course_title) && course_start_date !== "" && course_end_date !== "") {
             $("#loading-course-modal").spin(helium.SMALL_LOADING_OPTS);
 
-            start_date = moment(course_start_date).format(helium.HE_DATE_STRING_SERVER);
-            end_date = moment(course_end_date).format(helium.HE_DATE_STRING_SERVER);
+            start_date = moment(course_start_date, helium.HE_DATE_STRING_CLIENT).format(helium.HE_DATE_STRING_SERVER);
+            end_date = moment(course_end_date, helium.HE_DATE_STRING_CLIENT).format(helium.HE_DATE_STRING_SERVER);
             if ($("#course-group").val() === "") {
                 data = {
                     "title": "Unnamed Group",

@@ -572,8 +572,10 @@ $(document).ready(function () {
     $("#loading-personal").spin(false);
     $("#loading-account").spin(false);
 
-    $("#id_phone_carrier").chosen({width: "100%", search_contains: true, no_results_text: "No carriers match"});
-    $("#id_time_zone").chosen({width: "100%", search_contains: true, no_results_text: "No time zones match"});
+    if ($(window).width() > 768) {
+        $("#id_phone_carrier").chosen({width: "100%", search_contains: true, no_results_text: "No carriers match"});
+        $("#id_time_zone").chosen({width: "100%", search_contains: true, no_results_text: "No time zones match"});
+    }
     $("#id_color_select").simplecolorpicker({picker: true, theme: "glyphicons"});
 
     if ($(".externalcalendars-help").length > 0) {
