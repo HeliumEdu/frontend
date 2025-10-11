@@ -21,6 +21,7 @@
                             <option value="1">Week</option>
                             <option value="2">Day</option>
                             <option value="3">List</option>
+                            <option value="4">Agenda</option>
                         </select>
                     </div>
                 </div>
@@ -52,6 +53,13 @@
                     <div class="col-sm-5 col-xs-12">
                         {% include "../colorselect.html" %}
                     </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">Collapse full calendar days to "+ more"</label>
+                    <span class="col-sm-5 col-xs-12">
+                    <input id="id_calendar_event_limit" name="calendar_event_limit" type="checkbox" class="ace"/>
+                        <span class="lbl"></span>
+                    </span>
                 </div>
             </div>
 

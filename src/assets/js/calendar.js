@@ -19,7 +19,6 @@
 function HeliumCalendar() {
     "use strict";
 
-    // TODO: add backend migration to support new agenda view as default
     this.DEFAULT_VIEWS = ["month", "agendaWeek", "agendaDay", "listWeek", "assignmentsList"];
     this.DONE_TYPING_INTERVAL = 500;
     this.QTIP_SHOW_INTERVAL = 250;
@@ -1066,8 +1065,7 @@ function HeliumCalendar() {
                 noEventsMessage: "Nothing to see here. Change the date or filters, or use another view to add items.",
                 displayEventTime: false,
                 weekNumbersWithinDays: true,
-                // TODO: make this configurable in settings
-                eventLimit: false,
+                eventLimit: helium.USER_PREFS.settings.calendar_event_limit,
                 nowIndicator: true,
                 viewRender: self.refresh_view,
                 eventAfterAllRender: self.refresh_view,
