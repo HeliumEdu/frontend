@@ -1088,9 +1088,14 @@ function HeliumCalendar() {
                     element.find(".fc-title").html(event.checkbox + html_title);
 
                     element.find(".fc-list-item-marker").html(event.checkbox);
-                    element.find(".fc-assignmentList-item-title").html(title)
+                    element.find(".fc-assignmentList-item-title").html(title);
 
-                    element.find(".fc-list-item-title").html(html_title_with_label)
+                    element.find(".fc-list-item-title").html(html_title_with_label);
+                    if (event.calendar_item_type === 1 && helium.calendar.get_materials_titles_badges_from_ids(event.materials)) {
+                        element.find(".fc-list-item-title").after('<td>' + helium.calendar.get_materials_titles_badges_from_ids(event.materials) + '</td>')
+                    } else {
+                        element.find(".fc-list-item-title").after('<td></td>');
+                    }
 
                     if (event.url === undefined) {
                         let start, end = null, course_string;
@@ -1140,8 +1145,9 @@ function HeliumCalendar() {
                                               + "<strong>When:</strong> " + start +
                                               (event.show_end_time && end ? (" to " + end) : "") +
                                               "</div></div>" +
-                                              (event.calendar_item_type === 1
-                                               || event.calendar_item_type === 3
+                                              ((event.calendar_item_type === 1
+                                               || event.calendar_item_type === 3) && ((event.category !== null && helium.calendar.categories[event.category].title
+                                               !== "Uncategorized" && course_string !== "") || helium.calendar.courses[event.course].room)
                                                ? "<div class=\"row\"><div class=\"col-xs-12\"><strong>Class Info:</strong> "
                                               + (event.category !== null
                                                  && helium.calendar.categories[event.category].title
@@ -1155,7 +1161,7 @@ function HeliumCalendar() {
                                                       /\s/g, "").length > 0 ? (event.calendar_item_type === 1 ? " in "
                                                                                                               : "")
                                               + helium.calendar.courses[event.course].room : "") + "</div></div>" : "")
-                                              + (event.materials !== undefined && event.materials.length > 0
+                                              + (event.calendar_item_type === 1 && event.materials !== undefined && event.materials.length > 0
                                                  && helium.calendar.get_materials_titles_bullets_from_ids(
                                                 event.materials)
                                                  ? "<div class=\"row\"><div class=\"col-xs-12\"><strong>Materials:</strong> "
@@ -2190,11 +2196,8 @@ function HeliumCalendar() {
         self.current_calendar_item.attachments = calendar_item.attachments;
         self.current_calendar_item.reminders = calendar_item.reminders;
 
-        // Only update the calendar's event if the event is currently rendered on the calendar
-        if (self.current_calendar_item !== undefined) {
-            $("#calendar").fullCalendar("updateEvent", self.current_calendar_item);
-            $("#calendar").fullCalendar("unselect");
-        }
+        $("#calendar").fullCalendar("updateEvent", self.current_calendar_item);
+        $("#calendar").fullCalendar("unselect");
     };
 }
 
@@ -2483,13 +2486,9 @@ function HeliumCalendar() {
                        + '</td>' +
                        '<td class="' + theme.getClass('widgetContent') + '">' + (eventDef.miscProps.calendar_item_type
                                                                                  === 1
-                                                                                 || eventDef.miscProps.calendar_item_type
-                                                                                 === 3
                                                                                  ? helium.calendar.get_materials_titles_badges_from_ids(
                             eventDef.miscProps.materials) : "") + '</td>' +
                        '<td class="' + theme.getClass('widgetContent') + '">' + (eventDef.miscProps.calendar_item_type
-                                                                                 === 0
-                                                                                 || eventDef.miscProps.calendar_item_type
                                                                                  === 1
                                                                                  ? "<div class=\"progress progress-mini progress-striped\" style=\"margin-top: 6px; margin-bottom: 0;\"><div class=\"progress-bar progress-bar-success\" style=\"width: "
                        + eventDef.miscProps.priority + "%;\"><span class=\"hidden\">" + eventDef.miscProps.priority
