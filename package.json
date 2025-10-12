@@ -18,7 +18,7 @@
     "scripts": {
         "build-dev": "ENVIRONMENT=local ./bin/build",
         "build": "./bin/build",
-        "dev-server": "make clean-assets && npm run build && http-server ./build -p 3000 -a localhost -d false -c-1",
+        "dev-server": "make clean-assets && npm run build-dev && http-server ./build -p 3000 -a localhost -d false -c-1",
         "start": "nodemon --watch src --ext js,mjs,cjs,json,css,html --exec npm run dev-server",
         "test": "npm run build-dev && npm run build"
     },

@@ -8,21 +8,17 @@ with open(os.path.join("config", "nj_context.json")) as context_file:
     context = json.loads(context_file.read())
 
 
-def compress(path, ext):
-    path_ext_stripped = path.removesuffix(f".{ext}")
-
-    build_path = os.path.join("build", "assets", context["PROJECT_VERSION"], path_ext_stripped)
-
+def compress(paths, bundle_path):
+    ext = os.path.splitext(bundle_path)[1].removeprefix(".")
+    bundle_path_url = bundle_path.split(f"/{ext}/")[1]
     if ext == "css":
-        subprocess.run(["cleancss", "-O1", "'all:on;specialComments:0'", "-o", f"{build_path}.min.{ext}", f"{build_path}.{ext}"], check=True)
+        subprocess.run(["cleancss", "-O1", "'all:on;specialComments:0'", "--source-map", "--source-map-inline-sources", "-o", f"{bundle_path}"] + paths, check=True)
     elif ext == "js":
-        map_file = path_ext_stripped.lstrip('js/')
-        # TODO: introducing --compress causes issues with fullcalendar, but perhaps could be re-introduced later with some modification
-        subprocess.run(["uglifyjs", "--mangle", "--source-map", f"url='{map_file}.min.{ext}.map',includeSources", "-o", f"{build_path}.min.{ext}", f"{build_path}.{ext}"], check=True)
+        # merge_vars breaks fullcalendar.js, but perhaps could be re-enabled in the future when upgrade to a version with more modern JS
+        subprocess.run(["uglifyjs", "--compress", "merge_vars=false,drop_console=true", "--mangle", "--source-map", f"url='{bundle_path_url}.map',includeSources", "-o",
+                        f"{bundle_path}"] + paths, check=True)
     else:
-        raise TypeError(f"Unsupported file type: {ext}")
-
-    return f"/{path_ext_stripped}.min.{ext}"
+        raise TypeError(f"Unsupported file type: {bundle_path}")
 
 
 def combine_base_and_page(base_key, page_key, bundle_output_prefix, ext):
@@ -30,35 +26,30 @@ def combine_base_and_page(base_key, page_key, bundle_output_prefix, ext):
     Combine all files in the base and page keys in to a single file, bundled in to a new entry that will be the only
     entry in the page key.
     """
-    base_files_combined = ""
+    base_paths = []
     for file in context[base_key]:
         filename = os.path.join("build", "assets", context["PROJECT_VERSION"], *file.split("/"))
-        with open(filename) as f:
-            base_files_combined += f.read()
+        base_paths.append(filename)
 
-    base_bundle_name = f"base.{bundle_output_prefix}.bundle.{ext}"
-
-    with open(os.path.join("build", "assets", context["PROJECT_VERSION"], ext, base_bundle_name), "w") as f:
-        f.write(base_files_combined)
-    compressed_base_bundle_path = compress(os.path.join(ext, base_bundle_name), ext)
+    compressed_base_bundle_path = os.path.join("build", "assets", context["PROJECT_VERSION"], ext,
+                                               f"base.{bundle_output_prefix}.bundle.min.{ext}")
+    compress(base_paths, compressed_base_bundle_path)
+    print("Compressed " + str(len(context[base_key])) + f" files in to {compressed_base_bundle_path}")
 
     for page in context[page_key]:
-        page_files_combined = base_files_combined
+        page_paths = base_paths.copy()
         for file in context[page_key][page]:
             filename = os.path.join("build", "assets", context["PROJECT_VERSION"], *file.split("/"))
-            with open(filename) as f:
-                page_files_combined += f.read()
+            page_paths.append(filename)
 
-        page_bundle_name = f"{page}.{bundle_output_prefix}.bundle.{ext}"
-
-        with open(os.path.join("build", "assets", context["PROJECT_VERSION"], ext, page_bundle_name), "w") as f:
-            f.write(page_files_combined)
-
-        compressed_bundle_path = compress(os.path.join(ext, page_bundle_name), ext)
+        compressed_page_bundle_path = os.path.join("build", "assets", context["PROJECT_VERSION"], ext,
+                                                   f"{page}.{bundle_output_prefix}.bundle.min.{ext}")
+        compress(page_paths, compressed_page_bundle_path)
         print("Compressed " + str(
-            len(context[base_key]) + len(context[page_key][page])) + f" files in to {compressed_bundle_path}")
+            len(context[base_key]) + len(context[page_key][page])) + f" files in to {compressed_page_bundle_path}")
 
-        context[page_key][page] = [compressed_bundle_path]
+        context[page_key][page] = [
+            compressed_page_bundle_path.removeprefix(f"build/assets/{context['PROJECT_VERSION']}")]
 
     # If no page-specific entry exists, add one with just the base bundle
     for page in os.listdir(os.path.join("src", "templates")):
@@ -68,8 +59,10 @@ def combine_base_and_page(base_key, page_key, bundle_output_prefix, ext):
         page_name = page.removesuffix(".html")
 
         if page_name not in context[page_key].keys():
-            context[page_key][page_name] = [compressed_base_bundle_path]
+            context[page_key][page_name] = [
+                compressed_base_bundle_path.removeprefix(f"build/assets/{context['PROJECT_VERSION']}")]
 
+    # Clear out the base key, since all files are now compressed in to one under the page instead
     context[base_key] = []
 
 
@@ -83,24 +76,22 @@ def combine_group(key, bundle_output_prefix, ext, page=None):
     else:
         files = context[key][page]
 
-    files_combined = ""
+    paths = []
     for file in files:
         filename = os.path.join("build", "assets", context["PROJECT_VERSION"], *file.split("/"))
-        with open(filename) as f:
-            files_combined += f.read()
+        paths.append(filename)
 
-    bundle_name = f"{bundle_output_prefix}.bundle.{ext}"
+    bundle_name = f"{bundle_output_prefix}.bundle.min.{ext}"
     if page:
         bundle_name = f"{page}.{bundle_name}"
-    with open(os.path.join("build", "assets", context["PROJECT_VERSION"], ext, bundle_name), "w") as f:
-        f.write(files_combined)
 
-    compressed_bundle_path = compress(os.path.join(ext, bundle_name), ext)
+    compressed_bundle_path = os.path.join("build", "assets", context["PROJECT_VERSION"], ext, bundle_name)
+    compress(paths, compressed_bundle_path)
     print("Compressed " + str(len(files)) + f" files in to {compressed_bundle_path}")
     if not page:
-        context[key] = [compressed_bundle_path]
+        context[key] = [compressed_bundle_path.removeprefix(f"build/assets/{context['PROJECT_VERSION']}")]
     else:
-        context[key][page] = [compressed_bundle_path]
+        context[key][page] = [compressed_bundle_path.removeprefix(f"build/assets/{context['PROJECT_VERSION']}")]
 
 
 combine_base_and_page("base_header_javascript", "page_header_javascript", "header", "js")
