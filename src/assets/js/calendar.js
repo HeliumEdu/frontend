@@ -36,6 +36,7 @@ function HeliumCalendar() {
     this.all_day = null;
     this.show_end_time = null;
     this.current_calendar_item = null;
+    this.calendar_item_for_dropzone = null;
     this.preferred_material_ids = null;
     this.preferred_category_name = null;
     this.preferred_category_id = -1;
@@ -1511,14 +1512,6 @@ function HeliumCalendar() {
             });
         }
 
-        if (courses_added === 0) {
-            $("#calendar-classes button").attr("disabled", "disabled");
-            $("#calendar-filters button").attr("disabled", "disabled");
-            $("#create-homework").attr("disabled", "disabled");
-        } else {
-            $("#create-homework").removeAttr("disabled");
-        }
-
         if (!helium.ajax_error_occurred) {
             // Initialize category filters
             helium.planner_api.get_category_names(function (data) {
@@ -1988,13 +1981,15 @@ function HeliumCalendar() {
                                 calendar_item.id = "event_" + calendar_item.id;
                             }
 
-                            calendar_item.attachments = self.current_calendar_item.attachments;
+                            calendar_item.attachments = data.attachments;
 
                             self.update_current_calendar_item(calendar_item);
 
                             self.last_type_event = $("#homework-event-switch").is(":checked");
                             self.last_good_date = moment(calendar_item.start);
                             self.last_good_end_date = moment(calendar_item.end);
+
+                            self.calendar_item_for_dropzone = calendar_item;
 
                             if (self.dropzone !== null && self.dropzone.getQueuedFiles().length > 0) {
                                 self.dropzone.processQueue();
@@ -2020,6 +2015,8 @@ function HeliumCalendar() {
                         helium.planner_api.edit_homework(callback, course.course_group, course.id,
                                                          self.current_calendar_item.id, data);
                     }
+
+                    self.nullify_calendar_item_persistence();
                 });
             } else {
                 if (!$("#homework-event-switch").is(":checked")) {
@@ -2046,7 +2043,8 @@ function HeliumCalendar() {
                             color: calendar_item.calendar_item_type === 1
                                    ? helium.calendar.courses[calendar_item.course].color
                                    : helium.USER_PREFS.settings.events_color,
-                            checkbox: helium.calendar.get_calendar_item_checkbox(calendar_item),
+                            checkbox: calendar_item.calendar_item_type === 1 ? helium.calendar.get_calendar_item_checkbox(
+                                calendar_item) : "",
                             title: helium.calendar.get_calendar_item_title(calendar_item),
                             title_no_format: calendar_item.title,
                             start: moment(calendar_item.start).tz(helium.USER_PREFS.settings.time_zone),
@@ -2092,7 +2090,7 @@ function HeliumCalendar() {
                             self.last_good_date = moment(calendar_item.start);
                             self.last_good_end_date = moment(calendar_item.end);
 
-                            self.current_calendar_item = $("#calendar").fullCalendar("clientEvents", calendar_item.id)[0];
+                            self.calendar_item_for_dropzone = calendar_item;
 
                             if (self.dropzone !== null && self.dropzone.getQueuedFiles().length > 0) {
                                 self.dropzone.processQueue();
@@ -2119,6 +2117,8 @@ function HeliumCalendar() {
                             helium.planner_api.get_homework(callback, data.course_group, data.course, homework.id);
                         }, data.course_group, data.course, data);
                     }
+
+                    self.nullify_calendar_item_persistence();
                 });
             }
         } else {
@@ -2722,35 +2722,22 @@ $(document).ready(function () {
 
                         this.on("sendingmultiple", function (na, xhr, form_data) {
                             xhr.setRequestHeader("Authorization", "Bearer " + localStorage.getItem("access_token"));
-                            if (helium.calendar.current_calendar_item.calendar_item_type === 0) {
+                            if (helium.calendar.calendar_item_for_dropzone.calendar_item_type === 0) {
                                 form_data.append("event",
-                                                 helium.calendar.current_calendar_item.id.substr(6));
+                                                 helium.calendar.calendar_item_for_dropzone.id.substr(6));
                             } else {
                                 form_data.append("homework",
-                                                 helium.calendar.current_calendar_item.id);
+                                                 helium.calendar.calendar_item_for_dropzone.id);
                             }
                         });
                         this.on("successmultiple", function (files) {
-                            helium.planner_api.get_attachments_for_calendar_item(function (data) {
-                                                                                     if (helium.data_has_err_msg(data)) {
-                                                                                         helium.ajax_error_occurred = true;
-                                                                                         $("#loading-homework-modal").spin(false);
+                             $("#calendar").fullCalendar("refetchEvents");
 
-                                                                                         $("#homework-error").html(helium.get_error_msg(data));
-                                                                                         $("#homework-error").parent().show("fast");
-                                                                                     } else {
-                                                                                         helium.calendar.current_calendar_item.attachments = data;
+                             $("#loading-homework-modal").spin(false);
+                             $("#homework-modal").modal("hide");
 
-                                                                                         $("#calendar").fullCalendar("updateEvent",
-                                                                                                                     helium.calendar.current_calendar_item);
-                                                                                         $("#calendar").fullCalendar("unselect");
-                                                                                         $("#calendar").fullCalendar("refetchEvents");
-
-                                                                                         $("#loading-homework-modal").spin(false);
-                                                                                         $("#homework-modal").modal("hide");
-                                                                                     }
-                                                                                 }, helium.calendar.current_calendar_item.id.toString(),
-                                                                                 helium.calendar.current_calendar_item.calendar_item_type);
+                            helium.calendar.calendar_item_for_dropzone = null;
+                            helium.calendar.dropzone.removeAllFiles();
                         });
                         this.on("errormultiple", function () {
                             $("#loading-homework-modal").spin(false);
@@ -2775,6 +2762,7 @@ $(document).ready(function () {
 
                             $("a[href='#homework-panel-tab-3']").tab("show");
 
+                            helium.calendar.calendar_item_for_dropzone = null;
                             helium.calendar.dropzone.removeAllFiles();
                         });
                     }
