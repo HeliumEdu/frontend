@@ -12,7 +12,9 @@ def compress(paths, bundle_path):
     ext = os.path.splitext(bundle_path)[1].removeprefix(".")
     bundle_path_url = bundle_path.split(f"/{ext}/")[1]
     if ext == "css":
-        subprocess.run(["cleancss", "-O1", "'all:on;specialComments:0'", "-o", f"{bundle_path}"] + paths, check=True)
+        # TODO: this throws warnings for source maps on a handful of vendor files; only an issue with regards to debugging,
+        #  but should be investigated to figure out why it can't find those paths
+        subprocess.run(["cleancss", "-O1", "'all:on;specialComments:0'", "--source-map", "--source-map-inline-sources", "-o", f"{bundle_path}"] + paths, check=True)
     elif ext == "js":
         # TODO: introducing --compress causes issues with fullcalendar, but perhaps could be re-introduced later with some modification
         subprocess.run(["uglifyjs", "--mangle", "--source-map", f"url='{bundle_path_url}.map',includeSources", "-o",
