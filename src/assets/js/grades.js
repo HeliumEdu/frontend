@@ -115,7 +115,7 @@ function HeliumGrades() {
                 + (parseFloat(data.average_grade) != -1 ? (parseFloat(data.average_grade).toFixed(2) + '% '
                 + (data.trend > 0 ? '<span class="icon-x arrow-up-icon light-green"></span>'
                                   : '<span class="icon-x arrow-down-icon light-red"></span>')) : 'N/A')
-                + '</span><i class="icon-chevron-up"></i></div></a></div><div class="widget-body"><div class="widget-main"><div id="course-group-chart-'
+                + '</span> <i class="icon-chevron-up"></i></div></a></div><div class="widget-body"><div class="widget-main"><div id="course-group-chart-'
                 + data.id
                 + '" style="width: 100%; height: 220px; padding: 0px; position: relative;"> <canvas class="flot-base" width="942" height="220" style="direction: ltr; position: absolute; left: 0px; top: 0px; width: 942px; height: 220px;"></canvas> <div class="flot-text" style="position: absolute; top: 0px; left: 0px; bottom: 0px; right: 0px; font-size: smaller; color: rgb(84, 84, 84);"><div class="flot-y-axis flot-y1-axis yAxis y1Axis" style="position: absolute; top: 0px; left: 0px; bottom: 0px; right: 0px; display: block;"><div class="flot-tick-label tickLabel" style="position: absolute; top: 190px; left: 7px; text-align: right;">50%</div><div class="flot-tick-label tickLabel" style="position: absolute; top: 152px; left: 7px; text-align: right;">60%</div><div class="flot-tick-label tickLabel" style="position: absolute; top: 114px; left: 7px; text-align: right;">70%</div><div class="flot-tick-label tickLabel" style="position: absolute; top: 76px; left: 7px; text-align: right;">80%</div><div class="flot-tick-label tickLabel"style="position: absolute; top: 38px; left: 7px; text-align: right;">90%</div><div class="flot-tick-label tickLabel"style="position: absolute; top: 0px; left: 1px; text-align: right;">100%</div></div></div><canvas class="flot-overlay" width="942" height="220" style="direction: ltr; position: absolute; left: 0px; top: 0px; width: 942px; height: 220px;"></canvas><div class="legend"><div style="position: absolute; width: 185px; height: 120px; top: 13px; right: 23px; opacity: 0.85; background-color: rgb(255, 255, 255);"></div><table style="position:absolute;top:13px;right:23px;;font-size:smaller;color:#545454"><tbody></tbody></table></div></div></div></div></div></div></div>');
             container.append(
@@ -275,7 +275,6 @@ $(document).ready(function () {
                         course = helium.grades.courses_for_course_group[id][i];
                         course_grades = helium.grades.grade_points_for_course_group[id][course.id];
 
-                        // TODO: when printing, the flot chart overflows the right margin
                         course_div =
                             course_list.append("<div id=\"course-body-" + course.id
                                                + "\" class=\"widget-box collapsed\"><div class=\"widget-header widget-header-flat widget-header-small\"><h5><i class=\"icon-signal\"></i> <span>"
@@ -283,7 +282,7 @@ $(document).ready(function () {
                                                + " </span></h5><a class=\"cursor-hover\" data-action=\"collapse\"><div class=\"widget-toolbar\"><span class=\"badge badge-info\">"
                                                + (parseFloat(course.overall_grade.toFixed(2)) !== -1 ? Math.round(
                                     course.overall_grade * 100) / 100 + "%" : "N/A") + helium.grades.get_trend_arrow(
-                                    course.trend) + "</span> <i class=\"icon-chevron-down\"></i></div></a>");
+                                    course.trend) + "</span> <i class=\"icon-chevron-down\"></i></div></a></div></div>");
 
                         data = [];
                         for (course_grade in course_grades) {
