@@ -14,8 +14,8 @@ def compress(paths, bundle_path):
     if ext == "css":
         subprocess.run(["cleancss", "-O1", "'all:on;specialComments:0'", "--source-map", "--source-map-inline-sources", "-o", f"{bundle_path}"] + paths, check=True)
     elif ext == "js":
-        # TODO: introducing --compress causes issues with fullcalendar, but perhaps could be re-introduced later with some modification
-        subprocess.run(["uglifyjs", "--mangle", "--source-map", f"url='{bundle_path_url}.map',includeSources", "-o",
+        # merge_vars breaks fullcalendar.js, but perhaps could be re-enabled in the future when upgrade to a version with more modern JS
+        subprocess.run(["uglifyjs", "--compress", "merge_vars=false,drop_console=true", "--mangle", "--source-map", f"url='{bundle_path_url}.map',includeSources", "-o",
                         f"{bundle_path}"] + paths, check=True)
     else:
         raise TypeError(f"Unsupported file type: {bundle_path}")
