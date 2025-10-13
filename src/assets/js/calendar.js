@@ -8,7 +8,7 @@
  * project and interested in joining forces? Reach out and let us know! contact@alexlaird.com
  *
  * @license MIT
- * @version 1.12.22
+ * @version 1.12.24
  */
 
 /**
