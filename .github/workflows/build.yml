@@ -80,7 +80,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Test frontend
-        run: make test
+        run: PLATFORM=amd64 make test
       - name: Upload test output
         if: ${{ always() }}
         uses: actions/upload-artifact@v4

@@ -30,7 +30,7 @@ run-devserver: clean-assets install-dev
 	# during active development, so container images don't need to be rebuilt to validate each change.
 	npm start
 
-test: build-dev build
+test:
 	npm run test
 
 build-docker:
