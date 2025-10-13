@@ -44,6 +44,9 @@ jobs:
     name: Test
     if: github.ref == 'refs/heads/main'
 
+    concurrency:
+      group: "helium-frontend"
+
     env:
       PLATFORM_EMAIL_HOST_USER: ${{ secrets.PLATFORM_EMAIL_HOST_USER }}
       PLATFORM_EMAIL_HOST_PASSWORD: ${{ secrets.PLATFORM_EMAIL_HOST_PASSWORD }}
