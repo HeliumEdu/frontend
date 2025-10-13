@@ -31,11 +31,61 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Test frontend
-        run: make test
+      - name: Test frontend build
+        run: make build-dev build
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Test Docker build
         run: |
           make build-docker
           make run-docker
+
+  test:
+    name: Test
+    if: github.ref == 'refs/heads/main'
+
+    env:
+      PLATFORM_EMAIL_HOST_USER: ${{ secrets.PLATFORM_EMAIL_HOST_USER }}
+      PLATFORM_EMAIL_HOST_PASSWORD: ${{ secrets.PLATFORM_EMAIL_HOST_PASSWORD }}
+      PLATFORM_TWILIO_ACCOUNT_SID: ${{ secrets.PLATFORM_TWILIO_ACCOUNT_SID }}
+      PLATFORM_TWILIO_AUTH_TOKEN: ${{ secrets.PLATFORM_TWILIO_AUTH_TOKEN }}
+      PLATFORM_TWILIO_SMS_FROM: ${{ vars.PLATFORM_TWILIO_SMS_FROM }}
+      CI_AWS_S3_ACCESS_KEY_ID: ${{ secrets.CI_AWS_S3_ACCESS_KEY_ID }}
+      CI_AWS_S3_SECRET_ACCESS_KEY: ${{ secrets.CI_AWS_S3_SECRET_ACCESS_KEY }}
+      CI_TWILIO_RECIPIENT_PHONE_NUMBER: ${{ secrets.CI_TWILIO_RECIPIENT_PHONE_NUMBER }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Set up Python "3.12"
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install GitHub SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_KEY_GITHUB }}
+          known_hosts: ${{ secrets.KNOWN_HOSTS_GITHUB }}
+          if_key_exists: replace
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Test frontend
+        run: make test
+      - name: Upload test output
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: cluster-test-output
+          path: projects/cluster-tests/build/screenshots/
+          retention-days: 30
+      - name: Dump Docker logs on failure
+        if: failure()
+        uses: jwalton/gh-docker-logs@v2

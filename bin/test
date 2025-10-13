@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+FRONTEND_DIR=$(realpath "$DIR/..")
+
+PARENT_DIR_BASENAME=$(basename "$(dirname $(realpath "$DIR/../"))")
+HELIUM_DIR=$(realpath "$FRONTEND_DIR/../..")
+CLUSTER_TESTS_DIR=$HELIUM_DIR/projects/cluster-tests
+
+if [ "$PARENT_DIR_BASENAME" == "projects" ] && [ -e "$CLUSTER_TESTS_DIR" ]; then
+  echo "--> This is a working copying, using the standard helium directory structure"
+else
+  HELIUM_DIR=$(realpath "./helium-tmp")
+
+  echo "--> Helium directory structure not found, clone to $HELIUM_DIR"
+
+  git clone https://github.com/HeliumEdu/deploy.git $HELIUM_DIR
+  cd $HELIUM_DIR
+  make install
+
+  # Clobber the cloned frontend and instead symlink back to the current directory, so tests run against working copy changes
+  rm -rf projects/frontend
+  ln -s $FRONTEND_DIR projects/frontend
+fi
+
+PWD=$(pwd)
+
+cd $FRONTEND_DIR
+CURRENT_FRONTEND_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+cd $CLUSTER_TESTS_DIR
+if git rev-parse --verify --quiet "$CURRENT_FRONTEND_BRANCH" >/dev/null; then
+  echo "--> Checking out cluster-tests branch $CURRENT_FRONTEND_BRANCH"
+  git checkout $CURRENT_FRONTEND_BRANCH
+else
+  git checkout main
+fi
+git pull
+
+cd $HELIUM_DIR
+make start test-cluster

@@ -20,7 +20,7 @@ clean: clean-assets
 	rm -rf node_modules
 
 build: clean-assets install
-	npm run build
+	ENVIRONMENT=$(ENVIRONMENT) npm run build
 
 build-dev: clean-assets install-dev
 	npm run build-dev
@@ -30,7 +30,7 @@ run-devserver: clean-assets install-dev
 	# during active development, so container images don't need to be rebuilt to validate each change.
 	npm start
 
-test: build-dev
+test: build-dev build
 	npm run test
 
 build-docker:
