@@ -470,4 +470,10 @@
         };
         helium.calendar.add_reminder_to_table(data, true);
     });
+
+    $("#homework-modal").on('hide.bs.modal', () => {
+        if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur();
+        }
+    });
 }());

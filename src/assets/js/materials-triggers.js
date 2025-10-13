@@ -230,4 +230,10 @@
     $("[id^='create-material-for-group-'], #no-materials-tab").on("click", function () {
         helium.materials.create_material_for_group_btn();
     });
+
+    $("#material-group-modal, #material-modal").on('hide.bs.modal', () => {
+        if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur();
+        }
+    });
 }());

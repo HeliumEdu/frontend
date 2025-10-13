@@ -508,11 +508,3 @@ $(window).on("load", function () {
         $("#login-nav").removeClass("hidden");
     }
 });
-
-document.querySelectorAll('.modal').forEach(modal => {
-    modal.addEventListener('hide.bs.modal', () => {
-        if (document.activeElement instanceof HTMLElement) {
-            document.activeElement.blur();
-        }
-    });
-});

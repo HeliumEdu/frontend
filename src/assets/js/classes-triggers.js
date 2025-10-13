@@ -263,4 +263,10 @@
         helium.classes.unnamed_category_index += 1;
         helium.classes.add_category_to_table(data, true);
     });
+
+    $("#course-group-modal, #course-modal").on('hide.bs.modal', () => {
+        if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur();
+        }
+    });
 }());
