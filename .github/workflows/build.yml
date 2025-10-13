@@ -42,7 +42,6 @@ jobs:
 
   test:
     name: Test
-    if: github.ref == 'refs/heads/main'
 
     concurrency:
       group: "helium-frontend"
