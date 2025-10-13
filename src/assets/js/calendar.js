@@ -2190,6 +2190,9 @@ function HeliumCalendar() {
      */
     this.update_current_calendar_item = function (calendar_item) {
         self.current_calendar_item = $("#calendar").fullCalendar("clientEvents", [calendar_item.id])[0];
+        if (self.current_calendar_item === undefined) {
+            return;
+        }
 
         calendar_item.start = moment(calendar_item.start).tz(helium.USER_PREFS.settings.time_zone);
         calendar_item.end = moment(calendar_item.end).tz(helium.USER_PREFS.settings.time_zone);

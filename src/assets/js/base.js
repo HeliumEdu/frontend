@@ -411,7 +411,6 @@ function Helium() {
                         } else {
                             helium.calendar.loading_div.spin(false);
 
-                            helium.calendar.current_calendar_item = data;
                             helium.calendar.edit_calendar_item_btn(helium.calendar.current_calendar_item);
                         }
                     };
