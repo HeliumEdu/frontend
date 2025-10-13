@@ -2191,6 +2191,8 @@ function HeliumCalendar() {
     this.update_current_calendar_item = function (calendar_item) {
         self.current_calendar_item = $("#calendar").fullCalendar("clientEvents", [calendar_item.id])[0];
         if (self.current_calendar_item === undefined) {
+            console.debug("current_calendar_item not currently shown on calendar, so nothing to do")
+
             return;
         }
 

@@ -411,7 +411,10 @@ function Helium() {
                         } else {
                             helium.calendar.loading_div.spin(false);
 
-                            helium.calendar.edit_calendar_item_btn(helium.calendar.current_calendar_item);
+                            if (data.calendar_item_type === 0) {
+                                data.id = "event_" + data.id;
+                            }
+                            helium.calendar.edit_calendar_item_btn(data);
                         }
                     };
                     if (id.indexOf("event") !== -1) {
