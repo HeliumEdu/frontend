@@ -2705,8 +2705,6 @@ $(document).ready(function () {
 
         helium.calendar.initialize_calendar();
 
-        helium.calendar.adjust_calendar_size();
-
         $.when.apply(this, helium.calendar.ajax_calls).done(function () {
             $(".homework-help, .reminder-help, .weight-help, .materials-help").popover({html: true}).data("bs.popover")
                 .tip().css("z-index", 1060);
@@ -2830,7 +2828,7 @@ $(document).ready(function () {
 $(window).resize(function () {
     "use strict";
 
-    if (!helium.calendar.is_resizing_calendar_item) {
+    if ($('#calendar').data('fullCalendar') && !helium.calendar.is_resizing_calendar_item) {
         helium.calendar.adjust_calendar_size();
     }
 });
