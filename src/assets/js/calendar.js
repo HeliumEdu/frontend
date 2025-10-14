@@ -832,8 +832,10 @@ function HeliumCalendar() {
 
     this.get_calendar_item_title = function (calendar_item) {
         if (calendar_item.calendar_item_type === 1) {
-            return (calendar_item.completed ? "<s>" : "") + calendar_item.title + (calendar_item.completed
-                                                                                   ? "</s>" : "");
+            return "<span class=\"fc-has-url\">" + (calendar_item.completed ? "<s>" : "") + calendar_item.title + (calendar_item.completed
+                                                                                   ? "</s>" : "") + "</span>";
+        } else if (calendar_item.calendar_item_type === 0) {
+            return "<span class=\"fc-has-url\">" + calendar_item.title + "</span>";
         } else {
             return calendar_item.title;
         }
@@ -1205,8 +1207,8 @@ function HeliumCalendar() {
                                                   && event.completed && event.current_grade
                                                   !== "-1/100"
                                                   ? "<div class=\"row\"><div class=\"col-xs-12\"><strong>Grade:</strong> "
-                                              + helium.grade_for_display(
-                                                          event.current_grade)
+                                              + "<span class=\"badge badge-info\">" + helium.grade_for_display(
+                                                          event.current_grade) + "</span>"
                                               + "</div></div>" : ""
                                               ) + (event.comments.replace(/\s/g, "").length > 0
                                                    ? "<div class=\"row\"><div class=\"col-xs-12\"><strong>Comments:</strong> "
@@ -1455,7 +1457,7 @@ function HeliumCalendar() {
                 return true;
             }
 
-            titles += '<li><span style="line-height: 1.5;">' + helium.calendar.materials[id].title + '</span><br></li>';
+            titles += '<li><span class="label label-info arrowed-right" style="padding-top: 2px;">' + helium.calendar.materials[id].title + '</span></li>';
         });
 
         if (titles.length > 0) {

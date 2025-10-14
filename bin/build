@@ -48,6 +48,8 @@ if [[ "$ENVIRONMENT" != "local" ]]; then
   rsync -avh build/assets/$VERSION/js/vendors/ build/assets/$VERSION/js
   rm -rf build/assets/$VERSION/js/vendors/
   rm -rf build/assets/$VERSION/css/vendors/
+else
+  mv build/assets/info.json build/info.html
 fi
 
 echo ""
@@ -71,8 +73,8 @@ find "build" -type f -not -path "build/assets/*" -print0 | while IFS= read -r -d
     path="${file#build/}"
     path_no_ext="${path%.*}"
 
-    # Filter out error pages (which have all numeric values)
-    if [[ "$path_no_ext" =~ ^[0-9]+$ ]]; then
+    # Filter out error pages (which have all numeric values), and other special pages
+    if [[ "$path_no_ext" =~ ^[0-9]+$ ]] || [[ "$path_no_ext" == "index" ]]; then
       continue
     fi
 

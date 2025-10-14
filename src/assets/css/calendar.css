@@ -103,6 +103,10 @@ a.fc-event:hover {
     color: white;
 }
 
+.fc-list-item:has(.fc-has-url) {
+    cursor: pointer;
+}
+
 input[type=checkbox].ace.ace-switch + .lbl[data-lbl]::before {
     content: attr(data-lbl);
 }
