@@ -12,7 +12,8 @@
 window.PRIVILEGED_ROUTE = true;
 
 if (localStorage.getItem("access_token") === null) {
-    helium.clear_access_token();
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("access_token_exp");
 
     window.location.href = "/login?next=" + window.location.pathname;
 }
