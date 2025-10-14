@@ -579,6 +579,8 @@ $(document).ready(function () {
     }
     $("#id_color_select").simplecolorpicker({picker: true, theme: "glyphicons"});
 
+    $(".busydays-help").popover({html: true}).data("bs.popover").tip().css("z-index", 1060);
+
     if ($(".externalcalendars-help").length > 0) {
         $(".externalcalendars-help").popover({html: true}).data("bs.popover").tip().css("z-index", 1060);
         $(".externalcalendars-help").on("click", function () {
