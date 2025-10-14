@@ -393,9 +393,11 @@ function Helium() {
             const reminder_id = $(this).parent().attr("id").split("-")[2];
 
             if (location.href.indexOf('/planner/calendar') !== -1) {
-                helium.calendar.current_calendar_item = $("#calendar").fullCalendar("clientEvents", [id])[0];
-                // First resort is to look in the calendar's cache, but if the event isn't found there we'll have to
-                // look it up in the database
+                if ($('#calendar').data('fullCalendar')) {
+                    helium.calendar.current_calendar_item = $("#calendar").fullCalendar("clientEvents", [id])[0];
+                }
+                // If current_calendar_item was set, the event is currently in view on a loaded calendar; otherwise
+                // we'll need to query the database
                 if (helium.calendar.current_calendar_item === undefined) {
                     helium.calendar.loading_div.spin(helium.SMALL_LOADING_OPTS);
 

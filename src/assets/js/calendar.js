@@ -832,8 +832,9 @@ function HeliumCalendar() {
 
     this.get_calendar_item_title = function (calendar_item) {
         if (calendar_item.calendar_item_type === 1) {
-            return "<span class=\"fc-has-url\">" + (calendar_item.completed ? "<s>" : "") + calendar_item.title + (calendar_item.completed
-                                                                                   ? "</s>" : "") + "</span>";
+            return "<span class=\"fc-has-url\">" + (calendar_item.completed ? "<s>" : "") + calendar_item.title
+                   + (calendar_item.completed
+                      ? "</s>" : "") + "</span>";
         } else if (calendar_item.calendar_item_type === 0) {
             return "<span class=\"fc-has-url\">" + calendar_item.title + "</span>";
         } else {
@@ -1198,10 +1199,10 @@ function HeliumCalendar() {
                                               + helium.calendar.courses[event.course].room : "") + "</div></div>" : "")
                                               + (event.calendar_item_type === 1 && event.materials !== undefined
                                                  && event.materials.length > 0
-                                                 && helium.calendar.get_materials_titles_bullets_from_ids(
+                                                 && helium.calendar.get_materials_titles_badges_from_ids(
                                                 event.materials)
                                                  ? "<div class=\"row\"><div class=\"col-xs-12\"><strong>Materials:</strong> "
-                                              + helium.calendar.get_materials_titles_bullets_from_ids(
+                                              + helium.calendar.get_materials_titles_badges_from_ids(
                                                     event.materials) + "</div></div>" : "") + (
                                                   event.calendar_item_type === 1
                                                   && event.completed && event.current_grade
@@ -1442,27 +1443,10 @@ function HeliumCalendar() {
             }
 
             titles +=
-                '<span class="label label-info arrowed-right" style="padding-top: 2px;">'
-                + helium.calendar.materials[id].title + "</span>&nbsp;";
+                '<span class="label label-info materials-label arrowed-right">'
+                + helium.calendar.materials[id].title + "</span>";
         });
 
-        return titles;
-    };
-
-    this.get_materials_titles_bullets_from_ids = function (data) {
-        let titles = "";
-
-        $.each(data, function (index, id) {
-            if (!helium.calendar.material_groups[helium.calendar.materials[id].material_group].shown_on_calendar) {
-                return true;
-            }
-
-            titles += '<li><span class="label label-info arrowed-right" style="padding-top: 2px;">' + helium.calendar.materials[id].title + '</span></li>';
-        });
-
-        if (titles.length > 0) {
-            titles = '<ul>' + titles + '</ul>';
-        }
         return titles;
     };
 
@@ -2355,45 +2339,43 @@ function HeliumCalendar() {
 
             renderFgSegs: function (segs) {
                 // TODO: commenting out the "jump to today" functionality, as it is currently causing breaking issues
-                // if (this.dataTable !== null) {
-                    // this.dataTable.clear();
-                // }
+                if (this.dataTable !== null) {
+                    this.dataTable.clear();
+                }
 
                 segs = this.renderFgSegEls(segs);
 
                 this.renderSegList(segs);
 
-                // this.latestBeforeToday = this.view.start;
-                //
+                this.latestBeforeToday = this.view.start;
                 for (let seg of segs) {
                     let eventDef = seg.footprint.eventDef;
                     let row = $(seg.el[0]);
 
                     row.attr("id", "homework-table-row-" + eventDef.id);
+
+                    // Check if we've reached today's date
+                    if (!this.dataTable !== null && eventDef.dateProfile.start.unix() < moment().stripZone().unix() &&
+                        eventDef.dateProfile.start.unix() > this.latestBeforeToday.unix()) {
+                        this.latestBeforeToday = eventDef.dateProfile.start;
+                        this.latestRow = row;
+                    }
                 }
-                //
-                //     // Check if we've reached today's date
-                //     if (!this.dataTable !== null && eventDef.dateProfile.start.unix() < moment().stripZone().unix() &&
-                //         eventDef.dateProfile.start.unix() > this.latestBeforeToday.unix()) {
-                //         this.latestBeforeToday = eventDef.dateProfile.start;
-                //         this.latestRow = row;
-                //     }
-                // }
-                //
-                // if (this.dataTable !== null &&
-                //     this.dataTable.order()[0] === 2 &&
-                //     this.dataTable.order()[1] === "asc" &&
-                //     this.latestRow &&
-                //     this.latestRow.children().length > 0) {
-                //     // Jump to the page with the current date's row on it
-                //     let rowIndex = this.dataTable.row(this.latestRow).index(), pageNum;
-                //     if (rowIndex !== 0) {
-                //         pageNum = Math.floor(rowIndex / this.dataTable.page.len());
-                //     } else {
-                //         pageNum = 0;
-                //     }
-                //     this.dataTable.page(pageNum).draw(false);
-                // }
+
+                if (this.dataTable !== null &&
+                    this.dataTable.order()[0][0] === 2 &&
+                    this.dataTable.order()[0][1] === "asc" &&
+                    this.latestRow &&
+                    this.latestRow.children().length > 0) {
+                    // Jump to the page with the current date's row on it
+                    let rowIndex = this.dataTable.row(this.latestRow).index(), pageNum;
+                    if (rowIndex !== 0) {
+                        pageNum = Math.floor(rowIndex / this.dataTable.page.len());
+                    } else {
+                        pageNum = 0;
+                    }
+                    this.dataTable.page(pageNum).draw(false);
+                }
 
                 return segs;
             },
@@ -2435,13 +2417,21 @@ function HeliumCalendar() {
                         ],
                         order: [2, "asc"],
                         aoColumns: [
+                            // Checkbox
                             {bSearchable: false, sClass: "hidden-xs", sWidth: "60px", orderDataType: "dom-checkbox"},
+                            // Title
                             null,
+                            // Due Date
                             {sType: "date", sWidth: "180px"},
+                            // Class
                             null,
+                            // Category
+                            {sClass: "hidden-xs hidden-sm"},
+                            // Materials
                             {sClass: "hidden-xs"},
-                            {sClass: "hidden-xs"},
+                            // Priority
                             {sClass: "hidden-xs", sWidth: "110px"},
+                            // Grade
                             {sWidth: "110px"}
                         ],
                         stateSave: true,
@@ -2718,7 +2708,8 @@ $(document).ready(function () {
         helium.calendar.adjust_calendar_size();
 
         $.when.apply(this, helium.calendar.ajax_calls).done(function () {
-            $(".homework-help, .reminder-help, .weight-help, .materials-help").popover({html: true}).data("bs.popover").tip().css("z-index", 1060);
+            $(".homework-help, .reminder-help, .weight-help, .materials-help").popover({html: true}).data("bs.popover")
+                .tip().css("z-index", 1060);
             $(".materials-help").on("click", function () {
                 window.location = "/planner/materials";
             });
