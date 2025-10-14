@@ -59,7 +59,7 @@ function HeliumGrades() {
             bootbox.alert(helium.get_error_msg(data));
         } else {
             $("#course-group-tabs").prepend('<li><a data-toggle="tab" href="#course-group-container-' + data.id
-                                            + '"><i class="icon-book r-110"></i><span class="hidden-xs">' + data.title
+                                            + '"><i class="icon-list r-110"></i> <span class="hidden-xs">' + data.title
                                             + (!data.shown_on_calendar ? " (H)" : "") + '</span></a></li>');
             const container = $('<div id="course-group-container-' + data.id + '" class="tab-pane"></div>');
             const details = $(
@@ -94,10 +94,10 @@ function HeliumGrades() {
                            + '</span>% <canvas width="46" height="46"></canvas></div></div><div class="infobox-data"><span class="infobox-text">thru term</span><div class="infobox-content">'
                            + days_remaining + ' days remaining</div></div>');
             details.append(
-                '<div class="infobox infobox-red"><div class="infobox-icon"><i class="icon-beaker"></i></div><div class="infobox-data"><span class="infobox-data-number">'
+                '<div class="infobox infobox-red"><div class="infobox-icon"><i class="icon-cogs"></i></div><div class="infobox-data"><span class="infobox-data-number">'
                 + data.num_homework + '</span><div class="infobox-content">assignments</div></div></div>');
             details.append(
-                '<div class="infobox infobox-red"><div class="infobox-icon"><i class="icon-beaker"></i></div><div class="infobox-data"><span class="infobox-data-number">'
+                '<div class="infobox infobox-red"><div class="infobox-icon"><i class="icon-bar-chart"></i></div><div class="infobox-data"><span class="infobox-data-number">'
                 + data.num_homework_graded + '</span><div class="infobox-content">graded</div></div></div>');
             details.append('<div class="infobox infobox-blue2">' + percent_completed.toFixed()
                            + '<div class="infobox-progress"><div class="easy-pie-chart percentage easyPieChart" data-percent="'
@@ -109,7 +109,7 @@ function HeliumGrades() {
                            + (data.num_homework - data.num_homework_completed)
                            + ' remaining</div></div></div><div class="space-20"></div></div>');
             container.append(
-                '<div class="row"><div class="col-xs-12"><div class="widget-box transparent"><div class="widget-header widget-header-flat"><h4 class="lighter"><i class="icon-signal"></i>Grades for '
+                '<div class="row"><div class="col-xs-12"><div class="widget-box transparent"><div class="widget-header widget-header-flat"><h4 class="lighter"><i class="icon-book"></i>Grades for '
                 + data.title
                 + '</h4><a class="cursor-hover" data-action="collapse"><div class="widget-toolbar"><span class="badge badge-info">'
                 + (parseFloat(data.average_grade) != -1 ? (parseFloat(data.average_grade).toFixed(2) + '% '
@@ -277,7 +277,7 @@ $(document).ready(function () {
 
                         course_div =
                             course_list.append("<div id=\"course-body-" + course.id
-                                               + "\" class=\"widget-box collapsed\"><div class=\"widget-header widget-header-flat widget-header-small\"><h5><i class=\"icon-signal\"></i> <span>"
+                                               + "\" class=\"widget-box " + (i !== 0 ? " collapsed" : "") + "\"><div class=\"widget-header widget-header-flat widget-header-small\"><h5><i class=\"icon-book\"></i> <span>"
                                                + course.title
                                                + " </span></h5><a class=\"cursor-hover\" data-action=\"collapse\"><div class=\"widget-toolbar\"><span class=\"badge badge-info\">"
                                                + (parseFloat(course.overall_grade.toFixed(2)) !== -1 ? Math.round(
