@@ -1090,7 +1090,7 @@ function HeliumCalendar() {
                 eventClick: self.edit_calendar_item_btn,
                 eventDrop: self.drop_calendar_item,
                 eventResize: self.resize_calendar_item,
-                noEventsMessage: "Nothing to see here. Change the date or filters, or click \"+\" to add an assignment.",
+                noEventsMessage: "Nothing to see here. Change the date or filters, or click \"+\" to add something.",
                 displayEventTime: false,
                 weekNumbersWithinDays: true,
                 eventLimit: helium.USER_PREFS.settings.calendar_event_limit,
@@ -2352,44 +2352,46 @@ function HeliumCalendar() {
             },
 
             renderFgSegs: function (segs) {
-                if (this.dataTable !== null) {
-                    this.dataTable.clear();
-                }
+                // TODO: commenting out the "jump to today" functionality, as it is currently causing breaking issues
+                // if (this.dataTable !== null) {
+                    // this.dataTable.clear();
+                // }
 
                 segs = this.renderFgSegEls(segs);
 
                 this.renderSegList(segs);
 
-                this.latestBeforeToday = this.view.start;
-
+                // this.latestBeforeToday = this.view.start;
+                //
                 for (let seg of segs) {
                     let eventDef = seg.footprint.eventDef;
                     let row = $(seg.el[0]);
 
                     row.attr("id", "homework-table-row-" + eventDef.id);
-
-                    // Check if we've reached today's date
-                    if (!this.dataTable !== null && eventDef.dateProfile.start.unix() < moment().stripZone().unix() &&
-                        eventDef.dateProfile.start.unix() > this.latestBeforeToday.unix()) {
-                        this.latestBeforeToday = eventDef.dateProfile.start;
-                        this.latestRow = row;
-                    }
                 }
-
-                if (this.dataTable !== null &&
-                    this.dataTable.order()[0] === 2 &&
-                    this.dataTable.order()[1] === "asc" &&
-                    this.latestRow &&
-                    this.latestRow.children().length > 0) {
-                    // Jump to the page with the current date's row on it
-                    let rowIndex = this.dataTable.row(this.latestRow).index(), pageNum;
-                    if (rowIndex !== 0) {
-                        pageNum = Math.floor(rowIndex / this.dataTable.page.len());
-                    } else {
-                        pageNum = 0;
-                    }
-                    this.dataTable.page(pageNum).draw(false);
-                }
+                //
+                //     // Check if we've reached today's date
+                //     if (!this.dataTable !== null && eventDef.dateProfile.start.unix() < moment().stripZone().unix() &&
+                //         eventDef.dateProfile.start.unix() > this.latestBeforeToday.unix()) {
+                //         this.latestBeforeToday = eventDef.dateProfile.start;
+                //         this.latestRow = row;
+                //     }
+                // }
+                //
+                // if (this.dataTable !== null &&
+                //     this.dataTable.order()[0] === 2 &&
+                //     this.dataTable.order()[1] === "asc" &&
+                //     this.latestRow &&
+                //     this.latestRow.children().length > 0) {
+                //     // Jump to the page with the current date's row on it
+                //     let rowIndex = this.dataTable.row(this.latestRow).index(), pageNum;
+                //     if (rowIndex !== 0) {
+                //         pageNum = Math.floor(rowIndex / this.dataTable.page.len());
+                //     } else {
+                //         pageNum = 0;
+                //     }
+                //     this.dataTable.page(pageNum).draw(false);
+                // }
 
                 return segs;
             },
@@ -2443,7 +2445,8 @@ function HeliumCalendar() {
                         stateSave: true,
                         oLanguage: {
                             sEmptyTable: "Nothing to see here. Change the date or filters, or click \"+\" to add an assignment."
-                        }
+                        },
+                        destroy: true
                     }).DataTable();
 
                 tableEl.parent().find("#calendar-list-table_length").addClass("hidden-print");
