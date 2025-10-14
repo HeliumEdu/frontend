@@ -148,6 +148,15 @@ input[type=checkbox].ace.ace-switch:checked + .lbl::before {
     font-weight: bold;
 }
 
+.materials-label {
+    white-space: normal;
+    word-wrap: break-word;
+    padding-top: 2px;
+    margin-bottom: 2px;
+    text-align: left;
+    height: auto;
+}
+
 /* undo what fullcalendar 3 does, as it causes everything to be way bigger */
 .fc-view-container .fc-assignmentsList-view *,
 .fc-view-container .fc-listWeek-view *,
