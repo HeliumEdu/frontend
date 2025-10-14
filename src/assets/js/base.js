@@ -485,6 +485,8 @@ if (!window.REDIRECTING && localStorage.getItem("access_token") !== null) {
                },
                error: function () {
                    if (window.PRIVILEGED_ROUTE) {
+                       helium.clear_access_token();
+
                        window.location.href = "/login?next=" + window.location.pathname;
                    }
                }
