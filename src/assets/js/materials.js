@@ -129,7 +129,7 @@ function HeliumMaterials() {
                 input_tab = $("#create-material-group-li");
             }
             input_tab.before("<li><a data-toggle=\"tab\" href=\"#material-group-" + data.id
-                             + "\"><i class=\"icon-briefcase r-110\"></i> " + data.title + (!data.shown_on_calendar
+                             + "\"><i class=\"icon-list r-110\"></i> " + data.title + (!data.shown_on_calendar
                                                                                             ? " (H)" : "")
                              + "</a></li>");
             material_group_div =
