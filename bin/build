@@ -49,7 +49,7 @@ if [[ "$ENVIRONMENT" != "local" ]]; then
   rm -rf build/assets/$VERSION/js/vendors/
   rm -rf build/assets/$VERSION/css/vendors/
 else
-  mv build/assets/info.json build/info.html
+  cp build/assets/info.json build/info.html
 fi
 
 echo ""
