@@ -27,7 +27,7 @@
                             type="checkbox"><span class="lbl"
                                                   data-lbl="Event&nbsp;&nbsp;&nbsp;&nbsp;Assignment"></span></label><button
                             type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button></span>
-                        <h4 class="modal-title" id="homework-modal-label">Add Homework</h4>
+                        <h4 class="modal-title" id="homework-modal-label">Add Assignment</h4>
                     </div>
                     <div class="modal-body">
                         <div class="tabbable">
@@ -160,10 +160,10 @@
                                                 </select>
                                             </div>
                                             <div class="col-sm-1">
-                                    <span class="hidden-xs homework-help help-button" data-rel="popover"
+                                    <span class="hidden-xs materials-help help-button cursor-hover" data-rel="popover"
                                           data-trigger="hover" data-container="#homework-modal" data-placement="left"
-                                          data-content="Don't see any materials? You need to have done two things for them to show up in this list:<ul><li>At least one material must exist (you can add these from the Materials page)</li><li>At least one material must be linked to the class for this homework</li></ul>"
-                                          title="Selecting Materials">?</span>
+                                          data-content="Only materials linked to the selected class will be shown in this list. Click here to head over to the Materials page if you need to add or link any."
+                                          title="Materials">?</span>
                                             </div>
                                         </div>
                                         <div class="form-group">
@@ -195,9 +195,9 @@
                                             <div class="col-sm-2 col-xs-2" id="homework-grade-percent"><span
                                                     class="badge badge-info"></span></div>
                                             <div class="col-sm-1">
-                                    <span class="hidden-xs homework-help help-button" data-rel="popover"
+                                    <span class="hidden-xs weight-help help-button" data-rel="popover"
                                           data-trigger="hover" data-container="#homework-modal" data-placement="left"
-                                          data-content="Enter your grade in any of the following formats and we'll take care of the rest:<ul><li>Percent (ex. 84.5%)</li><li>Raw score (ex. 18/20)</li></ul>"
+                                          data-content="Enter grades as percentages (ex. 84.5%) or as raw scores (ex. 18/20)."
                                           title="Entering Grades">?</span>
                                             </div>
                                         </div>
@@ -225,9 +225,9 @@
                                         <tr>
                                             <th width="50%">Message</th>
                                             <th width="40%">When
-                    <span class="hidden-xs homework-help help-button" data-rel="popover"
+                    <span class="hidden-xs reminder-help help-button" data-rel="popover"
                           data-trigger="hover" data-container="#homework-modal" data-placement="left"
-                          data-content="You will receive a reminder at this point before this item's assigned time"
+                          data-content="The amount of time before the calendar item's start that the notification will be sent."
                           title="Reminder Time">?</span>
                                             </th>
                                             <th width="30px"></th>
@@ -237,7 +237,7 @@
                                         <tbody id="reminders-table-body">
                                         <tr id="no-reminders">
                                             <td colspan="4"
-                                                class="text-center">No reminders! Get started by adding a reminder.
+                                                class="text-left">Nothing to see here. Click "+" to add a reminder.
                                             </td>
                                         </tr>
                                         </tbody>

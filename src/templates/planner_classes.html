@@ -13,7 +13,7 @@
                         Classes
                         <small class="hidden-print">
                             <i class="icon-double-angle-right"></i>
-                            &nbsp;view and edit your class schedule
+                            &nbsp;view and edit your classes and schedules
                             <div id="courses-loading" class="loading-mini" style="padding-left: 25px;">
                                 <div id="loading-courses"></div>
                             </div>
@@ -44,7 +44,7 @@
                                             </h1>
 
                                             <hr>
-                                            <h3 class="lighter smaller">You haven't created any classes yet! No big deal. Click anywhere in this box to create your first class!</h3>
+                                            <h3 class="lighter smaller">You haven't created any classes yet! No big deal. Click anywhere in this box to create your first one!</h3>
                                         </div>
                                     </div>
                                 </div>
@@ -133,7 +133,7 @@
                     <div class="modal-content">
                         <div class="modal-header">
                             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                            <h4 class="modal-title" id="course-modal-label">Add Course</h4>
+                            <h4 class="modal-title" id="course-modal-label">Add Class</h4>
                         </div>
                         <div class="modal-body">
                             <div id="course-details-panel">
@@ -501,7 +501,12 @@
                                                 <thead>
                                                 <tr>
                                                     <th width="40%">Category</th>
-                                                    <th width="20%">Weight (%)</th>
+                                                    <th width="25%">Weight (%) <span class="weight-help help-button"
+                                                                                     data-rel="popover"
+                                                                                     data-trigger="hover" data-container="#course-modal"
+                                                                                     data-placement="left"
+                                                                                     data-content="Leave all blank if this class doesn't have weighted grading, otherwise enter the weight provided by your teacher here."
+                                                                                     title="Weighted Grading">?</span></th>
                                                     <th width="80px">Color</th>
                                                     <th width="80px" class="hidden-480">Calendar Items</th>
                                                     <th width="40px"></th>
@@ -511,7 +516,7 @@
                                                 <tbody id="categories-table-body">
                                                 <tr id="no-categories">
                                                     <td colspan="5"
-                                                        class="text-center">No categories! Get started by adding a category.</td>
+                                                        class="text-left">Nothing to see here. Click "+" to add a category.</td>
                                                 </tr>
                                                 <tr id="categories-table-end-placeholder"></tr>
                                                 <tr id="total-weights">

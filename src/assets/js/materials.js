@@ -173,7 +173,7 @@ function HeliumMaterials() {
                     ],
                     stateSave: true,
                     oLanguage: {
-                        sEmptyTable: "Create materials to get started."
+                        sEmptyTable: "Nothing to see here. Click \"+\" to add a material."
                     }
                 });
             self.material_group_table[data.id] = table_div.DataTable();

@@ -1042,7 +1042,10 @@ function HeliumCalendar() {
 
     this.refresh_view = function (view, element) {
         if (view.name === 'assignmentsList') {
-            $(".fc-toolbar h2").text("Assignments List");
+            $(".fc-toolbar h2").html(
+                "Assignments List <span class=\"hidden-xs assignmentslist-help help-button\" data-rel=\"popover\" data-trigger=\"hover\" data-container=\"body\" data-placement=\"right\" data-content=\"This view shows only assignments—no class schedules, events, or external calendars—allowing you to quickly sort through and review your schoolwork.\" title=\"List View\">?</span>");
+            $(".fc-toolbar h2").find(".assignmentslist-help").popover({html: true}).data("bs.popover").tip()
+                .css("z-index", 1060);
 
             $('.fc-toolbar .fc-prev-button').addClass('fc-state-disabled');
             $('.fc-toolbar .fc-next-button').addClass('fc-state-disabled');
@@ -1087,7 +1090,7 @@ function HeliumCalendar() {
                 eventClick: self.edit_calendar_item_btn,
                 eventDrop: self.drop_calendar_item,
                 eventResize: self.resize_calendar_item,
-                noEventsMessage: "Nothing to see here. Change the date or filters, or use another view to add items.",
+                noEventsMessage: "Nothing to see here. Change the date or filters, or click \"+\" to add an assignment.",
                 displayEventTime: false,
                 weekNumbersWithinDays: true,
                 eventLimit: helium.USER_PREFS.settings.calendar_event_limit,
@@ -1545,6 +1548,11 @@ function HeliumCalendar() {
             });
         }
 
+        if (courses_added === 0) {
+            $("#calendar-classes button").attr("disabled", "disabled");
+            $("#calendar-filters button").attr("disabled", "disabled");
+        }
+
         if (!helium.ajax_error_occurred) {
             // Initialize category filters
             helium.planner_api.get_category_names(function (data) {
@@ -1556,7 +1564,9 @@ function HeliumCalendar() {
                     bootbox.alert(helium.get_error_msg(data));
                 } else {
                     const categories = [];
-                    $("#calendar-filter-list").append("<div class=\"filter-strike\"><span>Categories</span></div>");
+                    if (data.length > 0) {
+                        $("#calendar-filter-list").append("<div class=\"filter-strike\"><span>Categories</span></div>");
+                    }
                     for (i = 0; i < data.length; i += 1) {
                         const slug = data[i].title;
                         if ($.inArray(data[i].title, categories) === -1) {
@@ -1583,7 +1593,7 @@ function HeliumCalendar() {
     /**
      * Delete the given homework ID.
      *
-     * @param event the ID of the homework to delete.
+     * @param event the calendar item to delete.
      */
     this.delete_calendar_item = function (event) {
         helium.ajax_error_occurred = false;
@@ -1621,7 +1631,7 @@ function HeliumCalendar() {
     /**
      * Clone the given homework ID.
      *
-     * @param event the ID of the homework to clone.
+     * @param event the calendar item to clone.
      */
     this.clone_calendar_item = function (event) {
         helium.ajax_error_occurred = false;
@@ -1636,7 +1646,7 @@ function HeliumCalendar() {
                 $("#homework-error").html(helium.get_error_msg(data));
                 $("#homework-error").parent().show("fast");
             } else {
-                let calendar_item = data, event;
+                let calendar_item = data;
                 calendar_item.id =
                     calendar_item.calendar_item_type === 0 ? "event_" + calendar_item.id : calendar_item.id;
 
@@ -1678,9 +1688,16 @@ function HeliumCalendar() {
         delete cloned["reminders"];
         delete cloned["source"];
 
+        let start = cloned.start;
+        let end = cloned.end;
+        if (start instanceof moment) {
+            start = moment(start.format()).format();
+            end = moment(end.format()).format();
+        }
+
         cloned["title"] = $("#homework-title").val() + " (Cloned)";
-        cloned["start"] = moment(cloned.start.format()).format();
-        cloned["end"] = moment(cloned.end.format()).format();
+        cloned["start"] = start;
+        cloned["end"] = end;
         cloned["course"] = $("#homework-class").val();
         cloned["all_day"] = cloned["allDay"];
         cloned["category"] = $("#homework-category").val() !== null ? $("#homework-category").val().toString() : "-1"
@@ -2425,7 +2442,7 @@ function HeliumCalendar() {
                         ],
                         stateSave: true,
                         oLanguage: {
-                            sEmptyTable: "Nothing to see here. Change the date or filters, or add items."
+                            sEmptyTable: "Nothing to see here. Change the date or filters, or click \"+\" to add an assignment."
                         }
                     }).DataTable();
 
@@ -2696,81 +2713,121 @@ $(document).ready(function () {
         helium.calendar.adjust_calendar_size();
 
         $.when.apply(this, helium.calendar.ajax_calls).done(function () {
-            $(".homework-help").popover({html: true}).data("bs.popover").tip().css("z-index", 1060);
-        });
+            $(".homework-help, .reminder-help, .weight-help, .materials-help").popover({html: true}).data("bs.popover").tip().css("z-index", 1060);
+            $(".materials-help").on("click", function () {
+                window.location = "/planner/materials";
+            });
 
-        $(".wysiwyg-editor").ace_wysiwyg({
-                                             toolbar: [
-                                                 "bold", "italic", "underline", null, "insertunorderedlist",
-                                                 "insertorderedlist", null, "undo", "redo"
-                                             ]
-                                         }).prev().addClass("wysiwyg-style2");
+            $(".wysiwyg-editor").ace_wysiwyg({
+                                                 toolbar: [
+                                                     "bold", "italic", "underline", null, "insertunorderedlist",
+                                                     "insertorderedlist", null, "undo", "redo"
+                                                 ]
+                                             }).prev().addClass("wysiwyg-style2");
 
-        try {
-            $(".dropzone").dropzone(
-                {
-                    maxFilesize: 10,
-                    addRemoveLinks: true,
-                    autoProcessQueue: false,
-                    uploadMultiple: true,
-                    parallelUploads: 10,
-                    dictDefaultMessage: "<span class=\"bigger-150 bolder\"><i class=\"icon-caret-right red\"></i> Drop files</span> to upload <span class=\"smaller-80 grey\">(or click)</span> <br /> <i class=\"upload-icon icon-cloud-upload blue icon-3x\"></i>",
-                    dictResponseError: "Error while uploading file!",
-                    previewTemplate: "<div class=\"dz-preview dz-file-preview\">\n  <div class=\"dz-details\">\n    <div class=\"dz-filename\"><span data-dz-name></span></div>\n    <div class=\"dz-size\" data-dz-size></div>\n    <img data-dz-thumbnail />\n  </div>\n  <div class=\"progress progress-small progress-striped active\"><div class=\"progress-bar progress-bar-success\" data-dz-uploadprogress></div></div>\n  <div class=\"dz-success-mark\"><span></span></div>\n  <div class=\"dz-error-mark\"><span></span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
-                    init: function () {
-                        helium.calendar.dropzone = this;
+            try {
+                $(".dropzone").dropzone(
+                    {
+                        maxFilesize: 10,
+                        addRemoveLinks: true,
+                        autoProcessQueue: false,
+                        uploadMultiple: true,
+                        parallelUploads: 10,
+                        dictDefaultMessage: "<span class=\"bigger-150 bolder\"><i class=\"icon-caret-right red\"></i> Drop files</span> to upload <span class=\"smaller-80 grey\">(or click)</span> <br /> <i class=\"upload-icon icon-cloud-upload blue icon-3x\"></i>",
+                        dictResponseError: "Error while uploading file!",
+                        previewTemplate: "<div class=\"dz-preview dz-file-preview\">\n  <div class=\"dz-details\">\n    <div class=\"dz-filename\"><span data-dz-name></span></div>\n    <div class=\"dz-size\" data-dz-size></div>\n    <img data-dz-thumbnail />\n  </div>\n  <div class=\"progress progress-small progress-striped active\"><div class=\"progress-bar progress-bar-success\" data-dz-uploadprogress></div></div>\n  <div class=\"dz-success-mark\"><span></span></div>\n  <div class=\"dz-error-mark\"><span></span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
+                        init: function () {
+                            helium.calendar.dropzone = this;
 
-                        this.on("sendingmultiple", function (na, xhr, form_data) {
-                            xhr.setRequestHeader("Authorization", "Bearer " + localStorage.getItem("access_token"));
-                            if (helium.calendar.calendar_item_for_dropzone.calendar_item_type === 0) {
-                                form_data.append("event",
-                                                 helium.calendar.calendar_item_for_dropzone.id.substr(6));
-                            } else {
-                                form_data.append("homework",
-                                                 helium.calendar.calendar_item_for_dropzone.id);
-                            }
-                        });
-                        this.on("successmultiple", function (files) {
-                            $("#calendar").fullCalendar("refetchEvents");
+                            this.on("sendingmultiple", function (na, xhr, form_data) {
+                                xhr.setRequestHeader("Authorization", "Bearer " + localStorage.getItem("access_token"));
+                                if (helium.calendar.calendar_item_for_dropzone.calendar_item_type === 0) {
+                                    form_data.append("event",
+                                                     helium.calendar.calendar_item_for_dropzone.id.substr(6));
+                                } else {
+                                    form_data.append("homework",
+                                                     helium.calendar.calendar_item_for_dropzone.id);
+                                }
+                            });
+                            this.on("successmultiple", function (files) {
+                                $("#calendar").fullCalendar("refetchEvents");
 
-                            $("#loading-homework-modal").spin(false);
-                            $("#homework-modal").modal("hide");
+                                $("#loading-homework-modal").spin(false);
+                                $("#homework-modal").modal("hide");
 
-                            helium.calendar.calendar_item_for_dropzone = null;
-                            helium.calendar.dropzone.removeAllFiles();
-                        });
-                        this.on("errormultiple", function () {
-                            $("#loading-homework-modal").spin(false);
+                                helium.calendar.calendar_item_for_dropzone = null;
+                                helium.calendar.dropzone.removeAllFiles();
+                            });
+                            this.on("errormultiple", function () {
+                                $("#loading-homework-modal").spin(false);
 
-                            if (helium.calendar.edit) {
-                                if (helium.calendar.current_calendar_item.calendar_item_type
-                                    === 0) {
-                                    $("#homework-error").html(
-                                        "The event is saved, but an error occurred while uploading attachments. If the error persists, <a href=\""
-                                        + window.SUPPORT_URL + "\">open a ticket</a>.");
+                                if (helium.calendar.edit) {
+                                    if (helium.calendar.current_calendar_item.calendar_item_type
+                                        === 0) {
+                                        $("#homework-error").html(
+                                            "The event is saved, but an error occurred while uploading attachments. If the error persists, <a href=\""
+                                            + window.SUPPORT_URL + "\">open a ticket</a>.");
+                                    } else {
+                                        $("#homework-error").html(
+                                            "The assignment is saved, but an error occurred while uploading attachments. If the error persists, <a href=\""
+                                            + window.SUPPORT_URL + "\">open a ticket</a>.");
+                                    }
                                 } else {
                                     $("#homework-error").html(
-                                        "The assignment is saved, but an error occurred while uploading attachments. If the error persists, <a href=\""
+                                        "An unknown error occurred with attachments. If the error persists, <a href=\""
                                         + window.SUPPORT_URL + "\">open a ticket</a>.");
                                 }
-                            } else {
-                                $("#homework-error").html(
-                                    "An unknown error occurred with attachments. If the error persists, <a href=\""
-                                    + window.SUPPORT_URL + "\">open a ticket</a>.");
-                            }
-                            $("#homework-error").parent().show("fast");
+                                $("#homework-error").parent().show("fast");
 
-                            $("a[href='#homework-panel-tab-3']").tab("show");
+                                $("a[href='#homework-panel-tab-3']").tab("show");
 
-                            helium.calendar.calendar_item_for_dropzone = null;
-                            helium.calendar.dropzone.removeAllFiles();
-                        });
+                                helium.calendar.calendar_item_for_dropzone = null;
+                                helium.calendar.dropzone.removeAllFiles();
+                            });
+                        }
+                    });
+            } catch (e) {
+                helium.calendar.dropzone = null;
+                bootbox.alert("Attachments are not supported in older browsers.");
+            }
+
+            /*******************************************
+             * Check storage for triggers passed in
+             ******************************************/
+            if (localStorage.getItem("edit_calendar_item") === "true") {
+                helium.calendar.loading_div.spin(helium.SMALL_LOADING_OPTS);
+
+                let id = localStorage.getItem("reminder_id");
+
+                const callback = function (data) {
+                    if (helium.data_has_err_msg(data)) {
+                        helium.ajax_error_occurred = true;
+                        helium.calendar.loading_div.spin(false);
+
+                        bootbox.alert(helium.get_error_msg(data));
+                    } else {
+                        helium.calendar.loading_div.spin(false);
+
+                        if (data.calendar_item_type === 0) {
+                            data.id = "event_" + data.id;
+                        }
+                        helium.calendar.edit_calendar_item_btn(data);
                     }
-                });
-        } catch (e) {
-            helium.calendar.dropzone = null;
-            bootbox.alert("Attachments are not supported in older browsers.");
-        }
+                };
+                helium.planner_api.get_reminder(function (data) {
+                    if (data.event !== null) {
+                        id = "event_" + data.event.id;
+                        helium.planner_api.get_event(callback, id, true, true);
+                    } else {
+                        helium.planner_api.get_homework(callback, data.homework.course.course_group,
+                                                        data.homework.course.id, data.homework.id, true, true);
+                    }
+                }, id);
+
+                localStorage.removeItem("reminder_id");
+                localStorage.removeItem("edit_calendar_item");
+            }
+        });
     });
 });
 

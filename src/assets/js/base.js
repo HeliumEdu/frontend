@@ -337,10 +337,7 @@ function Helium() {
 
         const list_item = $('<li id="reminder-popup-' + data.id
                             + '" class="reminder-popup"><button type="button" class="close reminder-close"><i class="icon-remove"></i></button></li>');
-        const reminder_body = $(
-            '<span class="reminder-msg-body' + (location.href.indexOf('/planner/calendar') !== -1 ? ' cursor-hover'
-                                                                                                  : '') + '" id="'
-            + id_str + '"></span>');
+        const reminder_body = $('<span class="reminder-msg-body cursor-hover" id="' + id_str + '"></span>');
         list_item.append(reminder_body);
 
         const msg_body = $('<span class="msg-body">');
@@ -386,16 +383,16 @@ function Helium() {
                 }
             }, data.id, put_data, true, true);
         });
-        if (location.href.indexOf('/planner/calendar') !== -1) {
-            list_item.find('[id^="reminder-for-"]').on("click", function () {
-                let id = $(this).attr("id").split("reminder-for-")[1];
-                if (id.indexOf("event-") !== -1) {
-                    id = id.replace("-", "_");
-                } else {
-                    id = id.split("-")[1];
-                }
-                const reminder_id = $(this).parent().attr("id").split("-")[2];
+        list_item.find('[id^="reminder-for-"]').on("click", function () {
+            let id = $(this).attr("id").split("reminder-for-")[1];
+            if (id.indexOf("event-") !== -1) {
+                id = id.replace("-", "_");
+            } else {
+                id = id.split("-")[1];
+            }
+            const reminder_id = $(this).parent().attr("id").split("-")[2];
 
+            if (location.href.indexOf('/planner/calendar') !== -1) {
                 helium.calendar.current_calendar_item = $("#calendar").fullCalendar("clientEvents", [id])[0];
                 // First resort is to look in the calendar's cache, but if the event isn't found there we'll have to
                 // look it up in the database
@@ -428,8 +425,12 @@ function Helium() {
                 } else {
                     helium.calendar.edit_calendar_item_btn(helium.calendar.current_calendar_item);
                 }
-            });
-        }
+            } else {
+                localStorage.setItem("reminder_id", reminder_id);
+                localStorage.setItem("edit_calendar_item", "true");
+                window.location = "/planner/calendar";
+            }
+        });
 
         $($($("#reminder-bell-count").parent()).parent()).append(list_item);
     };

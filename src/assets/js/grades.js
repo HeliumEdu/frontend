@@ -338,7 +338,7 @@ $(document).ready(function () {
                                                                                              ? "6" : "12") + "\">" + $(
                                                                                                  "<div />").append(category_table.clone()).html()
                                     + "</div><div class=\"col-xs-12 col-sm-4\"></div></div></div></div></div>");
-                            weight_pie_div = course_body_div.find("#course-weight-piechart-" + course.id);
+                            let weight_pie_div = course_body_div.find("#course-weight-piechart-" + course.id);
                             grade_by_weight_pie_div =
                                 course_body_div.find("#course-grade-by-weight-piechart-" + course.id);
 
@@ -351,13 +351,10 @@ $(document).ready(function () {
 
                                 weight_pie_div.bind("plothover", helium.grades.pie_hover);
                                 grade_by_weight_pie_div.bind("plothover", helium.grades.pie_hover);
-                            } else {
-                                weight_pie_div.html(
-                                    "<div class=\"row\"><div class=\"col-sm-10 col-sm-offset-1 well\">This class does not have weighted grading. If you didn't expect this, head over to <a href=\"/planner/classes\">the classes page</a> and set weights for the categories!</div></div>");
                             }
                         } else {
                             course_div.find("#course-body-" + course.id).append(
-                                "<div class=\"widget-body\"><div class=\"widget-main\"><div class=\"row\"><div class=\"col-xs-12 col-sm-10 col-sm-offset-1 well\">This class does not have any categories. If you don't expect this, head over to <a href=\"/planner/classes\">the classes page</a> and add categories to the class!</div></div></div></div>");
+                                "<div class=\"widget-body\"><div class=\"widget-main\"><div class=\"row\"><div class=\"col-xs-12 col-sm-10 col-sm-offset-1 well\">This class does not have any categories. Head over to <a href=\"/planner/classes\">the Classes page</a> to add them.</div></div></div></div>");
                         }
                     }
 
@@ -383,7 +380,7 @@ $(document).ready(function () {
                 if (data_for_group === 0) {
                     course_group_chart_tag.parent().parent().parent().remove();
                     $("#details-for-course-group-" + id).after(
-                        "<div class=\"row\"><div class=\"col-xs-12 col-sm-8 col-sm-offset-2 col-xs-12 well\">We can't calculate any grades for you if you don't have both <a href=\"/planner/classes\">classes</a> and <a href=\"/planner/calendar\">assignments</a>. Once you've entered these, head back here to check your grades!</div></div>");
+                        "<div class=\"row\"><div class=\"col-xs-12 col-sm-8 col-sm-offset-2 col-xs-12 well\">We can't calculate any grades for you if you don't have both <a href=\"/planner/classes\">classes</a> and <a href=\"/planner/calendar\">assignments</a>. Once you have those, head back here to see your grade progress!</div></div>");
                 }
             });
 
