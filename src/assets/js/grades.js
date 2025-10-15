@@ -110,10 +110,10 @@ function HeliumGrades() {
                            + (data.num_homework - data.num_homework_completed)
                            + ' remaining</div></div></div><div class="space-20"></div></div>');
             container.append(
-                '<div class="row"><div class="col-xs-12"><div class="widget-box transparent"><div class="widget-header widget-header-flat"><h4 class="lighter"><i class="icon-bar-chart"></i> Term Progress</h4> | <span class="hidden-xs">'
+                '<div class="row"><div class="col-xs-12"><div class="widget-box transparent"><div class="widget-header widget-header-flat"><h4 class="lighter"><i class="icon-bar-chart"></i> Term Progress</h4><span class="hidden-xs"> | </span><small class="hidden-xs"><span>'
                 + moment(data.start_date, helium.HE_DATE_STRING_SERVER).format(helium.HE_DATE_STRING_CLIENT)
-                + "</span><span> to "
-                + moment(data.end_date, helium.HE_DATE_STRING_SERVER).format(helium.HE_DATE_STRING_CLIENT) + "</span>"
+                + "</span> to <span>"
+                + moment(data.end_date, helium.HE_DATE_STRING_SERVER).format(helium.HE_DATE_STRING_CLIENT) + "</span></small>"
                 + '<a class="cursor-hover" data-action="collapse"><div class="widget-toolbar"><span class="badge badge-info">'
                 + (parseFloat(data.average_grade) != -1 ? (parseFloat(data.average_grade).toFixed(2) + '% '
                 + (data.trend > 0 ? '<span class="icon-x arrow-up-icon light-green"></span>'

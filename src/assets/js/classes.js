@@ -491,9 +491,9 @@ function HeliumClasses() {
                 "<div id=\"course-group-" + data.id
                 + "\" class=\"tab-pane\"><div class=\"col-sm-12\"><div class=\"table-header\"><span id=\"course-group-title-"
                 + data.id + "\">" + data.title + (!data.shown_on_calendar ? " (Hidden)" : "")
-                + "</span> <small class=\"hidden-xs\"> | <span id=\"course-group-" + data.id + "-start-date\">" + moment(
+                + "</span><span class='hidden-xs'> | </span><small class=\"hidden-xs\"><span id=\"course-group-" + data.id + "-start-date\">" + moment(
                                               data.start_date, helium.HE_DATE_STRING_SERVER).format(helium.HE_DATE_STRING_CLIENT)
-                + "</span><span id=\"course-group-" + data.id + "-end-date\"> to " + moment(data.end_date,
+                + "</span> to <span id=\"course-group-" + data.id + "-end-date\">" + moment(data.end_date,
                                                                                             helium.HE_DATE_STRING_SERVER)
                     .format(helium.HE_DATE_STRING_CLIENT)
                 + "</span></small></span><label class=\"pull-right inline action-buttons\" style=\"padding-right: 10px\"><a class=\"cursor-hover\" id=\"create-course-for-group-"
@@ -1758,7 +1758,7 @@ function HeliumClasses() {
                 id: id,
                 title: title,
                 start_date: $("#course-group-" + id + "-start-date").html().trim(),
-                end_date: $("#course-group-" + id + "-end-date").html().split("to ")[1].trim()
+                end_date: $("#course-group-" + id + "-end-date").html().trim()
             };
         });
     };
