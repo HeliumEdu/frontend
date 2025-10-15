@@ -19,6 +19,8 @@ cp -r src/assets/css build/assets/$VERSION
 cp -r src/assets/img build/assets/$VERSION
 cp -r src/assets/js build/assets/$VERSION
 
+cp -r src/assets/img build/assets
+
 
 if [[ -z "${FRONTEND_ROLLBAR_CLIENT_ITEM_ACCESS_TOKEN}" ]]; then
   echo "Building bundle without Rollbar"

@@ -4,7 +4,8 @@
     "PROJECT_EMAIL": "contact@heliumedu.com",
     "PROJECT_VERSION": "${DIST_VERSION}",
     "COPYRIGHT_YEAR": 2025,
-    "ASSETS_PREFIX": "/assets/${DIST_VERSION}",
+    "ASSETS_PREFIX": "/assets",
+    "ASSETS_PREFIX_VERSIONED": "/assets/${DIST_VERSION}",
     "base_header_javascript": [
         "/js/vendors/jquery.js",
         "/js/vendors/ace-extra.js",
