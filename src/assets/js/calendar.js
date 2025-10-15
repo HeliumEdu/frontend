@@ -842,7 +842,7 @@ function HeliumCalendar() {
         }
     };
 
-    this.event_source = function (start, end, timezone, callback) {
+    this.event_source_external_calendars = function (start, end, timezone, callback) {
         const events = [];
         const current_view = $("#calendar").fullCalendar("getView").name;
 
@@ -890,6 +890,19 @@ function HeliumCalendar() {
             });
         }
 
+        $.when.apply(this, helium.calendar.ajax_calls).done(function () {
+            callback(events);
+        }).fail(function () {
+            self.loading_div.spin(false);
+
+            bootbox.alert(document.GENERIC_ERROR_MESSAGE);
+        });
+    }
+
+    this.event_source_events = function (start, end, timezone, callback) {
+        const events = [];
+        const current_view = $("#calendar").fullCalendar("getView").name;
+
         if (current_view !== "assignmentsList" &&
             (localStorage.getItem("filter_show_events") === null ||
              localStorage.getItem("filter_show_events") === "true")) {
@@ -927,6 +940,19 @@ function HeliumCalendar() {
                 });
             }, true, false, start.toISOString(), end.toISOString(), localStorage.getItem("filter_search_string")));
         }
+
+        $.when.apply(this, helium.calendar.ajax_calls).done(function () {
+            callback(events);
+        }).fail(function () {
+            self.loading_div.spin(false);
+
+            bootbox.alert(document.GENERIC_ERROR_MESSAGE);
+        });
+    }
+
+    this.event_source_class_schedules = function (start, end, timezone, callback) {
+        const events = [];
+        const current_view = $("#calendar").fullCalendar("getView").name;
 
         if (current_view !== "assignmentsList" &&
             (localStorage.getItem("filter_show_class") === null ||
@@ -981,6 +1007,18 @@ function HeliumCalendar() {
                     "filter_search_string")));
             });
         }
+
+        $.when.apply(this, helium.calendar.ajax_calls).done(function () {
+            callback(events);
+        }).fail(function () {
+            self.loading_div.spin(false);
+
+            bootbox.alert(document.GENERIC_ERROR_MESSAGE);
+        });
+    }
+
+    this.event_source_homework = function (start, end, timezone, callback) {
+        const events = [];
 
         if (localStorage.getItem("filter_show_homework") === null ||
             localStorage.getItem("filter_show_homework") === "true") {
@@ -1080,7 +1118,12 @@ function HeliumCalendar() {
         $.when.apply(this, helium.calendar.ajax_calls).done(function () {
             $("#calendar").fullCalendar(
                 {
-                    events: self.event_source,
+                    eventSources: [
+                        self.event_source_external_calendars,
+                        self.event_source_events,
+                        self.event_source_class_schedules,
+                        self.event_source_homework
+                    ],
                     defaultTimedEventDuration: moment().hours(0)
                         .minutes(helium.USER_PREFS.settings.all_day_offset).seconds(0)
                         .format("HH:mm:ss"),
@@ -1095,13 +1138,19 @@ function HeliumCalendar() {
                     weekNumbersWithinDays: true,
                     eventLimit: helium.USER_PREFS.settings.calendar_event_limit,
                     nowIndicator: true,
+                    viewDestroy: function (view) {
+                        self.previous_view = view.name;
+                    },
                     viewRender: function (view) {
                         if (view.name === "assignmentsList") {
-                            $("#calendar").fullCalendar("refetchEvents");
-                            self.refetch_in_next_view = false;
-                        }
+                            $("#calendar").fullCalendar("removeEventSources");
 
-                        self.refresh_view(view);
+                            $("#calendar").fullCalendar("addEventSource", self.event_source_homework);
+                        } else if (self.previous_view !== undefined && self.previous_view === "assignmentsList") {
+                            $("#calendar").fullCalendar("addEventSource", self.event_source_external_calendars);
+                            $("#calendar").fullCalendar("addEventSource", self.event_source_events);
+                            $("#calendar").fullCalendar("addEventSource", self.event_source_class_schedules);
+                        }
                     },
                     eventAfterAllRender: self.refresh_view,
                     eventResizeStart: function () {
