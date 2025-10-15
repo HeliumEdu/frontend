@@ -253,6 +253,9 @@ $(document).ready(function () {
                                 color: "#ff0000",
                                 lineWidth: 1
                             }]
+                        },
+                        legend: {
+                            position: "se"
                         }
                     }, pie_chart_details = {
                         series: {
