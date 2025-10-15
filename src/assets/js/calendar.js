@@ -986,9 +986,9 @@ function HeliumCalendar() {
                     return true;
                 }
 
-                if ($.inArray(course.id.toString(),
-                              localStorage.getItem("filter_courses")
-                                  .split(",")) === -1) {
+                if (localStorage.getItem("filter_courses") !== "" &&
+                    $.inArray(course.id.toString(),
+                              localStorage.getItem("filter_courses").split(",")) === -1) {
                     return true;
                 }
 
@@ -1442,7 +1442,7 @@ function HeliumCalendar() {
             }
 
             titles +=
-                '<span class="label label-info materials-label arrowed-right">'
+                '<span class="label materials-label arrowed-right">'
                 + helium.calendar.materials[id].title + "</span>";
         });
 

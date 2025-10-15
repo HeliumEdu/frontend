@@ -94,10 +94,10 @@ function HeliumGrades() {
                            + '</span>% <canvas width="46" height="46"></canvas></div></div><div class="infobox-data"><span class="infobox-text">thru term</span><div class="infobox-content">'
                            + days_remaining + ' days remaining</div></div>');
             details.append(
-                '<div class="infobox infobox-red"><div class="infobox-icon"><i class="icon-cogs"></i></div><div class="infobox-data"><span class="infobox-data-number">'
+                '<div class="infobox infobox-red"><div class="infobox-icon"><i class="icon-bookmark"></i></div><div class="infobox-data"><span class="infobox-data-number">'
                 + data.num_homework + '</span><div class="infobox-content">assignments</div></div></div>');
             details.append(
-                '<div class="infobox infobox-red"><div class="infobox-icon"><i class="icon-bar-chart"></i></div><div class="infobox-data"><span class="infobox-data-number">'
+                '<div class="infobox infobox-red"><div class="infobox-icon"><i class="icon-cogs"></i></div><div class="infobox-data"><span class="infobox-data-number">'
                 + data.num_homework_graded + '</span><div class="infobox-content">graded</div></div></div>');
             details.append('<div class="infobox infobox-blue2">' + percent_completed.toFixed()
                            + '<div class="infobox-progress"><div class="easy-pie-chart percentage easyPieChart" data-percent="'
@@ -109,9 +109,10 @@ function HeliumGrades() {
                            + (data.num_homework - data.num_homework_completed)
                            + ' remaining</div></div></div><div class="space-20"></div></div>');
             container.append(
-                '<div class="row"><div class="col-xs-12"><div class="widget-box transparent"><div class="widget-header widget-header-flat"><h4 class="lighter"><i class="icon-book"></i>Grades for '
-                + data.title
-                + '</h4><a class="cursor-hover" data-action="collapse"><div class="widget-toolbar"><span class="badge badge-info">'
+                '<div class="row"><div class="col-xs-12"><div class="widget-box transparent"><div class="widget-header widget-header-flat"><h4 class="lighter"><i class="icon-bar-chart"></i> Term Progress</h4> | <span class="hidden-xs">'
+                + moment(data.start_date, helium.HE_DATE_STRING_SERVER).format(helium.HE_DATE_STRING_CLIENT) + "</span><span> to "
+                + moment(data.end_date, helium.HE_DATE_STRING_SERVER).format(helium.HE_DATE_STRING_CLIENT) + "</span>"
+                + '<a class="cursor-hover" data-action="collapse"><div class="widget-toolbar"><span class="badge badge-info">'
                 + (parseFloat(data.average_grade) != -1 ? (parseFloat(data.average_grade).toFixed(2) + '% '
                 + (data.trend > 0 ? '<span class="icon-x arrow-up-icon light-green"></span>'
                                   : '<span class="icon-x arrow-down-icon light-red"></span>')) : 'N/A')
