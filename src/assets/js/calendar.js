@@ -1286,6 +1286,7 @@ function HeliumCalendar() {
                     },
                 }
             });
+        self.adjust_calendar_size();
 
         self.last_good_date = moment("12:00 PM", "HH:mm A");
         self.last_good_end_date = self.last_good_date.clone();
@@ -1373,8 +1374,6 @@ function HeliumCalendar() {
                                             });
             }
 
-            self.adjust_calendar_size();
-
             // Throw up the Getting Started modal if necessary
             if (helium.USER_PREFS.settings.show_getting_started) {
                 $("#getting-started-modal").modal("show");
@@ -1421,7 +1420,7 @@ function HeliumCalendar() {
     };
 
     /**
-     * Stop propogation of an event.
+     * Stop propagation of an event.
      */
     this.event_stop_propagation = function (e) {
         e.stopPropagation();
