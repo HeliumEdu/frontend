@@ -408,8 +408,6 @@ function Helium() {
 
                             bootbox.alert(helium.get_error_msg(data));
                         } else {
-                            helium.calendar.loading_div.spin(false);
-
                             if (data.calendar_item_type === 0) {
                                 data.id = "event_" + data.id;
                             }

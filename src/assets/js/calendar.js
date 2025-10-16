@@ -462,8 +462,6 @@ function HeliumCalendar() {
      * @param jsEvent the event that triggered the callback
      */
     this.edit_calendar_item_btn = function (calendar_item, jsEvent) {
-        let h_e_str, h_e_id;
-
         helium.ajax_error_occurred = false;
 
         let ret_val = true, i = 0;
@@ -1386,11 +1384,12 @@ function HeliumCalendar() {
             $(".fc-toolbar .fc-right").addClass("hidden-print");
             $(".fc-month-button, .fc-agendaWeek-button, #calendar-classes, #calendar-filters, #search-bar")
                 .addClass("hidden-xs");
-            $("#loading-calendar").spin(false);
             self.loading_div =
                 $(".fc-toolbar .fc-left").append(
                     "<div id=\"fullcalendar-loading\" class=\"loading-mini\" style=\"padding-left: 25px; padding-top: 2px;\"><div id=\"loading-fullcalendar\"></div></div>")
                     .find("#loading-fullcalendar");
+            self.loading_div.spin(helium.SMALL_LOADING_OPTS);
+            $("#loading-calendar").spin(false);
 
             if ($(window).width() > 768) {
                 $("#homework-class").chosen({
