@@ -1090,6 +1090,24 @@ function HeliumCalendar() {
             $('#calendar-filter-class').addClass('hidden');
             $('#calendar-filter-external').addClass('hidden');
             $('#calendar-filter-external').next().addClass('hidden');
+
+            let filters_changed = false;
+            if ($("#calendar-filter-events").children().find("input").is(":checked")) {
+                $("#calendar-filter-events").children().find("input").prop("checked", false);
+                filters_changed = true;
+            }
+            if ($("#calendar-filter-class").children().find("input").is(":checked")) {
+                $("#calendar-filter-class").children().find("input").prop("checked", false);
+                filters_changed = true;
+            }
+            if ($("#calendar-filter-external").children().find("input").is(":checked")) {
+                $("#calendar-filter-external").children().find("input").prop("checked", false);
+                filters_changed = true;
+            }
+
+            if (filters_changed) {
+                self.refresh_filters();
+            }
         } else {
             $('.fc-toolbar .fc-prev-button').removeClass('fc-state-disabled');
             $('.fc-toolbar .fc-next-button').removeClass('fc-state-disabled');
@@ -1544,6 +1562,8 @@ function HeliumCalendar() {
         if (courses_added === 0) {
             $("#calendar-classes button").attr("disabled", "disabled");
             $("#calendar-filters button").attr("disabled", "disabled");
+        } else if (courses_added === 1) {
+            $("#calendar-classes button").attr("disabled", "disabled");
         }
 
         if (!helium.ajax_error_occurred) {
