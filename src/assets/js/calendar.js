@@ -2360,10 +2360,11 @@ function HeliumCalendar() {
                 return this.opt('mediumTimeFormat');
             },
 
-            handleSegClick: function (seg, ev) {
+            // TODO: confirm this rename was all we need
+            handleClick: function (seg, ev) {
                 let url;
 
-                $.fullCalendar.Grid.prototype.handleSegClick.apply(this, arguments);
+                $.fullCalendar.TimeGrid.prototype.handleClick.apply(this, arguments);
 
                 if (!$(ev.target).closest('a[href]').length) {
                     url = seg.footprint.eventDef.url;
@@ -2566,26 +2567,14 @@ function HeliumCalendar() {
             },
 
             setDateProfileForRendering: function (dateProfile) {
-                var calendar = this.calendar;
+                // view.watch('dateProfileForCalendar', [ 'dateProfile' ], function(deps) {
+                //     if (view === _this.view) { // hack
+                //         _this.currentDate = deps.dateProfile.date; // might have been constrained by view dates
+                //         _this.updateToolbarButtons(deps.dateProfile);
+                //     }
+                // });
 
-                this.currentUnzonedRange = dateProfile.currentUnzonedRange;
-                this.currentRangeUnit = dateProfile.currentRangeUnit;
-                this.isRangeAllDay = dateProfile.isRangeAllDay;
-                this.renderUnzonedRange = dateProfile.renderUnzonedRange;
-                this.activeUnzonedRange = dateProfile.activeUnzonedRange;
-                this.validUnzonedRange = dateProfile.validUnzonedRange;
-                this.dateIncrement = dateProfile.dateIncrement;
-                this.minTime = dateProfile.minTime;
-                this.maxTime = dateProfile.maxTime;
-
-                this.start = calendar.msToMoment(dateProfile.activeUnzonedRange.startMs, this.isRangeAllDay);
-                this.end = calendar.msToMoment(dateProfile.activeUnzonedRange.endMs, this.isRangeAllDay);
-                this.intervalStart = calendar.msToMoment(dateProfile.currentUnzonedRange.startMs, this.isRangeAllDay);
-                this.intervalEnd = calendar.msToMoment(dateProfile.currentUnzonedRange.endMs, this.isRangeAllDay);
-
-                this.title = this.computeTitle();
-                this.calendar.currentDate = dateProfile.date;
-                // TODO: all but this section can be removed when we upgrade to FullCalendar 3.6.2
+                // TODO: the below should be able to replaced with something like the above, but need to figure out how to make it work
                 this.calendar.header.el.find('h2')
                     .html(this.titleHtml)
                     .find(".assignmentslist-help").popover({html: true}).data("bs.popover").tip().css("z-index", 1060);
@@ -2609,7 +2598,8 @@ function HeliumCalendar() {
                 );
             },
 
-            setHeight: function (totalHeight, isAuto) {
+            // TODO: renamed function, is that all?
+            updateSize: function (totalHeight, isAuto) {
                 this.scroller.setHeight(this.computeScrollerHeight(totalHeight));
             },
 
@@ -2643,12 +2633,15 @@ function HeliumCalendar() {
                 ) {
                     this.set('dateProfile', newDateProfile);
                 }
-
-                return newDateProfile.date;
             },
 
-            renderDates: function () {
-                this.grid.setRange(this.renderUnzonedRange);
+            // TODO: is this all?
+            renderDates: function(dateProfile) {
+                this.grid.sliceRangeByTimes(dateProfile);
+                this.dateProfile = dateProfile;
+                // this.updateDayTable();
+                // this.renderSlats();
+                // this.renderColumns();
             },
 
             isEventDefResizable: function (eventDef) {
