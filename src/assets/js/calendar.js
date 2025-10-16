@@ -1140,21 +1140,13 @@ function HeliumCalendar() {
                     nowIndicator: true,
                     viewDestroy: function (view) {
                         self.previous_view = view.name;
+                        if (view.name !== "assignmentsList") {
+                            self.previous_period = view.calendar.eventManager.currentPeriod;
+                        }
                     },
                     viewRender: function (view) {
-                        if (view.name === "assignmentsList") {
-                            // $("#calendar").fullCalendar("removeEventSources");
-
-                            // $("#calendar").fullCalendar("addEventSource", helium.calendar.event_source_homework);
-
-                            // view.calendar.eventManager.setPeriod(new $.fullCalendar.EventPeriod(start, end,
-                            // timezone))
-                            view.calendar.eventManager.setPeriod(
-                                new $.fullCalendar.EventPeriod(
-                                    this.calendar.currentDate.clone(),
-                                    this.calendar.currentDate.clone().add(1, "seconds"))
-                            );
-                        } else if (self.previous_view !== undefined && self.previous_view === "assignmentsList") {
+                        if (self.previous_view !== undefined && self.previous_view === "assignmentsList") {
+                            view.calendar.eventManager.setPeriod(self.previous_period);
 
                             $("#calendar")
                                 .fullCalendar("addEventSource", helium.calendar.event_source_external_calendars);
@@ -2525,7 +2517,6 @@ function HeliumCalendar() {
         {
             grid: null,
             scroller: null,
-            eventManager: null,
 
             initialize: function () {
                 this.grid = new ListViewGrid(this);
@@ -2535,7 +2526,6 @@ function HeliumCalendar() {
                                                                 overflowX: 'hidden',
                                                                 overflowY: 'auto'
                                                             });
-                this.eventManager = new $.fullCalendar.EventManager(this.calendar);
             },
 
             renderSkeleton: function () {
