@@ -2288,7 +2288,7 @@ function HeliumCalendar() {
         return diff;
     }
 
-    const ListViewGrid = $.fullCalendar.Grid.extend(
+    const ListViewGrid = $.fullCalendar.TimeGrid.extend(
         {
             dayDates: null,
             dayRanges: null,
