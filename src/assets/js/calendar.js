@@ -1075,10 +1075,12 @@ function HeliumCalendar() {
 
     this.refresh_view = function (view, element) {
         if (view.name === 'assignmentsList') {
-            $(".fc-toolbar h2").html(
-                "Assignments List <span class=\"hidden-xs assignmentslist-help help-button\" data-rel=\"popover\" data-trigger=\"hover\" data-container=\"body\" data-placement=\"right\" data-content=\"This view shows only assignments—no class schedules, events, or external calendars—allowing you to quickly sort through and review your schoolwork.\" title=\"List View\">?</span>");
-            $(".fc-toolbar h2").find(".assignmentslist-help").popover({html: true}).data("bs.popover").tip()
-                .css("z-index", 1060);
+            if ($(".fc-toolbar h2").html().indexOf("assignmentslist-help") === -1) {
+                $(".fc-toolbar h2").append(
+                    " <span class=\"hidden-xs assignmentslist-help help-button\" data-rel=\"popover\" data-trigger=\"hover\" data-container=\"body\" data-placement=\"right\" data-content=\"This view shows only assignments—no class schedules, events, or external calendars—allowing you to quickly sort through and review your schoolwork.\" title=\"List View\">?</span>");
+                $(".fc-toolbar h2").find(".assignmentslist-help").popover({html: true}).data("bs.popover").tip()
+                    .css("z-index", 1060);
+            }
 
             $('.fc-toolbar .fc-prev-button').addClass('fc-state-disabled');
             $('.fc-toolbar .fc-next-button').addClass('fc-state-disabled');
@@ -1360,7 +1362,8 @@ function HeliumCalendar() {
                             titleFormat: "MMM D YYYY"
                         },
                         assignmentsList: {
-                            buttonText: 'list'
+                            buttonText: 'list',
+                            titleFormat: "[Assignments List]"
                         },
                     }
                 });
