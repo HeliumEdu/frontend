@@ -2548,19 +2548,20 @@ function HeliumCalendar() {
             }
         });
 
-    $.fullCalendar.views.assignmentsList = $.fullCalendar.View.extend(
+    $.fullCalendar.views.assignmentsList = $.fullCalendar.ListView.extend(
         {
-            grid: null,
-            scroller: null,
+            // grid: null,
+            // scroller: null,
 
             initialize: function () {
-                this.grid = new ListViewGrid(this);
-                this.addChild(this.grid);
+                // this.grid = new ListViewGrid(this);
+                // this.grid = new ListViewGrid(this);
+                // this.addChild(this.timeGrid);
 
-                this.scroller = new $.fullCalendar.Scroller({
-                                                                overflowX: 'hidden',
-                                                                overflowY: 'auto'
-                                                            });
+                // this.scroller = new $.fullCalendar.Scroller({
+                //                                                 overflowX: 'hidden',
+                //                                                 overflowY: 'auto'
+                //                                             });
 
                 this.titleHtml =
                     "Assignments List <span class=\"hidden-xs assignmentslist-help help-button\" data-rel=\"popover\" data-trigger=\"hover\" data-container=\"body\" data-placement=\"right\" data-content=\"This view shows only assignments—no class schedules, events, or external calendars—allowing you to quickly sort through and review your schoolwork.\" title=\"List View\">?</span>"
@@ -2581,31 +2582,13 @@ function HeliumCalendar() {
                 this.calendar.updateToolbarButtons();
             },
 
-            renderSkeleton: function () {
-                this.el.addClass(
-                    'fc-list-view ' +
-                    this.calendar.theme.getClass('listView')
-                );
-
-                this.scroller.render();
-                this.scroller.el.appendTo(this.el);
-
-                this.grid.setElement(this.scroller.scrollEl);
-
-                this.activeUnzonedRange = new $.fullCalendar.UnzonedRange(
-                    this.calendar.currentDate.clone().subtract(10, "years"),
-                    this.calendar.currentDate.clone().add(10, "years")
-                );
-            },
-
-            // TODO: renamed function, is that all?
-            updateSize: function (totalHeight, isAuto) {
-                this.scroller.setHeight(this.computeScrollerHeight(totalHeight));
-            },
-
-            computeScrollerHeight: function (totalHeight) {
-                return totalHeight - subtractInnerElHeight(this.el, this.scroller.el);
-            },
+            // TODO: does this activeUnzonedRange need to live elsewhere?
+            // renderSkeleton: function () {
+            //     this.activeUnzonedRange = new $.fullCalendar.UnzonedRange(
+            //         this.calendar.currentDate.clone().subtract(10, "years"),
+            //         this.calendar.currentDate.clone().add(10, "years")
+            //     );
+            // },
 
             buildCurrentRangeInfo: function (date, direction) {
                 // TODO: Set this dynamically based on the range of course start/end dates instead
@@ -2636,14 +2619,15 @@ function HeliumCalendar() {
             },
 
             // TODO: is this all?
-            renderDates: function(dateProfile) {
-                this.grid.sliceRangeByTimes(dateProfile);
-                this.dateProfile = dateProfile;
+            // renderDates: function(dateProfile) {
+            //     this.grid.sliceRangeByTimes(dateProfile);
+            //     this.dateProfile = dateProfile;
                 // this.updateDayTable();
                 // this.renderSlats();
                 // this.renderColumns();
-            },
+            // },
 
+            // TODO: probably can comment these out in favor of eventResizableFromStart opt?
             isEventDefResizable: function (eventDef) {
                 return false;
             },
