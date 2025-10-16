@@ -1075,11 +1075,6 @@ function HeliumCalendar() {
 
     this.refresh_view = function (view, element) {
         if (view.name === 'assignmentsList') {
-            $(".fc-toolbar h2").html(
-                "Assignments List <span class=\"hidden-xs assignmentslist-help help-button\" data-rel=\"popover\" data-trigger=\"hover\" data-container=\"body\" data-placement=\"right\" data-content=\"This view shows only assignments—no class schedules, events, or external calendars—allowing you to quickly sort through and review your schoolwork.\" title=\"List View\">?</span>");
-            $(".fc-toolbar h2").find(".assignmentslist-help").popover({html: true}).data("bs.popover").tip()
-                .css("z-index", 1060);
-
             $('.fc-toolbar .fc-prev-button').addClass('fc-state-disabled');
             $('.fc-toolbar .fc-next-button').addClass('fc-state-disabled');
 
@@ -2549,6 +2544,35 @@ function HeliumCalendar() {
                                                                 overflowX: 'hidden',
                                                                 overflowY: 'auto'
                                                             });
+
+                this.titleHtml =
+                    "Assignments List <span class=\"hidden-xs assignmentslist-help help-button\" data-rel=\"popover\" data-trigger=\"hover\" data-container=\"body\" data-placement=\"right\" data-content=\"This view shows only assignments—no class schedules, events, or external calendars—allowing you to quickly sort through and review your schoolwork.\" title=\"List View\">?</span>"
+            },
+
+            setDateProfileForRendering: function (dateProfile) {
+                var calendar = this.calendar;
+
+                this.currentUnzonedRange = dateProfile.currentUnzonedRange;
+                this.currentRangeUnit = dateProfile.currentRangeUnit;
+                this.isRangeAllDay = dateProfile.isRangeAllDay;
+                this.renderUnzonedRange = dateProfile.renderUnzonedRange;
+                this.activeUnzonedRange = dateProfile.activeUnzonedRange;
+                this.validUnzonedRange = dateProfile.validUnzonedRange;
+                this.dateIncrement = dateProfile.dateIncrement;
+                this.minTime = dateProfile.minTime;
+                this.maxTime = dateProfile.maxTime;
+
+                this.start = calendar.msToMoment(dateProfile.activeUnzonedRange.startMs, this.isRangeAllDay);
+                this.end = calendar.msToMoment(dateProfile.activeUnzonedRange.endMs, this.isRangeAllDay);
+                this.intervalStart = calendar.msToMoment(dateProfile.currentUnzonedRange.startMs, this.isRangeAllDay);
+                this.intervalEnd = calendar.msToMoment(dateProfile.currentUnzonedRange.endMs, this.isRangeAllDay);
+
+                this.title = this.computeTitle();
+                this.calendar.currentDate = dateProfile.date;
+                this.calendar.header.el.find('h2')
+                    .html(this.titleHtml)
+                    .find(".assignmentslist-help").popover({html: true}).data("bs.popover").tip().css("z-index", 1060);
+                this.calendar.updateToolbarButtons();
             },
 
             renderSkeleton: function () {
