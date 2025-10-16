@@ -2274,294 +2274,22 @@ function HeliumCalendar() {
 }
 
 (function () {
-    function subtractInnerElHeight(outerEl, innerEl) {
-        const both = outerEl.add(innerEl);
-        let diff;
-
-        both.css({
-                     position: 'relative',
-                     left: -1
-                 });
-        diff = outerEl.outerHeight() - innerEl.outerHeight();
-        both.css({position: '', left: ''});
-
-        return diff;
-    }
-
-    const ListViewGrid = $.fullCalendar.TimeGrid.extend(
+    $.fullCalendar.views.assignmentsList = $.fullCalendar.ListView.extend(
         {
-            dayDates: null,
-            dayRanges: null,
-            segSelector: '.fc-list-item',
-            hasDayInteractions: false,
+            scroller: null,
             tableEl: null,
             dataTable: null,
             latestRow: null,
-
-            rangeUpdated: function () {
-                const calendar = this.view.calendar;
-                const dayStart = calendar.msToUtcMoment(this.unzonedRange.startMs, true);
-                const viewEnd = calendar.msToUtcMoment(this.unzonedRange.endMs, true);
-                const dayDates = [];
-                const dayRanges = [];
-
-                while (dayStart < viewEnd) {
-                    dayDates.push(dayStart.clone());
-
-                    dayRanges.push(new $.fullCalendar.UnzonedRange(
-                        dayStart,
-                        dayStart.clone().add(1, 'day')
-                    ));
-
-                    dayStart.add(1, 'day');
-                }
-
-                this.dayDates = dayDates;
-                this.dayRanges = dayRanges;
-            },
-
-            componentFootprintToSegs: function (footprint) {
-                const view = this.view;
-                const dayRanges = this.dayRanges;
-                let dayIndex;
-                let segRange;
-                let seg;
-                const segs = [];
-
-                for (dayIndex = 0; dayIndex < dayRanges.length; dayIndex++) {
-                    segRange = footprint.unzonedRange.intersect(dayRanges[dayIndex]);
-
-                    if (segRange) {
-                        seg = {
-                            startMs: segRange.startMs,
-                            endMs: segRange.endMs,
-                            isStart: segRange.isStart,
-                            isEnd: segRange.isEnd,
-                            dayIndex: dayIndex
-                        };
-
-                        segs.push(seg);
-
-                        if (
-                            !seg.isEnd && !footprint.isAllDay &&
-                            footprint.unzonedRange.endMs < dayRanges[dayIndex + 1].startMs + view.nextDayThreshold
-                        ) {
-                            seg.endMs = footprint.unzonedRange.endMs;
-                            seg.isEnd = true;
-                            break;
-                        }
-                    }
-                }
-
-                return segs;
-            },
-
-            computeEventTimeFormat: function () {
-                return this.opt('mediumTimeFormat');
-            },
-
-            // TODO: confirm this rename was all we need
-            handleClick: function (seg, ev) {
-                let url;
-
-                $.fullCalendar.TimeGrid.prototype.handleClick.apply(this, arguments);
-
-                if (!$(ev.target).closest('a[href]').length) {
-                    url = seg.footprint.eventDef.url;
-
-                    if (url && !ev.isDefaultPrevented()) {
-                        window.location.href = url;
-                    }
-                }
-            },
-
-            renderFgSegs: function (segs) {
-                if (this.dataTable !== null) {
-                    this.dataTable.clear();
-                }
-
-                segs = this.renderFgSegEls(segs);
-
-                this.renderSegList(segs);
-
-                this.latestBeforeToday = this.view.start;
-                for (let seg of segs) {
-                    let eventDef = seg.footprint.eventDef;
-                    let row = $(seg.el[0]);
-
-                    row.attr("id", "homework-table-row-" + eventDef.id);
-
-                    // Check if we've reached today's date
-                    if (!this.dataTable !== null && eventDef.dateProfile.start.unix() < moment().stripZone().unix() &&
-                        eventDef.dateProfile.start.unix() > this.latestBeforeToday.unix()) {
-                        this.latestBeforeToday = eventDef.dateProfile.start;
-                        this.latestRow = row;
-                    }
-                }
-
-                if (this.dataTable !== null &&
-                    this.dataTable.order()[0][0] === 2 &&
-                    this.dataTable.order()[0][1] === "asc" &&
-                    this.latestRow &&
-                    this.latestRow.children().length > 0) {
-                    // Jump to the page with the current date's row on it
-                    let rowIndex = this.dataTable.row(this.latestRow).index(), pageNum;
-                    if (rowIndex !== 0) {
-                        pageNum = Math.floor(rowIndex / this.dataTable.page.len());
-                    } else {
-                        pageNum = 0;
-                    }
-                    this.dataTable.page(pageNum).draw(false);
-                }
-
-                return segs;
-            },
-
-            renderEmptyMessage: function () {
-                this.el.html(
-                    '<div class="fc-list-empty-wrap2">' +
-                    '<div class="fc-list-empty-wrap1">' +
-                    '<div class="fc-list-empty">' +
-                    $.fullCalendar.htmlEscape(this.opt('noEventsMessage')) +
-                    '</div>' +
-                    '</div>' +
-                    '</div>'
-                );
-            },
-
-            renderSegList: function (segs) {
-                const tableEl = this.tableEl = $(
-                    '<table id="calendar-list-table"  class="fc-list-table table-striped '
-                    + this.view.calendar.theme.getClass(
-                        'tableList')
-                    + '"><tbody/></table>');
-                const tbodyEl = tableEl.find('tbody');
-
-                tableEl.append(this.headerHtml());
-
-                let i;
-                for (i = 0; i < segs.length; i++) {
-                    tbodyEl.append(segs[i].el);
-                }
-
-                this.el.empty().append(tableEl);
-
-                this.dataTable = tableEl.dataTable(
-                    {
-                        lengthMenu: [
-                            [50, 100, 250, 500, -1],
-                            [50, 100, 250, 500, "All"]
-                        ],
-                        order: [2, "asc"],
-                        aoColumns: [
-                            // Checkbox
-                            {bSearchable: false, sClass: "hidden-xs", sWidth: "60px", orderDataType: "dom-checkbox"},
-                            // Title
-                            null,
-                            // Due Date
-                            {sType: "date", sWidth: "180px"},
-                            // Class
-                            null,
-                            // Category
-                            {sClass: "hidden-xs hidden-sm"},
-                            // Materials
-                            {sClass: "hidden-xs"},
-                            // Priority
-                            {sClass: "hidden-xs", sWidth: "110px"},
-                            // Grade
-                            {sWidth: "110px"}
-                        ],
-                        stateSave: true,
-                        oLanguage: {
-                            sEmptyTable: "Nothing to see here. Change the date or filters, or click \"+\" to add an assignment."
-                        },
-                        destroy: true
-                    }).DataTable();
-
-                tableEl.parent().find("#calendar-list-table_length").addClass("hidden-print");
-                tableEl.parent().find("#calendar-list-table_info").parent().parent().addClass("hidden-print");
-
-                tableEl.wrap('<div class="row"></div>');
-            },
-
-            headerHtml: function () {
-                const view = this.view;
-
-                return '<thead class="fc-list-heading"><tr>'
-                       + '<th class=' + view.calendar.theme.getClass('widgetHeader') + '></th>'
-                       + '<th class=' + view.calendar.theme.getClass('widgetHeader') + '>Title</th>'
-                       + '<th class=' + view.calendar.theme.getClass('widgetHeader') + '>Due Date</th>'
-                       + '<th class=' + view.calendar.theme.getClass('widgetHeader') + '>Class</th>'
-                       + '<th class=' + view.calendar.theme.getClass('widgetHeader') + '>Category</th>'
-                       + '<th class=' + view.calendar.theme.getClass('widgetHeader') + '>Materials</th>'
-                       + '<th class=' + view.calendar.theme.getClass('widgetHeader') + '>Priority</th>'
-                       + '<th class=' + view.calendar.theme.getClass('widgetHeader') + '>Grade</th>'
-                       + '</tr></thead>';
-            },
-
-            fgSegHtml: function (seg) {
-                const view = this.view;
-                const calendar = view.calendar;
-                const theme = calendar.theme;
-                const classes = ['fc-list-item'].concat(this.getSegCustomClasses(seg));
-                const eventFootprint = seg.footprint;
-                const eventDef = eventFootprint.eventDef;
-
-                if (eventDef.miscProps.calendar_item_type !== 1) {
-                    return "";
-                }
-
-                return '<tr class="' + classes.join(' ') + '">' +
-                       '<td class="' + theme.getClass('widgetContent') + '">' + eventDef.miscProps.checkbox + '</td>' +
-                       '<td class="fc-assignmentList-item-title ' + theme.getClass('widgetContent') + '">'
-                       + eventDef.title + '</td>' +
-                       '<td class="' + theme.getClass('widgetContent') + '">' + $.fullCalendar.formatDate(
-                        eventDef.dateProfile.start, "MMM D, YYYY") + (!eventDef.miscProps.all_day
-                                                                      ? $.fullCalendar.formatDate(
-                            eventDef.dateProfile.start, " h:mm a") : "") + '</td>' +
-                       '<td class="' + theme.getClass('widgetContent')
-                       + '"><span class="label label-sm" style="background-color: ' + eventDef.color + " !important\">"
-                       + (eventDef.miscProps.course !== null ? helium.calendar.courses[eventDef.miscProps.course].title
-                                                             : "") + '</span></td>' +
-                       '<td class="' + theme.getClass('widgetContent') + '">' + (eventDef.miscProps.calendar_item_type
-                                                                                 === 1 ? (eventDef.miscProps.category
-                                                                                          !== null
-                                                                                          ? ("<span class=\"label label-sm\" style=\"background-color: "
-                       + helium.calendar.categories[eventDef.miscProps.category].color + " !important\">"
-                       + helium.calendar.categories[eventDef.miscProps.category].title + "</span>") : "") : "")
-                       + '</td>' +
-                       '<td class="' + theme.getClass('widgetContent') + '">' + (eventDef.miscProps.calendar_item_type
-                                                                                 === 1
-                                                                                 ? helium.calendar.get_materials_titles_badges_from_ids(
-                            eventDef.miscProps.materials) : "") + '</td>' +
-                       '<td class="' + theme.getClass('widgetContent') + '">' + (eventDef.miscProps.calendar_item_type
-                                                                                 === 1
-                                                                                 ? "<div class=\"progress progress-mini progress-striped\" style=\"margin-top: 6px; margin-bottom: 0;\"><div class=\"progress-bar progress-bar-success\" style=\"width: "
-                       + eventDef.miscProps.priority + "%;\"><span class=\"hidden\">" + eventDef.miscProps.priority
-                       + "</span></div></div>" : "") + '</td>' +
-                       '<td class="' + theme.getClass('widgetContent') + '">' + (eventDef.miscProps.completed
-                                                                                 && eventDef.miscProps.current_grade
-                                                                                 !== "-1/100"
-                                                                                 ? "<span class=\"badge badge-info\">"
-                       + helium.grade_for_display(eventDef.miscProps.current_grade) + "</span>" : "") + '</td>' +
-                       '</tr>';
-            }
-        });
-
-    $.fullCalendar.views.assignmentsList = $.fullCalendar.ListView.extend(
-        {
-            // grid: null,
-            // scroller: null,
 
             initialize: function () {
                 // this.grid = new ListViewGrid(this);
                 // this.grid = new ListViewGrid(this);
                 // this.addChild(this.timeGrid);
 
-                // this.scroller = new $.fullCalendar.Scroller({
-                //                                                 overflowX: 'hidden',
-                //                                                 overflowY: 'auto'
-                //                                             });
+                this.scroller = new $.fullCalendar.Scroller({
+                                                                overflowX: 'hidden',
+                                                                overflowY: 'auto'
+                                                            });
 
                 this.titleHtml =
                     "Assignments List <span class=\"hidden-xs assignmentslist-help help-button\" data-rel=\"popover\" data-trigger=\"hover\" data-container=\"body\" data-placement=\"right\" data-content=\"This view shows only assignments—no class schedules, events, or external calendars—allowing you to quickly sort through and review your schoolwork.\" title=\"List View\">?</span>"
@@ -2575,12 +2303,30 @@ function HeliumCalendar() {
                 //     }
                 // });
 
-                // TODO: the below should be able to replaced with something like the above, but need to figure out how to make it work
+                // TODO: the below should be able to replaced with something like the above, but need to figure out how
+                // to make it work
                 this.calendar.header.el.find('h2')
                     .html(this.titleHtml)
                     .find(".assignmentslist-help").popover({html: true}).data("bs.popover").tip().css("z-index", 1060);
                 this.calendar.updateToolbarButtons();
             },
+
+            // renderSkeleton: function () {
+            //     this.el.addClass(
+            //         'fc-list-view ' +
+            //         this.calendar.theme.getClass('listView')
+            //     );
+            //
+            //     this.scroller.render();
+            //     this.scroller.el.appendTo(this.el);
+            //
+            //     this.grid.setElement(this.scroller.scrollEl);
+            //
+            //     this.activeUnzonedRange = new $.fullCalendar.UnzonedRange(
+            //         this.calendar.currentDate.clone().subtract(10, "years"),
+            //         this.calendar.currentDate.clone().add(10, "years")
+            //     );
+            // },
 
             // TODO: does this activeUnzonedRange need to live elsewhere?
             // renderSkeleton: function () {
@@ -2622,9 +2368,9 @@ function HeliumCalendar() {
             // renderDates: function(dateProfile) {
             //     this.grid.sliceRangeByTimes(dateProfile);
             //     this.dateProfile = dateProfile;
-                // this.updateDayTable();
-                // this.renderSlats();
-                // this.renderColumns();
+            // this.updateDayTable();
+            // this.renderSlats();
+            // this.renderColumns();
             // },
 
             // TODO: probably can comment these out in favor of eventResizableFromStart opt?
@@ -2634,6 +2380,189 @@ function HeliumCalendar() {
 
             isEventDefDraggable: function (eventDef) {
                 return false;
+            },
+
+            eventRendererClass: $.fullCalendar.EventRenderer.extend(
+                {
+                    renderFgSegs: function (segs) {
+                        if (!segs.length) {
+                            this.component.renderEmptyMessage();
+                        } else {
+                            this.component.renderSegList(segs);
+                        }
+                    },
+
+                    fgSegHtml: function (seg) {
+                        const view = this.view;
+                        const calendar = view.calendar;
+                        const theme = calendar.theme;
+                        const eventFootprint = seg.footprint;
+                        const eventDef = eventFootprint.eventDef;
+                        const classes = ['fc-list-item'].concat(this.getClasses(eventDef));
+
+                        if (eventDef.miscProps.calendar_item_type !== 1) {
+                            return "";
+                        }
+
+                        return '<tr class="' + classes.join(' ') + '">' +
+                               '<td class="' + theme.getClass('widgetContent') + '">' + eventDef.miscProps.checkbox
+                               + '</td>' +
+                               '<td class="fc-assignmentList-item-title ' + theme.getClass('widgetContent') + '">'
+                               + eventDef.title + '</td>' +
+                               '<td class="' + theme.getClass('widgetContent') + '">' + $.fullCalendar.formatDate(
+                                eventDef.dateProfile.start, "MMM D, YYYY") + (!eventDef.miscProps.all_day
+                                                                              ? $.fullCalendar.formatDate(
+                                    eventDef.dateProfile.start, " h:mm a") : "") + '</td>' +
+                               '<td class="' + theme.getClass('widgetContent')
+                               + '"><span class="label label-sm" style="background-color: ' + eventDef.color
+                               + " !important\">"
+                               + (eventDef.miscProps.course !== null
+                                  ? helium.calendar.courses[eventDef.miscProps.course].title
+                                  : "") + '</span></td>' +
+                               '<td class="' + theme.getClass('widgetContent') + '">'
+                               + (eventDef.miscProps.calendar_item_type
+                                  === 1 ? (eventDef.miscProps.category
+                                           !== null
+                                           ? ("<span class=\"label label-sm\" style=\"background-color: "
+                               + helium.calendar.categories[eventDef.miscProps.category].color + " !important\">"
+                               + helium.calendar.categories[eventDef.miscProps.category].title + "</span>") : "") : "")
+                               + '</td>' +
+                               '<td class="' + theme.getClass('widgetContent') + '">'
+                               + (eventDef.miscProps.calendar_item_type
+                                  === 1
+                                  ? helium.calendar.get_materials_titles_badges_from_ids(
+                                    eventDef.miscProps.materials) : "") + '</td>' +
+                               '<td class="' + theme.getClass('widgetContent') + '">'
+                               + (eventDef.miscProps.calendar_item_type
+                                  === 1
+                                  ? "<div class=\"progress progress-mini progress-striped\" style=\"margin-top: 6px; margin-bottom: 0;\"><div class=\"progress-bar progress-bar-success\" style=\"width: "
+                               + eventDef.miscProps.priority + "%;\"><span class=\"hidden\">"
+                               + eventDef.miscProps.priority
+                               + "</span></div></div>" : "") + '</td>' +
+                               '<td class="' + theme.getClass('widgetContent') + '">' + (eventDef.miscProps.completed
+                                                                                         && eventDef.miscProps.current_grade
+                                                                                         !== "-1/100"
+                                                                                         ? "<span class=\"badge badge-info\">"
+                               + helium.grade_for_display(eventDef.miscProps.current_grade) + "</span>" : "") + '</td>'
+                               +
+                               '</tr>';
+                    },
+
+                    // like "4:00am"
+                    computeEventTimeFormat: function () {
+                        return this.opt('mediumTimeFormat');
+                    }
+
+                }),
+
+            headerHtml: function () {
+                const calendar = this.calendar;
+                const theme = calendar.theme;
+
+                return '<thead class="fc-list-heading"><tr>'
+                       + '<th class=' + theme.getClass('widgetHeader') + '></th>'
+                       + '<th class=' + theme.getClass('widgetHeader') + '>Title</th>'
+                       + '<th class=' + theme.getClass('widgetHeader') + '>Due Date</th>'
+                       + '<th class=' + theme.getClass('widgetHeader') + '>Class</th>'
+                       + '<th class=' + theme.getClass('widgetHeader') + '>Category</th>'
+                       + '<th class=' + theme.getClass('widgetHeader') + '>Materials</th>'
+                       + '<th class=' + theme.getClass('widgetHeader') + '>Priority</th>'
+                       + '<th class=' + theme.getClass('widgetHeader') + '>Grade</th>'
+                       + '</tr></thead>';
+            },
+
+            renderSegList: function (segs) {
+                const calendar = this.calendar;
+                const theme = calendar.theme;
+
+                // TODO: this was migrated from another function, double check it works here
+                if (this.dataTable !== null) {
+                    this.dataTable.clear();
+                }
+
+                const tableEl = this.tableEl = $(
+                    '<table id="calendar-list-table"  class="fc-list-table table-striped '
+                    + theme.getClass(
+                        'tableList')
+                    + '"><tbody/></table>');
+                const tbodyEl = tableEl.find('tbody');
+
+                tableEl.append(this.headerHtml());
+
+                let i;
+                for (i = 0; i < segs.length; i++) {
+                    tbodyEl.append(segs[i].el);
+                }
+
+                this.contentEl.empty().append(tableEl);
+
+                this.dataTable = tableEl.dataTable(
+                    {
+                        lengthMenu: [
+                            [50, 100, 250, 500, -1],
+                            [50, 100, 250, 500, "All"]
+                        ],
+                        order: [2, "asc"],
+                        aoColumns: [
+                            // Checkbox
+                            {bSearchable: false, sClass: "hidden-xs", sWidth: "60px", orderDataType: "dom-checkbox"},
+                            // Title
+                            null,
+                            // Due Date
+                            {sType: "date", sWidth: "180px"},
+                            // Class
+                            null,
+                            // Category
+                            {sClass: "hidden-xs hidden-sm"},
+                            // Materials
+                            {sClass: "hidden-xs"},
+                            // Priority
+                            {sClass: "hidden-xs", sWidth: "110px"},
+                            // Grade
+                            {sWidth: "110px"}
+                        ],
+                        stateSave: true,
+                        oLanguage: {
+                            sEmptyTable: "Nothing to see here. Change the date or filters, or click \"+\" to add an assignment."
+                        },
+                        destroy: true
+                    }).DataTable();
+
+                tableEl.parent().find("#calendar-list-table_length").addClass("hidden-print");
+                tableEl.parent().find("#calendar-list-table_info").parent().parent().addClass("hidden-print");
+
+                tableEl.wrap('<div class="row"></div>');
+
+                // TODO: we can likely update this once we get range rendering properly refactored in to the view
+                this.latestBeforeToday = new moment(0);
+                for (let seg of segs) {
+                    let eventDef = seg.footprint.eventDef;
+                    let row = $(seg.el[0]);
+
+                    row.attr("id", "homework-table-row-" + eventDef.id);
+
+                    // Check if we've reached today's date
+                    if (!this.dataTable !== null && eventDef.dateProfile.start.unix() < moment().stripZone().unix() &&
+                        eventDef.dateProfile.start.unix() > this.latestBeforeToday.unix()) {
+                        this.latestBeforeToday = eventDef.dateProfile.start;
+                        this.latestRow = row;
+                    }
+                }
+
+                if (this.dataTable !== null &&
+                    this.dataTable.order()[0][0] === 2 &&
+                    this.dataTable.order()[0][1] === "asc" &&
+                    this.latestRow &&
+                    this.latestRow.children().length > 0) {
+                    // Jump to the page with the current date's row on it
+                    let rowIndex = this.dataTable.row(this.latestRow).index(), pageNum;
+                    if (rowIndex !== 0) {
+                        pageNum = Math.floor(rowIndex / this.dataTable.page.len());
+                    } else {
+                        pageNum = 0;
+                    }
+                    this.dataTable.page(pageNum).draw(false);
+                }
             }
         });
 })
