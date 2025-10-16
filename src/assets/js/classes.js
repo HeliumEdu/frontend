@@ -1899,7 +1899,7 @@ $(document).ready(function () {
 
                         $("#course-error").html(
                             "The class is saved, but an error occurred while uploading attachments. If the error persists, <a href=\""
-                            + window.SUPPORT_URL + "\">open a ticket</a>.");
+                            + window.SUPPORT_URL + "\">contact support</a>.");
                         $("#course-error").parent().show("fast");
 
                         $("a[href='#course-panel-tab-4']").tab("show");

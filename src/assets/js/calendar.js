@@ -868,6 +868,7 @@ function HeliumCalendar() {
                                 end: moment(calendar_item.end)
                                     .tz(helium.USER_PREFS.settings.time_zone),
                                 allDay: calendar_item.all_day,
+                                all_day: calendar_item.all_day,
                                 editable: false,
                                 // The following elements are for list view display accuracy
                                 materials: [],
@@ -922,6 +923,7 @@ function HeliumCalendar() {
                             start: moment(calendar_item.start).tz(helium.USER_PREFS.settings.time_zone),
                             end: moment(calendar_item.end).tz(helium.USER_PREFS.settings.time_zone),
                             allDay: calendar_item.all_day,
+                            all_day: calendar_item.all_day,
                             // The following elements are for list view display accuracy
                             materials: [],
                             show_end_time: calendar_item.show_end_time,
@@ -986,6 +988,7 @@ function HeliumCalendar() {
                                 start: moment(calendar_item.start).tz(helium.USER_PREFS.settings.time_zone),
                                 end: moment(calendar_item.end).tz(helium.USER_PREFS.settings.time_zone),
                                 allDay: calendar_item.all_day,
+                                all_day: calendar_item.all_day,
                                 editable: false,
                                 // The following elements are for list view display accuracy
                                 materials: helium.calendar.get_material_ids_for_course(course),
@@ -1042,6 +1045,7 @@ function HeliumCalendar() {
                                     start: moment(calendar_item.start).tz(helium.USER_PREFS.settings.time_zone),
                                     end: moment(calendar_item.end).tz(helium.USER_PREFS.settings.time_zone),
                                     allDay: calendar_item.all_day,
+                                    all_day: calendar_item.all_day,
                                     // The following elements are for list view display accuracy
                                     materials: calendar_item.materials,
                                     show_end_time: calendar_item.show_end_time,
@@ -1153,13 +1157,19 @@ function HeliumCalendar() {
                         self.previous_view = view.name;
                         if (view.name !== "assignmentsList") {
                             self.previous_period = view.calendar.eventManager.currentPeriod;
+                        } else {
+                            // Edge case, this only happens when the default view is Assignments List, the first time
+                            // the user navigates away from it
+                            view.calendar.eventManager.currentPeriod.removeAllEventDefs();
                         }
                     },
                     viewRender: function (view) {
                         if (view.name === "assignmentsList" && self.previous_period) {
                             self.previous_period.removeAllEventDefs();
                         } else if (self.previous_view !== undefined && self.previous_view === "assignmentsList") {
-                            view.calendar.eventManager.setPeriod(self.previous_period);
+                            view.calendar.eventManager.currentPeriod.start = view.start;
+                            view.calendar.eventManager.currentPeriod.end = view.end;
+                            view.calendar.eventManager.setPeriod(view.calendar.eventManager.currentPeriod);
 
                             view.calendar.addEventSource(helium.calendar.event_source_external_calendars);
                             view.calendar.addEventSource(helium.calendar.event_source_events);
@@ -1429,7 +1439,8 @@ function HeliumCalendar() {
                 clearTimeout(self.typing_timer);
                 self.typing_timer = setTimeout(function () {
                     self.refresh_filters(false);
-                    self.refresh_classes();
+                    self.refresh_classes(false);
+                    $("#calendar").fullCalendar("refetchEvents");
                 }, self.DONE_TYPING_INTERVAL);
             }
         });
@@ -1668,6 +1679,7 @@ function HeliumCalendar() {
                     start: moment(calendar_item.start).tz(helium.USER_PREFS.settings.time_zone),
                     end: moment(calendar_item.end).tz(helium.USER_PREFS.settings.time_zone),
                     allDay: calendar_item.all_day,
+                    all_day: calendar_item.all_day,
                     // The following elements are for list view display accuracy
                     materials: calendar_item.calendar_item_type === 1 ? calendar_item.materials : [],
                     show_end_time: calendar_item.show_end_time,
@@ -1682,6 +1694,7 @@ function HeliumCalendar() {
                     reminders: calendar_item.reminders
                 });
                 event = $("#calendar").fullCalendar("clientEvents", [calendar_item.id])[0];
+                // TODO: can be removed once upgrade to FullCalendar 3.6.2
                 $("#calendar").fullCalendar("refetchEvents");
 
                 self.edit = false;
@@ -2104,6 +2117,7 @@ function HeliumCalendar() {
                             start: moment(calendar_item.start).tz(helium.USER_PREFS.settings.time_zone),
                             end: moment(calendar_item.end).tz(helium.USER_PREFS.settings.time_zone),
                             allDay: calendar_item.all_day,
+                            all_day: calendar_item.all_day,
                             // The following elements are for list view display accuracy
                             materials: calendar_item.calendar_item_type === 1 ? calendar_item.materials : [],
                             show_end_time: calendar_item.show_end_time,
@@ -2117,6 +2131,7 @@ function HeliumCalendar() {
                             attachments: calendar_item.attachments,
                             reminders: calendar_item.reminders
                         });
+                        // TODO: can be removed once upgrade to FullCalendar 3.6.2
                         $("#calendar").fullCalendar("refetchEvents");
 
                         if (!helium.ajax_error_occurred) {
@@ -2253,6 +2268,7 @@ function HeliumCalendar() {
 
         $("#calendar").fullCalendar("updateEvent", self.current_calendar_item);
         $("#calendar").fullCalendar("unselect");
+        // TODO: can be removed once upgrade to FullCalendar 3.6.2
         $("#calendar").fullCalendar("refetchEvents");
     };
 }
@@ -2499,7 +2515,7 @@ function HeliumCalendar() {
                        '<td class="fc-assignmentList-item-title ' + theme.getClass('widgetContent') + '">'
                        + eventDef.title + '</td>' +
                        '<td class="' + theme.getClass('widgetContent') + '">' + $.fullCalendar.formatDate(
-                        eventDef.dateProfile.start, "MMM D, YYYY") + (!eventDef.miscProps.allDay
+                        eventDef.dateProfile.start, "MMM D, YYYY") + (!eventDef.miscProps.all_day
                                                                       ? $.fullCalendar.formatDate(
                             eventDef.dateProfile.start, " h:mm a") : "") + '</td>' +
                        '<td class="' + theme.getClass('widgetContent')
@@ -2569,6 +2585,7 @@ function HeliumCalendar() {
 
                 this.title = this.computeTitle();
                 this.calendar.currentDate = dateProfile.date;
+                // TODO: all but this section can be removed when we upgrade to FullCalendar 3.6.2
                 this.calendar.header.el.find('h2')
                     .html(this.titleHtml)
                     .find(".assignmentslist-help").popover({html: true}).data("bs.popover").tip().css("z-index", 1060);
@@ -2904,7 +2921,20 @@ $(document).ready(function () {
                                         }
                                     });
                                     this.on("successmultiple", function (files) {
-                                        $("#calendar").fullCalendar("refetchEvents");
+                                        const callback = function (data) {
+                                            helium.calendar.update_current_calendar_item(data)
+                                        }
+                                        if (helium.calendar.calendar_item_for_dropzone.calendar_item_type === 0) {
+                                            helium.planner_api.get_event(callback,
+                                                                         helium.calendar.calendar_item_for_dropzone.id,
+                                                                         true, false);
+                                        } else {
+                                            helium.planner_api.get_homework(callback,
+                                                                            helium.calendar.calendar_item_for_dropzone.course_group,
+                                                                            helium.calendar.calendar_item_for_dropzone.course,
+                                                                            helium.calendar.calendar_item_for_dropzone.id,
+                                                                            true, false);
+                                        }
 
                                         $("#loading-homework-modal").spin(false);
                                         $("#homework-modal").modal("hide");
@@ -2920,16 +2950,16 @@ $(document).ready(function () {
                                                 === 0) {
                                                 $("#homework-error").html(
                                                     "The event is saved, but an error occurred while uploading attachments. If the error persists, <a href=\""
-                                                    + window.SUPPORT_URL + "\">open a ticket</a>.");
+                                                    + window.SUPPORT_URL + "\">contact support</a>.");
                                             } else {
                                                 $("#homework-error").html(
                                                     "The assignment is saved, but an error occurred while uploading attachments. If the error persists, <a href=\""
-                                                    + window.SUPPORT_URL + "\">open a ticket</a>.");
+                                                    + window.SUPPORT_URL + "\">contact support</a>.");
                                             }
                                         } else {
                                             $("#homework-error").html(
                                                 "An unknown error occurred with attachments. If the error persists, <a href=\""
-                                                + window.SUPPORT_URL + "\">open a ticket</a>.");
+                                                + window.SUPPORT_URL + "\">contact support</a>.");
                                         }
                                         $("#homework-error").parent().show("fast");
 
