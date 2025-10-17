@@ -6,7 +6,6 @@ var _rollbarConfig = {
         environment: "${DIST_ENV}",
         client: {
             javascript: {
-                code_version: "${DIST_VERSION}",
                 source_map_enabled: true,
                 guess_uncaught_frames: true
             }
