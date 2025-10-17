@@ -1164,6 +1164,7 @@ function HeliumCalendar() {
                         }
                     },
                     viewRender: function (view) {
+                        // TODO: do we still need all this with the new approach?
                         if (view.name === "assignmentsList" && self.previous_period) {
                             self.previous_period.removeAllEventDefs();
                         } else if (self.previous_view !== undefined && self.previous_view === "assignmentsList") {
@@ -2286,6 +2287,7 @@ function HeliumCalendar() {
                 // this.grid = new ListViewGrid(this);
                 // this.addChild(this.timeGrid);
 
+                // TODO: can remove this?
                 this.scroller = new $.fullCalendar.Scroller({
                                                                 overflowX: 'hidden',
                                                                 overflowY: 'auto'
@@ -2373,15 +2375,6 @@ function HeliumCalendar() {
             // this.renderColumns();
             // },
 
-            // TODO: probably can comment these out in favor of eventResizableFromStart opt?
-            isEventDefResizable: function (eventDef) {
-                return false;
-            },
-
-            isEventDefDraggable: function (eventDef) {
-                return false;
-            },
-
             eventRendererClass: $.fullCalendar.EventRenderer.extend(
                 {
                     renderFgSegs: function (segs) {
@@ -2448,7 +2441,6 @@ function HeliumCalendar() {
                                '</tr>';
                     },
 
-                    // like "4:00am"
                     computeEventTimeFormat: function () {
                         return this.opt('mediumTimeFormat');
                     }
@@ -2549,6 +2541,7 @@ function HeliumCalendar() {
                     }
                 }
 
+                // TODO: double check this still works
                 if (this.dataTable !== null &&
                     this.dataTable.order()[0][0] === 2 &&
                     this.dataTable.order()[0][1] === "asc" &&
@@ -2565,8 +2558,7 @@ function HeliumCalendar() {
                 }
             }
         });
-})
-();
+})();
 
 // Initialize HeliumClasses and give a reference to the Helium object
 helium.calendar = new HeliumCalendar();
