@@ -789,6 +789,21 @@ function HeliumCalendar() {
         }
     };
 
+    this.calculate_course_filter_window = function () {
+        $.each(helium.calendar.courses, function (index, course) {
+            const start_date = moment(course.start_date);
+            const end_date = moment(course.end_date);
+            if (self.course_filter_window_start === undefined
+                || start_date < self.course_filter_window_start) {
+                self.course_filter_window_start = start_date;
+            }
+            if (self.course_filter_window_end === undefined
+                || end_date > self.course_filter_window_end) {
+                self.course_filter_window_end = end_date.add(1, "days")
+            }
+        });
+    }
+
     /**
      * Refresh the classes based on the current filter selection.
      */
@@ -1123,6 +1138,8 @@ function HeliumCalendar() {
     this.initialize_calendar = function () {
         helium.ajax_error_occurred = false;
 
+        self.calculate_course_filter_window();
+
         let user_view_pref = helium.USER_PREFS.settings.default_view;
         if (user_view_pref === 3) {
             user_view_pref = 4;
@@ -1155,28 +1172,24 @@ function HeliumCalendar() {
                     nowIndicator: true,
                     viewDestroy: function (view) {
                         self.previous_view = view.name;
-                        if (view.name !== "assignmentsList") {
-                            self.previous_period = view.calendar.eventManager.currentPeriod;
-                        } else {
-                            // Edge case, this only happens when the default view is Assignments List, the first time
-                            // the user navigates away from it
-                            view.calendar.eventManager.currentPeriod.removeAllEventDefs();
-                        }
                     },
                     viewRender: function (view) {
-                        if (view.name === "assignmentsList" && self.previous_period) {
-                            self.previous_period.removeAllEventDefs();
-                        } else if (self.previous_view !== undefined && self.previous_view === "assignmentsList") {
+                        if (self.previous_view !== undefined && self.previous_view === "assignmentsList") {
+                            // Effectively the "calendar" views and the "list" view have two different event
+                            // management styles, so we force-repopulate the sources to ensure the windowing is
+                            // correct between view transitions
+                            view.calendar.removeEventSource(helium.calendar.event_source_homework);
+
                             view.calendar.eventManager.currentPeriod.start = view.start;
                             view.calendar.eventManager.currentPeriod.end = view.end;
                             view.calendar.eventManager.setPeriod(view.calendar.eventManager.currentPeriod);
 
+                            view.calendar.addEventSource(helium.calendar.event_source_homework);
                             view.calendar.addEventSource(helium.calendar.event_source_external_calendars);
                             view.calendar.addEventSource(helium.calendar.event_source_events);
                             view.calendar.addEventSource(helium.calendar.event_source_class_schedules);
 
                             self.previous_view = null;
-                            self.previous_period = null;
                         }
                     },
                     eventAfterAllRender: self.refresh_view,
@@ -1365,7 +1378,7 @@ function HeliumCalendar() {
                             titleFormat: "MMM D YYYY"
                         },
                         assignmentsList: {
-                            buttonText: 'list'
+                            buttonText: 'todos'
                         },
                     }
                 });
@@ -1378,7 +1391,7 @@ function HeliumCalendar() {
             // Customize the calendar header
             $(".fc-toolbar .fc-right").prepend(
                 "<div class=\"fc-button-group\">"
-                + "<div class='btn-group' id=\"calendar-classes\"><button data-toggle=\"dropdown\" class=\"fc-button fc-state-default btn btn-sm dropdown-toggle\"><span id=\"classes-button-title\">Classes</span><span class=\"icon-caret-down icon-on-right\"></span></button><ul id=\"calendar-classes-list\" class=\"dropdown-menu dropdown-menu-form pull-right\" role=\"menu\"></ul></div>"
+                + "<div class='btn-group' id=\"calendar-classes\"><button data-toggle=\"dropdown\" class=\"fc-button fc-state-default btn btn-sm dropdown-toggle\"><span id=\"classes-button-title\">Classes</span><span class=\"icon-caret-down icon-on-right\"></span></button><ul id=\"calendar-classes-list\" class=\"dropdown-menu dropdown-menu-form pull-right\" role=\"menu\"><li id=\"filter-classes-clear\"><a class=\"cursor-hover\">Clear Filters</a></li><li class=\"divider\"></li></ul></div>"
                 + "<div class='btn-group' id=\"calendar-filters\"><button data-toggle=\"dropdown\" class=\"fc-button fc-state-default btn btn-sm dropdown-toggle\"><span id=\"filter-button-title\">Filter</span><span class=\"icon-caret-down icon-on-right\"></span></button><ul id=\"calendar-filter-list\" class=\"dropdown-menu dropdown-menu-form pull-right\" role=\"menu\"><li id=\"filter-clear\"><a class=\"cursor-hover\">Clear Filters</a></li></ul></div>"
                 + "</div>");
             $(".fc-toolbar .fc-right").prepend(
@@ -1411,6 +1424,16 @@ function HeliumCalendar() {
 
             self.initialize_filters();
             self.initialize_search_bindings();
+
+            $("#filter-classes-clear").on("click", function () {
+                $("#classes-button-title").html("Classes");
+                $.each(
+                    $("[id^='calendar-filter-course-']"),
+                    function () {
+                        $(this).children().find("input").prop("checked", true);
+                    });
+                self.refresh_classes();
+            });
 
             $("#filter-clear").on("click", function () {
                 $("#filter-button-title").html("Filter");
@@ -1537,41 +1560,74 @@ function HeliumCalendar() {
         $("#calendar-filter-overdue input").on("click", self.event_stop_propagation).on("change", self.refresh_filters);
         $("#calendar-filter-overdue a").on("click", self.update_filter_checkbox_from_event);
 
-        // Initialize course filters
-        const course_ids = localStorage.getItem("filter_courses").split(",");
-        let courses_added = 0;
-        if (Object.keys(helium.calendar.courses).length > 0) {
-            $.each(helium.calendar.courses, function (index, course) {
-                if (!helium.calendar.course_groups[course.course_group].shown_on_calendar) {
-                    return true;
-                }
+        if (!helium.ajax_error_occurred) {
+            // Initialize course filters
+            let courses_added = 0;
+            if (Object.keys(helium.calendar.courses).length > 0) {
+                let course_groups = Object.entries(helium.calendar.course_groups);
+                course_groups.sort((a, b) => {
+                    const a_start = moment(a[1].start_date);
+                    const b_start = moment(b[1].start_date);
 
-                $("#calendar-classes-list").append("<li id=\"calendar-filter-course-" + course.id
-                                                   + "\"><a class=\"checkbox cursor-hover filter-course-title\"><input type=\"checkbox\" name=\"course-"
-                                                   + course.id + "\""
-                                                   + ($.inArray(course.id.toString(), course_ids) !== -1
-                                                      ? "checked=\"checked\"" : "") + "/> &nbsp;<span style=\"color: "
-                                                   + course.color + "\">" + course.title + "</span></a></li>");
-                $("#calendar-filter-course-" + course.id + " input").on("click", self.event_stop_propagation)
-                    .on("change", self.refresh_classes);
-                $("#calendar-filter-course-" + course.id + " a").on("click", function () {
-                    let checkbox;
-                    checkbox = $($(this).children()[0]);
-                    checkbox.prop("checked", !checkbox.is(":checked")).trigger("change");
+                    if (a_start.isAfter(b_start)) {
+                        return -1;
+                    } else if (a_start.isBefore(b_start)) {
+                        return 1;
+                    }
+                    return 0;
                 });
 
-                courses_added += 1;
-            });
-        }
+                let groups_shown = 0;
+                $.each(course_groups, function (group_index, course_group_tuple) {
+                    let course_group = course_group_tuple[1];
+                    if (!course_group.shown_on_calendar) {
+                        return true;
+                    }
 
-        if (courses_added === 0) {
-            $("#calendar-classes button").attr("disabled", "disabled");
-            $("#calendar-filters button").attr("disabled", "disabled");
-        } else if (courses_added === 1) {
-            $("#calendar-classes button").attr("disabled", "disabled");
-        }
+                    const courses = Object.entries(helium.calendar.courses).filter(([id, course]) => {
+                        return course.course_group === course_group.id;
+                    });
+                    if (courses.length > 0 && groups_shown > 0) {
+                        $("#calendar-classes-list").append("<li class=\"divider\"></li>");
+                    }
+                    groups_shown += 1;
 
-        if (!helium.ajax_error_occurred) {
+                    courses.sort((a, b) => {
+                        if (a[1].title < b[1].title) {
+                            return -1;
+                        } else if (a[1].title > b[1].title) {
+                            return 1;
+                        }
+                        return 0;
+                    });
+
+                    $.each(courses, function (course_index, course_tuple) {
+                        let course = course_tuple[1]
+
+                        $("#calendar-classes-list").append("<li id=\"calendar-filter-course-" + course.id
+                                                           + "\"><a class=\"checkbox cursor-hover filter-course-title\"><input type=\"checkbox\" name=\"course-"
+                                                           + course.id + "\"/> &nbsp;<span style=\"color: "
+                                                           + course.color + "\">" + course.title + "</span></a></li>");
+                        $("#calendar-filter-course-" + course.id + " input").on("click", self.event_stop_propagation)
+                            .on("change", self.refresh_classes);
+                        $("#calendar-filter-course-" + course.id + " a").on("click", function () {
+                            let checkbox;
+                            checkbox = $($(this).children()[0]);
+                            checkbox.prop("checked", !checkbox.is(":checked")).trigger("change");
+                        });
+
+                        courses_added += 1;
+                    });
+                });
+            }
+
+            if (courses_added === 0) {
+                $("#calendar-classes button").attr("disabled", "disabled");
+                $("#calendar-filters button").attr("disabled", "disabled");
+            } else if (courses_added === 1) {
+                $("#calendar-classes button").attr("disabled", "disabled");
+            }
+
             // Initialize category filters
             helium.planner_api.get_category_names(function (data) {
                 if (helium.data_has_err_msg(data)) {
@@ -1628,7 +1684,6 @@ function HeliumCalendar() {
             } else {
                 $("#calendar").fullCalendar("unselect");
                 $("#calendar").fullCalendar("removeEvents", self.current_calendar_item.id);
-                $("#calendar").fullCalendar("refetchEvents");
 
                 self.nullify_calendar_item_persistence();
 
@@ -1694,8 +1749,6 @@ function HeliumCalendar() {
                     reminders: calendar_item.reminders
                 });
                 event = $("#calendar").fullCalendar("clientEvents", [calendar_item.id])[0];
-                // TODO: can be removed once upgrade to FullCalendar 3.6.2
-                $("#calendar").fullCalendar("refetchEvents");
 
                 self.edit = false;
                 self.edit_calendar_item_btn(event);
@@ -2131,8 +2184,6 @@ function HeliumCalendar() {
                             attachments: calendar_item.attachments,
                             reminders: calendar_item.reminders
                         });
-                        // TODO: can be removed once upgrade to FullCalendar 3.6.2
-                        $("#calendar").fullCalendar("refetchEvents");
 
                         if (!helium.ajax_error_occurred) {
                             $.each(reminders_data, function (i, reminder_data) {
@@ -2268,122 +2319,202 @@ function HeliumCalendar() {
 
         $("#calendar").fullCalendar("updateEvent", self.current_calendar_item);
         $("#calendar").fullCalendar("unselect");
-        // TODO: can be removed once upgrade to FullCalendar 3.6.2
-        $("#calendar").fullCalendar("refetchEvents");
     };
 }
 
 (function () {
-    function subtractInnerElHeight(outerEl, innerEl) {
-        const both = outerEl.add(innerEl);
-        let diff;
-
-        both.css({
-                     position: 'relative',
-                     left: -1
-                 });
-        diff = outerEl.outerHeight() - innerEl.outerHeight();
-        both.css({position: '', left: ''});
-
-        return diff;
-    }
-
-    const ListViewGrid = $.fullCalendar.Grid.extend(
+    $.fullCalendar.views.assignmentsList = $.fullCalendar.ListView.extend(
         {
-            dayDates: null,
-            dayRanges: null,
-            segSelector: '.fc-list-item',
-            hasDayInteractions: false,
             tableEl: null,
             dataTable: null,
             latestRow: null,
 
-            rangeUpdated: function () {
-                const calendar = this.view.calendar;
-                const dayStart = calendar.msToUtcMoment(this.unzonedRange.startMs, true);
-                const viewEnd = calendar.msToUtcMoment(this.unzonedRange.endMs, true);
-                const dayDates = [];
-                const dayRanges = [];
+            buildCurrentRangeInfo: function (date, direction) {
+                const duration = moment.duration({
+                                                     days: helium.calendar.course_filter_window_end.diff(
+                                                         helium.calendar.course_filter_window_start, "days")
+                                                 });
+                const unit = "day";
+                const unzonedRange = new $.fullCalendar.UnzonedRange(
+                    helium.calendar.course_filter_window_start,
+                    helium.calendar.course_filter_window_end
+                );
 
-                while (dayStart < viewEnd) {
-                    dayDates.push(dayStart.clone());
-
-                    dayRanges.push(new $.fullCalendar.UnzonedRange(
-                        dayStart,
-                        dayStart.clone().add(1, 'day')
-                    ));
-
-                    dayStart.add(1, 'day');
-                }
-
-                this.dayDates = dayDates;
-                this.dayRanges = dayRanges;
+                return {duration: duration, unit: unit, unzonedRange: unzonedRange};
             },
 
-            componentFootprintToSegs: function (footprint) {
-                const view = this.view;
-                const dayRanges = this.dayRanges;
-                let dayIndex;
-                let segRange;
-                let seg;
-                const segs = [];
+            setDate: function (date) {
+                this.calendar.removeEventSource(helium.calendar.event_source_external_calendars);
+                this.calendar.removeEventSource(helium.calendar.event_source_events);
+                this.calendar.removeEventSource(helium.calendar.event_source_class_schedules);
 
-                for (dayIndex = 0; dayIndex < dayRanges.length; dayIndex++) {
-                    segRange = footprint.unzonedRange.intersect(dayRanges[dayIndex]);
+                var currentDateProfile = this.get('dateProfile');
+                var newDateProfile = this.buildDateProfile(date, null, true); // forceToValid=true
 
-                    if (segRange) {
-                        seg = {
-                            startMs: segRange.startMs,
-                            endMs: segRange.endMs,
-                            isStart: segRange.isStart,
-                            isEnd: segRange.isEnd,
-                            dayIndex: dayIndex
-                        };
+                if (
+                    !currentDateProfile ||
+                    !currentDateProfile.activeUnzonedRange.equals(newDateProfile.activeUnzonedRange)
+                ) {
+                    this.set('dateProfile', newDateProfile);
+                }
+            },
 
-                        segs.push(seg);
-
-                        if (
-                            !seg.isEnd && !footprint.isAllDay &&
-                            footprint.unzonedRange.endMs < dayRanges[dayIndex + 1].startMs + view.nextDayThreshold
-                        ) {
-                            seg.endMs = footprint.unzonedRange.endMs;
-                            seg.isEnd = true;
-                            break;
+            eventRendererClass: $.fullCalendar.EventRenderer.extend(
+                {
+                    renderFgSegs: function (segs) {
+                        if (!segs.length) {
+                            this.component.renderEmptyMessage();
+                        } else {
+                            this.component.renderSegList(segs);
                         }
+                    },
+
+                    fgSegHtml: function (seg) {
+                        const view = this.view;
+                        const calendar = view.calendar;
+                        const theme = calendar.theme;
+                        const eventFootprint = seg.footprint;
+                        const eventDef = eventFootprint.eventDef;
+                        const classes = ['fc-list-item'].concat(this.getClasses(eventDef));
+
+                        if (eventDef.miscProps.calendar_item_type !== 1) {
+                            return "";
+                        }
+
+                        return '<tr class="' + classes.join(' ') + '">' +
+                               '<td class="' + theme.getClass('widgetContent') + '">' + eventDef.miscProps.checkbox
+                               + '</td>' +
+                               '<td class="fc-assignmentList-item-title ' + theme.getClass('widgetContent') + '">'
+                               + eventDef.title + '</td>' +
+                               '<td class="' + theme.getClass('widgetContent') + '">' + $.fullCalendar.formatDate(
+                                eventDef.dateProfile.start, "MMM D, YYYY") + (!eventDef.miscProps.all_day
+                                                                              ? $.fullCalendar.formatDate(
+                                    eventDef.dateProfile.start, " h:mm a") : "") + '</td>' +
+                               '<td class="' + theme.getClass('widgetContent')
+                               + '"><span class="label label-sm" style="background-color: ' + eventDef.color
+                               + " !important\">"
+                               + (eventDef.miscProps.course !== null
+                                  ? helium.calendar.courses[eventDef.miscProps.course].title
+                                  : "") + '</span></td>' +
+                               '<td class="' + theme.getClass('widgetContent') + '">'
+                               + (eventDef.miscProps.calendar_item_type
+                                  === 1 ? (eventDef.miscProps.category
+                                           !== null
+                                           ? ("<span class=\"label label-sm\" style=\"background-color: "
+                               + helium.calendar.categories[eventDef.miscProps.category].color + " !important\">"
+                               + helium.calendar.categories[eventDef.miscProps.category].title + "</span>") : "") : "")
+                               + '</td>' +
+                               '<td class="' + theme.getClass('widgetContent') + '">'
+                               + (eventDef.miscProps.calendar_item_type
+                                  === 1
+                                  ? helium.calendar.get_materials_titles_badges_from_ids(
+                                    eventDef.miscProps.materials) : "") + '</td>' +
+                               '<td class="' + theme.getClass('widgetContent') + '">'
+                               + (eventDef.miscProps.calendar_item_type
+                                  === 1
+                                  ? "<div class=\"progress progress-mini progress-striped\" style=\"margin-top: 6px; margin-bottom: 0;\"><div class=\"progress-bar progress-bar-success\" style=\"width: "
+                               + eventDef.miscProps.priority + "%;\"><span class=\"hidden\">"
+                               + eventDef.miscProps.priority
+                               + "</span></div></div>" : "") + '</td>' +
+                               '<td class="' + theme.getClass('widgetContent') + '">' + (eventDef.miscProps.completed
+                                                                                         && eventDef.miscProps.current_grade
+                                                                                         !== "-1/100"
+                                                                                         ? "<span class=\"badge badge-info\">"
+                               + helium.grade_for_display(eventDef.miscProps.current_grade) + "</span>" : "") + '</td>'
+                               +
+                               '</tr>';
+                    },
+
+                    computeEventTimeFormat: function () {
+                        return this.opt('mediumTimeFormat');
                     }
-                }
 
-                return segs;
+                }),
+
+            headerHtml: function () {
+                const calendar = this.calendar;
+                const theme = calendar.theme;
+
+                return '<thead class="fc-list-heading"><tr>'
+                       + '<th class=' + theme.getClass('widgetHeader') + '></th>'
+                       + '<th class=' + theme.getClass('widgetHeader') + '>Title</th>'
+                       + '<th class=' + theme.getClass('widgetHeader') + '>Due Date</th>'
+                       + '<th class=' + theme.getClass('widgetHeader') + '>Class</th>'
+                       + '<th class=' + theme.getClass('widgetHeader') + '>Category</th>'
+                       + '<th class=' + theme.getClass('widgetHeader') + '>Materials</th>'
+                       + '<th class=' + theme.getClass('widgetHeader') + '>Priority</th>'
+                       + '<th class=' + theme.getClass('widgetHeader') + '>Grade</th>'
+                       + '</tr></thead>';
             },
 
-            computeEventTimeFormat: function () {
-                return this.opt('mediumTimeFormat');
-            },
+            renderSegList: function (segs) {
+                const calendar = this.calendar;
+                const theme = calendar.theme;
 
-            handleSegClick: function (seg, ev) {
-                let url;
-
-                $.fullCalendar.Grid.prototype.handleSegClick.apply(this, arguments);
-
-                if (!$(ev.target).closest('a[href]').length) {
-                    url = seg.footprint.eventDef.url;
-
-                    if (url && !ev.isDefaultPrevented()) {
-                        window.location.href = url;
-                    }
-                }
-            },
-
-            renderFgSegs: function (segs) {
                 if (this.dataTable !== null) {
                     this.dataTable.clear();
                 }
 
-                segs = this.renderFgSegEls(segs);
+                const tableEl = this.tableEl = $(
+                    '<table id="calendar-list-table"  class="fc-list-table table-striped '
+                    + theme.getClass(
+                        'tableList')
+                    + '"><tbody/></table>');
+                const tbodyEl = tableEl.find('tbody');
 
-                this.renderSegList(segs);
+                tableEl.append(this.headerHtml());
 
-                this.latestBeforeToday = this.view.start;
+                let i;
+                for (i = 0; i < segs.length; i++) {
+                    tbodyEl.append(segs[i].el);
+                }
+
+                this.contentEl.empty().append(tableEl);
+
+                this.dataTable = tableEl.dataTable(
+                    {
+                        lengthMenu: [
+                            [5, 10, 25, 50, 100, -1],
+                            [5, 10, 25, 50, 100, "All"]
+                        ],
+                        pageLength: 10,
+                        order: [2, "asc"],
+                        aoColumns: [
+                            // Checkbox
+                            {bSearchable: false, sClass: "hidden-xs", sWidth: "60px", orderDataType: "dom-checkbox"},
+                            // Title
+                            null,
+                            // Due Date
+                            {sType: "date", sWidth: "180px"},
+                            // Class
+                            null,
+                            // Category
+                            {sClass: "hidden-xs hidden-sm"},
+                            // Materials
+                            {sClass: "hidden-xs"},
+                            // Priority
+                            {sClass: "hidden-xs", sWidth: "110px"},
+                            // Grade
+                            {sWidth: "110px"}
+                        ],
+                        // TODO: pin this to the same settings as filters being remembered across sessions
+                        stateSave: true,
+                        oLanguage: {
+                            sEmptyTable: "Nothing to see here. Change the date or filters, or click \"+\" to add an assignment.",
+                            sInfo: "Showing _START_ to _END_ of _TOTAL_ todos",
+                            sInfoEmpty: "Showing 0 to 0 of 0 todos",
+                            sLengthMenu: "Show _MENU_ todos",
+                        },
+                        destroy: true
+                    }).DataTable();
+
+                tableEl.parent().find("#calendar-list-table_length").addClass("hidden-print");
+                tableEl.parent().find("#calendar-list-table_filter").addClass("hidden-print");
+                tableEl.parent().find("#calendar-list-table_info").parent().parent().addClass("hidden-print");
+
+                tableEl.wrap('<div class="row"></div>');
+
+                this.latestBeforeToday = moment(calendar.eventManager.currentPeriod.start);
                 for (let seg of segs) {
                     let eventDef = seg.footprint.eventDef;
                     let row = $(seg.el[0]);
@@ -2412,255 +2543,20 @@ function HeliumCalendar() {
                     }
                     this.dataTable.page(pageNum).draw(false);
                 }
-
-                return segs;
-            },
-
-            renderEmptyMessage: function () {
-                this.el.html(
-                    '<div class="fc-list-empty-wrap2">' +
-                    '<div class="fc-list-empty-wrap1">' +
-                    '<div class="fc-list-empty">' +
-                    $.fullCalendar.htmlEscape(this.opt('noEventsMessage')) +
-                    '</div>' +
-                    '</div>' +
-                    '</div>'
-                );
-            },
-
-            renderSegList: function (segs) {
-                const tableEl = this.tableEl = $(
-                    '<table id="calendar-list-table"  class="fc-list-table table-striped '
-                    + this.view.calendar.theme.getClass(
-                        'tableList')
-                    + '"><tbody/></table>');
-                const tbodyEl = tableEl.find('tbody');
-
-                tableEl.append(this.headerHtml());
-
-                let i;
-                for (i = 0; i < segs.length; i++) {
-                    tbodyEl.append(segs[i].el);
-                }
-
-                this.el.empty().append(tableEl);
-
-                this.dataTable = tableEl.dataTable(
-                    {
-                        lengthMenu: [
-                            [50, 100, 250, 500, -1],
-                            [50, 100, 250, 500, "All"]
-                        ],
-                        order: [2, "asc"],
-                        aoColumns: [
-                            // Checkbox
-                            {bSearchable: false, sClass: "hidden-xs", sWidth: "60px", orderDataType: "dom-checkbox"},
-                            // Title
-                            null,
-                            // Due Date
-                            {sType: "date", sWidth: "180px"},
-                            // Class
-                            null,
-                            // Category
-                            {sClass: "hidden-xs hidden-sm"},
-                            // Materials
-                            {sClass: "hidden-xs"},
-                            // Priority
-                            {sClass: "hidden-xs", sWidth: "110px"},
-                            // Grade
-                            {sWidth: "110px"}
-                        ],
-                        stateSave: true,
-                        oLanguage: {
-                            sEmptyTable: "Nothing to see here. Change the date or filters, or click \"+\" to add an assignment."
-                        },
-                        destroy: true
-                    }).DataTable();
-
-                tableEl.parent().find("#calendar-list-table_length").addClass("hidden-print");
-                tableEl.parent().find("#calendar-list-table_info").parent().parent().addClass("hidden-print");
-
-                tableEl.wrap('<div class="row"></div>');
-            },
-
-            headerHtml: function () {
-                const view = this.view;
-
-                return '<thead class="fc-list-heading"><tr>'
-                       + '<th class=' + view.calendar.theme.getClass('widgetHeader') + '></th>'
-                       + '<th class=' + view.calendar.theme.getClass('widgetHeader') + '>Title</th>'
-                       + '<th class=' + view.calendar.theme.getClass('widgetHeader') + '>Due Date</th>'
-                       + '<th class=' + view.calendar.theme.getClass('widgetHeader') + '>Class</th>'
-                       + '<th class=' + view.calendar.theme.getClass('widgetHeader') + '>Category</th>'
-                       + '<th class=' + view.calendar.theme.getClass('widgetHeader') + '>Materials</th>'
-                       + '<th class=' + view.calendar.theme.getClass('widgetHeader') + '>Priority</th>'
-                       + '<th class=' + view.calendar.theme.getClass('widgetHeader') + '>Grade</th>'
-                       + '</tr></thead>';
-            },
-
-            fgSegHtml: function (seg) {
-                const view = this.view;
-                const calendar = view.calendar;
-                const theme = calendar.theme;
-                const classes = ['fc-list-item'].concat(this.getSegCustomClasses(seg));
-                const eventFootprint = seg.footprint;
-                const eventDef = eventFootprint.eventDef;
-
-                if (eventDef.miscProps.calendar_item_type !== 1) {
-                    return "";
-                }
-
-                return '<tr class="' + classes.join(' ') + '">' +
-                       '<td class="' + theme.getClass('widgetContent') + '">' + eventDef.miscProps.checkbox + '</td>' +
-                       '<td class="fc-assignmentList-item-title ' + theme.getClass('widgetContent') + '">'
-                       + eventDef.title + '</td>' +
-                       '<td class="' + theme.getClass('widgetContent') + '">' + $.fullCalendar.formatDate(
-                        eventDef.dateProfile.start, "MMM D, YYYY") + (!eventDef.miscProps.all_day
-                                                                      ? $.fullCalendar.formatDate(
-                            eventDef.dateProfile.start, " h:mm a") : "") + '</td>' +
-                       '<td class="' + theme.getClass('widgetContent')
-                       + '"><span class="label label-sm" style="background-color: ' + eventDef.color + " !important\">"
-                       + (eventDef.miscProps.course !== null ? helium.calendar.courses[eventDef.miscProps.course].title
-                                                             : "") + '</span></td>' +
-                       '<td class="' + theme.getClass('widgetContent') + '">' + (eventDef.miscProps.calendar_item_type
-                                                                                 === 1 ? (eventDef.miscProps.category
-                                                                                          !== null
-                                                                                          ? ("<span class=\"label label-sm\" style=\"background-color: "
-                       + helium.calendar.categories[eventDef.miscProps.category].color + " !important\">"
-                       + helium.calendar.categories[eventDef.miscProps.category].title + "</span>") : "") : "")
-                       + '</td>' +
-                       '<td class="' + theme.getClass('widgetContent') + '">' + (eventDef.miscProps.calendar_item_type
-                                                                                 === 1
-                                                                                 ? helium.calendar.get_materials_titles_badges_from_ids(
-                            eventDef.miscProps.materials) : "") + '</td>' +
-                       '<td class="' + theme.getClass('widgetContent') + '">' + (eventDef.miscProps.calendar_item_type
-                                                                                 === 1
-                                                                                 ? "<div class=\"progress progress-mini progress-striped\" style=\"margin-top: 6px; margin-bottom: 0;\"><div class=\"progress-bar progress-bar-success\" style=\"width: "
-                       + eventDef.miscProps.priority + "%;\"><span class=\"hidden\">" + eventDef.miscProps.priority
-                       + "</span></div></div>" : "") + '</td>' +
-                       '<td class="' + theme.getClass('widgetContent') + '">' + (eventDef.miscProps.completed
-                                                                                 && eventDef.miscProps.current_grade
-                                                                                 !== "-1/100"
-                                                                                 ? "<span class=\"badge badge-info\">"
-                       + helium.grade_for_display(eventDef.miscProps.current_grade) + "</span>" : "") + '</td>' +
-                       '</tr>';
             }
         });
 
-    $.fullCalendar.views.assignmentsList = $.fullCalendar.View.extend(
-        {
-            grid: null,
-            scroller: null,
+    $.fullCalendar.views.assignmentsList.watch('dateProfileForCalendarOverride', ['dateProfile'], function (deps) {
+        this.unwatch('titleForCalendar');
+    });
 
-            initialize: function () {
-                this.grid = new ListViewGrid(this);
-                this.addChild(this.grid);
-
-                this.scroller = new $.fullCalendar.Scroller({
-                                                                overflowX: 'hidden',
-                                                                overflowY: 'auto'
-                                                            });
-
-                this.titleHtml =
-                    "Assignments List <span class=\"hidden-xs assignmentslist-help help-button\" data-rel=\"popover\" data-trigger=\"hover\" data-container=\"body\" data-placement=\"right\" data-content=\"This view shows only assignments—no class schedules, events, or external calendars—allowing you to quickly sort through and review your schoolwork.\" title=\"List View\">?</span>"
-            },
-
-            setDateProfileForRendering: function (dateProfile) {
-                var calendar = this.calendar;
-
-                this.currentUnzonedRange = dateProfile.currentUnzonedRange;
-                this.currentRangeUnit = dateProfile.currentRangeUnit;
-                this.isRangeAllDay = dateProfile.isRangeAllDay;
-                this.renderUnzonedRange = dateProfile.renderUnzonedRange;
-                this.activeUnzonedRange = dateProfile.activeUnzonedRange;
-                this.validUnzonedRange = dateProfile.validUnzonedRange;
-                this.dateIncrement = dateProfile.dateIncrement;
-                this.minTime = dateProfile.minTime;
-                this.maxTime = dateProfile.maxTime;
-
-                this.start = calendar.msToMoment(dateProfile.activeUnzonedRange.startMs, this.isRangeAllDay);
-                this.end = calendar.msToMoment(dateProfile.activeUnzonedRange.endMs, this.isRangeAllDay);
-                this.intervalStart = calendar.msToMoment(dateProfile.currentUnzonedRange.startMs, this.isRangeAllDay);
-                this.intervalEnd = calendar.msToMoment(dateProfile.currentUnzonedRange.endMs, this.isRangeAllDay);
-
-                this.title = this.computeTitle();
-                this.calendar.currentDate = dateProfile.date;
-                // TODO: all but this section can be removed when we upgrade to FullCalendar 3.6.2
-                this.calendar.header.el.find('h2')
-                    .html(this.titleHtml)
-                    .find(".assignmentslist-help").popover({html: true}).data("bs.popover").tip().css("z-index", 1060);
-                this.calendar.updateToolbarButtons();
-            },
-
-            renderSkeleton: function () {
-                this.el.addClass(
-                    'fc-list-view ' +
-                    this.calendar.theme.getClass('listView')
-                );
-
-                this.scroller.render();
-                this.scroller.el.appendTo(this.el);
-
-                this.grid.setElement(this.scroller.scrollEl);
-
-                this.activeUnzonedRange = new $.fullCalendar.UnzonedRange(
-                    this.calendar.currentDate.clone().subtract(10, "years"),
-                    this.calendar.currentDate.clone().add(10, "years")
-                );
-            },
-
-            setHeight: function (totalHeight, isAuto) {
-                this.scroller.setHeight(this.computeScrollerHeight(totalHeight));
-            },
-
-            computeScrollerHeight: function (totalHeight) {
-                return totalHeight - subtractInnerElHeight(this.el, this.scroller.el);
-            },
-
-            buildCurrentRangeInfo: function (date, direction) {
-                // TODO: Set this dynamically based on the range of course start/end dates instead
-                const duration = moment.duration({years: 20});
-                const unit = "day";
-                const unzonedRange = new $.fullCalendar.UnzonedRange(
-                    this.calendar.currentDate.clone().subtract(10, "years"),
-                    this.calendar.currentDate.clone().add(10, "years")
-                );
-
-                return {duration: duration, unit: unit, unzonedRange: unzonedRange};
-            },
-
-            setDate: function (date) {
-                this.calendar.removeEventSource(helium.calendar.event_source_external_calendars);
-                this.calendar.removeEventSource(helium.calendar.event_source_events);
-                this.calendar.removeEventSource(helium.calendar.event_source_class_schedules);
-
-                var currentDateProfile = this.get('dateProfile');
-                var newDateProfile = this.buildDateProfile(date, null, true); // forceToValid=true
-
-                if (
-                    !currentDateProfile ||
-                    !currentDateProfile.activeUnzonedRange.equals(newDateProfile.activeUnzonedRange)
-                ) {
-                    this.set('dateProfile', newDateProfile);
-                }
-
-                return newDateProfile.date;
-            },
-
-            renderDates: function () {
-                this.grid.setRange(this.renderUnzonedRange);
-            },
-
-            isEventDefResizable: function (eventDef) {
-                return false;
-            },
-
-            isEventDefDraggable: function (eventDef) {
-                return false;
-            }
-        });
-})
-();
+    $.fullCalendar.views.assignmentsList.watch('titleForCalendarOverride', ['title'], function (deps) {
+        this.calendar.header.el.find('h2')
+            .html(
+                "Assignments List <span class=\"hidden-xs assignmentslist-help help-button\" data-rel=\"popover\" data-trigger=\"hover\" data-container=\"body\" data-placement=\"right\" data-content=\"This view shows only assignments—no class schedules, events, or external calendars—allowing you to quickly sort through and review your schoolwork.\" title=\"List View\">?</span>")
+            .find(".assignmentslist-help").popover({html: true}).data("bs.popover").tip().css("z-index", 1060);
+    });
+})();
 
 // Initialize HeliumClasses and give a reference to the Helium object
 helium.calendar = new HeliumCalendar();
@@ -2904,7 +2800,7 @@ $(document).ready(function () {
                                 uploadMultiple: true,
                                 parallelUploads: 10,
                                 dictDefaultMessage: "<span class=\"bigger-150 bolder\"><i class=\"icon-caret-right red\"></i> Drop files</span> to upload <span class=\"smaller-80 grey\">(or click)</span> <br /> <i class=\"upload-icon icon-cloud-upload blue icon-3x\"></i>",
-                                dictResponseError: "Error while uploading file!",
+                                dictResponseError: "An error occurred while uploading the file.",
                                 previewTemplate: "<div class=\"dz-preview dz-file-preview\">\n  <div class=\"dz-details\">\n    <div class=\"dz-filename\"><span data-dz-name></span></div>\n    <div class=\"dz-size\" data-dz-size></div>\n    <img data-dz-thumbnail />\n  </div>\n  <div class=\"progress progress-small progress-striped active\"><div class=\"progress-bar progress-bar-success\" data-dz-uploadprogress></div></div>\n  <div class=\"dz-success-mark\"><span></span></div>\n  <div class=\"dz-error-mark\"><span></span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
                                 init: function () {
                                     helium.calendar.dropzone = this;
@@ -2922,7 +2818,30 @@ $(document).ready(function () {
                                     });
                                     this.on("successmultiple", function (files) {
                                         const callback = function (data) {
-                                            helium.calendar.update_current_calendar_item(data)
+                                            if (helium.data_has_err_msg(data)) {
+                                                $("#loading-homework-modal").spin(false);
+                                                helium.ajax_error_occurred = true;
+
+                                                $("#homework-error").html(
+                                                    "An error occurred after saving the attachment. If the error persists, <a href=\""
+                                                    + window.SUPPORT_URL + "\">contact support</a>.");
+                                                $("#homework-error").parent().show("fast");
+
+                                                $("a[href='#homework-panel-tab-3']").tab("show");
+
+                                                helium.calendar.calendar_item_for_dropzone = null;
+                                            } else {
+                                                if (data.calendar_item_type === 0) {
+                                                    data.id = "event_" + data.id;
+                                                }
+                                                helium.calendar.update_current_calendar_item(data)
+
+                                                $("#loading-homework-modal").spin(false);
+                                                $("#homework-modal").modal("hide");
+
+                                                helium.calendar.calendar_item_for_dropzone = null;
+                                                helium.calendar.dropzone.removeAllFiles();
+                                            }
                                         }
                                         if (helium.calendar.calendar_item_for_dropzone.calendar_item_type === 0) {
                                             helium.planner_api.get_event(callback,
@@ -2930,37 +2849,16 @@ $(document).ready(function () {
                                                                          true, false);
                                         } else {
                                             helium.planner_api.get_homework(callback,
-                                                                            helium.calendar.calendar_item_for_dropzone.course_group,
+                                                                            helium.calendar.courses[helium.calendar.calendar_item_for_dropzone.course].course_group,
                                                                             helium.calendar.calendar_item_for_dropzone.course,
                                                                             helium.calendar.calendar_item_for_dropzone.id,
                                                                             true, false);
                                         }
-
-                                        $("#loading-homework-modal").spin(false);
-                                        $("#homework-modal").modal("hide");
-
-                                        helium.calendar.calendar_item_for_dropzone = null;
-                                        helium.calendar.dropzone.removeAllFiles();
                                     });
-                                    this.on("errormultiple", function () {
+                                    this.on("errormultiple", function (data) {
                                         $("#loading-homework-modal").spin(false);
 
-                                        if (helium.calendar.edit) {
-                                            if (helium.calendar.current_calendar_item.calendar_item_type
-                                                === 0) {
-                                                $("#homework-error").html(
-                                                    "The event is saved, but an error occurred while uploading attachments. If the error persists, <a href=\""
-                                                    + window.SUPPORT_URL + "\">contact support</a>.");
-                                            } else {
-                                                $("#homework-error").html(
-                                                    "The assignment is saved, but an error occurred while uploading attachments. If the error persists, <a href=\""
-                                                    + window.SUPPORT_URL + "\">contact support</a>.");
-                                            }
-                                        } else {
-                                            $("#homework-error").html(
-                                                "An unknown error occurred with attachments. If the error persists, <a href=\""
-                                                + window.SUPPORT_URL + "\">contact support</a>.");
-                                        }
+                                        $("#homework-error").html("The max file size is 10mb.");
                                         $("#homework-error").parent().show("fast");
 
                                         $("a[href='#homework-panel-tab-3']").tab("show");
@@ -3000,7 +2898,6 @@ $(document).ready(function () {
                         };
                         helium.planner_api.get_reminder(function (data) {
                             if (data.event !== null) {
-                                id = "event_" + data.event.id;
                                 helium.planner_api.get_event(callback, id, true, true);
                             } else {
                                 helium.planner_api.get_homework(callback, data.homework.course.course_group,
