@@ -516,7 +516,18 @@ $(document).ready(function () {
 
             bootbox.alert(helium.get_error_msg(data));
         } else {
-            $.each(data, function (index, course) {
+            const courses = Object.entries(data);
+            courses.sort((a, b) => {
+                if (a[1].title < b[1].title) {
+                    return -1;
+                } else if (a[1].title > b[1].title) {
+                    return 1;
+                }
+                return 0;
+            });
+
+            $.each(courses, function (index, course_tuple) {
+                let course = course_tuple[1];
                 helium.materials.courses[course.id] = course;
                 $("#material-courses").append("<option value=\"" + course.id + "\">" + course.title + "</option>");
             });
