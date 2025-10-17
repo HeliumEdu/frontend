@@ -161,6 +161,11 @@ function HeliumMaterials() {
 
             table_div = div.find("#material-group-table-" + data.id).dataTable(
                 {
+                    lengthMenu: [
+                        [5, 10, 25, 50, -1],
+                        [5, 10, 25, 50, "All"]
+                    ],
+                    pageLength: 10,
                     aoColumns: [
                         null, {sClass: "hidden-xs"},
                         {sClass: "hidden-xs"},
@@ -171,9 +176,11 @@ function HeliumMaterials() {
                             sWidth: "90px"
                         }
                     ],
-                    stateSave: true,
                     oLanguage: {
-                        sEmptyTable: "Nothing to see here. Click \"+\" to add a material."
+                        sEmptyTable: "Nothing to see here. Click \"+\" to add a material.",
+                        sInfo: "Showing _START_ to _END_ of _TOTAL_ materials",
+                        sInfoEmpty: "Showing 0 to 0 of 0 materials",
+                        sLengthMenu: "Show _MENU_ materials",
                     }
                 });
             self.material_group_table[data.id] = table_div.DataTable();
@@ -480,6 +487,10 @@ $(document).ready(function () {
     /*******************************************
      * Initialize component libraries
      ******************************************/
+    $.extend($.fn.dataTable.defaults, {
+        "searching": false
+    });
+
     if ($(window).width() > 768) {
         $("#material-courses").chosen({width: "100%", search_contains: true, no_results_text: "No classes match"});
     }

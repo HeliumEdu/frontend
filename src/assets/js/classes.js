@@ -520,6 +520,11 @@ function HeliumClasses() {
 
             table_div = div.find("#course-group-table-" + data.id).dataTable(
                 {
+                    lengthMenu: [
+                        [3, 5, 10, -1],
+                        [3, 5, 10, "All"]
+                    ],
+                    pageLength: 10,
                     aoColumns: [
                         {sWidth: "200px"},
                         {
@@ -537,9 +542,11 @@ function HeliumClasses() {
                             sWidth: "90px"
                         }
                     ],
-                    stateSave: true,
                     oLanguage: {
-                        sEmptyTable: "Nothing to see here. Click \"+\" to add a class."
+                        sEmptyTable: "Nothing to see here. Click \"+\" to add a class.",
+                        sInfo: "Showing _START_ to _END_ of _TOTAL_ classes",
+                        sInfoEmpty: "Showing 0 to 0 of 0 classes",
+                        sLengthMenu: "Show _MENU_ classes",
                     }
                 });
             self.course_group_table[data.id] = table_div.DataTable();
@@ -1783,6 +1790,10 @@ $(document).ready(function () {
     /*******************************************
      * Initialize component libraries
      ******************************************/
+    $.extend($.fn.dataTable.defaults, {
+        "searching": false
+    });
+
     $(".weight-help").popover({html: true}).data("bs.popover").tip().css("z-index", 1060);
 
     bootbox.setDefaults({
