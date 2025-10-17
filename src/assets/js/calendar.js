@@ -2277,7 +2277,7 @@ function HeliumCalendar() {
 (function () {
     $.fullCalendar.views.assignmentsList = $.fullCalendar.ListView.extend(
         {
-            scroller: null,
+            // scroller: null,
             tableEl: null,
             dataTable: null,
             latestRow: null,
@@ -2288,10 +2288,10 @@ function HeliumCalendar() {
                 // this.addChild(this.timeGrid);
 
                 // TODO: can remove this?
-                this.scroller = new $.fullCalendar.Scroller({
-                                                                overflowX: 'hidden',
-                                                                overflowY: 'auto'
-                                                            });
+                // this.scroller = new $.fullCalendar.Scroller({
+                //                                                 overflowX: 'hidden',
+                //                                                 overflowY: 'auto'
+                //                                             });
 
                 this.titleHtml =
                     "Assignments List <span class=\"hidden-xs assignmentslist-help help-button\" data-rel=\"popover\" data-trigger=\"hover\" data-container=\"body\" data-placement=\"right\" data-content=\"This view shows only assignments—no class schedules, events, or external calendars—allowing you to quickly sort through and review your schoolwork.\" title=\"List View\">?</span>"
@@ -2366,7 +2366,7 @@ function HeliumCalendar() {
                 }
             },
 
-            // TODO: is this all?
+            // TODO: can we remove this?
             // renderDates: function(dateProfile) {
             //     this.grid.sliceRangeByTimes(dateProfile);
             //     this.dateProfile = dateProfile;
@@ -2525,8 +2525,7 @@ function HeliumCalendar() {
 
                 tableEl.wrap('<div class="row"></div>');
 
-                // TODO: we can likely update this once we get range rendering properly refactored in to the view
-                this.latestBeforeToday = new moment(0);
+                this.latestBeforeToday = moment(calendar.eventManager.currentPeriod.start);
                 for (let seg of segs) {
                     let eventDef = seg.footprint.eventDef;
                     let row = $(seg.el[0]);
@@ -2541,10 +2540,9 @@ function HeliumCalendar() {
                     }
                 }
 
-                // TODO: double check this still works
                 if (this.dataTable !== null &&
-                    this.dataTable.order()[0][0] === 2 &&
-                    this.dataTable.order()[0][1] === "asc" &&
+                    this.dataTable.order()[0] === 2 &&
+                    this.dataTable.order()[1] === "asc" &&
                     this.latestRow &&
                     this.latestRow.children().length > 0) {
                     // Jump to the page with the current date's row on it
