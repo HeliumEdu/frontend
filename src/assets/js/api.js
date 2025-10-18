@@ -21,28 +21,33 @@ function HeliumPlannerAPI() {
 
     this.course_groups_by_user_id = {};
     this.course_group = {};
+
     this.courses_by_course_group_id = {};
     this.courses_by_user_id = {};
     this.course = {};
+
     this.material_groups_by_user_id = {};
     this.material_group = {};
+
     this.materials_by_material_group_id = {};
     this.materials_by_course_id = {};
     this.material = {};
-    this.category_names = null;
+
     this.categories_by_course_id = {};
+    this.categories_by_user_id = {};
     this.category = {};
-    this.attachment = {};
-    this.attachments_by_course_id = {};
+
     this.homework_by_user_id = {};
     this.homework = {};
-    this.event = {};
+
     this.events_by_user_id = {};
+    this.event = {};
+
     this.external_calendars_by_user_id = {};
-    this.external_calendar_feed = {};
-    this.class_schedules = {};
-    this.reminder = {};
-    this.reminders_by_user_id = {};
+
+    this.external_calendar_events = {};
+
+    this.class_schedules_events = {};
 
     let self = this;
 
@@ -128,7 +133,6 @@ function HeliumPlannerAPI() {
      */
     this.update_user_details = function (callback, user_id, data, async) {
         async = typeof async === "undefined" ? true : async;
-        self.course_groups_by_user_id = {};
         return $.ajax({
                           type: "PUT",
                           url: helium.API_URL + "/auth/user/settings/",
@@ -430,8 +434,8 @@ function HeliumPlannerAPI() {
         let ret_val;
 
         let cache_key = course_id + search;
-        if (use_cache && self.class_schedules.hasOwnProperty(cache_key)) {
-            ret_val = callback(self.class_schedules[cache_key]);
+        if (use_cache && self.class_schedules_events.hasOwnProperty(cache_key)) {
+            ret_val = callback(self.class_schedules_events[cache_key]);
         } else {
             ret_val = $.ajax({
                                  type: "GET",
@@ -441,8 +445,8 @@ function HeliumPlannerAPI() {
                                  async: async,
                                  dataType: "json",
                                  success: function (data) {
-                                     self.class_schedules[cache_key] = data;
-                                     callback(self.class_schedules[cache_key]);
+                                     self.class_schedules_events[cache_key] = data;
+                                     callback(self.class_schedules_events[cache_key]);
                                  },
                                  error: function (jqXHR, textStatus, errorThrown) {
                                      document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
@@ -500,11 +504,12 @@ function HeliumPlannerAPI() {
      */
     this.add_course = function (callback, course_group_id, data, async) {
         async = typeof async === "undefined" ? true : async;
-        self.courses_around_date = {};
         self.courses_by_course_group_id = {};
         self.courses_by_user_id = {};
-        self.category_names = null;
+        self.class_schedules_events = {};
+        self.categories_by_user_id = {};
         self.categories_by_course_id = {};
+        self.homework_by_user_id = {};
         return $.ajax({
                           type: "POST",
                           url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/",
@@ -530,11 +535,12 @@ function HeliumPlannerAPI() {
     this.edit_course = function (callback, course_group_id, id, data, async) {
         async = typeof async === "undefined" ? true : async;
         delete self.course[id];
-        self.courses_around_date = {};
         self.courses_by_course_group_id = {};
         self.courses_by_user_id = {};
-        self.category_names = null;
+        self.class_schedules_events = {}
+        self.categories_by_user_id = {};
         self.categories_by_course_id = {};
+        self.homework_by_user_id = {};
         return $.ajax({
                           type: "PUT",
                           url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + id + "/",
@@ -559,11 +565,12 @@ function HeliumPlannerAPI() {
     this.delete_course = function (callback, course_group_id, id, async) {
         async = typeof async === "undefined" ? true : async;
         delete self.course[id];
-        self.courses_around_date = {};
         self.courses_by_course_group_id = {};
         self.courses_by_user_id = {};
-        self.category_names = null;
+        self.class_schedules_events = {};
+        self.categories_by_user_id = {};
         self.categories_by_course_id = {};
+        self.homework_by_user_id = {};
         return $.ajax({
                           type: "DELETE",
                           url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + id + "/",
@@ -638,10 +645,9 @@ function HeliumPlannerAPI() {
     this.delete_course = function (callback, course_group_id, id, async) {
         async = typeof async === "undefined" ? true : async;
         delete self.course[id];
-        self.courses_around_date = {};
         self.courses_by_course_group_id = {};
         self.courses_by_user_id = {};
-        self.category_names = null;
+        self.categories_by_user_id = {};
         self.categories_by_course_id = {};
         return $.ajax({
                           type: "DELETE",
@@ -982,20 +988,20 @@ function HeliumPlannerAPI() {
     };
 
     /**
-     * Compile all Categories names and pass the values to the given callback function in JSON format.
+     * Compile all Categories and pass the values to the given callback function in JSON format.
      *
      * @param callback function to pass response data and call after completion
      * @param async true if call should be async, false otherwise (default is true)
      * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
      *     refresh the cache (default to false)
      */
-    this.get_category_names = function (callback, async, use_cache) {
+    this.get_categories_by_user_id = function (callback, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
         let ret_val;
 
-        if (use_cache && self.category_names !== null) {
-            ret_val = callback(self.category_names);
+        if (use_cache && self.categories_by_user_id.hasOwnProperty(helium.USER_PREFS.id)) {
+            ret_val = callback(self.categories_by_user_id[helium.USER_PREFS.id]);
         } else {
             ret_val = $.ajax({
                                  type: "GET",
@@ -1003,11 +1009,8 @@ function HeliumPlannerAPI() {
                                  async: async,
                                  dataType: "json",
                                  success: function (data) {
-                                     self.category_names = [];
-                                     $.each(data, function (index, category) {
-                                         self.category_names.push(category);
-                                     });
-                                     callback(self.category_names);
+                                     self.categories_by_user_id[helium.USER_PREFS.id] = data;
+                                     callback(self.categories_by_user_id[helium.USER_PREFS.id]);
                                  },
                                  error: function (jqXHR, textStatus, errorThrown) {
                                      document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
@@ -1067,7 +1070,7 @@ function HeliumPlannerAPI() {
      */
     this.add_category = function (callback, course_group_id, course_id, data, async) {
         async = typeof async === "undefined" ? true : async;
-        self.category_names = null;
+        self.categories_by_user_id = {};
         self.categories_by_course_id = {};
         return $.ajax({
                           type: "POST",
@@ -1096,7 +1099,7 @@ function HeliumPlannerAPI() {
     this.edit_category = function (callback, course_group_id, course_id, id, data, async) {
         async = typeof async === "undefined" ? true : async;
         delete self.category[id];
-        self.category_names = null;
+        self.categories_by_user_id = {};
         self.categories_by_course_id = {};
         return $.ajax({
                           type: "PUT",
@@ -1124,7 +1127,7 @@ function HeliumPlannerAPI() {
     this.delete_category = function (callback, course_group_id, course_id, id, async) {
         async = typeof async === "undefined" ? true : async;
         delete self.category[id];
-        self.category_names = null;
+        self.categories_by_user_id = {};
         self.categories_by_course_id = {};
         return $.ajax({
                           type: "DELETE",
@@ -1146,33 +1149,22 @@ function HeliumPlannerAPI() {
      * @param callback function to pass response data and call after completion
      * @param id the ID of the Course with which to associate
      * @param async true if call should be async, false otherwise (default is true)
-     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
-     *     refresh the cache (default to false)
      */
-    this.get_attachments_by_course_id = function (callback, id, async, use_cache) {
+    this.get_attachments_by_course_id = function (callback, id, async) {
         async = typeof async === "undefined" ? true : async;
-        use_cache = typeof use_cache === "undefined" ? false : use_cache;
-        let ret_val;
 
-        if (use_cache && self.attachments_by_course_id.hasOwnProperty(id)) {
-            ret_val = callback(self.attachments_by_course_id[id]);
-        } else {
-            ret_val = $.ajax({
-                                 type: "GET",
-                                 url: helium.API_URL + "/planner/attachments/?course=" + id,
-                                 async: async,
-                                 dataType: "json",
-                                 success: function (data) {
-                                     self.categories_by_course_id[id] = data;
-                                     callback(self.categories_by_course_id[id]);
-                                 },
-                                 error: function (jqXHR, textStatus, errorThrown) {
-                                     document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
-                                 }
-                             });
-        }
-
-        return ret_val;
+        return $.ajax({
+                          type: "GET",
+                          url: helium.API_URL + "/planner/attachments/?course=" + id,
+                          async: async,
+                          dataType: "json",
+                          success: function (data) {
+                              callback(data);
+                          },
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
+                          }
+                      });
     };
 
     /**
@@ -1185,7 +1177,6 @@ function HeliumPlannerAPI() {
      */
     this.delete_attachment = function (callback, id, async) {
         async = typeof async === "undefined" ? true : async;
-        delete self.attachment[id];
         self.attachments_by_course_id = {};
         return $.ajax({
                           type: "DELETE",
@@ -1300,7 +1291,6 @@ function HeliumPlannerAPI() {
      */
     this.add_homework = function (callback, course_group_id, course_id, data, async) {
         async = typeof async === "undefined" ? true : async;
-        self.homework_by_course_id = {};
         self.homework_by_user_id = {};
         return $.ajax({
                           type: "POST",
@@ -1331,9 +1321,7 @@ function HeliumPlannerAPI() {
         async = typeof async === "undefined" ? true : async;
         patch = typeof patch === "undefined" ? false : patch;
         delete self.homework[id];
-        self.homework_by_course_id = {};
         self.homework_by_user_id = {};
-        self.reminders_by_calendar_item = {};
         return $.ajax({
                           type: patch ? "PATCH" : "PUT",
                           url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + course_id
@@ -1360,9 +1348,7 @@ function HeliumPlannerAPI() {
     this.delete_homework = function (callback, course_group_id, course_id, id, async) {
         async = typeof async === "undefined" ? true : async;
         delete self.homework[id];
-        self.homework_by_course_id = {};
         self.homework_by_user_id = {};
-        self.reminders_by_calendar_item = {};
         return $.ajax({
                           type: "DELETE",
                           url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/" + course_id
@@ -1498,7 +1484,6 @@ function HeliumPlannerAPI() {
 
         delete self.event[id];
         self.events_by_user_id = {};
-        self.reminders_by_calendar_item = {};
         return $.ajax({
                           type: patch ? "PATCH" : "PUT",
                           url: helium.API_URL + "/planner/events/" + id + "/",
@@ -1528,7 +1513,6 @@ function HeliumPlannerAPI() {
 
         delete self.event[id];
         self.events_by_user_id = {};
-        self.reminders_by_calendar_item = {};
         return $.ajax({
                           type: "DELETE",
                           url: helium.API_URL + "/planner/events/" + id + "/",
@@ -1592,14 +1576,14 @@ function HeliumPlannerAPI() {
      * @param end The end time window
      * @param search A search string to filter by
      */
-    this.get_external_calendar_feed = function (callback, id, async, use_cache, start, end, search) {
+    this.get_external_calendar_events = function (callback, id, async, use_cache, start, end, search) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
         let ret_val;
 
         let cache_key = id + start + end + search;
-        if (use_cache && self.external_calendar_feed.hasOwnProperty(cache_key)) {
-            ret_val = callback(self.external_calendar_feed[cache_key]);
+        if (use_cache && self.external_calendar_events.hasOwnProperty(cache_key)) {
+            ret_val = callback(self.external_calendar_events[cache_key]);
         } else {
             ret_val = $.ajax({
                                  type: "GET",
@@ -1610,8 +1594,8 @@ function HeliumPlannerAPI() {
                                  async: async,
                                  dataType: "json",
                                  success: function (data) {
-                                     self.external_calendar_feed[cache_key] = data;
-                                     callback(self.external_calendar_feed[cache_key]);
+                                     self.external_calendar_events[cache_key] = data;
+                                     callback(self.external_calendar_events[cache_key]);
                                  },
                                  error: function (jqXHR, textStatus, errorThrown) {
                                      document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
@@ -1627,34 +1611,23 @@ function HeliumPlannerAPI() {
      *
      * @param callback function to pass response data and call after completion
      * @param async true if call should be async, false otherwise (default is true)
-     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
-     *     refresh the cache (default to false)
      */
-    this.get_reminders = function (callback, async, use_cache) {
+    this.get_reminders = function (callback, async) {
         async = typeof async === "undefined" ? true : async;
-        use_cache = typeof use_cache === "undefined" ? false : use_cache;
-        let ret_val;
 
-        if (use_cache && self.reminders_by_user_id.hasOwnProperty(helium.USER_PREFS.id)) {
-            ret_val = callback(self.reminders_by_user_id[helium.USER_PREFS.id]);
-        } else {
-            ret_val = $.ajax({
-                                 type: "GET",
-                                 url: helium.API_URL + "/planner/reminders/?sent=false&type=0&start_of_range__lte="
-                                      + moment().toISOString(),
-                                 async: async,
-                                 dataType: "json",
-                                 success: function (data) {
-                                     self.reminders_by_user_id[helium.USER_PREFS.id] = data;
-                                     callback(self.reminders_by_user_id[helium.USER_PREFS.id]);
-                                 },
-                                 error: function (jqXHR, textStatus, errorThrown) {
-                                     document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
-                                 }
-                             });
-        }
-
-        return ret_val;
+        return $.ajax({
+                          type: "GET",
+                          url: helium.API_URL + "/planner/reminders/?sent=false&type=0&start_of_range__lte="
+                               + moment().toISOString(),
+                          async: async,
+                          dataType: "json",
+                          success: function (data) {
+                              callback(data);
+                          },
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
+                          }
+                      });
     };
 
     /**
@@ -1686,33 +1659,22 @@ function HeliumPlannerAPI() {
      * @param callback function to pass response data and call after completion
      * @param id the ID of the Reminder.
      * @param async true if call should be async, false otherwise (default is true)
-     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
-     *     refresh the cache (default to false)
      */
-    this.get_reminder = function (callback, id, async, use_cache) {
+    this.get_reminder = function (callback, id, async) {
         async = typeof async === "undefined" ? true : async;
-        use_cache = typeof use_cache === "undefined" ? false : use_cache;
-        let ret_val;
 
-        if (use_cache && self.reminder.hasOwnProperty(id)) {
-            ret_val = callback(self.reminder[id]);
-        } else {
-            ret_val = $.ajax({
-                                 type: "GET",
-                                 url: helium.API_URL + "/planner/reminders/" + id + "/",
-                                 async: async,
-                                 dataType: "json",
-                                 success: function (data) {
-                                     self.reminder[id] = data;
-                                     callback(self.reminder[id]);
-                                 },
-                                 error: function (jqXHR, textStatus, errorThrown) {
-                                     document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
-                                 }
-                             });
-        }
-
-        return ret_val;
+        return $.ajax({
+                          type: "GET",
+                          url: helium.API_URL + "/planner/reminders/" + id + "/",
+                          async: async,
+                          dataType: "json",
+                          success: function (data) {
+                              callback(data);
+                          },
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
+                          }
+                      });
     };
 
     /**
@@ -1727,10 +1689,6 @@ function HeliumPlannerAPI() {
     this.edit_reminder = function (callback, id, data, async, patch) {
         async = typeof async === "undefined" ? true : async;
         patch = typeof patch === "undefined" ? false : patch;
-
-        delete self.reminder[id];
-        self.reminders_by_user_id = {};
-        self.reminders_by_calendar_item = {};
 
         return $.ajax({
                           type: patch ? "PATCH" : "PUT",
@@ -1756,44 +1714,11 @@ function HeliumPlannerAPI() {
     this.delete_reminder = function (callback, id, data, async) {
         async = typeof async === "undefined" ? true : async;
 
-        delete self.reminder[id];
-        self.reminders_by_user_id = {};
-        self.reminders_by_calendar_item = {};
-
         return $.ajax({
                           type: "DELETE",
                           url: helium.API_URL + "/planner/reminders/" + id + "/",
                           async: async,
                           data: JSON.stringify(data),
-                          dataType: "json",
-                          success: callback,
-                          error: function (jqXHR, textStatus, errorThrown) {
-                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
-                          }
-                      });
-    };
-
-    /**
-     * Get the attachments for the given ID and pass the returned values to the given callback function in JSON format.
-     *
-     * @param callback function to pass response data and call after completion
-     * @param id the ID of the Attachment
-     * @param calendar_item_type true if the item is an event, false otherwise
-     * @param async true if call should be async, false otherwise (default is true)
-     */
-    this.get_attachments_for_calendar_item = function (callback, id, calendar_item_type, async) {
-        async = typeof async === "undefined" ? true : async;
-
-        if (id.lastIndexOf("event_", 0) === 0) {
-            id = id.substr(6);
-        }
-
-        const query = calendar_item_type === "0" ? "event=" + id : "homework=" + id;
-        return $.ajax({
-                          type: "GET",
-                          url: helium.API_URL + "/planner/attachments/?" + query,
-                          async: async,
-                          data: {calendar_item_type: calendar_item_type},
                           dataType: "json",
                           success: callback,
                           error: function (jqXHR, textStatus, errorThrown) {
