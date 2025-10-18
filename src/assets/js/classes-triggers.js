@@ -269,4 +269,11 @@
             document.activeElement.blur();
         }
     });
+
+    document.addEventListener("keydown", function(event) {
+        if (event.key === "Escape") {
+            $('#course-group-modal').modal('hide');
+            $('#course-modal').modal('hide');
+        }
+    });
 }());

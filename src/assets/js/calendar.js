@@ -671,7 +671,7 @@ function HeliumCalendar() {
      */
     this.update_filter_checkbox = function (selector) {
         let checkbox;
-        $("#filter-button-title").html("Filter <i class=\"icon-filter\"></i>");
+        $("#filter-button-title").parent().addClass("fc-state-active");
         checkbox = $(selector.children()[0]);
         checkbox.prop("checked", !checkbox.is(":checked")).trigger("change");
     };
@@ -781,7 +781,7 @@ function HeliumCalendar() {
             !$("#calendar-filter-events").children().find("input").prop("checked") &&
             !$("#calendar-filter-class").children().find("input").prop("checked") &&
             !$("#calendar-filter-external").children().find("input").prop("checked")) {
-            $("#filter-button-title").html("Filter");
+            $("#filter-button-title").parent().removeClass("fc-state-active");
         }
 
         if (refetch) {
@@ -831,9 +831,9 @@ function HeliumCalendar() {
         // If all class (or none) filters are check, clear the filter title
         if (courses.size() !== course_ids.split(",").length
             && course_ids !== "") {
-            $("#classes-button-title").html("Classes <i class=\"icon-filter\"></i>");
+            $("#classes-button-title").parent().addClass("fc-state-active");
         } else {
-            $("#classes-button-title").html("Classes");
+            $("#classes-button-title").parent().removeClass("fc-state-active");
         }
 
         if (refetch) {
@@ -1396,16 +1396,26 @@ function HeliumCalendar() {
             // Customize the calendar header
             $(".fc-toolbar .fc-right").prepend(
                 "<div class=\"fc-button-group\">"
-                + "<div class='btn-group' id=\"calendar-classes\"><button data-toggle=\"dropdown\" class=\"fc-button fc-state-default btn btn-sm dropdown-toggle\"><span id=\"classes-button-title\">Classes</span><span class=\"icon-caret-down icon-on-right\"></span></button><ul id=\"calendar-classes-list\" class=\"dropdown-menu dropdown-menu-form pull-right\" role=\"menu\"><li id=\"filter-classes-clear\"><a class=\"cursor-hover\">Clear Filters</a></li><li class=\"divider\"></li></ul></div>"
-                + "<div class='btn-group' id=\"calendar-filters\"><button data-toggle=\"dropdown\" class=\"fc-button fc-state-default btn btn-sm dropdown-toggle\"><span id=\"filter-button-title\">Filter</span><span class=\"icon-caret-down icon-on-right\"></span></button><ul id=\"calendar-filter-list\" class=\"dropdown-menu dropdown-menu-form pull-right\" role=\"menu\"><li id=\"filter-clear\"><a class=\"cursor-hover\">Clear Filters</a></li></ul></div>"
+                + "<div class='btn-group' id=\"calendar-classes\"><button data-toggle=\"dropdown\" class=\"fc-button fc-state-default dropdown-toggle\"><span id=\"classes-button-title\"><i class=\"icon-book\"></i></span><span class=\"icon-caret-down icon-on-right\"></span></button><ul id=\"calendar-classes-list\" class=\"dropdown-menu dropdown-menu-form pull-right\" role=\"menu\"><li id=\"filter-classes-clear\"><a class=\"cursor-hover\">Clear Filters</a></li><li class=\"divider\"></li></ul></div>"
+                + "<div class='btn-group' id=\"calendar-filters\"><button data-toggle=\"dropdown\" class=\"fc-button fc-state-default dropdown-toggle\"><span id=\"filter-button-title\"><i class=\"icon-filter\"></i></span><span class=\"icon-caret-down icon-on-right\"></span></button><ul id=\"calendar-filter-list\" class=\"dropdown-menu dropdown-menu-form pull-right\" role=\"menu\"><li id=\"filter-clear\"><a class=\"cursor-hover\">Clear Filters</a></li></ul></div>"
                 + "</div>");
+            $("#calendar-classes button, #calendar-filters button").hover(
+                function() {
+                    if (!$(this).hasClass("fc-state-active")) {
+                        $(this).addClass("fc-state-hover");
+                    }
+                },
+                function() {
+                    $(this).removeClass("fc-state-hover");
+                }
+            );
             $(".fc-toolbar .fc-right").prepend(
                 "<div class=\"btn-group\"><button id=\"create-homework\" type=\"button\" class=\"fc-button btn btn-primary btn-sm btn-xs\"><i class=\"icon-plus\"></i></button></div>");
             $(".fc-toolbar .fc-right").append(
                 "<span class=\"input-icon\" id=\"search-bar\"><input type=\"text\" placeholder=\"Search ...\" class=\"input-sm search-query\" id=\"calendar-search\" autocomplete=\"off\" /><i class=\"icon-search nav-search-icon\"></i></span>");
             $(".fc-toolbar, .fc-button").addClass("hidden-print");
             $(".fc-toolbar .fc-right").addClass("hidden-print");
-            $(".fc-month-button, .fc-agendaWeek-button, #calendar-classes, #calendar-filters, #search-bar")
+            $(".fc-month-button, .fc-agendaWeek-button, #search-bar")
                 .addClass("hidden-xs");
             self.loading_div =
                 $(".fc-toolbar .fc-left").append(
@@ -1431,17 +1441,17 @@ function HeliumCalendar() {
             self.initialize_search_bindings();
 
             $("#filter-classes-clear").on("click", function () {
-                $("#classes-button-title").html("Classes");
+                $("#classes-button-title").parent().addClass("fc-state-active");
                 $.each(
                     $("[id^='calendar-filter-course-']"),
                     function () {
-                        $(this).children().find("input").prop("checked", true);
+                        $(this).children().find("input").prop("checked", false);
                     });
                 self.refresh_classes();
             });
 
             $("#filter-clear").on("click", function () {
-                $("#filter-button-title").html("Filter");
+                $("#filter-button-title").parent().removeClass("fc-state-active");
                 $.each(
                     $("[id^='calendar-filter-category-'], #calendar-filter-homework, #calendar-filter-events, #calendar-filter-class, #calendar-filter-external, #calendar-filter-complete, #calendar-filter-incomplete, #calendar-filter-overdue"),
                     function () {
