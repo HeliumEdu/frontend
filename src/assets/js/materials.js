@@ -130,7 +130,7 @@ function HeliumMaterials() {
             }
             input_tab.before("<li><a data-toggle=\"tab\" href=\"#material-group-" + data.id
                              + "\"><i class=\"icon-list r-110\"></i> " + data.title + (!data.shown_on_calendar
-                                                                                            ? " (H)" : "")
+                                                                                            ? " <i class=\"icon-eye-close\"></i>" : "")
                              + "</a></li>");
             material_group_div =
                 "<div id=\"material-group-" + data.id

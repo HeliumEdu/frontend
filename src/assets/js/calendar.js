@@ -671,7 +671,7 @@ function HeliumCalendar() {
      */
     this.update_filter_checkbox = function (selector) {
         let checkbox;
-        $("#filter-button-title").html("Filter (On)");
+        $("#filter-button-title").html("Filter <i class=\"icon-filter\"></i>");
         checkbox = $(selector.children()[0]);
         checkbox.prop("checked", !checkbox.is(":checked")).trigger("change");
     };
@@ -831,7 +831,7 @@ function HeliumCalendar() {
         // If all class (or none) filters are check, clear the filter title
         if (courses.size() !== course_ids.split(",").length
             && course_ids !== "") {
-            $("#classes-button-title").html("Classes (On)");
+            $("#classes-button-title").html("Classes <i class=\"icon-filter\"></i>");
         } else {
             $("#classes-button-title").html("Classes");
         }
@@ -1545,7 +1545,7 @@ function HeliumCalendar() {
                 .find("#loading-filters");
         loading_filters.spin(helium.FILTER_LOADING_OPTS);
         $("#calendar-filter-list").append(
-            "<li class=\"divider\"></li><li id=\"calendar-filter-homework\"><a class=\"checkbox cursor-hover\"><input name=\"assignments\" type=\"checkbox\"/> &nbsp;<span>Assignments</span></a></li><li id=\"calendar-filter-events\"><a class=\"checkbox cursor-hover\"><input name=\"events\" type=\"checkbox\"/> &nbsp;<span>Events</span></a></li><li id=\"calendar-filter-class\"><a class=\"checkbox cursor-hover\"><input name=\"class-schedule\" type=\"checkbox\"/> &nbsp;<span>Class Schedule</span></a></li><li id=\"calendar-filter-external\"><a class=\"checkbox cursor-hover\"><input name=\"external-calendar\" type=\"checkbox\"/> &nbsp;<span>External Calendar</span></a></li><li class=\"divider\"></li><li id=\"calendar-filter-complete\"><a class=\"checkbox cursor-hover\"><input name=\"complete\" type=\"checkbox\"/> &nbsp;<span>Complete</span></a></li><li id=\"calendar-filter-incomplete\"><a class=\"checkbox cursor-hover\"><input name=\"incomplete\" type=\"checkbox\" /> &nbsp;<span>Incomplete</span></a></li><li id=\"calendar-filter-overdue\"><a class=\"checkbox cursor-hover\"><input name=\"overdue\" type=\"checkbox\" /> &nbsp;<span>Overdue</span></a></li>");
+            "<li class=\"divider\"></li><li id=\"calendar-filter-homework\"><a class=\"checkbox cursor-hover\"><input name=\"assignments\" type=\"checkbox\"/> &nbsp;<span>Assignments</span></a></li><li id=\"calendar-filter-events\"><a class=\"checkbox cursor-hover\"><input name=\"events\" type=\"checkbox\"/> &nbsp;<span>Events <span class=\"filter-color-dot\" style=\"background-color: " + helium.USER_PREFS.settings.events_color + "\"></span></span></a></li><li id=\"calendar-filter-class\"><a class=\"checkbox cursor-hover\"><input name=\"class-schedule\" type=\"checkbox\"/> &nbsp;<span>Class Schedule</span></a></li><li id=\"calendar-filter-external\"><a class=\"checkbox cursor-hover\"><input name=\"external-calendar\" type=\"checkbox\"/> &nbsp;<span>External Calendar</span></a></li><li class=\"divider\"></li><li id=\"calendar-filter-complete\"><a class=\"checkbox cursor-hover\"><input name=\"complete\" type=\"checkbox\"/> &nbsp;<span>Complete</span></a></li><li id=\"calendar-filter-incomplete\"><a class=\"checkbox cursor-hover\"><input name=\"incomplete\" type=\"checkbox\" /> &nbsp;<span>Incomplete</span></a></li><li id=\"calendar-filter-overdue\"><a class=\"checkbox cursor-hover\"><input name=\"overdue\" type=\"checkbox\" /> &nbsp;<span>Overdue</span></a></li>");
         $("#calendar-filter-homework input").on("click", self.event_stop_propagation)
             .on("change", self.refresh_filters);
         $("#calendar-filter-homework a").on("click", self.update_filter_checkbox_from_event);
@@ -1611,8 +1611,7 @@ function HeliumCalendar() {
 
                         $("#calendar-classes-list").append("<li id=\"calendar-filter-course-" + course.id
                                                            + "\"><a class=\"checkbox cursor-hover filter-course-title\"><input type=\"checkbox\" name=\"course-"
-                                                           + course.id + "\"/> &nbsp;<span style=\"color: "
-                                                           + course.color + "\">" + course.title + "</span></a></li>");
+                                                           + course.id + "\"/> &nbsp;" + course.title + " <span class=\"filter-color-dot\" style=\"background-color: " + course.color + "\"></span></span></a></li>");
                         $("#calendar-filter-course-" + course.id + " input").on("click", self.event_stop_propagation)
                             .on("change", self.refresh_classes);
                         $("#calendar-filter-course-" + course.id + " a").on("click", function () {
