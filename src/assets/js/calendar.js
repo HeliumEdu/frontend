@@ -2557,7 +2557,7 @@ function HeliumCalendar() {
     $.fullCalendar.views.assignmentsList.watch('titleForCalendarOverride', ['title'], function (deps) {
         this.calendar.header.el.find('h2')
             .html(
-                "Assignments List <span class=\"hidden-xs assignmentslist-help help-button\" data-rel=\"popover\" data-trigger=\"hover\" data-container=\"body\" data-placement=\"right\" data-content=\"This view shows only assignments—no class schedules, events, or external calendars—allowing you to quickly sort through and review your schoolwork.\" title=\"List View\">?</span>")
+                "Assignments <span class=\"hidden-xs assignmentslist-help help-button\" data-rel=\"popover\" data-trigger=\"hover\" data-container=\"body\" data-placement=\"right\" data-content=\"This view shows only assignments—no class schedules, events, or external calendars—allowing you to quickly sort through and review your schoolwork.\" title=\"Todo View\">?</span>")
             .find(".assignmentslist-help").popover({html: true}).data("bs.popover").tip().css("z-index", 1060);
     });
 })();
