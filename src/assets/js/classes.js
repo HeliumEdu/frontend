@@ -486,7 +486,7 @@ function HeliumClasses() {
             let course_group_div, div, table_div;
             $("#course-group-tabs").prepend(
                 "<li><a data-toggle=\"tab\" href=\"#course-group-" + data.id + "\"><i class=\"icon-list r-110\"></i> "
-                + data.title + (!data.shown_on_calendar ? " (H)" : "") + "</a></li>");
+                + data.title + (!data.shown_on_calendar ? " <i class=\"icon-eye-close\"></i>" : "") + "</a></li>");
             course_group_div =
                 "<div id=\"course-group-" + data.id
                 + "\" class=\"tab-pane\"><div class=\"col-sm-12\"><div class=\"table-header\"><span id=\"course-group-title-"

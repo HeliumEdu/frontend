@@ -61,7 +61,7 @@ function HeliumGrades() {
         } else {
             $("#course-group-tabs").prepend('<li><a data-toggle="tab" href="#course-group-container-' + data.id
                                             + '"><i class="icon-list r-110"></i> <span class="hidden-xs">' + data.title
-                                            + (!data.shown_on_calendar ? " (H)" : "") + '</span></a></li>');
+                                            + (!data.shown_on_calendar ? " <i class=\"icon-eye-close\"></i>" : "") + '</span></a></li>');
             const container = $('<div id="course-group-container-' + data.id + '" class="tab-pane"></div>');
             const details = $(
                 '<div id="details-for-course-group-' + data.id + '" class="col-sm-12 infobox-container">');
