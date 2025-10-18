@@ -790,18 +790,23 @@ function HeliumCalendar() {
     };
 
     this.calculate_course_filter_window = function () {
-        $.each(helium.calendar.courses, function (index, course) {
-            const start_date = moment(course.start_date);
-            const end_date = moment(course.end_date);
-            if (self.course_filter_window_start === undefined
-                || start_date < self.course_filter_window_start) {
-                self.course_filter_window_start = start_date;
-            }
-            if (self.course_filter_window_end === undefined
-                || end_date > self.course_filter_window_end) {
-                self.course_filter_window_end = end_date.add(1, "days")
-            }
-        });
+        if (Object.keys(helium.calendar.courses).length === 0) {
+            self.course_filter_window_start = moment().stripTime().subtract(1, "years");
+            self.course_filter_window_end = moment().stripTime().add(1, "years");
+        } else {
+            $.each(helium.calendar.courses, function (index, course) {
+                const start_date = moment(course.start_date);
+                const end_date = moment(course.end_date);
+                if (self.course_filter_window_start === undefined
+                    || start_date < self.course_filter_window_start) {
+                    self.course_filter_window_start = start_date;
+                }
+                if (self.course_filter_window_end === undefined
+                    || end_date > self.course_filter_window_end) {
+                    self.course_filter_window_end = end_date.add(1, "days")
+                }
+            });
+        }
     }
 
     /**
