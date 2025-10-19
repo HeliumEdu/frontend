@@ -135,7 +135,7 @@ function HeliumMaterials() {
             material_group_div =
                 "<div id=\"material-group-" + data.id
                 + "\" class=\"tab-pane\"><div class=\"col-sm-12\"><div class=\"table-header\"><span id=\"material-group-title-"
-                + data.id + "\">" + data.title + (!data.shown_on_calendar ? " (Hidden)" : "")
+                + data.id + "\">" + data.title + (!data.shown_on_calendar ? " <i class=\"icon-eye-close\"></i>" : "")
                 + "</span></span><label class=\"pull-right inline action-buttons\" style=\"padding-right: 10px\"><a class=\"cursor-hover\" id=\"create-material-for-group-"
                 + data.id
                 + "\"><span class=\"white\"><i class=\"icon-plus-sign-alt bigger-120 hidden-print\"></i></span></a>&nbsp;<a class=\"cursor-hover\" id=\"edit-material-group-"

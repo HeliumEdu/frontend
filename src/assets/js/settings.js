@@ -226,6 +226,7 @@ function HeliumSettings() {
             data.push({"name": "private_slug", "value": helium.USER_PREFS.settings.private_slug});
             data.push({"name": "events_color", "value": $("#id_color_select").val()});
             data.push({"name": "calendar_event_limit", "value": $("#id_calendar_event_limit").is(":checked")});
+            data.push({"name": "remember_filter_state", "value": $("#id_remember_filter_state").is(":checked")});
 
             self.save_externalcalendars(form);
 
@@ -597,6 +598,7 @@ $(document).ready(function () {
     $("#id_time_zone").trigger("chosen:updated");
     $("#id_color_select").simplecolorpicker("selectColor", helium.USER_PREFS.settings.events_color);
     $("#id_calendar_event_limit").prop("checked", helium.USER_PREFS.settings.calendar_event_limit);
+    $("#id_remember_filter_state").prop("checked", helium.USER_PREFS.settings.remember_filter_state);
     $("#id_default_reminder_type").val(helium.USER_PREFS.settings.default_reminder_type);
     $("#id_default_reminder_offset").val(helium.USER_PREFS.settings.default_reminder_offset);
     $("#id_default_reminder_offset_type").val(helium.USER_PREFS.settings.default_reminder_offset_type);
