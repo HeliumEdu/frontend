@@ -206,7 +206,7 @@ function HeliumCalendar() {
             if ($("#calendar-classes-list").find($("[id^='calendar-filter-course-']:has(input:checked)")).length > 0) {
                 $("#calendar-classes button").addClass("fc-state-active");
             }
-            if ($("[id^='calendar-filter-']:has(input:checked)").length > 0) {
+            if ($("#calendar-filter-list").find($("[id^='calendar-filter-']:has(input:checked)")).length > 0) {
                 $("#calendar-filters button").addClass("fc-state-active");
             }
         }
@@ -632,7 +632,7 @@ function HeliumCalendar() {
                                                                parseInt(calendar_item_fields.attachments[i].size))
                                     + "</td><td><div class=\"btn-group\"><a class=\"btn btn-xs btn-success\" download target=\"_blank\" href=\""
                                     + calendar_item_fields.attachments[i].attachment
-                                    + "\"><i class=\"icon-cloud-download bigger-120\"></i></a> <button class=\"btn btn-xs btn-danger\" id=\"delete-attachment-"
+                                    + "\"><i class=\"icon-cloud-download bigger-120\"></i></a> <button class=\"btn btn-xs btn-danger\" aria-label=\"Delete Attachment\" id=\"delete-attachment-"
                                     + calendar_item_fields.attachments[i].id
                                     + "\"><i class=\"icon-trash bigger-120\"></i></button></div></td></tr>");
                                 $("#delete-attachment-" + calendar_item_fields.attachments[i].id)
@@ -1439,8 +1439,8 @@ function HeliumCalendar() {
             // Customize the calendar header
             $(".fc-toolbar .fc-right").prepend(
                 "<div class=\"fc-button-group\">"
-                + "<div class='btn-group' id=\"calendar-classes\"><button data-toggle=\"dropdown\" class=\"fc-button fc-state-default dropdown-toggle\"><span id=\"classes-button-title\"><i class=\"icon-book\"></i></span> <span class=\"icon-caret-down icon-on-right\"></span></button><ul id=\"calendar-classes-list\" class=\"dropdown-menu dropdown-menu-form pull-right\" role=\"menu\"><li id=\"filter-classes-clear\"><a class=\"cursor-hover\">Clear Filters</a></li><li class=\"divider\"></li></ul></div>"
-                + "<div class='btn-group' id=\"calendar-filters\"><button data-toggle=\"dropdown\" class=\"fc-button fc-state-default dropdown-toggle\"><span id=\"filter-button-title\"><i class=\"icon-filter\"></i></span> <span class=\"icon-caret-down icon-on-right\"></span></button><ul id=\"calendar-filter-list\" class=\"dropdown-menu dropdown-menu-form pull-right\" role=\"menu\"><li id=\"filter-clear\"><a class=\"cursor-hover\">Clear Filters</a></li></ul></div>"
+                + "<div class='btn-group' id=\"calendar-classes\"><button data-toggle=\"dropdown\" aria-label=\"Classes\" class=\"fc-button fc-state-default dropdown-toggle\"><span id=\"classes-button-title\"><i class=\"icon-book\"></i></span> <span class=\"icon-caret-down icon-on-right\"></span></button><ul id=\"calendar-classes-list\" class=\"dropdown-menu dropdown-menu-form pull-right\" role=\"menu\"><li id=\"filter-classes-clear\"><a class=\"cursor-hover\">Clear Filters</a></li><li class=\"divider\"></li></ul></div>"
+                + "<div class='btn-group' id=\"calendar-filters\"><button data-toggle=\"dropdown\" aria-label=\"Filters\" class=\"fc-button fc-state-default dropdown-toggle\"><span id=\"filter-button-title\"><i class=\"icon-filter\"></i></span> <span class=\"icon-caret-down icon-on-right\"></span></button><ul id=\"calendar-filter-list\" class=\"dropdown-menu dropdown-menu-form pull-right\" role=\"menu\"><li id=\"filter-clear\"><a class=\"cursor-hover\">Clear Filters</a></li></ul></div>"
                 + "</div>");
             $("#calendar-classes button, #calendar-filters button").hover(
                 function () {
@@ -1453,7 +1453,7 @@ function HeliumCalendar() {
                 }
             );
             $(".fc-toolbar .fc-right").prepend(
-                "<div class=\"btn-group\"><button id=\"create-homework\" type=\"button\" class=\"fc-button btn btn-primary btn-sm btn-xs\"><i class=\"icon-plus\"></i></button></div>");
+                "<div class=\"btn-group\"><button id=\"create-homework\" aria-label=\"Create\" type=\"button\" class=\"fc-button btn btn-primary btn-sm btn-xs\"><i class=\"icon-plus\"></i></button></div>");
             $(".fc-toolbar .fc-right").append(
                 "<span class=\"input-icon\" id=\"search-bar\"><input type=\"text\" placeholder=\"Search ...\" class=\"input-sm search-query\" id=\"calendar-search\" autocomplete=\"off\" /><i class=\"icon-search nav-search-icon\"></i></span>");
             $(".fc-toolbar, .fc-button").addClass("hidden-print");
@@ -1887,7 +1887,7 @@ function HeliumCalendar() {
             + "-type\">" + type_options + "</select> <a class=\"cursor-hover\" data-type=\"text\" id=\"reminder-"
             + reminder.id + unsaved_string + "-offset\">" + reminder.offset + "</a> <select id=\"reminder-"
             + reminder.id + unsaved_string + "-offset-type\">" + offset_type_options
-            + "</select></td><td><div class=\"btn-group\"><button class=\"btn btn-xs btn-danger\" id=\"delete-reminder-"
+            + "</select></td><td><div class=\"btn-group\"><button aria-label=\"Delete Reminder\"  class=\"btn btn-xs btn-danger\" id=\"delete-reminder-"
             + reminder.id + unsaved_string + "\"><i class=\"icon-trash bigger-120\"></i></button></div></td></tr>";
         $("#reminders-table-body").append(row);
 

@@ -183,7 +183,7 @@ function HeliumClasses() {
             + unsaved_string + "-color\" class='color-picker'>" + $("#id_color_select").html()
             + "</select></td><td class=\"hidden-480\">" + (category.num_homework !== undefined ? category.num_homework
                                                                                                : "0") + "</td>"
-            + "<td><div class=\"btn-group\"><button class=\"btn btn-xs btn-danger\" id=\"delete-category-" + category.id
+            + "<td><div class=\"btn-group\"><button aria-label=\"Delete Category\"  class=\"btn btn-xs btn-danger\" id=\"delete-category-" + category.id
             + unsaved_string + "\"><i class=\"icon-trash bigger-120\"></i></button></div></td>" + "</tr>";
         $("#categories-table-end-placeholder").before(row);
 
@@ -960,7 +960,7 @@ function HeliumClasses() {
                                 + helium.bytes_to_size(parseInt(data[i].size))
                                 + "</td><td><div class=\"btn-group\"><a target=\"_blank\" class=\"btn btn-xs btn-success\" href=\""
                                 + data[i].attachment
-                                + "\"><i class=\"icon-cloud-download bigger-120\"></i></a> <button class=\"btn btn-xs btn-danger\" id=\"delete-attachment-"
+                                + "\"><i class=\"icon-cloud-download bigger-120\"></i></a> <button aria-label=\"Delete Attachment\" class=\"btn btn-xs btn-danger\" id=\"delete-attachment-"
                                 + data[i].id + "\"><i class=\"icon-trash bigger-120\"></i></button></div></td></tr>");
                             $("#delete-attachment-" + data[i].id).on("click", self.delete_attachment);
                         }

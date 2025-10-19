@@ -69,7 +69,7 @@ function HeliumSettings() {
         row.append(
             $('<td>').append($('<select class="hide color-picker">' + $("#id_color_select").html() + '</select>')));
         row.append($('<td>').append(
-            '<div class="btn-group"><button type="button" class="btn btn-xs btn-danger delete-externalcalendar"><i class="icon-trash bigger-120"></i></button></div></td></tr>'));
+            '<div class="btn-group"><button type="button" aria-label="Delete External Calendar" class="btn btn-xs btn-danger delete-externalcalendar"><i class="icon-trash bigger-120"></i></button></div></td></tr>'));
 
         $("#externalcalendars-table-body").append(row);
 
