@@ -490,7 +490,7 @@ function HeliumClasses() {
             course_group_div =
                 "<div id=\"course-group-" + data.id
                 + "\" class=\"tab-pane\"><div class=\"col-sm-12\"><div class=\"table-header\"><span id=\"course-group-title-"
-                + data.id + "\">" + data.title + (!data.shown_on_calendar ? " (Hidden)" : "")
+                + data.id + "\">" + data.title + (!data.shown_on_calendar ? " <i class=\"icon-eye-close\"></i>" : "")
                 + "</span><span class='hidden-xs'> | </span><small class=\"hidden-xs\"><span id=\"course-group-" + data.id + "-start-date\">" + moment(
                                               data.start_date, helium.HE_DATE_STRING_SERVER).format(helium.HE_DATE_STRING_CLIENT)
                 + "</span> to <span id=\"course-group-" + data.id + "-end-date\">" + moment(data.end_date,

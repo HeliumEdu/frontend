@@ -66,7 +66,7 @@
                             "<i class=\"icon-book r-110\"></i> <span class=\"hidden-xs\">" + course_group.title
                             + (!course_group.shown_on_calendar ? " <i class=\"icon-eye-close\"></i>" : "") + "</span>");
                         $("#course-group-title-" + course_group.id)
-                            .html(course_group.title + (!course_group.shown_on_calendar ? " (Hidden)" : ""));
+                            .html(course_group.title + (!course_group.shown_on_calendar ? " <i class=\"icon-eye-close\"></i>" : ""));
                         $("#course-group-" + course_group.id + "-start-date").html(
                             moment(course_group.start_date, helium.HE_DATE_STRING_SERVER)
                                 .format(helium.HE_DATE_STRING_CLIENT));
@@ -267,13 +267,6 @@
     $("#course-group-modal, #course-modal").on('hide.bs.modal', () => {
         if (document.activeElement instanceof HTMLElement) {
             document.activeElement.blur();
-        }
-    });
-
-    document.addEventListener("keydown", function(event) {
-        if (event.key === "Escape") {
-            $('#course-group-modal').modal('hide');
-            $('#course-modal').modal('hide');
         }
     });
 }());

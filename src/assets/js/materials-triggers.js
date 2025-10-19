@@ -58,7 +58,7 @@
                     } else {
                         const material_group = data;
                         $('a[href="#material-group-' + data.id + '"]').html("<i class=\"icon-briefcase r-110\"></i> <span class=\"hidden-xs\">" + material_group.title + (!material_group.shown_on_calendar ? " <i class=\"icon-eye-close\"></i>" : "") + "</span>");
-                        $("#material-group-title-" + data.id).html(material_group.title + (!material_group.shown_on_calendar ? " (Hidden)" : ""));
+                        $("#material-group-title-" + data.id).html(material_group.title + (!material_group.shown_on_calendar ? " <i class=\"icon-eye-close\"></i>" : ""));
 
                         helium.materials.resort_material_groups();
 
