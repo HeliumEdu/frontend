@@ -5,9 +5,13 @@ if [[ "$npm_command" != "run-script" ]] && [[ "$npm_command" != "run" ]]; then
   exit 1;
 fi
 
-if [[ "$USE_NGROK" == "true" ]]; then
-  python -m pip install pyngrok
-  ngrok http 3000 --log stdout &
+set -e
+
+PYTHON_BIN="${PYTHON_BIN:-python}"
+
+if [[ "${USE_NGROK,,}" == "true" ]]; then
+  $PYTHON_BIN -m pip install pyngrok
+  ngrok start heliumedu --log stdout &
 fi
 
 make clean-assets

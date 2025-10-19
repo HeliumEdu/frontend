@@ -21,8 +21,8 @@ if (window.APP_URL === "http://localhost:3000/" || window.APP_URL === "http://12
     window.SUPPORT_URL = "https://support.heliumedu.com"
 } else {
     // Env-prefixed
-    window.API_URL = window.APP_URL.replace("www", "api");
-    window.SUPPORT_URL = window.APP_URL.replace("www", "support");
+    window.API_URL = location.protocol + "//" + "api." + location.host;
+    window.SUPPORT_URL = location.protocol + "//" + "support." + location.host;
 }
 
 document.GENERIC_ERROR_MESSAGE = "Oops, an unknown error has occurred. If the issue persists, <a href=\"" + window.SUPPORT_URL + "\">contact support</a>.";
