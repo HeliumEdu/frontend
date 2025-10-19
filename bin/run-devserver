@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+if [[ "$npm_command" != "run-script" ]] && [[ "$npm_command" != "run" ]]; then
+  echo "This script must be run within npm. Try \`npm build-dev\` or \`make build-dev\` instead."
+  exit 1;
+fi
+
+if [[ "$USE_NGROK" == "true" ]]; then
+  python -m pip install pyngrok
+  ngrok http 3000 --log stdout &
+fi
+
+make clean-assets
+npm run build-dev
+http-server ./build -p 3000 -a localhost -d false -c-1
