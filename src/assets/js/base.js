@@ -336,7 +336,7 @@ function Helium() {
         }
 
         const list_item = $('<li id="reminder-popup-' + data.id
-                            + '" class="reminder-popup"><button type="button" class="close reminder-close"><i class="icon-remove"></i></button></li>');
+                            + '" class="reminder-popup"><button type="button" aria-label="Dismiss Reminder"  class="close reminder-close"><i class="icon-remove"></i></button></li>');
         const reminder_body = $('<span class="reminder-msg-body cursor-hover" id="' + id_str + '"></span>');
         list_item.append(reminder_body);
 
