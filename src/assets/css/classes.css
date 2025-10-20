@@ -16,6 +16,10 @@
     z-index: 1151 !important;
 }
 
+table tr {
+    cursor: pointer;
+}
+
 #categories-table {
     width: 100%;
     table-layout: fixed;

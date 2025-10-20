@@ -39,7 +39,6 @@ function HeliumCalendar() {
     this.calendar_item_for_dropzone = null;
     this.preferred_material_ids = null;
     this.preferred_category_name = null;
-    this.preferred_category_id = -1;
     this.reminder_unsaved_pk = 0;
     this.typing_timer = 0;
     this.last_good_grade = "";
@@ -73,7 +72,6 @@ function HeliumCalendar() {
         self.current_calendar_item = null;
         self.preferred_category_name = null;
         self.preferred_material_ids = null;
-        self.preferred_category_id = -1;
         self.reminder_unsaved_pk = 0;
         self.last_good_grade = "";
         self.is_resizing_calendar_item = false;
@@ -111,43 +109,6 @@ function HeliumCalendar() {
     };
 
     /**
-     * Retrieve the name for the given category ID.
-     *
-     * @param id the ID of the category
-     * @return the name of the category, null if the category is not available
-     */
-    this.get_category_name_by_id = function (id) {
-        let category_options = $("#homework-category").find("option"), name = null, option, i = 0;
-        for (i = 0; i < category_options.length; i += 1) {
-            option = $(category_options[i]);
-            if (parseInt(option.val()) === parseInt(id)) {
-                name = option.html();
-                break;
-            }
-        }
-
-        return name;
-    };
-
-    /**
-     * Retrieve the ID for the given category name.
-     *
-     * @param name the name of the category
-     * @return the ID of the category, -1 if the category is not available
-     */
-    this.get_category_id_by_name = function (name) {
-        let id = -1, category_options = $("#homework-category").find("option"), i = 0, option;
-        for (i = 0; i < category_options.length; i += 1) {
-            option = $(category_options[i]);
-            if (option.html() === name) {
-                id = option.val();
-                break;
-            }
-        }
-        return id;
-    };
-
-    /**
      * Reset filters from storage, if applicable.
      */
     this.reset_filters = function () {
@@ -177,11 +138,14 @@ function HeliumCalendar() {
                 });
             }
 
-            $("#calendar-filter-homework input").prop("checked", localStorage.getItem("filter_show_homework") === "true");
+            $("#calendar-filter-homework input")
+                .prop("checked", localStorage.getItem("filter_show_homework") === "true");
             $("#calendar-filter-events input").prop("checked", localStorage.getItem("filter_show_events") === "true");
-            $("#calendar-filter-external input").prop("checked", localStorage.getItem("filter_show_external") === "true");
+            $("#calendar-filter-external input")
+                .prop("checked", localStorage.getItem("filter_show_external") === "true");
             $("#calendar-filter-class input").prop("checked", localStorage.getItem("filter_show_class") === "true");
-            $("#calendar-filter-categories input").prop("checked", localStorage.getItem("filter_categories") === "true");
+            $("#calendar-filter-categories input")
+                .prop("checked", localStorage.getItem("filter_categories") === "true");
             $("#calendar-filter-overdue input").prop("checked", localStorage.getItem("filter_overdue") === "true");
             let filter_complete = localStorage.getItem("filter_complete");
             if (filter_complete) {
@@ -199,7 +163,9 @@ function HeliumCalendar() {
             if (category_names) {
                 $.each(category_names.split(","), function (index, category_name_encoded) {
                     let category_name = decodeURIComponent(category_name_encoded).replace(/^'|'$/g, '');
-                    $("#calendar-filter-list").find("[id^='calendar-filter-category-']:contains('" + category_name + "')").find("input").prop("checked", true);
+                    $("#calendar-filter-list")
+                        .find("[id^='calendar-filter-category-']:contains('" + category_name + "')").find("input")
+                        .prop("checked", true);
                 });
             }
 
@@ -404,7 +370,6 @@ function HeliumCalendar() {
 
         // Set the preferred IDs, which will be set when the global event is triggered selecting the course
         self.preferred_material_ids = null;
-        self.preferred_category_id = -1;
         self.preferred_category_name = null;
 
         if ($("[id^='calendar-filter-course-']").length > 0) {
@@ -573,11 +538,15 @@ function HeliumCalendar() {
                                 // Set the preferred IDs, which will be set when the global event is triggered
                                 // selecting the course
                                 self.preferred_material_ids = [];
-                                $.each(calendar_item_fields.materials, function (index, id) {
-                                    self.preferred_material_ids.push(id);
-                                });
-                                self.preferred_category_name = null;
-                                self.preferred_category_id = calendar_item_fields.category;
+                                if (calendar_item_fields.materials) {
+                                    $.each(calendar_item_fields.materials, function (index, id) {
+                                        self.preferred_material_ids.push(id);
+                                    });
+                                }
+
+                                if (calendar_item_fields.category) {
+                                    self.preferred_category_name = self.categories[calendar_item_fields.category].title;
+                                }
 
                                 $("#homework-class").val(helium.calendar.courses[calendar_item_fields.course].id);
 
@@ -770,10 +739,14 @@ function HeliumCalendar() {
             localStorage.removeItem("filter_show_class");
             localStorage.removeItem("filter_show_external");
         } else {
-            localStorage.setItem("filter_show_homework", $("#calendar-filter-homework").children().find("input").prop("checked"));
-            localStorage.setItem("filter_show_events", $("#calendar-filter-events").children().find("input").prop("checked"));
-            localStorage.setItem("filter_show_class", $("#calendar-filter-class").children().find("input").prop("checked"));
-            localStorage.setItem("filter_show_external", $("#calendar-filter-external").children().find("input").prop("checked"));
+            localStorage.setItem("filter_show_homework",
+                                 $("#calendar-filter-homework").children().find("input").prop("checked"));
+            localStorage.setItem("filter_show_events",
+                                 $("#calendar-filter-events").children().find("input").prop("checked"));
+            localStorage.setItem("filter_show_class",
+                                 $("#calendar-filter-class").children().find("input").prop("checked"));
+            localStorage.setItem("filter_show_external",
+                                 $("#calendar-filter-external").children().find("input").prop("checked"));
         }
 
         // Check if we should filter by selected categories
@@ -1182,8 +1155,6 @@ function HeliumCalendar() {
      * Initialize the FullCalendar plugin.
      */
     this.initialize_calendar = function () {
-        helium.ajax_error_occurred = false;
-
         self.calculate_course_filter_window();
 
         let user_view_pref = helium.USER_PREFS.settings.default_view;
@@ -1602,7 +1573,7 @@ function HeliumCalendar() {
         $("#calendar-filter-list").append(
             "<li class=\"divider\"></li><li id=\"calendar-filter-homework\"><a class=\"checkbox cursor-hover\"><input name=\"assignments\" type=\"checkbox\"/> &nbsp;<span>Assignments</span></a></li><li id=\"calendar-filter-events\"><a class=\"checkbox cursor-hover\"><input name=\"events\" type=\"checkbox\"/> &nbsp;<span>Events <span class=\"filter-color-dot\" style=\"background-color: "
             + helium.USER_PREFS.settings.events_color
-            + "\"></span></span></a></li><li id=\"calendar-filter-class\"><a class=\"checkbox cursor-hover\"><input name=\"class-schedule\" type=\"checkbox\"/> &nbsp;<span>Class Schedule</span></a></li><li id=\"calendar-filter-external\"><a class=\"checkbox cursor-hover\"><input name=\"external-calendar\" type=\"checkbox\"/> &nbsp;<span>External Calendar</span></a></li><li class=\"divider\"></li><li id=\"calendar-filter-complete\"><a class=\"checkbox cursor-hover\"><input name=\"complete\" type=\"checkbox\"/> &nbsp;<span>Complete</span></a></li><li id=\"calendar-filter-incomplete\"><a class=\"checkbox cursor-hover\"><input name=\"incomplete\" type=\"checkbox\" /> &nbsp;<span>Incomplete</span></a></li><li id=\"calendar-filter-overdue\"><a class=\"checkbox cursor-hover\"><input name=\"overdue\" type=\"checkbox\" /> &nbsp;<span>Overdue</span></a></li>");
+            + "\"></span></span></a></li><li id=\"calendar-filter-class\"><a class=\"checkbox cursor-hover\"><input name=\"class-schedule\" type=\"checkbox\"/> &nbsp;<span>Class Schedules</span></a></li><li id=\"calendar-filter-external\"><a class=\"checkbox cursor-hover\"><input name=\"external-calendar\" type=\"checkbox\"/> &nbsp;<span>External Calendars</span></a></li><li class=\"divider\"></li><li id=\"calendar-filter-complete\"><a class=\"checkbox cursor-hover\"><input name=\"complete\" type=\"checkbox\"/> &nbsp;<span>Complete</span></a></li><li id=\"calendar-filter-incomplete\"><a class=\"checkbox cursor-hover\"><input name=\"incomplete\" type=\"checkbox\" /> &nbsp;<span>Incomplete</span></a></li><li id=\"calendar-filter-overdue\"><a class=\"checkbox cursor-hover\"><input name=\"overdue\" type=\"checkbox\" /> &nbsp;<span>Overdue</span></a></li>");
         $("#calendar-filter-homework input").on("click", self.event_stop_propagation)
             .on("change", self.refresh_filters);
         $("#calendar-filter-homework a").on("click", self.update_filter_checkbox_from_event);
@@ -1739,33 +1710,56 @@ function HeliumCalendar() {
     this.delete_calendar_item = function (event) {
         helium.ajax_error_occurred = false;
 
-        $("#loading-homework-modal").spin(helium.SMALL_LOADING_OPTS);
+        let item_to_delete = helium.calendar.current_calendar_item.id;
+        $("#homework-modal").modal("hide");
 
-        const callback = function (data) {
-            if (helium.data_has_err_msg(data)) {
-                helium.ajax_error_occurred = true;
-                $("#loading-homework-modal").spin(false);
-
-                $("#homework-error").html(helium.get_error_msg(data));
-                $("#homework-error").parent().show("fast");
-            } else {
-                $("#calendar").fullCalendar("unselect");
-                $("#calendar").fullCalendar("removeEvents", self.current_calendar_item.id);
-
-                self.nullify_calendar_item_persistence();
-
-                $("#loading-homework-modal").spin(false);
-                self.loading_div.spin(false);
-                $("#homework-modal").modal("hide");
-            }
-        };
+        let type;
         if (event.calendar_item_type === 0) {
-            helium.planner_api.delete_event(callback, event.id);
+            type = "event";
         } else {
-            const course = helium.calendar.courses[event.course];
-
-            helium.planner_api.delete_homework(callback, course.course_group, course.id, event.id);
+            type = "assignment";
         }
+
+        bootbox.dialog(
+            {
+                message: "Are you sure you want to delete this " + type + "?",
+                buttons: {
+                    "delete": {
+                        "label": '<i class="icon-trash"></i> Delete',
+                        "className": "btn-sm btn-danger",
+                        "callback": function () {
+                            self.loading_div.spin(helium.SMALL_LOADING_OPTS);
+
+                            const callback = function (data) {
+                                if (helium.data_has_err_msg(data)) {
+                                    helium.ajax_error_occurred = true;
+                                    self.loading_div.spin(false);
+
+                                    bootbox.alert(helium.get_error_msg(data));
+                                } else {
+                                    $("#calendar").fullCalendar("unselect");
+                                    $("#calendar").fullCalendar("removeEvents", [item_to_delete]);
+
+                                    self.nullify_calendar_item_persistence();
+
+                                    self.loading_div.spin(false);
+                                }
+                            };
+                            if (event.calendar_item_type === 0) {
+                                helium.planner_api.delete_event(callback, event.id);
+                            } else {
+                                const course = helium.calendar.courses[event.course];
+
+                                helium.planner_api.delete_homework(callback, course.course_group, course.id, event.id);
+                            }
+                        }
+                    },
+                    "cancel": {
+                        "label": '<i class="icon-remove"></i> Cancel',
+                        "className": "btn-sm"
+                    }
+                }
+            });
     };
 
     /**
@@ -2643,113 +2637,116 @@ $(document).ready(function () {
     // Prevent Dropzone auto-initialization, as we'll do it in a bit
     Dropzone.autoDiscover = false;
 
-    $.ajax().always(function () {
-        /*******************************************
-         * Initialize component libraries
-         ******************************************/
-        // Searching is provided by the calendar page, so disable it in the dataTables library
-        $.extend($.fn.dataTable.defaults, {
-            "searching": false
+    /*******************************************
+     * Initialize component libraries
+     ******************************************/
+    // Searching is provided by the calendar page, so disable it in the dataTables library
+    $.extend($.fn.dataTable.defaults, {
+        "searching": false
+    });
+    // Add a plugin to allow ordering by checkbox
+    $.fn.dataTable.ext.order['dom-checkbox'] = function (settings, col) {
+        return this.api().column(col, {order: 'index'}).nodes().map(function (td, i) {
+            return $('input', td).prop('checked') ? '1' : '0';
         });
-        // Add a plugin to allow ordering by checkbox
-        $.fn.dataTable.ext.order['dom-checkbox'] = function (settings, col) {
-            return this.api().column(col, {order: 'index'}).nodes().map(function (td, i) {
-                return $('input', td).prop('checked') ? '1' : '0';
-            });
-        };
+    };
 
-        bootbox.setDefaults({
-                                locale: 'en'
-                            });
-        $(".date-picker").datepicker({
-                                         autoclose: true,
-                                         language: 'en',
-                                         weekStart: helium.USER_PREFS.settings.week_starts_on
-                                     }).next().on("click", function () {
-            $(this).prev().focus();
+    bootbox.setDefaults({
+                            locale: 'en'
+                        });
+    $(".date-picker").datepicker({
+                                     autoclose: true,
+                                     language: 'en',
+                                     weekStart: helium.USER_PREFS.settings.week_starts_on
+                                 }).next().on("click", function () {
+        $(this).prev().focus();
+    });
+    $("#homework-start-date").datepicker().on("changeDate", function () {
+        const start_date = moment($("#homework-start-date").val()).toDate(),
+            end_date = moment($("#homework-end-date").val()).toDate();
+        if (start_date > end_date) {
+            $("#homework-end-date").datepicker("setDate", start_date);
+        }
+    });
+    $("#homework-end-date").datepicker().on("changeDate", function () {
+        const start_date = moment($("#homework-start-date").val()).toDate(),
+            end_date = moment($("#homework-end-date").val()).toDate();
+        if (start_date > end_date) {
+            $("#homework-start-date").datepicker("setDate", end_date);
+        }
+    });
+    $(".time-picker").timepicker({
+                                     minuteStep: 5
+                                 }).next().on("click", function () {
+        $(this).prev().focus();
+    });
+    $("#homework-start-time").timepicker().on("changeTime.timepicker", function (event) {
+        const start_time = moment($("#homework-start-date").val() + " " + event.time.value,
+                                  helium.HE_DATE_TIME_STRING_CLIENT),
+            end_time = moment($("#homework-end-date").val() + " " + $("#homework-end-time").val(),
+                              helium.HE_DATE_TIME_STRING_CLIENT);
+        if (start_time.isAfter(end_time)) {
+            $("#homework-end-time").timepicker("setTime", start_time.format(helium.HE_TIME_STRING_CLIENT));
+        }
+    });
+    $("#homework-end-time").timepicker().on("changeTime.timepicker", function (event) {
+        const start_time = moment($("#homework-start-date").val() + " " + $("#homework-start-time").val(),
+                                  helium.HE_DATE_TIME_STRING_CLIENT),
+            end_time = moment($("#homework-end-date").val() + " " + event.time.value,
+                              helium.HE_DATE_TIME_STRING_CLIENT);
+        if (start_time.isAfter(end_time)) {
+            $("#homework-start-time").timepicker("setTime", end_time.format(helium.HE_TIME_STRING_CLIENT));
+        }
+    });
+    $("#homework-priority > span").css({width: "90%", "float": "left", margin: "15px"}).each(function () {
+        const value = parseInt($(this).text(), 10);
+        $(this).empty().slider({
+                                   value: value,
+                                   range: "min",
+                                   animate: true
+                               });
+    });
+    if ($(window).width() > 768) {
+        $("#homework-materials").chosen({
+                                            width: "100%",
+                                            search_contains: true,
+                                            no_results_text: "No materials match"
+                                        });
+        $("#homework-category").chosen({
+                                           width: "100%",
+                                           search_contains: true,
+                                           no_results_text: "No categories match"
+                                       });
+        $("#homework-category").chosen().change(function () {
+            $("#homework-completed").trigger("change");
         });
-        $("#homework-start-date").datepicker().on("changeDate", function () {
-            const start_date = moment($("#homework-start-date").val()).toDate(),
-                end_date = moment($("#homework-end-date").val()).toDate();
-            if (start_date > end_date) {
-                $("#homework-end-date").datepicker("setDate", start_date);
-            }
-        });
-        $("#homework-end-date").datepicker().on("changeDate", function () {
-            const start_date = moment($("#homework-start-date").val()).toDate(),
-                end_date = moment($("#homework-end-date").val()).toDate();
-            if (start_date > end_date) {
-                $("#homework-start-date").datepicker("setDate", end_date);
-            }
-        });
-        $(".time-picker").timepicker({
-                                         minuteStep: 5
-                                     }).next().on("click", function () {
-            $(this).prev().focus();
-        });
-        $("#homework-start-time").timepicker().on("changeTime.timepicker", function (event) {
-            const start_time = moment($("#homework-start-date").val() + " " + event.time.value,
-                                      helium.HE_DATE_TIME_STRING_CLIENT),
-                end_time = moment($("#homework-end-date").val() + " " + $("#homework-end-time").val(),
-                                  helium.HE_DATE_TIME_STRING_CLIENT);
-            if (start_time.isAfter(end_time)) {
-                $("#homework-end-time").timepicker("setTime", start_time.format(helium.HE_TIME_STRING_CLIENT));
-            }
-        });
-        $("#homework-end-time").timepicker().on("changeTime.timepicker", function (event) {
-            const start_time = moment($("#homework-start-date").val() + " " + $("#homework-start-time").val(),
-                                      helium.HE_DATE_TIME_STRING_CLIENT),
-                end_time = moment($("#homework-end-date").val() + " " + event.time.value,
-                                  helium.HE_DATE_TIME_STRING_CLIENT);
-            if (start_time.isAfter(end_time)) {
-                $("#homework-start-time").timepicker("setTime", end_time.format(helium.HE_TIME_STRING_CLIENT));
-            }
-        });
-        $("#homework-priority > span").css({width: "90%", "float": "left", margin: "15px"}).each(function () {
-            const value = parseInt($(this).text(), 10);
-            $(this).empty().slider({
-                                       value: value,
-                                       range: "min",
-                                       animate: true
-                                   });
-        });
-        if ($(window).width() > 768) {
-            $("#homework-materials").chosen({
-                                                width: "100%",
-                                                search_contains: true,
-                                                no_results_text: "No materials match"
-                                            });
-            $("#homework-category").chosen({
-                                               width: "100%",
-                                               search_contains: true,
-                                               no_results_text: "No categories match"
-                                           });
-            $("#homework-category").chosen().change(function () {
-                $("#homework-completed").trigger("change");
+    } else {
+        $("#homework-materials").css("max-width", "100%");
+        $("#homework-category").css("max-width", "100%");
+    }
+
+    /*******************************************
+     * Other page initialization
+     ******************************************/
+    helium.calendar.course_groups = {};
+    helium.calendar.courses = {};
+
+    helium.calendar.ajax_calls.push(helium.planner_api.get_course_groups(function (data) {
+        if (helium.data_has_err_msg(data)) {
+            helium.ajax_error_occurred = true;
+            $("#loading-calendar").spin(false);
+
+            bootbox.alert(helium.get_error_msg(data));
+        } else {
+            $.each(data, function (index, course_group) {
+                helium.calendar.course_groups[course_group['id']] = course_group;
             });
         }
+    }, true, true));
 
-        /*******************************************
-         * Other page initialization
-         ******************************************/
-        helium.calendar.course_groups = {};
-        helium.calendar.courses = {};
+    helium.calendar.categories = {};
 
-        helium.calendar.ajax_calls.push(helium.planner_api.get_course_groups(function (data) {
-            if (helium.data_has_err_msg(data)) {
-                helium.ajax_error_occurred = true;
-                $("#loading-calendar").spin(false);
-
-                bootbox.alert(helium.get_error_msg(data));
-            } else {
-                $.each(data, function (index, course_group) {
-                    helium.calendar.course_groups[course_group['id']] = course_group;
-                });
-            }
-        }, true, true));
-
-        helium.calendar.categories = {};
-
+    if (!helium.ajax_error_occurred) {
         helium.calendar.ajax_calls.push(helium.planner_api.get_categories_by_user_id(function (data) {
             if (helium.data_has_err_msg(data)) {
                 helium.ajax_error_occurred = true;
@@ -2762,10 +2759,12 @@ $(document).ready(function () {
                 });
             }
         }, true, true));
+    }
 
-        helium.calendar.material_groups = {};
-        helium.calendar.materials = {};
+    helium.calendar.material_groups = {};
+    helium.calendar.materials = {};
 
+    if (!helium.ajax_error_occurred) {
         helium.calendar.ajax_calls.push(helium.planner_api.get_material_groups(function (data) {
             if (helium.data_has_err_msg(data)) {
                 helium.ajax_error_occurred = true;
@@ -2784,7 +2783,9 @@ $(document).ready(function () {
                 });
             }
         }, true, true));
+    }
 
+    if (!helium.ajax_error_occurred) {
         helium.calendar.ajax_calls.push(helium.planner_api.get_external_calendars(function (data) {
             if (helium.data_has_err_msg(data)) {
                 helium.ajax_error_occurred = true;
@@ -2799,8 +2800,10 @@ $(document).ready(function () {
                 });
             }
         }, true, true, true));
+    }
 
-        $.when.apply(this, helium.calendar.ajax_calls).done(function () {
+    $.when.apply(this, helium.calendar.ajax_calls).done(function () {
+        if (!helium.ajax_error_occurred) {
             helium.calendar.ajax_calls.push(helium.planner_api.get_courses(function (data) {
                 if (helium.data_has_err_msg(data)) {
                     helium.ajax_error_occurred = true;
@@ -2830,8 +2833,10 @@ $(document).ready(function () {
                     }
                 }
             }, true, true));
+        }
 
-            $.when.apply(this, helium.calendar.ajax_calls).done(function () {
+        $.when.apply(this, helium.calendar.ajax_calls).done(function () {
+            if (!helium.ajax_error_occurred) {
                 helium.calendar.initialize_calendar();
 
                 $.when.apply(this, helium.calendar.ajax_calls).done(function () {
@@ -2976,7 +2981,7 @@ $(document).ready(function () {
                         localStorage.removeItem("edit_calendar_item");
                     }
                 });
-            });
+            }
         });
     });
 });
