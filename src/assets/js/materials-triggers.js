@@ -113,6 +113,10 @@
         $("#material-title").focus();
     });
 
+    $("#delete-material").on("click", function () {
+        helium.materials.delete_material_btn($("tr#material-" + helium.materials.edit_id));
+    });
+
     $("#save-material").on("click", function () {
         helium.ajax_error_occurred = false;
 
@@ -180,14 +184,7 @@
                                 helium.materials.material_group_table[data.material_group].draw();
                                 // Bind clickable attributes to their respective handlers
                                 row_div.on("click", function () {
-                                    helium.materials.edit_material_btn($(this).find("#edit-material-" + data.id));
-                                });
-                                row_div.find("#edit-material-" + data.id).on("click", function () {
                                     helium.materials.edit_material_btn($(this));
-                                });
-                                row_div.find("#delete-material-" + data.id).on("click", function (e) {
-                                    e.stopPropagation();
-                                    helium.materials.delete_material_btn($(this));
                                 });
 
                                 $("#loading-material-modal").spin(false);

@@ -81,6 +81,8 @@ function HeliumMaterials() {
     this.create_material_for_group_btn = function () {
         self.edit = false;
 
+        $("#delete-material").hide();
+
         // First, ensure we have a material group to add the new material to
         $("#material-modal-label").html("Add Material");
         $("#material-title").val("");
@@ -129,8 +131,9 @@ function HeliumMaterials() {
                 input_tab = $("#create-material-group-li");
             }
             input_tab.before("<li><a data-toggle=\"tab\" href=\"#material-group-" + data.id
-                             + "\"><i class=\"icon-list r-110\"></i> <span class=\"hidden-xs\">" + data.title + (!data.shown_on_calendar
-                                                                                            ? " <i class=\"icon-eye-close\"></i>" : "")
+                             + "\"><i class=\"icon-list r-110\"></i> <span class=\"hidden-xs\">" + data.title
+                             + (!data.shown_on_calendar
+                                ? " <i class=\"icon-eye-close\"></i>" : "")
                              + "</span></a></li>");
             material_group_div =
                 "<div id=\"material-group-" + data.id
@@ -144,7 +147,7 @@ function HeliumMaterials() {
                 + data.id
                 + "\"><span class=\"white\"><i class=\"icon-trash bigger-120 hidden-print\"></i></span></a></label></div><div class=\"table-responsive\"><table id=\"material-group-table-"
                 + data.id
-                + "\" class=\"table table-striped table-bordered table-hover\"><thead><tr><th>Title</th><th class=\"hidden-xs\">Price</th><th class=\"hidden-xs\">Status</th><th class=\"hidden-xs\">Classes</th><th>Details</th><th class=\"hidden-xs\"></th></tr></thead><tbody id=\"material-group-table-body-"
+                + "\" class=\"table table-striped table-bordered table-hover\"><thead><tr><th>Title</th><th class=\"hidden-xs\">Price</th><th class=\"hidden-xs\">Status</th><th>Classes</th><th>Details</th></tr></thead><tbody id=\"material-group-table-body-"
                 + data.id + "\"></tbody></table></div></div></div>";
             // Determine the placement for this tab
             div = $("#material-group-tab-content").append(material_group_div);
@@ -167,14 +170,11 @@ function HeliumMaterials() {
                     ],
                     pageLength: 10,
                     aoColumns: [
-                        null, {sClass: "hidden-xs"},
+                        null,
                         {sClass: "hidden-xs"},
-                        {sClass: "hidden-xs"}, null, {
-                            bSortable: false,
-                            bSearchable: false,
-                            sClass: "hidden-xs",
-                            sWidth: "90px"
-                        }
+                        {sClass: "hidden-xs"},
+                        null,
+                        null
                     ],
                     oLanguage: {
                         sEmptyTable: "Nothing to see here. Click \"+\" to add a material.",
@@ -190,11 +190,6 @@ function HeliumMaterials() {
                 .addClass("hidden-print");
 
             self.nullify_material_group_persistence();
-
-            $("#material-group-table-" + data.id + "_filter label input").attr("placeholder", "Search ...")
-                .wrap("<span class=\"input-icon\" id=\"search-bar\">").parent()
-                .append("<i class=\"icon-search nav-search-icon\"></i>");
-            $($("#material-group-table-" + data.id + "_filter label").contents()[0]).remove();
 
             $("#loading-material-group-modal").spin(false);
             $("#material-group-modal").modal("hide");
@@ -213,7 +208,9 @@ function HeliumMaterials() {
 
         if (!self.edit) {
             $("#loading-materials").spin(helium.SMALL_LOADING_OPTS);
+
             self.edit = true;
+
             $("#material-group-modal-label").html("Edit Group");
             // Initialize dialog attributes for editing
             self.edit_id = selector.attr("id").split("edit-material-group-")[1];
@@ -249,7 +246,7 @@ function HeliumMaterials() {
         const id = selector.attr("id").split("delete-material-group-")[1];
         bootbox.dialog(
             {
-                message: "Deleting this group will permanently delete all materials associated with it.",
+                message: "Deleting this group will also permanently delete all materials associated with it.",
                 buttons: {
                     "delete": {
                         "label": '<i class="icon-trash"></i> Delete',
@@ -293,18 +290,21 @@ function HeliumMaterials() {
     /**
      * Show the Material modal to edit a material.
      *
-     * @param selector the selector for the edit button of a material
+     * @param selector the selector for the row of a material
      */
     this.edit_material_btn = function (selector) {
         helium.ajax_error_occurred = false;
 
         if (!self.edit) {
             $("#loading-materials").spin(helium.SMALL_LOADING_OPTS);
+
+            $("#delete-material").show();
             self.edit = true;
+
             $("#material-modal-label").html("Edit Material");
 
             // Initialize dialog attributes for editing
-            self.edit_id = selector.attr("id").split("edit-material-")[1];
+            self.edit_id = parseInt(selector.attr("id").split("material-")[1]);
             self.material_group_id =
                 parseInt(selector.closest("[id^='material-group-table-']").attr('id')
                              .split('material-group-table-body-')[1]);
@@ -349,12 +349,14 @@ function HeliumMaterials() {
     /**
      * Delete the given material.
      *
-     * @param selector the selector for the edit button of a material
+     * @param selector the selector for the row of a material
      */
     this.delete_material_btn = function (selector) {
         helium.ajax_error_occurred = false;
 
-        const id = selector.attr("id").split("delete-material-")[1];
+        $("#material-modal").modal("hide");
+
+        const id = selector.attr("id").split("material-")[1];
         const material_group_id = parseInt(
             selector.closest("[id^='material-group-table-']").attr('id').split('material-group-table-body-')[1]);
         bootbox.dialog(
@@ -404,25 +406,14 @@ function HeliumMaterials() {
                                                 + material_data.website + "\">" + material_data.title + "</a>"
                                               : material_data.title, material_data.price,
                  helium.MATERIAL_STATUS_CHOICES[material_data.status], self.get_course_names(material_data.courses),
-                 helium.get_comments_with_link(material_data.details),
-                 "<div class=\"hidden-xs action-buttons\"><a class=\"green cursor-hover\" id=\"edit-material-"
-                 + material_data.id
-                 + "\"><i class=\"icon-edit bigger-130\"></i></a><a class=\"red cursor-hover\" id=\"delete-material-"
-                 + material_data.id + "\"><i class=\"icon-trash bigger-130\"></i></a></div>"]).node(),
+                 helium.get_comments_with_link(material_data.details)]).node(),
             row_div = $(row).attr("id", "material-" + material_data.id);
+        // Bind clickable attributes to their respective handlers
         row_div.find(".material-with-link").on("click", function (e) {
             e.stopImmediatePropagation();
         });
-        // Bind clickable attributes to their respective handlers
         row_div.on("click", function () {
-            self.edit_material_btn($(this).find("#edit-material-" + material_data.id));
-        });
-        row_div.find("#edit-material-" + material_data.id).on("click", function () {
             self.edit_material_btn($(this));
-        });
-        row_div.find("#delete-material-" + material_data.id).on("click", function (e) {
-            e.stopPropagation();
-            self.delete_material_btn($(this));
         });
     };
 
@@ -509,75 +500,69 @@ $(document).ready(function () {
                                          ]
                                      }).prev().addClass("wysiwyg-style2");
 
-    helium.materials.ajax_calls.push(helium.planner_api.get_all_courses_by_user_id(function (data) {
-        if (helium.data_has_err_msg(data)) {
-            helium.ajax_error_occurred = true;
-            $("#loading-materials").spin(false);
+    helium.materials.ajax_calls.push(
+        helium.planner_api.get_all_courses_by_user_id(function (data) {
+            if (helium.data_has_err_msg(data)) {
+                helium.ajax_error_occurred = true;
+                $("#loading-materials").spin(false);
 
-            bootbox.alert(helium.get_error_msg(data));
-        } else {
-            const courses = Object.entries(data);
-            courses.sort((a, b) => {
-                if (a[1].title < b[1].title) {
-                    return -1;
-                } else if (a[1].title > b[1].title) {
-                    return 1;
-                }
-                return 0;
-            });
-
-            $.each(courses, function (index, course_tuple) {
-                let course = course_tuple[1];
-                helium.materials.courses[course.id] = course;
-                $("#material-courses").append("<option value=\"" + course.id + "\">" + course.title + "</option>");
-            });
-
-            if (data.length <= 0) {
-                $("#material-courses-form-group").hide("fast");
+                bootbox.alert(helium.get_error_msg(data));
             } else {
-                $("#material-courses-form-group").show("fast");
+                const courses = Object.entries(data);
+                courses.sort((a, b) => {
+                    if (a[1].title < b[1].title) {
+                        return -1;
+                    } else if (a[1].title > b[1].title) {
+                        return 1;
+                    }
+                    return 0;
+                });
+
+                $.each(courses, function (index, course_tuple) {
+                    let course = course_tuple[1];
+                    helium.materials.courses[course.id] = course;
+                    $("#material-courses").append("<option value=\"" + course.id + "\">" + course.title + "</option>");
+                });
+
+                if (data.length <= 0) {
+                    $("#material-courses-form-group").hide("fast");
+                } else {
+                    $("#material-courses-form-group").show("fast");
+                }
+
+                $("#material-courses").prop("disabled", data.length === 0).trigger("chosen:updated");
             }
+        }, helium.USER_PREFS.id));
 
-            $("#material-courses").prop("disabled", data.length === 0).trigger("chosen:updated");
-        }
-    }, helium.USER_PREFS.id));
-
-    helium.planner_api.get_material_groups(function (data) {
-        $.each(data, function (i, material_group_data) {
-            helium.materials.add_material_group_to_page(material_group_data);
-        });
-    }, false);
-
-    $("#material-group-tabs li a[href^='#material-group-']").first().tab("show");
+    helium.materials.ajax_calls.push(
+        helium.planner_api.get_material_groups(function (data) {
+            $.each(data, function (i, material_group_data) {
+                helium.materials.add_material_group_to_page(material_group_data);
+            });
+        }));
 
     $.when.apply(this, helium.materials.ajax_calls).done(function () {
         if (!helium.ajax_error_occurred) {
+            $("#material-group-tabs li a[href^='#material-group-']").first().tab("show");
+
             $("table[id^='material-group-table-']").each(function () {
                 let i = 0, id = $(this).attr("id").split("material-group-table-")[1], table_div = $(this);
 
-                if (!helium.ajax_error_occurred) {
-                    helium.materials.ajax_calls.push(
-                        helium.planner_api.get_materials_by_material_group_id(function (data) {
-                            if (helium.data_has_err_msg(data)) {
-                                helium.ajax_error_occurred = true;
-                                $("#loading-materials").spin(false);
+                helium.materials.ajax_calls.push(
+                    helium.planner_api.get_materials_by_material_group_id(function (data) {
+                        if (helium.data_has_err_msg(data)) {
+                            helium.ajax_error_occurred = true;
+                            $("#loading-materials").spin(false);
 
-                                bootbox.alert(helium.get_error_msg(data));
-                            } else {
-                                for (i = 0; i < data.length; i += 1) {
-                                    helium.materials.add_material_to_group(data[i],
-                                                                           helium.materials.material_group_table[id]);
-                                }
-                                helium.materials.material_group_table[id].draw();
-
-                                $("#material-group-table-" + id + "_filter label input")
-                                    .attr("placeholder", "Search ...")
-                                    .wrap("<span class=\"input-icon hidden-xs\" id=\"search-bar\">").parent()
-                                    .append("<i class=\"icon-search nav-search-icon\"></i>");
-                                $($("#material-group-table-" + id + "_filter label").contents()[0]).remove();
+                            bootbox.alert(helium.get_error_msg(data));
+                        } else {
+                            for (i = 0; i < data.length; i += 1) {
+                                helium.materials.add_material_to_group(data[i],
+                                                                       helium.materials.material_group_table[id]);
                             }
-                        }, id));
-                }
+                            helium.materials.material_group_table[id].draw();
+                        }
+                    }, id));
             });
         }
     });
@@ -588,12 +573,5 @@ $(document).ready(function () {
         }
 
         $("#loading-materials").spin(false);
-    });
-
-    $("#material-group-title").on('keydown', function (event) {
-        const x = event.which;
-        if (x === 13) {
-            event.preventDefault();
-        }
     });
 });

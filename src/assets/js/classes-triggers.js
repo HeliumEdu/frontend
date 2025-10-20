@@ -123,6 +123,10 @@
         helium.classes.delete_course_group_btn($(this));
     });
 
+    $("#delete-course").on("click", function () {
+        helium.classes.delete_course_btn($("tr#course-" + helium.classes.edit_id));
+    });
+
     // Course components
     $("#course-online").on("change", function () {
         if (!$("#course-online").is(":checked")) {
