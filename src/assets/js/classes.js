@@ -847,81 +847,81 @@ function HeliumClasses() {
                     // Initialize details on Schedule and Categories panels as well
                     if (self.on_day_of_week(schedule, 0)) {
                         $("#course-schedule-sun").addClass("active");
+                        $("#course-sun-start-time").timepicker("setTime",
+                                                               moment(schedule.sun_start_time, helium.HE_TIME_STRING_SERVER)
+                                                                   .format(helium.HE_TIME_STRING_CLIENT));
+                        $("#course-sun-end-time").timepicker("setTime",
+                                                             moment(schedule.sun_end_time, helium.HE_TIME_STRING_SERVER)
+                                                                 .format(helium.HE_TIME_STRING_CLIENT));
                     } else {
                         $("#course-schedule-sun").removeClass("active");
                     }
                     if (self.on_day_of_week(schedule, 1)) {
                         $("#course-schedule-mon").addClass("active");
+                        $("#course-mon-start-time").timepicker("setTime",
+                                                               moment(schedule.mon_start_time, helium.HE_TIME_STRING_SERVER)
+                                                                   .format(helium.HE_TIME_STRING_CLIENT));
+                        $("#course-mon-end-time").timepicker("setTime",
+                                                             moment(schedule.mon_end_time, helium.HE_TIME_STRING_SERVER)
+                                                                 .format(helium.HE_TIME_STRING_CLIENT));
                     } else {
                         $("#course-schedule-mon").removeClass("active");
                     }
                     if (self.on_day_of_week(schedule, 2)) {
                         $("#course-schedule-tue").addClass("active");
+                        $("#course-tue-start-time").timepicker("setTime",
+                                                               moment(schedule.tue_start_time, helium.HE_TIME_STRING_SERVER)
+                                                                   .format(helium.HE_TIME_STRING_CLIENT));
+                        $("#course-tue-end-time").timepicker("setTime",
+                                                             moment(schedule.tue_end_time, helium.HE_TIME_STRING_SERVER)
+                                                                 .format(helium.HE_TIME_STRING_CLIENT));
                     } else {
                         $("#course-schedule-tue").removeClass("active");
                     }
                     if (self.on_day_of_week(schedule, 3)) {
                         $("#course-schedule-wed").addClass("active");
+                        $("#course-wed-start-time").timepicker("setTime",
+                                                               moment(schedule.wed_start_time, helium.HE_TIME_STRING_SERVER)
+                                                                   .format(helium.HE_TIME_STRING_CLIENT));
+                        $("#course-wed-end-time").timepicker("setTime",
+                                                             moment(schedule.wed_end_time, helium.HE_TIME_STRING_SERVER)
+                                                                 .format(helium.HE_TIME_STRING_CLIENT));
                     } else {
                         $("#course-schedule-wed").removeClass("active");
                     }
                     if (self.on_day_of_week(schedule, 4)) {
                         $("#course-schedule-thu").addClass("active");
+                        $("#course-thu-start-time").timepicker("setTime",
+                                                               moment(schedule.thu_start_time, helium.HE_TIME_STRING_SERVER)
+                                                                   .format(helium.HE_TIME_STRING_CLIENT));
+                        $("#course-thu-end-time").timepicker("setTime",
+                                                             moment(schedule.thu_end_time, helium.HE_TIME_STRING_SERVER)
+                                                                 .format(helium.HE_TIME_STRING_CLIENT));
                     } else {
                         $("#course-schedule-thu").removeClass("active");
                     }
                     if (self.on_day_of_week(schedule, 5)) {
                         $("#course-schedule-fri").addClass("active");
+                        $("#course-fri-start-time").timepicker("setTime",
+                                                               moment(schedule.fri_start_time, helium.HE_TIME_STRING_SERVER)
+                                                                   .format(helium.HE_TIME_STRING_CLIENT));
+                        $("#course-fri-end-time").timepicker("setTime",
+                                                             moment(schedule.fri_end_time, helium.HE_TIME_STRING_SERVER)
+                                                                 .format(helium.HE_TIME_STRING_CLIENT));
                     } else {
                         $("#course-schedule-fri").removeClass("active");
                     }
                     if (self.on_day_of_week(schedule, 6)) {
                         $("#course-schedule-sat").addClass("active");
+                        $("#course-sat-start-time").timepicker("setTime",
+                                                               moment(schedule.sat_start_time, helium.HE_TIME_STRING_SERVER)
+                                                                   .format(helium.HE_TIME_STRING_CLIENT));
+                        $("#course-sat-end-time").timepicker("setTime",
+                                                             moment(schedule.sat_end_time, helium.HE_TIME_STRING_SERVER)
+                                                                 .format(helium.HE_TIME_STRING_CLIENT));
                     } else {
                         $("#course-schedule-sat").removeClass("active");
                     }
-                    $("#course-sun-start-time").timepicker("setTime",
-                                                           moment(schedule.sun_start_time, helium.HE_TIME_STRING_SERVER)
-                                                               .format(helium.HE_TIME_STRING_CLIENT));
-                    $("#course-sun-end-time").timepicker("setTime",
-                                                         moment(schedule.sun_end_time, helium.HE_TIME_STRING_SERVER)
-                                                             .format(helium.HE_TIME_STRING_CLIENT));
-                    $("#course-mon-start-time").timepicker("setTime",
-                                                           moment(schedule.mon_start_time, helium.HE_TIME_STRING_SERVER)
-                                                               .format(helium.HE_TIME_STRING_CLIENT));
-                    $("#course-mon-end-time").timepicker("setTime",
-                                                         moment(schedule.mon_end_time, helium.HE_TIME_STRING_SERVER)
-                                                             .format(helium.HE_TIME_STRING_CLIENT));
-                    $("#course-tue-start-time").timepicker("setTime",
-                                                           moment(schedule.tue_start_time, helium.HE_TIME_STRING_SERVER)
-                                                               .format(helium.HE_TIME_STRING_CLIENT));
-                    $("#course-tue-end-time").timepicker("setTime",
-                                                         moment(schedule.tue_end_time, helium.HE_TIME_STRING_SERVER)
-                                                             .format(helium.HE_TIME_STRING_CLIENT));
-                    $("#course-wed-start-time").timepicker("setTime",
-                                                           moment(schedule.wed_start_time, helium.HE_TIME_STRING_SERVER)
-                                                               .format(helium.HE_TIME_STRING_CLIENT));
-                    $("#course-wed-end-time").timepicker("setTime",
-                                                         moment(schedule.wed_end_time, helium.HE_TIME_STRING_SERVER)
-                                                             .format(helium.HE_TIME_STRING_CLIENT));
-                    $("#course-thu-start-time").timepicker("setTime",
-                                                           moment(schedule.thu_start_time, helium.HE_TIME_STRING_SERVER)
-                                                               .format(helium.HE_TIME_STRING_CLIENT));
-                    $("#course-thu-end-time").timepicker("setTime",
-                                                         moment(schedule.thu_end_time, helium.HE_TIME_STRING_SERVER)
-                                                             .format(helium.HE_TIME_STRING_CLIENT));
-                    $("#course-fri-start-time").timepicker("setTime",
-                                                           moment(schedule.fri_start_time, helium.HE_TIME_STRING_SERVER)
-                                                               .format(helium.HE_TIME_STRING_CLIENT));
-                    $("#course-fri-end-time").timepicker("setTime",
-                                                         moment(schedule.fri_end_time, helium.HE_TIME_STRING_SERVER)
-                                                             .format(helium.HE_TIME_STRING_CLIENT));
-                    $("#course-sat-start-time").timepicker("setTime",
-                                                           moment(schedule.sat_start_time, helium.HE_TIME_STRING_SERVER)
-                                                               .format(helium.HE_TIME_STRING_CLIENT));
-                    $("#course-sat-end-time").timepicker("setTime",
-                                                         moment(schedule.sat_end_time, helium.HE_TIME_STRING_SERVER)
-                                                             .format(helium.HE_TIME_STRING_CLIENT));
 
                     $("#course-schedule-has-different-times")
                         .prop("checked", course.schedules.length > 0 && !self.same_time(course.schedules[0]))
