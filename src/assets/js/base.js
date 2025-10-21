@@ -482,6 +482,16 @@ if (!window.REDIRECTING && localStorage.getItem("access_token") !== null) {
                    if (helium.USER_PREFS.profile !== null && helium.USER_PREFS.profile.phone !== null) {
                        helium.REMINDER_TYPE_CHOICES.push("Text");
                    }
+
+                   if (typeof Rollbar !== "undefined") {
+                       Rollbar.configure({
+                                             payload: {
+                                                 person: {
+                                                     id: helium.USER_PREFS.id
+                                                 }
+                                             }
+                                         });
+                   }
                },
                error: function () {
                    if (window.PRIVILEGED_ROUTE) {
