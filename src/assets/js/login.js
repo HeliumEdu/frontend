@@ -24,6 +24,8 @@ $("#login-form").submit(function (e) {
         if (helium.data_has_err_msg(data)) {
             $("#status").html(helium.get_error_msg(data)).addClass("alert-warning").removeClass("hidden");
         } else {
+            helium.clear_storage();
+
             const next = url('?next');
 
             if (next !== undefined) {
