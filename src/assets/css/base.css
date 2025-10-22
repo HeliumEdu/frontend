@@ -15,6 +15,10 @@ body, html {
 Containers and Content
 ****************/
 
+.widget-header-small>.widget-caption, .widget-header-small>:first-child {
+    line-height: 36px;
+}
+
 body.navbar-fixed {
     padding-top: 45px;
 }
