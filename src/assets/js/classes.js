@@ -490,11 +490,11 @@ function HeliumClasses() {
             $("#course-group-tabs").prepend(
                 "<li><a data-toggle=\"tab\" href=\"#course-group-" + data.id
                 + "\"><i class=\"icon-list r-110\"></i> <span class=\"hidden-xs\">"
-                + data.title + (!data.shown_on_calendar ? " <i class=\"icon-eye-close\"></i>" : "")
-                + "</span></a></li>");
+                + data.title + (!data.shown_on_calendar ? "</span> <i class=\"icon-eye-close\"></i>" : "</span>")
+                + "</a></li>");
             course_group_div =
                 "<div id=\"course-group-" + data.id
-                + "\" class=\"tab-pane\"><div class=\"col-sm-12\"><div class=\"table-header\"><span id=\"course-group-title-"
+                + "\" class=\"tab-pane\"><div class=\"row\"><div class=\"col-sm-12\"><div class=\"table-header\"><span id=\"course-group-title-"
                 + data.id + "\">" + data.title + (!data.shown_on_calendar ? " <i class=\"icon-eye-close\"></i>" : "")
                 + "</span><span class='hidden-xs'> | </span><small class=\"hidden-xs\"><span id=\"course-group-"
                 + data.id + "-start-date\">" + moment(
@@ -511,7 +511,7 @@ function HeliumClasses() {
                 + "\"><span class=\"white\"><i class=\"icon-trash bigger-120 hidden-print\"></i></span></a></label></div><div class=\"table-responsive\"><table id=\"course-group-table-"
                 + data.id
                 + "\" class=\"table table-striped table-bordered table-hover\"><thead><tr><th>Title</th><th class=\"hidden-xs\">Dates</th><th>Room</th><th class=\"hidden-xs\">Teacher</th><th>Schedule</th></tr></thead><tbody id=\"course-group-table-body-"
-                + data.id + "\"></tbody></table></div></div></div>";
+                + data.id + "\"></tbody></table></div></div></div></div>";
             div = $("#course-group-tab-content").append(course_group_div);
             // Bind clickable attributes to their respective handlers
             div.find("#create-course-for-group-" + data.id).on("click", function () {

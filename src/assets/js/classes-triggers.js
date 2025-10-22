@@ -63,8 +63,8 @@
                     } else {
                         const course_group = data;
                         $('a[href="#course-group-' + course_group.id + '"]').html(
-                            "<i class=\"icon-book r-110\"></i> <span class=\"hidden-xs\">" + course_group.title
-                            + (!course_group.shown_on_calendar ? " <i class=\"icon-eye-close\"></i>" : "") + "</span>");
+                            "<i class=\"icon-list r-110\"></i> <span class=\"hidden-xs\">" + course_group.title
+                            + (!course_group.shown_on_calendar ? "</span> <i class=\"icon-eye-close\"></i>" : "</span>"));
                         $("#course-group-title-" + course_group.id)
                             .html(course_group.title + (!course_group.shown_on_calendar ? " <i class=\"icon-eye-close\"></i>" : ""));
                         $("#course-group-" + course_group.id + "-start-date").html(

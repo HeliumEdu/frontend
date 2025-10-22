@@ -57,8 +57,12 @@
                         $("#material-group-error").parent().show("fast");
                     } else {
                         const material_group = data;
-                        $('a[href="#material-group-' + data.id + '"]').html("<i class=\"icon-briefcase r-110\"></i> <span class=\"hidden-xs\">" + material_group.title + (!material_group.shown_on_calendar ? " <i class=\"icon-eye-close\"></i>" : "") + "</span>");
-                        $("#material-group-title-" + data.id).html(material_group.title + (!material_group.shown_on_calendar ? " <i class=\"icon-eye-close\"></i>" : ""));
+                        $('a[href="#material-group-' + data.id + '"]').html(
+                            "<i class=\"icon-list r-110\"></i> <span class=\"hidden-xs\">" + material_group.title +
+                            (!material_group.shown_on_calendar ? "</span> <i class=\"icon-eye-close\"></i>" : "</span>"));
+                        $("#material-group-title-" + data.id).html(
+                            material_group.title + (!material_group.shown_on_calendar
+                                                    ? " <i class=\"icon-eye-close\"></i>" : ""));
 
                         helium.materials.resort_material_groups();
 
@@ -176,11 +180,17 @@
                                 $("#material-error").parent().show("fast");
                             } else {
                                 const row_div = $("#material-" + data.id);
-                                helium.materials.material_group_table[data.material_group].cell(row_div, 0).data(data.website !== "" ? "<a target=\"_blank\" href=\"" + data.website + "\">" + data.title + "</a>" : data.title);
-                                helium.materials.material_group_table[data.material_group].cell(row_div, 1).data(data.price);
-                                helium.materials.material_group_table[data.material_group].cell(row_div, 2).data(helium.MATERIAL_STATUS_CHOICES[data.status]);
-                                helium.materials.material_group_table[data.material_group].cell(row_div, 3).data(helium.materials.get_course_names(data.courses));
-                                helium.materials.material_group_table[data.material_group].cell(row_div, 4).data(helium.get_comments_with_link(data.details));
+                                helium.materials.material_group_table[data.material_group].cell(row_div, 0).data(
+                                    data.website !== "" ? "<a target=\"_blank\" href=\"" + data.website + "\">"
+                                                          + data.title + "</a>" : data.title);
+                                helium.materials.material_group_table[data.material_group].cell(row_div, 1)
+                                    .data(data.price);
+                                helium.materials.material_group_table[data.material_group].cell(row_div, 2)
+                                    .data(helium.MATERIAL_STATUS_CHOICES[data.status]);
+                                helium.materials.material_group_table[data.material_group].cell(row_div, 3)
+                                    .data(helium.materials.get_course_names(data.courses));
+                                helium.materials.material_group_table[data.material_group].cell(row_div, 4)
+                                    .data(helium.get_comments_with_link(data.details));
                                 helium.materials.material_group_table[data.material_group].draw();
                                 // Bind clickable attributes to their respective handlers
                                 row_div.on("click", function () {
@@ -202,7 +212,8 @@
                             } else {
                                 // Do not close the modal dialog until database saving is complete
                                 $.when.apply(this, helium.materials.ajax_calls).done(function () {
-                                    helium.materials.add_material_to_group(data, helium.materials.material_group_table[data.material_group]);
+                                    helium.materials.add_material_to_group(data,
+                                                                           helium.materials.material_group_table[data.material_group]);
                                     helium.materials.material_group_table[data.material_group].draw();
 
                                     $("#loading-material-modal").spin(false);
