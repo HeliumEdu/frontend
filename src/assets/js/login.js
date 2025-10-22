@@ -6,7 +6,7 @@
  * project and interested in joining forces? Reach out and let us know! contact@alexlaird.com
  *
  * @license MIT
- * @version 1.11.54
+ * @version 1.14.0
  */
 
 if (localStorage.getItem("access_token") !== null) {
