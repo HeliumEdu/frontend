@@ -506,9 +506,11 @@ if (!window.REDIRECTING && localStorage.getItem("access_token") !== null) {
 $(window).on("load", function () {
     "use strict";
 
-    const current_nav = $('a[href="' + window.location.pathname + '"]');
+    let pathname = window.location.pathname.replace(/\/+$/, '');
+
+    const current_nav = $('a[href="' + pathname + '"]');
     if (current_nav) {
-        if (window.location.pathname === "/settings") {
+        if (pathname === "/settings") {
             $("#authenticated-dropdown-nav").addClass("active");
         } else {
             current_nav.parent().addClass("active");
