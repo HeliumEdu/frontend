@@ -303,8 +303,7 @@ $(document).ready(function () {
 
                                 course_div =
                                     course_list.append("<div id=\"course-body-" + course.id
-                                                       + "\" class=\"widget-box " + (i !== 0 ? " collapsed" : "")
-                                                       + "\"><div class=\"widget-header widget-header-flat widget-header-small\"><h5><i class=\"icon-book\"></i> <span>"
+                                                       + "\" class=\"widget-box\"><div class=\"widget-header widget-header-flat widget-header-small\"><h5><i class=\"icon-book\"></i> <span>"
                                                        + course.title
                                                        + " </span></h5><a class=\"cursor-hover\" data-action=\"collapse\"><div class=\"widget-toolbar\"><span class=\"badge badge-info\">"
                                                        + (parseFloat(course.overall_grade.toFixed(2)) !== -1
@@ -312,7 +311,7 @@ $(document).ready(function () {
                                             course.overall_grade * 100) / 100 + "%" : "N/A")
                                                        + helium.grades.get_trend_arrow(
                                             course.trend)
-                                                       + "</span> <i class=\"icon-chevron-down\"></i></div></a></div></div>");
+                                                       + "</span> <i class=\"icon-chevron-up\"></i></div></a></div></div>");
 
                                 data = [];
                                 for (course_grade in course_grades) {
