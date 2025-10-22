@@ -483,7 +483,7 @@ $(document).ajaxError(function(event, jqXHR, textStatus, errorThrown) {
     if (jqXHR.status === 401 &&
         jqXHR.url.startsWith(helium.API_URL) &&
         jqXHR.url !== helium.API_URL + "/info/" &&
-        jqXHR.url !== helium.API_URL + "/auth/token/refresh/") {
+        !jqXHR.url.startsWith(helium.API_URL + "/auth")) {
         helium.clear_access_token_reprompt_login();
     }
 });

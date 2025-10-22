@@ -38,6 +38,9 @@
         "/css/base.css"
     ],
     "page_header_javascript": {
+        "logout": [
+            "/js/redirecting.js"
+        ],
         "support": [
             "/js/redirecting.js",
             "/js/support.js"
