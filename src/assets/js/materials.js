@@ -133,11 +133,11 @@ function HeliumMaterials() {
             input_tab.before("<li><a data-toggle=\"tab\" href=\"#material-group-" + data.id
                              + "\"><i class=\"icon-list r-110\"></i> <span class=\"hidden-xs\">" + data.title
                              + (!data.shown_on_calendar
-                                ? " <i class=\"icon-eye-close\"></i>" : "")
-                             + "</span></a></li>");
+                                ? "</span> <i class=\"icon-eye-close\"></i>" : "</span>")
+                             + "</a></li>");
             material_group_div =
                 "<div id=\"material-group-" + data.id
-                + "\" class=\"tab-pane\"><div class=\"col-sm-12\"><div class=\"table-header\"><span id=\"material-group-title-"
+                + "\" class=\"tab-pane\"><div class=\"row\"><div class=\"col-sm-12\"><div class=\"table-header\"><span id=\"material-group-title-"
                 + data.id + "\">" + data.title + (!data.shown_on_calendar ? " <i class=\"icon-eye-close\"></i>" : "")
                 + "</span></span><label class=\"pull-right inline action-buttons\" style=\"padding-right: 10px\"><a class=\"cursor-hover\" id=\"create-material-for-group-"
                 + data.id
@@ -148,7 +148,7 @@ function HeliumMaterials() {
                 + "\"><span class=\"white\"><i class=\"icon-trash bigger-120 hidden-print\"></i></span></a></label></div><div class=\"table-responsive\"><table id=\"material-group-table-"
                 + data.id
                 + "\" class=\"table table-striped table-bordered table-hover\"><thead><tr><th>Title</th><th class=\"hidden-xs\">Price</th><th class=\"hidden-xs\">Status</th><th>Classes</th><th>Details</th></tr></thead><tbody id=\"material-group-table-body-"
-                + data.id + "\"></tbody></table></div></div></div>";
+                + data.id + "\"></tbody></table></div></div></div></div>";
             // Determine the placement for this tab
             div = $("#material-group-tab-content").append(material_group_div);
             // Bind clickable attributes to their respective handlers
