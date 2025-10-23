@@ -108,7 +108,7 @@
         $("#course-group-modal-label").html("Add Group");
         $("#course-group-title").val("");
         $("#course-group-start-date").datepicker("setDate", moment().toDate());
-        $("#course-group-end-date").datepicker("setDate", moment().toDate());
+        $("#course-group-end-date").datepicker("setDate", moment().add(1, "months").toDate());
         $("#course-group-shown-on-calendar").prop("checked", false);
 
         $("#loading-course-group-modal").spin(false);
