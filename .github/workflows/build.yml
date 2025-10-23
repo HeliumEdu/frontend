@@ -48,12 +48,12 @@ jobs:
         run: |
           make build-docker
           make run-docker
-      - name: Publish artifacts
+      - name: Publish Docker `latest` artifacts
         if: github.ref_name == 'main'
         run: make publish-docker
       - name: Trigger CloudFront deployment to `dev`
         if: github.ref_name == 'main'
-        run: ./bin/trigger-ci-release
+        run: ./bin/trigger-ci-release.py
 
   test:
     name: Test
