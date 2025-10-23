@@ -48,7 +48,7 @@ jobs:
           make run-docker
       - name: Publish artifacts
         if: github.ref_name == 'main'
-        run: make publish
+        run: make publish-docker
 
   test:
     name: Test
