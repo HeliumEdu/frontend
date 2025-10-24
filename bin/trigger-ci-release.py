@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import os
-import subprocess
 import sys
 
 import boto3
@@ -9,7 +8,7 @@ import requests
 
 ENVIRONMENT = os.environ.get("ENVIRONMENT")
 FRONTEND_ROLLBAR_SERVER_ITEM_ACCESS_TOKEN = os.environ.get("FRONTEND_ROLLBAR_SERVER_ITEM_ACCESS_TOKEN")
-VERSION = subprocess.run(["node", "-p", "require('./package.json').version"], capture_output=True, text=True, check=True).stdout.strip()
+VERSION = 'latest'
 DEPLOY_SOURCE_MAPS = True
 ENVIRONMENT_PREFIX = f'{ENVIRONMENT}.' if 'prod' not in ENVIRONMENT else ''
 BASE_URL = f'https://www.{ENVIRONMENT_PREFIX}heliumedu.com'
