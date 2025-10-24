@@ -115,7 +115,7 @@ jobs:
 
   deploy-ci:
     name: Deploy CI
-    needs: [build] #, test]
+    #needs: [build, test]
 
     env:
       FORCE_COLOR: 1
