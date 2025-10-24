@@ -1,4 +1,4 @@
-.PHONY: all install install-dev run-devserver clean clean-assets build build-dev test build-docker run-docker stop-docker restart-docker publish-docker
+.PHONY: all install install-dev run-devserver clean clean-assets build build-dev test build-docker run-docker stop-docker restart-docker publish
 
 all: test build-docker run-docker
 
@@ -44,7 +44,7 @@ stop-docker:
 
 restart-docker: stop-docker run-docker
 
-publish-docker: build-docker
+publish: build-docker
 	aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/heliumedu
 
 	docker tag helium/frontend:$(PLATFORM)-$(TAG_VERSION) public.ecr.aws/heliumedu/helium/frontend:$(PLATFORM)-$(TAG_VERSION)

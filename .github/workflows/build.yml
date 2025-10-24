@@ -54,7 +54,7 @@ jobs:
           make run-docker
       - name: Publish Docker `latest` artifacts
         if: github.ref_name == 'main'
-        run: make publish-docker
+        run: make publish
 
   test:
     name: Test
@@ -106,7 +106,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: cluster-test-output
-          path: projects/cluster-tests/build/screenshots/
+          path: helium-tmp/projects/cluster-tests/build/screenshots/
           retention-days: 30
       - name: Dump Docker logs on failure
         if: failure()
