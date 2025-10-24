@@ -103,12 +103,14 @@
         }
     });
 
+    const start_date = moment();
+
     $("#create-course-group").on("click", function () {
         helium.classes.edit = false;
         $("#course-group-modal-label").html("Add Group");
         $("#course-group-title").val("");
-        $("#course-group-start-date").datepicker("setDate", moment().toDate());
-        $("#course-group-end-date").datepicker("setDate", moment().add(1, "months").toDate());
+        $("#course-group-start-date").datepicker("setDate", start_date.toDate());
+        $("#course-group-end-date").datepicker("setDate", start_date.clone().add(1, "months").toDate());
         $("#course-group-shown-on-calendar").prop("checked", false);
 
         $("#loading-course-group-modal").spin(false);

@@ -396,7 +396,7 @@ function HeliumClasses() {
             .split("course-group-")[1] : "";
 
         let start_date = moment();
-        let end_date = start_date.clone();
+        let end_date = start_date.clone().add(1, "months");
         if (course_group !== "") {
             start_date = moment(self.course_groups[course_group].start_date, helium.HE_DATE_STRING_CLIENT);
             end_date = moment(self.course_groups[course_group].end_date, helium.HE_DATE_STRING_CLIENT);
