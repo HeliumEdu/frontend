@@ -107,10 +107,8 @@
     $("#homework-all-day").on("change", function () {
         if ($(this).is(":checked")) {
             $("#homework-time-form-group").hide("fast");
-            $("#homework-show-end-time").next().text(" Show End Date");
         } else {
             $("#homework-time-form-group").show("fast");
-            $("#homework-show-end-time").next().text(" Show End Date and Time");
         }
         if ($("#homework-show-end-time").is(":checked") && !$(this).is(":checked")) {
             $($("#homework-start-time").next().children()[0]).addClass("icon-long-arrow-right")
