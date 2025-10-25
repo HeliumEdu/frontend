@@ -37,7 +37,7 @@ function HeliumGrades() {
 
     this.pie_hover = function (event, pos, item) {
         if (item) {
-            $("#plot-tooltip").html(Math.round(item.datapoint[0]) + "%").css(
+            $("#plot-tooltip").html(item.series.label).css(
                 {
                     top: pos.pageY - 25,
                     left: pos.pageX + 5,
@@ -62,7 +62,8 @@ function HeliumGrades() {
         } else {
             $("#course-group-tabs").prepend('<li><a data-toggle="tab" href="#course-group-container-' + data.id
                                             + '"><i class="icon-list r-110"></i> <span class="hidden-xs">' + data.title
-                                            + (!data.shown_on_calendar ? "</span> <i class=\"icon-eye-close\"></i>" : "</span>")
+                                            + (!data.shown_on_calendar ? "</span> <i class=\"icon-eye-close\"></i>"
+                                                                       : "</span>")
                                             + '</a></li>');
             const container = $('<div id="course-group-container-' + data.id + '" class="tab-pane"></div>');
             const details = $(
@@ -117,7 +118,8 @@ function HeliumGrades() {
                 + "</span> to <span>"
                 + moment(data.end_date, helium.HE_DATE_STRING_SERVER).format(helium.HE_DATE_STRING_CLIENT)
                 + "</span></small>"
-                + '<a class="cursor-hover" data-action="collapse"><div class="widget-toolbar"><span class="badge" style=\"background-color: ' + helium.USER_PREFS.settings.grade_color + ' !important">'
+                + '<a class="cursor-hover" data-action="collapse"><div class="widget-toolbar"><span class="badge" style=\"background-color: '
+                + helium.USER_PREFS.settings.grade_color + ' !important">'
                 + (parseFloat(data.average_grade) != -1 ? (parseFloat(data.average_grade).toFixed(2) + '% '
                 + (data.trend > 0 ? '<span class="icon-x arrow-up-icon light-green"></span>'
                                   : '<span class="icon-x arrow-down-icon light-red"></span>')) : 'N/A')
@@ -141,6 +143,8 @@ $(document).ready(function () {
     "use strict";
 
     $("#loading-grades").spin(helium.SMALL_LOADING_OPTS);
+
+    $(".grades-help").popover({html: true}).data("bs.popover").tip().css("z-index", 1060);
 
     bootbox.setDefaults({
                             locale: 'en'
@@ -234,7 +238,7 @@ $(document).ready(function () {
                     // Build line graph for each course group
                     $("div[id^='course-group-container-']").each(function () {
                         let id = $(this).attr("id").split("course-group-container-")[1].split("_")[0], course_div,
-                            course_body_div, grade_distribution_string, weight_pie_div, grade_by_weight_pie_div,
+                            course_body_div, grade_distribution_string, grade_by_weight_pie_div,
                             course_grade,
                             category_table, category_table_body, chart_data_weight, chart_data_grade_by_weight,
                             data_for_plot = [], i = 0, j = 0, course, course_grades, data_for_group = 0, data = [],
@@ -277,9 +281,19 @@ $(document).ready(function () {
                                     pie: {
                                         show: true,
                                         innerRadius: 0.2,
+                                        highlight: {
+                                            opacity: 0.2
+                                        },
                                         stroke: {
                                             color: "#fff",
                                             width: 2
+                                        },
+                                        label: {
+                                            show: true,
+                                            formatter: function (label, series) {
+                                                return '<div style="font-size:8pt;text-align:center;padding:2px;">'
+                                                       + Math.round(series.percent) + '%</div>';
+                                            }
                                         }
                                     }
                                 },
@@ -305,7 +319,8 @@ $(document).ready(function () {
                                     course_list.append("<div id=\"course-body-" + course.id
                                                        + "\" class=\"widget-box\"><div class=\"widget-header widget-header-flat widget-header-small\"><h5><i class=\"icon-book\"></i> <span>"
                                                        + course.title
-                                                       + " </span></h5><a class=\"cursor-hover\" data-action=\"collapse\"><div class=\"widget-toolbar\"><span class=\"badge\" style=\"background-color: " + helium.USER_PREFS.settings.grade_color + " !important\">"
+                                                       + " </span></h5><a class=\"cursor-hover\" data-action=\"collapse\"><div class=\"widget-toolbar\"><span class=\"badge\" style=\"background-color: "
+                                                       + helium.USER_PREFS.settings.grade_color + " !important\">"
                                                        + (parseFloat(course.overall_grade.toFixed(2)) !== -1
                                                           ? Math.round(
                                             course.overall_grade * 100) / 100 + "%" : "N/A")
@@ -334,10 +349,11 @@ $(document).ready(function () {
                                 chart_data_grade_by_weight = [];
                                 for (j = 0; j < helium.grades.categories_for_course[course.id].length; j += 1) {
                                     category = helium.grades.categories_for_course[course.id][j];
-                                    chart_data_weight.push({label: "", data: category.weight, color: category.color});
+                                    chart_data_weight.push(
+                                        {label: category.title, data: category.weight, color: category.color});
                                     if (parseFloat(category.grade_by_weight) !== 0) {
                                         chart_data_grade_by_weight.push({
-                                                                            label: "",
+                                                                            label: category.title,
                                                                             data: category.grade_by_weight,
                                                                             color: category.color
                                                                         });
@@ -352,7 +368,8 @@ $(document).ready(function () {
                                                                                          || !course.has_weighted_grading)
                                                                                         ? (parseFloat(
                                                 category.overall_grade.toFixed(2)) !== -1
-                                                                                           ? "<span class=\"badge\" style=\"background-color: " + helium.USER_PREFS.settings.grade_color + " !important\">"
+                                                                                           ? "<span class=\"badge\" style=\"background-color: "
+                                        + helium.USER_PREFS.settings.grade_color + " !important\">"
                                         + Math.round(category.overall_grade * 100) / 100 + "%"
                                         + helium.grades.get_trend_arrow(
                                                     category.trend) + "</span>" : "N/A") : "Not Graded") + "</td></tr>");
@@ -361,9 +378,9 @@ $(document).ready(function () {
                                 if (helium.grades.categories_for_course[course.id].length > 0) {
                                     grade_distribution_string =
                                         course.has_weighted_grading
-                                        ? ("<div class=\"col-xs-12 col-md-3\"><div class=\"row\"><h5>Weight Distribution</h5><hr /></div><div id=\"course-weight-piechart-"
+                                        ? ("<div class=\"col-xs-12 col-md-3\"><div class=\"row\"><h5 class='align-center'>Weight Distribution</h5><hr /></div><div id=\"course-weight-piechart-"
                                            + course.id
-                                           + "\"></div></div><div class=\"col-xs-12 col-md-3\"><div class=\"row\"><h5>Current Grade Distribution</h5><hr /></div><div id=\"course-grade-by-weight-piechart-"
+                                           + "\"></div></div><div class=\"col-xs-12 col-md-3\"><div class=\"row\"><h5 class='align-center'>Grade Distribution</h5><hr /></div><div id=\"course-grade-by-weight-piechart-"
                                            + course.id + "\"></div></div>") : "";
                                     course_body_div =
                                         course_div.find("#course-body-" + course.id).append(
