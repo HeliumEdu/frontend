@@ -29,11 +29,3 @@ table tr {
     overflow: hidden;
     white-space: nowrap;
 }
-
-a.course-title-with-link {
-    color: #fff;
-}
-
-a.course-title-with-link:hover {
-    color: #fff;
-}

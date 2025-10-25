@@ -15,7 +15,7 @@ body, html {
 Containers and Content
 ****************/
 
-.widget-header-small>.widget-caption, .widget-header-small>:first-child {
+.widget-header-small > .widget-caption, .widget-header-small > :first-child {
     line-height: 36px;
 }
 
@@ -322,4 +322,12 @@ span.twitter-typeahead > input.form-control.input-sm.tt-query {
     .dataTable th[class*=sort]:after {
         display: none;
     }
+}
+
+a.planner-title-with-link {
+    color: #fff;
+}
+
+a.planner-title-with-link:hover {
+    color: #fff;
 }

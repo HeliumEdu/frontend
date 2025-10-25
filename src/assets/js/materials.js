@@ -26,7 +26,8 @@ function HeliumMaterials() {
         "Shipped",
         "Need",
         "Received",
-        "To Sell"
+        "To Sell",
+        "Digital"
     ];
 
     this.ajax_calls = [];
