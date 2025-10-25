@@ -12,28 +12,16 @@
     <form class="form-horizontal" id="feed-form" role="form">
         <div class="form-group">
             <label class="block clearfix bottom-buffer-10">
-                <h4>Feed URLs</h4>
+                <h4>Feed URLs <span class="privatefeeds-help help-button cursor-hover"
+                                    data-rel="popover"
+                                    data-trigger="hover"
+                                    data-container="body"
+                                    data-placement="right"
+                                    data-content="Private feed URLs make your calendars externally accessible in iCal format through a private URL. This allows you to access your Helium data elsewhere, for instance to show your class schedule and/or assignments in Google Calendar. Click here for more details on how to add a public iCal URL to Google Calendar.<br><br>Keep private feed URLs secret. If a private feed URL is compromised, disable and then re-enable feeds, which will generate new URLs."
+                                    title="Private Feeds">?</span></h4>
                 <span id="private-feed-urls"></span>
             </label>
         </div>
-
-        <hr/>
-
-        <div class="row">
-            <div class="col-sm-2"></div>
-            <div class="col-sm-8">
-                Private feeds are URLs are references to ICAL streams that can be provided to external calendars. For
-                instance, if you use one of the above enabled ICAL URLs in Google Calendar, your Helium schedule will
-                show up alongside your Google schedule.
-                <br/><br/>
-                Be sure to keep private URLs a secret. If a private URL becomes compromised, disable and reenable
-                private URLs to generate new ones.
-            </div>
-            <div class="col-sm-2"></div>
-        </div>
-
-        <hr/>
-
         <div class="form-group pull-right">
             <div id="feed-loading" class="loading-mini">
                 <div id="loading-feed"></div>

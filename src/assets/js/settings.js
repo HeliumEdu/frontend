@@ -423,7 +423,7 @@ function HeliumSettings() {
             $("#enable-disable-feed").removeClass("btn-warning");
             $("#enable-disable-feed").html('<i class="icon-check"></i>Enable Private Feeds');
 
-            $("#private-feed-urls").html("Private feeds are not yet enabled. Enable using the button below.");
+            $("#private-feed-urls").html("Private feeds are not yet enabled. Click the button below to enable.");
         } else {
             $("#enable-disable-feed").removeClass("btn-success");
             $("#enable-disable-feed").addClass("btn-warning");
@@ -584,6 +584,11 @@ $(document).ready(function () {
     $("#id_materials_color_select").simplecolorpicker({picker: true, theme: "glyphicons"});
 
     $(".busydays-help").popover({html: true}).data("bs.popover").tip().css("z-index", 1060);
+    $(".privatefeeds-help").popover({html: true}).data("bs.popover").tip().css("z-index", 1060);
+
+    $(".privatefeeds-help").on("click", function () {
+        window.open("https://support.google.com/calendar/answer/37100?hl=en&co=GENIE.Platform%3DDesktop");
+    });
 
     if ($(".externalcalendars-help").length > 0) {
         $(".externalcalendars-help").popover({html: true}).data("bs.popover").tip().css("z-index", 1060);
