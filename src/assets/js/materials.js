@@ -498,8 +498,15 @@ $(document).ready(function () {
      ******************************************/
     $(".wysiwyg-editor").ace_wysiwyg({
                                          toolbar: [
-                                             "bold", "italic", "underline", null, "insertunorderedlist",
-                                             "insertorderedlist", null, "undo", "redo"
+                                             "font",
+                                             null,
+                                             "bold", "italic", "strikethrough", "underline",
+                                             null,
+                                             "foreColor",
+                                             null,
+                                             "insertunorderedlist", "insertorderedlist", "indent", "outdent",
+                                             null,
+                                             "createLink", "unlink"
                                          ]
                                      }).prev().addClass("wysiwyg-style2");
 

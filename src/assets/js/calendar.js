@@ -2471,20 +2471,23 @@ function HeliumCalendar() {
                         }
 
                         let course_string = eventDef.miscProps.calendar_item_type === 1
-                                        ? ('<span class="label label-sm courses-label" style="background-color: '
-                                           + helium.calendar.courses[eventDef.miscProps.course].color + ' !important">'
-                                           + (helium.calendar.courses[eventDef.miscProps.course].website.replace(/\s/g,
-                                                                                                    "").length
-                                              > 0
-                                              ? "<a target=\"_blank\" href=\""
-                                           + helium.calendar.courses[eventDef.miscProps.course].website
-                                           + "\" class=\"planner-title-with-link\">" : "")
-                                           + helium.calendar.courses[eventDef.miscProps.course].title
-                                           + (helium.calendar.courses[eventDef.miscProps.course].website.replace(/\s/g,
-                                                                                                    "").length
-                                              > 0 ? " <i class=\"icon-external-link hidden-xs bigger-110\"></i></a>"
-                                                  : "")
-                                           + '</span>') : "";
+                                            ? ('<span class="label label-sm courses-label" style="background-color: '
+                                               + helium.calendar.courses[eventDef.miscProps.course].color
+                                               + ' !important">'
+                                               + (helium.calendar.courses[eventDef.miscProps.course].website.replace(
+                                    /\s/g,
+                                    "").length
+                                                  > 0
+                                                  ? "<a target=\"_blank\" href=\""
+                                               + helium.calendar.courses[eventDef.miscProps.course].website
+                                               + "\" class=\"planner-title-with-link\">" : "")
+                                               + helium.calendar.courses[eventDef.miscProps.course].title
+                                               + (helium.calendar.courses[eventDef.miscProps.course].website.replace(
+                                    /\s/g,
+                                    "").length
+                                                  > 0 ? " <i class=\"icon-external-link hidden-xs bigger-110\"></i></a>"
+                                                      : "")
+                                               + '</span>') : "";
 
                         return '<tr class="' + classes.join(' ') + '">' +
                                '<td class="' + theme.getClass('widgetContent') + '">' + eventDef.miscProps.checkbox
@@ -2898,8 +2901,15 @@ $(document).ready(function () {
 
                     $(".wysiwyg-editor").ace_wysiwyg({
                                                          toolbar: [
-                                                             "bold", "italic", "underline", null, "insertunorderedlist",
-                                                             "insertorderedlist", null, "undo", "redo"
+                                                             "font",
+                                                             null,
+                                                             "bold", "italic", "strikethrough", "underline",
+                                                             null,
+                                                             "foreColor",
+                                                             null,
+                                                             "insertunorderedlist", "insertorderedlist", "indent", "outdent",
+                                                             null,
+                                                             "createLink", "unlink"
                                                          ]
                                                      }).prev().addClass("wysiwyg-style2");
 
