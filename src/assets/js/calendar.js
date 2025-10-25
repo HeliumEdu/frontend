@@ -2901,17 +2901,17 @@ $(document).ready(function () {
 
                     $(".wysiwyg-editor").ace_wysiwyg({
                                                          toolbar: [
-                                                             "font",
+                                                             {name: "bold",  className:'btn-info'}, {name: "italic",  className:'btn-info'}, {name: "strikethrough",  className:'btn-info'}, {name: "underline",  className:'btn-info'},
                                                              null,
-                                                             "bold", "italic", "strikethrough", "underline",
+                                                             {name: "createLink", className:'btn-pink'}, {name: "unlink", className:'btn-pink'},
                                                              null,
-                                                             "foreColor",
+                                                             {name: "insertunorderedlist", className:'btn-success'}, {name: "insertorderedlist", className:'btn-success'},
                                                              null,
-                                                             "insertunorderedlist", "insertorderedlist", "indent", "outdent",
+                                                             {name: "indent", className:'btn-purple'}, {name: "outdent", className:'btn-purple'},
                                                              null,
-                                                             "createLink", "unlink"
+                                                             "foreColor"
                                                          ]
-                                                     }).prev().addClass("wysiwyg-style2");
+                                                     }).prev().addClass("wysiwyg-style3");
 
                     try {
                         $(".dropzone").dropzone(
