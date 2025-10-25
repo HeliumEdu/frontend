@@ -67,7 +67,7 @@ function HeliumSettings() {
             '<input type="checkbox" class="ace shown-on-calendar" ' + (shown_on_calendar ? 'checked="checked"' : '')
             + '/><span class="lbl" />'));
         row.append(
-            $('<td>').append($('<select class="hide color-picker">' + $("#id_color_select").html() + '</select>')));
+            $('<td>').append($('<select class="hide color-picker">' + $("#id_events_color_select").html() + '</select>')));
         row.append($('<td>').append(
             '<div class="btn-group"><button type="button" aria-label="Delete External Calendar" class="btn btn-xs btn-danger delete-externalcalendar"><i class="icon-trash bigger-120"></i></button></div></td></tr>'));
 
@@ -156,7 +156,7 @@ function HeliumSettings() {
     $("#create-externalcalendar").on("click", function () {
         self.create_externalcalendar("null", 'Holidays',
                                      'https://calendar.google.com/calendar/ical/en.usa%23holiday%40group.v.calendar.google.com/public/basic.ics',
-                                     false, $($("#id_color_select option")[Math.floor(
+                                     false, $($("#id_events_color_select option")[Math.floor(
                 Math.random() * $("#id_color_select option").length)]).val());
     });
 
@@ -224,7 +224,9 @@ function HeliumSettings() {
                           "value": helium.USER_PREFS.settings.receive_emails_from_admin
                       });
             data.push({"name": "private_slug", "value": helium.USER_PREFS.settings.private_slug});
-            data.push({"name": "events_color", "value": $("#id_color_select").val()});
+            data.push({"name": "events_color", "value": $("#id_events_color_select").val()});
+            data.push({"name": "grade_color", "value": $("#id_grades_color_select").val()});
+            data.push({"name": "material_color", "value": $("#id_materials_color_select").val()});
             data.push({"name": "calendar_event_limit", "value": $("#id_calendar_event_limit").is(":checked")});
             data.push({"name": "remember_filter_state", "value": $("#id_remember_filter_state").is(":checked")});
 
@@ -577,7 +579,9 @@ $(document).ready(function () {
         $("#id_phone_carrier").chosen({width: "100%", search_contains: true, no_results_text: "No carriers match"});
         $("#id_time_zone").chosen({width: "100%", search_contains: true, no_results_text: "No time zones match"});
     }
-    $("#id_color_select").simplecolorpicker({picker: true, theme: "glyphicons"});
+    $("#id_events_color_select").simplecolorpicker({picker: true, theme: "glyphicons"});
+    $("#id_grades_color_select").simplecolorpicker({picker: true, theme: "glyphicons"});
+    $("#id_materials_color_select").simplecolorpicker({picker: true, theme: "glyphicons"});
 
     $(".busydays-help").popover({html: true}).data("bs.popover").tip().css("z-index", 1060);
 
@@ -595,7 +599,9 @@ $(document).ready(function () {
     $("#id_time_zone").val(helium.USER_PREFS.settings.time_zone);
     $("#id_time_zone").trigger("change");
     $("#id_time_zone").trigger("chosen:updated");
-    $("#id_color_select").simplecolorpicker("selectColor", helium.USER_PREFS.settings.events_color);
+    $("#id_events_color_select").simplecolorpicker("selectColor", helium.USER_PREFS.settings.events_color);
+    $("#id_grades_color_select").simplecolorpicker("selectColor", helium.USER_PREFS.settings.grade_color);
+    $("#id_materials_color_select").simplecolorpicker("selectColor", helium.USER_PREFS.settings.material_color);
     $("#id_calendar_event_limit").prop("checked", helium.USER_PREFS.settings.calendar_event_limit);
     $("#id_remember_filter_state").prop("checked", helium.USER_PREFS.settings.remember_filter_state);
     $("#id_default_reminder_type").val(helium.USER_PREFS.settings.default_reminder_type);

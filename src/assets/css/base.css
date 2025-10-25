@@ -331,3 +331,7 @@ a.planner-title-with-link {
 a.planner-title-with-link:hover {
     color: #fff;
 }
+
+.wysiwyg-toolbar {
+    margin-bottom: 2px !important;
+}

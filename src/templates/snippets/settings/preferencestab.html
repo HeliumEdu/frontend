@@ -48,24 +48,28 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="col-sm-4 control-label" for="id_color_select">Events color</label>
+                    <label class="col-sm-4 control-label" for="id_events_color_select">Events color</label>
 
                     <div class="col-sm-5 col-xs-12">
+                        {% set color_select_name = "events_color_select" %}
                         {% include "../colorselect.html" %}
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="col-sm-4 control-label">Collapse busy days<span class="busydays-help help-button"
-                                                                                  data-rel="popover"
-                                                                                  data-trigger="hover"
-                                                                                  data-container="body"
-                                                                                  data-placement="right"
-                                                                                  data-content="Collapse additional calendar items into a &quot;+ more&quot; section instead of stretching the day's height."
-                                                                                  title="Busy Calendar Days">?</span></label>
-                    <span class="col-sm-5 col-xs-12">
-                    <input id="id_calendar_event_limit" name="calendar_event_limit" type="checkbox" class="ace"/>
-                        <span class="lbl"></span>
-                    </span>
+                    <label class="col-sm-4 control-label" for="id_grades_color_select">Grade badge color</label>
+
+                    <div class="col-sm-5 col-xs-12">
+                        {% set color_select_name = "grades_color_select" %}
+                        {% include "../colorselect.html" %}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-4 control-label" for="id_materials_color_select">Material badge color</label>
+
+                    <div class="col-sm-5 col-xs-12">
+                        {% set color_select_name = "materials_color_select" %}
+                        {% include "../colorselect.html" %}
+                    </div>
                 </div>
             </div>
 
@@ -108,6 +112,19 @@
                     <label class="col-sm-4 control-label">Remember filters</label>
                     <span class="col-sm-5 col-xs-12">
                     <input id="id_remember_filter_state" name="remember_filter_state" type="checkbox" class="ace"/>
+                        <span class="lbl"></span>
+                    </span>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">Collapse busy days<span class="busydays-help help-button"
+                                                                                  data-rel="popover"
+                                                                                  data-trigger="hover"
+                                                                                  data-container="body"
+                                                                                  data-placement="right"
+                                                                                  data-content="Collapse additional calendar items into a &quot;+ more&quot; section instead of stretching the day's height."
+                                                                                  title="Busy Calendar Days">?</span></label>
+                    <span class="col-sm-5 col-xs-12">
+                    <input id="id_calendar_event_limit" name="calendar_event_limit" type="checkbox" class="ace"/>
                         <span class="lbl"></span>
                     </span>
                 </div>
