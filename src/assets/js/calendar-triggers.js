@@ -43,7 +43,8 @@
             if (helium.calendar.edit) {
                 $("#homework-modal-label").html("Edit Event");
             } else {
-                $("#homework-modal-label").html("Add Event");
+                $("#homework-modal-label").html("Add Event <span class=\"event-help help-button\" data-rel=\"popover\" data-trigger=\"hover\" data-container=\"body\" data-placement=\"bottom\" data-content=\"Events are colored differently, and aren't associated with classes, allowing you to plan your schedule alongside schoolwork.\" title=\"Events\">?</span>")
+                    .find(".event-help").popover({html: true}).data("bs.popover").tip().css("z-index", 1060);
             }
 
             $("#homework-class-form-group").hide("fast");

@@ -327,7 +327,8 @@ function HeliumClasses() {
                     if (category.title !== "Uncategorized") {
                         bootbox.dialog(
                             {
-                                message: "After you save the changes to this class, all assignments attached to this category will become uncategorized.",
+                                message: "After you save changes to this class, all assignments associated with this category will become uncategorized. This action cannot be undone.",
+                                onEscape: true,
                                 buttons: {
                                     "delete": {
                                         "label": '<i class="icon-trash"></i> ' + "Delete",
@@ -716,7 +717,8 @@ function HeliumClasses() {
         const id = selector.attr("id").split("delete-course-group-")[1];
         bootbox.dialog(
             {
-                message: "Deleting this group will also permanently delete all classes and assignments associated with it.",
+                message: "Are you sure you want to delete this group? Doing so will also delete all classes and assignments associated with it. This action cannot be undone.",
+                onEscape: true,
                 buttons: {
                     "delete": {
                         "label": '<i class="icon-trash"></i> Delete',
@@ -989,7 +991,8 @@ function HeliumClasses() {
             selector.closest("[id^='course-group-table-']").attr('id').split('course-group-table-body-')[1]);
         bootbox.dialog(
             {
-                message: "Deleting this class will also permanently delete all assignments associated with it.",
+                message: "Are you sure you want to delete this class? Doing so will also delete all assignments associated with it. This action cannot be undone.",
+                onEscape: true,
                 buttons: {
                     "delete": {
                         "label": '<i class="icon-trash"></i> Delete',

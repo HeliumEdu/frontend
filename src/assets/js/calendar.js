@@ -1239,9 +1239,9 @@ function HeliumCalendar() {
 
                         element.find(".fc-list-item-title").html(html_title_with_label);
                         if (event.calendar_item_type === 1 && helium.calendar.get_materials_titles_badges_from_ids(
-                            event.materials)) {
+                            event.materials, false)) {
                             element.find(".fc-list-item-title").after(
-                                '<td>' + helium.calendar.get_materials_titles_badges_from_ids(event.materials)
+                                '<td>' + helium.calendar.get_materials_titles_badges_from_ids(event.materials, false)
                                 + '</td>')
                         } else {
                             element.find(".fc-list-item-title").after('<td></td>');
@@ -1321,15 +1321,15 @@ function HeliumCalendar() {
                                                   + (event.calendar_item_type === 1 && event.materials !== undefined
                                                      && event.materials.length > 0
                                                      && helium.calendar.get_materials_titles_badges_from_ids(
-                                                    event.materials)
+                                                    event.materials, true)
                                                      ? "<div class=\"row\"><div class=\"col-xs-12\"><strong>Materials:</strong> "
                                                   + helium.calendar.get_materials_titles_badges_from_ids(
-                                                        event.materials) + "</div></div>" : "") + (
+                                                        event.materials, true) + "</div></div>" : "") + (
                                                       event.calendar_item_type === 1
                                                       && event.completed && event.current_grade
                                                       !== "-1/100"
                                                       ? "<div class=\"row\"><div class=\"col-xs-12\"><strong>Grade:</strong> "
-                                                  + "<span class=\"badge badge-info\">" + helium.grade_for_display(
+                                                  + "<span class=\"badge\" style=\"background-color: " + helium.USER_PREFS.settings.grade_color + " !important\">" + helium.grade_for_display(
                                                               event.current_grade) + "</span>"
                                                   + "</div></div>" : ""
                                                   ) + (event.comments.replace(/\s/g, "").length > 0
@@ -1518,17 +1518,23 @@ function HeliumCalendar() {
         self.update_filter_checkbox($(this));
     };
 
-    this.get_materials_titles_badges_from_ids = function (data) {
+    this.get_materials_titles_badges_from_ids = function (materials, with_link) {
         let titles = "";
 
-        $.each(data, function (index, id) {
+        $.each(materials, function (index, id) {
             if (!helium.calendar.material_groups[helium.calendar.materials[id].material_group].shown_on_calendar) {
                 return true;
             }
 
-            titles +=
-                '<span class="label materials-label arrowed-right">'
-                + helium.calendar.materials[id].title + "</span>";
+            let title = '<span class="label label-sm materials-label" style="background-color: '
+                    + helium.USER_PREFS.settings.material_color + ' !important;">'
+                    + '<i class="icon-briefcase"></i> ' + helium.calendar.materials[id].title + "</span>";
+            if (with_link && helium.str_not_empty(helium.calendar.materials[id].website)) {
+                title = "<a href='" + helium.calendar.materials[id].website + "' target='_blank'>" + title + "</a>";
+            }
+
+
+            titles += title;
         });
 
         return titles;
@@ -1723,6 +1729,7 @@ function HeliumCalendar() {
         bootbox.dialog(
             {
                 message: "Are you sure you want to delete this " + type + "?",
+                onEscape: true,
                 buttons: {
                     "delete": {
                         "label": '<i class="icon-trash"></i> Delete',
@@ -2469,7 +2476,7 @@ function HeliumCalendar() {
                                + (eventDef.miscProps.calendar_item_type
                                   === 1
                                   ? helium.calendar.get_materials_titles_badges_from_ids(
-                                    eventDef.miscProps.materials) : "") + '</td>' +
+                                    eventDef.miscProps.materials, false) : "") + '</td>' +
                                '<td class="' + theme.getClass('widgetContent') + '">'
                                + (eventDef.miscProps.calendar_item_type
                                   === 1
@@ -2480,7 +2487,7 @@ function HeliumCalendar() {
                                '<td class="' + theme.getClass('widgetContent') + '">' + (eventDef.miscProps.completed
                                                                                          && eventDef.miscProps.current_grade
                                                                                          !== "-1/100"
-                                                                                         ? "<span class=\"badge badge-info\">"
+                                                                                         ? "<span class=\"badge\" style=\"background-color: " + helium.USER_PREFS.settings.grade_color + " !important\">"
                                + helium.grade_for_display(eventDef.miscProps.current_grade) + "</span>" : "") + '</td>'
                                +
                                '</tr>';
@@ -2613,7 +2620,7 @@ function HeliumCalendar() {
     $.fullCalendar.views.assignmentsList.watch('titleForCalendarOverride', ['title'], function (deps) {
         this.calendar.header.el.find('h2')
             .html(
-                "Assignments <span class=\"hidden-xs assignmentslist-help help-button\" data-rel=\"popover\" data-trigger=\"hover\" data-container=\"body\" data-placement=\"right\" data-content=\"This view shows only assignments—no class schedules, events, or external calendars—allowing you to quickly sort through and review your schoolwork.\" title=\"Todo View\">?</span>")
+                "Assignments <span class=\"assignmentslist-help help-button\" data-rel=\"popover\" data-trigger=\"hover\" data-container=\"body\" data-placement=\"right\" data-content=\"This view shows only assignments—no class schedules, events, or external calendars—allowing you to quickly sort through and review your schoolwork.\" title=\"Todo View\">?</span>")
             .find(".assignmentslist-help").popover({html: true}).data("bs.popover").tip().css("z-index", 1060);
     });
 })();
@@ -2724,6 +2731,10 @@ $(document).ready(function () {
         $("#homework-materials").css("max-width", "100%");
         $("#homework-category").css("max-width", "100%");
     }
+
+    $("#homework-event-switch").next().find(".toggle-on").attr("style",
+                                                               "background-color: " + helium.USER_PREFS.settings.events_color + " !important;"
+                                                               + "border-color: " + helium.USER_PREFS.settings.events_color + " !important;");
 
     /*******************************************
      * Other page initialization
