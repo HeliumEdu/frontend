@@ -485,19 +485,14 @@ function HeliumSettings() {
 
     $("#delete-account").on("click", function () {
         bootbox.dialog({
-                           title: "To permanently delete your Helium account <em>and all data you have stored in Helium</em>, confirm your password below.",
+                           title: "To permanently delete your account <em>and all data you have stored in Helium</em>, confirm your password below. This action cannot be undone",
                            message: '<input id="delete-account-password" name="delete-account-password" type="password" class="form-control" />',
                            inputType: "password",
-                           closeButton: true,
                            onEscape: true,
                            buttons: {
-                               cancel: {
-                                   label: "Cancel",
-                                   className: "btn-default"
-                               },
                                success: {
-                                   label: "OK",
-                                   className: "btn-primary",
+                                   label: "<i class=\"icon-trash\"></i> Delete Account",
+                                   className: "btn-danger",
                                    callback: function () {
                                        $("#loading-account").spin(helium.SMALL_LOADING_OPTS);
 
@@ -534,6 +529,10 @@ function HeliumSettings() {
                                                   }
                                               });
                                    }
+                               },
+                               cancel: {
+                                   label: "Cancel",
+                                   className: "btn-default"
                                }
                            }
                        });

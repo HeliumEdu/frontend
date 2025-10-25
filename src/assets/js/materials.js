@@ -246,7 +246,8 @@ function HeliumMaterials() {
         const id = selector.attr("id").split("delete-material-group-")[1];
         bootbox.dialog(
             {
-                message: "Deleting this group will also permanently delete all materials associated with it.",
+                message: "Are you sure you want to delete this group? Doing so will also delete all materials associated with it. This action cannot be undone.",
+                onEscape: true,
                 buttons: {
                     "delete": {
                         "label": '<i class="icon-trash"></i> Delete',
@@ -362,6 +363,7 @@ function HeliumMaterials() {
         bootbox.dialog(
             {
                 message: "Are you sure you want to delete this material?",
+                onEscape: true,
                 buttons: {
                     "delete": {
                         "label": '<i class="icon-trash"></i> Delete',

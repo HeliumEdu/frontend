@@ -108,6 +108,7 @@
             "/js/vendors/jquery.qtip.js",
             "/js/vendors/jquery.hotkeys.js",
             "/js/vendors/bootstrap-wysiwyg.js",
+            "/js/vendors/bootstrap-toggle.js",
             "/js/calendar.js",
             "/js/calendar-triggers.js"
         ],
@@ -187,6 +188,7 @@
             "/css/settings.css"
         ],
         "planner_calendar": [
+            "/css/vendors/bootstrap-toggle.css",
             "/css/calendar.css"
         ],
         "planner_classes": [

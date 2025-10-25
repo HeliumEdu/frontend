@@ -177,6 +177,19 @@ input[type=checkbox].ace.ace-switch:checked + .lbl::before {
     height: auto;
 }
 
+.toggle.btn {
+    margin-right: 8px;
+}
+
+.toggle .btn {
+    padding-top: 0;
+}
+
+.toggle-handle.btn {
+    background-color: white !important;
+    border-color: white !important;
+}
+
 /* undo what fullcalendar 3 does, as it causes everything to be way bigger */
 .fc-view-container .fc-assignmentsList-view *,
 .fc-view-container .fc-listWeek-view *,
