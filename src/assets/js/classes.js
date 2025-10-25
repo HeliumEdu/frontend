@@ -301,7 +301,7 @@ function HeliumClasses() {
                         } else if (total_weights
                                    > 100) {
                             response =
-                                "Weights cannot total more than 100%.";
+                                "The cumulative weights cannot total more than 100%.";
                         } else {
                             self.update_total_category_weights(
                                 total_weights);
@@ -857,6 +857,8 @@ function HeliumClasses() {
                                                                  .format(helium.HE_TIME_STRING_CLIENT));
                     } else {
                         $("#course-schedule-sun").removeClass("active");
+                        $("#course-sun-start-time").timepicker("setTime", "12:00 PM");
+                        $("#course-sun-end-time").timepicker("setTime", "1:00 PM");
                     }
                     if (self.on_day_of_week(schedule, 1)) {
                         $("#course-schedule-mon").addClass("active");
@@ -868,6 +870,8 @@ function HeliumClasses() {
                                                                  .format(helium.HE_TIME_STRING_CLIENT));
                     } else {
                         $("#course-schedule-mon").removeClass("active");
+                        $("#course-mon-start-time").timepicker("setTime", "12:00 PM");
+                        $("#course-mon-end-time").timepicker("setTime", "1:00 PM");
                     }
                     if (self.on_day_of_week(schedule, 2)) {
                         $("#course-schedule-tue").addClass("active");
@@ -879,6 +883,8 @@ function HeliumClasses() {
                                                                  .format(helium.HE_TIME_STRING_CLIENT));
                     } else {
                         $("#course-schedule-tue").removeClass("active");
+                        $("#course-tue-start-time").timepicker("setTime", "12:00 PM");
+                        $("#course-tue-end-time").timepicker("setTime", "1:00 PM");
                     }
                     if (self.on_day_of_week(schedule, 3)) {
                         $("#course-schedule-wed").addClass("active");
@@ -890,6 +896,8 @@ function HeliumClasses() {
                                                                  .format(helium.HE_TIME_STRING_CLIENT));
                     } else {
                         $("#course-schedule-wed").removeClass("active");
+                        $("#course-wed-start-time").timepicker("setTime", "12:00 PM");
+                        $("#course-wed-end-time").timepicker("setTime", "1:00 PM");
                     }
                     if (self.on_day_of_week(schedule, 4)) {
                         $("#course-schedule-thu").addClass("active");
@@ -901,6 +909,8 @@ function HeliumClasses() {
                                                                  .format(helium.HE_TIME_STRING_CLIENT));
                     } else {
                         $("#course-schedule-thu").removeClass("active");
+                        $("#course-thu-start-time").timepicker("setTime", "12:00 PM");
+                        $("#course-thu-end-time").timepicker("setTime", "1:00 PM");
                     }
                     if (self.on_day_of_week(schedule, 5)) {
                         $("#course-schedule-fri").addClass("active");
@@ -912,6 +922,8 @@ function HeliumClasses() {
                                                                  .format(helium.HE_TIME_STRING_CLIENT));
                     } else {
                         $("#course-schedule-fri").removeClass("active");
+                        $("#course-fri-start-time").timepicker("setTime", "12:00 PM");
+                        $("#course-fri-end-time").timepicker("setTime", "1:00 PM");
                     }
                     if (self.on_day_of_week(schedule, 6)) {
                         $("#course-schedule-sat").addClass("active");
@@ -923,6 +935,8 @@ function HeliumClasses() {
                                                                  .format(helium.HE_TIME_STRING_CLIENT));
                     } else {
                         $("#course-schedule-sat").removeClass("active");
+                        $("#course-sat-start-time").timepicker("setTime", "12:00 PM");
+                        $("#course-sat-end-time").timepicker("setTime", "1:00 PM");
                     }
 
                     $("#course-schedule-has-different-times")
@@ -1171,8 +1185,8 @@ function HeliumClasses() {
         const row = table.row.add(
                 ["<span class=\"label label-sm\" style=\"background-color: " + course_data.color + " !important\">"
                  + (course_data.website !== "" ? "<a target=\"_blank\" href=\"" + course_data.website
-                 + "\" class=\"course-title-with-link\">" + course_data.title
-                 + " <i class=\"icon-external-link bigger-110\"></i></a>" : course_data.title) + "</span>",
+                 + "\" class=\"planner-title-with-link\">" + course_data.title
+                 + " <i class=\"icon-external-link hidden-xs bigger-110\"></i></a>" : course_data.title) + "</span>",
                  moment(course_data.start_date, helium.HE_DATE_STRING_SERVER).format(helium.HE_DATE_STRING_CLIENT) + " to "
                  + moment(course_data.end_date, helium.HE_DATE_STRING_SERVER).format(helium.HE_DATE_STRING_CLIENT),
                  course_data.is_online ? "Online" : course_data.room,
@@ -1544,8 +1558,8 @@ function HeliumClasses() {
                                         self.course_group_table[data.course_group.toString()].cell(row_div, 0).data(
                                             "<span class=\"label label-sm\" style=\"background-color: " + data.color
                                             + " !important\">" + (data.website !== "" ? "<a target=\"_blank\" href=\""
-                                            + data.website + "\" class=\"course-title-with-link\">" + data.title
-                                            + " <i class=\"icon-external-link bigger-110\"></i></a>" : data.title)
+                                            + data.website + "\" class=\"planner-title-with-link hidden-xs\">" + data.title
+                                            + " <i class=\"icon-external-link hidden-xs bigger-110\"></i></a>" : data.title)
                                             + "</span>");
                                         self.course_group_table[data.course_group.toString()].cell(row_div, 1).data(
                                             moment(data.start_date, helium.HE_DATE_STRING_SERVER)
@@ -1564,7 +1578,7 @@ function HeliumClasses() {
                                             .data(self.get_schedule(data));
                                         self.course_group_table[data.course_group.toString()].draw();
                                         // Bind clickable attributes to their respective handlers
-                                        row_div.find(".course-title-with-link").on("click", function (e) {
+                                        row_div.find(".planner-title-with-link").on("click", function (e) {
                                             e.stopImmediatePropagation();
                                         });
                                         row_div.on("click", function () {
@@ -1725,7 +1739,7 @@ function HeliumClasses() {
             });
         } else {
             // Validation failed, so don't save and prompt the user for action
-            $("#course-error").html("You must specify values for fields highlighted in red.");
+            $("#course-error").html("These fields are required.");
             $("#course-error").parent().show("fast");
 
             if (!/\S/.test(course_title)) {

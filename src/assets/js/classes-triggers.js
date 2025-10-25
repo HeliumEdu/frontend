@@ -88,7 +88,7 @@
             }
         } else {
             // Validation failed, so don't save and prompt the user for action
-            $("#course-group-error").html("You must specify values for fields highlighted in red.");
+            $("#course-group-error").html("These fields are required.");
             $("#course-group-error").parent().show("fast");
 
             if (!/\S/.test(course_group_title)) {

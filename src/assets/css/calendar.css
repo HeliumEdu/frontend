@@ -168,6 +168,10 @@ input[type=checkbox].ace.ace-switch:checked + .lbl::before {
     font-weight: bold;
 }
 
+a.fc-event, a.fc-event:visited {
+    color: #fff;
+}
+
 .materials-label {
     white-space: normal;
     word-wrap: break-word;
@@ -179,6 +183,7 @@ input[type=checkbox].ace.ace-switch:checked + .lbl::before {
 
 .toggle.btn {
     margin-right: 8px;
+    border-color: #428bca;
 }
 
 .toggle .btn {

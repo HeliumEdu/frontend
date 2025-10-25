@@ -75,7 +75,7 @@
             }
         } else {
             // Validation failed, so don't save and prompt the user for action
-            $("#material-group-error").html("You must specify values for fields highlighted in red.");
+            $("#material-group-error").html("These fields are required.");
             $("#material-group-error").parent().show("fast");
 
             if (!/\S/.test(material_group_title)) {
@@ -226,7 +226,7 @@
             });
         } else {
             // Validation failed, so don't save and prompt the user for action
-            $("#material-error").html("You must specify values for fields highlighted in red.");
+            $("#material-error").html("These fields are required.");
             $("#material-error").parent().show("fast");
 
             if (!/\S/.test(material_title)) {
