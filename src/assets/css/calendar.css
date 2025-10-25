@@ -175,11 +175,6 @@ input[type=checkbox].ace.ace-switch:checked + .lbl::before {
     margin-bottom: 2px;
     text-align: left;
     height: auto;
-    background-color: #de9738 !important;
-}
-
-.materials-label:after {
-    border-left-color: #de9738 !important;
 }
 
 /* undo what fullcalendar 3 does, as it causes everything to be way bigger */

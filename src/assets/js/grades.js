@@ -31,7 +31,7 @@ function HeliumGrades() {
      ******************************************/
     this.get_trend_arrow = function (trend) {
         return trend !== null ? (parseFloat(trend) > 0 ? " <span class=\"icon-x arrow-up-icon light-green\"></span>"
-                                                       : " <span class=\"icon-x arrow-down-icon light-red\"></span>")
+                                                       : " <span class=\"icon-x arrow-down-icon red\"></span>")
                               : "";
     };
 
@@ -117,7 +117,7 @@ function HeliumGrades() {
                 + "</span> to <span>"
                 + moment(data.end_date, helium.HE_DATE_STRING_SERVER).format(helium.HE_DATE_STRING_CLIENT)
                 + "</span></small>"
-                + '<a class="cursor-hover" data-action="collapse"><div class="widget-toolbar"><span class="badge badge-info">'
+                + '<a class="cursor-hover" data-action="collapse"><div class="widget-toolbar"><span class="badge" style=\"background-color: ' + helium.USER_PREFS.settings.grade_color + ' !important">'
                 + (parseFloat(data.average_grade) != -1 ? (parseFloat(data.average_grade).toFixed(2) + '% '
                 + (data.trend > 0 ? '<span class="icon-x arrow-up-icon light-green"></span>'
                                   : '<span class="icon-x arrow-down-icon light-red"></span>')) : 'N/A')
@@ -305,7 +305,7 @@ $(document).ready(function () {
                                     course_list.append("<div id=\"course-body-" + course.id
                                                        + "\" class=\"widget-box\"><div class=\"widget-header widget-header-flat widget-header-small\"><h5><i class=\"icon-book\"></i> <span>"
                                                        + course.title
-                                                       + " </span></h5><a class=\"cursor-hover\" data-action=\"collapse\"><div class=\"widget-toolbar\"><span class=\"badge badge-info\">"
+                                                       + " </span></h5><a class=\"cursor-hover\" data-action=\"collapse\"><div class=\"widget-toolbar\"><span class=\"badge\" style=\"background-color: " + helium.USER_PREFS.settings.grade_color + " !important\">"
                                                        + (parseFloat(course.overall_grade.toFixed(2)) !== -1
                                                           ? Math.round(
                                             course.overall_grade * 100) / 100 + "%" : "N/A")
@@ -352,7 +352,7 @@ $(document).ready(function () {
                                                                                          || !course.has_weighted_grading)
                                                                                         ? (parseFloat(
                                                 category.overall_grade.toFixed(2)) !== -1
-                                                                                           ? "<span class=\"badge badge-info\">"
+                                                                                           ? "<span class=\"badge\" style=\"background-color: " + helium.USER_PREFS.settings.grade_color + " !important\">"
                                         + Math.round(category.overall_grade * 100) / 100 + "%"
                                         + helium.grades.get_trend_arrow(
                                                     category.trend) + "</span>" : "N/A") : "Not Graded") + "</td></tr>");

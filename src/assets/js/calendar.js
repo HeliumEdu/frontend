@@ -1329,7 +1329,7 @@ function HeliumCalendar() {
                                                       && event.completed && event.current_grade
                                                       !== "-1/100"
                                                       ? "<div class=\"row\"><div class=\"col-xs-12\"><strong>Grade:</strong> "
-                                                  + "<span class=\"badge badge-info\">" + helium.grade_for_display(
+                                                  + "<span class=\"badge\" style=\"background-color: " + helium.USER_PREFS.settings.grade_color + " !important\">" + helium.grade_for_display(
                                                               event.current_grade) + "</span>"
                                                   + "</div></div>" : ""
                                                   ) + (event.comments.replace(/\s/g, "").length > 0
@@ -1526,9 +1526,9 @@ function HeliumCalendar() {
                 return true;
             }
 
-            titles +=
-                '<span class="label materials-label arrowed-right">'
-                + helium.calendar.materials[id].title + "</span>";
+            titles += '<span class="label label-sm materials-label" style="background-color: '
+                      + helium.USER_PREFS.settings.material_color + ' !important;">'
+                      + '<i class="icon-briefcase"></i> ' + helium.calendar.materials[id].title + "</span>";;
         });
 
         return titles;
@@ -2480,7 +2480,7 @@ function HeliumCalendar() {
                                '<td class="' + theme.getClass('widgetContent') + '">' + (eventDef.miscProps.completed
                                                                                          && eventDef.miscProps.current_grade
                                                                                          !== "-1/100"
-                                                                                         ? "<span class=\"badge badge-info\">"
+                                                                                         ? "<span class=\"badge\" style=\"background-color: " + helium.USER_PREFS.settings.grade_color + " !important\">"
                                + helium.grade_for_display(eventDef.miscProps.current_grade) + "</span>" : "") + '</td>'
                                +
                                '</tr>';
