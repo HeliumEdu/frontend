@@ -103,7 +103,7 @@ function Helium() {
      */
     this.check_token_exp = function () {
         const refresh_token = localStorage.getItem("refresh_token");
-        const refresh_token_lock = localStorage.getItem('refresh_token_lock') || "false";
+        const refresh_token_lock = localStorage.getItem('refresh_token_lock');
         if (refresh_token === null || refresh_token_lock === "true") {
             return;
         }
@@ -506,6 +506,8 @@ if (!window.REDIRECTING && localStorage.getItem("access_token") !== null) {
             dataType: "json",
             success: function (data) {
                 $.extend(helium.USER_PREFS, data);
+
+                localStorage.setItem("refresh_token_lock", "false");
 
                 if (helium.USER_PREFS.profile !== null
                     && helium.USER_PREFS.profile.phone

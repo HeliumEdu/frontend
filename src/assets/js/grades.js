@@ -330,8 +330,15 @@ $(document).ready(function () {
                                     for (course_grade in course_grades) {
                                         if (course_grades.hasOwnProperty(course_grade)) {
                                             data.push(
-                                                [new Date(course_grades[course_grade][0]),
-                                                 course_grades[course_grade][1]]);
+                                                [
+                                                    new Date(course_grades[course_grade][0]),
+                                                    course_grades[course_grade][1],
+                                                    {
+                                                        id: course_grades[course_grade][2],
+                                                        title: course_grades[course_grade][3],
+                                                        grade: course_grades[course_grade][4]
+                                                    }
+                                                ]);
                                             data_for_group += 1;
                                         }
                                     }
@@ -421,7 +428,10 @@ $(document).ready(function () {
 
                                 course_group_chart_tag.bind("plothover", function (event, pos, item) {
                                     if (item) {
-                                        $("#plot-tooltip").html((Math.round(item.datapoint[1] * 100) / 100) + "%").css(
+                                        const point_data = item.series.data[item.dataIndex];
+                                        const homework_grade = (Math.round(point_data[2].grade * 100) / 100) + "%";
+                                        const point_grade = (Math.round(point_data[1] * 100) / 100) + "%";
+                                        $("#plot-tooltip").html(point_data[2].title + " (" + homework_grade + ")<br>" + point_grade).css(
                                             {
                                                 top: pos.pageY - 25,
                                                 left: pos.pageX + 5,
