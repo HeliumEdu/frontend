@@ -380,7 +380,7 @@ $(document).ready(function () {
                                         course.has_weighted_grading
                                         ? ("<div class=\"col-xs-12 col-md-3\"><div class=\"row\"><h5 class='align-center'>Weight Distribution</h5><hr /></div><div id=\"course-weight-piechart-"
                                            + course.id
-                                           + "\"></div></div><div class=\"col-xs-12 col-md-3\"><div class=\"row\"><h5 class='align-center'>Grade Distribution</h5><hr /></div><div id=\"course-grade-by-weight-piechart-"
+                                           + "\"></div></div><div class=\"col-xs-12 col-md-3\"><div class=\"row\"><h5 class='align-center'>Current Grade Distribution</h5><hr /></div><div id=\"course-grade-by-weight-piechart-"
                                            + course.id + "\"></div></div>") : "";
                                     course_body_div =
                                         course_div.find("#course-body-" + course.id).append(
