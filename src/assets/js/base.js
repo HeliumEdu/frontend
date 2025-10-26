@@ -103,6 +103,7 @@ function Helium() {
      */
     this.check_token_exp = function () {
         const refresh_token = localStorage.getItem("refresh_token");
+        // TODO: replace hacky lock mechanism with an actual when/wait method (that handles retries with fresh token)
         const refresh_token_lock = localStorage.getItem('refresh_token_lock');
         if (refresh_token === null || refresh_token_lock === "true") {
             return;
@@ -482,7 +483,10 @@ $(document).ajaxError(function (event, jqXHR, textStatus, errorThrown) {
     if (jqXHR.status === 401 &&
         jqXHR.url.startsWith(helium.API_URL) &&
         jqXHR.url !== helium.API_URL + "/info/" &&
-        !jqXHR.url.startsWith(helium.API_URL + "/auth")) {
+        !jqXHR.url.startsWith(helium.API_URL + "/auth") &&
+        // TODO: this isn't ideal, but will work for now, while reminders are effectively the heartbeat for hacky
+        //  token refresh
+        !jqXHR.url.startsWith(helium.API_URL + "/planner/reminders")) {
         helium.clear_access_token_reprompt_login();
     }
 });
