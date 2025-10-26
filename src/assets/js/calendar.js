@@ -2658,7 +2658,7 @@ function HeliumCalendar() {
         this.calendar.header.el.find('h2')
             .html(
                 "Assignments <span class=\"assignmentslist-help help-button\" data-rel=\"popover\" data-trigger=\"hover\" data-container=\"body\" data-placement=\"right\" data-content=\"This view shows only assignments—no class schedules, events, or external calendars—allowing you to quickly sort through and review your schoolwork.\" title=\"Todo View\">?</span>")
-            .find(".assignmentslist-help").popover({html: true}).data("bs.popover").tip().css("z-index", 1060);
+            .find(".help-button").popover({html: true}).data("bs.popover").tip().css("z-index", 1060);
     });
 })();
 
@@ -2892,9 +2892,6 @@ $(document).ready(function () {
                 helium.calendar.initialize_calendar();
 
                 $.when.apply(this, helium.calendar.ajax_calls).done(function () {
-                    $(".homework-help, .reminder-help, .weight-help, .materials-help").popover({html: true})
-                        .data("bs.popover")
-                        .tip().css("z-index", 1060);
                     $(".materials-help").on("click", function () {
                         window.location = "/planner/materials";
                     });

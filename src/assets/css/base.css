@@ -335,3 +335,8 @@ a.planner-title-with-link:hover {
 .wysiwyg-toolbar {
     margin-bottom: 2px !important;
 }
+
+.open-website {
+    margin-left: -20px;
+    margin-top: 4px;
+}

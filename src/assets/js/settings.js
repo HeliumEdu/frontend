@@ -421,13 +421,13 @@ function HeliumSettings() {
         if (helium.USER_PREFS.settings.private_slug === null || helium.USER_PREFS.settings.private_slug === "") {
             $("#enable-disable-feed").addClass("btn-success");
             $("#enable-disable-feed").removeClass("btn-warning");
-            $("#enable-disable-feed").html('<i class="icon-check"></i>Enable Private Feeds');
+            $("#enable-disable-feed").html('<i class="icon-check"></i> Enable');
 
-            $("#private-feed-urls").html("Private feeds are not yet enabled. Click the button below to enable.");
+            $("#private-feed-urls").html("Private feeds are not enabled. Click the button below to enable.");
         } else {
             $("#enable-disable-feed").removeClass("btn-success");
             $("#enable-disable-feed").addClass("btn-warning");
-            $("#enable-disable-feed").html('<i class="icon-check-minus"></i>Disable Private Feeds');
+            $("#enable-disable-feed").html('<i class="icon-check-minus"></i> Disable');
 
             const base_url = helium.API_URL + "/feed/private/" + helium.USER_PREFS.settings.private_slug;
 
@@ -441,9 +441,9 @@ function HeliumSettings() {
     };
 
     $("#enable-disable-feed").on("click", function () {
-        $("#loading-feed").spin(helium.SMALL_LOADING_OPTS);
-
         if (helium.USER_PREFS.settings.private_slug === null || helium.USER_PREFS.settings.private_slug === "") {
+            $("#loading-feed").spin(helium.SMALL_LOADING_OPTS);
+
             $.ajax({
                        async: false,
                        type: 'PUT',
@@ -462,27 +462,48 @@ function HeliumSettings() {
                            $("#loading-feed").spin(false);
                        }
                    });
+
+            self.refresh_feeds();
         } else {
-            $.ajax({
-                       async: false,
-                       type: 'PUT',
-                       url: helium.API_URL + '/feed/private/disable/',
-                       error: function () {
-                           $("#status_feed").html(
-                               'Sorry, an unknown error occurred while trying to enable feeds. Please <a href="/contact">contact support</a>')
-                               .addClass("alert-warning").removeClass("hidden");
+            bootbox.dialog(
+                {
+                    message: "Disabling feeds permanently will break any external services currently linked to Helium with these URLs. If feeds are re-enabled later, new URLs will be generated. Are you sure you want to continue?",
+                    onEscape: true,
+                    buttons: {
+                        "delete": {
+                            "label": '<i class="icon-check-minus"></i> Disable',
+                            "className": "btn-sm btn-warning",
+                            "callback": function () {
+                                $("#loading-feed").spin(helium.SMALL_LOADING_OPTS);
 
-                           $("#loading-feed").spin(false);
-                       },
-                       success: function () {
-                           helium.USER_PREFS.settings.private_slug = null;
+                                $.ajax({
+                                           async: false,
+                                           type: 'PUT',
+                                           url: helium.API_URL + '/feed/private/disable/',
+                                           error: function () {
+                                               $("#status_feed").html(
+                                                   'Sorry, an unknown error occurred while trying to disable feeds. Please <a href="/contact">contact support</a>')
+                                                   .addClass("alert-warning").removeClass("hidden");
 
-                           $("#loading-feed").spin(false);
-                       }
-                   });
+                                               $("#loading-feed").spin(false);
+                                           },
+                                           success: function () {
+                                               helium.USER_PREFS.settings.private_slug = null;
+
+                                               $("#loading-feed").spin(false);
+                                           }
+                                       });
+
+                                self.refresh_feeds();
+                            }
+                        },
+                        "cancel": {
+                            "label": '<i class="icon-remove"></i> Cancel',
+                            "className": "btn-sm"
+                        }
+                    }
+                });
         }
-
-        self.refresh_feeds();
     });
 
     $("#delete-account").on("click", function () {
@@ -583,15 +604,11 @@ $(document).ready(function () {
     $("#id_grades_color_select").simplecolorpicker({picker: true, theme: "glyphicons"});
     $("#id_materials_color_select").simplecolorpicker({picker: true, theme: "glyphicons"});
 
-    $(".busydays-help").popover({html: true}).data("bs.popover").tip().css("z-index", 1060);
-    $(".privatefeeds-help").popover({html: true}).data("bs.popover").tip().css("z-index", 1060);
-
     $(".privatefeeds-help").on("click", function () {
         window.open("https://support.google.com/calendar/answer/37100?hl=en&co=GENIE.Platform%3DDesktop");
     });
 
     if ($(".externalcalendars-help").length > 0) {
-        $(".externalcalendars-help").popover({html: true}).data("bs.popover").tip().css("z-index", 1060);
         $(".externalcalendars-help").on("click", function () {
             window.open("https://support.google.com/calendar/answer/37648?hl=en");
         });

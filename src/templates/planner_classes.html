@@ -101,7 +101,7 @@
                                 <div class="form-group">
                                     <label class="left-buffer-70 right-buffer-30">
                                         <input id="course-group-shown-on-calendar" class="ace" type="checkbox"/>
-                                        <span class="lbl"> Hide classes and assignments in this group on the Calendar page</span>
+                                        <span class="lbl"> Hide classes and assignments in this group on the Calendar</span>
                                     </label>
                                 </div>
                                 <div class="row to-hide">
@@ -230,6 +230,19 @@
                                                                autocomplete="off" maxlength="255"
                                                                type="text"/>
                                                     </div>
+
+                                                    <div class="col-sm-2 open-website">
+                                                        <button type="button"
+                                                                class="btn btn-primary btn-xs hidden-xs" for="course-website">
+                                                            <i class="icon-external-link"></i>
+                                                        </button>
+                                                        <span class="course-website-help help-button"
+                                                              data-rel="popover"
+                                                              data-trigger="hover" data-container="#course-modal"
+                                                              data-placement="left"
+                                                              data-content="When a URL is given, references to the class name (including the class schedule displayed on the Calendar) will become clickable."
+                                                              title="Class Website">?</span>
+                                                    </div>
                                                 </div>
                                                 <div class="form-group">
                                                     <label class="col-sm-3 control-label"
@@ -273,14 +286,6 @@
                                                             <input id="course-online" class="ace" type="checkbox"/>
                                                             <span class="lbl"> Online</span>
                                                         </label>
-                                                    </div>
-                                                </div>
-
-                                                <div class="row">
-                                                    <div class="col-sm-8 col-sm-offset-2 well well-sm">
-                                                        If you you need to customize the
-                                                        grading system for this class, click on the "Categories"
-                                                        tab.
                                                     </div>
                                                 </div>
                                             </form>
@@ -552,7 +557,7 @@
                                                 <tbody id="attachments-table-body">
                                                 <tr id="no-attachments">
                                                     <td colspan="4"
-                                                        class="text-center">No attachments. Get started by adding dropping an attachment above.</td>
+                                                        class="text-center">Nothing to see here. Drop attachment in the area above.</td>
                                                 </tr>
                                                 </tbody>
                                             </table>

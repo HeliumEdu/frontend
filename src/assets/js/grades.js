@@ -144,8 +144,6 @@ $(document).ready(function () {
 
     $("#loading-grades").spin(helium.SMALL_LOADING_OPTS);
 
-    $(".grades-help").popover({html: true}).data("bs.popover").tip().css("z-index", 1060);
-
     bootbox.setDefaults({
                             locale: 'en'
                         });
@@ -363,7 +361,7 @@ $(document).ready(function () {
                                         "<tr><td><span class=\"label label-sm\" style=\"background-color: "
                                         + category.color
                                         + " !important\">" + category.title + "</span></td><td class=\"hidden-xs\">"
-                                        + category.num_homework_graded + "</td><td>" + ((parseFloat(category.weight)
+                                        + category.num_homework_graded + " of " + category.num_homework + "</td><td>" + ((parseFloat(category.weight)
                                                                                          !== 0
                                                                                          || !course.has_weighted_grading)
                                                                                         ? (parseFloat(

@@ -835,6 +835,7 @@ function HeliumClasses() {
                     }
                     $("#course-room").val(course.room);
                     $("#course-website").val(course.website);
+                    $("#" + $(".open-website button").attr("for")).trigger("focusout");
                     self.last_good_credits = course.credits;
                     $("#course-credits").spinner("value", self.last_good_credits);
                     $("#id_color_select").simplecolorpicker("selectColor", course.color);
@@ -1800,8 +1801,6 @@ $(document).ready(function () {
     $.extend($.fn.dataTable.defaults, {
         "searching": false
     });
-
-    $(".weight-help").popover({html: true}).data("bs.popover").tip().css("z-index", 1060);
 
     bootbox.setDefaults({
                             locale: 'en'

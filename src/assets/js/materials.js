@@ -337,6 +337,7 @@ function HeliumMaterials() {
                     $("#material-condition").trigger("change");
                     $("#material-condition").trigger("chosen:updated");
                     $("#material-website").val(material.website);
+                    $("#" + $(".open-website button").attr("for")).trigger("focusout");
                     $("#material-price").val(material.price);
                     $("#material-details").html(material.details);
 
