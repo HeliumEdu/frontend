@@ -340,3 +340,7 @@ a.planner-title-with-link:hover {
     margin-left: -20px;
     margin-top: 4px;
 }
+
+.chosen-select {
+    width: 100%;
+}

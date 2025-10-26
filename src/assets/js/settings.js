@@ -264,11 +264,16 @@ function HeliumSettings() {
 
                            $("#loading-preferences").spin(false);
                        },
-                       success: function () {
+                       success: function (data) {
                            helium.clear_form_errors("preferences-form");
 
                            $("#status_preferences").html("Changes saved.").addClass("alert-success")
                                .removeClass("hidden");
+
+                           $.extend(helium.USER_PREFS.settings, data);
+                           if (!helium.USER_PREFS.settings.remember_filter_state) {
+                               helium.clear_storage();
+                           }
 
                            $("#loading-preferences").spin(false);
                        }
@@ -592,58 +597,60 @@ helium.settings = new HeliumSettings();
 $(document).ready(function () {
     "use strict";
 
-    $("#loading-preferences").spin(false);
-    $("#loading-personal").spin(false);
-    $("#loading-account").spin(false);
+    $.when.apply(this, helium.ajax_calls).done(function () {
+        $("#loading-preferences").spin(false);
+        $("#loading-personal").spin(false);
+        $("#loading-account").spin(false);
 
-    if ($(window).width() > 768) {
-        $("#id_phone_carrier").chosen({width: "100%", search_contains: true, no_results_text: "No carriers match"});
-        $("#id_time_zone").chosen({width: "100%", search_contains: true, no_results_text: "No time zones match"});
-    }
-    $("#id_events_color_select").simplecolorpicker({picker: true, theme: "glyphicons"});
-    $("#id_grades_color_select").simplecolorpicker({picker: true, theme: "glyphicons"});
-    $("#id_materials_color_select").simplecolorpicker({picker: true, theme: "glyphicons"});
+        if ($(window).width() > 768) {
+            $("#id_phone_carrier").chosen({width: "100%", search_contains: true, no_results_text: "No carriers match"});
+            $("#id_time_zone").chosen({width: "100%", search_contains: true, no_results_text: "No time zones match"});
+        }
+        $("#id_events_color_select").simplecolorpicker({picker: true, theme: "glyphicons"});
+        $("#id_grades_color_select").simplecolorpicker({picker: true, theme: "glyphicons"});
+        $("#id_materials_color_select").simplecolorpicker({picker: true, theme: "glyphicons"});
 
-    $(".privatefeeds-help").on("click", function () {
-        window.open("https://support.google.com/calendar/answer/37100?hl=en&co=GENIE.Platform%3DDesktop");
-    });
-
-    if ($(".externalcalendars-help").length > 0) {
-        $(".externalcalendars-help").on("click", function () {
-            window.open("https://support.google.com/calendar/answer/37648?hl=en");
+        $(".privatefeeds-help").on("click", function () {
+            window.open("https://support.google.com/calendar/answer/37100?hl=en&co=GENIE.Platform%3DDesktop");
         });
-    }
 
-    helium.settings.populate_externalcalendars();
+        if ($(".externalcalendars-help").length > 0) {
+            $(".externalcalendars-help").on("click", function () {
+                window.open("https://support.google.com/calendar/answer/37648?hl=en");
+            });
+        }
 
-    $("#id_default_view").val(helium.USER_PREFS.settings.default_view);
-    $("#id_week_starts_on").val(helium.USER_PREFS.settings.week_starts_on);
-    $("#id_time_zone").val(helium.USER_PREFS.settings.time_zone);
-    $("#id_time_zone").trigger("change");
-    $("#id_time_zone").trigger("chosen:updated");
-    $("#id_events_color_select").simplecolorpicker("selectColor", helium.USER_PREFS.settings.events_color);
-    $("#id_grades_color_select").simplecolorpicker("selectColor", helium.USER_PREFS.settings.grade_color);
-    $("#id_materials_color_select").simplecolorpicker("selectColor", helium.USER_PREFS.settings.material_color);
-    $("#id_calendar_event_limit").prop("checked", helium.USER_PREFS.settings.calendar_event_limit);
-    $("#id_remember_filter_state").prop("checked", helium.USER_PREFS.settings.remember_filter_state);
-    $("#id_default_reminder_type").val(helium.USER_PREFS.settings.default_reminder_type);
-    $("#id_default_reminder_offset").val(helium.USER_PREFS.settings.default_reminder_offset);
-    $("#id_default_reminder_offset_type").val(helium.USER_PREFS.settings.default_reminder_offset_type);
-    $("#id_phone").val(helium.USER_PREFS.profile.phone);
-    $("#id_username").val(helium.USER_PREFS.username);
-    $("#id_email").val(helium.USER_PREFS.email);
+        helium.settings.populate_externalcalendars();
 
-    if (helium.USER_PREFS.email_changing === null) {
-        ($("#id_email_verification_status").html('<i class="icon-ok bigger-110 green"></i> Verified'));
-    } else {
-        helium.settings.email_pending(helium.USER_PREFS.email_changing);
-    }
+        $("#id_default_view").val(helium.USER_PREFS.settings.default_view);
+        $("#id_week_starts_on").val(helium.USER_PREFS.settings.week_starts_on);
+        $("#id_time_zone").val(helium.USER_PREFS.settings.time_zone);
+        $("#id_time_zone").trigger("change");
+        $("#id_time_zone").trigger("chosen:updated");
+        $("#id_events_color_select").simplecolorpicker("selectColor", helium.USER_PREFS.settings.events_color);
+        $("#id_grades_color_select").simplecolorpicker("selectColor", helium.USER_PREFS.settings.grade_color);
+        $("#id_materials_color_select").simplecolorpicker("selectColor", helium.USER_PREFS.settings.material_color);
+        $("#id_calendar_event_limit").prop("checked", helium.USER_PREFS.settings.calendar_event_limit);
+        $("#id_remember_filter_state").prop("checked", helium.USER_PREFS.settings.remember_filter_state);
+        $("#id_default_reminder_type").val(helium.USER_PREFS.settings.default_reminder_type);
+        $("#id_default_reminder_offset").val(helium.USER_PREFS.settings.default_reminder_offset);
+        $("#id_default_reminder_offset_type").val(helium.USER_PREFS.settings.default_reminder_offset_type);
+        $("#id_phone").val(helium.USER_PREFS.profile.phone);
+        $("#id_username").val(helium.USER_PREFS.username);
+        $("#id_email").val(helium.USER_PREFS.email);
 
-    if (helium.USER_PREFS.profile.phone_changing !== null && helium.USER_PREFS.profile.phone_changing !== '') {
-        helium.settings.phone_pending(helium.USER_PREFS.profile.phone_changing);
-    } else if (helium.USER_PREFS.profile.phone_verified) {
-        ($("#id_phone_verification_status").html('<i class="icon-ok bigger-110 green"></i> Verified'));
-    }
+        if (helium.USER_PREFS.email_changing === null) {
+            ($("#id_email_verification_status").html('<i class="icon-ok bigger-110 green"></i> Verified'));
+        } else {
+            helium.settings.email_pending(helium.USER_PREFS.email_changing);
+        }
 
-    helium.settings.refresh_feeds();
+        if (helium.USER_PREFS.profile.phone_changing !== null && helium.USER_PREFS.profile.phone_changing !== '') {
+            helium.settings.phone_pending(helium.USER_PREFS.profile.phone_changing);
+        } else if (helium.USER_PREFS.profile.phone_verified) {
+            ($("#id_phone_verification_status").html('<i class="icon-ok bigger-110 green"></i> Verified'));
+        }
+
+        helium.settings.refresh_feeds();
+    });
 });

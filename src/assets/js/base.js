@@ -11,8 +11,6 @@
  * @version 1.15.4
  */
 
-localStorage.setItem("refresh_token_lock", "false");
-
 /**
  * Create the Helium persistence object.
  *
@@ -92,6 +90,7 @@ function Helium() {
     };
 
     // Persistence objects within Helium
+    this.ajax_calls = [];
     this.planner_api = null;
     this.settings = null;
     this.classes = null;
@@ -104,27 +103,28 @@ function Helium() {
      */
     this.check_token_exp = function () {
         const refresh_token = localStorage.getItem("refresh_token");
-        if (refresh_token === null || localStorage.getItem("refresh_token_lock") === "true") {
+        const refresh_token_lock = localStorage.getItem('refresh_token_lock');
+        if (refresh_token === null || refresh_token_lock === "true") {
             return;
         }
         localStorage.setItem("refresh_token_lock", "true");
 
         const refresh_time = new Date((localStorage.getItem("access_token_exp") - 90) * 1000);
         if (new Date() > refresh_time) {
-            $.ajax({
-                       type: "POST",
-                       url: helium.API_URL + "/auth/token/refresh/",
-                       data: JSON.stringify({refresh: refresh_token}),
-                       dataType: "json",
-                       async: false,
-                       success: function (data) {
-                           localStorage.setItem("access_token", data.access);
-                           localStorage.setItem("refresh_token", data.refresh);
-                           localStorage.setItem("access_token_exp", helium.parse_jwt(data.access).exp);
+            helium.ajax_calls.push($.ajax({
+                                              type: "POST",
+                                              url: helium.API_URL + "/auth/token/refresh/",
+                                              data: JSON.stringify({refresh: refresh_token}),
+                                              dataType: "json",
+                                              success: function (data) {
+                                                  localStorage.setItem("access_token", data.access);
+                                                  localStorage.setItem("refresh_token", data.refresh);
+                                                  localStorage.setItem("access_token_exp",
+                                                                       helium.parse_jwt(data.access).exp);
 
-                           localStorage.setItem("refresh_token_lock", "false");
-                       }
-                   });
+                                                  localStorage.setItem("refresh_token_lock", "false");
+                                              }
+                                          }));
         } else {
             localStorage.setItem("refresh_token_lock", "false");
         }
@@ -250,7 +250,6 @@ function Helium() {
         localStorage.removeItem("reminder_id");
         localStorage.removeItem("edit_categories");
         localStorage.removeItem("course_id");
-        localStorage.removeItem("refresh_token_lock");
         localStorage.removeItem("DataTables_calendar-list-table_/planner/calendar/");
     }
 
@@ -490,40 +489,43 @@ $(document).ajaxError(function (event, jqXHR, textStatus, errorThrown) {
 
 helium.check_token_exp();
 
-$.ajax({
-           type: "GET",
-           url: helium.API_URL + "/info/",
-           async: false,
-           dataType: "json",
-           success: function (data) {
-               $.extend(helium.INFO, data);
-           }
-       });
+helium.ajax_calls.push($.ajax({
+                                  type: "GET",
+                                  url: helium.API_URL + "/info/",
+                                  dataType: "json",
+                                  success: function (data) {
+                                      $.extend(helium.INFO, data);
+                                  }
+                              }));
 
 if (!window.REDIRECTING && localStorage.getItem("access_token") !== null) {
-    $.ajax({
-               type: "GET",
-               url: helium.API_URL + "/auth/user/",
-               async: false,
-               dataType: "json",
-               success: function (data) {
-                   $.extend(helium.USER_PREFS, data);
+    helium.ajax_calls.push($.ajax(
+        {
+            type: "GET",
+            url: helium.API_URL + "/auth/user/",
+            dataType: "json",
+            success: function (data) {
+                $.extend(helium.USER_PREFS, data);
 
-                   if (helium.USER_PREFS.profile !== null && helium.USER_PREFS.profile.phone !== null) {
-                       helium.REMINDER_TYPE_CHOICES.push("Text");
-                   }
+                localStorage.setItem("refresh_token_lock", "false");
 
-                   if (typeof Rollbar !== "undefined") {
-                       Rollbar.configure({
-                                             payload: {
-                                                 person: {
-                                                     id: helium.USER_PREFS.id
-                                                 }
-                                             }
-                                         });
-                   }
-               }
-           });
+                if (helium.USER_PREFS.profile !== null
+                    && helium.USER_PREFS.profile.phone
+                    !== null) {
+                    helium.REMINDER_TYPE_CHOICES.push("Text");
+                }
+
+                if (typeof Rollbar !== "undefined") {
+                    Rollbar.configure({
+                                          payload: {
+                                              person: {
+                                                  id: helium.USER_PREFS.id
+                                              }
+                                          }
+                                      });
+                }
+            }
+        }));
 }
 
 $(document).ready(function () {
@@ -543,11 +545,7 @@ $(document).ready(function () {
 
     $.each($(".help-button"), function () {
         $(this).popover({html: true}).data("bs.popover").tip().css("z-index", 1060);
-    })
-});
-
-$(window).on("load", function () {
-    "use strict";
+    });
 
     let pathname = window.location.pathname.replace(/\/+$/, '');
 

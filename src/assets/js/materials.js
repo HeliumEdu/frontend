@@ -30,7 +30,6 @@ function HeliumMaterials() {
         "Digital"
     ];
 
-    this.ajax_calls = [];
     this.material_group_table = {};
     this.edit = false;
     this.edit_id = -1;
@@ -511,78 +510,81 @@ $(document).ready(function () {
                                          ]
                                      }).prev().addClass("wysiwyg-style3");
 
-    helium.materials.ajax_calls.push(
-        helium.planner_api.get_all_courses_by_user_id(function (data) {
-            if (helium.data_has_err_msg(data)) {
-                helium.ajax_error_occurred = true;
-                $("#loading-materials").spin(false);
+    $.when.apply(this, helium.ajax_calls).done(function () {
+        helium.ajax_calls.push(
+            helium.planner_api.get_all_courses_by_user_id(function (data) {
+                if (helium.data_has_err_msg(data)) {
+                    helium.ajax_error_occurred = true;
+                    $("#loading-materials").spin(false);
 
-                bootbox.alert(helium.get_error_msg(data));
-            } else {
-                const courses = Object.entries(data);
-                courses.sort((a, b) => {
-                    if (a[1].title < b[1].title) {
-                        return -1;
-                    } else if (a[1].title > b[1].title) {
-                        return 1;
-                    }
-                    return 0;
-                });
-
-                $.each(courses, function (index, course_tuple) {
-                    let course = course_tuple[1];
-                    helium.materials.courses[course.id] = course;
-                    $("#material-courses").append("<option value=\"" + course.id + "\">" + course.title + "</option>");
-                });
-
-                if (data.length <= 0) {
-                    $("#material-courses-form-group").hide("fast");
+                    bootbox.alert(helium.get_error_msg(data));
                 } else {
-                    $("#material-courses-form-group").show("fast");
-                }
-
-                $("#material-courses").prop("disabled", data.length === 0).trigger("chosen:updated");
-            }
-        }, helium.USER_PREFS.id));
-
-    helium.materials.ajax_calls.push(
-        helium.planner_api.get_material_groups(function (data) {
-            $.each(data, function (i, material_group_data) {
-                helium.materials.add_material_group_to_page(material_group_data);
-            });
-        }));
-
-    $.when.apply(this, helium.materials.ajax_calls).done(function () {
-        if (!helium.ajax_error_occurred) {
-            $("#material-group-tabs li a[href^='#material-group-']").first().tab("show");
-
-            $("table[id^='material-group-table-']").each(function () {
-                let i = 0, id = $(this).attr("id").split("material-group-table-")[1], table_div = $(this);
-
-                helium.materials.ajax_calls.push(
-                    helium.planner_api.get_materials_by_material_group_id(function (data) {
-                        if (helium.data_has_err_msg(data)) {
-                            helium.ajax_error_occurred = true;
-                            $("#loading-materials").spin(false);
-
-                            bootbox.alert(helium.get_error_msg(data));
-                        } else {
-                            for (i = 0; i < data.length; i += 1) {
-                                helium.materials.add_material_to_group(data[i],
-                                                                       helium.materials.material_group_table[id]);
-                            }
-                            helium.materials.material_group_table[id].draw();
+                    const courses = Object.entries(data);
+                    courses.sort((a, b) => {
+                        if (a[1].title < b[1].title) {
+                            return -1;
+                        } else if (a[1].title > b[1].title) {
+                            return 1;
                         }
-                    }, id));
-            });
-        }
-    });
+                        return 0;
+                    });
 
-    $.when.apply(this, helium.materials.ajax_calls).done(function () {
-        if ($("#material-group-tabs a").length === 1) {
-            $("#no-materials-tab").addClass("active");
-        }
+                    $.each(courses, function (index, course_tuple) {
+                        let course = course_tuple[1];
+                        helium.materials.courses[course.id] = course;
+                        $("#material-courses")
+                            .append("<option value=\"" + course.id + "\">" + course.title + "</option>");
+                    });
 
-        $("#loading-materials").spin(false);
+                    if (data.length <= 0) {
+                        $("#material-courses-form-group").hide("fast");
+                    } else {
+                        $("#material-courses-form-group").show("fast");
+                    }
+
+                    $("#material-courses").prop("disabled", data.length === 0).trigger("chosen:updated");
+                }
+            }, helium.USER_PREFS.id));
+
+        helium.ajax_calls.push(
+            helium.planner_api.get_material_groups(function (data) {
+                $.each(data, function (i, material_group_data) {
+                    helium.materials.add_material_group_to_page(material_group_data);
+                });
+            }));
+
+        $.when.apply(this, helium.ajax_calls).done(function () {
+            if (!helium.ajax_error_occurred) {
+                $("#material-group-tabs li a[href^='#material-group-']").first().tab("show");
+
+                $("table[id^='material-group-table-']").each(function () {
+                    let i = 0, id = $(this).attr("id").split("material-group-table-")[1], table_div = $(this);
+
+                    helium.ajax_calls.push(
+                        helium.planner_api.get_materials_by_material_group_id(function (data) {
+                            if (helium.data_has_err_msg(data)) {
+                                helium.ajax_error_occurred = true;
+                                $("#loading-materials").spin(false);
+
+                                bootbox.alert(helium.get_error_msg(data));
+                            } else {
+                                for (i = 0; i < data.length; i += 1) {
+                                    helium.materials.add_material_to_group(data[i],
+                                                                           helium.materials.material_group_table[id]);
+                                }
+                                helium.materials.material_group_table[id].draw();
+                            }
+                        }, id));
+                });
+            }
+        });
+
+        $.when.apply(this, helium.ajax_calls).done(function () {
+            if ($("#material-group-tabs a").length === 1) {
+                $("#no-materials-tab").addClass("active");
+            }
+
+            $("#loading-materials").spin(false);
+        });
     });
 });

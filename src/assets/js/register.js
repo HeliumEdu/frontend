@@ -42,15 +42,15 @@ $("#register-form").submit(function (e) {
     }, username, email, password1, time_zone);
 });
 
-$(window).on("load", function () {
+$(document).ready(function () {
     "use strict";
 
-    $("#email").focus();
+    $("#id_username").focus();
     if ($(window).width() > 768) {
         $("#id_time_zone").chosen({width: "100%", search_contains: true, no_results_text: "No time zones match"});
     }
     $("#id_time_zone").val(moment.tz.guess());
     $("#id_time_zone").trigger("change");
     $("#id_time_zone").trigger("chosen:updated")
-}());
+});
 
