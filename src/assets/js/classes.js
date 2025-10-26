@@ -28,7 +28,6 @@ function HeliumClasses() {
         {value: "Quiz", color: "#b99aff", tokens: ["Quiz"]},
     ];
 
-    this.ajax_calls = [];
     this.course_group_table = {};
     this.edit = false;
     this.edit_id = -1;
@@ -947,7 +946,7 @@ function HeliumClasses() {
                     $("tr[id^='category-']").remove();
                     $("#no-categories").show();
 
-                    helium.classes.ajax_calls.push(helium.planner_api.get_categories_by_course_id(function (data) {
+                    helium.ajax_calls.push(helium.planner_api.get_categories_by_course_id(function (data) {
                         self.category_unsaved_pk = data.length + 1;
                         for (i = 0; i < data.length; i += 1) {
                             self.add_category_to_table(data[i], false);
@@ -961,7 +960,7 @@ function HeliumClasses() {
                         self.dropzone.removeAllFiles();
                     }
 
-                    helium.classes.ajax_calls.push(
+                    helium.ajax_calls.push(
                         helium.planner_api.get_attachments_by_course_id(function (data) {
                             self.attachment_unsaved_pk = data.length + 1;
                             for (i = 0; i < data.length; i += 1) {
@@ -979,7 +978,7 @@ function HeliumClasses() {
                             }
                         }, self.edit_id));
 
-                    $.when.apply(this, helium.classes.ajax_calls).done(function () {
+                    $.when.apply(this, helium.ajax_calls).done(function () {
                         self.update_total_category_weights(total_weights);
 
                         $("#loading-course-modal").spin(false);
@@ -1497,14 +1496,14 @@ function HeliumClasses() {
                                                                              helium.HE_TIME_STRING_CLIENT)
                                         .format(helium.HE_TIME_STRING_SERVER) : sun_end_time
                                 };
-                                helium.classes.ajax_calls.push(
+                                helium.ajax_calls.push(
                                     helium.planner_api.edit_courseschedule(function (course_schedule) {
                                                                                data.schedules = [course_schedule];
                                                                            }, self.course_group_id, self.edit_id, data.schedules[0].id, course_schedule_data,
                                                                            false));
 
                                 $.each(categories_data, function (i, category_data) {
-                                    helium.classes.ajax_calls.push(helium.planner_api.add_category(function () {
+                                    helium.ajax_calls.push(helium.planner_api.add_category(function () {
                                         if (helium.data_has_err_msg(data)) {
                                             helium.ajax_error_occurred = true;
                                             $("#loading-courses").spin(false);
@@ -1519,7 +1518,7 @@ function HeliumClasses() {
 
                                 if (!helium.ajax_error_occurred) {
                                     $.each(helium.classes.categories_to_delete, function (i, category_id) {
-                                        helium.classes.ajax_calls.push(helium.planner_api.delete_category(function () {
+                                        helium.ajax_calls.push(helium.planner_api.delete_category(function () {
                                             if (helium.data_has_err_msg(data)) {
                                                 helium.ajax_error_occurred = true;
                                                 $("#loading-courses").spin(false);
@@ -1535,7 +1534,7 @@ function HeliumClasses() {
 
                                 if (!helium.ajax_error_occurred) {
                                     $.each(helium.classes.attachments_to_delete, function (i, attachment_id) {
-                                        helium.classes.ajax_calls.push(
+                                        helium.ajax_calls.push(
                                             helium.planner_api.delete_attachment(function () {
                                                 if (helium.data_has_err_msg(data)) {
                                                     helium.ajax_error_occurred = true;
@@ -1550,7 +1549,7 @@ function HeliumClasses() {
                                     });
                                 }
 
-                                $.when.apply(this, helium.classes.ajax_calls).done(function () {
+                                $.when.apply(this, helium.ajax_calls).done(function () {
                                     if (!helium.ajax_error_occurred) {
                                         helium.classes.categories_to_delete = [];
                                         helium.classes.attachments_to_delete = [];
@@ -1656,14 +1655,14 @@ function HeliumClasses() {
                                     "course": self.edit_id
                                 };
 
-                                helium.classes.ajax_calls.push(
+                                helium.ajax_calls.push(
                                     helium.planner_api.add_courseschedule(function (course_schedule) {
                                         data.schedules = [course_schedule];
                                     }, data.course_group, data.id, course_schedule_data));
 
-                                $.when.apply(this, helium.classes.ajax_calls).done(function () {
+                                $.when.apply(this, helium.ajax_calls).done(function () {
                                     $.each(categories_data, function (i, category_data) {
-                                        helium.classes.ajax_calls.push(
+                                        helium.ajax_calls.push(
                                             helium.planner_api.add_category(function () {
                                                 if (helium.data_has_err_msg(data)) {
                                                     helium.ajax_error_occurred = true;
@@ -1679,7 +1678,7 @@ function HeliumClasses() {
 
                                     if (!helium.ajax_error_occurred) {
                                         $.each(helium.classes.categories_to_delete, function (i, category_id) {
-                                            helium.classes.ajax_calls.push(
+                                            helium.ajax_calls.push(
                                                 helium.planner_api.delete_category(function () {
                                                     if (helium.data_has_err_msg(data)) {
                                                         helium.ajax_error_occurred = true;
@@ -1696,7 +1695,7 @@ function HeliumClasses() {
 
                                     if (!helium.ajax_error_occurred) {
                                         $.each(helium.classes.attachments_to_delete, function (i, attachment_id) {
-                                            helium.classes.ajax_calls.push(
+                                            helium.ajax_calls.push(
                                                 helium.planner_api.delete_attachment(function () {
                                                     if (helium.data_has_err_msg(data)) {
                                                         helium.ajax_error_occurred = true;
@@ -1711,7 +1710,7 @@ function HeliumClasses() {
                                         });
                                     }
 
-                                    $.when.apply(this, helium.classes.ajax_calls).done(function () {
+                                    $.when.apply(this, helium.ajax_calls).done(function () {
                                         if (!helium.ajax_error_occurred) {
                                             helium.classes.categories_to_delete = [];
                                             helium.classes.attachments_to_delete = [];
@@ -1806,138 +1805,141 @@ $(document).ready(function () {
                             locale: 'en'
                         });
 
-    helium.classes.initialize_datetime();
+    $.when.apply(this, helium.ajax_calls).done(function () {
+        helium.classes.initialize_datetime();
 
-    $(".spinner").spinner({
-                              min: 0.0,
-                              step: 0.25,
-                              page: 4,
-                              numberFormat: "n",
-                              create: function () {
-                                  $(this).next().addClass("btn btn-success").html('<i class="icon-plus"></i>').next()
-                                      .addClass("btn btn-danger").html('<i class="icon-minus"></i>');
-                                  // Correct CSS for touch displays
-                                  if (ace.click_event === "tap") {
-                                      $(this).closest(".ui-spinner").addClass("ui-spinner-touch");
+        $(".spinner").spinner({
+                                  min: 0.0,
+                                  step: 0.25,
+                                  page: 4,
+                                  numberFormat: "n",
+                                  create: function () {
+                                      $(this).next().addClass("btn btn-success").html('<i class="icon-plus"></i>')
+                                          .next()
+                                          .addClass("btn btn-danger").html('<i class="icon-minus"></i>');
+                                      // Correct CSS for touch displays
+                                      if (ace.click_event === "tap") {
+                                          $(this).closest(".ui-spinner").addClass("ui-spinner-touch");
+                                      }
                                   }
-                              }
-                          });
-    $("#id_color_select").simplecolorpicker({picker: true, theme: "glyphicons"});
+                              });
+        $("#id_color_select").simplecolorpicker({picker: true, theme: "glyphicons"});
 
-    /*******************************************
-     * Other page initialization
-     ******************************************/
-    helium.classes.ajax_calls.push(
-        helium.planner_api.get_course_groups(function (data) {
-            if (helium.data_has_err_msg(data)) {
-                helium.ajax_error_occurred = true;
-                $("#loading-courses").spin(false);
+        /*******************************************
+         * Other page initialization
+         ******************************************/
+        helium.ajax_calls.push(
+            helium.planner_api.get_course_groups(function (data) {
+                if (helium.data_has_err_msg(data)) {
+                    helium.ajax_error_occurred = true;
+                    $("#loading-courses").spin(false);
 
-                bootbox.alert(helium.get_error_msg(data));
-            } else {
-                $.each(data, function (i, course_group_data) {
-                    helium.classes.add_course_group_to_page(course_group_data);
+                    bootbox.alert(helium.get_error_msg(data));
+                } else {
+                    $.each(data, function (i, course_group_data) {
+                        helium.classes.add_course_group_to_page(course_group_data);
+                    });
+                }
+            }));
+
+        $.when.apply(this, helium.ajax_calls).done(function () {
+            if (!helium.ajax_error_occurred) {
+                $("#course-group-title").attr('placeholder', 'Fall Semester ' + moment().year());
+
+                $("#course-group-tabs li a[href^='#course-group-']").first().tab("show");
+
+                helium.classes.refresh_course_groups();
+
+                $("table[id^='course-group-table-']").each(function () {
+                    let id = $(this).attr("id").split("course-group-table-")[1].split("_")[0], i = 0;
+
+                    helium.ajax_calls.push(
+                        helium.planner_api.get_courses_by_course_group_id(function (data) {
+                            if (helium.data_has_err_msg(data)) {
+                                helium.ajax_error_occurred = true;
+                                $("#loading-courses").spin(false);
+
+                                bootbox.alert(helium.get_error_msg(data));
+                            } else {
+                                for (i = 0; i < data.length; i += 1) {
+                                    helium.classes.add_course_to_groups(data[i], helium.classes.course_group_table[id]);
+                                }
+                                helium.classes.course_group_table[id].draw();
+                            }
+                        }, id));
+                });
+
+                $.when.apply(this, helium.ajax_calls).done(function () {
+                    if (!helium.ajax_error_occurred) {
+                        /*******************************************
+                         * Check storage for triggers passed in
+                         ******************************************/
+                        if (localStorage.getItem("edit_categories") === "true") {
+                            const course_id = localStorage.getItem("course_id");
+
+                            helium.classes.edit_course_btn($("tr#course-" + course_id), false);
+                            $("a[href='#course-panel-tab-3']").tab("show");
+
+                            localStorage.removeItem("course_id");
+                            localStorage.removeItem("edit_categories");
+                        }
+
+                        if ($("#course-group-tabs a").length === 1) {
+                            $("#no-classes-tab").addClass("active");
+                        }
+
+                        try {
+                            $(".dropzone").dropzone(
+                                {
+                                    maxFilesize: 10,
+                                    addRemoveLinks: true,
+                                    autoProcessQueue: false,
+                                    uploadMultiple: true,
+                                    parallelUploads: 10,
+                                    dictDefaultMessage: "<span class=\"bigger-150 bolder\"><i class=\"icon-caret-right red\"></i> Drop file</span> to upload <span class=\"smaller-80 grey\">(or click)</span> <br /> <i class=\"upload-icon icon-cloud-upload blue icon-3x\"></i>",
+                                    dictResponseError: "Error while uploading file!",
+                                    previewTemplate: "<div class=\"dz-preview dz-file-preview\">\n  <div class=\"dz-details\">\n    <div class=\"dz-filename\"><span data-dz-name></span></div>\n    <div class=\"dz-size\" data-dz-size></div>\n    <img data-dz-thumbnail />\n  </div>\n  <div class=\"progress progress-small progress-striped active\"><div class=\"progress-bar progress-bar-success\" data-dz-uploadprogress></div></div>\n  <div class=\"dz-success-mark\"><span></span></div>\n  <div class=\"dz-error-mark\"><span></span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
+                                    init: function () {
+                                        helium.classes.dropzone = this;
+
+                                        this.on("sendingmultiple", function (na, xhr, form_data) {
+                                            xhr.setRequestHeader("Authorization",
+                                                                 "Bearer " + localStorage.getItem("access_token"));
+                                            form_data.append("course", helium.classes.edit_id);
+                                        });
+                                        this.on("successmultiple", function (files) {
+                                            $("#loading-course-modal").spin(false);
+                                            $("#course-modal").modal("hide");
+                                        });
+                                        this.on("errormultiple", function () {
+                                            $("#loading-course-modal").spin(false);
+
+                                            $("#course-error").html(
+                                                "The class is saved, but an error occurred while uploading attachments. If the error persists, <a href=\""
+                                                + window.SUPPORT_URL + "\">contact support</a>.");
+                                            $("#course-error").parent().show("fast");
+
+                                            $("a[href='#course-panel-tab-4']").tab("show");
+
+                                            helium.classes.dropzone.removeAllFiles();
+                                        });
+                                    }
+                                });
+                        } catch (e) {
+                            helium.classes.dropzone = null;
+                            bootbox.alert("Attachments are not supported in older browsers.");
+                        }
+
+                        $("#loading-courses").spin(false);
+                    }
                 });
             }
-        }));
+        });
 
-    $.when.apply(this, helium.classes.ajax_calls).done(function () {
-        if (!helium.ajax_error_occurred) {
-            $("#course-group-title").attr('placeholder', 'Fall Semester ' + moment().year());
+        $("#course-modal, #course-group-modal").scroll(function () {
+            "use strict";
 
-            $("#course-group-tabs li a[href^='#course-group-']").first().tab("show");
-
-            helium.classes.refresh_course_groups();
-
-            $("table[id^='course-group-table-']").each(function () {
-                let id = $(this).attr("id").split("course-group-table-")[1].split("_")[0], i = 0;
-
-                helium.classes.ajax_calls.push(
-                    helium.planner_api.get_courses_by_course_group_id(function (data) {
-                        if (helium.data_has_err_msg(data)) {
-                            helium.ajax_error_occurred = true;
-                            $("#loading-courses").spin(false);
-
-                            bootbox.alert(helium.get_error_msg(data));
-                        } else {
-                            for (i = 0; i < data.length; i += 1) {
-                                helium.classes.add_course_to_groups(data[i], helium.classes.course_group_table[id]);
-                            }
-                            helium.classes.course_group_table[id].draw();
-                        }
-                    }, id));
-            });
-
-            $.when.apply(this, helium.classes.ajax_calls).done(function () {
-                if (!helium.ajax_error_occurred) {
-                    /*******************************************
-                     * Check storage for triggers passed in
-                     ******************************************/
-                    if (localStorage.getItem("edit_categories") === "true") {
-                        const course_id = localStorage.getItem("course_id");
-
-                        helium.classes.edit_course_btn($("tr#course-" + course_id), false);
-                        $("a[href='#course-panel-tab-3']").tab("show");
-
-                        localStorage.removeItem("course_id");
-                        localStorage.removeItem("edit_categories");
-                    }
-
-                    if ($("#course-group-tabs a").length === 1) {
-                        $("#no-classes-tab").addClass("active");
-                    }
-
-                    try {
-                        $(".dropzone").dropzone(
-                            {
-                                maxFilesize: 10,
-                                addRemoveLinks: true,
-                                autoProcessQueue: false,
-                                uploadMultiple: true,
-                                parallelUploads: 10,
-                                dictDefaultMessage: "<span class=\"bigger-150 bolder\"><i class=\"icon-caret-right red\"></i> Drop file</span> to upload <span class=\"smaller-80 grey\">(or click)</span> <br /> <i class=\"upload-icon icon-cloud-upload blue icon-3x\"></i>",
-                                dictResponseError: "Error while uploading file!",
-                                previewTemplate: "<div class=\"dz-preview dz-file-preview\">\n  <div class=\"dz-details\">\n    <div class=\"dz-filename\"><span data-dz-name></span></div>\n    <div class=\"dz-size\" data-dz-size></div>\n    <img data-dz-thumbnail />\n  </div>\n  <div class=\"progress progress-small progress-striped active\"><div class=\"progress-bar progress-bar-success\" data-dz-uploadprogress></div></div>\n  <div class=\"dz-success-mark\"><span></span></div>\n  <div class=\"dz-error-mark\"><span></span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
-                                init: function () {
-                                    helium.classes.dropzone = this;
-
-                                    this.on("sendingmultiple", function (na, xhr, form_data) {
-                                        xhr.setRequestHeader("Authorization",
-                                                             "Bearer " + localStorage.getItem("access_token"));
-                                        form_data.append("course", helium.classes.edit_id);
-                                    });
-                                    this.on("successmultiple", function (files) {
-                                        $("#loading-course-modal").spin(false);
-                                        $("#course-modal").modal("hide");
-                                    });
-                                    this.on("errormultiple", function () {
-                                        $("#loading-course-modal").spin(false);
-
-                                        $("#course-error").html(
-                                            "The class is saved, but an error occurred while uploading attachments. If the error persists, <a href=\""
-                                            + window.SUPPORT_URL + "\">contact support</a>.");
-                                        $("#course-error").parent().show("fast");
-
-                                        $("a[href='#course-panel-tab-4']").tab("show");
-
-                                        helium.classes.dropzone.removeAllFiles();
-                                    });
-                                }
-                            });
-                    } catch (e) {
-                        helium.classes.dropzone = null;
-                        bootbox.alert("Attachments are not supported in older browsers.");
-                    }
-
-                    $("#loading-courses").spin(false);
-                }
-            });
-        }
-    });
-
-    $("#course-modal, #course-group-modal").scroll(function () {
-        "use strict";
-
-        $('.date-picker').datepicker('place');
+            $('.date-picker').datepicker('place');
+        });
     });
 });

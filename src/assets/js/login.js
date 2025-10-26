@@ -37,7 +37,7 @@ $("#login-form").submit(function (e) {
     }, username, password);
 });
 
-$(window).on("load", function () {
+$(document).ready(function () {
     "use strict";
 
     const status_type = localStorage.getItem("status_type");
@@ -51,4 +51,4 @@ $(window).on("load", function () {
     }
 
     $("#id_username").focus();
-}());
+});

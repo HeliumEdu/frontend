@@ -138,7 +138,7 @@
                     "shown_on_calendar": true
                 };
 
-                helium.materials.ajax_calls.push(helium.planner_api.add_material_group(function (data) {
+                helium.ajax_calls.push(helium.planner_api.add_material_group(function (data) {
                     if (helium.data_has_err_msg(data)) {
                         helium.ajax_error_occurred = true;
                         $("#loading-material-modal").spin(false);
@@ -154,7 +154,7 @@
             }
 
             // If a course group was created, wait for that call to complete before proceeding
-            $.when.apply(this, helium.materials.ajax_calls).done(function () {
+            $.when.apply(this, helium.ajax_calls).done(function () {
                 if (!helium.ajax_error_occurred) {
                     data = {
                         "title": material_title,
@@ -211,7 +211,7 @@
                                 $("#material-error").parent().show("fast");
                             } else {
                                 // Do not close the modal dialog until database saving is complete
-                                $.when.apply(this, helium.materials.ajax_calls).done(function () {
+                                $.when.apply(this, helium.ajax_calls).done(function () {
                                     helium.materials.add_material_to_group(data,
                                                                            helium.materials.material_group_table[data.material_group]);
                                     helium.materials.material_group_table[data.material_group].draw();
