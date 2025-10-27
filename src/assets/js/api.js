@@ -1245,6 +1245,45 @@ function HeliumPlannerAPI() {
     /**
      * Compile the Homework for the given ID and pass the values to the given callback function in JSON format.
      *
+     * @param id The ID of the homework
+     * @param callback function to pass response data and call after completion
+     * @param async true if call should be async, false otherwise (default is true)
+     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
+     *     refresh the cache (default to false)
+     */
+    this.get_homework_by_id = function (callback, id, async, use_cache) {
+        async = typeof async === "undefined" ? true : async;
+        use_cache = typeof use_cache === "undefined" ? false : use_cache;
+        let ret_val;
+
+        if (use_cache && self.homework.hasOwnProperty(id)) {
+            ret_val = callback(self.homework[id]);
+        } else {
+            ret_val = $.ajax({
+                                 type: "GET",
+                                 url: helium.API_URL + "/planner/homework/?id=" + id,
+                                 async: async,
+                                 dataType: "json",
+                                 success: function (data) {
+                                     if (data.length > 0) {
+                                         self.homework[id] = data[0];
+                                         callback(self.homework[id]);
+                                     } else {
+                                         callback(null);
+                                     }
+                                 },
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
+                                 }
+                             });
+        }
+
+        return ret_val;
+    };
+
+    /**
+     * Compile the Homework for the given ID and pass the values to the given callback function in JSON format.
+     *
      * @param callback function to pass response data and call after completion
      * @param course_group_id the ID of the CourseGroup
      * @param course_id the ID of the Course

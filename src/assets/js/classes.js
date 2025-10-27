@@ -494,7 +494,7 @@ function HeliumClasses() {
                 + "</a></li>");
             course_group_div =
                 "<div id=\"course-group-" + data.id
-                + "\" class=\"tab-pane\"><div class=\"row\"><div class=\"col-sm-12\"><div class=\"table-header\"><span id=\"course-group-title-"
+                + "\" class=\"tab-pane\"><div class=\"row\"><div class=\"col-xs-12\"><div class=\"table-header\"><span id=\"course-group-title-"
                 + data.id + "\">" + data.title + (!data.shown_on_calendar ? " <i class=\"icon-eye-close\"></i>" : "")
                 + "</span><span class='hidden-xs'> | </span><small class=\"hidden-xs\"><span id=\"course-group-"
                 + data.id + "-start-date\">" + moment(
@@ -546,11 +546,19 @@ function HeliumClasses() {
                         sInfo: "Showing _START_ to _END_ of _TOTAL_ classes",
                         sInfoEmpty: "Showing 0 to 0 of 0 classes",
                         sLengthMenu: "Show _MENU_ classes",
+                        oPaginate: {
+                            sPrevious: "<i class=\"icon-angle-left\"></i>",
+                            sNext: "<i class=\"icon-angle-right\"></i>"
+                        }
                     }
                 });
             self.course_group_table[data.id] = table_div.DataTable();
-            table_div.parent().find("#course-group-table-" + data.id + "_length").addClass("hidden-print");
-            table_div.parent().find("#course-group-table-" + data.id + "_filter").addClass("hidden-print");
+            table_div.parent().find("#course-group-table-" + data.id + "_length").parent()
+                .addClass("col-xs-12").removeClass("col-xs-6")
+                .next().remove();
+            table_div.parent().find("#course-group-table-" + data.id + "_length").parent().parent()
+                .addClass("hidden-print");
+            table_div.parent().find("#course-group-table-" + data.id + "_length select").attr("style", "display: inline");
             table_div.parent().find("#course-group-table-" + data.id + "_info").parent().parent()
                 .addClass("hidden-print");
 
@@ -1183,10 +1191,10 @@ function HeliumClasses() {
      */
     this.add_course_to_groups = function (course_data, table) {
         const row = table.row.add(
-                ["<span class=\"label label-sm\" style=\"background-color: " + course_data.color + " !important\">"
+                ["<span class=\"label label-sm title-label\" style=\"background-color: " + course_data.color + " !important\">"
                  + (course_data.website !== "" ? "<a target=\"_blank\" href=\"" + course_data.website
                  + "\" class=\"planner-title-with-link\">" + course_data.title
-                 + " <i class=\"icon-external-link hidden-xs bigger-110\"></i></a>" : course_data.title) + "</span>",
+                 + " <i class=\"icon-external-link\"></i></a>" : course_data.title) + "</span>",
                  moment(course_data.start_date, helium.HE_DATE_STRING_SERVER).format(helium.HE_DATE_STRING_CLIENT) + " to "
                  + moment(course_data.end_date, helium.HE_DATE_STRING_SERVER).format(helium.HE_DATE_STRING_CLIENT),
                  course_data.is_online ? "Online" : course_data.room,
@@ -1559,7 +1567,7 @@ function HeliumClasses() {
                                             "<span class=\"label label-sm\" style=\"background-color: " + data.color
                                             + " !important\">" + (data.website !== "" ? "<a target=\"_blank\" href=\""
                                             + data.website + "\" class=\"planner-title-with-link hidden-xs\">" + data.title
-                                            + " <i class=\"icon-external-link hidden-xs bigger-110\"></i></a>" : data.title)
+                                            + " <i class=\"icon-external-link\"></i></a>" : data.title)
                                             + "</span>");
                                         self.course_group_table[data.course_group.toString()].cell(row_div, 1).data(
                                             moment(data.start_date, helium.HE_DATE_STRING_SERVER)
@@ -1578,7 +1586,7 @@ function HeliumClasses() {
                                             .data(self.get_schedule(data));
                                         self.course_group_table[data.course_group.toString()].draw();
                                         // Bind clickable attributes to their respective handlers
-                                        row_div.find(".planner-title-with-link").on("click", function (e) {
+                                        row_div.find("[class$='-with-link']").on("click", function (e) {
                                             e.stopImmediatePropagation();
                                         });
                                         row_div.on("click", function () {

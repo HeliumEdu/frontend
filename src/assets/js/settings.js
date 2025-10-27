@@ -625,8 +625,8 @@ $(document).ready(function () {
         $("#id_default_view").val(helium.USER_PREFS.settings.default_view);
         $("#id_week_starts_on").val(helium.USER_PREFS.settings.week_starts_on);
         $("#id_time_zone").val(helium.USER_PREFS.settings.time_zone);
-        $("#id_time_zone").trigger("change");
         $("#id_time_zone").trigger("chosen:updated");
+        $("#id_time_zone").trigger("change");
         $("#id_events_color_select").simplecolorpicker("selectColor", helium.USER_PREFS.settings.events_color);
         $("#id_grades_color_select").simplecolorpicker("selectColor", helium.USER_PREFS.settings.grade_color);
         $("#id_materials_color_select").simplecolorpicker("selectColor", helium.USER_PREFS.settings.material_color);

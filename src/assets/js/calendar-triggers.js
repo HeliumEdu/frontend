@@ -38,6 +38,12 @@
                                               null, 0);
     });
 
+    $("#homework-materials").on("change", function () {
+        $.each($(this).next().find(".search-choice"), function () {
+            $(this).attr("style", "background-color: " + helium.USER_PREFS.settings.material_color);
+        });
+    });
+
     $("#homework-event-switch").on("change", function () {
         if ($(this).is(":checked")) {
             if (helium.calendar.edit) {
@@ -144,6 +150,9 @@
     });
 
     $("#homework-category").on("change", function () {
+        // Chosen's default behavior is to pull out just the text, so pull out the entire HTML
+        $(this).next().find(".chosen-single span").html($(this).find("option:selected").html());
+
         helium.calendar.preferred_category_name =
             helium.calendar.categories[$(this).val()].title;
     });
@@ -157,6 +166,9 @@
 
     $("#homework-class").on("change", function () {
         helium.ajax_error_occurred = false;
+
+        // Chosen's default behavior is to pull out just the text, so pull out the entire HTML
+        $(this).next().find(".chosen-single span").html($(this).find("option:selected").html());
 
         let course, month_view, month_or_list_view, start_time, end_time, day_of_week, on_days, i = 0,
             materials_callback, materials_load;
@@ -307,6 +319,7 @@
                     $.when.apply(this, helium.ajax_calls).done(function () {
                         $("#homework-materials").val(helium.calendar.preferred_material_ids);
                         $("#homework-materials").prop("disabled", data.length === 0).trigger("chosen:updated");
+                        $("#homework-materials").trigger("change");
                     });
                 }
             };
@@ -352,7 +365,7 @@
                                                         category.weight * 100) / 100 + "%)" : " (Not Graded)") : "");
                                             $("#homework-category").append(
                                                 "<option value=\"" + category.id + "\" data-str=\"" + category.title
-                                                + "\">" + category.title + weight_tag
+                                                + "\">" + category.title + weight_tag + " <span class=\"color-dot inline\" style=\"background-color: " + category.color + "\"></span>"
                                                 + "</option>");
                                         }
                                     }, true, true);
@@ -368,6 +381,7 @@
                                     });
                                 }
                                 $("#homework-category").prop("disabled", data.length === 0).trigger("chosen:updated");
+                                $("#homework-category").trigger("change");
                                 $("#homework-completed").trigger("change");
                                 $("#loading-homework-modal").spin(false);
                             }

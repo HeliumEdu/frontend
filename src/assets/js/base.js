@@ -248,10 +248,9 @@ function Helium() {
         localStorage.removeItem("filter_courses");
         localStorage.removeItem("filter_search_string");
         localStorage.removeItem("edit_calendar_item");
-        localStorage.removeItem("reminder_id");
         localStorage.removeItem("edit_categories");
         localStorage.removeItem("course_id");
-        localStorage.removeItem("DataTables_calendar-list-table_/planner/calendar/");
+        localStorage.removeItem("DataTables_assignments-list-table_/planner/calendar/");
     }
 
     /**
@@ -291,7 +290,7 @@ function Helium() {
         return comment_str.replace(
             /(http|ftp|https):\/\/([-\w_]+(?:(?:\.[-\w_]+)+))([-\w\.,@?^=%&amp;:/~\+#]*[-\w\@?^=%&amp;/~\+#])?/g,
             function (str) {
-                return "<a target=\"_blank\" class=\"material-with-link\" href=\"" + str + "\">" + str + "</a>";
+                return "<a target=\"_blank\" class=\"title-with-link\" href=\"" + str + "\">" + str + "</a>";
             });
     };
 
@@ -386,7 +385,6 @@ function Helium() {
             } else {
                 id = id.split("-")[1];
             }
-            const reminder_id = $(this).parent().attr("id").split("-")[2];
 
             if (location.href.indexOf('/planner/calendar') !== -1) {
                 if ($('#calendar').data('fullCalendar')) {
@@ -410,20 +408,16 @@ function Helium() {
                             helium.calendar.edit_calendar_item_btn(data);
                         }
                     };
-                    if (id.indexOf("event") !== -1) {
+                    if (id.startsWith("event_")) {
                         helium.planner_api.get_event(callback, id, true, true);
                     } else {
-                        helium.planner_api.get_reminder(function (data) {
-                            helium.planner_api.get_homework(callback, data.homework.course.course_group,
-                                                            data.homework.course.id, data.homework.id, true, true);
-                        }, reminder_id);
+                        helium.planner_api.get_homework_by_id(callback, id, true, true);
                     }
                 } else {
                     helium.calendar.edit_calendar_item_btn(helium.calendar.current_calendar_item);
                 }
             } else {
-                localStorage.setItem("reminder_id", reminder_id);
-                localStorage.setItem("edit_calendar_item", "true");
+                localStorage.setItem("edit_calendar_item", id);
                 window.location = "/planner/calendar";
             }
         });
@@ -482,8 +476,8 @@ $.ajaxSetup({
 $(document).ajaxError(function (event, jqXHR, textStatus, errorThrown) {
     if (jqXHR.status === 401 &&
         jqXHR.url.startsWith(helium.API_URL) &&
-        jqXHR.url !== helium.API_URL + "/info/" &&
-        !jqXHR.url.startsWith(helium.API_URL + "/auth") &&
+        jqXHR.url !== helium.API_URL + "/info" &&
+        !jqXHR.url.startsWith(helium.API_URL + "/auth/token") &&
         // TODO: this isn't ideal, but will work for now, while reminders are effectively the heartbeat for hacky
         //  token refresh
         !jqXHR.url.startsWith(helium.API_URL + "/planner/reminders")) {

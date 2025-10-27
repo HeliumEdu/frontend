@@ -22,6 +22,7 @@ function HeliumGrades() {
     this.course_groups = null;
     this.courses_for_course_group = null;
     this.categories_for_course = null;
+    this.categories = {};
     this.grade_points_for_course_group = null;
     this.today = new Date();
 
@@ -219,6 +220,9 @@ $(document).ready(function () {
 
                             $.each(course_group['courses'], function (i, course) {
                                 helium.grades.categories_for_course[course['id']] = course['categories'];
+                                $.each(course['categories'], function (index, data) {
+                                    helium.grades.categories[data['id']] = data;
+                                });
                                 helium.grades.grade_points_for_course_group[course_group['id']][course['id']] =
                                     course['grade_points'];
                             });
@@ -265,6 +269,7 @@ $(document).ready(function () {
                                         borderWidth: 1,
                                         borderColor: "#555",
                                         hoverable: true,
+                                        clickable: true,
                                         markings: [{
                                             xaxis: {from: helium.grades.today, to: helium.grades.today},
                                             color: "#ff0000",
@@ -315,9 +320,11 @@ $(document).ready(function () {
 
                                     course_div =
                                         course_list.append("<div id=\"course-body-" + course.id
-                                                           + "\" class=\"widget-box\"><div class=\"widget-header widget-header-flat widget-header-small\"><h5><i class=\"icon-book\"></i> <span>"
+                                                           + "\" class=\"widget-box\"><div class=\"widget-header widget-header-flat widget-header-small\"><h6><i class=\"icon-book\"></i> <span>"
                                                            + course.title
-                                                           + " </span></h5><a class=\"cursor-hover\" data-action=\"collapse\"><div class=\"widget-toolbar\"><span class=\"badge\" style=\"background-color: "
+                                                           + " <span class=\"color-dot inline\" style=\"background-color: "
+                                                           + course.color + "\"></span>"
+                                                           + "</span></h6><a class=\"cursor-hover\" data-action=\"collapse\"><div class=\"widget-toolbar\"><span class=\"badge\" style=\"background-color: "
                                                            + helium.USER_PREFS.settings.grade_color + " !important\">"
                                                            + (parseFloat(course.overall_grade.toFixed(2)) !== -1
                                                               ? Math.round(
@@ -336,7 +343,8 @@ $(document).ready(function () {
                                                     {
                                                         id: course_grades[course_grade][2],
                                                         title: course_grades[course_grade][3],
-                                                        grade: course_grades[course_grade][4]
+                                                        grade: course_grades[course_grade][4],
+                                                        category_id: course_grades[course_grade][5]
                                                     }
                                                 ]);
                                             data_for_group += 1;
@@ -428,10 +436,15 @@ $(document).ready(function () {
 
                                 course_group_chart_tag.bind("plothover", function (event, pos, item) {
                                     if (item) {
+                                        $(this).css('cursor', 'pointer');
                                         const point_data = item.series.data[item.dataIndex];
                                         const homework_grade = (Math.round(point_data[2].grade * 100) / 100) + "%";
                                         const point_grade = (Math.round(point_data[1] * 100) / 100) + "%";
-                                        $("#plot-tooltip").html(point_data[2].title + " (" + homework_grade + ")<br>" + point_grade).css(
+                                        $("#plot-tooltip").html(point_data[2].title
+                                                                + " <span class=\"color-dot inline\" style=\"background-color: "
+                                                                + helium.grades.categories[point_data[2].category_id].color
+                                                                + "\"></span>"
+                                                                + " (" + homework_grade + ")<br>" + point_grade).css(
                                             {
                                                 top: pos.pageY - 25,
                                                 left: pos.pageX + 5,
@@ -439,7 +452,16 @@ $(document).ready(function () {
                                             })
                                             .fadeIn("fast");
                                     } else {
+                                        $(this).css('cursor', 'default');
                                         $("#plot-tooltip").hide();
+                                    }
+                                });
+                                course_group_chart_tag.bind("plotclick", function (event, pos, item) {
+                                    if (item) {
+                                        const point_data = item.series.data[item.dataIndex];
+                                        const homework_id = point_data[2].id;
+                                        localStorage.setItem("edit_calendar_item", homework_id);
+                                        window.location = "/planner/calendar";
                                     }
                                 });
                             } else {

@@ -170,12 +170,6 @@
             "/css/vendors/jquery.simplecolorpicker.css",
             "/css/vendors/jquery.simplecolorpicker-glyphicons.css",
             "/css/vendors/dropzone.css"
-        ],
-        "planner_materials": [
-            "/css/materials.css"
-        ],
-        "planner_grades": [
-            "/css/grades.css"
         ]
     },
     "page_stylesheet_pre_base_print": {
@@ -196,6 +190,9 @@
         ],
         "planner_materials": [
             "/css/materials.css"
+        ],
+        "planner_grades": [
+            "/css/grades.css"
         ]
     }
 }

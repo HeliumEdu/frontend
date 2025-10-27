@@ -13,3 +13,7 @@
         visibility: hidden !important;
     }
 }
+
+.widget-box .widget-header {
+    color: #576373 !important;
+}

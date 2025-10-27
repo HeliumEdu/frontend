@@ -50,7 +50,7 @@ $(document).ready(function () {
         $("#id_time_zone").chosen({width: "100%", search_contains: true, no_results_text: "No time zones match"});
     }
     $("#id_time_zone").val(moment.tz.guess());
-    $("#id_time_zone").trigger("change");
     $("#id_time_zone").trigger("chosen:updated")
+    $("#id_time_zone").trigger("change");
 });
 

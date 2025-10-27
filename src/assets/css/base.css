@@ -344,3 +344,30 @@ a.planner-title-with-link:hover {
 .chosen-select {
     width: 100%;
 }
+
+.color-dot {
+    height: 10px;
+    width: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-left: 1px;
+}
+
+.title-label {
+    white-space: normal;
+    word-wrap: break-word;
+    padding-top: 2px;
+    margin-bottom: 2px;
+    text-align: left;
+    height: auto;
+}
+
+@media (max-width: 767px) {
+    .hidden-xs-but-space {
+        visibility: hidden;
+    }
+}
+
+.table-header {
+    background-color: #428bca;
+}

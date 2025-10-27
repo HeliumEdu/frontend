@@ -27,14 +27,6 @@ body {
     margin-top: 8px;
 }
 
-.filter-color-dot {
-    height: 10px;
-    width: 10px;
-    border-radius: 50%;
-    display: inline-block;
-    margin-left: 1px;
-}
-
 .fc-toolbar h2 {
     margin-top: 3px;
     margin-left: 7px;
@@ -170,15 +162,6 @@ input[type=checkbox].ace.ace-switch:checked + .lbl::before {
 
 a.fc-event, a.fc-event:visited {
     color: #fff;
-}
-
-.materials-label {
-    white-space: normal;
-    word-wrap: break-word;
-    padding-top: 2px;
-    margin-bottom: 2px;
-    text-align: left;
-    height: auto;
 }
 
 .toggle.btn {

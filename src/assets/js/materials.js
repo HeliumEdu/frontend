@@ -87,8 +87,8 @@ function HeliumMaterials() {
         $("#material-modal-label").html("Add Material");
         $("#material-title").val("");
         $("#material-courses").val("");
-        $("#material-courses").trigger("change");
         $("#material-courses").trigger("chosen:updated");
+        $("#material-courses").trigger("change");
 
         $("#material-group").val(
             $("#material-group-tabs li.active a").attr("href") ? $("#material-group-tabs li.active a").attr("href")
@@ -137,7 +137,7 @@ function HeliumMaterials() {
                              + "</a></li>");
             material_group_div =
                 "<div id=\"material-group-" + data.id
-                + "\" class=\"tab-pane\"><div class=\"row\"><div class=\"col-sm-12\"><div class=\"table-header\"><span id=\"material-group-title-"
+                + "\" class=\"tab-pane\"><div class=\"row\"><div class=\"col-xs-12\"><div class=\"table-header\"><span id=\"material-group-title-"
                 + data.id + "\">" + data.title + (!data.shown_on_calendar ? " <i class=\"icon-eye-close\"></i>" : "")
                 + "</span></span><label class=\"pull-right inline action-buttons\" style=\"padding-right: 10px\"><a class=\"cursor-hover\" id=\"create-material-for-group-"
                 + data.id
@@ -181,11 +181,19 @@ function HeliumMaterials() {
                         sInfo: "Showing _START_ to _END_ of _TOTAL_ materials",
                         sInfoEmpty: "Showing 0 to 0 of 0 materials",
                         sLengthMenu: "Show _MENU_ materials",
+                        oPaginate: {
+                            sPrevious: "<i class=\"icon-angle-left\"></i>",
+                            sNext: "<i class=\"icon-angle-right\"></i>"
+                        }
                     }
                 });
             self.material_group_table[data.id] = table_div.DataTable();
-            table_div.parent().find("#material-group-table-" + data.id + "_length").addClass("hidden-print");
-            table_div.parent().find("#material-group-table-" + data.id + "_filter").addClass("hidden-print");
+            table_div.parent().find("#material-group-table-" + data.id + "_length").parent()
+                .addClass("col-xs-12").removeClass("col-xs-6")
+                .next().remove();
+            table_div.parent().find("#material-group-table-" + data.id + "_length").parent().parent()
+                .addClass("hidden-print");
+            table_div.parent().find("#material-group-table-" + data.id + "_length select").attr("style", "display: inline");
             table_div.parent().find("#material-group-table-" + data.id + "_info").parent().parent()
                 .addClass("hidden-print");
 
@@ -327,14 +335,14 @@ function HeliumMaterials() {
 
                     $("#material-group").val(material.material_group);
                     $("#material-courses").val(material.courses);
-                    $("#material-courses").trigger("change");
                     $("#material-courses").trigger("chosen:updated");
+                    $("#material-courses").trigger("change");
                     $("#material-status").val(material.status);
-                    $("#material-status").trigger("change");
                     $("#material-status").trigger("chosen:updated");
+                    $("#material-status").trigger("change");
                     $("#material-condition").val(material.condition);
-                    $("#material-condition").trigger("change");
                     $("#material-condition").trigger("chosen:updated");
+                    $("#material-condition").trigger("change");
                     $("#material-website").val(material.website);
                     $("#" + $(".open-website button").attr("for")).trigger("focusout");
                     $("#material-price").val(material.price);
@@ -405,14 +413,16 @@ function HeliumMaterials() {
      */
     this.add_material_to_group = function (material_data, table) {
         const row = table.row.add(
-                [material_data.website !== "" ? "<a target=\"_blank\" class=\"material-with-link\" href=\""
-                                                + material_data.website + "\">" + material_data.title + "</a>"
-                                              : material_data.title, material_data.price,
+                ["<span class=\"label label-sm title-label\" style=\"background-color: " + helium.USER_PREFS.settings.material_color + " !important\">"
+                 + (material_data.website !== "" ? "<a target=\"_blank\" href=\"" + material_data.website
+                 + "\" class=\"planner-title-with-link\">" + material_data.title
+                 + " <i class=\"icon-external-link\"></i></a>" : material_data.title) + "</span>",
+                 material_data.price,
                  helium.MATERIAL_STATUS_CHOICES[material_data.status], self.get_course_names(material_data.courses),
                  helium.get_comments_with_link(material_data.details)]).node(),
             row_div = $(row).attr("id", "material-" + material_data.id);
         // Bind clickable attributes to their respective handlers
-        row_div.find(".material-with-link").on("click", function (e) {
+        row_div.find("[class$='-with-link']").on("click", function (e) {
             e.stopImmediatePropagation();
         });
         row_div.on("click", function () {
@@ -429,9 +439,12 @@ function HeliumMaterials() {
         let course_names = "", i = 0;
 
         for (i = 0; i < ids.length; i += 1) {
+            const course = self.courses[ids[i]];
             course_names +=
-                ("<span class=\"label label-sm\" style=\"background-color: " + self.courses[ids[i]].color
-                 + " !important\">" + self.courses[ids[i]].title + "</span> ");
+                ("<span class=\"label label-sm title-label\" style=\"background-color: " + course.color
+                 + " !important\">" + (course.website !== "" ? "<a target=\"_blank\" href=\"" + course.website
+                 + "\" class=\"planner-title-with-link\">" + course.title
+                 + " <i class=\"icon-external-link\"></i></a>" : course.title) + "</span> ");
         }
 
         return course_names;
@@ -533,7 +546,7 @@ $(document).ready(function () {
                         let course = course_tuple[1];
                         helium.materials.courses[course.id] = course;
                         $("#material-courses")
-                            .append("<option value=\"" + course.id + "\">" + course.title + "</option>");
+                            .append("<option value=\"" + course.id + "\">" + course.title + " <span class=\"color-dot inline\" style=\"background-color: " + course.color + "\"></span></option>");
                     });
 
                     if (data.length <= 0) {
@@ -543,6 +556,7 @@ $(document).ready(function () {
                     }
 
                     $("#material-courses").prop("disabled", data.length === 0).trigger("chosen:updated");
+                    $("#material-courses").trigger("change");
                 }
             }, helium.USER_PREFS.id));
 

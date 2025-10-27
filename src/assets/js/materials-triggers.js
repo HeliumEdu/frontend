@@ -31,6 +31,16 @@
         helium.materials.clear_material_group_errors();
     });
 
+    $("#material-courses").on("change", function () {
+        $.each($(this).next().find(".search-choice"), function () {
+            const index = $(this).find("a").attr("data-option-array-index");
+            const id = $($("#material-courses option")[index]).val();
+
+            $(this).attr("style", "background-color: " + helium.materials.courses[id].color);
+            $(this).find(".color-dot").remove();
+        });
+    });
+
     // MaterialGroup components
     $("#save-material-group").on("click", function () {
         helium.ajax_error_occurred = false;
