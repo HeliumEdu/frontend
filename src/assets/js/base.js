@@ -30,6 +30,9 @@ function Helium() {
         "Email"
     ];
 
+    this.QTIP_SHOW_INTERVAL = 250;
+    this.QTIP_HIDE_INTERVAL = 100;
+
     // Variables to establish the current request/page the user is accessing
     this.APP_URL = window.APP_URL;
     this.API_URL = window.API_URL;
