@@ -1013,7 +1013,7 @@ function HeliumClasses() {
                         "className": "btn-sm btn-danger",
                         "callback": function () {
                             $("#loading-courses").spin(helium.SMALL_LOADING_OPTS);
-                            self.ajax_calls.push(helium.planner_api.delete_course(function (data) {
+                            helium.ajax_calls.push(helium.planner_api.delete_course(function (data) {
                                 if (helium.data_has_err_msg(data)) {
                                     helium.ajax_error_occurred = true;
                                     $("#loading-courses").spin(false);
@@ -1376,7 +1376,7 @@ function HeliumClasses() {
                     "average_grade": -1
                 };
 
-                self.ajax_calls.push(helium.planner_api.add_course_group(function (data) {
+                helium.ajax_calls.push(helium.planner_api.add_course_group(function (data) {
                     if (helium.data_has_err_msg(data)) {
                         helium.ajax_error_occurred = true;
                         $("#loading-course-modal").spin(false);
@@ -1392,7 +1392,7 @@ function HeliumClasses() {
             }
 
             // If a course group was created, wait for that call to complete before proceeding
-            $.when.apply(this, self.ajax_calls).done(function () {
+            $.when.apply(this, helium.ajax_calls).done(function () {
                 if (!helium.ajax_error_occurred) {
                     let categories_data = [], id;
                     different_times = $("#course-schedule-has-different-times").is(":checked");

@@ -223,14 +223,14 @@ function HeliumCalendar() {
             }
         };
         if (event.calendar_item_type === 0) {
-            self.ajax_calls.push(helium.planner_api.get_event(callback, event.id));
+            helium.ajax_calls.push(helium.planner_api.get_event(callback, event.id));
         } else {
             const course = helium.calendar.courses[event.course];
 
-            self.ajax_calls.push(helium.planner_api.get_homework(callback, course.course_group, course.id, event.id));
+            helium.ajax_calls.push(helium.planner_api.get_homework(callback, course.course_group, course.id, event.id));
         }
 
-        $.when.apply(this, self.ajax_calls).done(function () {
+        $.when.apply(this, helium.ajax_calls).done(function () {
             if (!helium.ajax_error_occurred) {
                 const data = {
                     "start": self.start.toISOString(),
