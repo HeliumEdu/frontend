@@ -37,14 +37,21 @@ function HeliumGrades() {
 
     this.pie_hover = function (event, pos, item) {
         if (item) {
-            $("#plot-tooltip").html(item.series.label).css(
+            $(this).qtip(
                 {
-                    top: pos.pageY - 25,
-                    left: pos.pageX + 5,
-                    "z-index": 100
-                }).fadeIn("fast");
+                    content: item.series.label,
+                    position: {
+                        target: [pos.pageX, pos.pageY],
+                        adjust: {
+                            x: 5,
+                            y: 5
+                        },
+                    },
+                    show: true,
+                    style: {classes: "qtip-bootstrap hidden-print"}
+                });
         } else {
-            $("#plot-tooltip").hide();
+            $(this).qtip("hide", helium.QTIP_HIDE_INTERVAL);
         }
     };
 
@@ -227,15 +234,6 @@ $(document).ready(function () {
                                     course['grade_points'];
                             });
                         });
-
-                        $('<div id="plot-tooltip"></div>').css({
-                                                                   position: "absolute",
-                                                                   display: "none",
-                                                                   border: "1px solid #545454",
-                                                                   padding: "2px",
-                                                                   "background-color": "#fff",
-                                                                   opacity: 0.90
-                                                               }).appendTo("body");
 
                         // Build line graph for each course group
                         $("div[id^='course-group-container-']").each(function () {
@@ -436,24 +434,38 @@ $(document).ready(function () {
 
                                 course_group_chart_tag.bind("plothover", function (event, pos, item) {
                                     if (item) {
-                                        $(this).css('cursor', 'pointer');
-                                        const point_data = item.series.data[item.dataIndex];
-                                        const homework_grade = (Math.round(point_data[2].grade * 100) / 100) + "%";
-                                        const point_grade = (Math.round(point_data[1] * 100) / 100) + "%";
-                                        $("#plot-tooltip").html(point_data[2].title
-                                                                + " <span class=\"color-dot inline\" style=\"background-color: "
-                                                                + helium.grades.categories[point_data[2].category_id].color
-                                                                + "\"></span>"
-                                                                + " (" + homework_grade + ")<br>" + point_grade).css(
-                                            {
-                                                top: pos.pageY - 25,
-                                                left: pos.pageX + 5,
-                                                "z-index": 100
-                                            })
-                                            .fadeIn("fast");
+                                        if (!helium.grades.hovered_item ||
+                                            (item.seriesIndex !== helium.grades.hovered_item.seriesIndex
+                                             && item.dataIndex !== helium.grades.hovered_item.dataIndex)) {
+                                            helium.grades.hovered_item = item;
+
+                                            $(this).css('cursor', 'pointer');
+                                            const point_data = item.series.data[item.dataIndex];
+                                            const homework_grade = (Math.round(point_data[2].grade * 100) / 100) + "%";
+                                            const point_grade = (Math.round(point_data[1] * 100) / 100) + "%";
+
+                                            course_group_chart_tag.qtip(
+                                                {
+                                                    position: {
+                                                        target: [pos.pageX, pos.pageY],
+                                                        adjust: {
+                                                            x: 5,
+                                                            y: 5
+                                                        },
+                                                    },
+                                                    content: point_data[2].title
+                                                             + " <span class=\"color-dot inline\" style=\"background-color: "
+                                                             + helium.grades.categories[point_data[2].category_id].color
+                                                             + "\"></span>"
+                                                             + " (" + homework_grade + ")<br>" + point_grade,
+                                                    show: true,
+                                                    style: {classes: "qtip-bootstrap hidden-print"}
+                                                });
+                                        }
                                     } else {
                                         $(this).css('cursor', 'default');
-                                        $("#plot-tooltip").hide();
+                                        helium.grades.hovered_item = null;
+                                        course_group_chart_tag.qtip('hide', helium.QTIP_HIDE_INTERVAL);
                                     }
                                 });
                                 course_group_chart_tag.bind("plotclick", function (event, pos, item) {
