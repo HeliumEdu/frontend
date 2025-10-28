@@ -1770,16 +1770,19 @@ function HeliumPlannerAPI() {
 // Initialize HeliumPlannerAPI and give a reference to the Helium object
 helium.planner_api = new HeliumPlannerAPI();
 
-if (!window.REDIRECTING && localStorage.getItem("access_token") !== null) {
-    helium.planner_api.get_reminders(function (data) {
-        helium.process_reminders(data);
-    });
-
-    window.setInterval(function () {
-        $.when.apply(this, helium.ajax_calls).done(function () {
+$(document).ready(function () {
+    "use strict";
+    if (!window.REDIRECTING && localStorage.getItem("access_token") !== null) {
+        $.when.apply($, helium.ajax_calls).done(function () {
             helium.planner_api.get_reminders(function (data) {
                 helium.process_reminders(data);
             });
         });
-    }, 60000);
-}
+
+        window.setInterval(function () {
+            helium.planner_api.get_reminders(function (data) {
+                helium.process_reminders(data);
+            });
+        }, 60000);
+    }
+});

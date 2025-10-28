@@ -80,7 +80,7 @@
 
     $("#homework-completed").on("change", function () {
         // Ensure all AJAX calls are complete before proceeding
-        $.when.apply(this, helium.ajax_calls).done(function () {
+        $.when.apply($, helium.ajax_calls).done(function () {
             let selected;
             if ($("#homework-completed").is(":checked") && !$("#homework-event-switch").is(":checked")) {
                 $("#loading-homework-modal").spin(helium.SMALL_LOADING_OPTS);
@@ -292,7 +292,7 @@
                 }, true, true));
         }
 
-        $.when.apply(this, helium.ajax_calls).done(function () {
+        $.when.apply($, helium.ajax_calls).done(function () {
             helium.calendar.set_timing_fields();
 
             materials_callback = function (data) {
@@ -316,14 +316,14 @@
                             }, material.material_group, true, true));
                     });
 
-                    $.when.apply(this, helium.ajax_calls).done(function () {
+                    $.when.apply($, helium.ajax_calls).done(function () {
                         $("#homework-materials").val(helium.calendar.preferred_material_ids);
                         $("#homework-materials").prop("disabled", data.length === 0).trigger("chosen:updated");
                         $("#homework-materials").trigger("change");
                     });
                 }
             };
-            $.when.apply(this, helium.ajax_calls).done(function () {
+            $.when.apply($, helium.ajax_calls).done(function () {
                 materials_load =
                     helium.planner_api.get_materials_by_course_id(materials_callback, helium.calendar.current_class_id);
                 // If an AJAX call was requested, add it to the list of async calls to wait on
@@ -332,7 +332,7 @@
                 }
 
                 // Wait on any AJAX responses before proceeding
-                $.when.apply(this, helium.ajax_calls).done(function () {
+                $.when.apply($, helium.ajax_calls).done(function () {
                     if (!helium.ajax_error_occurred) {
                         helium.planner_api.get_categories_by_course_id(function (data) {
                             if (helium.data_has_err_msg(data)) {

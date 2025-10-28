@@ -615,7 +615,7 @@ $(document).ready(function () {
         $("#no-externalcalendars td").attr('colspan', '5');
     }
 
-    $.when.apply(this, helium.ajax_calls).done(function () {
+    $.when.apply($, helium.ajax_calls).done(function () {
         $("#loading-preferences").spin(false);
         $("#loading-personal").spin(false);
         $("#loading-account").spin(false);

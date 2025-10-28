@@ -61,15 +61,21 @@ nunjucks "*.html" config/nj_context.json -p src/templates --options config/nj_op
 printf "\nMoving files in to place for paths, including trailing slash ...\n"
 
 mkdir -p build/planner
+# Ensure /contact links to /support
+cp build/support.html build/contact.html
+# Ensure trailing slash happiness on planner pages
 mv build/planner_index.html build/planner/index.html
 mv build/planner_calendar.html build/planner/calendar.html
 mv build/planner_classes.html build/planner/classes.html
 mv build/planner_materials.html build/planner/materials.html
 mv build/planner_grades.html build/planner/grades.html
+# Have invalid root URLs bring the user in to the /planner
 cp build/planner/index.html build/calendar.html
 cp build/planner/index.html build/planner.html
+cp build/planner/index.html build/classes.html
+cp build/planner/index.html build/materials.html
+cp build/planner/index.html build/grades.html
 cp build/planner/index.html build/app.html
-cp build/support.html build/contact.html
 
 find "build" -type f -not -path "build/assets/*" -print0 | while IFS= read -r -d $'\0' file; do
     path="${file#build/}"

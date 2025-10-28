@@ -523,7 +523,7 @@ $(document).ready(function () {
                                          ]
                                      }).prev().addClass("wysiwyg-style3");
 
-    $.when.apply(this, helium.ajax_calls).done(function () {
+    $.when.apply($, helium.ajax_calls).done(function () {
         helium.ajax_calls.push(
             helium.planner_api.get_all_courses_by_user_id(function (data) {
                 if (helium.data_has_err_msg(data)) {
@@ -567,7 +567,7 @@ $(document).ready(function () {
                 });
             }));
 
-        $.when.apply(this, helium.ajax_calls).done(function () {
+        $.when.apply($, helium.ajax_calls).done(function () {
             if (!helium.ajax_error_occurred) {
                 $("#material-group-tabs li a[href^='#material-group-']").first().tab("show");
 
@@ -593,7 +593,7 @@ $(document).ready(function () {
             }
         });
 
-        $.when.apply(this, helium.ajax_calls).done(function () {
+        $.when.apply($, helium.ajax_calls).done(function () {
             if ($("#material-group-tabs a").length === 1) {
                 $("#no-materials-tab").addClass("active");
             }
