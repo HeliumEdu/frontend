@@ -308,16 +308,6 @@ function Helium() {
         });
     };
 
-    this.show_error = function (form_id, selector, error_msg) {
-        const status_tag = $("#status_" + selector);
-        if (status_tag.length > 0) {
-            $($("#id_" + selector).parent()).addClass("has-error");
-            status_tag.html(error_msg).removeClass("hidden");
-        } else {
-            $("#status_" + form_id).html(error_msg).addClass("alert-warning").removeClass("hidden");
-        }
-    };
-
     this.add_reminder_to_page = function (data) {
         let type = "system";
         let start = moment(data.start_of_range);
@@ -520,6 +510,13 @@ $(document).ready(function () {
                                 }
                             });
                     }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, function (data) {
+                        helium.ajax_error_occurred = true;
+
+                        bootbox.alert(helium.get_error_msg(data));
+                    });
                 }
             }));
     }
