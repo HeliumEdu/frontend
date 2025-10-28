@@ -476,7 +476,7 @@ function HeliumSettings() {
         } else {
             bootbox.dialog(
                 {
-                    message: "Disabling feeds permanently will break any external services currently linked to Helium with these URLs. If feeds are re-enabled later, new URLs will be generated. Are you sure you want to continue?",
+                    message: "Disabling feeds will permanently break any external services that are using these URLs to fetch data from Helium. This cannot be undone. If feeds are later re-enabled, new URLs will be generated. Are you sure you want to continue?",
                     onEscape: true,
                     buttons: {
                         "delete": {

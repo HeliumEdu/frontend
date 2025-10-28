@@ -350,7 +350,11 @@ $(document).ready(function () {
                                     }
 
                                     data_for_plot.push(
-                                        {label: "&nbsp;" + course.title, data: data, color: course.color});
+                                        {
+                                            label: "&nbsp;" + course.title,
+                                            data: data,
+                                            color: course.color
+                                        });
 
                                     // Build the course grading details div for this course
                                     category_table =
@@ -363,13 +367,18 @@ $(document).ready(function () {
                                     for (j = 0; j < helium.grades.categories_for_course[course.id].length; j += 1) {
                                         category = helium.grades.categories_for_course[course.id][j];
                                         chart_data_weight.push(
-                                            {label: category.title, data: category.weight, color: category.color});
+                                            {
+                                                label: category.title,
+                                                data: category.weight,
+                                                color: category.color
+                                            });
                                         if (parseFloat(category.grade_by_weight) !== 0) {
-                                            chart_data_grade_by_weight.push({
-                                                                                label: category.title,
-                                                                                data: category.grade_by_weight,
-                                                                                color: category.color
-                                                                            });
+                                            chart_data_grade_by_weight.push(
+                                                {
+                                                    label: category.title,
+                                                    data: category.grade_by_weight,
+                                                    color: category.color
+                                                });
                                         }
 
                                         category_table_body.append(
@@ -456,8 +465,8 @@ $(document).ready(function () {
                                                     content: point_data[2].title
                                                              + " <span class=\"color-dot inline\" style=\"background-color: "
                                                              + helium.grades.categories[point_data[2].category_id].color
-                                                             + "\"></span>"
-                                                             + " (" + homework_grade + ")<br>" + point_grade,
+                                                             + "\"></span> (" + homework_grade + ")<br/>Class Grade: "
+                                                             + point_grade,
                                                     show: true,
                                                     style: {classes: "qtip-bootstrap hidden-print"}
                                                 });
