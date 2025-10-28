@@ -1414,8 +1414,8 @@ function HeliumCalendar() {
             // Customize the calendar header
             $(".fc-toolbar .fc-right").prepend(
                 "<div class=\"fc-button-group\">"
-                + "<div class='btn-group' id=\"calendar-classes\"><button data-toggle=\"dropdown\" aria-label=\"Classes\" class=\"fc-button fc-state-default dropdown-toggle\"><span id=\"classes-button-title\"><i class=\"icon-book\"></i></span> <span class=\"icon-caret-down icon-on-right\"></span></button><ul id=\"calendar-classes-list\" class=\"dropdown-menu dropdown-menu-form pull-right\" role=\"menu\"><li id=\"filter-classes-clear\"><a class=\"cursor-hover\">Clear Filters</a></li><li class=\"divider\"></li></ul></div>"
-                + "<div class='btn-group' id=\"calendar-filters\"><button data-toggle=\"dropdown\" aria-label=\"Filters\" class=\"fc-button fc-state-default dropdown-toggle\"><span id=\"filter-button-title\"><i class=\"icon-filter\"></i></span> <span class=\"icon-caret-down icon-on-right\"></span></button><ul id=\"calendar-filter-list\" class=\"dropdown-menu dropdown-menu-form pull-right\" role=\"menu\"><li id=\"filter-clear\"><a class=\"cursor-hover\">Clear Filters</a></li></ul></div>"
+                + "<div class='btn-group' id=\"calendar-classes\"><button data-toggle=\"dropdown\" aria-label=\"Classes\" class=\"fc-button fc-state-default dropdown-toggle\"><span id=\"classes-button-title\"><i class=\"icon-book\"></i></span> <span class=\"icon-caret-down icon-on-right\"></span></button><ul id=\"calendar-classes-list\" class=\"dropdown-menu dropdown-menu-form dropdown-menu-right\" role=\"menu\"><li id=\"filter-classes-clear\"><a class=\"cursor-hover\">Clear Filters</a></li><li class=\"divider\"></li></ul></div>"
+                + "<div class='btn-group' id=\"calendar-filters\"><button data-toggle=\"dropdown\" aria-label=\"Filters\" class=\"fc-button fc-state-default dropdown-toggle\"><span id=\"filter-button-title\"><i class=\"icon-filter\"></i></span> <span class=\"icon-caret-down icon-on-right\"></span></button><ul id=\"calendar-filter-list\" class=\"dropdown-menu dropdown-menu-form dropdown-menu-right\" role=\"menu\"><li id=\"filter-clear\"><a class=\"cursor-hover\">Clear Filters</a></li></ul></div>"
                 + "</div>");
             $("#calendar-classes button, #calendar-filters button").hover(
                 function () {
@@ -1904,24 +1904,16 @@ function HeliumCalendar() {
             {
                 value: reminder.message,
                 success: function () {
-                    let id = $(this).attr("id").split("reminder-")[1].split("-message")[0],
-                        parent_id = $(this).parent().parent().attr("id");
-                    if (id.split("-").length === 2) {
-                        id = id.split("-")[1];
-                    }
+                    let parent_id = $(this).parent().parent().attr("id");
                     if (parent_id.indexOf("unsaved") === -1 && parent_id.indexOf("modified") === -1) {
                         $(this).parent().parent().attr("id", $(this).parent().parent().attr("id") + "-modified");
                     }
                 },
                 type: "textarea",
-                mode: "inline"
+                placement: "bottom"
             });
         $("#reminder-" + reminder.id + unsaved_string + "-type").on("change", function () {
-            let id = $(this).attr("id").split("reminder-")[1].split("-type")[0],
-                parent_id = $(this).parent().parent().attr("id");
-            if (id.split("-").length === 2) {
-                id = id.split("-")[1];
-            }
+            let parent_id = $(this).parent().parent().attr("id");
             if (parent_id.indexOf("unsaved") === -1 && parent_id.indexOf("modified") === -1) {
                 $(this).parent().parent().attr("id", $(this).parent().parent().attr("id") + "-modified");
             }
@@ -1930,18 +1922,15 @@ function HeliumCalendar() {
             {
                 value: reminder.offset,
                 success: function () {
-                    let id = $(this).attr("id").split("reminder-")[1].split("-offset")[0],
-                        parent_id = $(this).parent()
+                    let parent_id = $(this).parent()
                             .parent().attr("id");
-                    if (id.split("-").length === 2) {
-                        id = id.split("-")[1];
-                    }
                     if (parent_id.indexOf("unsaved") === -1 && parent_id.indexOf("modified") === -1) {
                         $(this).parent().parent().attr("id", $(this).parent().parent().attr("id") + "-modified");
                     }
                 },
                 type: "text",
-                tpl: '<input type="number" maxlength="5">',
+                tpl: '<input type="text" maxlength="5" style="max-width: 60px;">',
+                placement: "bottom",
                 validate: function (value) {
                     let response = "";
                     if (!/\S/.test(value)) {
@@ -1955,11 +1944,7 @@ function HeliumCalendar() {
                 }
             });
         $("#reminder-" + reminder.id + unsaved_string + "-offset-type").on("change", function () {
-            let id = $(this).attr("id").split("reminder-")[1].split("-offset-type")[0],
-                parent_id = $(this).parent().parent().attr("id");
-            if (id.split("-").length === 2) {
-                id = id.split("-")[1];
-            }
+            let parent_id = $(this).parent().parent().attr("id");
             if (parent_id.indexOf("unsaved") === -1 && parent_id.indexOf("modified") === -1) {
                 $(this).parent().parent().attr("id", $(this).parent().parent().attr("id") + "-modified");
             }
@@ -2609,8 +2594,11 @@ function HeliumCalendar() {
                 table_div.parent().find("#assignments-list-table_length").parent().parent()
                     .addClass("hidden-print");
                 table_div.parent().find("#assignments-list-table_length select").attr("style", "display: inline");
-                table_div.parent().find("#assignments-list-table_info").parent().parent()
-                    .addClass("hidden-print");
+                table_div.parent().find("#assignments-list-table_info").parent()
+                    .addClass("col-sm-6 col-xs-12").removeClass("col-xs-6")
+                    .parent().addClass("hidden-print");
+                table_div.parent().find("#assignments-list-table_info").parent().next()
+                    .addClass("col-sm-6 col-xs-12").removeClass("col-xs-6");
 
                 table_div.wrap('<div class="row"></div>');
 

@@ -62,13 +62,13 @@ function HeliumSettings() {
     self.create_externalcalendar = function (id, title, url, shown_on_calendar, color) {
         const row = $('<tr id="externalcalendar-' + id + '">');
         row.append($('<td>').append('<a class="cursor-hover external-title">' + title + '</a>'));
-        row.append($('<td class="hidden-480">').append('<a class="cursor-hover external-url">' + url + '</a>'));
+        row.append($('<td class="hidden-xs nowrap overflow-hidden">').append('<a class="cursor-hover external-url">' + url + '</a>'));
         row.append($('<td>').append(
             '<input type="checkbox" class="ace shown-on-calendar" ' + (shown_on_calendar ? 'checked="checked"' : '')
             + '/><span class="lbl" />'));
         row.append(
             $('<td>').append($('<select class="hide color-picker">' + $("#id_events_color_select").html() + '</select>')));
-        row.append($('<td>').append(
+        row.append($('<td class="hidden-xs">').append(
             '<div class="btn-group"><button type="button" aria-label="Delete External Calendar" class="btn btn-xs btn-danger delete-externalcalendar"><i class="icon-trash bigger-120"></i></button></div></td></tr>'));
 
         $("#externalcalendars-table-body").append(row);
@@ -80,11 +80,13 @@ function HeliumSettings() {
         row.find(".color-picker").simplecolorpicker("selectColor", color);
         row.find(".external-title").editable({
                                                  type: "text",
-                                                 tpl: '<input type="text" maxlength="255">'
+                                                 tpl: '<input type="text" maxlength="255">',
+                                                 placement: "bottom",
                                              });
         row.find(".external-url").editable({
                                                type: "text",
-                                               tpl: '<input type="text" maxlength="255">'
+                                               tpl: '<input type="text" maxlength="255">',
+                                               placement: "bottom",
                                            });
         row.find(".delete-externalcalendar").on("click", self.delete_externalcalendar);
 
@@ -594,8 +596,24 @@ function HeliumSettings() {
 // Initialize HeliumSettings and give a reference to the Helium object
 helium.settings = new HeliumSettings();
 
+$(window).resize(function () {
+    "use strict";
+
+    if ($(document).width() < 768) {
+        $("#no-externalcalendars td").attr('colspan', '3');
+    } else {
+        $("#no-externalcalendars td").attr('colspan', '5');
+    }
+});
+
 $(document).ready(function () {
     "use strict";
+
+    if ($(document).width() < 768) {
+        $("#no-externalcalendars td").attr('colspan', '3');
+    } else {
+        $("#no-externalcalendars td").attr('colspan', '5');
+    }
 
     $.when.apply(this, helium.ajax_calls).done(function () {
         $("#loading-preferences").spin(false);

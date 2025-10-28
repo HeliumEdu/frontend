@@ -12,11 +12,6 @@
     table-layout: fixed;
 }
 
-#externalcalendars-table td {
-    overflow: hidden;
-    white-space: nowrap;
-}
-
 .popover-content {
     margin-left: 15px;
     margin-right: 15px;
