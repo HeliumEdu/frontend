@@ -26,6 +26,8 @@ function HeliumClasses() {
         {value: "Midterm", color: "#9fe1e7", tokens: ["Midterm"]},
         {value: "Project", color: "#f83a22", tokens: ["Project"]},
         {value: "Quiz", color: "#b99aff", tokens: ["Quiz"]},
+        {value: "Reading", color: "#ffad46", tokens: ["Reading"]},
+        {value: "Report", color: "#9fc6e7", tokens: ["Report"]},
     ];
 
     this.course_group_table = {};
@@ -146,7 +148,7 @@ function HeliumClasses() {
         let total_weights_row;
 
         if (total_weights > 0) {
-            total_weights_row = $("<tr><td class=\"align-right\"></td><td></td><td></td><td></td></tr>");
+            total_weights_row = $("<tr><td id=\"course-total-weight-percent-row\" class=\"align-right\"></td><td></td><td></td><td></td></tr>");
             if ($("#categories-table-end-placeholder").next().length === 0) {
                 $("#categories-table-end-placeholder").after(total_weights_row);
             } else {
@@ -159,6 +161,15 @@ function HeliumClasses() {
         }
     };
 
+    this.refresh_class_weights_table = function () {
+        let total_weights =
+            self.get_total_weights(null, 0);
+        self.update_total_category_weights(total_weights);
+
+        if ($("#categories-table-body").children().length === 2) {
+            $("#no-categories").show();
+        }
+    };
     /**
      * Add the given categories data to the category table.
      *
@@ -193,11 +204,7 @@ function HeliumClasses() {
                                                                                     });
         $("#category-" + category.id + unsaved_string + "-color").simplecolorpicker("selectColor", category.color);
         $("#category-" + category.id + unsaved_string + "-color").on("change", function () {
-            let id = $(this).attr("id").split("category-")[1].split("-color")[0],
-                parent_id = $(this).parent().parent().attr("id");
-            if (id.split("-").length === 2) {
-                id = id.split("-")[1];
-            }
+            let parent_id = $(this).parent().parent().attr("id");
             if (parent_id.indexOf("unsaved") === -1 && parent_id.indexOf("modified") === -1) {
                 $(this).parent().parent().attr("id", $(this).parent().parent().attr("id") + "-modified");
             }
@@ -212,12 +219,8 @@ function HeliumClasses() {
                     local: self.CATEGORY_SUGGESTIONS
                 },
                 success: function (response, newValue) {
-                    let id = $(this).attr("id").split("category-")[1].split("-type")[0],
-                        parent_id = $(this).parent()
+                    let parent_id = $(this).parent()
                             .parent().attr("id");
-                    if (id.split("-").length === 2) {
-                        id = id.split("-")[1];
-                    }
                     if (parent_id.indexOf("unsaved") === -1 && parent_id.indexOf(
                         "modified") === -1) {
                         $(this).parent().parent().attr("id", $(this).parent().parent().attr("id") + "-modified");
@@ -234,6 +237,7 @@ function HeliumClasses() {
                 },
                 type: "text",
                 tpl: '<input type="text" maxlength="255">',
+                placement: "bottom",
                 validate: function (value) {
                     let response = "";
                     if (!/\S/.test(value)) {
@@ -260,20 +264,16 @@ function HeliumClasses() {
                     $(this).html(response);
                 },
                 success: function () {
-                    let id = $(this).attr("id").split("category-")[1].split("-weight")[0],
-                        parent_id = $(this).parent().parent().attr("id");
-                    if (id.split("-").length === 2) {
-                        id = id.split("-")[1];
-                    }
+                    let parent_id = $(this).parent().parent().attr("id");
                     if (parent_id.indexOf("unsaved") === -1 && parent_id.indexOf("modified") === -1) {
                         $(this).parent().parent().attr("id", $(this).parent().parent().attr("id") + "-modified");
                     }
                 },
                 type: "text",
-                tpl: '<input type="text" maxlength="10">',
+                tpl: '<input type="text" maxlength="10" style="max-width: 80px;">',
+                placement: "bottom",
                 validate: function (value) {
-                    let response = "", total_weights,
-                        total_weights_row;
+                    let response = "", total_weights;
                     // If the value is empty or set to
                     // N/A, the weight is given a value
                     // of 0
@@ -314,9 +314,8 @@ function HeliumClasses() {
             $("#delete-category-" + category.id + unsaved_string).on("click", function () {
                 $("#category-" + category.id + unsaved_string).hide("fast", function () {
                     $(this).remove();
-                    if ($("#categories-table-body").children().length === 2) {
-                        $("#no-categories").show();
-                    }
+
+                    helium.classes.refresh_class_weights_table();
                 });
             });
         } else {
@@ -335,14 +334,13 @@ function HeliumClasses() {
                                         "callback": function () {
                                             helium.classes.categories_to_delete.push(category.id);
 
-                                            if ($("#categories-table-body").children().length === 2) {
+                                            if ($("#categories-table-body").children().not("#course-total-weight-percent-row").length === 2) {
                                                 $("#no-categories").show();
                                             }
                                             $("#category-" + category.id).hide("fast", function () {
                                                 $(this).remove();
-                                                if ($("#categories-table-body").children().length === 2) {
-                                                    $("#no-categories").show();
-                                                }
+
+                                                helium.classes.refresh_class_weights_table();
                                             });
                                         }
                                     },
@@ -365,14 +363,13 @@ function HeliumClasses() {
                     }
 
                     $(this).remove();
-                    if ($("#categories-table-body").children().length === 2) {
-                        $("#no-categories").show();
-                    }
+
+                    helium.classes.refresh_class_weights_table();
+
                     $("#category-" + category.id).hide("fast", function () {
                         $(this).remove();
-                        if ($("#categories-table-body").children().length === 2) {
-                            $("#no-categories").show();
-                        }
+
+                        helium.classes.refresh_class_weights_table();
                     });
                 }
             });
