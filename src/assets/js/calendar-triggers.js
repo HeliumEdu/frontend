@@ -153,8 +153,11 @@
         // Chosen's default behavior is to pull out just the text, so pull out the entire HTML
         $(this).next().find(".chosen-single span").html($(this).find("option:selected").html());
 
-        helium.calendar.preferred_category_name =
-            helium.calendar.categories[$(this).val()].title;
+        const category_id = $(this).val();
+        if (category_id) {
+            helium.calendar.preferred_category_name =
+                helium.calendar.categories[category_id].title
+        }
     });
 
     $("#homework-materials").on("change", function () {
