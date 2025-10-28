@@ -45,8 +45,6 @@ function Helium() {
     // This object gets initialized in the base template
     this.USER_PREFS = {};
 
-    this.INFO = {};
-
     // Date/Time formats used between the client and server
     this.HE_DATE_STRING_SERVER = "YYYY-MM-DD";
     this.HE_TIME_STRING_SERVER = "HH:mm:ss";
@@ -120,6 +118,7 @@ function Helium() {
                                               url: helium.API_URL + "/auth/token/refresh/",
                                               data: JSON.stringify({refresh: refresh_token}),
                                               dataType: "json",
+                                              async: false,
                                               success: function (data) {
                                                   localStorage.setItem("access_token", data.access);
                                                   localStorage.setItem("refresh_token", data.refresh);
@@ -481,56 +480,47 @@ $(document).ajaxError(function (event, jqXHR, textStatus, errorThrown) {
         jqXHR.url.startsWith(helium.API_URL) &&
         jqXHR.url !== helium.API_URL + "/info" &&
         !jqXHR.url.startsWith(helium.API_URL + "/auth/token") &&
-        // TODO: this isn't ideal, but will work for now, while reminders are effectively the heartbeat for hacky
-        //  token refresh
+        // TODO: this isn't ideal, but will work for now, since the reminder check also effectively acts as a
+        //  heartbeat for token refresh token refresh
         !jqXHR.url.startsWith(helium.API_URL + "/planner/reminders")) {
         helium.clear_access_token_reprompt_login();
     }
 });
 
-helium.check_token_exp();
-
-helium.ajax_calls.push($.ajax({
-                                  type: "GET",
-                                  url: helium.API_URL + "/info/",
-                                  dataType: "json",
-                                  success: function (data) {
-                                      $.extend(helium.INFO, data);
-                                  }
-                              }));
-
-if (!window.REDIRECTING && localStorage.getItem("access_token") !== null) {
-    helium.ajax_calls.push($.ajax(
-        {
-            type: "GET",
-            url: helium.API_URL + "/auth/user/",
-            dataType: "json",
-            success: function (data) {
-                $.extend(helium.USER_PREFS, data);
-
-                localStorage.setItem("refresh_token_lock", "false");
-
-                if (helium.USER_PREFS.profile !== null
-                    && helium.USER_PREFS.profile.phone
-                    !== null) {
-                    helium.REMINDER_TYPE_CHOICES.push("Text");
-                }
-
-                if (typeof Rollbar !== "undefined") {
-                    Rollbar.configure({
-                                          payload: {
-                                              person: {
-                                                  id: helium.USER_PREFS.id
-                                              }
-                                          }
-                                      });
-                }
-            }
-        }));
-}
-
 $(document).ready(function () {
     "use strict";
+
+    helium.check_token_exp();
+
+    if (!window.REDIRECTING && localStorage.getItem("access_token") !== null) {
+        helium.ajax_calls.push($.ajax(
+            {
+                type: "GET",
+                url: helium.API_URL + "/auth/user/",
+                dataType: "json",
+                success: function (data) {
+                    $.extend(helium.USER_PREFS, data);
+
+                    localStorage.setItem("refresh_token_lock", "false");
+
+                    if (helium.USER_PREFS.profile !== null
+                        && helium.USER_PREFS.profile.phone
+                        !== null) {
+                        helium.REMINDER_TYPE_CHOICES.push("Text");
+                    }
+
+                    if (typeof Rollbar !== "undefined") {
+                        Rollbar.configure({
+                                              payload: {
+                                                  person: {
+                                                      id: helium.USER_PREFS.id
+                                                  }
+                                              }
+                                          });
+                    }
+                }
+            }));
+    }
 
     $(".open-website button").on("click", function () {
         window.open($("#" + $(this).attr("for")).val());

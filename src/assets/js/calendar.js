@@ -228,7 +228,7 @@ function HeliumCalendar() {
             helium.ajax_calls.push(helium.planner_api.get_homework(callback, course.course_group, course.id, event.id));
         }
 
-        $.when.apply(this, helium.ajax_calls).done(function () {
+        $.when.apply($, helium.ajax_calls).done(function () {
             if (!helium.ajax_error_occurred) {
                 const data = {
                     "start": self.start.toISOString(),
@@ -463,7 +463,7 @@ function HeliumCalendar() {
     };
 
     this.has_schedule = function (schedule) {
-        return schedule.days_of_week != '0000000' || !self.same_time(schedule);
+        return schedule.days_of_week !== '0000000' || !self.same_time(schedule);
     };
 
     /**
@@ -921,7 +921,7 @@ function HeliumCalendar() {
             });
         }
 
-        $.when.apply(this, helium.ajax_calls).done(function () {
+        $.when.apply($, helium.ajax_calls).done(function () {
             callback(events);
         }).fail(function () {
             self.loading_div.spin(false);
@@ -974,7 +974,7 @@ function HeliumCalendar() {
             }, true, true, start.toISOString(), end.toISOString(), localStorage.getItem("filter_search_string")));
         }
 
-        $.when.apply(this, helium.ajax_calls).done(function () {
+        $.when.apply($, helium.ajax_calls).done(function () {
             callback(events);
         }).fail(function () {
             self.loading_div.spin(false);
@@ -1044,7 +1044,7 @@ function HeliumCalendar() {
             });
         }
 
-        $.when.apply(this, helium.ajax_calls).done(function () {
+        $.when.apply($, helium.ajax_calls).done(function () {
             callback(events);
         }).fail(function () {
             self.loading_div.spin(false);
@@ -1104,7 +1104,7 @@ function HeliumCalendar() {
                     localStorage.getItem("filter_search_string")));
         }
 
-        $.when.apply(this, helium.ajax_calls).done(function () {
+        $.when.apply($, helium.ajax_calls).done(function () {
             callback(events);
         }).fail(function () {
             self.loading_div.spin(false);
@@ -1166,7 +1166,7 @@ function HeliumCalendar() {
             user_view_pref = 3;
         }
 
-        $.when.apply(this, helium.ajax_calls).done(function () {
+        $.when.apply($, helium.ajax_calls).done(function () {
             self.reset_filters();
 
             $("#calendar").fullCalendar(
@@ -2182,7 +2182,7 @@ function HeliumCalendar() {
                     }
                 };
 
-                $.when.apply(this, helium.ajax_calls).done(function () {
+                $.when.apply($, helium.ajax_calls).done(function () {
                     helium.calendar.reminders_to_delete = [];
                     helium.calendar.attachments_to_delete = [];
 
@@ -2285,7 +2285,7 @@ function HeliumCalendar() {
                     }
                 };
 
-                $.when.apply(this, helium.ajax_calls).done(function () {
+                $.when.apply($, helium.ajax_calls).done(function () {
                     helium.calendar.reminders_to_delete = [];
                     helium.calendar.attachments_to_delete = [];
 
@@ -2661,12 +2661,6 @@ $(window).resize(function () {
     }
 });
 
-$("#homework-modal").scroll(function () {
-    "use strict";
-
-    $('.date-picker').datepicker('place');
-});
-
 $(document).ready(function () {
     "use strict";
 
@@ -2696,8 +2690,14 @@ $(document).ready(function () {
                             locale: 'en'
                         });
 
-    $.when.apply(this, helium.ajax_calls).done(function () {
+    $.when.apply($, helium.ajax_calls).done(function () {
         moment.tz.setDefault(helium.USER_PREFS.settings.time_zone);
+
+        $("#homework-modal").scroll(function () {
+            "use strict";
+
+            $('.date-picker').datepicker('place');
+        });
 
         $("#homework-grade-percent span")
             .attr("style", "background-color: " + helium.USER_PREFS.settings.grade_color + " !important");
@@ -2858,7 +2858,7 @@ $(document).ready(function () {
             }, true, true, true));
         }
 
-        $.when.apply(this, helium.ajax_calls).done(function () {
+        $.when.apply($, helium.ajax_calls).done(function () {
             if (!helium.ajax_error_occurred) {
                 helium.ajax_calls.push(helium.planner_api.get_courses(function (data) {
                     if (helium.data_has_err_msg(data)) {
@@ -2893,11 +2893,11 @@ $(document).ready(function () {
                 }, true, true));
             }
 
-            $.when.apply(this, helium.ajax_calls).done(function () {
+            $.when.apply($, helium.ajax_calls).done(function () {
                 if (!helium.ajax_error_occurred) {
                     helium.calendar.initialize_calendar();
 
-                    $.when.apply(this, helium.ajax_calls).done(function () {
+                    $.when.apply($, helium.ajax_calls).done(function () {
                         $(".materials-help").on("click", function () {
                             window.location = "/planner/materials";
                         });

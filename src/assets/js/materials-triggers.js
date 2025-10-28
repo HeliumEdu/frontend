@@ -164,7 +164,7 @@
             }
 
             // If a course group was created, wait for that call to complete before proceeding
-            $.when.apply(this, helium.ajax_calls).done(function () {
+            $.when.apply($, helium.ajax_calls).done(function () {
                 if (!helium.ajax_error_occurred) {
                     data = {
                         "title": material_title,
@@ -221,7 +221,7 @@
                                 $("#material-error").parent().show("fast");
                             } else {
                                 // Do not close the modal dialog until database saving is complete
-                                $.when.apply(this, helium.ajax_calls).done(function () {
+                                $.when.apply($, helium.ajax_calls).done(function () {
                                     helium.materials.add_material_to_group(data,
                                                                            helium.materials.material_group_table[data.material_group]);
                                     helium.materials.material_group_table[data.material_group].draw();

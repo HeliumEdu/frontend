@@ -983,7 +983,7 @@ function HeliumClasses() {
                             }
                         }, self.edit_id));
 
-                    $.when.apply(this, helium.ajax_calls).done(function () {
+                    $.when.apply($, helium.ajax_calls).done(function () {
                         self.update_total_category_weights(total_weights);
 
                         $("#loading-course-modal").spin(false);
@@ -1397,7 +1397,7 @@ function HeliumClasses() {
             }
 
             // If a course group was created, wait for that call to complete before proceeding
-            $.when.apply(this, helium.ajax_calls).done(function () {
+            $.when.apply($, helium.ajax_calls).done(function () {
                 if (!helium.ajax_error_occurred) {
                     let categories_data = [], id;
                     different_times = $("#course-schedule-has-different-times").is(":checked");
@@ -1554,7 +1554,7 @@ function HeliumClasses() {
                                     });
                                 }
 
-                                $.when.apply(this, helium.ajax_calls).done(function () {
+                                $.when.apply($, helium.ajax_calls).done(function () {
                                     if (!helium.ajax_error_occurred) {
                                         helium.classes.categories_to_delete = [];
                                         helium.classes.attachments_to_delete = [];
@@ -1665,7 +1665,7 @@ function HeliumClasses() {
                                         data.schedules = [course_schedule];
                                     }, data.course_group, data.id, course_schedule_data));
 
-                                $.when.apply(this, helium.ajax_calls).done(function () {
+                                $.when.apply($, helium.ajax_calls).done(function () {
                                     $.each(categories_data, function (i, category_data) {
                                         helium.ajax_calls.push(
                                             helium.planner_api.add_category(function () {
@@ -1715,7 +1715,7 @@ function HeliumClasses() {
                                         });
                                     }
 
-                                    $.when.apply(this, helium.ajax_calls).done(function () {
+                                    $.when.apply($, helium.ajax_calls).done(function () {
                                         if (!helium.ajax_error_occurred) {
                                             helium.classes.categories_to_delete = [];
                                             helium.classes.attachments_to_delete = [];
@@ -1810,7 +1810,7 @@ $(document).ready(function () {
                             locale: 'en'
                         });
 
-    $.when.apply(this, helium.ajax_calls).done(function () {
+    $.when.apply($, helium.ajax_calls).done(function () {
         helium.classes.initialize_datetime();
 
         $(".spinner").spinner({
@@ -1847,7 +1847,7 @@ $(document).ready(function () {
                 }
             }));
 
-        $.when.apply(this, helium.ajax_calls).done(function () {
+        $.when.apply($, helium.ajax_calls).done(function () {
             if (!helium.ajax_error_occurred) {
                 $("#course-group-title").attr('placeholder', 'Fall Semester ' + moment().year());
 
@@ -1874,7 +1874,7 @@ $(document).ready(function () {
                         }, id));
                 });
 
-                $.when.apply(this, helium.ajax_calls).done(function () {
+                $.when.apply($, helium.ajax_calls).done(function () {
                     if (!helium.ajax_error_occurred) {
                         /*******************************************
                          * Check storage for triggers passed in

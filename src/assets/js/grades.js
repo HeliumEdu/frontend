@@ -158,7 +158,7 @@ $(document).ready(function () {
     /*******************************************
      * Other page initialization
      ******************************************/
-    $.when.apply(this, helium.ajax_calls).done(function () {
+    $.when.apply($, helium.ajax_calls).done(function () {
         helium.ajax_calls.push(
             helium.planner_api.get_course_groups(function (data) {
                 if (helium.data_has_err_msg(data)) {
@@ -173,7 +173,7 @@ $(document).ready(function () {
                 }
             }));
 
-        $.when.apply(this, helium.ajax_calls).done(function () {
+        $.when.apply($, helium.ajax_calls).done(function () {
             if (!helium.ajax_error_occurred) {
                 $($("#course-group-tabs li a").first()).tab("show");
 
