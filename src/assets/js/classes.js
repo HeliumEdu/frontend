@@ -1501,11 +1501,24 @@ function HeliumClasses() {
                                                                              helium.HE_TIME_STRING_CLIENT)
                                         .format(helium.HE_TIME_STRING_SERVER) : sun_end_time
                                 };
-                                helium.ajax_calls.push(
-                                    helium.planner_api.edit_courseschedule(function (course_schedule) {
-                                                                               data.schedules = [course_schedule];
-                                                                           }, self.course_group_id, self.edit_id, data.schedules[0].id, course_schedule_data,
-                                                                           false));
+                                // TODO: this is the result of an odd edge case that we shouldn't even be able to get in to, where
+                                //  a class doesn't have an associated class schedule—there should be a backend fix for this first,
+                                //  where class schedules are changed to a one-to-one required relationship with a class, and then
+                                //  this edge case can be removed
+                                if (data.schedules.length === 0) {
+                                    helium.ajax_calls.push(
+                                        helium.planner_api.add_courseschedule(function (course_schedule) {
+                                                                                   data.schedules = [course_schedule];
+                                                                               }, self.course_group_id, self.edit_id, course_schedule_data,
+                                                                               false));
+                                } else {
+                                    helium.ajax_calls.push(
+                                        helium.planner_api.edit_courseschedule(function (course_schedule) {
+                                                                                   data.schedules = [course_schedule];
+                                                                               }, self.course_group_id, self.edit_id, data.schedules[0].id,
+                                                                               course_schedule_data,
+                                                                               false));
+                                }
 
                                 $.each(categories_data, function (i, category_data) {
                                     helium.ajax_calls.push(helium.planner_api.add_category(function () {
@@ -1657,7 +1670,7 @@ function HeliumClasses() {
                                     "sat_end_time": different_times ? moment($("#course-sat-end-time").val(),
                                                                              helium.HE_TIME_STRING_CLIENT)
                                         .format(helium.HE_TIME_STRING_SERVER) : sun_end_time,
-                                    "course": self.edit_id
+                                    "course": data.id
                                 };
 
                                 helium.ajax_calls.push(

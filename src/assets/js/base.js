@@ -498,6 +498,7 @@ $(document).ready(function () {
                 type: "GET",
                 url: helium.API_URL + "/auth/user/",
                 dataType: "json",
+                async: false,
                 success: function (data) {
                     $.extend(helium.USER_PREFS, data);
 
@@ -510,13 +511,14 @@ $(document).ready(function () {
                     }
 
                     if (typeof Rollbar !== "undefined") {
-                        Rollbar.configure({
-                                              payload: {
-                                                  person: {
-                                                      id: helium.USER_PREFS.id
-                                                  }
-                                              }
-                                          });
+                        Rollbar.configure(
+                            {
+                                payload: {
+                                    person: {
+                                        id: helium.USER_PREFS.id
+                                    }
+                                }
+                            });
                     }
                 }
             }));
