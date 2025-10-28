@@ -25,7 +25,7 @@ if (window.APP_URL === "http://localhost:3000/" || window.APP_URL === "http://12
     window.SUPPORT_URL = location.protocol + "//" + "support." + location.host;
 }
 
-document.GENERIC_ERROR_MESSAGE = "Oops, an unknown error has occurred. If the issue persists, <a href=\"" + window.SUPPORT_URL + "\">contact support</a>.";
+document.GENERIC_ERROR_MESSAGE = "Oops, an unknown error has occurred. Reload the page, or try again later. If the issue persists, <a href=\"" + window.SUPPORT_URL + "\">contact support</a>.";
 
 document.LARGE_LOADING_OPTS = {
     lines: 13,

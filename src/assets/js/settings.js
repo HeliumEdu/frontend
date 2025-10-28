@@ -40,12 +40,32 @@ function HeliumSettings() {
                                                                    externalcalendar.shown_on_calendar,
                                                                    externalcalendar.color);
                        });
+
+                       $("#loading-preferences").spin(false);
+                   },
+                   error: function (xhr) {
+                       self.show_error("preferences", xhr);
                    }
                });
 
         if ($("#externalcalendars-table-body").children().length === 1) {
             $("#no-externalcalendars").show();
         }
+    };
+
+    self.show_error = function (tab, xhr) {
+        helium.ajax_error_occurred = true;
+
+        $("#loading-" + tab).spin(false);
+
+        let msg;
+        if (xhr.hasOwnProperty("responseJSON")) {
+            msg = Object.values(xhr.responseJSON).join("<li></li>");
+        } else {
+            msg = document.GENERIC_ERROR_MESSAGE;
+        }
+
+        $("#status_" + tab).html(msg).addClass("alert-danger").removeClass("hidden");
     };
 
     self.email_pending = function (email_changing) {
@@ -62,12 +82,14 @@ function HeliumSettings() {
     self.create_externalcalendar = function (id, title, url, shown_on_calendar, color) {
         const row = $('<tr id="externalcalendar-' + id + '">');
         row.append($('<td>').append('<a class="cursor-hover external-title">' + title + '</a>'));
-        row.append($('<td class="hidden-xs nowrap overflow-hidden">').append('<a class="cursor-hover external-url">' + url + '</a>'));
+        row.append($('<td class="hidden-xs nowrap overflow-hidden">')
+                       .append('<a class="cursor-hover external-url">' + url + '</a>'));
         row.append($('<td>').append(
             '<input type="checkbox" class="ace shown-on-calendar" ' + (shown_on_calendar ? 'checked="checked"' : '')
             + '/><span class="lbl" />'));
         row.append(
-            $('<td>').append($('<select class="hide color-picker">' + $("#id_events_color_select").html() + '</select>')));
+            $('<td>')
+                .append($('<select class="hide color-picker">' + $("#id_events_color_select").html() + '</select>')));
         row.append($('<td class="hidden-xs">').append(
             '<div class="btn-group"><button type="button" aria-label="Delete External Calendar" class="btn btn-xs btn-danger delete-externalcalendar"><i class="icon-trash bigger-120"></i></button></div></td></tr>'));
 
@@ -116,6 +138,10 @@ function HeliumSettings() {
         let dom_id, id;
 
         $.each(form.find("tr[id^='externalcalendar-']"), function () {
+            if (helium.ajax_error_occurred) {
+                return false;
+            }
+
             dom_id = $(this).attr("id");
             id = dom_id.split("-");
             id = id[id.length - 1];
@@ -133,9 +159,7 @@ function HeliumSettings() {
                            type: 'POST',
                            url: helium.API_URL + '/feed/externalcalendars/',
                            error: function (xhr) {
-                               $("#status_preferences").html(
-                                   'Oops, an error occurred while saving changes to external calendars. Was the URL valid?')
-                                   .addClass("alert-warning").removeClass("hidden");
+                               self.show_error("preferences", xhr);
                            }
                        });
             } else {
@@ -146,9 +170,7 @@ function HeliumSettings() {
                            type: 'PUT',
                            url: helium.API_URL + '/feed/externalcalendars/' + id + '/',
                            error: function (xhr) {
-                               $("#status_preferences").html(
-                                   'Oops, an error occurred while saving changes to external calendars. Was the URL valid?')
-                                   .addClass("alert-warning").removeClass("hidden");
+                               self.show_error("preferences", xhr);
                            }
                        });
             }
@@ -187,12 +209,9 @@ function HeliumSettings() {
                    type: 'POST',
                    url: helium.API_URL + '/importexport/import/',
                    error: function (xhr) {
-                       $("#status_importexport").html(JSON.stringify(xhr.responseJSON)).addClass("alert-danger")
-                           .removeClass("hidden");
-
                        $("#import-button").prop("disabled", false);
 
-                       $("#loading-importexport").spin(false);
+                       self.show_error("importexport", xhr);
                    },
                    success: function () {
                        $("#import-button").prop("disabled", false);
@@ -201,7 +220,7 @@ function HeliumSettings() {
 
                        localStorage.removeItem("filter_courses");
 
-                       $("#status_importexport").html("Import successful.").addClass("alert-success")
+                       $("#status_importexport").html("Import successful.").addClass("alert-success alert-danger")
                            .removeClass("hidden");
 
                        $("#loading-importexport").spin(false);
@@ -217,6 +236,7 @@ function HeliumSettings() {
         $("#loading-preferences").spin(helium.SMALL_LOADING_OPTS);
 
         helium.clear_form_errors($(this).attr("id"));
+        helium.ajax_error_occurred = false;
 
         $.ajax().always(function () {
             const form = $("#preferences-form"), data = form.serializeArray();
@@ -235,18 +255,27 @@ function HeliumSettings() {
             self.save_externalcalendars(form);
 
             $.each(self.to_delete, function (index, id) {
+                if (helium.ajax_error_occurred) {
+                    return false;
+                }
+
                 $.ajax({
                            async: false,
                            type: 'DELETE',
                            url: helium.API_URL + '/feed/externalcalendars/' + id + '/',
                            error: function (xhr) {
-                               // TODO: show errors
+                               self.show_error("preferences", xhr);
                            }
                        });
             });
+
             self.to_delete = [];
 
             self.populate_externalcalendars();
+
+            if (helium.ajax_error_occurred) {
+                return false;
+            }
 
             $.ajax({
                        async: false,
@@ -256,21 +285,13 @@ function HeliumSettings() {
                        type: 'PUT',
                        url: helium.API_URL + '/auth/user/settings/',
                        error: function (xhr) {
-                           if (xhr.hasOwnProperty("responseJSON")) {
-                               $.each(xhr.responseJSON, function (key, value) {
-                                   helium.show_error("preferences", key, value);
-                               });
-                           } else {
-                               helium.show_error("", "preferences", document.GENERIC_ERROR_MESSAGE);
-                           }
-
-                           $("#loading-preferences").spin(false);
+                           self.show_error("preferences", xhr);
                        },
                        success: function (data) {
                            helium.clear_form_errors("preferences-form");
 
                            $("#status_preferences").html("Changes saved.").addClass("alert-success")
-                               .removeClass("hidden");
+                               .removeClass("hidden alert-danger");
 
                            $.extend(helium.USER_PREFS.settings, data);
                            if (!helium.USER_PREFS.settings.remember_filter_state) {
@@ -303,15 +324,7 @@ function HeliumSettings() {
                        type: 'PUT',
                        url: helium.API_URL + '/auth/user/profile/',
                        error: function (xhr) {
-                           if (xhr.hasOwnProperty("responseJSON")) {
-                               $.each(xhr.responseJSON, function (key, value) {
-                                   helium.show_error("personal", key, value);
-                               });
-                           } else {
-                               helium.show_error("personal", "", document.GENERIC_ERROR_MESSAGE);
-                           }
-
-                           $("#loading-personal").spin(false);
+                           self.show_error("personal", xhr);
                        },
                        success: function (data) {
                            if (data.phone_changing) {
@@ -330,7 +343,7 @@ function HeliumSettings() {
 
                            helium.clear_form_errors("personal-form");
 
-                           $("#status_personal").html("Changes saved.").addClass("alert-success").removeClass("hidden");
+                           $("#status_personal").html("Changes saved.").addClass("alert-success").removeClass("hidden alert-danger");
 
                            $("#loading-personal").spin(false);
                        }
@@ -351,22 +364,22 @@ function HeliumSettings() {
             // If one is present, all three must be present
             let has_error = false;
             if ($("#id_old_password").val() === '') {
-                helium.show_error("account", "old_password", "This field is required.");
+                self.show_error("account", "old_password", "This field is required.");
 
                 has_error = true;
             }
             if ($("#id_password").val() === '') {
-                helium.show_error("account", "password", "This field is required.");
+                self.show_error("account", "password", "This field is required.");
 
                 has_error = true;
             }
             if ($("#id_password2").val() === '') {
-                helium.show_error("account", "password2", "This field is required.");
+                self.show_error("account", "password2", "This field is required.");
 
                 has_error = true;
             }
             if (!has_error && $("#id_password").val() !== $("#id_password2").val()) {
-                helium.show_error("account", "password2", "You must enter matching passwords.");
+                self.show_error("account", "password2", "You must enter matching passwords.");
 
                 has_error = true;
             }
@@ -382,7 +395,7 @@ function HeliumSettings() {
             const form = $("#account-form"), data = form.serializeArray();
 
             for (let i = data.length - 1; i >= 0; --i) {
-                if (data[i].name.indexOf('password') !== -1 && data[i].value == '') {
+                if (data[i].name.indexOf('password') !== -1 && data[i].value === '') {
                     data.splice(i);
                 }
             }
@@ -395,15 +408,7 @@ function HeliumSettings() {
                        type: 'PUT',
                        url: helium.API_URL + '/auth/user/',
                        error: function (xhr) {
-                           if (xhr.hasOwnProperty("responseJSON")) {
-                               $.each(xhr.responseJSON, function (key, value) {
-                                   helium.show_error("account", key, value);
-                               });
-                           } else {
-                               helium.show_error("account", "", document.GENERIC_ERROR_MESSAGE);
-                           }
-
-                           $("#loading-account").spin(false);
+                           self.show_error("account", xhr);
                        },
                        success: function (data) {
                            if (data.email_changing) {
@@ -416,7 +421,7 @@ function HeliumSettings() {
                            $("#id_password").val("");
                            $("#id_password2").val("");
 
-                           $("#status_account").html("Changes saved.").addClass("alert-success").removeClass("hidden");
+                           $("#status_account").html("Changes saved.").addClass("alert-success").removeClass("hidden alert-danger");
 
                            $("#loading-account").spin(false);
                        }
@@ -443,7 +448,8 @@ function HeliumSettings() {
                 + "/homework.ics</a>" +
                 "<br /><strong>Class Schedule: </strong><a href=\"" + base_url + "/courseschedules.ics\">" + base_url
                 + "/courseschedules.ics</a>"
-                + "<br /><strong>Events: </strong><a href=\"" + base_url + "/events.ics\">" + base_url + "/events.ics</a>");
+                + "<br /><strong>Events: </strong><a href=\"" + base_url + "/events.ics\">" + base_url
+                + "/events.ics</a>");
         }
     };
 
@@ -455,12 +461,8 @@ function HeliumSettings() {
                        async: false,
                        type: 'PUT',
                        url: helium.API_URL + '/feed/private/enable/',
-                       error: function () {
-                           $("#status_feed").html(
-                               'Sorry, an unknown error occurred while trying to enable feeds. Please <a href="/contact">contact support</a>')
-                               .addClass("alert-warning").removeClass("hidden");
-
-                           $("#loading-feed").spin(false);
+                       error: function (xhr) {
+                           self.show_error("feed", xhr);
                        },
                        success: function (data) {
                            helium.USER_PREFS.settings.private_slug =
@@ -487,12 +489,8 @@ function HeliumSettings() {
                                            async: false,
                                            type: 'PUT',
                                            url: helium.API_URL + '/feed/private/disable/',
-                                           error: function () {
-                                               $("#status_feed").html(
-                                                   'Sorry, an unknown error occurred while trying to disable feeds. Please <a href="/contact">contact support</a>')
-                                                   .addClass("alert-warning").removeClass("hidden");
-
-                                               $("#loading-feed").spin(false);
+                                           error: function (xhr) {
+                                               self.show_error("feed", xhr);
                                            },
                                            success: function () {
                                                helium.USER_PREFS.settings.private_slug = null;
@@ -535,18 +533,10 @@ function HeliumSettings() {
                                                   data: JSON.stringify(data),
                                                   type: 'DELETE',
                                                   url: helium.API_URL + '/auth/user/delete/',
-                                                  error: function (data) {
-                                                      if (data !== undefined && data.hasOwnProperty("responseJSON")
-                                                          && data.responseJSON.hasOwnProperty("password")) {
-                                                          $("#status_account").html(data.responseJSON.password)
-                                                              .addClass("alert-warning").removeClass("hidden");
-                                                      } else {
-                                                          $("#status_account").html(
-                                                              'Sorry, an unknown error occurred while trying to delete your account. Please <a href="/contact">contact support</a>')
-                                                              .addClass("alert-warning").removeClass("hidden");
-                                                      }
+                                                  error: function (xhr) {
+                                                      bootbox.hideAll();
 
-                                                      $("#loading-account").spin(false);
+                                                      self.show_error("account", xhr);
                                                   },
                                                   success: function () {
                                                       $("#loading-account").spin(false);
@@ -588,6 +578,9 @@ function HeliumSettings() {
                                      "href": url,
                                      "download": "Helium_" + helium.USER_PREFS.username + ".json"
                                  }).html($("<a>").attr("download")).get(0).click();
+                   },
+                   error: function (xhr) {
+                       self.show_error("importexport", xhr);
                    }
                });
     });
