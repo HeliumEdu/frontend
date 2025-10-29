@@ -343,7 +343,8 @@ function HeliumSettings() {
 
                            helium.clear_form_errors("personal-form");
 
-                           $("#status_personal").html("Changes saved.").addClass("alert-success").removeClass("hidden alert-danger");
+                           $("#status_personal").html("Changes saved.").addClass("alert-success")
+                               .removeClass("hidden alert-danger");
 
                            $("#loading-personal").spin(false);
                        }
@@ -421,7 +422,8 @@ function HeliumSettings() {
                            $("#id_password").val("");
                            $("#id_password2").val("");
 
-                           $("#status_account").html("Changes saved.").addClass("alert-success").removeClass("hidden alert-danger");
+                           $("#status_account").html("Changes saved.").addClass("alert-success")
+                               .removeClass("hidden alert-danger");
 
                            $("#loading-account").spin(false);
                        }
@@ -512,50 +514,54 @@ function HeliumSettings() {
     });
 
     $("#delete-account").on("click", function () {
-        bootbox.dialog({
-                           title: "To permanently delete your account <em>and all data you have stored in Helium</em>, confirm your password below. This action cannot be undone",
-                           message: '<input id="delete-account-password" name="delete-account-password" type="password" class="form-control" />',
-                           inputType: "password",
-                           onEscape: true,
-                           buttons: {
-                               success: {
-                                   label: "<i class=\"icon-trash\"></i> Delete Account",
-                                   className: "btn-danger",
-                                   callback: function () {
-                                       $("#loading-account").spin(helium.SMALL_LOADING_OPTS);
+        bootbox.dialog(
+            {
+                title: "To permanently delete your account—<strong>and all data you have stored in Helium</strong>—confirm your password below. This action cannot be undone.",
+                message: '<input id="delete-account-password" name="delete-account-password" type="password" class="form-control" />',
+                inputType: "password",
+                onEscape: true,
+                buttons: {
+                    success: {
+                        label: "<i class=\"icon-trash\"></i> Delete Account",
+                        className: "btn-danger",
+                        callback: function () {
+                            $("#loading-account").spin(helium.SMALL_LOADING_OPTS);
 
-                                       const data = {
-                                           "password": $("input[name='delete-account-password']").val()
-                                       };
+                            const data = {
+                                "password": $("input[name='delete-account-password']").val()
+                            };
 
-                                       $.ajax({
-                                                  async: false,
-                                                  data: JSON.stringify(data),
-                                                  type: 'DELETE',
-                                                  url: helium.API_URL + '/auth/user/delete/',
-                                                  error: function (xhr) {
-                                                      bootbox.hideAll();
+                            $.ajax({
+                                       async: false,
+                                       data: JSON.stringify(data),
+                                       type: 'DELETE',
+                                       url: helium.API_URL + '/auth/user/delete/',
+                                       error: function (xhr) {
+                                           bootbox.hideAll();
 
-                                                      self.show_error("account", xhr);
-                                                  },
-                                                  success: function () {
-                                                      $("#loading-account").spin(false);
+                                           self.show_error("account", xhr);
+                                       },
+                                       success: function () {
+                                           $("#loading-account").spin(false);
 
-                                                      localStorage.setItem("status_type", "warning");
-                                                      localStorage.setItem("status_msg",
-                                                                           "Sorry to see you go! We've deleted all traces of your existence from Helium.");
+                                           localStorage.setItem("status_type", "warning");
+                                           localStorage.setItem("status_msg",
+                                                                "Sorry to see you go! We've deleted all traces of your existence from Helium.");
 
-                                                      window.location = "/logout";
-                                                  }
-                                              });
-                                   }
-                               },
-                               cancel: {
-                                   label: "Cancel",
-                                   className: "btn-default"
-                               }
-                           }
-                       });
+                                           window.location = "/logout";
+                                       }
+                                   });
+                        }
+                    },
+                    cancel: {
+                        label: "Cancel",
+                        className: "btn-default"
+                    }
+                }
+            }).on("shown.bs.modal",
+                  function () {
+                      $("#delete-account-password").focus();
+                  });
     });
 
     $("#export-button").on("click", function (e) {
