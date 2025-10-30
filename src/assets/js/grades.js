@@ -127,7 +127,7 @@ function HeliumGrades() {
                 + "</span></small>"
                 + '<a class="cursor-hover" data-action="collapse"><div class="widget-toolbar"><span class="badge" style=\"background-color: '
                 + helium.USER_PREFS.settings.grade_color + ' !important">'
-                + (parseFloat(data.average_grade) != -1 ? (parseFloat(data.average_grade).toFixed(2) + '% '
+                + (parseFloat(data.overall_grade) != -1 ? (parseFloat(data.overall_grade).toFixed(2) + '% '
                 + helium.grades.get_trend_arrow(data.trend)) : "N/A")
                 + '</span> <i class="icon-chevron-up"></i></div></a></div><div class="widget-body"><div class="widget-main"><div id="course-group-chart-'
                 + data.id

@@ -82,7 +82,7 @@
                     }
                 }, helium.classes.edit_id, data);
             } else {
-                data.average_grade = -1;
+                data.overall_grade = -1;
 
                 helium.planner_api.add_course_group(helium.classes.add_course_group_to_page, data);
             }
