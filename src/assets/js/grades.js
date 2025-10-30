@@ -257,7 +257,7 @@ $(document).ready(function () {
                                         ticks: 5,
                                         min: 50,
                                         max: 100,
-                                        tickFormatter: function (val, axis) {
+                                        tickFormatter: function (val) {
                                             return val + "%&nbsp;";
                                         }
                                     },

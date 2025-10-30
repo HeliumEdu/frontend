@@ -436,7 +436,7 @@ function HeliumMaterials() {
      * @param ids of courses
      */
     this.get_course_names = function (ids) {
-        let course_names = "", i = 0;
+        let course_names = "", i;
 
         for (i = 0; i < ids.length; i += 1) {
             const course = self.courses[ids[i]];
@@ -572,7 +572,7 @@ $(document).ready(function () {
                 $("#material-group-tabs li a[href^='#material-group-']").first().tab("show");
 
                 $("table[id^='material-group-table-']").each(function () {
-                    let i = 0, id = $(this).attr("id").split("material-group-table-")[1], table_div = $(this);
+                    let i = 0, id = $(this).attr("id").split("material-group-table-")[1];
 
                     helium.ajax_calls.push(
                         helium.planner_api.get_materials_by_material_group_id(function (data) {
