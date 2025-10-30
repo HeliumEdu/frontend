@@ -1378,7 +1378,7 @@ function HeliumClasses() {
                     "start_date": start_date,
                     "end_date": end_date,
                     "shown_on_calendar": true,
-                    "average_grade": -1
+                    "overall_grade": -1
                 };
 
                 helium.ajax_calls.push(helium.planner_api.add_course_group(function (data) {
