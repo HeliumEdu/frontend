@@ -102,15 +102,15 @@ function HeliumGrades() {
                            + percent_thru.toFixed()
                            + '" data-size="46" style="width: 46px; height: 46px; line-height: 46px;"> <span class="percent">'
                            + percent_thru.toFixed()
-                           + '</span>% <canvas width="46" height="46"></canvas></div></div><div class="infobox-data"><span class="infobox-text">thru term</span><div class="infobox-content">'
+                           + '</span>% <canvas width="46" height="46"></canvas></div></div><div class="infobox-data" id="thru-term"><span class="infobox-text">thru term</span><div class="infobox-content">'
                            + days_remaining + ' days remaining</div></div>');
             details.append(
-                '<div class="infobox infobox-red"><div class="infobox-icon"><i class="icon-bookmark"></i></div><div class="infobox-data"><span class="infobox-data-number">'
+                '<div class="infobox infobox-red"><div class="infobox-icon"><i class="icon-bookmark"></i></div><div class="infobox-data" id="num-assignments"><span class="infobox-data-number">'
                 + data.num_homework + '</span><div class="infobox-content">assignments</div></div></div>');
             details.append(
-                '<div class="infobox infobox-red"><div class="infobox-icon"><i class="icon-cogs"></i></div><div class="infobox-data"><span class="infobox-data-number">'
+                '<div class="infobox infobox-red"><div class="infobox-icon"><i class="icon-cogs"></i></div><div class="infobox-data" id="num-assignments-graded"><span class="infobox-data-number">'
                 + data.num_homework_graded + '</span><div class="infobox-content">graded</div></div></div>');
-            details.append('<div class="infobox infobox-blue2">' + percent_completed.toFixed()
+            details.append('<div class="infobox infobox-blue2" id="thru-assignments">' + percent_completed.toFixed()
                            + '<div class="infobox-progress"><div class="easy-pie-chart percentage easyPieChart" data-percent="'
                            + percent_completed.toFixed()
                            + '" data-size="46" style="width: 46px; height: 46px; line-height: 46px;"><span class="percent">'
@@ -120,16 +120,17 @@ function HeliumGrades() {
                            + (data.num_homework - data.num_homework_completed)
                            + ' remaining</div></div></div><div class="space-20"></div></div>');
             container.append(
-                '<div class="row"><div class="col-xs-12"><div class="widget-box transparent"><div class="widget-header widget-header-flat"><h4 class="lighter"><i class="icon-bar-chart"></i> Term Progress</h4><span class="hidden-xs"> | </span><small class="hidden-xs"><span>'
+                '<div class="row"><div class="col-xs-12"><div class="widget-box transparent"><div class="widget-header widget-header-flat"><h4 class="lighter"><i class="icon-bar-chart"></i><span id="time-series-header"> Term Progress</h4><span class="hidden-xs"> | </span><small class="hidden-xs" id="time-series-date"><span>'
                 + moment(data.start_date, helium.HE_DATE_STRING_SERVER).format(helium.HE_DATE_STRING_CLIENT)
                 + "</span> to <span>"
                 + moment(data.end_date, helium.HE_DATE_STRING_SERVER).format(helium.HE_DATE_STRING_CLIENT)
-                + "</span></small>"
+                + "</span></small></span>"
                 + '<a class="cursor-hover" data-action="collapse"><div class="widget-toolbar"><span class="badge" style=\"background-color: '
                 + helium.USER_PREFS.settings.grade_color + ' !important">'
                 + (parseFloat(data.overall_grade) != -1 ? (parseFloat(data.overall_grade).toFixed(2) + '% '
                 + helium.grades.get_trend_arrow(data.trend)) : "N/A")
-                + '</span> <i class="icon-chevron-up"></i></div></a></div><div class="widget-body"><div class="widget-main"><div id="course-group-chart-'
+                + '</span> <i class="icon-chevron-up"></i></div></a></div><div class="widget-body"><div class="widget-main">'
+                + '<div id="course-group-time-series-'
                 + data.id
                 + '" style="width: 100%; height: 220px; padding: 0px; position: relative;"> <canvas class="flot-base" width="942" height="220" style="direction: ltr; position: absolute; left: 0px; top: 0px; width: 942px; height: 220px;"></canvas> <div class="flot-text" style="position: absolute; top: 0px; left: 0px; bottom: 0px; right: 0px; font-size: smaller; color: rgb(84, 84, 84);"><div class="flot-y-axis flot-y1-axis yAxis y1Axis" style="position: absolute; top: 0px; left: 0px; bottom: 0px; right: 0px; display: block;"><div class="flot-tick-label tickLabel" style="position: absolute; top: 190px; left: 7px; text-align: right;">50%</div><div class="flot-tick-label tickLabel" style="position: absolute; top: 152px; left: 7px; text-align: right;">60%</div><div class="flot-tick-label tickLabel" style="position: absolute; top: 114px; left: 7px; text-align: right;">70%</div><div class="flot-tick-label tickLabel" style="position: absolute; top: 76px; left: 7px; text-align: right;">80%</div><div class="flot-tick-label tickLabel"style="position: absolute; top: 38px; left: 7px; text-align: right;">90%</div><div class="flot-tick-label tickLabel"style="position: absolute; top: 0px; left: 1px; text-align: right;">100%</div></div></div><canvas class="flot-overlay" width="942" height="220" style="direction: ltr; position: absolute; left: 0px; top: 0px; width: 942px; height: 220px;"></canvas><div class="legend"><div style="position: absolute; width: 185px; height: 120px; top: 13px; right: 23px; opacity: 0.85; background-color: rgb(255, 255, 255);"></div><table style="position:absolute;top:13px;right:23px;;font-size:smaller;color:#545454"><tbody></tbody></table></div></div></div></div></div></div></div>');
             container.append(
@@ -237,12 +238,12 @@ $(document).ready(function () {
                         // Build line graph for each course group
                         $("div[id^='course-group-container-']").each(function () {
                             let id = $(this).attr("id").split("course-group-container-")[1].split("_")[0], course_div,
-                                course_body_div, grade_distribution_string, grade_by_weight_pie_div,
+                                course_body_div, grade_distribution_string, pie_grade_by_weight_div,
                                 course_grade,
-                                category_table, category_table_body, chart_data_weight, chart_data_grade_by_weight,
-                                data_for_plot = [], i = 0, j = 0, course, course_grades, data_for_group = 0, data = [],
+                                category_table, category_table_body, pie_weight_data, pie_grade_by_weight_data,
+                                time_series_data = [], i = 0, j = 0, course, course_grades, course_group_count = 0, data = [],
                                 category,
-                                course_list, group_plot_details = {
+                                course_list, time_series_details = {
                                     shadowSize: 0,
                                     series: {
                                         lines: {show: true},
@@ -276,7 +277,7 @@ $(document).ready(function () {
                                     legend: {
                                         position: "se"
                                     }
-                                }, pie_chart_details = {
+                                }, pie_weight_details = {
                                     series: {
                                         pie: {
                                             show: true,
@@ -304,8 +305,8 @@ $(document).ready(function () {
                                         hoverable: true
                                     }
                                 };
-                            const course_group_chart_tag = $("#course-group-chart-" + id);
-                            course_group_chart_tag.css({"width": "100%", "height": "220px"});
+                            const time_series_tag = $("#course-group-time-series-" + id);
+                            time_series_tag.css({"width": "100%", "height": "220px"});
                             course_list = $("#course-group-piechart-" + id);
                             course_list.append("<div class=\"space-24\"></div>");
 
@@ -344,11 +345,11 @@ $(document).ready(function () {
                                                         category_id: course_grades[course_grade][5]
                                                     }
                                                 ]);
-                                            data_for_group += 1;
+                                            course_group_count += 1;
                                         }
                                     }
 
-                                    data_for_plot.push(
+                                    time_series_data.push(
                                         {
                                             label: "&nbsp;" + course.title,
                                             data: data,
@@ -361,18 +362,18 @@ $(document).ready(function () {
                                           + course.id + "\"></tbody></table>");
                                     category_table_body = category_table.find("#category-table-course-" + course.id);
 
-                                    chart_data_weight = [];
-                                    chart_data_grade_by_weight = [];
+                                    pie_weight_data = [];
+                                    pie_grade_by_weight_data = [];
                                     for (j = 0; j < helium.grades.categories_for_course[course.id].length; j += 1) {
                                         category = helium.grades.categories_for_course[course.id][j];
-                                        chart_data_weight.push(
+                                        pie_weight_data.push(
                                             {
                                                 label: category.title,
                                                 data: category.weight,
                                                 color: category.color
                                             });
                                         if (parseFloat(category.grade_by_weight) !== 0) {
-                                            chart_data_grade_by_weight.push(
+                                            pie_grade_by_weight_data.push(
                                                 {
                                                     label: category.title,
                                                     data: category.grade_by_weight,
@@ -414,23 +415,23 @@ $(document).ready(function () {
                                                    ? "6" : "12") + "\">" + $(
                                                     "<div />").append(category_table.clone()).html()
                                                 + "</div><div class=\"col-xs-12 col-sm-4\"></div></div></div></div></div>");
-                                        let weight_pie_div = course_body_div.find(
+                                        let pie_weight_div = course_body_div.find(
                                             "#course-weight-piechart-" + course.id);
-                                        grade_by_weight_pie_div =
+                                        pie_grade_by_weight_div =
                                             course_body_div.find("#course-grade-by-weight-piechart-" + course.id);
 
                                         if (course.has_weighted_grading) {
-                                            weight_pie_div.css(
+                                            pie_weight_div.css(
                                                 {"width": "90%", "height": "100%", "min-height": "200px"});
-                                            grade_by_weight_pie_div.css(
+                                            pie_grade_by_weight_div.css(
                                                 {"width": "90%", "height": "100%", "min-height": "200px"});
 
-                                            $.plot(weight_pie_div, chart_data_weight, pie_chart_details);
-                                            $.plot(grade_by_weight_pie_div, chart_data_grade_by_weight,
-                                                   pie_chart_details);
+                                            $.plot(pie_weight_div, pie_weight_data, pie_weight_details);
+                                            $.plot(pie_grade_by_weight_div, pie_grade_by_weight_data,
+                                                   pie_weight_details);
 
-                                            weight_pie_div.bind("plothover", helium.grades.pie_hover);
-                                            grade_by_weight_pie_div.bind("plothover", helium.grades.pie_hover);
+                                            pie_weight_div.bind("plothover", helium.grades.pie_hover);
+                                            pie_grade_by_weight_div.bind("plothover", helium.grades.pie_hover);
                                         }
                                     } else {
                                         course_div.find("#course-body-" + course.id).append(
@@ -438,9 +439,9 @@ $(document).ready(function () {
                                     }
                                 }
 
-                                $.plot("#course-group-chart-" + id, data_for_plot, group_plot_details);
+                                $.plot("#course-group-time-series-" + id, time_series_data, time_series_details);
 
-                                course_group_chart_tag.bind("plothover", function (event, pos, item) {
+                                time_series_tag.bind("plothover", function (event, pos, item) {
                                     if (item) {
                                         if (!helium.grades.hovered_item ||
                                             (item.seriesIndex !== helium.grades.hovered_item.seriesIndex
@@ -452,7 +453,7 @@ $(document).ready(function () {
                                             const homework_grade = (Math.round(point_data[2].grade * 100) / 100) + "%";
                                             const point_grade = (Math.round(point_data[1] * 100) / 100) + "%";
 
-                                            course_group_chart_tag.qtip(
+                                            time_series_tag.qtip(
                                                 {
                                                     position: {
                                                         target: [pos.pageX, pos.pageY],
@@ -473,10 +474,10 @@ $(document).ready(function () {
                                     } else {
                                         $(this).css('cursor', 'default');
                                         helium.grades.hovered_item = null;
-                                        course_group_chart_tag.qtip('hide', helium.QTIP_HIDE_INTERVAL);
+                                        time_series_tag.qtip('hide', helium.QTIP_HIDE_INTERVAL);
                                     }
                                 });
-                                course_group_chart_tag.bind("plotclick", function (event, pos, item) {
+                                time_series_tag.bind("plotclick", function (event, pos, item) {
                                     if (item) {
                                         const point_data = item.series.data[item.dataIndex];
                                         const homework_id = point_data[2].id;
@@ -485,11 +486,11 @@ $(document).ready(function () {
                                     }
                                 });
                             } else {
-                                data_for_group = 0;
+                                course_group_count = 0;
                             }
 
-                            if (data_for_group === 0) {
-                                course_group_chart_tag.parent().parent().parent().remove();
+                            if (course_group_count === 0) {
+                                time_series_tag.parent().parent().parent().remove();
                                 $("#details-for-course-group-" + id).after(
                                     "<div class=\"row\"><div class=\"col-xs-12 col-sm-8 col-sm-offset-2 col-xs-12 well\">We can't calculate any grades for you if you don't have both <a href=\"/planner/classes\">classes</a> and <a href=\"/planner/calendar\">assignments</a>. Once you have those, head back here to see your grade progress!</div></div>");
                             }
