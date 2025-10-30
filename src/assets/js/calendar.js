@@ -926,7 +926,9 @@ function HeliumCalendar() {
         }).fail(function () {
             self.loading_div.spin(false);
 
-            bootbox.alert(document.GENERIC_ERROR_MESSAGE);
+            if ($('.bootbox.modal').length === 0) {
+                bootbox.alert(document.GENERIC_ERROR_MESSAGE);
+            }
         });
     }
 
@@ -979,7 +981,9 @@ function HeliumCalendar() {
         }).fail(function () {
             self.loading_div.spin(false);
 
-            bootbox.alert(document.GENERIC_ERROR_MESSAGE);
+            if ($('.bootbox.modal').length === 0) {
+                bootbox.alert(document.GENERIC_ERROR_MESSAGE);
+            }
         });
     }
 
@@ -1049,7 +1053,9 @@ function HeliumCalendar() {
         }).fail(function () {
             self.loading_div.spin(false);
 
-            bootbox.alert(document.GENERIC_ERROR_MESSAGE);
+            if ($('.bootbox.modal').length === 0) {
+                bootbox.alert(document.GENERIC_ERROR_MESSAGE);
+            }
         });
     }
 
@@ -1109,7 +1115,9 @@ function HeliumCalendar() {
         }).fail(function () {
             self.loading_div.spin(false);
 
-            bootbox.alert(document.GENERIC_ERROR_MESSAGE);
+            if ($('.bootbox.modal').length === 0) {
+                bootbox.alert(document.GENERIC_ERROR_MESSAGE);
+            }
         });
     };
 
