@@ -465,7 +465,7 @@ $.ajaxSetup({
                 contentType: "application/json; charset=UTF-8"
             });
 
-$(document).ajaxError(function (event, jqXHR, textStatus, errorThrown) {
+$(document).ajaxError(function (event, jqXHR) {
     if (jqXHR.status === 401 &&
         jqXHR.url.startsWith(helium.API_URL) &&
         jqXHR.url !== helium.API_URL + "/info" &&

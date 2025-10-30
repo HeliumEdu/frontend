@@ -380,7 +380,7 @@ function HeliumClasses() {
      * Create a new course in the currently open course group.
      */
     this.create_course_for_group_btn = function () {
-        let i = 0, data;
+        let i, data;
 
         $("#delete-course").hide();
 
@@ -767,7 +767,7 @@ function HeliumClasses() {
     /**
      * Delete an attachment from the list of attachments.
      */
-    this.delete_attachment = function (data) {
+    this.delete_attachment = function () {
         const dom_id = $(this).attr("id");
         let id = dom_id.split("-");
         id = id[id.length - 1];
@@ -1362,7 +1362,7 @@ function HeliumClasses() {
 
         let course_title = $("#course-title").val(), course_start_date = $("#course-start-date").val(),
             course_end_date = $("#course-end-date").val(), start_date, end_date, data, different_times, sun_start_time,
-            sun_end_time, sun_alt_start_time, sun_alt_end_time;
+            sun_end_time;
 
         self.clear_course_errors();
 
@@ -1399,7 +1399,7 @@ function HeliumClasses() {
             // If a course group was created, wait for that call to complete before proceeding
             $.when.apply($, helium.ajax_calls).done(function () {
                 if (!helium.ajax_error_occurred) {
-                    let categories_data = [], id;
+                    let categories_data = [];
                     different_times = $("#course-schedule-has-different-times").is(":checked");
                     sun_start_time =
                         moment($("#course-sun-start-time").val(), helium.HE_TIME_STRING_CLIENT)
@@ -1925,7 +1925,7 @@ $(document).ready(function () {
                                                                  "Bearer " + localStorage.getItem("access_token"));
                                             form_data.append("course", helium.classes.edit_id);
                                         });
-                                        this.on("successmultiple", function (files) {
+                                        this.on("successmultiple", function () {
                                             $("#loading-course-modal").spin(false);
                                             $("#course-modal").modal("hide");
                                         });

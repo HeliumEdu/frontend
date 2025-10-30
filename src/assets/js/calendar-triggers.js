@@ -298,43 +298,32 @@
         $.when.apply($, helium.ajax_calls).done(function () {
             helium.calendar.set_timing_fields();
 
-            materials_callback = function (data) {
-                if (helium.data_has_err_msg(data)) {
-                    helium.ajax_error_occurred = true;
-                    $("#loading-homework-modal").spin(false);
+            $.when.apply($, helium.ajax_calls).done(function () {
+                helium.ajax_calls.push(
+                    helium.planner_api.get_materials_by_course_id(function (data) {
+                        if (helium.data_has_err_msg(data)) {
+                            helium.ajax_error_occurred = true;
+                            $("#loading-homework-modal").spin(false);
 
-                    $("#homework-error").html(helium.get_error_msg(data));
+                            $("#homework-error").html(helium.get_error_msg(data));
 
-                    $("#homework-error").parent().show("fast");
-                } else {
-                    $("#homework-materials").find("option").remove();
-                    $.each(data, function (index, material) {
-                        helium.ajax_calls.push(
-                            helium.planner_api.get_material_group(function (material_group) {
-                                if (material_group.shown_on_calendar) {
+                            $("#homework-error").parent().show("fast");
+                        } else {
+                            $("#homework-materials").find("option").remove();
+                            $.each(data, function (index, material) {
+                                if (helium.calendar.material_groups[material.material_group].shown_on_calendar) {
                                     $("#homework-materials")
                                         .append(
                                             "<option value=\"" + material.id + "\">" + material.title + "</option>");
                                 }
-                            }, material.material_group, true, true));
-                    });
+                            });
 
-                    $.when.apply($, helium.ajax_calls).done(function () {
-                        $("#homework-materials").val(helium.calendar.preferred_material_ids);
-                        $("#homework-materials").prop("disabled", data.length === 0).trigger("chosen:updated");
-                        $("#homework-materials").trigger("change");
-                    });
-                }
-            };
-            $.when.apply($, helium.ajax_calls).done(function () {
-                materials_load =
-                    helium.planner_api.get_materials_by_course_id(materials_callback, helium.calendar.current_class_id);
-                // If an AJAX call was requested, add it to the list of async calls to wait on
-                if (materials_load !== materials_callback) {
-                    helium.ajax_calls.push(materials_load);
-                }
+                            $("#homework-materials").val(helium.calendar.preferred_material_ids);
+                            $("#homework-materials").prop("disabled", data.length === 0).trigger("chosen:updated");
+                            $("#homework-materials").trigger("change");
+                        }
+                    }, helium.calendar.current_class_id, true, true));
 
-                // Wait on any AJAX responses before proceeding
                 $.when.apply($, helium.ajax_calls).done(function () {
                     if (!helium.ajax_error_occurred) {
                         helium.planner_api.get_categories_by_course_id(function (data) {
@@ -469,7 +458,7 @@
         $("#start-adding-classes").attr("disabled", "disabled");
 
         if ($("#show-getting-started").is(":checked") === (helium.USER_PREFS.settings.show_getting_started)) {
-            helium.planner_api.update_user_details(function (data) {
+            helium.planner_api.update_user_details(function () {
                 $("#getting-started-modal").modal("hide");
             }, helium.USER_PREFS.id, {'show_getting_started': !$("#show-getting-started").is(":checked")});
         } else {
@@ -482,7 +471,7 @@
         $("#start-adding-classes").attr("disabled", "disabled");
 
         if ($("#show-getting-started").is(":checked") === (helium.USER_PREFS.settings.show_getting_started)) {
-            helium.planner_api.update_user_details(function (data) {
+            helium.planner_api.update_user_details(function () {
                 window.location.href = "/planner/classes";
             }, helium.USER_PREFS.id, {'show_getting_started': !$("#show-getting-started").is(":checked")});
         } else {

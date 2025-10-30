@@ -93,7 +93,7 @@ function HeliumCalendar() {
      * @param pk the key to look for
      */
     this.get_course_from_list_by_pk = function (courses, pk) {
-        let i = 0, course = null;
+        let i, course = null;
 
         for (i = 0; i < courses.length; i += 1) {
             if (courses[i].id === parseInt(pk)) {
@@ -1113,7 +1113,7 @@ function HeliumCalendar() {
         });
     };
 
-    this.refresh_view = function (view, element) {
+    this.refresh_view = function (view) {
         if (view.name === 'assignmentsList') {
             $('.fc-toolbar .fc-prev-button').addClass('fc-state-disabled');
             $('.fc-toolbar .fc-next-button').addClass('fc-state-disabled');
@@ -1373,7 +1373,7 @@ function HeliumCalendar() {
                         right: self.DEFAULT_VIEWS.toString()
                     },
                     locale: 'en',
-                    loading: function (loading, view) {
+                    loading: function (loading) {
                         if (self.loading_div) {
                             if (loading) {
                                 self.loading_div.spin(helium.SMALL_LOADING_OPTS);
@@ -1629,7 +1629,7 @@ function HeliumCalendar() {
                         return true;
                     }
 
-                    const courses = Object.entries(helium.calendar.courses).filter(([id, course]) => {
+                    const courses = Object.entries(helium.calendar.courses).filter(([, course]) => {
                         return course.course_group === course_group.id;
                     });
                     if (courses.length > 0 && groups_shown > 0) {
@@ -1675,7 +1675,7 @@ function HeliumCalendar() {
             }
 
             // Initialize category filters
-            const categories = Object.entries(helium.calendar.categories).filter(([id, category]) => {
+            const categories = Object.entries(helium.calendar.categories).filter(([, category]) => {
                 return helium.calendar.course_groups[helium.calendar.courses[category.course].course_group].shown_on_calendar;
             });
 
@@ -1869,7 +1869,7 @@ function HeliumCalendar() {
      * @param unsaved true if the reminder being added has not yet been saved to the database
      */
     this.add_reminder_to_table = function (reminder, unsaved) {
-        let unsaved_string, row, i = 0, offset_type_options = "", type_options = "";
+        let unsaved_string, row, i, offset_type_options = "", type_options = "";
         $("#no-reminders").hide();
         unsaved_string = "";
         if (unsaved) {
@@ -2006,7 +2006,7 @@ function HeliumCalendar() {
                                                               "#homework-event-switch").is(":checked");
         if (/\S/.test(calendar_item_title) && calendar_item_start_date !== "" && calendar_item_end_date !== ""
             && is_category_valid) {
-            let reminders_data = [], id, start, end;
+            let reminders_data = [], start, end;
             $("#loading-homework-modal").spin(helium.SMALL_LOADING_OPTS);
 
             completed = $("#homework-completed").is(":checked");
@@ -2390,7 +2390,7 @@ function HeliumCalendar() {
             dataTable: null,
             latestRow: null,
 
-            buildCurrentRangeInfo: function (date, direction) {
+            buildCurrentRangeInfo: function () {
                 const duration = moment.duration({
                                                      days: helium.calendar.course_filter_window_end.diff(
                                                          helium.calendar.course_filter_window_start, "days")
@@ -2634,11 +2634,11 @@ function HeliumCalendar() {
             }
         });
 
-    $.fullCalendar.views.assignmentsList.watch('dateProfileForCalendarOverride', ['dateProfile'], function (deps) {
+    $.fullCalendar.views.assignmentsList.watch('dateProfileForCalendarOverride', ['dateProfile'], function () {
         this.unwatch('titleForCalendar');
     });
 
-    $.fullCalendar.views.assignmentsList.watch('titleForCalendarOverride', ['title'], function (deps) {
+    $.fullCalendar.views.assignmentsList.watch('titleForCalendarOverride', ['title'], function () {
         this.calendar.header.el.find('h2')
             .html(
                 "Assignments <span class=\"assignmentslist-help help-button\" data-rel=\"popover\" data-trigger=\"hover\" data-container=\"body\" data-placement=\"right\" data-content=\"This view shows only assignments—no class schedules, events, or external calendars—allowing you to quickly sort through and review your schoolwork.\" title=\"Todo View\">?</span>")
@@ -2681,7 +2681,7 @@ $(document).ready(function () {
 
     // Add a plugin to allow ordering by checkbox
     $.fn.dataTable.ext.order['dom-checkbox'] = function (settings, col) {
-        return this.api().column(col, {order: 'index'}).nodes().map(function (td, i) {
+        return this.api().column(col, {order: 'index'}).nodes().map(function (td) {
             return $('input', td).prop('checked') ? '1' : '0';
         });
     };
@@ -2951,7 +2951,7 @@ $(document).ready(function () {
                                                                  helium.calendar.calendar_item_for_dropzone.id);
                                             }
                                         });
-                                        this.on("successmultiple", function (files) {
+                                        this.on("successmultiple", function () {
                                             const callback = function (data) {
                                                 if (helium.data_has_err_msg(data)) {
                                                     $("#loading-homework-modal").spin(false);
@@ -2999,7 +2999,7 @@ $(document).ready(function () {
                                                                                 true, false);
                                             }
                                         });
-                                        this.on("errormultiple", function (data) {
+                                        this.on("errormultiple", function () {
                                             $("#loading-homework-modal").spin(false);
 
                                             $("#homework-error").html("The max file size is 10mb.");

@@ -9,6 +9,6 @@
  * @version 1.11.54
  */
 
-helium.planner_api.logout(function (data) {
+helium.planner_api.logout(function () {
     window.location.replace("/login");
 }, false);
