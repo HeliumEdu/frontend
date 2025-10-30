@@ -243,7 +243,7 @@ function HeliumCalendar() {
                         calendar_item.id = "event_" + calendar_item.id;
                     }
 
-                    self.update_current_calendar_item(calendar_item);
+                    self.update_current_calendar_item(calendar_item, false);
 
                     self.nullify_calendar_item_persistence();
 
@@ -254,8 +254,8 @@ function HeliumCalendar() {
                 } else {
                     const course = helium.calendar.courses[event.course];
 
-                    helium.planner_api.edit_homework(callback, course.course_group, course.id, event.id, data, true,
-                                                     true);
+                    helium.planner_api.edit_homework(callback, course.course_group, course.id, event.id, data,
+                                                     true, true);
                 }
             }
         });
@@ -298,7 +298,7 @@ function HeliumCalendar() {
                     calendar_item.id = "event_" + calendar_item.id;
                 }
 
-                self.update_current_calendar_item(calendar_item);
+                self.update_current_calendar_item(calendar_item, false);
 
                 self.nullify_calendar_item_persistence();
 
@@ -652,7 +652,7 @@ function HeliumCalendar() {
 
                         bootbox.alert(helium.get_error_msg(data));
                     } else {
-                        helium.calendar.update_current_calendar_item(data);
+                        helium.calendar.update_current_calendar_item(data, false);
 
                         helium.calendar.nullify_calendar_item_persistence();
 
@@ -1039,8 +1039,8 @@ function HeliumCalendar() {
                                 current_grade: null,
                                 url: calendar_item.url,
                                 comments: '',
-                                attachments: [],
-                                reminders: []
+                                attachments: calendar_item.attachments,
+                                reminders: calendar_item.reminders
                             });
                     });
                 }, helium.calendar.courses[course.id].course_group, course.id, true, true, localStorage.getItem(
@@ -1300,9 +1300,7 @@ function HeliumCalendar() {
                                            + '</span>') : "";
 
                         if ($(window).width() > 768) {
-                            // We attached to the subelement here to prevent tooltips from rendering in agenda/list
-                            // views
-
+                            // We attached to the subelement here to prevent tooltips from showing in list view
                             element.find(".fc-content, .fc-list-item-title").qtip(
                                 {
                                     content: "<div class=\"row\"><div class=\"col-xs-12\">"
@@ -1931,7 +1929,7 @@ function HeliumCalendar() {
                 value: reminder.offset,
                 success: function () {
                     let parent_id = $(this).parent()
-                            .parent().attr("id");
+                        .parent().attr("id");
                     if (parent_id.indexOf("unsaved") === -1 && parent_id.indexOf("modified") === -1) {
                         $(this).parent().parent().attr("id", $(this).parent().parent().attr("id") + "-modified");
                     }
@@ -2170,7 +2168,7 @@ function HeliumCalendar() {
                                 data.id = "event_" + data.id;
                             }
 
-                            self.update_current_calendar_item(data);
+                            self.update_current_calendar_item(data, false);
 
                             self.last_type_event = $("#homework-event-switch").is(":checked");
                             self.last_good_date = moment(data.start);
@@ -2347,7 +2345,7 @@ function HeliumCalendar() {
      *
      * @param calendar_item the latest calendar item from the database
      */
-    this.update_current_calendar_item = function (calendar_item) {
+    this.update_current_calendar_item = function (calendar_item, update_related) {
         self.current_calendar_item = $("#calendar").fullCalendar("clientEvents", [calendar_item.id])[0];
         if (self.current_calendar_item === undefined) {
             console.debug("current_calendar_item not currently shown on calendar, so nothing to do")
@@ -2383,8 +2381,10 @@ function HeliumCalendar() {
         self.current_calendar_item.current_grade =
             calendar_item.calendar_item_type === 1 ? calendar_item.current_grade : null;
         self.current_calendar_item.comments = calendar_item.comments;
-        self.current_calendar_item.attachments = calendar_item.attachments;
-        self.current_calendar_item.reminders = calendar_item.reminders;
+        if (update_related) {
+            self.current_calendar_item.attachments = calendar_item.attachments;
+            self.current_calendar_item.reminders = calendar_item.reminders;
+        }
 
         $("#calendar").fullCalendar("updateEvent", self.current_calendar_item);
         $("#calendar").fullCalendar("unselect");
@@ -2986,7 +2986,7 @@ $(document).ready(function () {
                                                         helium.planner_api.homework_by_user_id = {};
                                                         helium.planner_api.reminders_by_calendar_item = {};
                                                     }
-                                                    helium.calendar.update_current_calendar_item(data)
+                                                    helium.calendar.update_current_calendar_item(data, true)
 
                                                     $("#loading-homework-modal").spin(false);
                                                     $("#homework-modal").modal("hide");
