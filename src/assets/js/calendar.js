@@ -2523,7 +2523,7 @@ function HeliumCalendar() {
                 return '<thead class="fc-list-heading"><tr>'
                        + '<th class=' + theme.getClass('widgetHeader') + '></th>'
                        + '<th class=' + theme.getClass('widgetHeader') + '>Title</th>'
-                       + '<th class=' + theme.getClass('widgetHeader') + '>Due Date</th>'
+                       + '<th class=' + theme.getClass('widgetHeader') + '>Due <span class="hidden-xs">Date</span></th>'
                        + '<th class=' + theme.getClass('widgetHeader') + '>Class</th>'
                        + '<th class=' + theme.getClass('widgetHeader') + '>Category</th>'
                        + '<th class=' + theme.getClass('widgetHeader') + '>Materials</th>'
@@ -2566,7 +2566,7 @@ function HeliumCalendar() {
                         order: [2, "asc"],
                         aoColumns: [
                             // Checkbox
-                            {bSearchable: false, sClass: "hidden-xs", sWidth: "60px", orderDataType: "dom-checkbox"},
+                            {bSearchable: false, sClass: "hidden-print", sWidth: "50px", orderDataType: "dom-checkbox"},
                             // Title
                             null,
                             // Due Date

@@ -552,6 +552,7 @@ $(document).ready(function () {
         $("#planned-nav").removeClass("hidden");
         $("#reminder-nav").removeClass("hidden");
         $("#authenticated-dropdown-nav").removeClass("hidden");
+        $("#navbar-logo-link").attr("href", "/planner/calendar");
     } else {
         $("#register-nav").removeClass("hidden");
         $("#login-nav").removeClass("hidden");
