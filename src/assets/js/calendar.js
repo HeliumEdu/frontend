@@ -1235,21 +1235,22 @@ function HeliumCalendar() {
                         }
 
                         let title = event.title;
-                        let title_with_label = '<span class="fc-event fc-day-grid-event inline" style="background-color: '
+                        let title_for_assignments_list = '<span class="fc-event fc-day-grid-event inline" style="background-color: '
                                                + event.color
-                                               + ' !important">' + title + "</span>";
+                                               + ' !important; border: 1px solid ' + event.color + '">' + title
+                                               + "<span class=\"visible-xs\"> " + (event.calendar_item_type === 1 ? "(" + helium.calendar.courses[event.course].title + ")" : "") + "</span></span>";
 
-                        let title_and_time = title + (!event.allDay ? ", " + moment(event.start)
+                        let title_for_calendar = title + (!event.allDay ? ", " + moment(event.start)
                             .format(helium.HE_TIME_STRING_CLIENT) : "");
-                        let title_with_label_and_time = title_with_label + (!event.allDay ? " " + moment(event.start)
+                        let title_for_agenda = title_for_assignments_list + (!event.allDay ? " " + moment(event.start)
                             .format(helium.HE_TIME_STRING_CLIENT) : "");
 
-                        element.find(".fc-title").html(event.checkbox + title_and_time);
+                        element.find(".fc-title").html(event.checkbox + title_for_calendar);
 
                         element.find(".fc-list-item-marker").html(event.checkbox);
-                        element.find(".fc-assignmentList-item-title").html(title_with_label);
+                        element.find(".fc-assignmentList-item-title").html(title_for_assignments_list);
 
-                        element.find(".fc-list-item-title").html(title_with_label_and_time);
+                        element.find(".fc-list-item-title").html(title_for_agenda);
 
                         element.find(".title-label:has(.planner-title-with-link)").on("click", function (e) {
                             e.stopImmediatePropagation();
@@ -2522,7 +2523,7 @@ function HeliumCalendar() {
 
                 return '<thead class="fc-list-heading"><tr>'
                        + '<th class=' + theme.getClass('widgetHeader') + '></th>'
-                       + '<th class=' + theme.getClass('widgetHeader') + '>Title</th>'
+                       + '<th class=' + theme.getClass('widgetHeader') + '><span class="hidden-xs">Title</span><span class="visible-xs">Assignment</span></th>'
                        + '<th class=' + theme.getClass('widgetHeader') + '>Due <span class="hidden-xs">Date</span></th>'
                        + '<th class=' + theme.getClass('widgetHeader') + '>Class</th>'
                        + '<th class=' + theme.getClass('widgetHeader') + '>Category</th>'
@@ -2572,7 +2573,7 @@ function HeliumCalendar() {
                             // Due Date
                             {sType: "date", sWidth: "180px"},
                             // Class
-                            null,
+                            {sClass: "hidden-xs"},
                             // Category
                             {sClass: "hidden-xs hidden-sm"},
                             // Materials
