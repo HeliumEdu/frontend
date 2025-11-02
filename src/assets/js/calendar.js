@@ -1162,6 +1162,7 @@ function HeliumCalendar() {
             $('#calendar-filter-external').next().removeClass('hidden');
         }
 
+        $("#loading-calendar").spin(false);
         $("#calendar").removeClass("hidden");
         helium.calendar.adjust_calendar_size();
     };
@@ -1451,8 +1452,6 @@ function HeliumCalendar() {
                 $(".fc-toolbar .fc-left").append(
                     "<div id=\"fullcalendar-loading\" class=\"loading-mini\" style=\"padding-left: 25px; padding-top: 2px;\"><div id=\"loading-fullcalendar\"></div></div>")
                     .find("#loading-fullcalendar");
-            self.loading_div.spin(helium.SMALL_LOADING_OPTS);
-            $("#loading-calendar").spin(false);
 
             if ($(window).width() > 768) {
                 $("#homework-class").chosen({
