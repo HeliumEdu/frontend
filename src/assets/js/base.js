@@ -365,7 +365,7 @@ function Helium() {
                     const reminder_bell_alt_tag = $("#reminder-bell-alt-count");
                     reminder_bell_alt_tag.html(new_count);
                     if (new_count === 0) {
-                        reminder_bell_alt_tag.hide("fast");
+                        reminder_bell_alt_tag.hide();
                     }
                 }
             }, data.id, put_data, true, true);
@@ -429,9 +429,9 @@ function Helium() {
             const reminder_bell_alt_tag = $("#reminder-bell-alt-count");
             reminder_bell_alt_tag.html(data.length);
             if (data.length > 0) {
-                reminder_bell_alt_tag.show("fast");
+                reminder_bell_alt_tag.show();
             } else {
-                reminder_bell_alt_tag.hide("fast");
+                reminder_bell_alt_tag.hide();
             }
         }
     };

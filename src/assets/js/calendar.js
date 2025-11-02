@@ -1452,6 +1452,9 @@ function HeliumCalendar() {
                 $(".fc-toolbar .fc-left").append(
                     "<div id=\"fullcalendar-loading\" class=\"loading-mini\" style=\"padding-left: 25px; padding-top: 2px;\"><div id=\"loading-fullcalendar\"></div></div>")
                     .find("#loading-fullcalendar");
+            $("#loading-calendar").spin(false);
+            $("#calendar").removeClass("hidden");
+            self.loading_div.spin(helium.SMALL_LOADING_OPTS);
 
             if ($(window).width() > 768) {
                 $("#homework-class").chosen({
