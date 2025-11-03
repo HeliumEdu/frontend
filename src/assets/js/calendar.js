@@ -699,6 +699,8 @@ function HeliumCalendar() {
     this.adjust_calendar_size = function () {
         const calendar = $("#calendar");
 
+        calendar.fullCalendar("option", "height", $(window).height() - 70);
+
         // The comparison operators here are intentionally vague, as they check for both null and undefined
         if ($(document).width() < 768 && self.last_view === null) {
             if (calendar.fullCalendar("getView").name !== "agendaDay" && calendar.fullCalendar("getView").name
@@ -712,8 +714,6 @@ function HeliumCalendar() {
             }
             self.last_view = null;
         }
-
-        calendar.fullCalendar("option", "height", $(window).height() - 70);
     };
 
     /**
@@ -1180,6 +1180,11 @@ function HeliumCalendar() {
             user_view_pref = 3;
         }
 
+        if ($(window).width() < 768 &&
+            (user_view_pref === 0 || user_view_pref === 1)) {
+            user_view_pref = 3;
+        }
+
         $.when.apply($, helium.ajax_calls).done(function () {
             self.reset_filters();
 
@@ -1418,7 +1423,6 @@ function HeliumCalendar() {
                         },
                     }
                 });
-            $("#calendar").fullCalendar("option", "height", $(window).height() - 70);
 
             self.last_good_date = moment("12:00 PM", "HH:mm A");
             self.last_good_end_date = self.last_good_date.clone();
@@ -1499,6 +1503,8 @@ function HeliumCalendar() {
                     e.stopPropagation();
                 }
             });
+
+            $("#calendar").fullCalendar("option", "height", $(window).height() - 70);
         });
     };
 
