@@ -211,16 +211,6 @@
                         </span>
                                                     </div>
                                                 </div>
-                                                <div class="form-group" id="course-room-form-group">
-                                                    <label class="col-sm-3 control-label"
-                                                           for="course-room">Room</label>
-
-                                                    <div class="col-sm-7">
-                                                        <input id="course-room" class="form-control" autocomplete="off"
-                                                               maxlength="255"
-                                                               type="text"/>
-                                                    </div>
-                                                </div>
                                                 <div class="form-group">
                                                     <label class="col-sm-3 control-label"
                                                            for="course-website">Website</label>
@@ -265,27 +255,45 @@
                                                     </div>
                                                 </div>
                                                 <div class="form-group">
-                                                    <label class="col-sm-3 control-label"
-                                                           for="course-credits">Credits</label>
-
-                                                    <div class="col-sm-3">
-                                                        <input type="text" id="course-credits" class="spinner"/>
-                                                    </div>
-
-                                                    <label class="col-sm-2 col-xs-12 control-label"
-                                                           for="id_color_select">Color</label>
-
-                                                    <div class="col-sm-4 col-xs-12">
-                                                        {% include "snippets/colorselect.html" %}
-                                                    </div>
-                                                </div>
-                                                <div class="form-group">
                                                     <div class="col-xs-12 col-sm-4">
                                                         <label class="left-buffer-70 hidden-xs"></label>
                                                         <label>
                                                             <input id="course-online" class="ace" type="checkbox"/>
                                                             <span class="lbl"> Online</span>
                                                         </label>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group" id="course-room-form-group">
+                                                    <label class="col-sm-3 control-label"
+                                                           for="course-room">Room</label>
+
+                                                    <div class="col-sm-7">
+                                                        <input id="course-room" class="form-control" autocomplete="off"
+                                                               maxlength="255"
+                                                               type="text"/>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="col-sm-3 control-label"
+                                                           for="course-credits">Credits</label>
+
+                                                    <div class="col-sm-7">
+                                                        <input type="text" id="course-credits" class="spinner"/>
+                                                    </div>
+
+                                                    <div class="col-sm-2"><span class="credits-help help-button hidden-xs"
+                                                                                data-rel="popover"
+                                                                                data-trigger="hover" data-container="#course-modal"
+                                                                                data-placement="left"
+                                                                                data-content="When credits are given, class grades are weighted accordingly within their term. Do not set credits if your class or school does not weight grades this way."
+                                                                                title="Credit Grading">?</span></div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="col-sm-3 col-xs-12 control-label"
+                                                           for="id_color_select">Color</label>
+
+                                                    <div class="col-sm-7 col-xs-12">
+                                                        {% include "snippets/colorselect.html" %}
                                                     </div>
                                                 </div>
                                             </form>
