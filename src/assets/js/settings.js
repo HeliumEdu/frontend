@@ -250,6 +250,7 @@ function HeliumSettings() {
             data.push({"name": "grade_color", "value": $("#id_grades_color_select").val()});
             data.push({"name": "material_color", "value": $("#id_materials_color_select").val()});
             data.push({"name": "calendar_event_limit", "value": $("#id_calendar_event_limit").is(":checked")});
+            data.push({"name": "calendar_use_category_colors", "value": $("#id_calendar_use_category_colors").is(":checked")});
             data.push({"name": "remember_filter_state", "value": $("#id_remember_filter_state").is(":checked")});
 
             self.save_externalcalendars(form);
@@ -648,6 +649,7 @@ $(document).ready(function () {
         $("#id_grades_color_select").simplecolorpicker("selectColor", helium.USER_PREFS.settings.grade_color);
         $("#id_materials_color_select").simplecolorpicker("selectColor", helium.USER_PREFS.settings.material_color);
         $("#id_calendar_event_limit").prop("checked", helium.USER_PREFS.settings.calendar_event_limit);
+        $("#id_calendar_use_category_colors").prop("checked", helium.USER_PREFS.settings.calendar_use_category_colors);
         $("#id_remember_filter_state").prop("checked", helium.USER_PREFS.settings.remember_filter_state);
         $("#id_default_reminder_type").val(helium.USER_PREFS.settings.default_reminder_type);
         $("#id_default_reminder_offset").val(helium.USER_PREFS.settings.default_reminder_offset);

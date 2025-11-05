@@ -116,17 +116,32 @@
                     </span>
                 </div>
                 <div class="form-group">
-                    <label class="col-sm-4 control-label">Collapse busy days<span class="busydays-help help-button"
-                                                                                  data-rel="popover"
-                                                                                  data-trigger="hover"
-                                                                                  data-container="body"
-                                                                                  data-placement="right"
-                                                                                  data-content="Collapse additional calendar items into a &quot;+ more&quot; section instead of stretching the day's height."
-                                                                                  title="Busy Calendar Days">?</span></label>
-                    <span class="col-sm-5 col-xs-12">
+                    <label class="col-sm-4 control-label">Collapse busy days</label>
+                    <span class="col-sm-4 col-xs-12">
                     <input id="id_calendar_event_limit" name="calendar_event_limit" type="checkbox" class="ace"/>
                         <span class="lbl"></span>
                     </span>
+                    <span class="col-sm-4 busydays-help help-button"
+                          data-rel="popover"
+                          data-trigger="hover"
+                          data-container="body"
+                          data-placement="left"
+                          data-content="Collapse additional calendar items into a &quot;+ more&quot; section instead of stretching the day's height."
+                          title="Busy Calendar Days">?</span>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">Use category colors</label>
+                    <span class="col-sm-4 col-xs-12">
+                    <input id="id_calendar_use_category_colors" name="calendar_use_category_colors" type="checkbox" class="ace"/>
+                        <span class="lbl"></span>
+                    </span>
+                    <span class="col-sm-4 categorycolors-help help-button"
+                          data-rel="popover"
+                          data-trigger="hover"
+                          data-container="body"
+                          data-placement="left"
+                          data-content="Show calendar assignments with their category color instead of their class color."
+                          title="Calendar Category Colors">?</span>
                 </div>
             </div>
         </div>
