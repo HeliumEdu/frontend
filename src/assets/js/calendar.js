@@ -1126,11 +1126,11 @@ function HeliumCalendar() {
             $('.fc-toolbar .fc-prev-button').addClass('fc-state-disabled');
             $('.fc-toolbar .fc-next-button').addClass('fc-state-disabled');
 
-            $('#calendar-filter-homework').addClass('hidden');
-            $('#calendar-filter-events').addClass('hidden');
-            $('#calendar-filter-class').addClass('hidden');
-            $('#calendar-filter-external').addClass('hidden');
-            $('#calendar-filter-external').next().addClass('hidden');
+            $('#calendar-filter-homework').parent().parent().addClass('hidden');
+            $('#calendar-filter-events').parent().parent().addClass('hidden');
+            $('#calendar-filter-class').parent().parent().addClass('hidden');
+            $('#calendar-filter-external').parent().parent().addClass('hidden');
+            $('#calendar-filter-external').parent().parent().next().addClass('hidden');
 
             let filters_changed = false;
             if ($("#calendar-filter-events").is(":checked")) {
@@ -1153,11 +1153,11 @@ function HeliumCalendar() {
             $('.fc-toolbar .fc-prev-button').removeClass('fc-state-disabled');
             $('.fc-toolbar .fc-next-button').removeClass('fc-state-disabled');
 
-            $('#calendar-filter-homework').removeClass('hidden');
-            $('#calendar-filter-events').removeClass('hidden');
-            $('#calendar-filter-class').removeClass('hidden');
-            $('#calendar-filter-external').removeClass('hidden');
-            $('#calendar-filter-external').next().removeClass('hidden');
+            $('#calendar-filter-homework').parent().parent().removeClass('hidden');
+            $('#calendar-filter-events').parent().parent().removeClass('hidden');
+            $('#calendar-filter-class').parent().parent().removeClass('hidden');
+            $('#calendar-filter-external').parent().parent().removeClass('hidden');
+            $('#calendar-filter-external').parent().parent().next().removeClass('hidden');
         }
 
         $("#loading-calendar").spin(false);

@@ -217,8 +217,8 @@ function HeliumSettings() {
 
                        localStorage.removeItem("filter_courses");
 
-                       $("#status_importexport").html("Import successful.").addClass("alert-success alert-danger")
-                           .removeClass("hidden");
+                       $("#status_importexport").html("Import successful.").addClass("alert-success")
+                           .removeClass("hidden alert-danger");
 
                        $("#loading-importexport").spin(false);
                    }

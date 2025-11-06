@@ -139,10 +139,11 @@ function HeliumGrades() {
         const time_series_tag = $("#course-group-time-series-" + course_group_id);
         time_series_tag.css({"width": "100%", "height": "220px"});
 
-        if (items.length === 0) {
+        if (items.length <= 1) {
             time_series_tag.parent().parent().parent().remove();
             $("#details-for-course-group-" + course_group_id).after(
                 "<div class=\"row\"><div class=\"col-xs-12 col-sm-8 col-sm-offset-2 col-xs-12 well\">We can't calculate any grades for you if you don't have both <a href=\"/planner/classes\">classes</a> and <a href=\"/planner/calendar\">assignments</a>. Once you have those, head back here to see your grade progress!</div></div>");
+            return;
         }
 
         let time_series_data = [], time_series_details = {
@@ -178,7 +179,7 @@ function HeliumGrades() {
                 backgroundOpacity: 0.8,
                 labelFormatter: function (label, series) {
                     let checked;
-                    if (helium.grades.series_legend[series.type + '-' + series.id]) {
+                    if (helium.grades.series_legend[series.course_group_id][series.type + '-' + series.id]) {
                         checked = "checked=\"checked\"";
                     } else {
                         checked = '';
@@ -212,14 +213,15 @@ function HeliumGrades() {
                 {
                     id: item.id,
                     type: item.type,
+                    course_group_id: item.course_group_id,
                     label: "&nbsp;" + item.title,
                     data: data,
                     color: item.color,
                     lines: {
-                        show: helium.grades.series_legend[item.type + '-' + item.id]
+                        show: helium.grades.series_legend[course_group_id][item.type + '-' + item.id]
                     },
                     points: {
-                        show: helium.grades.series_legend[item.type + '-' + item.id]
+                        show: helium.grades.series_legend[course_group_id][item.type + '-' + item.id]
                     }
                 });
         });
@@ -275,9 +277,9 @@ function HeliumGrades() {
 
         $.plot("#course-group-time-series-" + course_group_id, time_series_data, time_series_details);
 
-        $("#course-group-time-series-" + course_group_id).find(".legendLabel input").change(function () {
+        $("#course-group-time-series-" + course_group_id + " .legendLabel input").change(function () {
             let split = $(this).attr("id").split("-");
-            helium.grades.series_legend[split[1] + "-" + split[2]] = $(this).is(":checked");
+            helium.grades.series_legend[course_group_id][split[1] + "-" + split[2]] = $(this).is(":checked");
 
             helium.grades.populate_time_series(course_group_id, items);
         });
@@ -380,6 +382,7 @@ $(document).ready(function () {
                                     bootbox.alert(helium.get_error_msg(data));
                                 } else {
                                     $.each(data.course_groups, function (i, course_group) {
+                                        helium.grades.course_groups[course_group.id].course_group_id = course_group.id;
                                         helium.grades.course_groups[course_group.id].grade_points =
                                             course_group.grade_points;
                                         helium.grades.course_groups[course_group.id].overall_grade =
@@ -388,12 +391,14 @@ $(document).ready(function () {
                                         helium.grades.course_groups[course_group.id].color = "#000";
 
                                         $.each(course_group['courses'], function (i, course) {
+                                            helium.grades.courses[course.id].course_group_id = course_group.id;
                                             helium.grades.courses[course.id].grade_points = course.grade_points;
                                             helium.grades.courses[course.id].overall_grade = course.overall_grade;
                                             helium.grades.courses[course.id].type = "course";
 
                                             $.each(course['categories'], function (index, category) {
                                                 helium.grades.categories[category.id] = category;
+                                                helium.grades.categories[category.id].course_group_id = course_group.id;
                                                 helium.grades.categories[category.id].course = course.id;
                                                 helium.grades.categories[category.id].type = "category";
                                             });
@@ -434,7 +439,8 @@ $(document).ready(function () {
                                                     hoverable: true
                                                 }
                                             }, default_time_series_items = [helium.grades.course_groups[id]];
-                                        helium.grades.series_legend["course_group-" + id] = true;
+                                        helium.grades.series_legend[id] = {};
+                                        helium.grades.series_legend[id]["course_group-" + id] = true;
 
                                         course_list = $("#course-group-piechart-" + id);
                                         course_list.append("<div class=\"space-24\"></div>");
@@ -445,7 +451,7 @@ $(document).ready(function () {
                                             }
 
                                             default_time_series_items.push(course);
-                                            helium.grades.series_legend["course-" + course.id] = true;
+                                            helium.grades.series_legend[id]["course-" + course.id] = true;
 
                                             course_div =
                                                 course_list.append("<div id=\"course-body-" + course.id
