@@ -18,16 +18,6 @@
 (function () {
     "use strict";
 
-    $("body").on("mouseenter", "[id^='calendar-filter-course-']", function () {
-        const element = $(this).find("span");
-        element.attr("course_color", element.attr("style")).attr("style", "color: #fff !important;");
-    });
-
-    $("body").on("mouseleave", "[id^='calendar-filter-course-']", function () {
-        const element = $(this).find("span");
-        element.attr("style", element.attr("course_color")).attr("course_color", null);
-    });
-
     $("body").on("click", "#create-homework", function () {
         helium.calendar.add_calendar_item_btn(helium.calendar.last_good_date, helium.calendar.last_good_end_date, null,
                                               null, 1);

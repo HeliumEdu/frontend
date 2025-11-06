@@ -147,10 +147,6 @@ function HeliumGrades() {
 
         let time_series_data = [], time_series_details = {
             shadowSize: 0,
-            series: {
-                lines: {show: true},
-                points: {show: true}
-            },
             xaxis: {
                 tickLength: 0,
                 mode: "time",
@@ -181,7 +177,17 @@ function HeliumGrades() {
                 position: "se",
                 backgroundOpacity: 0.8,
                 labelFormatter: function (label, series) {
-                    return '<div class="checkbox-inline"><input type="checkbox" id="legend-' + series.type + '-' + series.id + '"/><span class="color-dot inline" style="background-color: ' + series.color + '\"/><label for="legend-' + series.type + '-' + series.id + '">' + label + '</label></div>';
+                    let checked;
+                    if (helium.grades.series_legend[series.type + '-' + series.id]) {
+                        checked = "checked=\"checked\"";
+                    } else {
+                        checked = '';
+                    }
+
+                    return '<label><input type="checkbox" id="legend-' + series.type + '-' + series.id
+                           + '" class="ace" ' + checked
+                           + '/><span class="lbl smaller-80"> <span class="color-dot inline" style="background-color: '
+                           + series.color + '\"/>' + label + '</span></label>';
                 }
             }
         }
@@ -208,7 +214,13 @@ function HeliumGrades() {
                     type: item.type,
                     label: "&nbsp;" + item.title,
                     data: data,
-                    color: item.color
+                    color: item.color,
+                    lines: {
+                        show: helium.grades.series_legend[item.type + '-' + item.id]
+                    },
+                    points: {
+                        show: helium.grades.series_legend[item.type + '-' + item.id]
+                    }
                 });
         });
 
@@ -263,40 +275,12 @@ function HeliumGrades() {
 
         $.plot("#course-group-time-series-" + course_group_id, time_series_data, time_series_details);
 
-        $("#course-group-time-series-" + course_group_id).find(".legendLabel checkbox").change(function () {
+        $("#course-group-time-series-" + course_group_id).find(".legendLabel input").change(function () {
+            let split = $(this).attr("id").split("-");
+            helium.grades.series_legend[split[1] + "-" + split[2]] = $(this).is(":checked");
+
             helium.grades.populate_time_series(course_group_id, items);
         });
-
-        // Insert checkbox to legend
-        //
-        // const choiceContainer = $("#choices");
-        // $.each(time_series_data, function (key, val) {
-        //     choiceContainer.append('<br/><input type="checkbox" name="' + key +
-        //                            '" checked="checked" id="id' + key + '">' +
-        //                            '<label for="id' + key + '">'
-        //                            + val.label + '</label>');
-        // });
-        // choiceContainer.find("input").click(plot_according_to_choices);
-        //
-        // function plot_according_to_choices() {
-        //     let data = [];
-        //
-        //     choiceContainer.find("input:checked").each(function () {
-        //         var key = $(this).attr("name");
-        //         if (key && datasets[key]) {
-        //             data.push(datasets[key]);
-        //         }
-        //     });
-        //
-        //     if (data.length > 0) {
-        //         $.plot($("#placeholder"), data, {
-        //             yaxis: {min: 0},
-        //             xaxis: {tickDecimals: 0}
-        //         });
-        //     }
-        // }
-        //
-        // plot_according_to_choices();
     }
 }
 
@@ -450,6 +434,7 @@ $(document).ready(function () {
                                                     hoverable: true
                                                 }
                                             }, default_time_series_items = [helium.grades.course_groups[id]];
+                                        helium.grades.series_legend["course_group-" + id] = true;
 
                                         course_list = $("#course-group-piechart-" + id);
                                         course_list.append("<div class=\"space-24\"></div>");
@@ -460,6 +445,7 @@ $(document).ready(function () {
                                             }
 
                                             default_time_series_items.push(course);
+                                            helium.grades.series_legend["course-" + course.id] = true;
 
                                             course_div =
                                                 course_list.append("<div id=\"course-body-" + course.id
