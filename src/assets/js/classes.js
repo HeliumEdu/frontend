@@ -20,13 +20,13 @@ function HeliumClasses() {
     "use strict";
 
     this.CATEGORY_SUGGESTIONS = [
-        {value: "Homework 👨🏽‍💻", color: helium.PREFERRED_COLORS[0], tokens: ["Homework 👨🏽‍💻"]},
-        {value: "Final Exam 📈", color: helium.PREFERRED_COLORS[6], tokens: ["Final Exam 📈"]},
-        {value: "Midterm 📈", color: helium.PREFERRED_COLORS[12], tokens: ["Midterm 📈"]},
-        {value: "Project 🔨", color: helium.PREFERRED_COLORS[18], tokens: ["Project 🔨"]},
-        {value: "Quiz 💡", color: helium.PREFERRED_COLORS[24], tokens: ["Quiz 💡"]},
-        {value: "Reading 📖", color: helium.PREFERRED_COLORS[30], tokens: ["Reading 📖"]},
-        {value: "Lab 🧪", color: helium.PREFERRED_COLORS[36], tokens: ["Lab 🧪"]},
+        {value: "Homework 👨🏽‍💻", color: helium.PREFERRED_COLORS[2], tokens: ["Homework 👨🏽‍💻"]},
+        {value: "Final Exam 📈", color: helium.PREFERRED_COLORS[8], tokens: ["Final Exam 📈"]},
+        {value: "Midterm 📈", color: helium.PREFERRED_COLORS[14], tokens: ["Midterm 📈"]},
+        {value: "Project 🔨", color: helium.PREFERRED_COLORS[20], tokens: ["Project 🔨"]},
+        {value: "Quiz 💡", color: helium.PREFERRED_COLORS[26], tokens: ["Quiz 💡"]},
+        {value: "Reading 📖", color: helium.PREFERRED_COLORS[32], tokens: ["Reading 📖"]},
+        {value: "Lab 🧪", color: helium.PREFERRED_COLORS[38], tokens: ["Lab 🧪"]},
     ];
 
     this.course_group_table = {};
