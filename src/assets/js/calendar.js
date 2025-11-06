@@ -1819,13 +1819,18 @@ function HeliumCalendar() {
                 calendar_item.id =
                     calendar_item.calendar_item_type === 0 ? "event_" + calendar_item.id : calendar_item.id;
 
-                const homework_color = helium.USER_PREFS.settings.calendar_use_category_colors
-                                       ? helium.calendar.categories[calendar_item.category].color
-                                       : helium.calendar.courses[calendar_item.course].color;
+                let color;
+                if (calendar_item.calendar_item_type === 1) {
+                    color = helium.USER_PREFS.settings.calendar_use_category_colors
+                                           ? helium.calendar.categories[calendar_item.category].color
+                                           : helium.calendar.courses[calendar_item.course].color;
+                } else {
+                    color = helium.USER_PREFS.settings.events_color
+                }
 
                 $("#calendar").fullCalendar("renderEvent", {
                     id: calendar_item.id,
-                    color: calendar_item.calendar_item_type === 1 ? homework_color : helium.USER_PREFS.settings.events_color,
+                    color: color,
                     checkbox: calendar_item.calendar_item_type === 1 ? helium.calendar.get_calendar_item_checkbox(
                         calendar_item) : "",
                     title: helium.calendar.get_calendar_item_title(calendar_item),
@@ -2242,13 +2247,18 @@ function HeliumCalendar() {
                         calendar_item.id =
                             calendar_item.calendar_item_type === 0 ? "event_" + calendar_item.id : calendar_item.id;
 
-                        const homework_color = helium.USER_PREFS.settings.calendar_use_category_colors
-                                               ? helium.calendar.categories[calendar_item.category].color
-                                               : helium.calendar.courses[calendar_item.course].color;
+                        let color;
+                        if (calendar_item.calendar_item_type === 1) {
+                            color = helium.USER_PREFS.settings.calendar_use_category_colors
+                                    ? helium.calendar.categories[calendar_item.category].color
+                                    : helium.calendar.courses[calendar_item.course].color;
+                        } else {
+                            color = helium.USER_PREFS.settings.events_color
+                        }
 
                         $("#calendar").fullCalendar("renderEvent", {
                             id: calendar_item.id,
-                            color: calendar_item.calendar_item_type === 1 ? homework_color : helium.USER_PREFS.settings.events_color,
+                            color: color,
                             checkbox: calendar_item.calendar_item_type === 1
                                       ? helium.calendar.get_calendar_item_checkbox(
                                     calendar_item) : "",
@@ -2377,12 +2387,16 @@ function HeliumCalendar() {
         calendar_item.start = moment(calendar_item.start).tz(helium.USER_PREFS.settings.time_zone);
         calendar_item.end = moment(calendar_item.end).tz(helium.USER_PREFS.settings.time_zone);
 
-        const homework_color = helium.USER_PREFS.settings.calendar_use_category_colors
-                               ? helium.calendar.categories[calendar_item.category].color
-                               : helium.calendar.courses[calendar_item.course].color;
+        let color;
+        if (calendar_item.calendar_item_type === 1) {
+            color = helium.USER_PREFS.settings.calendar_use_category_colors
+                    ? helium.calendar.categories[calendar_item.category].color
+                    : helium.calendar.courses[calendar_item.course].color;
+        } else {
+            color = helium.USER_PREFS.settings.events_color
+        }
 
-        self.current_calendar_item.color =
-            calendar_item.calendar_item_type === 1 ? homework_color : helium.USER_PREFS.settings.events_color;
+        self.current_calendar_item.color = color;
         self.current_calendar_item.checkbox =
             calendar_item.calendar_item_type === 1 ? helium.calendar.get_calendar_item_checkbox(calendar_item) : "";
         self.current_calendar_item.title = helium.calendar.get_calendar_item_title(calendar_item);
