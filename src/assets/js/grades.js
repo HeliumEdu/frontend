@@ -23,6 +23,7 @@ function HeliumGrades() {
     this.courses = {};
     this.categories = {};
     this.today = new Date();
+    this.series_legend = {}
 
     /*******************************************
      * Functions
@@ -128,16 +129,174 @@ function HeliumGrades() {
                 + (parseFloat(data.overall_grade) != -1 ? (parseFloat(data.overall_grade).toFixed(2) + '% '
                 + helium.grades.get_trend_arrow(data.trend)) : "N/A")
                 + '</span> <i class="icon-chevron-up"></i></div></a></div><div class="widget-body"><div class="widget-main">'
-                + '<div id="course-group-time-series-'
-                + data.id
-                + '" style="width: 100%; height: 220px; padding: 0px; position: relative;"> <canvas class="flot-base" width="942" height="220" style="direction: ltr; position: absolute; left: 0px; top: 0px; width: 942px; height: 220px;"></canvas> <div class="flot-text" style="position: absolute; top: 0px; left: 0px; bottom: 0px; right: 0px; font-size: smaller; color: rgb(84, 84, 84);"><div class="flot-y-axis flot-y1-axis yAxis y1Axis" style="position: absolute; top: 0px; left: 0px; bottom: 0px; right: 0px; display: block;"><div class="flot-tick-label tickLabel" style="position: absolute; top: 190px; left: 7px; text-align: right;">50%</div><div class="flot-tick-label tickLabel" style="position: absolute; top: 152px; left: 7px; text-align: right;">60%</div><div class="flot-tick-label tickLabel" style="position: absolute; top: 114px; left: 7px; text-align: right;">70%</div><div class="flot-tick-label tickLabel" style="position: absolute; top: 76px; left: 7px; text-align: right;">80%</div><div class="flot-tick-label tickLabel"style="position: absolute; top: 38px; left: 7px; text-align: right;">90%</div><div class="flot-tick-label tickLabel"style="position: absolute; top: 0px; left: 1px; text-align: right;">100%</div></div></div><canvas class="flot-overlay" width="942" height="220" style="direction: ltr; position: absolute; left: 0px; top: 0px; width: 942px; height: 220px;"></canvas><div class="legend"><div style="position: absolute; width: 185px; height: 120px; top: 13px; right: 23px; opacity: 0.85; background-color: rgb(255, 255, 255);"></div><table style="position:absolute;top:13px;right:23px;;font-size:smaller;color:#545454"><tbody></tbody></table></div></div></div></div></div></div></div>');
+                + '<div id="course-group-time-series-' + data.id + '"></div></div></div></div></div></div>');
             container.append(
                 '<div class="row"><div class="col-xs-12" id="course-group-piechart-' + data.id + '"></div></div>');
         }
     };
 
-    this.populate_time_series = function (course_group_id, data) {
+    this.populate_time_series = function (course_group_id, items) {
+        const time_series_tag = $("#course-group-time-series-" + course_group_id);
+        time_series_tag.css({"width": "100%", "height": "220px"});
 
+        if (items.length === 0) {
+            time_series_tag.parent().parent().parent().remove();
+            $("#details-for-course-group-" + course_group_id).after(
+                "<div class=\"row\"><div class=\"col-xs-12 col-sm-8 col-sm-offset-2 col-xs-12 well\">We can't calculate any grades for you if you don't have both <a href=\"/planner/classes\">classes</a> and <a href=\"/planner/calendar\">assignments</a>. Once you have those, head back here to see your grade progress!</div></div>");
+        }
+
+        let time_series_data = [], time_series_details = {
+            shadowSize: 0,
+            series: {
+                lines: {show: true},
+                points: {show: true}
+            },
+            xaxis: {
+                tickLength: 0,
+                mode: "time",
+                minTickSize: [1, "day"]
+            },
+            yaxis: {
+                ticks: 5,
+                min: 50,
+                max: 100,
+                tickFormatter: function (val) {
+                    return val + "%&nbsp;";
+                }
+            },
+            grid: {
+                backgroundColor: {colors: ["#fff", "#fff"]},
+                borderWidth: 1,
+                borderColor: "#555",
+                hoverable: true,
+                clickable: true,
+                markings: [{
+                    xaxis: {from: helium.grades.today, to: helium.grades.today},
+                    color: "#ff0000",
+                    lineWidth: 1
+                }]
+            },
+            legend: {
+                show: true,
+                position: "se",
+                backgroundOpacity: 0.8,
+                labelFormatter: function (label, series) {
+                    return '<div class="checkbox-inline"><input type="checkbox" id="legend-' + series.type + '-' + series.id + '"/><span class="color-dot inline" style="background-color: ' + series.color + '\"/><label for="legend-' + series.type + '-' + series.id + '">' + label + '</label></div>';
+                }
+            }
+        }
+
+        $.each(items, function (i, item) {
+            let data = [];
+            $.each(item['grade_points'], function (i, grade) {
+                data.push(
+                    [
+                        new Date(grade[0]),
+                        grade[1],
+                        {
+                            id: grade[2],
+                            title: grade[3],
+                            grade: grade[4],
+                            category_id: grade[5]
+                        }
+                    ]);
+            });
+
+            time_series_data.push(
+                {
+                    id: item.id,
+                    type: item.type,
+                    label: "&nbsp;" + item.title,
+                    data: data,
+                    color: item.color
+                });
+        });
+
+        time_series_tag.bind("plothover", function (event, pos, item) {
+            if (item) {
+                if (!helium.grades.hovered_item ||
+                    (item.seriesIndex !== helium.grades.hovered_item.seriesIndex
+                     && item.dataIndex !== helium.grades.hovered_item.dataIndex)) {
+                    helium.grades.hovered_item = item;
+
+                    $(this).css('cursor', 'pointer');
+                    const point_data = item.series.data[item.dataIndex];
+                    const homework_grade = (Math.round(point_data[2].grade * 100)
+                                            / 100) + "%";
+                    const point_grade = (Math.round(point_data[1] * 100) / 100)
+                                        + "%";
+
+                    time_series_tag.qtip(
+                        {
+                            position: {
+                                target: [pos.pageX, pos.pageY],
+                                adjust: {
+                                    x: 5,
+                                    y: 5
+                                },
+                            },
+                            content: point_data[2].title
+                                     + " <span class=\"color-dot inline\" style=\"background-color: "
+                                     + helium.grades.categories[point_data[2].category_id].color
+                                     + "\"></span> (" + homework_grade
+                                     + ")<br/>Class Grade: "
+                                     + point_grade,
+                            show: true,
+                            style: {classes: "qtip-bootstrap hidden-print"}
+                        });
+                }
+            } else {
+                $(this).css('cursor', 'default');
+                helium.grades.hovered_item = null;
+                time_series_tag.qtip('hide', helium.QTIP_HIDE_INTERVAL);
+            }
+        });
+
+        time_series_tag.bind("plotclick", function (event, pos, item) {
+            if (item) {
+                const point_data = item.series.data[item.dataIndex];
+                const homework_id = point_data[2].id;
+                localStorage.setItem("edit_calendar_item", homework_id);
+                window.location = "/planner/calendar";
+            }
+        });
+
+        $.plot("#course-group-time-series-" + course_group_id, time_series_data, time_series_details);
+
+        $("#course-group-time-series-" + course_group_id).find(".legendLabel checkbox").change(function () {
+            helium.grades.populate_time_series(course_group_id, items);
+        });
+
+        // Insert checkbox to legend
+        //
+        // const choiceContainer = $("#choices");
+        // $.each(time_series_data, function (key, val) {
+        //     choiceContainer.append('<br/><input type="checkbox" name="' + key +
+        //                            '" checked="checked" id="id' + key + '">' +
+        //                            '<label for="id' + key + '">'
+        //                            + val.label + '</label>');
+        // });
+        // choiceContainer.find("input").click(plot_according_to_choices);
+        //
+        // function plot_according_to_choices() {
+        //     let data = [];
+        //
+        //     choiceContainer.find("input:checked").each(function () {
+        //         var key = $(this).attr("name");
+        //         if (key && datasets[key]) {
+        //             data.push(datasets[key]);
+        //         }
+        //     });
+        //
+        //     if (data.length > 0) {
+        //         $.plot($("#placeholder"), data, {
+        //             yaxis: {min: 0},
+        //             xaxis: {tickDecimals: 0}
+        //         });
+        //     }
+        // }
+        //
+        // plot_according_to_choices();
     }
 }
 
@@ -170,7 +329,8 @@ $(document).ready(function () {
                     bootbox.alert(helium.get_error_msg(data));
                 } else {
                     $.each(data, function (i, course_group) {
-                        helium.grades.course_groups[course_group.id] = course_group
+                        helium.grades.course_groups[course_group.id] = course_group;
+                        helium.grades.course_groups[course_group.id].type = "course_group";
 
                         helium.grades.add_course_group_to_page(course_group);
                     });
@@ -240,19 +400,22 @@ $(document).ready(function () {
                                             course_group.grade_points;
                                         helium.grades.course_groups[course_group.id].overall_grade =
                                             course_group.overall_grade;
+                                        helium.grades.course_groups[course_group.id].title = "Overall Grade";
+                                        helium.grades.course_groups[course_group.id].color = "#000";
 
                                         $.each(course_group['courses'], function (i, course) {
                                             helium.grades.courses[course.id].grade_points = course.grade_points;
                                             helium.grades.courses[course.id].overall_grade = course.overall_grade;
+                                            helium.grades.courses[course.id].type = "course";
 
                                             $.each(course['categories'], function (index, category) {
                                                 helium.grades.categories[category.id] = category;
                                                 helium.grades.categories[category.id].course = course.id;
+                                                helium.grades.categories[category.id].type = "category";
                                             });
                                         });
                                     });
 
-                                    // Build time series data
                                     $("div[id^='course-group-container-']").each(function () {
                                         let id = parseInt(
                                                 $(this).attr("id").split("course-group-container-")[1].split("_")[0]),
@@ -286,136 +449,17 @@ $(document).ready(function () {
                                                 grid: {
                                                     hoverable: true
                                                 }
-                                            };
-
-                                        let time_series_data = [], time_series_details = {
-                                            shadowSize: 0,
-                                            series: {
-                                                lines: {show: true},
-                                                points: {show: true}
-                                            },
-                                            xaxis: {
-                                                tickLength: 0,
-                                                mode: "time",
-                                                minTickSize: [1, "day"]
-                                            },
-                                            yaxis: {
-                                                ticks: 5,
-                                                min: 50,
-                                                max: 100,
-                                                tickFormatter: function (val) {
-                                                    return val + "%&nbsp;";
-                                                }
-                                            },
-                                            grid: {
-                                                backgroundColor: {colors: ["#fff", "#fff"]},
-                                                borderWidth: 1,
-                                                borderColor: "#555",
-                                                hoverable: true,
-                                                clickable: true,
-                                                markings: [{
-                                                    xaxis: {from: helium.grades.today, to: helium.grades.today},
-                                                    color: "#ff0000",
-                                                    lineWidth: 1
-                                                }]
-                                            },
-                                            legend: {
-                                                position: "se"
-                                            }
-                                        }
-                                        const time_series_tag = $("#course-group-time-series-" + id);
-                                        time_series_tag.css({"width": "100%", "height": "220px"});
-
-                                        $.each(helium.grades.courses, function (i, course) {
-                                            if (course.course_group !== id) {
-                                                return true;
-                                            }
-
-                                            let data = []
-                                            $.each(course['grade_points'], function (i, grade) {
-                                                data.push(
-                                                    [
-                                                        new Date(grade[0]),
-                                                        grade[1],
-                                                        {
-                                                            id: grade[2],
-                                                            title: grade[3],
-                                                            grade: grade[4],
-                                                            category_id: grade[5]
-                                                        }
-                                                    ]);
-                                            });
-
-                                            time_series_data.push(
-                                                {
-                                                    label: "&nbsp;" + course.title,
-                                                    data: data,
-                                                    color: course.color
-                                                });
-
-                                            $.plot("#course-group-time-series-" + id, time_series_data,
-                                                   time_series_details);
-
-                                            time_series_tag.bind("plothover", function (event, pos, item) {
-                                                if (item) {
-                                                    if (!helium.grades.hovered_item ||
-                                                        (item.seriesIndex !== helium.grades.hovered_item.seriesIndex
-                                                         && item.dataIndex !== helium.grades.hovered_item.dataIndex)) {
-                                                        helium.grades.hovered_item = item;
-
-                                                        $(this).css('cursor', 'pointer');
-                                                        const point_data = item.series.data[item.dataIndex];
-                                                        const homework_grade = (Math.round(point_data[2].grade * 100)
-                                                                                / 100) + "%";
-                                                        const point_grade = (Math.round(point_data[1] * 100) / 100)
-                                                                            + "%";
-
-                                                        time_series_tag.qtip(
-                                                            {
-                                                                position: {
-                                                                    target: [pos.pageX, pos.pageY],
-                                                                    adjust: {
-                                                                        x: 5,
-                                                                        y: 5
-                                                                    },
-                                                                },
-                                                                content: point_data[2].title
-                                                                         + " <span class=\"color-dot inline\" style=\"background-color: "
-                                                                         + helium.grades.categories[point_data[2].category_id].color
-                                                                         + "\"></span> (" + homework_grade
-                                                                         + ")<br/>Class Grade: "
-                                                                         + point_grade,
-                                                                show: true,
-                                                                style: {classes: "qtip-bootstrap hidden-print"}
-                                                            });
-                                                    }
-                                                } else {
-                                                    $(this).css('cursor', 'default');
-                                                    helium.grades.hovered_item = null;
-                                                    time_series_tag.qtip('hide', helium.QTIP_HIDE_INTERVAL);
-                                                }
-                                            });
-
-                                            time_series_tag.bind("plotclick", function (event, pos, item) {
-                                                if (item) {
-                                                    const point_data = item.series.data[item.dataIndex];
-                                                    const homework_id = point_data[2].id;
-                                                    localStorage.setItem("edit_calendar_item", homework_id);
-                                                    window.location = "/planner/calendar";
-                                                }
-                                            });
-                                        });
+                                            }, default_time_series_items = [helium.grades.course_groups[id]];
 
                                         course_list = $("#course-group-piechart-" + id);
                                         course_list.append("<div class=\"space-24\"></div>");
 
-                                        let num_courses = 0;
                                         $.each(helium.grades.courses, function (i, course) {
                                             if (course.course_group !== id) {
                                                 return true;
                                             }
 
-                                            num_courses += 1;
+                                            default_time_series_items.push(course);
 
                                             course_div =
                                                 course_list.append("<div id=\"course-body-" + course.id
@@ -528,11 +572,7 @@ $(document).ready(function () {
                                             }
                                         });
 
-                                        if (num_courses === 0) {
-                                            time_series_tag.parent().parent().parent().remove();
-                                            $("#details-for-course-group-" + id).after(
-                                                "<div class=\"row\"><div class=\"col-xs-12 col-sm-8 col-sm-offset-2 col-xs-12 well\">We can't calculate any grades for you if you don't have both <a href=\"/planner/classes\">classes</a> and <a href=\"/planner/calendar\">assignments</a>. Once you have those, head back here to see your grade progress!</div></div>");
-                                        }
+                                        helium.grades.populate_time_series(id, default_time_series_items);
                                     });
 
                                     $("#loading-grades").spin(false);
@@ -540,8 +580,6 @@ $(document).ready(function () {
                                     if ($("#course-group-tabs a").length === 0) {
                                         $("#no-grades-tab").addClass("active");
                                     }
-
-                                    helium.grades.populate_time_series(course_group_id, data);
                                 }
                             });
                         }
