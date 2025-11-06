@@ -15,6 +15,22 @@ body, html {
 Containers and Content
 ****************/
 
+.sp-container {
+    z-index: 1029;
+}
+
+.sp-container button {
+    font-size: unset;
+    line-height: unset;
+    border: unset;
+    border-radius: unset;
+}
+
+.sp-container, .sp-replacer {
+    background: #fff;
+    border: solid 1px #858585;
+}
+
 .widget-header-small > .widget-caption, .widget-header-small > :first-child {
     line-height: 36px;
 }
@@ -125,17 +141,6 @@ footer ul li {
 /****************
 Adjust library components
 ****************/
-
-.simplecolorpicker {
-    margin-top: 5px;
-    border-radius: .25em;
-    width: 20px;
-}
-
-.simplecolorpicker span.color {
-    border-radius: .25em;
-    width: 20px;
-}
 
 .course-preview-color {
     display: inline-block;

@@ -93,7 +93,7 @@
         ],
         "settings": [
             "/js/vendors/bootstrap-editable.js",
-            "/js/vendors/jquery.simplecolorpicker.js",
+            "/js/vendors/spectrum.js",
             "/js/settings.js"
         ],
         "planner_calendar": [
@@ -119,7 +119,7 @@
             "/js/vendors/typeaheadjs.js",
             "/js/vendors/jquery.dataTables.js",
             "/js/vendors/jquery.dataTables.bootstrap.js",
-            "/js/vendors/jquery.simplecolorpicker.js",
+            "/js/vendors/spectrum.js",
             "/js/vendors/dropzone.js",
             "/js/classes.js",
             "/js/classes-triggers.js"
@@ -146,16 +146,14 @@
     "page_stylesheet_pre_base": {
         "settings": [
             "/css/vendors/bootstrap-editable.css",
-            "/css/vendors/jquery.simplecolorpicker.css",
-            "/css/vendors/jquery.simplecolorpicker-glyphicons.css"
+            "/css/vendors/spectrum.css"
         ],
         "planner_calendar": [
             "/css/vendors/bootstrap-editable.css",
             "/css/vendors/fullcalendar.css",
             "/css/vendors/datepicker.css",
             "/css/vendors/bootstrap-timepicker.css",
-            "/css/vendors/jquery.simplecolorpicker.css",
-            "/css/vendors/jquery.simplecolorpicker-glyphicons.css",
+            "/css/vendors/spectrum.css",
             "/css/vendors/dropzone.css",
             "/css/vendors/jquery.qtip.css"
         ],
@@ -164,8 +162,7 @@
             "/css/vendors/typeahead.js-bootstrap.css",
             "/css/vendors/datepicker.css",
             "/css/vendors/bootstrap-timepicker.css",
-            "/css/vendors/jquery.simplecolorpicker.css",
-            "/css/vendors/jquery.simplecolorpicker-glyphicons.css",
+            "/css/vendors/spectrum.css",
             "/css/vendors/dropzone.css"
         ],
         "planner_grades": [

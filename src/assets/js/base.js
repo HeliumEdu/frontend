@@ -89,6 +89,34 @@ function Helium() {
         top: "3px",
         left: "5px"
     };
+    this.COLOR_PICKER_DEFAULTS = {
+        showPaletteOnly: true,
+        togglePaletteOnly: true,
+        containerClassName: "spectrum-container",
+        togglePaletteMoreText: "More",
+        togglePaletteLessText: "Less",
+        chooseText: "Select",
+        cancelText: "Cancel",
+        palette: [
+            ["#87B8D4", "#65A4C8", "#438EB9",
+             "#37769A", "#2B5C78", "#1F4256"],
+            ["#A387D4", "#8965C8", "#6E43B9",
+             "#5B379A", "#472B78", "#331F56"],
+            ["#D4A387", "#C88965", "#B96E43",
+             "#9A5B37", "#78472B", "#56331F"],
+            ["#B8D487", "#A4C865", "#8EB943",
+             "#769A37", "#5C782B", "#42561F"],
+            ["#D487B8", "#C865A4", "#B9438E",
+             "#9A3776", "#782B5C", "#561F42"],
+            ["#C8BA65", "#BBAB44", "#9A8D37",
+             "#786E2B", "#564F1F", "#343013"],
+            ["#D48791", "#C86572", "#B94353",
+             "#9A3745", "#782B35", "#561F26"]
+        ],
+    }
+    this.PREFERRED_COLORS = $.map(this.COLOR_PICKER_DEFAULTS.palette, function (innerList) {
+        return innerList;
+    });
 
     // Persistence objects within Helium
     this.ajax_calls = [];
@@ -98,6 +126,12 @@ function Helium() {
     this.calendar = null;
     this.materials = null;
     this.grades = null;
+
+    this.get_random_color = function () {
+        const index = Math.floor(Math.random() * this.PREFERRED_COLORS.length);
+
+        return this.PREFERRED_COLORS[index];
+    }
 
     /**
      * Check if the access token currently in localStorage has expired and needs refreshed.

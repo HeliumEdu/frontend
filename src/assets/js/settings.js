@@ -89,17 +89,15 @@ function HeliumSettings() {
             + '/><span class="lbl" />'));
         row.append(
             $('<td>')
-                .append($('<select class="hide color-picker">' + $("#id_events_color_select").html() + '</select>')));
+                .append($("<input type=\"text\" class=\"color-picker\" />")));
         row.append($('<td class="hidden-xs">').append(
             '<div class="btn-group"><button type="button" aria-label="Delete External Calendar" class="btn btn-xs btn-danger delete-externalcalendar"><i class="icon-trash bigger-120"></i></button></div></td></tr>'));
 
         $("#externalcalendars-table-body").append(row);
 
-        row.find(".color-picker").simplecolorpicker({
-                                                        picker: true,
-                                                        theme: "glyphicons"
-                                                    });
-        row.find(".color-picker").simplecolorpicker("selectColor", color);
+        row.find(".color-picker").spectrum(helium.COLOR_PICKER_DEFAULTS);
+        $("body").find(".sp-container button").addClass("btn btn-xs btn-primary");
+        row.find(".color-picker").spectrum("set", color);
         row.find(".external-title").editable({
                                                  type: "text",
                                                  tpl: '<input type="text" maxlength="255">',
@@ -148,7 +146,7 @@ function HeliumSettings() {
             const data = {
                 title: $(this).find(".external-title").html(),
                 url: $(this).find(".external-url").html(),
-                color: $(this).find(".color-picker").val(),
+                color: $(this).find(".color-picker").spectrum("get").toHexString(),
                 shown_on_calendar: $(this).find(".shown-on-calendar").is(":checked")
             };
             if (id === "null") {
@@ -180,8 +178,7 @@ function HeliumSettings() {
     $("#create-externalcalendar").on("click", function () {
         self.create_externalcalendar("null", 'Holidays',
                                      'https://calendar.google.com/calendar/ical/en.usa%23holiday%40group.v.calendar.google.com/public/basic.ics',
-                                     false, $($("#id_events_color_select option")[Math.floor(
-                Math.random() * $("#id_color_select option").length)]).val());
+                                     false, helium.get_random_color());
     });
 
     $("#importexport-form").submit(function (e) {
@@ -246,9 +243,9 @@ function HeliumSettings() {
                           "value": helium.USER_PREFS.settings.receive_emails_from_admin
                       });
             data.push({"name": "private_slug", "value": helium.USER_PREFS.settings.private_slug});
-            data.push({"name": "events_color", "value": $("#id_events_color_select").val()});
-            data.push({"name": "grade_color", "value": $("#id_grades_color_select").val()});
-            data.push({"name": "material_color", "value": $("#id_materials_color_select").val()});
+            data.push({"name": "events_color", "value": $("#id_events_color_select").spectrum("get").toHexString()});
+            data.push({"name": "grade_color", "value": $("#id_grades_color_select").spectrum("get").toHexString()});
+            data.push({"name": "material_color", "value": $("#id_materials_color_select").spectrum("get").toHexString()});
             data.push({"name": "calendar_event_limit", "value": $("#id_calendar_event_limit").is(":checked")});
             data.push({"name": "calendar_use_category_colors", "value": $("#id_calendar_use_category_colors").is(":checked")});
             data.push({"name": "remember_filter_state", "value": $("#id_remember_filter_state").is(":checked")});
@@ -624,9 +621,11 @@ $(document).ready(function () {
             $("#id_phone_carrier").chosen({width: "100%", search_contains: true, no_results_text: "No carriers match"});
             $("#id_time_zone").chosen({width: "100%", search_contains: true, no_results_text: "No time zones match"});
         }
-        $("#id_events_color_select").simplecolorpicker({picker: true, theme: "glyphicons"});
-        $("#id_grades_color_select").simplecolorpicker({picker: true, theme: "glyphicons"});
-        $("#id_materials_color_select").simplecolorpicker({picker: true, theme: "glyphicons"});
+        $("#id_events_color_select").spectrum(helium.COLOR_PICKER_DEFAULTS);
+        $("#id_grades_color_select").spectrum(helium.COLOR_PICKER_DEFAULTS);
+        $("#id_materials_color_select").spectrum(helium.COLOR_PICKER_DEFAULTS);
+
+        $("body").find(".sp-container button").addClass("btn btn-xs btn-primary");
 
         $(".privatefeeds-help").on("click", function () {
             window.open("https://support.google.com/calendar/answer/37100?hl=en&co=GENIE.Platform%3DDesktop");
@@ -645,9 +644,9 @@ $(document).ready(function () {
         $("#id_time_zone").val(helium.USER_PREFS.settings.time_zone);
         $("#id_time_zone").trigger("chosen:updated");
         $("#id_time_zone").trigger("change");
-        $("#id_events_color_select").simplecolorpicker("selectColor", helium.USER_PREFS.settings.events_color);
-        $("#id_grades_color_select").simplecolorpicker("selectColor", helium.USER_PREFS.settings.grade_color);
-        $("#id_materials_color_select").simplecolorpicker("selectColor", helium.USER_PREFS.settings.material_color);
+        $("#id_events_color_select").spectrum("set", helium.USER_PREFS.settings.events_color);
+        $("#id_grades_color_select").spectrum("set", helium.USER_PREFS.settings.grade_color);
+        $("#id_materials_color_select").spectrum("set", helium.USER_PREFS.settings.material_color);
         $("#id_calendar_event_limit").prop("checked", helium.USER_PREFS.settings.calendar_event_limit);
         $("#id_calendar_use_category_colors").prop("checked", helium.USER_PREFS.settings.calendar_use_category_colors);
         $("#id_remember_filter_state").prop("checked", helium.USER_PREFS.settings.remember_filter_state);

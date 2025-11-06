@@ -20,14 +20,13 @@ function HeliumClasses() {
     "use strict";
 
     this.CATEGORY_SUGGESTIONS = [
-        {value: "Assignment", color: "#16a765", tokens: ["Assignment"]},
-        {value: "Exam", color: "#ac725e", tokens: ["Exam"]},
-        {value: "Final Exam", color: "#f691b2", tokens: ["Final Exam"]},
-        {value: "Midterm", color: "#9fe1e7", tokens: ["Midterm"]},
-        {value: "Project", color: "#f83a22", tokens: ["Project"]},
-        {value: "Quiz", color: "#b99aff", tokens: ["Quiz"]},
-        {value: "Reading", color: "#ffad46", tokens: ["Reading"]},
-        {value: "Report", color: "#9fc6e7", tokens: ["Report"]},
+        {value: "Homework 👨🏽‍💻", color: helium.PREFERRED_COLORS[0], tokens: ["Homework 👨🏽‍💻"]},
+        {value: "Final Exam 📈", color: helium.PREFERRED_COLORS[6], tokens: ["Final Exam 📈"]},
+        {value: "Midterm 📈", color: helium.PREFERRED_COLORS[12], tokens: ["Midterm 📈"]},
+        {value: "Project 🔨", color: helium.PREFERRED_COLORS[18], tokens: ["Project 🔨"]},
+        {value: "Quiz 💡", color: helium.PREFERRED_COLORS[24], tokens: ["Quiz 💡"]},
+        {value: "Reading 📖", color: helium.PREFERRED_COLORS[30], tokens: ["Reading 📖"]},
+        {value: "Lab 🧪", color: helium.PREFERRED_COLORS[36], tokens: ["Lab 🧪"]},
     ];
 
     this.course_group_table = {};
@@ -148,7 +147,8 @@ function HeliumClasses() {
         let total_weights_row;
 
         if (total_weights > 0) {
-            total_weights_row = $("<tr><td id=\"course-total-weight-percent-row\" class=\"align-right\"></td><td></td><td></td><td></td></tr>");
+            total_weights_row =
+                $("<tr><td id=\"course-total-weight-percent-row\" class=\"align-right\"></td><td></td><td></td><td></td></tr>");
             if ($("#categories-table-end-placeholder").next().length === 0) {
                 $("#categories-table-end-placeholder").after(total_weights_row);
             } else {
@@ -189,20 +189,18 @@ function HeliumClasses() {
             "<tr id=\"category-" + category.id + unsaved_string + "\">"
             + "<td><a class=\"cursor-hover\" data-type=\"typeaheadjs\" id=\"category-" + category.id + unsaved_string
             + "-type\">" + category.title + "</a></td>" + "<td><a class=\"cursor-hover\" id=\"category-" + category.id
-            + unsaved_string + "-weight\">" + category.weight + "</a></td><td><select id=\"category-" + category.id
-            + unsaved_string + "-color\" class='color-picker'>" + $("#id_color_select").html()
-            + "</select></td><td class=\"hidden-480\">" + (category.num_homework !== undefined ? category.num_homework
-                                                                                               : "0") + "</td>"
+            + unsaved_string + "-weight\">" + category.weight + "</a></td><td><input id=\"category-" + category.id
+            + unsaved_string + "-color\" type='text' class='color-picker'>" + $("#id_color_select").html()
+            + "</input></td><td class=\"hidden-480\">" + (category.num_homework !== undefined ? category.num_homework
+                                                                                              : "0") + "</td>"
             + "<td><div class=\"btn-group\"><button aria-label=\"Delete Category\"  class=\"btn btn-xs btn-danger\" id=\"delete-category-"
             + category.id
             + unsaved_string + "\"><i class=\"icon-trash bigger-120\"></i></button></div></td>" + "</tr>";
         $("#categories-table-end-placeholder").before(row);
 
-        $("#category-" + category.id + unsaved_string + "-color").simplecolorpicker({
-                                                                                        picker: true,
-                                                                                        theme: "glyphicons"
-                                                                                    });
-        $("#category-" + category.id + unsaved_string + "-color").simplecolorpicker("selectColor", category.color);
+        $("#category-" + category.id + unsaved_string + "-color").spectrum(helium.COLOR_PICKER_DEFAULTS);
+        $("body").find(".sp-container button").addClass("btn btn-xs btn-primary");
+        $("#category-" + category.id + unsaved_string + "-color").spectrum("set", category.color);
         $("#category-" + category.id + unsaved_string + "-color").on("change", function () {
             let parent_id = $(this).parent().parent().attr("id");
             if (parent_id.indexOf("unsaved") === -1 && parent_id.indexOf("modified") === -1) {
@@ -220,7 +218,7 @@ function HeliumClasses() {
                 },
                 success: function (response, newValue) {
                     let parent_id = $(this).parent()
-                            .parent().attr("id");
+                        .parent().attr("id");
                     if (parent_id.indexOf("unsaved") === -1 && parent_id.indexOf(
                         "modified") === -1) {
                         $(this).parent().parent().attr("id", $(this).parent().parent().attr("id") + "-modified");
@@ -229,7 +227,7 @@ function HeliumClasses() {
                     for (let i = 0; i < self.CATEGORY_SUGGESTIONS.length; ++i) {
                         if (self.CATEGORY_SUGGESTIONS[i].value == newValue) {
                             $("[id^='category-" + parent_id.split("-")[1] + "'][id$='-color']")
-                                .simplecolorpicker("selectColor", self.CATEGORY_SUGGESTIONS[i].color);
+                                .spectrum("set", self.CATEGORY_SUGGESTIONS[i].color);
 
                             break;
                         }
@@ -242,11 +240,11 @@ function HeliumClasses() {
                     let response = "";
                     if (!/\S/.test(value)) {
                         response =
-                            "This category name cannot be empty.";
+                            "The name cannot be empty.";
                     } else if (!self.check_category_names(
                         value)) {
                         response =
-                            "This category name already exists.";
+                            "That name already exists.";
                     }
                     return response;
                 }
@@ -334,7 +332,8 @@ function HeliumClasses() {
                                         "callback": function () {
                                             helium.classes.categories_to_delete.push(category.id);
 
-                                            if ($("#categories-table-body").children().not("#course-total-weight-percent-row").length === 2) {
+                                            if ($("#categories-table-body").children()
+                                                    .not("#course-total-weight-percent-row").length === 2) {
                                                 $("#no-categories").show();
                                             }
                                             $("#category-" + category.id).hide("fast", function () {
@@ -414,8 +413,7 @@ function HeliumClasses() {
         $("#course-credits").spinner("value", "0");
         $("#course-teacher-name").val("");
         $("#course-teacher-email").val("");
-        $("#id_color_select").simplecolorpicker("selectColor", $($("#id_color_select option")[Math.floor(
-            Math.random() * $("#id_color_select option").length)]).val());
+        $("#id_color_select").spectrum("set", helium.get_random_color());
         $("#course-online").prop("checked", false).trigger("change");
 
         // Initialize details on Schedule and Categories panels as well
@@ -555,7 +553,8 @@ function HeliumClasses() {
                 .next().remove();
             table_div.parent().find("#course-group-table-" + data.id + "_length").parent().parent()
                 .addClass("hidden-print");
-            table_div.parent().find("#course-group-table-" + data.id + "_length select").attr("style", "display: inline");
+            table_div.parent().find("#course-group-table-" + data.id + "_length select")
+                .attr("style", "display: inline");
             table_div.parent().find("#course-group-table-" + data.id + "_info").parent().parent()
                 .addClass("hidden-print");
 
@@ -842,7 +841,7 @@ function HeliumClasses() {
                     $("#" + $(".open-website button").attr("for")).trigger("focusout");
                     self.last_good_credits = course.credits;
                     $("#course-credits").spinner("value", self.last_good_credits);
-                    $("#id_color_select").simplecolorpicker("selectColor", course.color);
+                    $("#id_color_select").spectrum("set", course.color);
                     $("#course-online").prop("checked", course.is_online);
                     $("#course-online").trigger("change");
 
@@ -855,7 +854,8 @@ function HeliumClasses() {
                     if (self.on_day_of_week(schedule, 0)) {
                         $("#course-schedule-sun").addClass("active");
                         $("#course-sun-start-time").timepicker("setTime",
-                                                               moment(schedule.sun_start_time, helium.HE_TIME_STRING_SERVER)
+                                                               moment(schedule.sun_start_time,
+                                                                      helium.HE_TIME_STRING_SERVER)
                                                                    .format(helium.HE_TIME_STRING_CLIENT));
                         $("#course-sun-end-time").timepicker("setTime",
                                                              moment(schedule.sun_end_time, helium.HE_TIME_STRING_SERVER)
@@ -868,7 +868,8 @@ function HeliumClasses() {
                     if (self.on_day_of_week(schedule, 1)) {
                         $("#course-schedule-mon").addClass("active");
                         $("#course-mon-start-time").timepicker("setTime",
-                                                               moment(schedule.mon_start_time, helium.HE_TIME_STRING_SERVER)
+                                                               moment(schedule.mon_start_time,
+                                                                      helium.HE_TIME_STRING_SERVER)
                                                                    .format(helium.HE_TIME_STRING_CLIENT));
                         $("#course-mon-end-time").timepicker("setTime",
                                                              moment(schedule.mon_end_time, helium.HE_TIME_STRING_SERVER)
@@ -881,7 +882,8 @@ function HeliumClasses() {
                     if (self.on_day_of_week(schedule, 2)) {
                         $("#course-schedule-tue").addClass("active");
                         $("#course-tue-start-time").timepicker("setTime",
-                                                               moment(schedule.tue_start_time, helium.HE_TIME_STRING_SERVER)
+                                                               moment(schedule.tue_start_time,
+                                                                      helium.HE_TIME_STRING_SERVER)
                                                                    .format(helium.HE_TIME_STRING_CLIENT));
                         $("#course-tue-end-time").timepicker("setTime",
                                                              moment(schedule.tue_end_time, helium.HE_TIME_STRING_SERVER)
@@ -894,7 +896,8 @@ function HeliumClasses() {
                     if (self.on_day_of_week(schedule, 3)) {
                         $("#course-schedule-wed").addClass("active");
                         $("#course-wed-start-time").timepicker("setTime",
-                                                               moment(schedule.wed_start_time, helium.HE_TIME_STRING_SERVER)
+                                                               moment(schedule.wed_start_time,
+                                                                      helium.HE_TIME_STRING_SERVER)
                                                                    .format(helium.HE_TIME_STRING_CLIENT));
                         $("#course-wed-end-time").timepicker("setTime",
                                                              moment(schedule.wed_end_time, helium.HE_TIME_STRING_SERVER)
@@ -907,7 +910,8 @@ function HeliumClasses() {
                     if (self.on_day_of_week(schedule, 4)) {
                         $("#course-schedule-thu").addClass("active");
                         $("#course-thu-start-time").timepicker("setTime",
-                                                               moment(schedule.thu_start_time, helium.HE_TIME_STRING_SERVER)
+                                                               moment(schedule.thu_start_time,
+                                                                      helium.HE_TIME_STRING_SERVER)
                                                                    .format(helium.HE_TIME_STRING_CLIENT));
                         $("#course-thu-end-time").timepicker("setTime",
                                                              moment(schedule.thu_end_time, helium.HE_TIME_STRING_SERVER)
@@ -920,7 +924,8 @@ function HeliumClasses() {
                     if (self.on_day_of_week(schedule, 5)) {
                         $("#course-schedule-fri").addClass("active");
                         $("#course-fri-start-time").timepicker("setTime",
-                                                               moment(schedule.fri_start_time, helium.HE_TIME_STRING_SERVER)
+                                                               moment(schedule.fri_start_time,
+                                                                      helium.HE_TIME_STRING_SERVER)
                                                                    .format(helium.HE_TIME_STRING_CLIENT));
                         $("#course-fri-end-time").timepicker("setTime",
                                                              moment(schedule.fri_end_time, helium.HE_TIME_STRING_SERVER)
@@ -933,7 +938,8 @@ function HeliumClasses() {
                     if (self.on_day_of_week(schedule, 6)) {
                         $("#course-schedule-sat").addClass("active");
                         $("#course-sat-start-time").timepicker("setTime",
-                                                               moment(schedule.sat_start_time, helium.HE_TIME_STRING_SERVER)
+                                                               moment(schedule.sat_start_time,
+                                                                      helium.HE_TIME_STRING_SERVER)
                                                                    .format(helium.HE_TIME_STRING_CLIENT));
                         $("#course-sat-end-time").timepicker("setTime",
                                                              moment(schedule.sat_end_time, helium.HE_TIME_STRING_SERVER)
@@ -1188,7 +1194,8 @@ function HeliumClasses() {
      */
     this.add_course_to_groups = function (course_data, table) {
         const row = table.row.add(
-                ["<span class=\"label label-sm title-label\" style=\"background-color: " + course_data.color + " !important\">"
+                ["<span class=\"label label-sm title-label\" style=\"background-color: " + course_data.color
+                 + " !important\">"
                  + (course_data.website !== "" ? "<a target=\"_blank\" href=\"" + course_data.website
                  + "\" class=\"planner-title-with-link\">" + course_data.title
                  + " <i class=\"icon-external-link\"></i></a>" : course_data.title) + "</span>",
@@ -1197,7 +1204,8 @@ function HeliumClasses() {
                  course_data.is_online ? "Online" : course_data.room,
                  course_data.teacher_email !== "" ? ("<a target=\"_blank\" href=\"mailto:" + course_data.teacher_email
                                                      + "\" class=\"teacher-email-with-link\">" + course_data.teacher_name
-                                                     + "</a>") : course_data.teacher_name, self.get_schedule(course_data)]).node(),
+                                                     + "</a>") : course_data.teacher_name, self.get_schedule(course_data)])
+                .node(),
             row_div = $(row).attr("id", "course-" + course_data.id);
         // Bind clickable attributes to their respective handlers
         row_div.find("[class$='-with-link']").on("click", function (e) {
@@ -1419,7 +1427,7 @@ function HeliumClasses() {
                                                              "weight": $($(this).children()[1]).text() != "N/A" ? $(
                                                                  $(this).children()[1]).text().slice(0, -1) : 0,
                                                              "color": $($(this).children()[2]).find(".color-picker")
-                                                                 .val()
+                                                                 .spectrum("get").toHexString()
                                                          });
                     });
 
@@ -1428,7 +1436,8 @@ function HeliumClasses() {
                                                  "title": $($(this).children()[0]).text(),
                                                  "weight": $($(this).children()[1]).text() != "N/A" ? $(
                                                      $(this).children()[1]).text().slice(0, -1) : 0,
-                                                 "color": $($(this).children()[2]).find(".color-picker").val()
+                                                 "color": $($(this).children()[2]).find(".color-picker")
+                                                     .spectrum("get").toHexString()
                                              });
                     });
 
@@ -1438,7 +1447,7 @@ function HeliumClasses() {
                         "end_date": end_date,
                         "room": $("#course-room").val(),
                         "credits": $("#course-credits").val(),
-                        "color": $("#id_color_select").val(),
+                        "color": $("#id_color_select").spectrum("get").toHexString(),
                         "website": $("#course-website").val(),
                         "is_online": $("#course-online").is(":checked"),
                         "teacher_name": $("#course-teacher-name").val(),
@@ -1501,16 +1510,16 @@ function HeliumClasses() {
                                                                              helium.HE_TIME_STRING_CLIENT)
                                         .format(helium.HE_TIME_STRING_SERVER) : sun_end_time
                                 };
-                                // TODO: this is the result of an odd edge case that we shouldn't even be able to get in to, where
-                                //  a class doesn't have an associated class schedule—there should be a backend fix for this first,
-                                //  where class schedules are changed to a one-to-one required relationship with a class, and then
-                                //  this edge case can be removed
+                                // TODO: this is the result of an odd edge case that we shouldn't even be able to get
+                                // in to, where a class doesn't have an associated class schedule—there should be a
+                                // backend fix for this first, where class schedules are changed to a one-to-one
+                                // required relationship with a class, and then this edge case can be removed
                                 if (data.schedules.length === 0) {
                                     helium.ajax_calls.push(
                                         helium.planner_api.add_courseschedule(function (course_schedule) {
-                                                                                   data.schedules = [course_schedule];
-                                                                               }, self.course_group_id, self.edit_id, course_schedule_data,
-                                                                               false));
+                                                                                  data.schedules = [course_schedule];
+                                                                              }, self.course_group_id, self.edit_id, course_schedule_data,
+                                                                              false));
                                 } else {
                                     helium.ajax_calls.push(
                                         helium.planner_api.edit_courseschedule(function (course_schedule) {
@@ -1576,7 +1585,8 @@ function HeliumClasses() {
                                         self.course_group_table[data.course_group.toString()].cell(row_div, 0).data(
                                             "<span class=\"label label-sm\" style=\"background-color: " + data.color
                                             + " !important\">" + (data.website !== "" ? "<a target=\"_blank\" href=\""
-                                            + data.website + "\" class=\"planner-title-with-link hidden-xs\">" + data.title
+                                            + data.website + "\" class=\"planner-title-with-link hidden-xs\">"
+                                            + data.title
                                             + " <i class=\"icon-external-link\"></i></a>" : data.title)
                                             + "</span>");
                                         self.course_group_table[data.course_group.toString()].cell(row_div, 1).data(
@@ -1841,7 +1851,9 @@ $(document).ready(function () {
                                       }
                                   }
                               });
-        $("#id_color_select").simplecolorpicker({picker: true, theme: "glyphicons"});
+        $("#id_color_select").spectrum(helium.COLOR_PICKER_DEFAULTS);
+
+        $("body").find(".sp-container button").addClass("btn btn-xs btn-primary");
 
         /*******************************************
          * Other page initialization

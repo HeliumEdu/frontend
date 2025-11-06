@@ -31,7 +31,7 @@ function HeliumGrades() {
      ******************************************/
     this.get_trend_arrow = function (trend) {
         return trend !== null ? (parseFloat(trend) > 0 ? " <span class=\"icon-x arrow-up-icon light-green\"></span>"
-                                                       : " <span class=\"icon-x arrow-down-icon red\"></span>")
+                                                       : " <span class=\"icon-x arrow-down-icon light-red\"></span>")
                               : "";
     };
 

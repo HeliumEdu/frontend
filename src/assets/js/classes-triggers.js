@@ -142,10 +142,6 @@
         $("#course-title").focus();
     });
 
-    $("#course-modal").on("hide.bs.modal", function () {
-        $(".simplecolorpicker.picker.glyphicons").css("display", "none");
-    });
-
     $("#course-group").on("change", function () {
         helium.ajax_error_occurred = false;
 
@@ -262,8 +258,7 @@
             title: "Unnamed Category " + helium.classes.unnamed_category_index,
             weight: 0,
             average_grade: -1,
-            color: $($("#id_color_select option")[Math.floor(Math.random() * $("#id_color_select option").length)])
-                .val(),
+            color: helium.get_random_color(),
             course: helium.classes.edit_id
         };
         helium.classes.unnamed_category_index += 1;
