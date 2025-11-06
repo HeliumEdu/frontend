@@ -47,11 +47,7 @@ body {
 
 #calendar-filter-list li,
 #calendar-classes li {
-    text-align: right;
-}
-
-.filter-course-title:hover {
-    color: #ffffff !important;
+    text-align: left;
 }
 
 .filter-strike {
@@ -64,7 +60,7 @@ body {
 .filter-strike > span {
     position: relative;
     display: inline-block;
-    font-size: 13px;
+    font-size: 80%;
 }
 
 .filter-strike > span:before,
