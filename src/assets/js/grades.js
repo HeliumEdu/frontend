@@ -704,6 +704,8 @@ $(document).ready(function () {
                                     $('a[data-toggle="tab"]').on('shown.bs.tab', function () {
                                         const course_group_id = parseInt($(this).attr("href").split("-")[3]);
 
+                                        $("#time-series-dropdown-" + course_group_id).prop("selectedIndex", 0);
+
                                         helium.grades.populate_course_charts(course_group_id);
 
                                         helium.grades.current_series_id = "course_group-" + course_group_id;
