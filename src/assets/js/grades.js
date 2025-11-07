@@ -23,7 +23,8 @@ function HeliumGrades() {
     this.courses = {};
     this.categories = {};
     this.today = new Date();
-    this.series_legend = {}
+    this.series_type = "course_group";
+    this.series_data = {}
 
     /*******************************************
      * Functions
@@ -135,7 +136,13 @@ function HeliumGrades() {
         }
     };
 
-    this.populate_time_series = function (course_group_id, items) {
+    this.populate_course_charts = function (course_group_id) {
+
+    }
+
+    this.populate_time_series = function (course_group_id) {
+        const items = helium.grades.series_data[course_group_id][helium.grades.current_series_id]['data'];
+
         const time_series_tag = $("#course-group-time-series-" + course_group_id);
         time_series_tag.css({"width": "100%", "height": "220px"});
 
@@ -146,56 +153,18 @@ function HeliumGrades() {
             return;
         }
 
-        let time_series_data = [], time_series_details = {
-            shadowSize: 0,
-            xaxis: {
-                tickLength: 0,
-                mode: "time",
-                minTickSize: [1, "day"]
-            },
-            yaxis: {
-                ticks: 5,
-                min: 50,
-                max: 100,
-                tickFormatter: function (val) {
-                    return val + "%&nbsp;";
-                }
-            },
-            grid: {
-                backgroundColor: {colors: ["#fff", "#fff"]},
-                borderWidth: 1,
-                borderColor: "#555",
-                hoverable: true,
-                clickable: true,
-                markings: [{
-                    xaxis: {from: helium.grades.today, to: helium.grades.today},
-                    color: "#ff0000",
-                    lineWidth: 1
-                }]
-            },
-            legend: {
-                show: true,
-                position: "se",
-                backgroundOpacity: 0.8,
-                labelFormatter: function (label, series) {
-                    let checked;
-                    if (helium.grades.series_legend[series.course_group_id][series.type + '-' + series.id]) {
-                        checked = "checked=\"checked\"";
-                    } else {
-                        checked = '';
-                    }
-
-                    return '<label><input type="checkbox" id="legend-' + series.type + '-' + series.id
-                           + '" class="ace" ' + checked
-                           + '/><span class="lbl smaller-80"> <span class="color-dot inline" style="background-color: '
-                           + series.color + '\"/>' + label + '</span></label>';
-                }
-            }
-        }
-
+        let time_series_data = [];
+        let highest_point = 0;
+        let lowest_point = 100;
         $.each(items, function (i, item) {
             let data = [];
             $.each(item['grade_points'], function (i, grade) {
+                if (grade[1] < lowest_point) {
+                    lowest_point = grade[1];
+                }
+                if (grade[1] > highest_point) {
+                    highest_point = grade[1];
+                }
                 data.push(
                     [
                         new Date(grade[0]),
@@ -218,13 +187,59 @@ function HeliumGrades() {
                     data: data,
                     color: item.color,
                     lines: {
-                        show: helium.grades.series_legend[course_group_id][item.type + '-' + item.id]
+                        show: helium.grades.series_data[course_group_id][item.type + '-' + item.id]['visible']
                     },
                     points: {
-                        show: helium.grades.series_legend[course_group_id][item.type + '-' + item.id]
+                        show: helium.grades.series_data[course_group_id][item.type + '-' + item.id]['visible']
                     }
                 });
         });
+
+        const time_series_details = {
+            shadowSize: 0,
+            xaxis: {
+                tickLength: 0,
+                mode: "time",
+                minTickSize: [1, "day"]
+            },
+            yaxis: {
+                max: 100,
+                min: lowest_point - (100 - highest_point),
+                tickFormatter: function (val) {
+                    return val + "%&nbsp;";
+                }
+            },
+            grid: {
+                backgroundColor: {colors: ["#fff", "#fff"]},
+                borderWidth: 1,
+                borderColor: "#555",
+                hoverable: true,
+                clickable: true,
+                markings: [{
+                    xaxis: {from: helium.grades.today, to: helium.grades.today},
+                    color: "#ff0000",
+                    lineWidth: 1
+                }]
+            },
+            legend: {
+                show: true,
+                position: "se",
+                backgroundOpacity: 0.8,
+                labelFormatter: function (label, series) {
+                    let checked;
+                    if (helium.grades.series_data[series.course_group_id][series.type + '-' + series.id]['visible']) {
+                        checked = "checked=\"checked\"";
+                    } else {
+                        checked = '';
+                    }
+
+                    return '<label><input type="checkbox" id="legend-' + series.course_group_id + '-' + series.type + '-' + series.id
+                           + '" class="ace" ' + checked
+                           + '/><span class="lbl smaller-80"> <span class="color-dot inline" style="background-color: '
+                           + series.color + '\"/>' + label + '</span></label>';
+                }
+            }
+        };
 
         time_series_tag.bind("plothover", function (event, pos, item) {
             if (item) {
@@ -279,9 +294,9 @@ function HeliumGrades() {
 
         $("#course-group-time-series-" + course_group_id + " .legendLabel input").change(function () {
             let split = $(this).attr("id").split("-");
-            helium.grades.series_legend[course_group_id][split[1] + "-" + split[2]] = $(this).is(":checked");
+            helium.grades.series_data[split[1]][split[2] + "-" + split[3]]['visible'] = $(this).is(":checked");
 
-            helium.grades.populate_time_series(course_group_id, items);
+            helium.grades.populate_time_series(split[1]);
         });
     }
 }
@@ -337,8 +352,6 @@ $(document).ready(function () {
 
                     $.when.apply($, helium.ajax_calls).done(function () {
                         if (!helium.ajax_error_occurred) {
-                            $($("#course-group-tabs li a").first()).tab("show");
-
                             /*******************************************
                              * Initialize component libraries
                              ******************************************/
@@ -438,9 +451,10 @@ $(document).ready(function () {
                                                 grid: {
                                                     hoverable: true
                                                 }
-                                            }, default_time_series_items = [helium.grades.course_groups[id]];
-                                        helium.grades.series_legend[id] = {};
-                                        helium.grades.series_legend[id]["course_group-" + id] = true;
+                                            }, time_series_items = [helium.grades.course_groups[id]];
+                                        helium.grades.series_data[id] = {};
+                                        helium.grades.series_data[id]["course_group-" + id] = {};
+                                        helium.grades.series_data[id]["course_group-" + id]['visible'] = true;
 
                                         course_list = $("#course-group-piechart-" + id);
                                         course_list.append("<div class=\"space-24\"></div>");
@@ -450,8 +464,9 @@ $(document).ready(function () {
                                                 return true;
                                             }
 
-                                            default_time_series_items.push(course);
-                                            helium.grades.series_legend[id]["course-" + course.id] = true;
+                                            time_series_items.push(course);
+                                            helium.grades.series_data[id]["course-" + course.id] = {};
+                                            helium.grades.series_data[id]["course-" + course.id]['visible'] = true;
 
                                             course_div =
                                                 course_list.append("<div id=\"course-body-" + course.id
@@ -564,7 +579,7 @@ $(document).ready(function () {
                                             }
                                         });
 
-                                        helium.grades.populate_time_series(id, default_time_series_items);
+                                        helium.grades.series_data[id]['course_group-' + id]['data'] = time_series_items;
                                     });
 
                                     $("#loading-grades").spin(false);
@@ -572,6 +587,16 @@ $(document).ready(function () {
                                     if ($("#course-group-tabs a").length === 0) {
                                         $("#no-grades-tab").addClass("active");
                                     }
+
+                                    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                                        const course_group_id = parseInt($(this).attr("href").split("-")[3]);
+
+                                        helium.grades.populate_course_charts(course_group_id);
+
+                                        helium.grades.current_series_id = "course_group-" + course_group_id;
+                                        helium.grades.populate_time_series(course_group_id);
+                                    });
+                                    $($("#course-group-tabs li a").first()).tab("show");
                                 }
                             });
                         }
