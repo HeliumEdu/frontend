@@ -357,8 +357,8 @@ function Helium() {
         }
 
         const list_item = $('<li id="reminder-popup-' + data.id
-                            + '" class="reminder-popup"><button type="button" aria-label="Dismiss Reminder"  class="close reminder-close"><i class="icon-remove"></i></button></li>');
-        const reminder_body = $('<span class="reminder-msg-body cursor-hover" id="' + id_str + '"></span>');
+                            + '" class="reminder-popup cursor-hover"><button type="button" aria-label="Dismiss Reminder"  class="close reminder-close"><i class="icon-remove"></i></button></li>');
+        const reminder_body = $('<span class="reminder-msg-body" id="' + id_str + '"></span>');
         list_item.append(reminder_body);
 
         const msg_body = $('<span class="msg-body">');
@@ -379,33 +379,9 @@ function Helium() {
         msg_time.append('<span>&nbsp;' + start.format(helium.HE_REMINDER_DATE_STRING) + ' at ' + start.format(
             helium.HE_TIME_STRING_CLIENT) + '</span>');
 
-        list_item.find('.reminder-close').on("click", function () {
-            helium.ajax_error_occurred = false;
-
-            const put_data = {
-                'sent': true
-            }, reminder_div = $(this).parent();
-            helium.planner_api.edit_reminder(function (data) {
-                if (helium.data_has_err_msg(data)) {
-                    helium.ajax_error_occurred = true;
-
-                    bootbox.alert(helium.get_error_msg(data));
-                } else {
-                    const reminder_bell_tag = $("#reminder-bell-count");
-                    const new_count = parseInt(reminder_bell_tag.text()) - 1;
-                    reminder_div.hide();
-
-                    reminder_bell_tag.html(new_count + " Reminder" + (new_count > 1 ? "s" : ""));
-                    const reminder_bell_alt_tag = $("#reminder-bell-alt-count");
-                    reminder_bell_alt_tag.html(new_count);
-                    if (new_count === 0) {
-                        reminder_bell_alt_tag.hide();
-                    }
-                }
-            }, data.id, put_data, true, true);
-        });
-        list_item.find('[id^="reminder-for-"]').on("click", function () {
-            let id = $(this).attr("id").split("reminder-for-")[1];
+        list_item.on("click", function () {
+            const reminder_for = $(this).find('[id^="reminder-for-"]');
+            let id = reminder_for.attr("id").split("reminder-for-")[1];
             if (id.indexOf("event-") !== -1) {
                 id = id.replace("-", "_");
             } else {
@@ -446,6 +422,32 @@ function Helium() {
                 localStorage.setItem("edit_calendar_item", id);
                 window.location = "/planner/calendar";
             }
+        });
+        list_item.find('.reminder-close').on("click", function (e) {
+            e.stopPropagation();
+            helium.ajax_error_occurred = false;
+
+            const put_data = {
+                'sent': true
+            }, reminder_div = $(this).parent();
+            helium.planner_api.edit_reminder(function (data) {
+                if (helium.data_has_err_msg(data)) {
+                    helium.ajax_error_occurred = true;
+
+                    bootbox.alert(helium.get_error_msg(data));
+                } else {
+                    const reminder_bell_tag = $("#reminder-bell-count");
+                    const new_count = parseInt(reminder_bell_tag.text()) - 1;
+                    reminder_div.hide();
+
+                    reminder_bell_tag.html(new_count + " Reminder" + (new_count > 1 ? "s" : ""));
+                    const reminder_bell_alt_tag = $("#reminder-bell-alt-count");
+                    reminder_bell_alt_tag.html(new_count);
+                    if (new_count === 0) {
+                        reminder_bell_alt_tag.hide();
+                    }
+                }
+            }, data.id, put_data, true, true);
         });
 
         $($($("#reminder-bell-count").parent()).parent()).append(list_item);

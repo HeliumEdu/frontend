@@ -219,7 +219,7 @@ function HeliumSettings() {
 
                        $("#status_importexport").html("Import successful.").addClass("alert-success")
                            .removeClass("hidden alert-danger");
-                       document.getElementById("importexport-form").reset();
+                       $("#id_file").ace_file_input('reset_input');
 
                        $("#loading-importexport").spin(false);
                    }
@@ -246,9 +246,13 @@ function HeliumSettings() {
             data.push({"name": "private_slug", "value": helium.USER_PREFS.settings.private_slug});
             data.push({"name": "events_color", "value": $("#id_events_color_select").spectrum("get").toHexString()});
             data.push({"name": "grade_color", "value": $("#id_grades_color_select").spectrum("get").toHexString()});
-            data.push({"name": "material_color", "value": $("#id_materials_color_select").spectrum("get").toHexString()});
+            data.push(
+                {"name": "material_color", "value": $("#id_materials_color_select").spectrum("get").toHexString()});
             data.push({"name": "calendar_event_limit", "value": $("#id_calendar_event_limit").is(":checked")});
-            data.push({"name": "calendar_use_category_colors", "value": $("#id_calendar_use_category_colors").is(":checked")});
+            data.push({
+                          "name": "calendar_use_category_colors",
+                          "value": $("#id_calendar_use_category_colors").is(":checked")
+                      });
             data.push({"name": "remember_filter_state", "value": $("#id_remember_filter_state").is(":checked")});
 
             self.save_externalcalendars(form);
@@ -669,6 +673,12 @@ $(document).ready(function () {
         } else if (helium.USER_PREFS.profile.phone_verified) {
             ($("#id_phone_verification_status").html('<i class="icon-ok bigger-110 green"></i> Verified'));
         }
+
+        $("#id_file").ace_file_input({
+                                         no_file: '',
+                                         droppable: true,
+                                         onchange: null
+                                     });
 
         helium.settings.refresh_feeds();
     });
