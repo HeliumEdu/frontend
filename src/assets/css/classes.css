@@ -13,7 +13,7 @@
 }
 
 .datepicker, .sp-container {
-    z-index: 1151;
+    z-index: 1151 !important;
 }
 
 table tr {

@@ -219,6 +219,7 @@ function HeliumSettings() {
 
                        $("#status_importexport").html("Import successful.").addClass("alert-success")
                            .removeClass("hidden alert-danger");
+                       document.getElementById("importexport-form").reset();
 
                        $("#loading-importexport").spin(false);
                    }
