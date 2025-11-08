@@ -319,8 +319,19 @@ function HeliumSettings() {
         $.ajax().always(function () {
             const form = $("#personal-form"), data = form.serializeArray();
 
+            helium.ajax_calls.push($.ajax(
+                {
+                    context: form,
+                    data: data,
+                    contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+                    type: 'PUT',
+                    url: helium.API_URL + '/auth/user/settings/',
+                    error: function (xhr) {
+                        self.show_error("personal", xhr);
+                    }
+                }));
+
             $.ajax({
-                       async: false,
                        context: form,
                        data: data,
                        contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
@@ -330,26 +341,30 @@ function HeliumSettings() {
                            self.show_error("personal", xhr);
                        },
                        success: function (data) {
-                           if (data.phone_changing) {
-                               self.phone_pending(data.phone_changing);
-                           } else {
-                               $("#id_phone").val(data.phone);
+                           $.when.apply($, helium.ajax_calls).done(function () {
+                               if (!helium.ajax_error_occurred) {
+                                   if (data.phone_changing) {
+                                       self.phone_pending(data.phone_changing);
+                                   } else {
+                                       $("#id_phone").val(data.phone);
 
-                               if (data.phone_verified) {
-                                   $($("#id_phone_verification_status")
-                                         .html('<i class="icon-ok bigger-110 green"></i> Verified'));
-                               } else {
-                                   $($("#id_phone_verification_status").html(''));
+                                       if (data.phone_verified) {
+                                           $($("#id_phone_verification_status")
+                                                 .html('<i class="icon-ok bigger-110 green"></i> Verified'));
+                                       } else {
+                                           $($("#id_phone_verification_status").html(''));
+                                       }
+                                       $("#phone_verification_row").hide("fast");
+                                   }
+
+                                   helium.clear_form_errors("personal-form");
+
+                                   $("#status_personal").html("Changes saved.").addClass("alert-success")
+                                       .removeClass("hidden alert-danger");
+
+                                   $("#loading-personal").spin(false);
                                }
-                               $("#phone_verification_row").hide("fast");
-                           }
-
-                           helium.clear_form_errors("personal-form");
-
-                           $("#status_personal").html("Changes saved.").addClass("alert-success")
-                               .removeClass("hidden alert-danger");
-
-                           $("#loading-personal").spin(false);
+                           });
                        }
                    });
         });

@@ -145,7 +145,7 @@ function HeliumGrades() {
                 + '<li class="form-group top-buffer-10"><select id="time-series-dropdown-' + course_group.id
                 + '" class="col-xs-12 form-control"></select></li>'
                 + '<li class="form-group"><label class="col-xs-12"><input type="checkbox" id="time-series-group-dates-' + course_group.id + '" class="ace"/>'
-                + '<span class="lbl"> Window to graded items</span></label></li>'
+                + '<span class="lbl"> Auto-adjust to graded range</span></label></li>'
                 + '</ul></span></div></a></div><div class="widget-body"><div class="widget-main">'
                 + '<div id="course-group-time-series-' + course_group.id + '"></div></div></div></div></div></div>');
             container.find("#time-series-settings").on("click", function (e) {
