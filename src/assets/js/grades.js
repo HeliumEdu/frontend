@@ -141,10 +141,11 @@ function HeliumGrades() {
                 + '</span> <i class="icon-chevron-up"></i></div>'
                 + '<div class="widget-toolbar"><span class="inline right">'
                 + '<a data-toggle="dropdown" class="dropdown-toggle" href="#"><i class="icon-cog bigger-140"></i></a><ul id="time-series-settings" class="pull-right dropdown-navbar dropdown-menu">'
+                + '<li class="dropdown-header">Graph Settings</li>'
                 + '<li class="form-group top-buffer-10"><select id="time-series-dropdown-' + course_group.id
                 + '" class="col-xs-12 form-control"></select></li>'
-                + '<li class="form-group"><label class="col-xs-12"><input type="checkbox" checked="checked" id="time-series-group-dates-' + course_group.id + '" class="ace"/>'
-                + '<span class="lbl">Use term date range</span></label></li>'
+                + '<li class="form-group"><label class="col-xs-12"><input type="checkbox" id="time-series-group-dates-' + course_group.id + '" class="ace"/>'
+                + '<span class="lbl"> Window to graded items</span></label></li>'
                 + '</ul></span></div></a></div><div class="widget-body"><div class="widget-main">'
                 + '<div id="course-group-time-series-' + course_group.id + '"></div></div></div></div></div></div>');
             container.find("#time-series-settings").on("click", function (e) {
@@ -316,7 +317,7 @@ function HeliumGrades() {
 
         let start_date = null;
         let end_date = null;
-        if ($("#time-series-group-dates-" + course_group_id).is(":checked")) {
+        if (!$("#time-series-group-dates-" + course_group_id).is(":checked")) {
             start_date = moment(helium.grades.course_groups[course_group_id].start_date,
                                 helium.HE_DATE_STRING_SERVER).toDate();
             end_date = moment(helium.grades.course_groups[course_group_id].end_date, helium.HE_DATE_STRING_SERVER)
