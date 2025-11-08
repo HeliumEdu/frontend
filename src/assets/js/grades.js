@@ -638,7 +638,7 @@ $(document).ready(function () {
 
                                             // Build the course grading details div for this course
                                             category_table =
-                                                $("<table class=\"table table-striped table-bordered table-hover\"><thead><tr><th>Category</th><th class=\"hidden-xs\">Grades Recorded</th><th>Average Grade</th></tr></thead><tbody id=\"category-table-course-"
+                                                $("<table class=\"table table-striped table-bordered table-hover\"><thead><tr><th>Category</th><th class=\"hidden-xs\">Graded</th><th>Average Grade</th></tr></thead><tbody id=\"category-table-course-"
                                                   + course.id + "\"></tbody></table>");
                                             category_table_body =
                                                 category_table.find("#category-table-course-" + course.id);

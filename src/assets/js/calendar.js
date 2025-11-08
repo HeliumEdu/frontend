@@ -510,7 +510,7 @@ function HeliumCalendar() {
                         } else {
                             const calendar_item_fields = data;
 
-                            // Change display to the correct course group tab
+                            // Change display to the first tab
                             $('a[href="#homework-panel-tab-1"]').tab("show");
 
                             self.start = moment(calendar_item_fields.start);

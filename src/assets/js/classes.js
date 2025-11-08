@@ -1212,7 +1212,7 @@ function HeliumClasses() {
             e.stopImmediatePropagation();
         });
         row_div.on("click", function () {
-            self.edit_course_btn($(this));
+            self.edit_course_btn($(this), true);
         });
     };
 
