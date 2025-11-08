@@ -140,11 +140,12 @@ function HeliumGrades() {
                 + helium.grades.get_trend_arrow(course_group.trend)) : "N/A")
                 + '</span> <i class="icon-chevron-up"></i></div>'
                 + '<div class="widget-toolbar"><span class="inline right">'
-                + '<a data-toggle="dropdown" class="dropdown-toggle" href="#"><i class="icon-cog bigger-140"></i></a><div id="time-series-settings" class="pull-right dropdown-navbar dropdown-menu"><form class="form-horizontal">'
-                + '<div class="form-group"><label class="col-xs-3 control-label" for="time-series-dropdown-'
-                + course_group.id + '">Plot</label><select id="time-series-dropdown-' + course_group.id
-                + '" class="col-xs-9 form-control"></select></div>'
-                + '</form></span></div></a></div><div class="widget-body"><div class="widget-main">'
+                + '<a data-toggle="dropdown" class="dropdown-toggle" href="#"><i class="icon-cog bigger-140"></i></a><ul id="time-series-settings" class="pull-right dropdown-navbar dropdown-menu">'
+                + '<li class="form-group top-buffer-10"><select id="time-series-dropdown-' + course_group.id
+                + '" class="col-xs-12 form-control"></select></li>'
+                + '<li class="form-group"><label class="col-xs-12"><input type="checkbox" checked="checked" id="time-series-group-dates-' + course_group.id + '" class="ace"/>'
+                + '<span class="lbl">Use term date range</span></label></li>'
+                + '</ul></span></div></a></div><div class="widget-body"><div class="widget-main">'
                 + '<div id="course-group-time-series-' + course_group.id + '"></div></div></div></div></div></div>');
             container.find("#time-series-settings").on("click", function (e) {
                 e.stopPropagation();
@@ -158,6 +159,11 @@ function HeliumGrades() {
                 } else {
                     helium.grades.current_series_id = "course-" + value;
                 }
+
+                helium.grades.populate_time_series(current_tab_course_group);
+            });
+            container.find("#time-series-group-dates-" + course_group.id).change(function () {
+                const current_tab_course_group = $("#course-group-tabs .active a").attr("href").split("-")[3];
 
                 helium.grades.populate_time_series(current_tab_course_group);
             });
@@ -308,12 +314,23 @@ function HeliumGrades() {
                 });
         });
 
+        let start_date = null;
+        let end_date = null;
+        if ($("#time-series-group-dates-" + course_group_id).is(":checked")) {
+            start_date = moment(helium.grades.course_groups[course_group_id].start_date,
+                                helium.HE_DATE_STRING_SERVER).toDate();
+            end_date = moment(helium.grades.course_groups[course_group_id].end_date, helium.HE_DATE_STRING_SERVER)
+                .add(1, "day").toDate();
+        }
+
         const time_series_details = {
             shadowSize: 0,
             xaxis: {
                 tickLength: 0,
                 mode: "time",
-                minTickSize: [1, "day"]
+                minTickSize: [1, "day"],
+                min: start_date,
+                max: end_date
             },
             yaxis: {
                 max: 100,
@@ -418,9 +435,13 @@ function HeliumGrades() {
         $("#course-group-time-series-" + course_group_id + " .legendLabel input").change(function () {
             let split = $(this).attr("id").split("-");
             if (helium.grades.current_series_id.startsWith("course_group")) {
-                series_data = helium.grades.course_group_series_data[split[1]][split[2] + "-" + split[3]]['visible'] = $(this).is(":checked");
+                series_data =
+                    helium.grades.course_group_series_data[split[1]][split[2] + "-" + split[3]]['visible'] =
+                        $(this).is(":checked");
             } else {
-                series_data = helium.grades.course_series_data[split[1]][split[2] + "-" + split[3]]['visible'] = $(this).is(":checked");
+                series_data =
+                    helium.grades.course_series_data[split[1]][split[2] + "-" + split[3]]['visible'] =
+                        $(this).is(":checked");
             }
 
             const current_tab_course_group = $("#course-group-tabs .active a").attr("href").split("-")[3];
@@ -542,7 +563,8 @@ $(document).ready(function () {
                                                 helium.grades.categories[category.id] = category;
                                                 helium.grades.categories[category.id].course_group = course_group.id;
                                                 helium.grades.categories[category.id].course = course.id;
-                                                helium.grades.categories[category.id].grade_points = category.grade_points;
+                                                helium.grades.categories[category.id].grade_points =
+                                                    category.grade_points;
                                                 helium.grades.categories[category.id].type = "category";
                                             });
                                         });
@@ -553,10 +575,12 @@ $(document).ready(function () {
                                             category_table, category_table_body, course_list,
                                             course_group_time_series_items = [];
                                         helium.grades.course_group_series_data[course_group.id] = {};
-                                        helium.grades.course_group_series_data[course_group.id]["course_group-" + course_group.id] =
+                                        helium.grades.course_group_series_data[course_group.id]["course_group-"
+                                                                                                + course_group.id] =
                                             {};
                                         helium.grades.course_group_series_data[course_group.id]["course_group-"
-                                                                                                + course_group.id]['visible'] = true;
+                                                                                                + course_group.id]['visible'] =
+                                            true;
 
                                         const course_group_series_data = {...helium.grades.course_groups[course_group.id]};
                                         course_group_series_data.title = "Overall Grade";
@@ -579,12 +603,15 @@ $(document).ready(function () {
                                             course_time_series_data.title = "Overall Grade";
                                             course_time_series_items.push(course_time_series_data);
 
-                                            helium.grades.course_group_series_data[course_group.id]["course-" + course.id] = {};
                                             helium.grades.course_group_series_data[course_group.id]["course-"
-                                                                                                    + course.id]['visible'] = true;
+                                                                                                    + course.id] = {};
+                                            helium.grades.course_group_series_data[course_group.id]["course-"
+                                                                                                    + course.id]['visible'] =
+                                                true;
                                             helium.grades.course_series_data[course.id] = {};
                                             helium.grades.course_series_data[course.id]["course-" + course.id] = {};
-                                            helium.grades.course_series_data[course.id]["course-" + course.id]['visible'] = true;
+                                            helium.grades.course_series_data[course.id]["course-"
+                                                                                        + course.id]['visible'] = true;
 
                                             course_group_time_series_items.push(course);
 
@@ -621,8 +648,11 @@ $(document).ready(function () {
                                                     return true;
                                                 }
 
-                                                helium.grades.course_series_data[course.id]["category-" + category.id] = {};
-                                                helium.grades.course_series_data[course.id]["category-" + category.id]['visible'] = true;
+                                                helium.grades.course_series_data[course.id]["category-" + category.id] =
+                                                    {};
+                                                helium.grades.course_series_data[course.id]["category-"
+                                                                                            + category.id]['visible'] =
+                                                    true;
 
                                                 course_time_series_items.push(category);
 
@@ -668,7 +698,8 @@ $(document).ready(function () {
                                                             "<div />").append(category_table.clone()).html()
                                                         + "</div><div class=\"col-xs-12 col-sm-4\"></div></div></div></div></div>");
                                             } else {
-                                                $("#time-series-dropdown-" + course_group.id).find("[value='" + course.id + "']").prop('disabled', true);
+                                                $("#time-series-dropdown-" + course_group.id)
+                                                    .find("[value='" + course.id + "']").prop('disabled', true);
 
                                                 course_div.find("#course-body-" + course.id).append(
                                                     "<div class=\"widget-body\"><div class=\"widget-main\"><div class=\"row\"><div class=\"col-xs-12 col-sm-10 col-sm-offset-1 well\">This class does not have any categories. Head over to <a href=\"/planner/classes\">the Classes page</a> to add them.</div></div></div></div>");
