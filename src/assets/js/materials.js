@@ -416,7 +416,7 @@ function HeliumMaterials() {
         const row = table.row.add(
                 ["<span class=\"label label-sm title-label\" style=\"background-color: "
                  + helium.USER_PREFS.settings.material_color + " !important\">"
-                 + (material_data.website !== "" ? "<a target=\"_blank\" href=\"" + material_data.website
+                 + (helium.str_not_empty(material_data.website) ? "<a target=\"_blank\" href=\"" + material_data.website
                  + "\" class=\"planner-title-with-link\">" + material_data.title
                  + " <i class=\"icon-external-link\"></i></a>" : material_data.title) + "</span>",
                  material_data.price,
@@ -444,7 +444,7 @@ function HeliumMaterials() {
             const course = self.courses[ids[i]];
             course_names +=
                 ("<span class=\"label label-sm title-label\" style=\"background-color: " + course.color
-                 + " !important\">" + (course.website !== "" ? "<a target=\"_blank\" href=\"" + course.website
+                 + " !important\">" + (helium.str_not_empty(course.website) ? "<a target=\"_blank\" href=\"" + course.website
                  + "\" class=\"planner-title-with-link\">" + course.title
                  + " <i class=\"icon-external-link\"></i></a>" : course.title) + "</span> ");
         }

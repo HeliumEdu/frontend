@@ -965,7 +965,7 @@ function HeliumCalendar() {
                             completed: calendar_item.completed,
                             priority: calendar_item.priority,
                             current_grade: null,
-                            url: calendar_item.url,
+                            url: null,
                             comments: calendar_item.comments,
                             attachments: calendar_item.attachments,
                             reminders: calendar_item.reminders
@@ -1096,7 +1096,7 @@ function HeliumCalendar() {
                                     completed: calendar_item.completed,
                                     priority: calendar_item.priority,
                                     current_grade: calendar_item.current_grade,
-                                    url: calendar_item.url,
+                                    url: null,
                                     comments: calendar_item.comments,
                                     attachments: calendar_item.attachments,
                                     reminders: calendar_item.reminders
@@ -1300,14 +1300,14 @@ function HeliumCalendar() {
                         course_string = event.calendar_item_type === 1
                                         ? ('<span class="label label-sm" style="background-color: '
                                            + helium.calendar.courses[event.course].color + ' !important">'
-                                           + (helium.calendar.courses[event.course].website.replace(/\s/g,
+                                           + (helium.str_not_empty(helium.calendar.courses[event.course].website) && helium.calendar.courses[event.course].website.replace(/\s/g,
                                                                                                     "").length
                                               > 0
                                               ? "<a target=\"_blank\" href=\""
                                            + helium.calendar.courses[event.course].website
                                            + "\" class=\"planner-title-with-link\">" : "")
                                            + helium.calendar.courses[event.course].title
-                                           + (helium.calendar.courses[event.course].website.replace(/\s/g,
+                                           + (helium.str_not_empty(helium.calendar.courses[event.course].website) && helium.calendar.courses[event.course].website.replace(/\s/g,
                                                                                                     "").length
                                               > 0 ? " <i class=\"icon-external-link\"></i></a>"
                                                   : "")
@@ -1377,7 +1377,8 @@ function HeliumCalendar() {
                                     position: {
                                         my: "top center",
                                         at: "bottom center",
-                                        adjust: {resize: false}
+                                        adjust: {resize: false},
+                                        viewport: $(window)
                                     },
                                     show: {
                                         solo: true,
@@ -1837,7 +1838,7 @@ function HeliumCalendar() {
                     completed: calendar_item.calendar_item_type === 1 ? calendar_item.completed : false,
                     priority: calendar_item.priority,
                     current_grade: calendar_item.calendar_item_type === 1 ? calendar_item.current_grade : null,
-                    url: calendar_item.url,
+                    url: (calendar_item.calendar_item_type !== 0 && calendar_item.calendar_item_type === 1) ? calendar_item.url : null,
                     comments: calendar_item.comments,
                     attachments: calendar_item.attachments,
                     reminders: calendar_item.reminders
@@ -2267,7 +2268,7 @@ function HeliumCalendar() {
                             completed: calendar_item.calendar_item_type === 1 ? calendar_item.completed : false,
                             priority: calendar_item.priority,
                             current_grade: calendar_item.calendar_item_type === 1 ? calendar_item.current_grade : null,
-                            url: calendar_item.url,
+                            url: (calendar_item.calendar_item_type !== 0 && calendar_item.calendar_item_type === 1) ? calendar_item.url : null,
                             comments: calendar_item.comments,
                             attachments: calendar_item.attachments,
                             reminders: calendar_item.reminders
@@ -2482,7 +2483,7 @@ function HeliumCalendar() {
                                             ? ('<span class="label label-sm title-label" style="background-color: '
                                                + helium.calendar.courses[eventDef.miscProps.course].color
                                                + ' !important">'
-                                               + (helium.calendar.courses[eventDef.miscProps.course].website.replace(
+                                               + (helium.str_not_empty(helium.calendar.courses[eventDef.miscProps.course].website) && helium.calendar.courses[eventDef.miscProps.course].website.replace(
                                     /\s/g,
                                     "").length
                                                   > 0
@@ -2490,7 +2491,7 @@ function HeliumCalendar() {
                                                + helium.calendar.courses[eventDef.miscProps.course].website
                                                + "\" class=\"planner-title-with-link\">" : "")
                                                + helium.calendar.courses[eventDef.miscProps.course].title
-                                               + (helium.calendar.courses[eventDef.miscProps.course].website.replace(
+                                               + (helium.str_not_empty(helium.calendar.courses[eventDef.miscProps.course].website) && helium.calendar.courses[eventDef.miscProps.course].website.replace(
                                     /\s/g,
                                     "").length
                                                   > 0 ? " <i class=\"icon-external-link\"></i></a>"

@@ -46,12 +46,13 @@ function HeliumGrades() {
                             x: 5,
                             y: 5
                         },
+                        viewport: $(window)
                     },
                     show: true,
                     style: {classes: "qtip-bootstrap hidden-print"}
                 });
         } else {
-            $(this).qtip("hide", helium.QTIP_HIDE_INTERVAL);
+            $(this).qtip("destroy", helium.QTIP_HIDE_INTERVAL);
         }
     };
 
@@ -144,7 +145,8 @@ function HeliumGrades() {
                 + '<li class="dropdown-header">Graph Settings</li>'
                 + '<li class="form-group top-buffer-10"><select id="time-series-dropdown-' + course_group.id
                 + '" class="col-xs-12 form-control"></select></li>'
-                + '<li class="form-group"><label class="col-xs-12"><input type="checkbox" id="time-series-group-dates-' + course_group.id + '" class="ace"/>'
+                + '<li class="form-group"><label class="col-xs-12"><input type="checkbox" id="time-series-group-dates-'
+                + course_group.id + '" class="ace"/>'
                 + '<span class="lbl"> Auto-adjust to graded range</span></label></li>'
                 + '</ul></span></div></a></div><div class="widget-body"><div class="widget-main">'
                 + '<div id="course-group-time-series-' + course_group.id + '"></div></div></div></div></div></div>');
@@ -404,6 +406,7 @@ function HeliumGrades() {
                                     x: 5,
                                     y: 5
                                 },
+                                viewport: $(window)
                             },
                             content: point_data[2].title
                                      + " <span class=\"color-dot inline\" style=\"background-color: "
@@ -418,7 +421,7 @@ function HeliumGrades() {
             } else {
                 $(this).css('cursor', 'default');
                 helium.grades.hovered_item = null;
-                time_series_tag.qtip('hide', helium.QTIP_HIDE_INTERVAL);
+                time_series_tag.qtip('destroy', helium.QTIP_HIDE_INTERVAL);
             }
         });
 
