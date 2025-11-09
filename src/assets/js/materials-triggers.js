@@ -69,7 +69,8 @@
                         const material_group = data;
                         $('a[href="#material-group-' + data.id + '"]').html(
                             "<i class=\"icon-list r-110\"></i> <span class=\"hidden-xs\">" + material_group.title +
-                            (!material_group.shown_on_calendar ? "</span> <i class=\"icon-eye-close\"></i>" : "</span>"));
+                            (!material_group.shown_on_calendar ? "</span> <i class=\"icon-eye-close\"></i>"
+                                                               : "</span>"));
                         $("#material-group-title-" + data.id).html(
                             material_group.title + (!material_group.shown_on_calendar
                                                     ? " <i class=\"icon-eye-close\"></i>" : ""));
@@ -181,27 +182,32 @@
                         data["courses"] = [];
                     }
                     if (helium.materials.edit) {
-                        helium.planner_api.edit_material(function (data) {
-                            if (helium.data_has_err_msg(data)) {
+                        helium.planner_api.edit_material(function (material_data) {
+                            if (helium.data_has_err_msg(material_data)) {
                                 helium.ajax_error_occurred = true;
                                 $("#loading-material-modal").spin(false);
 
-                                $("#material-error").html(helium.get_error_msg(data));
+                                $("#material-error").html(helium.get_error_msg(material_data));
                                 $("#material-error").parent().show("fast");
                             } else {
-                                const row_div = $("#material-" + data.id);
-                                helium.materials.material_group_table[data.material_group].cell(row_div, 0).data(
-                                    data.website !== "" ? "<a target=\"_blank\" href=\"" + data.website + "\">"
-                                                          + data.title + "</a>" : data.title);
-                                helium.materials.material_group_table[data.material_group].cell(row_div, 1)
-                                    .data(data.price);
-                                helium.materials.material_group_table[data.material_group].cell(row_div, 2)
-                                    .data(helium.MATERIAL_STATUS_CHOICES[data.status]);
-                                helium.materials.material_group_table[data.material_group].cell(row_div, 3)
-                                    .data(helium.materials.get_course_names(data.courses));
-                                helium.materials.material_group_table[data.material_group].cell(row_div, 4)
-                                    .data(helium.get_comments_with_link(data.details));
-                                helium.materials.material_group_table[data.material_group].draw();
+                                const row_div = $("#material-" + material_data.id);
+                                helium.materials.material_group_table[material_data.material_group].cell(row_div, 0).data(
+                                    "<span class=\"label label-sm title-label\" style=\"background-color: "
+                                    + helium.USER_PREFS.settings.material_color + " !important\">"
+                                    + (material_data.website !== "" ? "<a target=\"_blank\" href=\""
+                                    + material_data.website + "\" class=\"planner-title-with-link\">"
+                                    + material_data.title
+                                    + " <i class=\"icon-external-link\"></i></a>" : material_data.title)
+                                    + "</span>");
+                                helium.materials.material_group_table[material_data.material_group].cell(row_div, 1)
+                                    .data(material_data.price);
+                                helium.materials.material_group_table[material_data.material_group].cell(row_div, 2)
+                                    .data(helium.MATERIAL_STATUS_CHOICES[material_data.status]);
+                                helium.materials.material_group_table[material_data.material_group].cell(row_div, 3)
+                                    .data(helium.materials.get_course_names(material_data.courses));
+                                helium.materials.material_group_table[material_data.material_group].cell(row_div, 4)
+                                    .data(helium.get_comments_with_link(material_data.details));
+                                helium.materials.material_group_table[material_data.material_group].draw();
                                 // Bind clickable attributes to their respective handlers
                                 row_div.on("click", function () {
                                     helium.materials.edit_material_btn($(this));
