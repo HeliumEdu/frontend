@@ -490,14 +490,14 @@ $(document).ready(function () {
             }));
 
         helium.ajax_calls.push(
-            helium.planner_api.get_courses(function (data) {
-                if (helium.data_has_err_msg(data)) {
+            helium.planner_api.get_courses(function (courses) {
+                if (helium.data_has_err_msg(courses)) {
                     helium.ajax_error_occurred = true;
                     $("#loading-grades").spin(false);
 
-                    bootbox.alert(helium.get_error_msg(data));
+                    bootbox.alert(helium.get_error_msg(courses));
                 } else {
-                    $.each(data, function (i, course) {
+                    $.each(courses, function (i, course) {
                         helium.grades.courses[course.id] = course
                     });
 
@@ -593,7 +593,12 @@ $(document).ready(function () {
                                         $("#time-series-dropdown-" + course_group.id).append(
                                             "<option value='-1'>-- " + course_group.title + " --</option>");
 
-                                        $.each(helium.grades.courses, function (i, course) {
+                                        let courses = Object.entries(helium.grades.courses);
+                                        courses.sort((a, b) => {
+                                            return a[1].title.toLowerCase().localeCompare(b[1].title)
+                                        });
+                                        $.each(courses, function (i, course_tuple) {
+                                            let course = course_tuple[1];
                                             if (course.course_group !== course_group.id) {
                                                 return true;
                                             }
@@ -644,7 +649,12 @@ $(document).ready(function () {
                                                 category_table.find("#category-table-course-" + course.id);
 
                                             let num_categories = 0;
-                                            $.each(helium.grades.categories, function (i, category) {
+                                            let categories = Object.entries(helium.grades.categories);
+                                            categories.sort((a, b) => {
+                                                return a[1].title.toLowerCase().localeCompare(b[1].title)
+                                            });
+                                            $.each(categories, function (i, category_tuple) {
+                                                let category = category_tuple[1];
                                                 if (category.course !== course.id) {
                                                     return true;
                                                 }
