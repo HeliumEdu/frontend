@@ -1531,13 +1531,6 @@ function HeliumCalendar() {
         });
     };
 
-    /**
-     * Stop propagation of an event.
-     */
-    this.event_stop_propagation = function (e) {
-        e.stopPropagation();
-    };
-
     this.get_materials_titles_badges_from_ids = function (materials) {
         let titles = "";
 
@@ -1556,7 +1549,7 @@ function HeliumCalendar() {
 
             titles += '<span class="label label-sm title-label" style="background-color: '
                       + helium.USER_PREFS.settings.material_color + ' !important;">'
-                      + title + "</span>";
+                      + title + "</span> ";
         });
 
         return titles;
