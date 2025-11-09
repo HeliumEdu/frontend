@@ -2941,6 +2941,8 @@ $(document).ready(function () {
 
                         $(".wysiwyg-editor").ace_wysiwyg({
                                                              toolbar: [
+                                                                 'font',
+                                                                 null,
                                                                  {name: "bold", className: 'btn-info'},
                                                                  {name: "italic", className: 'btn-info'},
                                                                  {name: "strikethrough", className: 'btn-info'},

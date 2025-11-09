@@ -193,7 +193,8 @@ function HeliumMaterials() {
                 .next().remove();
             table_div.parent().find("#material-group-table-" + data.id + "_length").parent().parent()
                 .addClass("hidden-print");
-            table_div.parent().find("#material-group-table-" + data.id + "_length select").attr("style", "display: inline");
+            table_div.parent().find("#material-group-table-" + data.id + "_length select")
+                .attr("style", "display: inline");
             table_div.parent().find("#material-group-table-" + data.id + "_info").parent().parent()
                 .addClass("hidden-print");
 
@@ -413,7 +414,8 @@ function HeliumMaterials() {
      */
     this.add_material_to_group = function (material_data, table) {
         const row = table.row.add(
-                ["<span class=\"label label-sm title-label\" style=\"background-color: " + helium.USER_PREFS.settings.material_color + " !important\">"
+                ["<span class=\"label label-sm title-label\" style=\"background-color: "
+                 + helium.USER_PREFS.settings.material_color + " !important\">"
                  + (material_data.website !== "" ? "<a target=\"_blank\" href=\"" + material_data.website
                  + "\" class=\"planner-title-with-link\">" + material_data.title
                  + " <i class=\"icon-external-link\"></i></a>" : material_data.title) + "</span>",
@@ -511,13 +513,21 @@ $(document).ready(function () {
      ******************************************/
     $(".wysiwyg-editor").ace_wysiwyg({
                                          toolbar: [
-                                             {name: "bold",  className:'btn-info'}, {name: "italic",  className:'btn-info'}, {name: "strikethrough",  className:'btn-info'}, {name: "underline",  className:'btn-info'},
+                                             'font',
                                              null,
-                                             {name: "createLink", className:'btn-pink'}, {name: "unlink", className:'btn-pink'},
+                                             {name: "bold", className: 'btn-info'},
+                                             {name: "italic", className: 'btn-info'},
+                                             {name: "strikethrough", className: 'btn-info'},
+                                             {name: "underline", className: 'btn-info'},
                                              null,
-                                             {name: "insertunorderedlist", className:'btn-success'}, {name: "insertorderedlist", className:'btn-success'},
+                                             {name: "createLink", className: 'btn-pink'},
+                                             {name: "unlink", className: 'btn-pink'},
                                              null,
-                                             {name: "indent", className:'btn-purple'}, {name: "outdent", className:'btn-purple'},
+                                             {name: "insertunorderedlist", className: 'btn-success'},
+                                             {name: "insertorderedlist", className: 'btn-success'},
+                                             null,
+                                             {name: "indent", className: 'btn-purple'},
+                                             {name: "outdent", className: 'btn-purple'},
                                              null,
                                              "foreColor"
                                          ]
@@ -546,7 +556,9 @@ $(document).ready(function () {
                         let course = course_tuple[1];
                         helium.materials.courses[course.id] = course;
                         $("#material-courses")
-                            .append("<option value=\"" + course.id + "\">" + course.title + " <span class=\"color-dot inline\" style=\"background-color: " + course.color + "\"></span></option>");
+                            .append("<option value=\"" + course.id + "\">" + course.title
+                                    + " <span class=\"color-dot inline\" style=\"background-color: " + course.color
+                                    + "\"></span></option>");
                     });
 
                     if (data.length <= 0) {

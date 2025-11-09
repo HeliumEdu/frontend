@@ -41,6 +41,12 @@
         });
     });
 
+    $(document).on("keydown", "#material-group-title", function(event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+        }
+    });
+
     // MaterialGroup components
     $("#save-material-group").on("click", function () {
         helium.ajax_error_occurred = false;

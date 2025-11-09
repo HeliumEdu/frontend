@@ -655,27 +655,31 @@ $(document).ready(function () {
                                                                                             + category.id]['visible'] =
                                                     true;
 
-                                                course_time_series_items.push(category);
+                                                if (category.grade_points.length > 0) {
+                                                    course_time_series_items.push(category);
+                                                }
 
                                                 num_categories += 1;
+
+                                                const is_graded = (parseFloat(category.weight)
+                                                                   !== 0
+                                                                   || !course.has_weighted_grading);
 
                                                 category_table_body.append(
                                                     "<tr><td><span class=\"label label-sm\" style=\"background-color: "
                                                     + category.color
                                                     + " !important\">" + category.title
                                                     + "</span></td><td class=\"hidden-xs\">"
-                                                    + category.num_homework_graded + " of "
-                                                    + category.num_homework
-                                                    + "</td><td>" + ((parseFloat(category.weight)
-                                                                      !== 0
-                                                                      || !course.has_weighted_grading)
+                                                    + (is_graded ? (category.num_homework_graded + " of "
+                                                    + category.num_homework) : "N/A")
+                                                    + "</td><td>" + (is_graded
                                                                      ? (parseFloat(
                                                             category.overall_grade.toFixed(2)) !== -1
                                                                         ? "<span class=\"badge\" style=\"background-color: "
                                                     + helium.USER_PREFS.settings.grade_color + " !important\">"
                                                     + Math.round(category.overall_grade * 100) / 100 + "%"
                                                     + helium.grades.get_trend_arrow(
-                                                                category.trend) + "</span>" : "N/A") : "Not Graded")
+                                                                category.trend) + "</span>" : "TBD") : "Not Graded")
                                                     + "</td></tr>");
                                             });
 
