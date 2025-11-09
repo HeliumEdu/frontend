@@ -1189,24 +1189,24 @@ function HeliumClasses() {
     /**
      * Add a course to the given course group.
      *
-     * @param course_data the course data with which to build the course
+     * @param course the course data with which to build the course
      * @param table the course group table in which to add the course
      */
-    this.add_course_to_groups = function (course_data, table) {
+    this.add_course_to_groups = function (course, table) {
         const row = table.row.add(
-                ["<span class=\"label label-sm title-label\" style=\"background-color: " + course_data.color
+                ["<span class=\"label label-sm title-label\" style=\"background-color: " + course.color
                  + " !important\">"
-                 + (course_data.website !== "" ? "<a target=\"_blank\" href=\"" + course_data.website
-                 + "\" class=\"planner-title-with-link\">" + course_data.title
-                 + " <i class=\"icon-external-link\"></i></a>" : course_data.title) + "</span>",
-                 moment(course_data.start_date, helium.HE_DATE_STRING_SERVER).format(helium.HE_DATE_STRING_CLIENT) + " to "
-                 + moment(course_data.end_date, helium.HE_DATE_STRING_SERVER).format(helium.HE_DATE_STRING_CLIENT),
-                 course_data.is_online ? "Online" : course_data.room,
-                 course_data.teacher_email !== "" ? ("<a target=\"_blank\" href=\"mailto:" + course_data.teacher_email
-                                                     + "\" class=\"teacher-email-with-link\">" + course_data.teacher_name
-                                                     + "</a>") : course_data.teacher_name, self.get_schedule(course_data)])
+                 + (helium.str_not_empty(course.website) ? "<a target=\"_blank\" href=\"" + course.website
+                 + "\" class=\"planner-title-with-link\">" + course.title
+                 + " <i class=\"icon-external-link\"></i></a>" : course.title) + "</span>",
+                 moment(course.start_date, helium.HE_DATE_STRING_SERVER).format(helium.HE_DATE_STRING_CLIENT) + " to "
+                 + moment(course.end_date, helium.HE_DATE_STRING_SERVER).format(helium.HE_DATE_STRING_CLIENT),
+                 course.is_online ? "Online" : course.room,
+                 course.teacher_email !== "" ? ("<a target=\"_blank\" href=\"mailto:" + course.teacher_email
+                                                     + "\" class=\"teacher-email-with-link\">" + course.teacher_name
+                                                     + "</a>") : course.teacher_name, self.get_schedule(course)])
                 .node(),
-            row_div = $(row).attr("id", "course-" + course_data.id);
+            row_div = $(row).attr("id", "course-" + course.id);
         // Bind clickable attributes to their respective handlers
         row_div.find("[class$='-with-link']").on("click", function (e) {
             e.stopImmediatePropagation();
@@ -1481,12 +1481,12 @@ function HeliumClasses() {
                         "course_group": $("#course-group").val()
                     };
                     if (self.edit) {
-                        helium.planner_api.edit_course(function (data) {
-                            if (helium.data_has_err_msg(data)) {
+                        helium.planner_api.edit_course(function (course) {
+                            if (helium.data_has_err_msg(course)) {
                                 helium.ajax_error_occurred = true;
                                 $("#loading-course-modal").spin(false);
 
-                                $("#course-error").html(helium.get_error_msg(data));
+                                $("#course-error").html(helium.get_error_msg(course));
                                 $("#course-error").parent().show("fast");
                             } else {
                                 const course_schedule_data = {
@@ -1540,17 +1540,17 @@ function HeliumClasses() {
                                 // in to, where a class doesn't have an associated class schedule—there should be a
                                 // backend fix for this first, where class schedules are changed to a one-to-one
                                 // required relationship with a class, and then this edge case can be removed
-                                if (data.schedules.length === 0) {
+                                if (course.schedules.length === 0) {
                                     helium.ajax_calls.push(
                                         helium.planner_api.add_courseschedule(function (course_schedule) {
-                                                                                  data.schedules = [course_schedule];
+                                                                                  course.schedules = [course_schedule];
                                                                               }, self.course_group_id, self.edit_id, course_schedule_data,
                                                                               false));
                                 } else {
                                     helium.ajax_calls.push(
                                         helium.planner_api.edit_courseschedule(function (course_schedule) {
-                                                                                   data.schedules = [course_schedule];
-                                                                               }, self.course_group_id, self.edit_id, data.schedules[0].id,
+                                                                                   course.schedules = [course_schedule];
+                                                                               }, self.course_group_id, self.edit_id, course.schedules[0].id,
                                                                                course_schedule_data,
                                                                                false));
                                 }
@@ -1558,11 +1558,11 @@ function HeliumClasses() {
                                 if (!helium.ajax_error_occurred) {
                                     $.each(helium.classes.categories_to_delete, function (i, category_id) {
                                         helium.planner_api.delete_category(function () {
-                                            if (helium.data_has_err_msg(data)) {
+                                            if (helium.data_has_err_msg(course)) {
                                                 helium.ajax_error_occurred = true;
                                                 $("#loading-course-modal").spin(false);
 
-                                                $("#course-error").html(helium.get_error_msg(data));
+                                                $("#course-error").html(helium.get_error_msg(course));
                                                 $("#course-error").parent().show("fast");
 
                                                 return false;
@@ -1574,11 +1574,11 @@ function HeliumClasses() {
                                 if (!helium.ajax_error_occurred) {
                                     $.each(categories_data, function (i, category_data) {
                                         helium.planner_api.add_category(function () {
-                                            if (helium.data_has_err_msg(data)) {
+                                            if (helium.data_has_err_msg(course)) {
                                                 helium.ajax_error_occurred = true;
                                                 $("#loading-course-modal").spin(false);
 
-                                                $("#course-error").html(helium.get_error_msg(data));
+                                                $("#course-error").html(helium.get_error_msg(course));
                                                 $("#course-error").parent().show("fast");
 
                                                 return false;
@@ -1591,11 +1591,11 @@ function HeliumClasses() {
                                     $.each(helium.classes.attachments_to_delete, function (i, attachment_id) {
                                         helium.ajax_calls.push(
                                             helium.planner_api.delete_attachment(function () {
-                                                if (helium.data_has_err_msg(data)) {
+                                                if (helium.data_has_err_msg(course)) {
                                                     helium.ajax_error_occurred = true;
                                                     $("#loading-course-modal").spin(false);
 
-                                                    $("#course-error").html(helium.get_error_msg(data));
+                                                    $("#course-error").html(helium.get_error_msg(course));
                                                     $("#course-error").parent().show("fast");
 
                                                     return false;
@@ -1609,30 +1609,30 @@ function HeliumClasses() {
                                         helium.classes.categories_to_delete = [];
                                         helium.classes.attachments_to_delete = [];
 
-                                        const row_div = $("#course-" + data.id);
-                                        self.course_group_table[data.course_group.toString()].cell(row_div, 0).data(
-                                            "<span class=\"label label-sm\" style=\"background-color: " + data.color
-                                            + " !important\">" + (data.website !== "" ? "<a target=\"_blank\" href=\""
-                                            + data.website + "\" class=\"planner-title-with-link hidden-xs\">"
-                                            + data.title
-                                            + " <i class=\"icon-external-link\"></i></a>" : data.title)
+                                        const row_div = $("#course-" + course.id);
+                                        self.course_group_table[course.course_group.toString()].cell(row_div, 0).data(
+                                            "<span class=\"label label-sm\" style=\"background-color: " + course.color
+                                            + " !important\">" + (helium.str_not_empty(course.website) ? "<a target=\"_blank\" href=\""
+                                            + course.website + "\" class=\"planner-title-with-link hidden-xs\">"
+                                            + course.title
+                                            + " <i class=\"icon-external-link\"></i></a>" : course.title)
                                             + "</span>");
-                                        self.course_group_table[data.course_group.toString()].cell(row_div, 1).data(
-                                            moment(data.start_date, helium.HE_DATE_STRING_SERVER)
-                                                .format(helium.HE_DATE_STRING_CLIENT) + " to " + moment(data.end_date,
+                                        self.course_group_table[course.course_group.toString()].cell(row_div, 1).data(
+                                            moment(course.start_date, helium.HE_DATE_STRING_SERVER)
+                                                .format(helium.HE_DATE_STRING_CLIENT) + " to " + moment(course.end_date,
                                                                                                         helium.HE_DATE_STRING_SERVER)
                                                 .format(helium.HE_DATE_STRING_CLIENT));
-                                        self.course_group_table[data.course_group.toString()].cell(row_div, 2)
-                                            .data(data.is_online ? "Online" : data.room);
-                                        self.course_group_table[data.course_group.toString()].cell(row_div, 3).data(
-                                            data.teacher_email !== "" ? ("<a target=\"_blank\" href=\"mailto:"
-                                                                         + data.teacher_email
+                                        self.course_group_table[course.course_group.toString()].cell(row_div, 2)
+                                            .data(course.is_online ? "Online" : course.room);
+                                        self.course_group_table[course.course_group.toString()].cell(row_div, 3).data(
+                                            course.teacher_email !== "" ? ("<a target=\"_blank\" href=\"mailto:"
+                                                                         + course.teacher_email
                                                                          + "\" class=\"teacher-email-with-link\">"
-                                                                         + data.teacher_name + "</a>")
-                                                                      : data.teacher_name);
-                                        self.course_group_table[data.course_group.toString()].cell(row_div, 4)
-                                            .data(self.get_schedule(data));
-                                        self.course_group_table[data.course_group.toString()].draw();
+                                                                         + course.teacher_name + "</a>")
+                                                                      : course.teacher_name);
+                                        self.course_group_table[course.course_group.toString()].cell(row_div, 4)
+                                            .data(self.get_schedule(course));
+                                        self.course_group_table[course.course_group.toString()].draw();
                                         // Bind clickable attributes to their respective handlers
                                         row_div.find("[class$='-with-link']").on("click", function (e) {
                                             e.stopImmediatePropagation();
