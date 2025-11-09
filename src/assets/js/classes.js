@@ -851,8 +851,10 @@ function HeliumClasses() {
                     $("#course-group").val(course.course_group);
 
                     // Initialize details on Schedule and Categories panels as well
-                    if (self.on_day_of_week(schedule, 0)) {
-                        $("#course-schedule-sun").addClass("active");
+                    if (self.on_day_of_week(schedule, 0) || self.same_time(schedule)) {
+                        if (self.on_day_of_week(schedule, 0)) {
+                            $("#course-schedule-sun").addClass("active");
+                        }
                         $("#course-sun-start-time").timepicker("setTime",
                                                                moment(schedule.sun_start_time,
                                                                       helium.HE_TIME_STRING_SERVER)
@@ -862,8 +864,6 @@ function HeliumClasses() {
                                                                  .format(helium.HE_TIME_STRING_CLIENT));
                     } else {
                         $("#course-schedule-sun").removeClass("active");
-                        $("#course-sun-start-time").timepicker("setTime", "12:00 PM");
-                        $("#course-sun-end-time").timepicker("setTime", "1:00 PM");
                     }
                     if (self.on_day_of_week(schedule, 1)) {
                         $("#course-schedule-mon").addClass("active");
@@ -876,8 +876,6 @@ function HeliumClasses() {
                                                                  .format(helium.HE_TIME_STRING_CLIENT));
                     } else {
                         $("#course-schedule-mon").removeClass("active");
-                        $("#course-mon-start-time").timepicker("setTime", "12:00 PM");
-                        $("#course-mon-end-time").timepicker("setTime", "1:00 PM");
                     }
                     if (self.on_day_of_week(schedule, 2)) {
                         $("#course-schedule-tue").addClass("active");
@@ -890,8 +888,6 @@ function HeliumClasses() {
                                                                  .format(helium.HE_TIME_STRING_CLIENT));
                     } else {
                         $("#course-schedule-tue").removeClass("active");
-                        $("#course-tue-start-time").timepicker("setTime", "12:00 PM");
-                        $("#course-tue-end-time").timepicker("setTime", "1:00 PM");
                     }
                     if (self.on_day_of_week(schedule, 3)) {
                         $("#course-schedule-wed").addClass("active");
@@ -904,8 +900,6 @@ function HeliumClasses() {
                                                                  .format(helium.HE_TIME_STRING_CLIENT));
                     } else {
                         $("#course-schedule-wed").removeClass("active");
-                        $("#course-wed-start-time").timepicker("setTime", "12:00 PM");
-                        $("#course-wed-end-time").timepicker("setTime", "1:00 PM");
                     }
                     if (self.on_day_of_week(schedule, 4)) {
                         $("#course-schedule-thu").addClass("active");
@@ -918,8 +912,6 @@ function HeliumClasses() {
                                                                  .format(helium.HE_TIME_STRING_CLIENT));
                     } else {
                         $("#course-schedule-thu").removeClass("active");
-                        $("#course-thu-start-time").timepicker("setTime", "12:00 PM");
-                        $("#course-thu-end-time").timepicker("setTime", "1:00 PM");
                     }
                     if (self.on_day_of_week(schedule, 5)) {
                         $("#course-schedule-fri").addClass("active");
@@ -932,8 +924,6 @@ function HeliumClasses() {
                                                                  .format(helium.HE_TIME_STRING_CLIENT));
                     } else {
                         $("#course-schedule-fri").removeClass("active");
-                        $("#course-fri-start-time").timepicker("setTime", "12:00 PM");
-                        $("#course-fri-end-time").timepicker("setTime", "1:00 PM");
                     }
                     if (self.on_day_of_week(schedule, 6)) {
                         $("#course-schedule-sat").addClass("active");
@@ -946,12 +936,10 @@ function HeliumClasses() {
                                                                  .format(helium.HE_TIME_STRING_CLIENT));
                     } else {
                         $("#course-schedule-sat").removeClass("active");
-                        $("#course-sat-start-time").timepicker("setTime", "12:00 PM");
-                        $("#course-sat-end-time").timepicker("setTime", "1:00 PM");
                     }
 
                     $("#course-schedule-has-different-times")
-                        .prop("checked", course.schedules.length > 0 && !self.same_time(course.schedules[0]))
+                        .prop("checked", !self.same_time(schedule))
                         .trigger("change");
 
                     $("tr[id^='category-']").remove();
