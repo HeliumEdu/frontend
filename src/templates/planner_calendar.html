@@ -342,16 +342,18 @@
 
                         <div class="row" style="margin-right: 5px; margin-top: -10px; margin-bottom: -25px;">
                             <div>
-                                <a href="https://www.patreon.com/alexdlaird"><img src="{{ ASSETS_PREFIX_VERSIONED }}/img/support_patreon.png" style="max-width: 30%; padding-left: 15px;" /></a>
+                                <a href="https://www.patreon.com/alexdlaird" target="_blank"><img src="{{ ASSETS_PREFIX_VERSIONED }}/img/support_patreon.png" style="max-width: 30%; padding-left: 15px;" class="pull-right"/></a>
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <div class="form-group" style="margin-bottom: 0px;">
-                            <label class="pull-left">
-                                <input id="show-getting-started" class="ace" type="checkbox"/>
-                                <span class="lbl"> Don't show this dialog again</span>
-                            </label>
+                            <button id="delete-example-schedule" type="button" class="pull-left btn btn-danger btn-sm">
+                                <i class="icon-trash"></i> Delete Example Schedule
+                            </button>
+                            <div id="getting-started-modal-loading" class="loading-mini">
+                                <div id="loading-getting-started-modal"></div>
+                            </div>
                             <button id="close-getting-started" type="button" class="btn btn-primary btn-sm">
                                 Close
                             </button>

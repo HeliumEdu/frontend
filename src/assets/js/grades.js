@@ -684,8 +684,8 @@ $(document).ready(function () {
                                                         + category.color
                                                         + " !important\">" + category.title
                                                         + "</span></td><td class=\"hidden-xs\">"
-                                                        + (is_graded ? (category.num_homework_graded + " of "
-                                                        + category.num_homework) : "N/A")
+                                                        + category.num_homework_graded + " of "
+                                                        + category.num_homework
                                                         + "</td><td>" + (parseFloat(
                                                                 category.overall_grade.toFixed(2)) !== -1
                                                                             ? "<span class=\"badge\" style=\"background-color: "

@@ -127,11 +127,10 @@ function HeliumPlannerAPI() {
      * Update user details.
      *
      * @param callback function to pass response data and call after completion
-     * @param user_id the user ID to update
      * @param data the array of values to update for the user
      * @param async true if call should be async, false otherwise (default is true)
      */
-    this.update_user_details = function (callback, user_id, data, async) {
+    this.update_user_details = function (callback, data, async) {
         async = typeof async === "undefined" ? true : async;
         return $.ajax({
                           type: "PUT",
@@ -145,6 +144,19 @@ function HeliumPlannerAPI() {
                           }
                       });
     };
+
+    this.delete_example_schedule = function (callback) {
+        return $.ajax({
+                          type: "DELETE",
+                          url: helium.API_URL + "/auth/user/delete/exampleschedule/",
+                          async: false,
+                          dataType: "json",
+                          success: callback,
+                          error: function (jqXHR, textStatus, errorThrown) {
+                              document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
+                          }
+                      });
+    }
 
     /**
      * Compile data for display on the /grades page for the given User ID and pass the values to the given callback

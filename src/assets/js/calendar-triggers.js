@@ -39,7 +39,8 @@
             if (helium.calendar.edit) {
                 $("#homework-modal-label").html("Edit Event");
             } else {
-                $("#homework-modal-label").html("Add Event <span class=\"event-help help-button\" data-rel=\"popover\" data-trigger=\"hover\" data-container=\"body\" data-placement=\"bottom\" data-content=\"Events are colored differently and aren't associated with classes, allowing you to plan your schedule alongside schoolwork.\" title=\"Events\">?</span>")
+                $("#homework-modal-label").html(
+                    "Add Event <span class=\"event-help help-button\" data-rel=\"popover\" data-trigger=\"hover\" data-container=\"body\" data-placement=\"bottom\" data-content=\"Events are colored differently and aren't associated with classes, allowing you to plan your schedule alongside schoolwork.\" title=\"Events\">?</span>")
                     .find(".help-button").popover({html: true}).data("bs.popover").tip().css("z-index", 1060);
             }
 
@@ -347,7 +348,9 @@
                                                         category.weight * 100) / 100 + "%)" : " (Not Graded)") : "");
                                             $("#homework-category").append(
                                                 "<option value=\"" + category.id + "\" data-str=\"" + category.title
-                                                + "\">" + category.title + weight_tag + " <span class=\"color-dot inline\" style=\"background-color: " + category.color + "\"></span>"
+                                                + "\">" + category.title + weight_tag
+                                                + " <span class=\"color-dot inline\" style=\"background-color: "
+                                                + category.color + "\"></span>"
                                                 + "</option>");
                                         }
                                     }, true, true);
@@ -444,29 +447,18 @@
     });
 
     $("#close-getting-started").on("click", function () {
-        $("#close-getting-started").attr("disabled", "disabled");
-        $("#start-adding-classes").attr("disabled", "disabled");
-
-        if ($("#show-getting-started").is(":checked") === (helium.USER_PREFS.settings.show_getting_started)) {
-            helium.planner_api.update_user_details(function () {
-                $("#getting-started-modal").modal("hide");
-            }, helium.USER_PREFS.id, {'show_getting_started': !$("#show-getting-started").is(":checked")});
-        } else {
-            $("#getting-started-modal").modal("hide");
-        }
+        $("#getting-started-modal").modal("hide");
     });
 
-    $("#start-adding-classes").on("click", function () {
-        $("#close-getting-started").attr("disabled", "disabled");
+    $("#delete-example-schedule").on("click", function () {
         $("#start-adding-classes").attr("disabled", "disabled");
+        $("#loading-getting-started-modal").spin(helium.SMALL_LOADING_OPTS);
 
-        if ($("#show-getting-started").is(":checked") === (helium.USER_PREFS.settings.show_getting_started)) {
+        helium.planner_api.delete_example_schedule(function () {
             helium.planner_api.update_user_details(function () {
-                window.location.href = "/planner/classes";
-            }, helium.USER_PREFS.id, {'show_getting_started': !$("#show-getting-started").is(":checked")});
-        } else {
-            window.location.href = "/planner/classes";
-        }
+                location.reload();
+            }, {'show_getting_started': false}, false);
+        });
     });
 
     $("#create-reminder").on("click", function () {
