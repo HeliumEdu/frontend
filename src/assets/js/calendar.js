@@ -2004,12 +2004,23 @@ function HeliumCalendar() {
             calendar_item_start_date = $("#homework-start-date").val(),
             calendar_item_start_time = $("#homework-start-time").val(),
             moment_end_time = moment(calendar_item_start_time, helium.HE_TIME_STRING_CLIENT),
-            calendar_item_end_time = $("#homework-end-time").is(":visible") ? $("#homework-end-time").val()
-                                                                            : moment_end_time.add(
-                    helium.USER_PREFS.settings.all_day_offset, "minutes").format(helium.HE_TIME_STRING_CLIENT),
+            calendar_item_end_time,
             calendar_item_end_date = $("#homework-show-end-time").is(":checked") ? $("#homework-end-date").val()
                                                                                  : calendar_item_start_date,
             homework_category = $("#homework-category").val(), completed, is_category_valid, data;
+
+        if ($("#homework-end-time").is(":visible")) {
+            calendar_item_end_time = $("#homework-end-time").val();
+        } else {
+            let end_offset = helium.USER_PREFS.settings.all_day_offset;
+            const updated_end = moment_end_time.clone().add(end_offset, "minutes");
+            // Check if the offset causes us to roll in to the next day, and if so, cut it off
+            if (updated_end.day() !== moment_end_time.day()) {
+                const midnight = updated_end.startOf("day");
+                end_offset = midnight.diff(moment_end_time, 'minutes') - 1;
+            }
+            calendar_item_end_time = moment_end_time.add(end_offset, "minutes").format(helium.HE_TIME_STRING_CLIENT);
+        }
 
         self.clear_calendar_item_errors();
 
