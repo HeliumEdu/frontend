@@ -531,6 +531,44 @@ function HeliumSettings() {
         }
     });
 
+    $("#delete-all-events").on("click", function (e) {
+        e.preventDefault();
+
+        bootbox.dialog(
+            {
+                message: "Are you sure you want to delete all events? This action cannot be undone.",
+                onEscape: true,
+                buttons: {
+                    "delete": {
+                        "label": '<i class="icon-trash"></i> Delete',
+                        "className": "btn-sm btn-danger",
+                        "callback": function () {
+                            $("#loading-account").spin(helium.SMALL_LOADING_OPTS);
+
+                            $.ajax({
+                                       url: helium.API_URL + "/planner/events/delete/",
+                                       type: "DELETE",
+                                       dataType: "json",
+                                       success: function () {
+                                           $("#status_account").html("All events deleted successfully.").addClass("alert-success")
+                                               .removeClass("hidden alert-danger");
+
+                                           $("#loading-account").spin(false);
+                                       },
+                                       error: function (xhr) {
+                                           self.show_error("account", xhr);
+                                       }
+                                   });
+                        }
+                    },
+                    "cancel": {
+                        "label": '<i class="icon-remove"></i> Cancel',
+                        "className": "btn-sm"
+                    }
+                }
+            });
+    });
+
     $("#delete-account").on("click", function (e) {
         e.preventDefault();
 
