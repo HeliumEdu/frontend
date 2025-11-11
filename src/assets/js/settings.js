@@ -531,7 +531,9 @@ function HeliumSettings() {
         }
     });
 
-    $("#delete-account").on("click", function () {
+    $("#delete-account").on("click", function (e) {
+        e.preventDefault();
+
         bootbox.dialog(
             {
                 title: "To permanently delete your account—<strong>and all data you have stored in Helium</strong>—confirm your password below. This action cannot be undone.",
@@ -586,6 +588,8 @@ function HeliumSettings() {
         e.preventDefault();
         e.returnValue = false;
 
+        $("#loading-importexport").spin(helium.SMALL_LOADING_OPTS);
+
         $.ajax({
                    url: helium.API_URL + "/importexport/export/",
                    type: "GET",
@@ -602,6 +606,31 @@ function HeliumSettings() {
                                      "href": url,
                                      "download": "Helium_" + helium.USER_PREFS.username + ".json"
                                  }).html($("<a>").attr("download")).get(0).click();
+
+                       $("#loading-importexport").spin(false);
+                   },
+                   error: function (xhr) {
+                       self.show_error("importexport", xhr);
+                   }
+               });
+    });
+
+    $("#reimport-exampleschedule").on("click", function (e) {
+        e.preventDefault();
+        e.returnValue = false;
+
+        $("#loading-importexport").spin(helium.SMALL_LOADING_OPTS);
+
+        $.ajax({
+                   url: helium.API_URL + "/importexport/import/exampleschedule/",
+                   type: "POST",
+                   success: function () {
+                       helium.planner_api.update_user_details(function () {
+                           $("#status_importexport").html("Example Schedule re-imported.").addClass("alert-success")
+                               .removeClass("hidden alert-danger");
+
+                           $("#loading-importexport").spin(false);
+                       }, {'show_getting_started': true}, false);
                    },
                    error: function (xhr) {
                        self.show_error("importexport", xhr);
