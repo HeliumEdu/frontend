@@ -620,6 +620,7 @@ function HeliumSettings() {
         e.returnValue = false;
 
         $("#loading-importexport").spin(helium.SMALL_LOADING_OPTS);
+        $("#reimport-exampleschedule").attr("disabled", true);
 
         $.ajax({
                    url: helium.API_URL + "/importexport/import/exampleschedule/",
@@ -630,6 +631,7 @@ function HeliumSettings() {
                                .removeClass("hidden alert-danger");
 
                            $("#loading-importexport").spin(false);
+                           $("#reimport-exampleschedule").attr("disabled", false);
                        }, {'show_getting_started': true}, false);
                    },
                    error: function (xhr) {

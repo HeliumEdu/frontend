@@ -129,7 +129,7 @@ function HeliumGrades() {
 
             container.append(
                 '<div class="row"><div class="col-xs-12"><div id=\"course-group-widget-box-' + course_group.id
-                + '" class="widget-box transparent"><div class="widget-header widget-header-flat"><h4 class="lighter"><i class="icon-bar-chart"></i><span id="time-series-header"> Term Progress</h4><span class="hidden-xs"> | </span><small class="hidden-xs" id="time-series-date"><span>'
+                + '" class="widget-box transparent"><div class="widget-header widget-header-flat"><h4 class="lighter"><i class="icon-bar-chart"></i> <span id="time-series-header">Term Progress</h4><span class="hidden-xs"> | </span><small class="hidden-xs" id="time-series-date"><span>'
                 + moment(course_group.start_date, helium.HE_DATE_STRING_SERVER).format(helium.HE_DATE_STRING_CLIENT)
                 + "</span> to <span>"
                 + moment(course_group.end_date, helium.HE_DATE_STRING_SERVER).format(helium.HE_DATE_STRING_CLIENT)
@@ -148,6 +148,9 @@ function HeliumGrades() {
                 + '<li class="form-group"><label class="col-xs-12"><input type="checkbox" id="time-series-group-dates-'
                 + course_group.id + '" class="ace"/>'
                 + '<span class="lbl"> Auto-adjust to graded range</span></label></li>'
+                + '<li class="form-group"><label class="col-xs-12" style="margin-top:-10px;"><input type="checkbox" id="time-series-hide-legend-'
+                + course_group.id + '" class="ace"/>'
+                + '<span class="lbl"> Hide legend</span></label></li>'
                 + '</ul></span></div></a></div><div class="widget-body"><div class="widget-main">'
                 + '<div id="course-group-time-series-' + course_group.id + '"></div></div></div></div></div></div>');
             container.find("#time-series-settings").on("click", function (e) {
@@ -159,13 +162,20 @@ function HeliumGrades() {
 
                 if (value === "-1") {
                     helium.grades.current_series_id = "course_group-" + current_tab_course_group;
+                    $("#time-series-header").text("Term Progress");
                 } else {
                     helium.grades.current_series_id = "course-" + value;
+                    $("#time-series-header").text(helium.grades.courses[value].title + " Progress");
                 }
 
                 helium.grades.populate_time_series(current_tab_course_group);
             });
             container.find("#time-series-group-dates-" + course_group.id).change(function () {
+                const current_tab_course_group = $("#course-group-tabs .active a").attr("href").split("-")[3];
+
+                helium.grades.populate_time_series(current_tab_course_group);
+            });
+            container.find("#time-series-hide-legend-" + course_group.id).change(function () {
                 const current_tab_course_group = $("#course-group-tabs .active a").attr("href").split("-")[3];
 
                 helium.grades.populate_time_series(current_tab_course_group);
@@ -326,6 +336,8 @@ function HeliumGrades() {
                 .add(1, "day").toDate();
         }
 
+        let show_legend = !$("#time-series-hide-legend-" + course_group_id).is(":checked");
+
         const time_series_details = {
             shadowSize: 0,
             xaxis: {
@@ -355,7 +367,7 @@ function HeliumGrades() {
                 }]
             },
             legend: {
-                show: true,
+                show: show_legend,
                 position: "se",
                 backgroundOpacity: 0.8,
                 labelFormatter: function (label, series) {
@@ -594,7 +606,7 @@ $(document).ready(function () {
                                         course_list.append("<div class=\"space-10\"></div>");
 
                                         $("#time-series-dropdown-" + course_group.id).append(
-                                            "<option value='-1'>-- " + course_group.title + " --</option>");
+                                            "<option value='-1'>-- Entire Term --</option>");
 
                                         let courses = Object.entries(helium.grades.courses);
                                         courses.sort((a, b) => {
@@ -687,12 +699,12 @@ $(document).ready(function () {
                                                         + category.num_homework_graded + " of "
                                                         + category.num_homework
                                                         + "</td><td>" + (parseFloat(
-                                                                category.overall_grade.toFixed(2)) !== -1
-                                                                            ? "<span class=\"badge\" style=\"background-color: "
+                                                            category.overall_grade.toFixed(2)) !== -1
+                                                                         ? "<span class=\"badge\" style=\"background-color: "
                                                         + helium.USER_PREFS.settings.grade_color + " !important\">"
                                                         + Math.round(category.overall_grade * 100) / 100 + "%"
                                                         + helium.grades.get_trend_arrow(
-                                                                    category.trend) + "</span>" : "N/A")
+                                                                category.trend) + "</span>" : "N/A")
                                                         + "</td></tr>");
                                                 }
                                             });
