@@ -342,21 +342,21 @@ function Helium() {
         });
     };
 
-    this.add_reminder_to_page = function (data) {
+    this.add_reminder_to_page = function (reminder, show_alert) {
         let type = "system";
-        let start = moment(data.start_of_range);
-        let id_str = "reminder-system-" + data.id;
-        if (data.homework !== null) {
+        let start = moment(reminder.start_of_range);
+        let id_str = "reminder-system-" + reminder.id;
+        if (reminder.homework !== null) {
             type = "homework";
-            id_str = "reminder-for-homework-" + data.homework.id;
-            start = moment(data.homework.start);
-        } else if (data.event !== null) {
+            id_str = "reminder-for-homework-" + reminder.homework.id;
+            start = moment(reminder.homework.start);
+        } else if (reminder.event !== null) {
             type = "event";
-            id_str = "reminder-for-event-" + data.event.id;
-            start = moment(data.event.start);
+            id_str = "reminder-for-event-" + reminder.event.id;
+            start = moment(reminder.event.start);
         }
 
-        const list_item = $('<li id="reminder-popup-' + data.id
+        const list_item = $('<li id="reminder-popup-' + reminder.id
                             + '" class="reminder-popup cursor-hover"><button type="button" aria-label="Dismiss Reminder"  class="close reminder-close"><i class="icon-remove"></i></button></li>');
         const reminder_body = $('<span class="reminder-msg-body" id="' + id_str + '"></span>');
         list_item.append(reminder_body);
@@ -365,11 +365,11 @@ function Helium() {
         reminder_body.append(msg_body);
         if (type === "homework") {
             msg_body.append(
-                '<span class="msg-title"><span class="blue">(' + data.homework.course.title + ') ' + data.homework.title
-                + '</span> ' + data.message + '</span>');
+                '<span class="msg-title"><span class="blue">' + reminder.homework.title + ' in '
+                + reminder.homework.course.title + '</span> — ' + reminder.message + '</span>');
         } else if (type === "event") {
             msg_body.append(
-                '<span class="msg-title"><span class="blue">(Event) ' + data.event.title + '</span> ' + data.message
+                '<span class="msg-title"><span class="blue">' + reminder.event.title + '</span> ' + reminder.message
                 + '</span>');
         }
 
@@ -447,24 +447,36 @@ function Helium() {
                         reminder_bell_alt_tag.hide();
                     }
                 }
-            }, data.id, put_data, true, true);
+            }, reminder.id, put_data, true, true);
         });
 
         $($($("#reminder-bell-count").parent()).parent()).append(list_item);
+
+        if(show_alert) {
+            alert(msg_body.text() + " on" + msg_time.text());
+        }
     };
 
-    this.process_reminders = function (data) {
-        if (!helium.data_has_err_msg(data)) {
-            $("[id^='reminder-popup-']").remove();
-
-            $.each(data, function (i, reminder_data) {
-                helium.add_reminder_to_page(reminder_data);
+    this.process_reminders = function (reminders, show_alert) {
+        if (!helium.data_has_err_msg(reminders)) {
+            let reminder_ids = []
+            $.each(reminders, function (i, reminder) {
+                if ($("#reminder-popup-" + reminder.id).length === 0) {
+                    helium.add_reminder_to_page(reminder, show_alert);
+                }
+                reminder_ids.push(reminder.id);
+            });
+            // Remove stale reminders
+            $.each($("[id^='reminder-popup-']"), function () {
+                if (!reminder_ids.includes(parseInt($(this).attr("id").split("-")[2]))) {
+                    $(this).remove();
+                }
             });
 
-            $("#reminder-bell-count").html(data.length + " Reminder" + (data.length > 1 ? "s" : ""));
+            $("#reminder-bell-count").html(reminders.length + " Reminder" + (reminders.length > 1 ? "s" : ""));
             const reminder_bell_alt_tag = $("#reminder-bell-alt-count");
-            reminder_bell_alt_tag.html(data.length);
-            if (data.length > 0) {
+            reminder_bell_alt_tag.html(reminders.length);
+            if (reminders.length > 0) {
                 reminder_bell_alt_tag.show();
             } else {
                 reminder_bell_alt_tag.hide();

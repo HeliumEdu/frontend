@@ -1787,13 +1787,13 @@ $(document).ready(function () {
     if (!window.REDIRECTING && localStorage.getItem("access_token") !== null) {
         $.when.apply($, helium.ajax_calls).done(function () {
             helium.planner_api.get_reminders(function (data) {
-                helium.process_reminders(data);
+                helium.process_reminders(data, false);
             });
         });
 
         window.setInterval(function () {
             helium.planner_api.get_reminders(function (data) {
-                helium.process_reminders(data);
+                helium.process_reminders(data, true);
             });
         }, 60000);
     }
