@@ -464,8 +464,7 @@
     $("#create-reminder").on("click", function () {
         const data = {
             id: helium.calendar.reminder_unsaved_pk,
-            message: "Reminder for " + ($.trim($("#homework-title").val()) !== "" ? $("#homework-title").val() : ($(
-                "#homework-event-switch").is(":checked") ? "New Event" : "New Assignment")),
+            message: "A friendly reminder",
             offset: helium.USER_PREFS.settings.default_reminder_offset,
             offset_type: helium.USER_PREFS.settings.default_reminder_offset_type,
             type: helium.USER_PREFS.settings.default_reminder_type

@@ -351,11 +351,17 @@ function Helium() {
         if (reminder.homework !== null) {
             type = "homework";
             id_str = "reminder-for-homework-" + reminder.homework.id;
-            start = moment(reminder.homework.start);
+            start = moment(reminder.homework.start).format(helium.HE_REMINDER_DATE_STRING);
+            if (!reminder.homework.all_day) {
+                start += (" at " + moment(reminder.homework.start).format(helium.HE_TIME_STRING_CLIENT));
+            }
         } else if (reminder.event !== null) {
             type = "event";
             id_str = "reminder-for-event-" + reminder.event.id;
-            start = moment(reminder.event.start);
+            start = moment(reminder.event.start).format(helium.HE_REMINDER_DATE_STRING);
+            if (!reminder.event.all_day) {
+                start += (" at " + moment(reminder.event.start).format(helium.HE_TIME_STRING_CLIENT));
+            }
         }
 
         const list_item = $('<li id="reminder-popup-' + reminder.id
@@ -368,7 +374,7 @@ function Helium() {
         if (type === "homework") {
             msg_body.append(
                 '<span class="msg-title"><span class="blue">' + reminder.homework.title + ' in '
-                + reminder.homework.course.title + '</span> — ' + reminder.message + '</span>');
+                + reminder.homework.course.title + ' <span class="color-dot inline" style="background-color: ' + reminder.homework.course.color + '"></span></span> — ' + reminder.message + '</span>');
         } else if (type === "event") {
             msg_body.append(
                 '<span class="msg-title"><span class="blue">' + reminder.event.title + '</span> — ' + reminder.message
@@ -378,8 +384,7 @@ function Helium() {
         const msg_time = $('<span class="msg-time">');
         reminder_body.append(msg_time);
         msg_time.append('<i class="icon-time"></i>');
-        msg_time.append('<span>&nbsp;' + start.format(helium.HE_REMINDER_DATE_STRING) + ' at ' + start.format(
-            helium.HE_TIME_STRING_CLIENT) + '</span>');
+        msg_time.append('<span>&nbsp;' + start + '</span>');
 
         list_item.on("click", function () {
             const reminder_for = $(this).find('[id^="reminder-for-"]');
