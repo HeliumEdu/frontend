@@ -61,7 +61,7 @@ function HeliumSettings() {
         let msg;
         if (xhr.hasOwnProperty("responseJSON")) {
             msg = "<ul>" + Object.values(xhr.responseJSON).map(function(item) {
-                return '<li>' + item + '</li>';
+                return item + '<br/>';
             }).join('') + "</ul>";
         } else {
             msg = document.GENERIC_ERROR_MESSAGE;
@@ -213,6 +213,8 @@ function HeliumSettings() {
                        self.show_error("importexport", xhr);
                    },
                    success: function () {
+                       helium.planner_api.process_reminders(false);
+
                        $("#import-button").prop("disabled", false);
 
                        helium.clear_form_errors("importexport-form");

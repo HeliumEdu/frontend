@@ -1777,6 +1777,12 @@ function HeliumPlannerAPI() {
                           }
                       });
     };
+
+    this.process_reminders = function (show_alert) {
+        helium.planner_api.get_reminders(function (data) {
+            helium.process_reminders(data, show_alert);
+        });
+    }
 }
 
 // Initialize HeliumPlannerAPI and give a reference to the Helium object
@@ -1786,15 +1792,11 @@ $(document).ready(function () {
     "use strict";
     if (!window.REDIRECTING && localStorage.getItem("access_token") !== null) {
         $.when.apply($, helium.ajax_calls).done(function () {
-            helium.planner_api.get_reminders(function (data) {
-                helium.process_reminders(data, false);
-            });
+            helium.planner_api.process_reminders(false);
         });
 
         window.setInterval(function () {
-            helium.planner_api.get_reminders(function (data) {
-                helium.process_reminders(data, true);
-            });
+            helium.planner_api.process_reminders(true);
         }, 60000);
     }
 });

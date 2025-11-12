@@ -357,7 +357,7 @@ function HeliumCalendar() {
             self.end = self.end.subtract(1, "days");
         }
 
-        if ($("#homework-class").children().length <= 1) {
+        if ($("#homework-class optgroup").children().length <= 1) {
             $("#homework-class-form-group").hide("fast");
         } else {
             $("#homework-class-form-group").show("fast");
@@ -523,7 +523,7 @@ function HeliumCalendar() {
                                 self.end = self.end.subtract(1, "days");
                             }
 
-                            if ($("#homework-class").children().length <= 1 || $("#homework-event-switch")
+                            if ($("#homework-class optgroup").children().length <= 1 || $("#homework-event-switch")
                                 .is(":checked")) {
                                 $("#homework-class-form-group").hide("fast");
                             } else {
@@ -1466,14 +1466,6 @@ function HeliumCalendar() {
             $("#loading-calendar").spin(false);
             $("#calendar").removeClass("hidden");
             self.loading_div.spin(helium.SMALL_LOADING_OPTS);
-
-            if ($(window).width() > 768) {
-                $("#homework-class").chosen({
-                                                width: "100%",
-                                                search_contains: true,
-                                                no_results_text: "No classes match"
-                                            });
-            }
 
             self.populate_filter_dropdowns();
             self.initialize_search_bindings();
@@ -2906,26 +2898,48 @@ $(document).ready(function () {
         }
 
         if (!helium.ajax_error_occurred) {
-            helium.planner_api.get_courses(function (data) {
-                if (helium.data_has_err_msg(data)) {
+            helium.planner_api.get_courses(function (courses) {
+                if (helium.data_has_err_msg(courses)) {
                     helium.ajax_error_occurred = true;
                     $("#loading-calendar").spin(false);
 
-                    bootbox.alert(helium.get_error_msg(data));
+                    bootbox.alert(helium.get_error_msg(courses));
                 } else {
-                    $.each(data, function (index, course) {
-                        if (!helium.calendar.courses.hasOwnProperty(course.id)) {
-                            helium.calendar.courses[course.id] = course;
+                    let course_groups = Object.entries(helium.calendar.course_groups);
+                    course_groups.sort((a, b) => {
+                        const a_start = moment(a[1].start_date);
+                        const b_start = moment(b[1].start_date);
 
-                            if (!helium.calendar.course_groups[course.course_group].shown_on_calendar) {
+                        if (a_start.isAfter(b_start)) {
+                            return -1;
+                        } else if (a_start.isBefore(b_start)) {
+                            return 1;
+                        }
+                        return 0;
+                    });
+
+                    $.each(course_groups, function (group_index, course_group_tuple) {
+                        let course_group = course_group_tuple[1];
+                        if (!course_group.shown_on_calendar) {
+                            return true;
+                        }
+
+                        const group = $("<optgroup>");
+                        $("#homework-class").append(group);
+                        $.each(courses, function (index, course) {
+                            if (!helium.calendar.courses.hasOwnProperty(course.id)) {
+                                helium.calendar.courses[course.id] = course;
+                            }
+
+                            if (!helium.calendar.course_groups[course.course_group].shown_on_calendar ||
+                                course_group.id !== course.course_group) {
                                 return true;
                             }
 
-                            $("#homework-class")
-                                .append("<option value=\"" + course.id + "\">" + course.title
+                            group.append("<option value=\"" + course.id + "\">" + course.title
                                         + " <span class=\"color-dot inline\" style=\"background-color: "
                                         + course.color + "\"></span></option>");
-                        }
+                        });
                     });
 
                     if ($(window).width() > 768) {
