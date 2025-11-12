@@ -99,6 +99,8 @@ function HeliumGrades() {
                 percent_completed = 0;
             }
 
+            const homework_left = (course_group.num_homework - course_group.num_homework_completed);
+
             details.append("<div class=\"space-10\"></div>");
             details.append('<div class="infobox infobox-blue2" id="thru-assignments">' + percent_completed.toFixed()
                            + '<div class="infobox-progress"><div class="easy-pie-chart percentage easyPieChart" data-percent="'
@@ -107,15 +109,15 @@ function HeliumGrades() {
                            + percent_completed.toFixed()
                            + '</span>%<canvas width="46" height="46"></canvas></div></div><div class="infobox-data"><span class="infobox-text">'
                            + course_group.num_homework_completed + ' complete</span><div class="infobox-content">'
-                           + (course_group.num_homework - course_group.num_homework_completed)
-                           + ' assignments remain</div></div></div>');
+                           + homework_left
+                           + ' assignment' + (homework_left.length > 1 || homework_left.length === 0 ? "s" : "") + ' left</div></div></div>');
             details.append('<div class="infobox infobox-blue2">' + percent_thru.toFixed()
                            + '<div class="infobox-progress"><div class="easy-pie-chart percentage easyPieChart" data-percent="'
                            + percent_thru.toFixed()
                            + '" data-size="46" style="width: 46px; height: 46px; line-height: 46px;"> <span class="percent">'
                            + percent_thru.toFixed()
                            + '</span>% <canvas width="46" height="46"></canvas></div></div><div class="infobox-data" id="thru-term"><span class="infobox-text">through term</span><div class="infobox-content">'
-                           + days_remaining + ' days remain</div></div>');
+                           + days_remaining + ' day' + (days_remaining.length > 1 || days_remaining.length === 0 ? "s" : "") + ' left</div></div>');
             details.append(
                 '<div class="infobox infobox-red"><div class="infobox-icon"><i class="icon-bookmark"></i></div><div class="infobox-data" id="num-assignments"><span class="infobox-data-number">'
                 + course_group.num_homework

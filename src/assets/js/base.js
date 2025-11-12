@@ -447,7 +447,7 @@ function Helium() {
                     const new_count = parseInt(reminder_bell_tag.text()) - 1;
                     reminder_div.hide();
 
-                    reminder_bell_tag.html(new_count + " Reminder" + (new_count > 1 ? "s" : ""));
+                    reminder_bell_tag.html(new_count + " reminder" + (new_count > 1 || new_count === 0 ? "s" : ""));
                     const reminder_bell_alt_tag = $("#reminder-bell-alt-count");
                     reminder_bell_alt_tag.html(new_count);
                     if (new_count === 0) {
@@ -480,7 +480,7 @@ function Helium() {
                 }
             });
 
-            $("#reminder-bell-count").html(reminders.length + " Reminder" + (reminders.length > 1 ? "s" : ""));
+            $("#reminder-bell-count").html(reminders.length + " reminder" + (reminders.length > 1 || reminders.length === 0 ? "s" : ""));
             const reminder_bell_alt_tag = $("#reminder-bell-alt-count");
             reminder_bell_alt_tag.html(reminders.length);
             if (reminders.length > 0) {
