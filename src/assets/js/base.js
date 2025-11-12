@@ -173,7 +173,9 @@ function Helium() {
         localStorage.setItem("status_type", "warning");
         localStorage.setItem("status_msg", "Please login again to continue.");
 
-        window.location.href = "/login?next=" + window.location.pathname;
+        if (window.PRIVILEGED_ROUTE) {
+            window.location.href = "/login?next=" + window.location.pathname;
+        }
     }
 
     this.clear_access_token = function () {
