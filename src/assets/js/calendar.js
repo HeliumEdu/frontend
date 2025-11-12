@@ -357,7 +357,7 @@ function HeliumCalendar() {
             self.end = self.end.subtract(1, "days");
         }
 
-        if ($("#homework-class optgroup").children().length <= 1) {
+        if ($("#homework-class option").length <= 1) {
             $("#homework-class-form-group").hide("fast");
         } else {
             $("#homework-class-form-group").show("fast");
@@ -523,7 +523,7 @@ function HeliumCalendar() {
                                 self.end = self.end.subtract(1, "days");
                             }
 
-                            if ($("#homework-class optgroup").children().length <= 1 || $("#homework-event-switch")
+                            if ($("#homework-class option").length <= 1 || $("#homework-event-switch")
                                 .is(":checked")) {
                                 $("#homework-class-form-group").hide("fast");
                             } else {
