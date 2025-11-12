@@ -60,7 +60,9 @@ function HeliumSettings() {
 
         let msg;
         if (xhr.hasOwnProperty("responseJSON")) {
-            msg = Object.values(xhr.responseJSON).join("<li></li>");
+            msg = "<ul>" + Object.values(xhr.responseJSON).map(function(item) {
+                return '<li>' + item + '</li>';
+            }).join('') + "</ul>";
         } else {
             msg = document.GENERIC_ERROR_MESSAGE;
         }
@@ -383,22 +385,22 @@ function HeliumSettings() {
             // If one is present, all three must be present
             let has_error = false;
             if ($("#id_old_password").val() === '') {
-                self.show_error("account", "old_password", "This field is required.");
+                self.show_error("account", {"responseJSON": {"old_password": "This field is required."}});
 
                 has_error = true;
             }
             if ($("#id_password").val() === '') {
-                self.show_error("account", "password", "This field is required.");
+                self.show_error("account", {"responseJSON": {"password": "This field is required."}});
 
                 has_error = true;
             }
             if ($("#id_password2").val() === '') {
-                self.show_error("account", "password2", "This field is required.");
+                self.show_error("account", {"responseJSON": {"password2": "This field is required."}});
 
                 has_error = true;
             }
             if (!has_error && $("#id_password").val() !== $("#id_password2").val()) {
-                self.show_error("account", "password2", "You must enter matching passwords.");
+                self.show_error("account", {"responseJSON": {"password2": "You must enter matching passwords."}});
 
                 has_error = true;
             }
@@ -571,6 +573,7 @@ function HeliumSettings() {
 
     $("#delete-account").on("click", function (e) {
         e.preventDefault();
+        e.returnValue = false;
 
         bootbox.dialog(
             {
@@ -665,7 +668,7 @@ function HeliumSettings() {
                    type: "POST",
                    success: function () {
                        helium.planner_api.update_user_details(function () {
-                           $("#status_importexport").html("Example Schedule re-imported.").addClass("alert-success")
+                           $("#status_importexport").html("\"Example Schedule\" imported successfully.").addClass("alert-success")
                                .removeClass("hidden alert-danger");
 
                            $("#loading-importexport").spin(false);
