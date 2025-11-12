@@ -369,7 +369,7 @@ function Helium() {
                 + reminder.homework.course.title + '</span> — ' + reminder.message + '</span>');
         } else if (type === "event") {
             msg_body.append(
-                '<span class="msg-title"><span class="blue">' + reminder.event.title + '</span> ' + reminder.message
+                '<span class="msg-title"><span class="blue">' + reminder.event.title + '</span> — ' + reminder.message
                 + '</span>');
         }
 

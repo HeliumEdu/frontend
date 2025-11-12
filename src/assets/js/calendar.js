@@ -1475,11 +1475,6 @@ function HeliumCalendar() {
                                             });
             }
 
-            // Throw up the Getting Started modal if necessary
-            if (helium.USER_PREFS.settings.show_getting_started) {
-                $("#getting-started-modal").modal("show");
-            }
-
             self.populate_filter_dropdowns();
             self.initialize_search_bindings();
 
@@ -3100,6 +3095,8 @@ $(document).ready(function () {
                         }
 
                         localStorage.removeItem("edit_calendar_item");
+                    } else if (helium.USER_PREFS.settings.show_getting_started && !helium.ajax_error_occurred) {
+                        $("#getting-started-modal").modal("show");
                     }
                 });
             }
