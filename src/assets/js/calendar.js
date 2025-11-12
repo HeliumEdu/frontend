@@ -682,9 +682,11 @@ function HeliumCalendar() {
     /**
      * Handle a click on a parent element that contains a checkbox, and trigger that checkbox.
      */
-    this.trigger_child_checkbox = function () {
-        const checkbox = $(this).find("input:checkbox");
-        checkbox.prop("checked", !checkbox.is(":checked")).trigger("change");
+    this.trigger_child_checkbox = function (event) {
+        if (!$(event.target).is(':checkbox') && !$(event.target).is('label')) {
+            const checkbox = $(this).find("input:checkbox");
+            checkbox.prop("checked", !checkbox.is(":checked")).trigger("change");
+        }
     };
 
     /**
