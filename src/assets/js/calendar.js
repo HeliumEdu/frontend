@@ -2801,7 +2801,7 @@ $(document).ready(function () {
                                             });
             $("#homework-category").chosen({
                                                width: "100%",
-                                               search_contains: true,
+                                               enable_split_word_search: false,
                                                no_results_text: "No categories match"
                                            });
             $("#homework-category").chosen().change(function () {
@@ -2945,7 +2945,7 @@ $(document).ready(function () {
                     if ($(window).width() > 768) {
                         $("#homework-class").chosen({
                                                         width: "100%",
-                                                        search_contains: true,
+                                                        enable_split_word_search: false,
                                                         no_results_text: "No classes match"
                                                     });
                     }
