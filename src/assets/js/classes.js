@@ -1961,8 +1961,7 @@ $(document).ready(function () {
                                             $("#loading-course-modal").spin(false);
 
                                             $("#course-error").html(
-                                                "The class is saved, but an error occurred while uploading attachments. If the error persists, <a href=\""
-                                                + window.SUPPORT_URL + "\">contact support</a>.");
+                                                "The class is saved, but an error occurred while uploading attachments. Check <a href=\"" + window.STATUS_URL + "\">the status page</a> if the issue persists, and <a href=\"" + window.SUPPORT_URL + "\">contact support</a> if something isn't already mentioned there.");
                                             $("#course-error").parent().show("fast");
 
                                             $("a[href='#course-panel-tab-4']").tab("show");

@@ -3020,8 +3020,7 @@ $(document).ready(function () {
                                                 helium.ajax_error_occurred = true;
 
                                                 $("#homework-error").html(
-                                                    "An error occurred after saving the attachment. If the error persists, <a href=\""
-                                                    + window.SUPPORT_URL + "\">contact support</a>.");
+                                                    "An error occurred after saving the attachment. Check <a href=\"" + window.STATUS_URL + "\">the status page</a> if the issue persists, and <a href=\"" + window.SUPPORT_URL + "\">contact support</a> if something isn't already mentioned there.");
                                                 $("#homework-error").parent().show("fast");
 
                                                 $("a[href='#homework-panel-tab-3']").tab("show");

@@ -727,7 +727,7 @@ $(document).ready(function () {
 
         if ($(".externalcalendars-help").length > 0) {
             $(".externalcalendars-help").on("click", function () {
-                window.open("https://support.google.com/calendar/answer/37648?hl=en");
+                window.open("https://support.google.com/calendar/answer/37083?sjid=377921630767978293-NC#link&zippy=%2Cshare-a-link");
             });
         }
 

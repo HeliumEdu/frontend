@@ -15,17 +15,20 @@ window.APP_URL = location.protocol + "//" + location.host + "/";
 if (window.APP_URL === "http://localhost:3000/" || window.APP_URL === "http://127.0.0.1:3000/") {
     window.API_URL = "http://localhost:8000";
     window.SUPPORT_URL = "https://support.heliumedu.com"
+    window.STATUS_URL = "https://status.heliumedu.com"
 } else if (window.APP_URL === "https://www.heliumedu.com/") {
     // Prod
     window.API_URL = "https://api.heliumedu.com";
     window.SUPPORT_URL = "https://support.heliumedu.com"
+    window.STATUS_URL = "https://status.heliumedu.com"
 } else {
     // Env-prefixed
     window.API_URL = location.protocol + "//" + "api." + location.host;
     window.SUPPORT_URL = location.protocol + "//" + "support." + location.host;
+    window.STATUS_URL = location.protocol + "//" + "status." + location.host;
 }
 
-document.GENERIC_ERROR_MESSAGE = "Oops, an unknown error has occurred. Reload the page, or try again later. If the issue persists, <a href=\"" + window.SUPPORT_URL + "\">contact support</a>.";
+document.GENERIC_ERROR_MESSAGE = "Oops, an unknown error has occurred. Reload the page, or try again later. Check <a href=\"" + window.STATUS_URL + "\">the status page</a> if the issue persists, and <a href=\"" + window.SUPPORT_URL + "\">contact support</a> if something isn't already mentioned there.";
 
 document.LARGE_LOADING_OPTS = {
     lines: 13,
