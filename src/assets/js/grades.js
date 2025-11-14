@@ -68,14 +68,14 @@ function HeliumGrades() {
 
             bootbox.alert(helium.get_error_msg(course_group));
         } else {
-            $("#course-group-tabs").prepend('<li><a data-toggle="tab" href="#course-group-container-' + course_group.id
+            $("#course-group-tabs").prepend('<li><a data-toggle="tab" href="#tab-course-group-' + course_group.id
                                             + '"><i class="icon-list r-110"></i> <span class="hidden-xs">'
                                             + course_group.title
                                             + (!course_group.shown_on_calendar
                                                ? "</span> <i class=\"icon-eye-close\"></i>"
                                                : "</span>")
                                             + '</a></li>');
-            const container = $('<div id="course-group-container-' + course_group.id + '" class="tab-pane"></div>');
+            const container = $('<div id="tab-course-group-' + course_group.id + '" class="tab-pane"></div>');
             const details = $(
                 '<div id="details-for-course-group-' + course_group.id + '" class="col-sm-12 infobox-container">');
             $("#course-group-tab-content").append(container);
@@ -775,7 +775,11 @@ $(document).ready(function () {
                                         helium.grades.current_series_id = "course_group-" + course_group_id;
                                         helium.grades.populate_time_series(course_group_id);
                                     });
-                                    $($("#course-group-tabs li a").first()).tab("show");
+
+                                    helium.set_active_tab_from_hash();
+                                    if (!helium.location_hash && $("#course-group-tabs li a").length > 0) {
+                                        $($("#course-group-tabs li a").first()).tab("show");
+                                    }
                                 }
                             });
                         }

@@ -581,7 +581,10 @@ $(document).ready(function () {
 
         $.when.apply($, helium.ajax_calls).done(function () {
             if (!helium.ajax_error_occurred) {
-                $("#material-group-tabs li a[href^='#material-group-']").first().tab("show");
+                helium.set_active_tab_from_hash();
+                if (!helium.location_hash && $("#material-group-tabs li a").length > 1) {
+                    $($("#material-group-tabs li a").first()).tab("show");
+                }
 
                 $("table[id^='material-group-table-']").each(function () {
                     let i = 0, id = $(this).attr("id").split("material-group-table-")[1];

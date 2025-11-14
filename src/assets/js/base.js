@@ -374,7 +374,8 @@ function Helium() {
         if (type === "homework") {
             msg_body.append(
                 '<span class="msg-title"><span class="blue">' + reminder.homework.title + ' in '
-                + reminder.homework.course.title + ' <span class="color-dot inline" style="background-color: ' + reminder.homework.course.color + '"></span></span> — ' + reminder.message + '</span>');
+                + reminder.homework.course.title + ' <span class="color-dot inline" style="background-color: '
+                + reminder.homework.course.color + '"></span></span> — ' + reminder.message + '</span>');
         } else if (type === "event") {
             msg_body.append(
                 '<span class="msg-title"><span class="blue">' + reminder.event.title + '</span> — ' + reminder.message
@@ -459,7 +460,7 @@ function Helium() {
 
         $($($("#reminder-bell-count").parent()).parent()).append(list_item);
 
-        if(show_alert) {
+        if (show_alert) {
             alert(msg_body.text() + " on" + msg_time.text());
         }
     };
@@ -480,7 +481,8 @@ function Helium() {
                 }
             });
 
-            $("#reminder-bell-count").html(reminders.length + " reminder" + (reminders.length > 1 || reminders.length === 0 ? "s" : ""));
+            $("#reminder-bell-count")
+                .html(reminders.length + " reminder" + (reminders.length > 1 || reminders.length === 0 ? "s" : ""));
             const reminder_bell_alt_tag = $("#reminder-bell-alt-count");
             reminder_bell_alt_tag.html(reminders.length);
             if (reminders.length > 0) {
@@ -490,6 +492,16 @@ function Helium() {
             }
         }
     };
+
+    this.set_active_tab_from_hash = function () {
+        const hash = window.location.hash;
+        if (hash && $('.nav.nav-tabs [href="' + hash + '"]').length > 0) {
+            helium.location_hash = hash;
+            $('.nav.nav-tabs [href="' + hash + '"]').tab('show');
+        } else {
+            helium.location_hash = null;
+        }
+    }
 }
 
 // Initialize the Helium object
@@ -612,4 +624,6 @@ $(document).ready(function () {
         $("#register-nav").removeClass("hidden");
         $("#login-nav").removeClass("hidden");
     }
+
+    helium.set_active_tab_from_hash();
 });
