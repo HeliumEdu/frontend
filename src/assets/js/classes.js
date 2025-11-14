@@ -1191,8 +1191,8 @@ function HeliumClasses() {
                  + moment(course.end_date, helium.HE_DATE_STRING_SERVER).format(helium.HE_DATE_STRING_CLIENT),
                  course.is_online ? "Online" : course.room,
                  course.teacher_email !== "" ? ("<a target=\"_blank\" href=\"mailto:" + course.teacher_email
-                                                     + "\" class=\"teacher-email-with-link\">" + course.teacher_name
-                                                     + "</a>") : course.teacher_name, self.get_schedule(course)])
+                                                + "\" class=\"teacher-email-with-link\">" + course.teacher_name
+                                                + "</a>") : course.teacher_name, self.get_schedule(course)])
                 .node(),
             row_div = $(row).attr("id", "course-" + course.id);
         // Bind clickable attributes to their respective handlers
@@ -1406,7 +1406,7 @@ function HeliumClasses() {
 
                     // Build a JSONifyable list of category elements
                     let modified_categories = $("[id^='category-'][id$='-modified']");
-                    modified_categories.sort(function(a, b) {
+                    modified_categories.sort(function (a, b) {
                         const weight1 = $($(a).children()[1]).text() !== "N/A" ?
                                         parseFloat($($(a).children()[1]).text().slice(0, -1)) : 0;
                         const weight2 = $($(b).children()[1]).text() !== "N/A" ?
@@ -1600,7 +1600,8 @@ function HeliumClasses() {
                                         const row_div = $("#course-" + course.id);
                                         self.course_group_table[course.course_group.toString()].cell(row_div, 0).data(
                                             "<span class=\"label label-sm\" style=\"background-color: " + course.color
-                                            + " !important\">" + (helium.str_not_empty(course.website) ? "<a target=\"_blank\" href=\""
+                                            + " !important\">" + (helium.str_not_empty(course.website)
+                                                                  ? "<a target=\"_blank\" href=\""
                                             + course.website + "\" class=\"planner-title-with-link hidden-xs\">"
                                             + course.title
                                             + " <i class=\"icon-external-link\"></i></a>" : course.title)
@@ -1614,10 +1615,10 @@ function HeliumClasses() {
                                             .data(course.is_online ? "Online" : course.room);
                                         self.course_group_table[course.course_group.toString()].cell(row_div, 3).data(
                                             course.teacher_email !== "" ? ("<a target=\"_blank\" href=\"mailto:"
-                                                                         + course.teacher_email
-                                                                         + "\" class=\"teacher-email-with-link\">"
-                                                                         + course.teacher_name + "</a>")
-                                                                      : course.teacher_name);
+                                                                           + course.teacher_email
+                                                                           + "\" class=\"teacher-email-with-link\">"
+                                                                           + course.teacher_name + "</a>")
+                                                                        : course.teacher_name);
                                         self.course_group_table[course.course_group.toString()].cell(row_div, 4)
                                             .data(self.get_schedule(course));
                                         self.course_group_table[course.course_group.toString()].draw();
@@ -1890,9 +1891,12 @@ $(document).ready(function () {
 
         $.when.apply($, helium.ajax_calls).done(function () {
             if (!helium.ajax_error_occurred) {
-                $("#course-group-title").attr('placeholder', 'Fall Semester ' + moment().year());
+                helium.set_active_tab_from_hash();
+                if (!helium.location_hash && $("#course-group-tabs li a").length > 1) {
+                    $($("#course-group-tabs li a").first()).tab("show");
+                }
 
-                $("#course-group-tabs li a[href^='#course-group-']").first().tab("show");
+                $("#course-group-title").attr('placeholder', 'Fall Semester ' + moment().year());
 
                 helium.classes.refresh_course_groups();
 
@@ -1961,7 +1965,11 @@ $(document).ready(function () {
                                             $("#loading-course-modal").spin(false);
 
                                             $("#course-error").html(
-                                                "The class is saved, but an error occurred while uploading attachments. Check <a href=\"" + window.STATUS_URL + "\">the status page</a> if the issue persists, and <a href=\"" + window.SUPPORT_URL + "\">contact support</a> if something isn't already mentioned there.");
+                                                "The class is saved, but an error occurred while uploading attachments. Check <a href=\""
+                                                + window.STATUS_URL
+                                                + "\">the status page</a> if the issue persists, and <a href=\""
+                                                + window.SUPPORT_URL
+                                                + "\">contact support</a> if something isn't already mentioned there.");
                                             $("#course-error").parent().show("fast");
 
                                             $("a[href='#course-panel-tab-4']").tab("show");

@@ -3,16 +3,16 @@
         'widget_id': 159000000768
     };
     !function () {
-        evaluate_freshdesk_widget = function (event) {
+        const evaluate_freshdesk_widget = function () {
             if (document.documentElement.clientWidth < 768) {
                 window.FreshworksWidget('hide', 'launcher');
             } else {
                 window.FreshworksWidget('show', 'launcher');
             }
-        }
+        };
 
         if ("function" != typeof window.FreshworksWidget) {
-            var n = function () {
+            const n = function () {
                 n.q.push(arguments)
             };
             n.q = [], window.FreshworksWidget = n;
@@ -20,7 +20,6 @@
             window.addEventListener('resize', evaluate_freshdesk_widget);
             evaluate_freshdesk_widget();
         }
-    }()
-
+    }();
 </script>
 <script type='text/javascript' src='https://widget.freshworks.com/widgets/159000000768.js' async defer></script>
