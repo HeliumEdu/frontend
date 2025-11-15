@@ -481,6 +481,10 @@ $(document).ready(function () {
 
     $("#loading-grades").spin(helium.SMALL_LOADING_OPTS);
 
+    $(".grades-help").on("click", function () {
+        window.open("https://heliumedu.freshdesk.com/support/solutions/articles/159000418648-how-helium-calculates-your-grades");
+    });
+
     bootbox.setDefaults({
                             locale: 'en'
                         });
@@ -660,7 +664,7 @@ $(document).ready(function () {
 
                                             // Build the course grading details div for this course
                                             category_table =
-                                                $("<table class=\"table table-striped table-bordered table-hover\"><thead><tr><th>Category</th><th class=\"hidden-xs\">Graded</th><th>Average Grade</th></tr></thead><tbody id=\"category-table-course-"
+                                                $("<table class=\"table table-striped table-bordered\"><thead><tr><th>Category</th><th class=\"hidden-xs\">Graded</th><th>Average Grade</th></tr></thead><tbody id=\"category-table-course-"
                                                   + course.id + "\"></tbody></table>");
                                             category_table_body =
                                                 category_table.find("#category-table-course-" + course.id);

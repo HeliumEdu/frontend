@@ -722,12 +722,12 @@ $(document).ready(function () {
         $("body").find(".sp-container button").addClass("btn btn-xs btn-primary");
 
         $(".privatefeeds-help").on("click", function () {
-            window.open("https://support.google.com/calendar/answer/37100?hl=en&co=GENIE.Platform%3DDesktop");
+            window.open("https://heliumedu.freshdesk.com/support/solutions/articles/159000418649-how-to-sync-helium-with-google-apple-or-other-calendars-private-feeds-");
         });
 
         if ($(".externalcalendars-help").length > 0) {
             $(".externalcalendars-help").on("click", function () {
-                window.open("https://support.google.com/calendar/answer/37083?sjid=377921630767978293-NC#link&zippy=%2Cshare-a-link");
+                window.open("https://heliumedu.freshdesk.com/support/solutions/articles/159000418651-how-to-sync-google-apple-or-other-calendars-in-helium-external-feeds-");
             });
         }
 

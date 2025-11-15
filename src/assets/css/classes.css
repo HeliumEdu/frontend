@@ -16,7 +16,7 @@
     z-index: 1151 !important;
 }
 
-table tr {
+.table-hover tr {
     cursor: pointer;
 }
 
