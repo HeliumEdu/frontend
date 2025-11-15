@@ -879,6 +879,10 @@ function HeliumCalendar() {
             (localStorage.getItem("filter_show_external") === null ||
              localStorage.getItem("filter_show_external") === "true")) {
             $.each(helium.calendar.external_calendars, function (index, external_calendar) {
+                if (!helium.calendar.external_calendars[external_calendar.id].shown_on_calendar) {
+                    return true;
+                }
+
                 helium.ajax_calls.push(helium.planner_api.get_external_calendar_events(function (data) {
                     $.each(data, function (i, calendar_item) {
                         if (calendar_item.hasOwnProperty("err_msg")) {
@@ -2894,7 +2898,7 @@ $(document).ready(function () {
                         }
                     });
                 }
-            }, false, false, true);
+            }, false, false);
         }
 
         if (!helium.ajax_error_occurred) {
@@ -2920,9 +2924,6 @@ $(document).ready(function () {
 
                     $.each(course_groups, function (group_index, course_group_tuple) {
                         let course_group = course_group_tuple[1];
-                        if (!course_group.shown_on_calendar) {
-                            return true;
-                        }
 
                         const group = $("<optgroup>");
                         $("#homework-class").append(group);
