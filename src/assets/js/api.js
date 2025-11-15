@@ -89,6 +89,8 @@ function HeliumPlannerAPI() {
     this.logout = function (callback, async) {
         const refreshToken = localStorage.getItem("refresh_token");
         if (refreshToken === null) {
+            helium.clear_access_token();
+
             callback({});
         }
 
@@ -104,6 +106,8 @@ function HeliumPlannerAPI() {
                               callback(data);
                           },
                           error: function (jqXHR, textStatus, errorThrown) {
+                              helium.clear_access_token();
+
                               document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
                           }
                       });

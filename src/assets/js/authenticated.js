@@ -15,5 +15,9 @@ if (localStorage.getItem("access_token") === null) {
     localStorage.removeItem("refresh_token");
     localStorage.removeItem("access_token_exp");
 
-    window.location.href = "/login?next=" + window.location.pathname;
+    const dest_path = window.location.pathname;
+    const query_params = window.location.search;
+    const hash = window.location.hash;
+
+    window.location.href = "/login?next=" + `${dest_path}${query_params}${hash}`;
 }
