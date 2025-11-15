@@ -2,4 +2,5 @@
 User-agent: *
 Disallow: /admin/
 Disallow: /planner/
+Disallow: /settings/
 Sitemap: https://www.heliumedu.com/sitemap.xml

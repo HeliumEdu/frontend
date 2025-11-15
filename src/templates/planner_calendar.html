@@ -2,7 +2,7 @@
 
 {% set page_template = "planner_calendar" %}
 
-{% block title %}{{ PROJECT_NAME }} | Calendar{% endblock %}
+{% block title %}Calendar | {{ PROJECT_NAME }}{% endblock %}
 
 {% block page_head %}
 {% include "snippets/freshdesk.html" %}
@@ -166,7 +166,7 @@
                                             <div class="col-sm-1">
                                     <span class="hidden-xs materials-help help-button cursor-hover" data-rel="popover"
                                           data-trigger="hover" data-container="#homework-modal" data-placement="left"
-                                          data-content="Only materials linked to the selected class will be shown in this list. Click here to head over to the Materials page if you need to add or link any."
+                                          data-content="Only materials linked to the selected class will be shown in this list. Click here to head over to Materials if you need to add or link any."
                                           title="Materials">?</span>
                                             </div>
                                         </div>
@@ -201,7 +201,7 @@
                                             <div class="col-sm-1">
                                     <span class="hidden-xs weight-help help-button" data-rel="popover"
                                           data-trigger="hover" data-container="#homework-modal" data-placement="left"
-                                          data-content="Enter grades as percentages (ex. 84.5%) or as raw scores (ex. 18/20).<br><br>If this class has weighted grading, Categories need to be setup for this on the Classes page."
+                                          data-content="Enter grades as percentages (ex. 84.5%) or as raw scores (ex. 18/20).<br><br>If this class has weighted grading, Categories need to be setup for this in Classes."
                                           title="Entering Grades">?</span>
                                             </div>
                                         </div>
@@ -327,8 +327,8 @@
 
                             <p class="bigger-110">Each time you log in, you'll land here on the Calendar.
                                 Your account has been preloaded with an example schedule so you can see how see Helium
-                                in action. Play around with the calendar here, and be sure to check this schedule
-                                out on  <a href="/planner/grades">the "Grades" page</a>.</p>
+                                in action. Play around with the calendar here, and be sure to
+                                <a href="/planner/grades">check out Grades</a> too.</p>
 
                             <h3 class="lighter smaller">... Then Add Your Own</h3>
 

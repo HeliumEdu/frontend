@@ -1,6 +1,6 @@
 {
-    "PROJECT_NAME": "Helium Student Planner",
-    "PROJECT_TAGLINE": "Lightening Your Course Load",
+    "PROJECT_NAME": "Helium Edu",
+    "PROJECT_TAGLINE": "Student Planner & Academic Calendar App",
     "PROJECT_EMAIL": "contact@heliumedu.com",
     "PROJECT_VERSION": "${DIST_VERSION}",
     "COPYRIGHT_YEAR": 2025,
