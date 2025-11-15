@@ -363,65 +363,33 @@ function HeliumPlannerAPI() {
     };
 
     /**
-     * Compile all Courses for the given User Profile ID and pass the values to the given callback function in JSON
-     * format.
-     *
-     * @param callback function to pass response data and call after completion
-     * @param async true if call should be async, false otherwise (default is true)
-     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
-     *     refresh the cache (default to false)
-     */
-    this.get_all_courses_by_user_id = function (callback, async, use_cache) {
-        async = typeof async === "undefined" ? true : async;
-        use_cache = typeof use_cache === "undefined" ? false : use_cache;
-        let ret_val;
-
-        if (use_cache && self.courses_by_user_id.hasOwnProperty(helium.USER_PREFS.id)) {
-            ret_val = callback(self.courses_by_user_id[helium.USER_PREFS.id]);
-        } else {
-            ret_val = $.ajax({
-                                 type: "GET",
-                                 url: helium.API_URL + "/planner/courses/",
-                                 async: async,
-                                 dataType: "json",
-                                 success: function (data) {
-                                     self.courses_by_user_id[helium.USER_PREFS.id] = data;
-                                     callback(self.courses_by_user_id[helium.USER_PREFS.id]);
-                                 },
-                                 error: function (jqXHR, textStatus, errorThrown) {
-                                     document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
-                                 }
-                             });
-        }
-
-        return ret_val;
-    };
-
-    /**
-     * Compile all Courses (excluding those in hidden groups) for the given User Profile ID and pass the values to the
+     * Compile all Courses for the given User Profile ID and pass the values to the
      * given callback function in JSON format.
      *
      * @param callback function to pass response data and call after completion
      * @param async true if call should be async, false otherwise (default is true)
      * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
      *     refresh the cache (default to false)
+     * @param shown_on_calendar only fetch those that aren't in a hidden group
      */
-    this.get_courses = function (callback, async, use_cache) {
+    this.get_courses = function (callback, async, use_cache, shown_on_calendar) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
         let ret_val;
 
-        if (use_cache && self.courses_by_user_id.hasOwnProperty(helium.USER_PREFS.id)) {
-            ret_val = callback(self.courses_by_user_id[helium.USER_PREFS.id]);
+        let cache_key = helium.USER_PREFS.id + shown_on_calendar;
+        if (use_cache && self.courses_by_user_id.hasOwnProperty(cache_key)) {
+            ret_val = callback(self.courses_by_user_id[cache_key]);
         } else {
             ret_val = $.ajax({
                                  type: "GET",
-                                 url: helium.API_URL + "/planner/courses/",
+                                 url: helium.API_URL + "/planner/courses/" + (shown_on_calendar !== undefined && shown_on_calendar !== null
+                                                                             ? "?shown_on_calendar=" + shown_on_calendar : ""),
                                  async: async,
                                  dataType: "json",
                                  success: function (data) {
-                                     self.courses_by_user_id[helium.USER_PREFS.id] = data;
-                                     callback(self.courses_by_user_id[helium.USER_PREFS.id]);
+                                     self.courses_by_user_id[cache_key] = data;
+                                     callback(self.courses_by_user_id[cache_key]);
                                  },
                                  error: function (jqXHR, textStatus, errorThrown) {
                                      document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
@@ -1588,9 +1556,8 @@ function HeliumPlannerAPI() {
      * @param async true if call should be async, false otherwise (default is true)
      * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
      *     refresh the cache (default to false)
-     * @param shown_on_calendar Only fetch enabled calendars
      */
-    this.get_external_calendars = function (callback, async, use_cache, shown_on_calendar) {
+    this.get_external_calendars = function (callback, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
         let ret_val;

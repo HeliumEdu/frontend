@@ -95,7 +95,7 @@
 
                         $("#loading-homework-modal").spin(false);
                     }
-                }, true, true);
+                }, true, true, false);
             } else {
                 $("#homework-grade-form-group").hide("fast");
             }
@@ -277,13 +277,13 @@
                             helium.calendar.end.minute(helium.USER_PREFS.settings.all_day_offset);
                         }
                     }
-                }, true, true));
+                }, true, true, false));
         } else {
             helium.ajax_calls.push(
                 helium.planner_api.get_courses(function (data) {
                     course = helium.calendar.get_course_from_list_by_pk(data, helium.calendar.current_class_id);
                     helium.calendar.current_course_group_id = course.course_group;
-                }, true, true));
+                }, true, true, false));
         }
 
         $.when.apply($, helium.ajax_calls).done(function () {
@@ -353,7 +353,7 @@
                                                 + category.color + "\"></span>"
                                                 + "</option>");
                                         }
-                                    }, true, true);
+                                    }, true, true, false);
                                 });
                                 if (helium.calendar.preferred_category_name !== null) {
                                     $("#homework-category option").each(function () {
