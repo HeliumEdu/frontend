@@ -34,6 +34,7 @@ function HeliumMaterials() {
     this.edit = false;
     this.edit_id = -1;
     this.courses = {};
+    this.course_groups = {};
 
     let self = this;
 
@@ -438,16 +439,52 @@ function HeliumMaterials() {
      * @param ids of courses
      */
     this.get_course_names = function (ids) {
-        let course_names = "", i;
+        let course_names = "";
 
-        for (i = 0; i < ids.length; i += 1) {
-            const course = self.courses[ids[i]];
-            course_names +=
-                ("<span class=\"label label-sm title-label\" style=\"background-color: " + course.color
-                 + " !important\">" + (helium.str_not_empty(course.website) ? "<a target=\"_blank\" href=\"" + course.website
-                 + "\" class=\"planner-title-with-link\">" + course.title
-                 + " <i class=\"icon-external-link\"></i></a>" : course.title) + "</span> ");
-        }
+        let course_groups = Object.entries(helium.materials.course_groups);
+        course_groups.sort((a, b) => {
+            const a_start = moment(a[1].start_date);
+            const b_start = moment(b[1].start_date);
+
+            if (a_start.isAfter(b_start)) {
+                return -1;
+            } else if (a_start.isBefore(b_start)) {
+                return 1;
+            }
+            return 0;
+        });
+
+        const courses = Object.entries(helium.materials.courses);
+
+        courses.sort((a, b) => {
+            if (a[1].title < b[1].title) {
+                return -1;
+            } else if (a[1].title > b[1].title) {
+                return 1;
+            }
+            return 0;
+        });
+
+        $.each(course_groups, function (group_index, course_group_tuple) {
+            let course_group = course_group_tuple[1];
+            $.each(courses, function (course_index, course_tuple) {
+                let course = course_tuple[1];
+                if (course.course_group !== course_group.id) {
+                    return true;
+                }
+
+                if (!ids.includes(course.id)) {
+                    return true;
+                }
+
+                course_names +=
+                    ("<span class=\"label label-sm title-label\" style=\"background-color: " + course.color
+                     + " !important\">" + (helium.str_not_empty(course.website) ? "<a target=\"_blank\" href=\""
+                     + course.website
+                     + "\" class=\"planner-title-with-link\">" + course.title
+                     + " <i class=\"icon-external-link\"></i></a>" : course.title) + "</span> ");
+            });
+        });
 
         return course_names;
     };
@@ -533,16 +570,30 @@ $(document).ready(function () {
                                          ]
                                      }).prev().addClass("wysiwyg-style3");
 
-    $.when.apply($, helium.ajax_calls).done(function () {
+    helium.ajax_calls.push(
+        helium.planner_api.get_course_groups(function (data) {
+            if (helium.data_has_err_msg(data)) {
+                helium.ajax_error_occurred = true;
+                $("#loading-materials").spin(false);
+
+                bootbox.alert(helium.get_error_msg(data));
+            } else {
+                $.each(data, function (index, course_group) {
+                    helium.materials.course_groups[course_group['id']] = course_group;
+                });
+            }
+        }, false));
+
+    if (!helium.ajax_error_occurred) {
         helium.ajax_calls.push(
-            helium.planner_api.get_all_courses_by_user_id(function (data) {
-                if (helium.data_has_err_msg(data)) {
+            helium.planner_api.get_courses(function (courses_data) {
+                if (helium.data_has_err_msg(courses_data)) {
                     helium.ajax_error_occurred = true;
                     $("#loading-materials").spin(false);
 
-                    bootbox.alert(helium.get_error_msg(data));
+                    bootbox.alert(helium.get_error_msg(courses_data));
                 } else {
-                    const courses = Object.entries(data);
+                    const courses = Object.entries(courses_data);
                     courses.sort((a, b) => {
                         if (a[1].title < b[1].title) {
                             return -1;
@@ -552,68 +603,94 @@ $(document).ready(function () {
                         return 0;
                     });
 
-                    $.each(courses, function (index, course_tuple) {
-                        let course = course_tuple[1];
-                        helium.materials.courses[course.id] = course;
-                        $("#material-courses")
-                            .append("<option value=\"" + course.id + "\">" + course.title
-                                    + " <span class=\"color-dot inline\" style=\"background-color: " + course.color
-                                    + "\"></span></option>");
+                    let course_groups = Object.entries(helium.materials.course_groups);
+                    course_groups.sort((a, b) => {
+                        const a_start = moment(a[1].start_date);
+                        const b_start = moment(b[1].start_date);
+
+                        if (a_start.isAfter(b_start)) {
+                            return -1;
+                        } else if (a_start.isBefore(b_start)) {
+                            return 1;
+                        }
+                        return 0;
                     });
 
-                    if (data.length <= 0) {
-                        $("#material-courses-form-group").hide("fast");
-                    } else {
-                        $("#material-courses-form-group").show("fast");
-                    }
+                    $.each(course_groups, function (group_index, course_group_tuple) {
+                        let course_group = course_group_tuple[1];
 
-                    $("#material-courses").prop("disabled", data.length === 0).trigger("chosen:updated");
-                    $("#material-courses").trigger("change");
+                        const group = $("<optgroup>");
+                        $("#material-courses").append(group);
+                        $.each(courses, function (index, course_tuple) {
+                            let course = course_tuple[1];
+                            if (course.course_group !== course_group.id) {
+                                return true;
+                            }
+
+                            helium.materials.courses[course.id] = course;
+                            group.append("<option value=\"" + course.id + "\">" + course.title
+                                         + " <span class=\"color-dot inline\" style=\"background-color: " + course.color
+                                         + "\"></span></option>");
+                        });
+
+                        if (courses.length <= 0) {
+                            $("#material-courses-form-group").hide("fast");
+                        } else {
+                            $("#material-courses-form-group").show("fast");
+                        }
+
+                        $("#material-courses").prop("disabled", courses.length === 0).trigger("chosen:updated");
+                        $("#material-courses").trigger("change");
+                    });
                 }
-            }, helium.USER_PREFS.id));
-
-        helium.ajax_calls.push(
-            helium.planner_api.get_material_groups(function (data) {
-                $.each(data, function (i, material_group_data) {
-                    helium.materials.add_material_group_to_page(material_group_data);
-                });
             }));
 
         $.when.apply($, helium.ajax_calls).done(function () {
             if (!helium.ajax_error_occurred) {
-                helium.set_active_tab_from_hash();
-                if (!helium.location_hash && $("#material-group-tabs li a").length > 1) {
-                    $($("#material-group-tabs li a").first()).tab("show");
-                }
+                helium.ajax_calls.push(
+                    helium.planner_api.get_material_groups(function (data) {
+                        $.each(data, function (i, material_group_data) {
+                            helium.materials.add_material_group_to_page(material_group_data);
+                        });
+                    }));
 
-                $("table[id^='material-group-table-']").each(function () {
-                    let i = 0, id = $(this).attr("id").split("material-group-table-")[1];
+                $.when.apply($, helium.ajax_calls).done(function () {
+                    if (!helium.ajax_error_occurred) {
+                        helium.set_active_tab_from_hash();
+                        if (!helium.location_hash && $("#material-group-tabs li a").length > 1) {
+                            $($("#material-group-tabs li a").first()).tab("show");
+                        }
 
-                    helium.ajax_calls.push(
-                        helium.planner_api.get_materials_by_material_group_id(function (data) {
-                            if (helium.data_has_err_msg(data)) {
-                                helium.ajax_error_occurred = true;
-                                $("#loading-materials").spin(false);
+                        $("table[id^='material-group-table-']").each(function () {
+                            let i = 0, id = $(this).attr("id").split("material-group-table-")[1];
 
-                                bootbox.alert(helium.get_error_msg(data));
-                            } else {
-                                for (i = 0; i < data.length; i += 1) {
-                                    helium.materials.add_material_to_group(data[i],
-                                                                           helium.materials.material_group_table[id]);
-                                }
-                                helium.materials.material_group_table[id].draw();
-                            }
-                        }, id));
+                            helium.ajax_calls.push(
+                                helium.planner_api.get_materials_by_material_group_id(function (data) {
+                                    if (helium.data_has_err_msg(data)) {
+                                        helium.ajax_error_occurred = true;
+                                        $("#loading-materials").spin(false);
+
+                                        bootbox.alert(helium.get_error_msg(data));
+                                    } else {
+                                        for (i = 0; i < data.length; i += 1) {
+                                            helium.materials.add_material_to_group(data[i],
+                                                                                   helium.materials.material_group_table[id]);
+                                        }
+                                        helium.materials.material_group_table[id].draw();
+                                    }
+                                }, id));
+                        });
+                    }
+                });
+
+                $.when.apply($, helium.ajax_calls).done(function () {
+                    if ($("#material-group-tabs a").length === 1) {
+                        $("#no-materials-tab").addClass("active");
+                    }
+
+                    $("#loading-materials").spin(false);
                 });
             }
         });
-
-        $.when.apply($, helium.ajax_calls).done(function () {
-            if ($("#material-group-tabs a").length === 1) {
-                $("#no-materials-tab").addClass("active");
-            }
-
-            $("#loading-materials").spin(false);
-        });
-    });
+    }
 });

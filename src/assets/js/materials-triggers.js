@@ -34,7 +34,8 @@
     $("#material-courses").on("change", function () {
         $.each($(this).next().find(".search-choice"), function () {
             const index = $(this).find("a").attr("data-option-array-index");
-            const id = $($("#material-courses option")[index]).val();
+            const parent_element = $("#material-courses");
+            const id = $(parent_element.children().add(parent_element.find('> * > *'))[index]).val();
 
             $(this).attr("style", "background-color: " + helium.materials.courses[id].color);
             $(this).find(".color-dot").remove();

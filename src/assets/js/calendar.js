@@ -2098,7 +2098,7 @@ function HeliumCalendar() {
                     helium.planner_api.get_courses(function (courses) {
                         data["course_group"] =
                             helium.calendar.get_course_from_list_by_pk(courses, data["course"]).course_group;
-                    }, false, true);
+                    }, false, true, false);
                 }
 
                 $.each(reminders_data, function (i, reminder_data) {
@@ -2951,7 +2951,7 @@ $(document).ready(function () {
                                                     });
                     }
                 }
-            }, false);
+            }, false, false, false);
         }
 
         $.when.apply($, helium.ajax_calls).done(function () {
