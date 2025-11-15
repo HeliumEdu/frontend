@@ -29,7 +29,7 @@ $("#login-form").submit(function (e) {
             const next = url('?next');
 
             if (next !== undefined) {
-                window.location.href = next;
+                window.location.href = decodeURIComponent(next);
             } else {
                 window.location.href = "/planner/calendar";
             }
