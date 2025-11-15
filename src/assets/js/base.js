@@ -174,7 +174,11 @@ function Helium() {
         localStorage.setItem("status_msg", "Please login again to continue.");
 
         if (window.PRIVILEGED_ROUTE) {
-            window.location.href = "/login?next=" + window.location.pathname;
+            const dest_path = window.location.pathname;
+            const query_params = window.location.search;
+            const hash = window.location.hash;
+
+            window.location.href = "/login?next=" + `${dest_path}${query_params}${hash}`;
         }
     }
 
