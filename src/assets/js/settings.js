@@ -550,7 +550,7 @@ function HeliumSettings() {
                             $("#loading-account").spin(helium.SMALL_LOADING_OPTS);
 
                             $.ajax({
-                                       url: helium.API_URL + "/planner/events/delete/",
+                                       url: helium.API_URL + "/planner/events/delete/all/",
                                        type: "DELETE",
                                        dataType: "json",
                                        success: function () {
@@ -722,12 +722,12 @@ $(document).ready(function () {
         $("body").find(".sp-container button").addClass("btn btn-xs btn-primary");
 
         $(".privatefeeds-help").on("click", function () {
-            window.open("https://heliumedu.freshdesk.com/support/solutions/articles/159000418649-how-to-sync-helium-with-google-apple-or-other-calendars-private-feeds-");
+            window.open("https://heliumedu.freshdesk.com/support/solutions/articles/159000418649-how-to-sync-helium-out-to-google-apple-or-other-calendars-private-feeds-");
         });
 
         if ($(".externalcalendars-help").length > 0) {
             $(".externalcalendars-help").on("click", function () {
-                window.open("https://heliumedu.freshdesk.com/support/solutions/articles/159000418651-how-to-sync-google-apple-or-other-calendars-in-helium-external-feeds-");
+                window.open("https://heliumedu.freshdesk.com/support/solutions/articles/159000418651-how-to-sync-google-apple-or-other-calendars-in-to-helium-external-feeds-");
             });
         }
 
