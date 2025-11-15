@@ -178,7 +178,7 @@ function Helium() {
             const query_params = window.location.search;
             const hash = window.location.hash;
 
-            window.location.href = "/login?next=" + `${dest_path}${query_params}${hash}`;
+            window.location.href = "/login?next=" + encodeURIComponent(`${dest_path}${query_params}${hash}`);
         }
     }
 
