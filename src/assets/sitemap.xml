@@ -46,17 +46,17 @@
         <priority>0.5</priority>
     </url>
     <url>
-        <loc>https://support.heliumedu.com</loc>
+        <loc>https://www.heliumedu.com/docs</loc>
         <changefreq>daily</changefreq>
         <priority>0.5</priority>
     </url>
     <url>
-        <loc>https://api.heliumedu.com/docs</loc>
+        <loc>https://www.heliumedu.com/support</loc>
         <changefreq>daily</changefreq>
         <priority>0.5</priority>
     </url>
     <url>
-        <loc>https://status.heliumedu.com</loc>
+        <loc>https://www.heliumedu.com/status</loc>
         <changefreq>daily</changefreq>
         <priority>0.5</priority>
     </url>
