@@ -1600,9 +1600,7 @@ function HeliumPlannerAPI() {
         } else {
             ret_val = $.ajax({
                                  type: "GET",
-                                 url: helium.API_URL + "/feed/externalcalendars/"
-                                      + (shown_on_calendar !== undefined && shown_on_calendar !== null
-                                         ? "?shown_on_calendar=" + shown_on_calendar : ""),
+                                 url: helium.API_URL + "/feed/externalcalendars/",
                                  async: async,
                                  dataType: "json",
                                  success: function (data) {
