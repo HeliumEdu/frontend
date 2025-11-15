@@ -735,7 +735,7 @@ $(document).ready(function () {
                                                     .find("[value='" + course.id + "']").prop('disabled', true);
 
                                                 course_div.find("#course-body-" + course.id).append(
-                                                    "<div class=\"widget-body\"><div class=\"widget-main\"><div class=\"row\"><div class=\"col-xs-12 col-sm-10 col-sm-offset-1 well\">This class does not have any categories. Head over to <a href=\"/planner/classes\">the Classes page</a> to add them.</div></div></div></div>");
+                                                    "<div class=\"widget-body\"><div class=\"widget-main\"><div class=\"row\"><div class=\"col-xs-12 col-sm-10 col-sm-offset-1 well\">This class does not have any categories. Head over to <a href=\"/planner/classes\">Classes</a> to add them.</div></div></div></div>");
                                             }
                                         });
 
