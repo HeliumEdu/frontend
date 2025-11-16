@@ -984,7 +984,7 @@ function HeliumCalendar() {
         });
     }
 
-    this.event_source_class_schedules = function (start, end, timezone, callback) {
+    this.event_source_course_schedules = function (start, end, timezone, callback) {
         const events = [];
         const current_view = $("#calendar").fullCalendar("getView").name;
 
@@ -1184,7 +1184,7 @@ function HeliumCalendar() {
                     eventSources: [
                         helium.calendar.event_source_external_calendars,
                         helium.calendar.event_source_events,
-                        helium.calendar.event_source_class_schedules,
+                        helium.calendar.event_source_course_schedules,
                         helium.calendar.event_source_homework
                     ],
                     defaultTimedEventDuration: moment().hours(0)
@@ -1219,7 +1219,7 @@ function HeliumCalendar() {
                             view.calendar.addEventSource(helium.calendar.event_source_homework);
                             view.calendar.addEventSource(helium.calendar.event_source_external_calendars);
                             view.calendar.addEventSource(helium.calendar.event_source_events);
-                            view.calendar.addEventSource(helium.calendar.event_source_class_schedules);
+                            view.calendar.addEventSource(helium.calendar.event_source_course_schedules);
 
                             self.previous_view = null;
                         }
@@ -2432,7 +2432,7 @@ function HeliumCalendar() {
             setDate: function (date) {
                 this.calendar.removeEventSource(helium.calendar.event_source_external_calendars);
                 this.calendar.removeEventSource(helium.calendar.event_source_events);
-                this.calendar.removeEventSource(helium.calendar.event_source_class_schedules);
+                this.calendar.removeEventSource(helium.calendar.event_source_course_schedules);
 
                 var currentDateProfile = this.get('dateProfile');
                 var newDateProfile = this.buildDateProfile(date, null, true); // forceToValid=true
