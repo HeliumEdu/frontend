@@ -31,6 +31,7 @@ function HeliumPlannerAPI() {
 
     this.materials_by_material_group_id = {};
     this.materials_by_course_id = {};
+    this.materials_by_user_id = {};
     this.material = {};
 
     this.categories_by_course_id = {};
@@ -163,7 +164,7 @@ function HeliumPlannerAPI() {
     }
 
     /**
-     * Compile data for display on the /grades page for the given User ID and pass the values to the given callback
+     * Compile data for display on the /grades page for the user and pass the values to the given callback
      * function in JSON format.
      *
      * @param callback function to pass response data and call after completion
@@ -185,7 +186,7 @@ function HeliumPlannerAPI() {
     };
 
     /**
-     * Compile the CourseGroups for the given User ID and pass the values to the given callback function in JSON
+     * Compile the CourseGroups for the user and pass the values to the given callback function in JSON
      * format.
      *
      * @param callback function to pass response data and call after completion
@@ -383,8 +384,10 @@ function HeliumPlannerAPI() {
         } else {
             ret_val = $.ajax({
                                  type: "GET",
-                                 url: helium.API_URL + "/planner/courses/" + (shown_on_calendar !== undefined && shown_on_calendar !== null
-                                                                             ? "?shown_on_calendar=" + shown_on_calendar : ""),
+                                 url: helium.API_URL + "/planner/courses/" + (shown_on_calendar !== undefined
+                                                                              && shown_on_calendar !== null
+                                                                              ? "?shown_on_calendar="
+                                      + shown_on_calendar : ""),
                                  async: async,
                                  dataType: "json",
                                  success: function (data) {
@@ -646,7 +649,7 @@ function HeliumPlannerAPI() {
     };
 
     /**
-     * Compile the MaterialGroups for the given User ID and pass the values to the given callback function in JSON
+     * Compile the MaterialGroups for the user and pass the values to the given callback function in JSON
      * format.
      *
      * @param callback function to pass response data and call after completion
@@ -670,6 +673,46 @@ function HeliumPlannerAPI() {
                                  success: function (data) {
                                      self.material_groups_by_user_id[helium.USER_PREFS.id] = data;
                                      callback(self.material_groups_by_user_id[helium.USER_PREFS.id]);
+                                 },
+                                 error: function (jqXHR, textStatus, errorThrown) {
+                                     document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
+                                 }
+                             });
+        }
+
+        return ret_val;
+    };
+
+    /**
+     * Compile the Materials for the user and pass the values to the given callback function in JSON
+     * format.
+     *
+     * @param callback function to pass response data and call after completion
+     * @param async true if call should be async, false otherwise (default is true)
+     * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
+     *     refresh the cache (default to false)
+     * @param shown_on_calendar only fetch those that aren't in a hidden group
+     */
+    this.get_materials = function (callback, async, use_cache, shown_on_calendar) {
+        async = typeof async === "undefined" ? true : async;
+        use_cache = typeof use_cache === "undefined" ? false : use_cache;
+        let ret_val;
+
+        let cache_key = helium.USER_PREFS.id + shown_on_calendar;
+        if (use_cache && self.materials_by_user_id.hasOwnProperty(cache_key)) {
+            ret_val = callback(self.materials_by_user_id[cache_key]);
+        } else {
+            ret_val = $.ajax({
+                                 type: "GET",
+                                 url: helium.API_URL + "/planner/materials/" + (shown_on_calendar !== undefined
+                                                                                && shown_on_calendar !== null
+                                                                                ? "?shown_on_calendar="
+                                      + shown_on_calendar : ""),
+                                 async: async,
+                                 dataType: "json",
+                                 success: function (data) {
+                                     self.materials_by_user_id[cache_key] = data;
+                                     callback(self.materials_by_user_id[cache_key]);
                                  },
                                  error: function (jqXHR, textStatus, errorThrown) {
                                      document.API_ERROR_FUNCTION(jqXHR, textStatus, errorThrown, callback);
@@ -979,7 +1022,7 @@ function HeliumPlannerAPI() {
      * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
      *     refresh the cache (default to false)
      */
-    this.get_categories_by_user_id = function (callback, async, use_cache) {
+    this.get_categories = function (callback, async, use_cache) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
         let ret_val;
@@ -1175,7 +1218,7 @@ function HeliumPlannerAPI() {
     };
 
     /**
-     * Compile all Homework for the given Course ID and pass the values to the given callback function in JSON format.
+     * Compile all Homework for the user and pass the values to the given callback function in JSON format.
      *
      * @param callback function to pass response data and call after completion
      * @param async true if call should be async, false otherwise (default is true)
@@ -1386,7 +1429,7 @@ function HeliumPlannerAPI() {
     };
 
     /**
-     * Compile all Events for the given User ID and pass the values to the given callback function in JSON format.
+     * Compile all Events for the user and pass the values to the given callback function in JSON format.
      *
      * @param callback function to pass response data and call after completion
      * @param async true if call should be async, false otherwise (default is true)
