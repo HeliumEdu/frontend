@@ -999,14 +999,14 @@ function HeliumCalendar() {
                         return false;
                     }
 
+                    const course = helium.calendar.courses[calendar_item.owner_id];
+
                     if (localStorage.getItem("filter_courses") !== null &&
                         localStorage.getItem("filter_courses") !== "" &&
-                        $.inArray(calendar_item.course,
+                        $.inArray(course.id + "",
                                   localStorage.getItem("filter_courses").split(",")) === -1) {
                         return true;
                     }
-
-                    const course = helium.calendar.courses[calendar_item.owner_id];
 
                     events.push(
                         {
