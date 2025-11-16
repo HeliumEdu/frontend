@@ -87,7 +87,7 @@
                         // If the course for this Homework implements weighted grading, but the selected Category has
                         // no weight, a grade cannot be given
                         selected = $("#homework-category option:selected");
-                        $("#homework-grade").attr("readonly", helium.calendar.get_course_from_list_by_pk(data,
+                        $("#homework-grade").attr("readonly", helium.calendar.get_course_from_list_by_id(data,
                                                                                                          helium.calendar.current_class_id).has_weighted_grading
                                                               && selected.length > 0 && selected.html()
                                                                   .indexOf("(Not Graded)") !== -1);
@@ -95,7 +95,7 @@
 
                         $("#loading-homework-modal").spin(false);
                     }
-                }, true, true, false);
+                }, true, true, true);
             } else {
                 $("#homework-grade-form-group").hide("fast");
             }
@@ -181,7 +181,7 @@
                         $("#homework-error").html(helium.get_error_msg(data));
                         $("#homework-error").parent().show("fast");
                     } else {
-                        course = helium.calendar.get_course_from_list_by_pk(data, helium.calendar.current_class_id);
+                        course = helium.calendar.get_course_from_list_by_id(data, helium.calendar.current_class_id);
                         helium.calendar.current_course_group_id = course.course_group;
                         month_view = $("#calendar").fullCalendar("getView").name === helium.calendar.DEFAULT_VIEWS[0];
                         month_or_list_view =
@@ -277,13 +277,13 @@
                             helium.calendar.end.minute(helium.USER_PREFS.settings.all_day_offset);
                         }
                     }
-                }, true, true, false));
+                }, true, true, true));
         } else {
             helium.ajax_calls.push(
                 helium.planner_api.get_courses(function (data) {
-                    course = helium.calendar.get_course_from_list_by_pk(data, helium.calendar.current_class_id);
+                    course = helium.calendar.get_course_from_list_by_id(data, helium.calendar.current_class_id);
                     helium.calendar.current_course_group_id = course.course_group;
-                }, true, true, false));
+                }, true, true, true));
         }
 
         $.when.apply($, helium.ajax_calls).done(function () {
@@ -302,7 +302,7 @@
                         } else {
                             $("#homework-materials").find("option").remove();
                             $.each(data, function (index, material) {
-                                if (helium.calendar.material_groups[material.material_group].shown_on_calendar) {
+                                if (helium.calendar.materials.hasOwnProperty(material.id)) {
                                     $("#homework-materials")
                                         .append(
                                             "<option value=\"" + material.id + "\">" + material.title + "</option>");
@@ -337,7 +337,7 @@
                                             $("#homework-error").parent().show("fast");
                                         } else {
                                             course =
-                                                helium.calendar.get_course_from_list_by_pk(data,
+                                                helium.calendar.get_course_from_list_by_id(data,
                                                                                            helium.calendar.current_class_id);
                                             helium.calendar.current_course_group_id = course.course_group;
                                             weight_tag =
@@ -353,7 +353,7 @@
                                                 + category.color + "\"></span>"
                                                 + "</option>");
                                         }
-                                    }, true, true, false);
+                                    }, true, true, true);
                                 });
                                 if (helium.calendar.preferred_category_name !== null) {
                                     $("#homework-category option").each(function () {

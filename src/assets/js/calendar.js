@@ -90,13 +90,13 @@ function HeliumCalendar() {
      * Retrieve the course from the given list with the given ID.
      *
      * @param courses the list of courses
-     * @param pk the key to look for
+     * @param id the key to look for
      */
-    this.get_course_from_list_by_pk = function (courses, pk) {
+    this.get_course_from_list_by_id = function (courses, id) {
         let i, course = null;
 
         for (i = 0; i < courses.length; i += 1) {
-            if (courses[i].id === parseInt(pk)) {
+            if (courses[i].id === parseInt(id)) {
                 course = courses[i];
                 break;
             }
@@ -1530,7 +1530,7 @@ function HeliumCalendar() {
         let titles = "";
 
         $.each(materials, function (index, id) {
-            if (!helium.calendar.material_groups[helium.calendar.materials[id].material_group].shown_on_calendar) {
+            if (!helium.calendar.materials.hasOwnProperty(id)) {
                 return true;
             }
 
@@ -1679,7 +1679,7 @@ function HeliumCalendar() {
 
             // Initialize category filters
             const categories = Object.entries(helium.calendar.categories).filter(([, category]) => {
-                return helium.calendar.course_groups[helium.calendar.courses[category.course].course_group].shown_on_calendar;
+                return helium.calendar.courses.hasOwnProperty(category.course);
             });
 
             categories.sort((a, b) => {
@@ -2097,8 +2097,8 @@ function HeliumCalendar() {
                 if (self.current_calendar_item.calendar_item_type === 1) {
                     helium.planner_api.get_courses(function (courses) {
                         data["course_group"] =
-                            helium.calendar.get_course_from_list_by_pk(courses, data["course"]).course_group;
-                    }, false, true, false);
+                            helium.calendar.get_course_from_list_by_id(courses, data["course"]).course_group;
+                    }, false, true, true);
                 }
 
                 $.each(reminders_data, function (i, reminder_data) {
@@ -2222,8 +2222,8 @@ function HeliumCalendar() {
                 if (!$("#homework-event-switch").is(":checked")) {
                     helium.planner_api.get_courses(function (courses) {
                         data["course_group"] =
-                            helium.calendar.get_course_from_list_by_pk(courses, data["course"]).course_group;
-                    }, false, true);
+                            helium.calendar.get_course_from_list_by_id(courses, data["course"]).course_group;
+                    }, false, true, true);
                 }
 
                 callback = function (data) {
@@ -2846,7 +2846,7 @@ $(document).ready(function () {
         helium.calendar.categories = {};
 
         if (!helium.ajax_error_occurred) {
-            helium.planner_api.get_categories_by_user_id(function (data) {
+            helium.planner_api.get_categories(function (data) {
                 if (helium.data_has_err_msg(data)) {
                     helium.ajax_error_occurred = true;
                     $("#loading-calendar").spin(false);
@@ -2860,28 +2860,21 @@ $(document).ready(function () {
             }, false);
         }
 
-        helium.calendar.material_groups = {};
         helium.calendar.materials = {};
 
         if (!helium.ajax_error_occurred) {
-            helium.planner_api.get_material_groups(function (data) {
+            helium.planner_api.get_materials(function (data) {
                 if (helium.data_has_err_msg(data)) {
                     helium.ajax_error_occurred = true;
                     $("#loading-calendar").spin(false);
 
                     bootbox.alert(helium.get_error_msg(data));
                 } else {
-                    $.each(data, function (index, material_group) {
-                        helium.calendar.material_groups[material_group['id']] = material_group;
-
-                        helium.planner_api.get_materials_by_material_group_id(function (data) {
-                            $.each(data, function (index, material) {
-                                helium.calendar.materials[material['id']] = material;
-                            });
-                        }, material_group['id'], false, true);
+                    $.each(data, function (index, material) {
+                        helium.calendar.materials[material['id']] = material;
                     });
                 }
-            }, false);
+            }, false, false, true);
         }
 
         if (!helium.ajax_error_occurred) {
@@ -2938,8 +2931,8 @@ $(document).ready(function () {
                             }
 
                             group.append("<option value=\"" + course.id + "\">" + course.title
-                                        + " <span class=\"color-dot inline\" style=\"background-color: "
-                                        + course.color + "\"></span></option>");
+                                         + " <span class=\"color-dot inline\" style=\"background-color: "
+                                         + course.color + "\"></span></option>");
                         });
                     });
 
@@ -2951,7 +2944,7 @@ $(document).ready(function () {
                                                     });
                     }
                 }
-            }, false, false, false);
+            }, false, false, true);
         }
 
         $.when.apply($, helium.ajax_calls).done(function () {
@@ -3021,7 +3014,11 @@ $(document).ready(function () {
                                                 helium.ajax_error_occurred = true;
 
                                                 $("#homework-error").html(
-                                                    "An error occurred after saving the attachment. Check <a href=\"" + window.STATUS_URL + "\">the status page</a> if the issue persists, and <a href=\"" + window.SUPPORT_URL + "\">contact support</a> if something isn't already mentioned there.");
+                                                    "An error occurred after saving the attachment. Check <a href=\""
+                                                    + window.STATUS_URL
+                                                    + "\">the status page</a> if the issue persists, and <a href=\""
+                                                    + window.SUPPORT_URL
+                                                    + "\">contact support</a> if something isn't already mentioned there.");
                                                 $("#homework-error").parent().show("fast");
 
                                                 $("a[href='#homework-panel-tab-3']").tab("show");
