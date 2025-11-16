@@ -417,8 +417,8 @@ function HeliumMaterials() {
         const row = table.row.add(
                 ["<span class=\"label label-sm title-label\" style=\"background-color: "
                  + helium.USER_PREFS.settings.material_color + " !important\">"
-                 + (helium.str_not_empty(material_data.website) ? "<a target=\"_blank\" href=\"" + material_data.website
-                 + "\" class=\"planner-title-with-link\">" + material_data.title
+                 + (helium.str_not_empty(material_data.website) ? "<a href=\"" + material_data.website
+                 + "\" target=\"_blank\" class=\"planner-title-with-link\">" + material_data.title
                  + " <i class=\"icon-external-link\"></i></a>" : material_data.title) + "</span>",
                  material_data.price,
                  helium.MATERIAL_STATUS_CHOICES[material_data.status], self.get_course_names(material_data.courses),
