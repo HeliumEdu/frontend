@@ -404,31 +404,32 @@ function HeliumPlannerAPI() {
     };
 
     /**
-     * Compile all Events for the given CourseSchedule and pass the values to the given callback function in JSON
+     * Compile all Events for the user's CourseSchedules and pass the values to the given callback function in JSON
      * format.
      *
      * @param callback function to pass response data and call after completion
-     * @param course_group_id The ID of the CourseGroup.
-     * @param course_id The ID of the Course.
      * @param async true if call should be async, false otherwise (default is true)
      * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
      *     refresh the cache (default to false)
+     * @param start The start time window
+     * @param end The end time window
      * @param search A search string to filter by
      */
-    this.get_class_schedule_events = function (callback, course_group_id, course_id, async, use_cache, search) {
+    this.get_course_schedule_events = function (callback, async, use_cache, start, end, search) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
         let ret_val;
 
-        let cache_key = course_id + search;
+        let cache_key = helium.USER_PREFS.id + start + end + search;
         if (use_cache && self.class_schedules_events.hasOwnProperty(cache_key)) {
             ret_val = callback(self.class_schedules_events[cache_key]);
         } else {
             ret_val = $.ajax({
                                  type: "GET",
-                                 url: helium.API_URL + "/planner/coursegroups/" + course_group_id + "/courses/"
-                                      + course_id + "/courseschedules/events/"
-                                      + (helium.str_not_empty(search) ? "?search=" + search : ""),
+                                 url: helium.API_URL + "/planner/courseschedules/events/"
+                                      + (start !== undefined ? "?start__gte=" + start : "")
+                                      + (end !== undefined ? "&end__lt=" + end : "")
+                                      + (helium.str_not_empty(search) ? "&search=" + search : ""),
                                  async: async,
                                  dataType: "json",
                                  success: function (data) {
@@ -1627,11 +1628,10 @@ function HeliumPlannerAPI() {
     };
 
     /**
-     * Compile all Events for the given External Calendar source and pass the values to the given callback function in
+     * Compile all Events for the user's External Calendar and pass the values to the given callback function in
      * JSON format.
      *
      * @param callback function to pass response data and call after completion
-     * @param id The ID of the ExternalCalendar.
      * @param async true if call should be async, false otherwise (default is true)
      * @param use_cache true if the call should attempt to used cache data, false if a database call should be made to
      *     refresh the cache (default to false)
@@ -1639,18 +1639,18 @@ function HeliumPlannerAPI() {
      * @param end The end time window
      * @param search A search string to filter by
      */
-    this.get_external_calendar_events = function (callback, id, async, use_cache, start, end, search) {
+    this.get_external_calendar_events = function (callback, async, use_cache, start, end, search) {
         async = typeof async === "undefined" ? true : async;
         use_cache = typeof use_cache === "undefined" ? false : use_cache;
         let ret_val;
 
-        let cache_key = id + start + end + search;
+        let cache_key = helium.USER_PREFS.id + start + end + search;
         if (use_cache && self.external_calendar_events.hasOwnProperty(cache_key)) {
             ret_val = callback(self.external_calendar_events[cache_key]);
         } else {
             ret_val = $.ajax({
                                  type: "GET",
-                                 url: helium.API_URL + "/feed/externalcalendars/" + id + "/events/"
+                                 url: helium.API_URL + "/feed/externalcalendars/events/"
                                       + (start !== undefined ? "?start__gte=" + start : "")
                                       + (end !== undefined ? "&end__lt=" + end : "")
                                       + (helium.str_not_empty(search) ? "&search=" + search : ""),
