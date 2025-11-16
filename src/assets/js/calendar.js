@@ -1304,7 +1304,7 @@ function HeliumCalendar() {
                         }
 
                         course_string = event.calendar_item_type === 1
-                                        ? ('<span class="label label-sm" style="background-color: '
+                                        ? ('<span class="label label-sm title-label" style="background-color: '
                                            + helium.calendar.courses[event.course].color + ' !important">'
                                            + (helium.str_not_empty(helium.calendar.courses[event.course].website)
                                               && helium.calendar.courses[event.course].website.replace(/\s/g,
@@ -1543,7 +1543,7 @@ function HeliumCalendar() {
             }
 
             titles += '<span class="label label-sm title-label" style="background-color: '
-                      + helium.USER_PREFS.settings.material_color + ' !important;">'
+                      + helium.USER_PREFS.settings.material_color + ' !important">'
                       + title + "</span> ";
         });
 
