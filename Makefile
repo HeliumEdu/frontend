@@ -18,7 +18,7 @@ install: env
 	flutter pub get
 
 clean:
-	rm -rf build $(PLATFORM_VENV)
+	flutter clean
 
 build: install
 	flutter build apk --release
