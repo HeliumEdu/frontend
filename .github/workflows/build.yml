@@ -20,8 +20,9 @@ jobs:
     name: Build
 
     env:
-      GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+      ANDROID_GOOGLE_SERVICES_JSON: ${{ secrets.ANDROID_GOOGLE_SERVICES_JSON }}
       KEYSTORE_PATH: android/app/debug-keystore.jks
+      IOS_GOOGLE_SERVICES_JSON: ${{ secrets.IOS_GOOGLE_SERVICES_JSON }}
 
     runs-on: ubuntu-latest
 

@@ -7,12 +7,14 @@ all: test
 env:
 	cp -n .env.example .env | true
 
-	@if [[ -z "${GOOGLE_SERVICES_JSON}" ]]; then \
-		echo "Error: GOOGLE_SERVICES_JSON environment variable is not set."; \
+	@if [[ -z "${ANDROID_GOOGLE_SERVICES_JSON}" ]] || \
+		[[ -z "${IOS_GOOGLE_SERVICES_PLIST}" ]]; then \
+		echo "Error: ANDROID_GOOGLE_SERVICES_JSON and IOS_GOOGLE_SERVICES_PLIST environment variables are required."; \
 		exit 1; \
 	fi
 
-	echo "$${GOOGLE_SERVICES_JSON}" > android/app/google-services.json
+	echo "$${ANDROID_GOOGLE_SERVICES_JSON}" > android/app/google-services.json
+	echo "$${IOS_GOOGLE_SERVICES_PLIST}" > ios/Runner/GoogleService-Info.plist
 
 install: env
 	flutter pub get
