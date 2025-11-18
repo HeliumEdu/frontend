@@ -1,5 +1,6 @@
 <p align="center"><img src="https://www.heliumedu.com/assets/img/logo_full_blue.png" /></p>
 
+[![Build](https://img.shields.io/github/actions/workflow/status/HeliumEdu/mobile/build.yml)](https://github.com/HeliumEdu/mobile/actions/workflows/build.yml)
 ![GitHub License](https://img.shields.io/github/license/heliumedu/mobile)
 
 # Helium Mobile
