@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "PULL_FROM_ENV",
+    "project_id": "helium-edu",
+    "storage_bucket": "helium-edu.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "PULL_FROM_ENV",
+        "android_client_info": {
+          "package_name": "com.alexdlaird.heliumedu"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "PULL_FROM_ENV"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

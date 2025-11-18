@@ -1,0 +1,35 @@
+name: "Build"
+
+run-name: "Build ${{ github.ref_name }}"
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    - cron: "0 9 * * *"
+
+permissions:
+  contents: read
+  issues: none
+  pull-requests: none
+
+jobs:
+  build:
+    name: Build
+
+    env:
+      PLATFORM: amd64
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Flutter SDK
+        uses: flutter-actions/setup-flutter@v4
+        with:
+          channel: stable
+          version: "3.0.2"
+      - name: Test mobile
+        run: make test

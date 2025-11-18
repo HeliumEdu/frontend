@@ -1,0 +1,341 @@
+import 'package:bloc/bloc.dart';
+import 'package:helium_student_flutter/core/app_exception.dart';
+import 'package:helium_student_flutter/core/dio_client.dart';
+import 'package:helium_student_flutter/data/models/auth/delete_account_request_model.dart';
+import 'package:helium_student_flutter/data/models/auth/login_request_model.dart';
+import 'package:helium_student_flutter/data/models/auth/refresh_token_request_model.dart';
+import 'package:helium_student_flutter/data/models/auth/register_request_model.dart';
+import 'package:helium_student_flutter/data/models/auth/update_phone_request_model.dart';
+import 'package:helium_student_flutter/data/models/auth/change_password_request_model.dart';
+import 'package:helium_student_flutter/data/models/auth/forgot_password_request_model.dart';
+import 'package:helium_student_flutter/domain/repositories/auth_repository.dart';
+import 'package:helium_student_flutter/presentation/bloc/authBloc/auth_event.dart';
+import 'package:helium_student_flutter/presentation/bloc/authBloc/auth_state.dart';
+
+class AuthBloc extends Bloc<AuthEvent, AuthState> {
+  final AuthRepository authRepository;
+  final DioClient dioClient;
+
+  AuthBloc({required this.authRepository, required this.dioClient})
+    : super(const AuthInitial()) {
+    on<RegisterEvent>(_onRegister);
+    on<LoginEvent>(_onLogin);
+    on<LogoutEvent>(_onLogout);
+    on<BlacklistTokenEvent>(_onBlacklistToken);
+    on<GetProfileEvent>(_onGetProfile);
+    on<DeleteAccountEvent>(_onDeleteAccount);
+    on<UpdatePhoneEvent>(_onUpdatePhone);
+    on<ChangePasswordEvent>(_onChangePassword);
+    on<ForgotPasswordEvent>(_onForgotPassword);
+    on<RefreshTokenEvent>(_onRefreshToken);
+    on<CheckAuthEvent>(_onCheckAuth);
+    on<ResetAuthEvent>(_onReset);
+  }
+
+  Future<void> _onRegister(RegisterEvent event, Emitter<AuthState> emit) async {
+    emit(const AuthLoading());
+
+    try {
+      final request = RegisterRequestModel(
+        username: event.username,
+        email: event.email,
+        password: event.password,
+        timezone: event.timezone,
+      );
+
+      final response = await authRepository.register(request);
+
+      emit(AuthRegistrationSuccess(message: response.message));
+    } on ValidationException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } on NetworkException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } on ServerException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } on AppException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } catch (e) {
+      emit(AuthError(message: 'An unexpected error occurred: $e'));
+    }
+  }
+
+  Future<void> _onChangePassword(
+    ChangePasswordEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(const AuthLoading());
+
+    try {
+      final request = ChangePasswordRequestModel(
+        username: event.username,
+        email: event.email,
+        oldPassword: event.oldPassword,
+        password: event.newPassword,
+      );
+
+      await authRepository.changePassword(request);
+
+      emit(const AuthPasswordChangeSuccess());
+    } on ValidationException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } on NetworkException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } on ServerException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } on UnauthorizedException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } on AppException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } catch (e) {
+      emit(AuthError(message: 'An unexpected error occurred: $e'));
+    }
+  }
+
+  Future<void> _onForgotPassword(
+    ForgotPasswordEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(const AuthLoading());
+
+    try {
+      final request = ForgotPasswordRequestModel(email: event.email);
+      await authRepository.forgotPassword(request);
+      emit(const AuthForgotPasswordSent());
+    } on ValidationException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } on NetworkException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } on ServerException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } on AppException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } catch (e) {
+      emit(AuthError(message: 'An unexpected error occurred: $e'));
+    }
+  }
+
+  Future<void> _onLogin(LoginEvent event, Emitter<AuthState> emit) async {
+    emit(const AuthLoading());
+
+    try {
+      final request = LoginRequestModel(
+        username: event.username,
+        password: event.password,
+      );
+
+      final response = await authRepository.login(request);
+
+      emit(
+        AuthLoginSuccess(token: response.token, username: response.username),
+      );
+    } on ValidationException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } on NetworkException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } on ServerException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } on UnauthorizedException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } on AppException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } catch (e) {
+      emit(AuthError(message: 'An unexpected error occurred: $e'));
+    }
+  }
+
+  Future<void> _onLogout(LogoutEvent event, Emitter<AuthState> emit) async {
+    emit(const AuthLoading());
+
+    try {
+      await authRepository.logout();
+      emit(const AuthLogoutSuccess());
+    } on NetworkException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } on ServerException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } on AppException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } catch (e) {
+      emit(AuthError(message: 'An unexpected error occurred: $e'));
+    }
+  }
+
+  Future<void> _onBlacklistToken(
+    BlacklistTokenEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(const AuthLoading());
+
+    try {
+      await authRepository.blacklistToken(event.refreshToken);
+      emit(const AuthTokenBlacklisted());
+    } on NetworkException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } on ServerException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } on AppException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } catch (e) {
+      emit(AuthError(message: 'An unexpected error occurred: $e'));
+    }
+  }
+
+  Future<void> _onGetProfile(
+    GetProfileEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(const AuthLoading());
+
+    try {
+      final profile = await authRepository.getProfile();
+      emit(
+        AuthProfileLoaded(
+          username: profile.username,
+          email: profile.email,
+          phone: profile.profile?.phone,
+        ),
+      );
+    } on NetworkException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } on ServerException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } on AppException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } catch (e) {
+      emit(AuthError(message: 'An unexpected error occurred: $e'));
+    }
+  }
+
+  Future<void> _onDeleteAccount(
+    DeleteAccountEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(const AuthLoading());
+
+    try {
+      final request = DeleteAccountRequestModel(password: event.password);
+      final response = await authRepository.deleteAccount(request);
+
+      emit(AuthAccountDeletedSuccess(message: response.message));
+    } on ValidationException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } on NetworkException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } on ServerException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } on UnauthorizedException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } on AppException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } catch (e) {
+      emit(AuthError(message: 'An unexpected error occurred: $e'));
+    }
+  }
+
+  Future<void> _onUpdatePhone(
+    UpdatePhoneEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(const AuthLoading());
+
+    try {
+      final request = UpdatePhoneRequestModel(
+        phone: event.phone,
+        phoneVerificationCode: event.verificationCode,
+      );
+      final response = await authRepository.updatePhoneProfile(request);
+
+      emit(
+        AuthPhoneUpdateSuccess(
+          phone: response.phone,
+          phoneChanging: response.phoneChanging,
+          phoneVerified: response.phoneVerified,
+        ),
+      );
+    } on ValidationException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } on NetworkException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } on ServerException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } on UnauthorizedException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } on AppException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } catch (e) {
+      emit(AuthError(message: 'An unexpected error occurred: $e'));
+    }
+  }
+
+  Future<void> _onRefreshToken(
+    RefreshTokenEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(const AuthLoading());
+
+    try {
+      final refreshToken = await dioClient.getRefreshToken();
+
+      if (refreshToken == null || refreshToken.isEmpty) {
+        emit(const AuthUnauthenticated(message: 'No refresh token found'));
+        return;
+      }
+
+      final request = RefreshTokenRequestModel(refresh: refreshToken);
+      final response = await authRepository.refreshToken(request);
+
+      emit(AuthTokenRefreshed(token: response.access));
+    } on NetworkException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } on ServerException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } on UnauthorizedException {
+      await dioClient.clearToken();
+      emit(
+        const AuthUnauthenticated(
+          message: 'Session expired. Please login again.',
+        ),
+      );
+    } on AppException catch (e) {
+      emit(AuthError(message: e.message, code: e.code));
+    } catch (e) {
+      emit(AuthError(message: 'An unexpected error occurred: $e'));
+    }
+  }
+
+  Future<void> _onCheckAuth(
+    CheckAuthEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    try {
+      final token = await dioClient.getToken();
+      final refreshToken = await dioClient.getRefreshToken();
+
+      if (token != null && token.isNotEmpty) {
+        try {
+          await authRepository.getProfile();
+          emit(const AuthAuthenticated());
+        } catch (e) {
+          if (refreshToken != null && refreshToken.isNotEmpty) {
+            print(' Token seems expired, attempting to refresh...');
+            add(const RefreshTokenEvent());
+          } else {
+            emit(
+              const AuthUnauthenticated(
+                message: 'Token expired and no refresh token available',
+              ),
+            );
+          }
+        }
+      } else {
+        emit(const AuthUnauthenticated(message: 'No authentication token'));
+      }
+    } catch (e) {
+      emit(const AuthUnauthenticated(message: 'Authentication check failed'));
+    }
+  }
+
+  void _onReset(ResetAuthEvent event, Emitter<AuthState> emit) {
+    emit(const AuthInitial());
+  }
+}

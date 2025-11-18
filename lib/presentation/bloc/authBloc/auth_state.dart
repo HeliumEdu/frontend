@@ -1,0 +1,164 @@
+import 'package:equatable/equatable.dart';
+
+abstract class AuthState extends Equatable {
+  const AuthState();
+
+  @override
+  List<Object?> get props => [];
+}
+
+class AuthInitial extends AuthState {
+  const AuthInitial();
+}
+
+class AuthLoading extends AuthState {
+  const AuthLoading();
+}
+
+class AuthRegistrationSuccess extends AuthState {
+  final String message;
+
+  const AuthRegistrationSuccess({required this.message});
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class AuthLoginSuccess extends AuthState {
+  final String token;
+  final String? username;
+  final String message;
+
+  const AuthLoginSuccess({
+    required this.token,
+    this.username,
+    this.message = 'Login successful',
+  });
+
+  @override
+  List<Object?> get props => [token, username, message];
+}
+
+class AuthLogoutSuccess extends AuthState {
+  final String message;
+
+  const AuthLogoutSuccess({this.message = 'Logged out successfully'});
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class AuthTokenBlacklisted extends AuthState {
+  final String message;
+
+  const AuthTokenBlacklisted({this.message = 'Token blacklisted successfully'});
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class AuthProfileLoaded extends AuthState {
+  final String username;
+  final String email;
+  final String? phone;
+
+  const AuthProfileLoaded({
+    required this.username,
+    required this.email,
+    this.phone,
+  });
+
+  @override
+  List<Object?> get props => [username, email, phone];
+}
+
+class AuthAccountDeletedSuccess extends AuthState {
+  final String message;
+
+  const AuthAccountDeletedSuccess({
+    this.message = 'Account deleted successfully',
+  });
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class AuthPhoneUpdateSuccess extends AuthState {
+  final String? phone;
+  final String? phoneChanging;
+  final bool phoneVerified;
+  final String message;
+
+  const AuthPhoneUpdateSuccess({
+    this.phone,
+    this.phoneChanging,
+    required this.phoneVerified,
+    this.message = 'Phone number updated successfully',
+  });
+
+  @override
+  List<Object?> get props => [phone, phoneChanging, phoneVerified, message];
+}
+
+class AuthPasswordChangeSuccess extends AuthState {
+  final String message;
+
+  const AuthPasswordChangeSuccess({
+    this.message = 'Password changed successfully',
+  });
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class AuthTokenRefreshed extends AuthState {
+  final String token;
+  final String message;
+
+  const AuthTokenRefreshed({
+    required this.token,
+    this.message = 'Token refreshed successfully',
+  });
+
+  @override
+  List<Object?> get props => [token, message];
+}
+
+class AuthAuthenticated extends AuthState {
+  final String message;
+
+  const AuthAuthenticated({this.message = 'User is authenticated'});
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class AuthUnauthenticated extends AuthState {
+  final String message;
+
+  const AuthUnauthenticated({this.message = 'User is not authenticated'});
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class AuthError extends AuthState {
+  final String message;
+  final String? code;
+
+  const AuthError({required this.message, this.code});
+
+  @override
+  List<Object?> get props => [message, code];
+}
+
+class AuthForgotPasswordSent extends AuthState {
+  final String message;
+
+  const AuthForgotPasswordSent({
+    this.message = 'Password reset link sent. Please check your email.',
+  });
+
+  @override
+  List<Object?> get props => [message];
+}
