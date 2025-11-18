@@ -21,6 +21,7 @@ jobs:
 
     env:
       GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+      KEYSTORE_PATH: android/app/debug-keystore.jks
 
     runs-on: ubuntu-latest
 
@@ -31,6 +32,8 @@ jobs:
         with:
           channel: stable
           version: "3.38.1"
+      - name: Decode Keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/debug-keystore.jks
       - name: Build mobile
         run: make build
       - name: Test mobile
