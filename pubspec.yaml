@@ -53,7 +53,7 @@ dependencies:
   firebase_messaging: ^15.2.10
   flutter_local_notifications: ^18.0.1
   timezone: ^0.10.1
-  easy_stepper: ^0.8.5+1
+  easy_stepper: ^0.9.1
 
 
 dev_dependencies:
