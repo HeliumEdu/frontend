@@ -25,7 +25,7 @@ clean:
 	flutter clean
 
 build: install
-	flutter build apk --release
+	flutter build apk
 
 test: install
 	flutter test
