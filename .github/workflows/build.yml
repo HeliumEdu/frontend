@@ -28,6 +28,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - name: List files in lib directory
+        run: ls -R lib
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v4
         with:
@@ -35,6 +37,8 @@ jobs:
           version: "3.38.1"
       - name: Decode Keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/debug-keystore.jks
+      - name: List files in lib directory
+        run: ls -R lib
       - name: Test
         run: make test
       - name: Build iOS

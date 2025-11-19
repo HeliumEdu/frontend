@@ -25,10 +25,10 @@ clean:
 	flutter clean
 
 build-android: install
-	flutter build apk
+	flutter build apk --release
 
 build-ios: install
-	flutter build ios
+	flutter build ios --release --no-codesign
 
 test: install
 	flutter test
