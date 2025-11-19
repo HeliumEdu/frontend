@@ -1200,7 +1200,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                               ),
                             ),
                             value: selectedReminderTypePreference,
-                            items: remainderTypePreferences.map((course) {
+                            items: reminderTimeUnits.map((course) {
                               return DropdownMenuItem(
                                 value: course,
                                 child: Text(
@@ -1398,7 +1398,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                                   if (selectedReminderTypePreference == null) {
                                     return 0;
                                   }
-                                  final idx = remainderTypePreferences.indexOf(
+                                  final idx = reminderTimeUnits.indexOf(
                                     selectedReminderTypePreference!,
                                   );
                                   return idx >= 0 ? idx : 0;

@@ -124,7 +124,7 @@ class ExternalCalendarRemoteDataSourceImpl
       String? nextUrl;
 
       String formatDate(DateTime value) =>
-          DateFormat('yyyy-MM-dd').format(value.toUtc());
+          DateFormat('MMM dd, yyyy').format(value.toUtc());
 
       Map<String, dynamic>? buildQueryParams() {
         final params = <String, dynamic>{'limit': 500};

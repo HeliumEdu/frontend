@@ -80,28 +80,28 @@ class PreferenceBloc extends Bloc<PreferenceEvent, PreferenceState> {
   }
 
   String _mapReminderOffsetTypeIndexToName(int index) {
-    // Map to remainderTypePreferences: [Hour, Mints, Day, Week]
     switch (index) {
+      case 0:
+        return 'Minutes';
       case 1:
-        return 'Mints';
+        return 'Hours';
       case 2:
-        return 'Day';
-      case 3:
-        return 'Week';
+        return 'Days';
       default:
-        return 'Hour';
+        return 'Weeks';
     }
   }
 
   String _mapReminderTypeIndexToName(int index) {
-    // Map to remainderPreferences: [Popup, Email, Text]
     switch (index) {
+      case 0:
+        return 'Popup';
       case 1:
         return 'Email';
       case 2:
         return 'Text';
       default:
-        return 'Popup';
+        return 'Push';
     }
   }
 

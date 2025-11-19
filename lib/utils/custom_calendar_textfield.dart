@@ -30,7 +30,7 @@ class _CustomCalendarTextfieldState extends State<CustomCalendarTextfield> {
     super.initState();
     _selectedDate = widget.initialDate;
     if (_selectedDate != null) {
-      _controller.text = DateFormat('dd/MM/yyyy').format(_selectedDate!);
+      _controller.text = DateFormat('MMM dd, yyyy').format(_selectedDate!);
     }
   }
 
@@ -57,7 +57,7 @@ class _CustomCalendarTextfieldState extends State<CustomCalendarTextfield> {
     if (picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
-        _controller.text = DateFormat('dd/MM/yyyy').format(picked);
+        _controller.text = DateFormat('MMM dd, yyyy').format(picked);
       });
 
       // Call the callback function if provided

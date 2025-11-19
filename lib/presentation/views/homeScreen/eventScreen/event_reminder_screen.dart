@@ -287,7 +287,7 @@ class _EventRemainderScreenState extends State<EventRemainderScreen> {
                         ),
                       ),
                       value: methodSelection,
-                      items: reminderDeliveryOptions.map((method) {
+                      items: remainderPreferences.map((method) {
                         return DropdownMenuItem<String>(
                           value: method,
                           child: Row(

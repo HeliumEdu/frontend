@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:helium_student_flutter/config/app_route.dart';
 import 'package:helium_student_flutter/core/dio_client.dart';
 import 'package:helium_student_flutter/data/datasources/auth_remote_data_source.dart';
+import 'package:helium_student_flutter/data/datasources/category_remote_data_source.dart';
 import 'package:helium_student_flutter/data/datasources/course_remote_data_source.dart';
 import 'package:helium_student_flutter/data/datasources/event_remote_data_source.dart';
 import 'package:helium_student_flutter/data/datasources/external_calendar_remote_data_source.dart';
@@ -15,10 +16,15 @@ import 'package:helium_student_flutter/data/models/planner/external_calendar_eve
 import 'package:helium_student_flutter/data/models/planner/external_calendar_model.dart';
 import 'package:helium_student_flutter/data/models/planner/homework_response_model.dart';
 import 'package:helium_student_flutter/data/repositories/auth_repository_impl.dart';
+import 'package:helium_student_flutter/data/repositories/category_repository_impl.dart';
 import 'package:helium_student_flutter/data/repositories/course_repository_impl.dart';
 import 'package:helium_student_flutter/data/repositories/event_repository_impl.dart';
 import 'package:helium_student_flutter/data/repositories/external_calendar_repository_impl.dart';
 import 'package:helium_student_flutter/data/repositories/homework_repository_impl.dart';
+import 'package:helium_student_flutter/presentation/bloc/categoryBloc/category_bloc.dart';
+import 'package:helium_student_flutter/presentation/bloc/categoryBloc/category_event.dart'
+    as category_event;
+import 'package:helium_student_flutter/presentation/bloc/categoryBloc/category_state.dart';
 import 'package:helium_student_flutter/presentation/bloc/courseBloc/course_bloc.dart';
 import 'package:helium_student_flutter/presentation/bloc/courseBloc/course_event.dart';
 import 'package:helium_student_flutter/presentation/bloc/courseBloc/course_state.dart';
@@ -31,12 +37,6 @@ import 'package:helium_student_flutter/presentation/bloc/externalCalendarBloc/ex
 import 'package:helium_student_flutter/presentation/bloc/homeworkBloc/homework_bloc.dart';
 import 'package:helium_student_flutter/presentation/bloc/homeworkBloc/homework_event.dart';
 import 'package:helium_student_flutter/presentation/bloc/homeworkBloc/homework_state.dart';
-import 'package:helium_student_flutter/data/datasources/category_remote_data_source.dart';
-import 'package:helium_student_flutter/data/repositories/category_repository_impl.dart';
-import 'package:helium_student_flutter/presentation/bloc/categoryBloc/category_bloc.dart';
-import 'package:helium_student_flutter/presentation/bloc/categoryBloc/category_event.dart'
-    as category_event;
-import 'package:helium_student_flutter/presentation/bloc/categoryBloc/category_state.dart';
 import 'package:helium_student_flutter/utils/app_colors.dart';
 import 'package:helium_student_flutter/utils/app_list.dart';
 import 'package:helium_student_flutter/utils/app_size.dart';
@@ -71,7 +71,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Map<int, List<ExternalCalendarEventModel>> _externalEventsByCalendar = {};
   Set<int>? _savedExternalCalendarSelection;
 
-  List<String> selectedCategories = ['Assignments', 'Events', 'Class Schedules'];
+  List<String> selectedCategories = [
+    'Assignments',
+    'Events',
+    'Class Schedules',
+  ];
   List<String> selectedCategoryFilters = [];
   Set<String> selectedStatuses = {};
   bool _externalCalendarEnabled = false;
@@ -79,6 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final Map<int, bool> _completedOverrides = {};
   final Map<int, String> _categoryTitlesById = {};
   static bool _needsRefresh = false;
+
   static void triggerRefresh() {
     _needsRefresh = true;
     print(' Home screen refresh triggered');
@@ -242,7 +247,6 @@ class _HomeScreenState extends State<HomeScreen> {
     await prefs.setStringList('selected_external_calendar_ids', selectedIds);
   }
 
-
   void _applyExternalCalendarData(
     List<ExternalCalendarModel> calendars,
     Map<int, List<ExternalCalendarEventModel>> eventsByCalendar,
@@ -336,7 +340,8 @@ class _HomeScreenState extends State<HomeScreen> {
       print('   - Selected categories: $selectedCategories');
     }
 
-    if (!_externalCalendarEnabled || !_isCategoryEnabled('External Calendars')) {
+    if (!_externalCalendarEnabled ||
+        !_isCategoryEnabled('External Calendars')) {
       if (kDebugMode) {
         print('   ❌ External calendar filtering disabled');
       }
@@ -485,9 +490,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
       String range;
       if (weekStart.month == weekEnd.month) {
-        range = '(${weekStart.day}/${weekEnd.day})';
+        range = '(${weekStart.day} - ${weekEnd.day})';
       } else {
-        range = '(${weekStart.day}/${weekEnd.day})';
+        range = '(${weekStart.day} - ${weekEnd.day})';
       }
       weekRanges.add(range);
     }
@@ -605,18 +610,24 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isDateInRange(DateTime date, DateTime startDate, DateTime? endDate) {
     // Normalize dates to ignore time components
     final normalizedDate = DateTime(date.year, date.month, date.day);
-    final normalizedStart = DateTime(startDate.year, startDate.month, startDate.day);
-    
+    final normalizedStart = DateTime(
+      startDate.year,
+      startDate.month,
+      startDate.day,
+    );
+
     if (endDate == null) {
       // If no end date, only check start date
       return _isSameDay(normalizedDate, normalizedStart);
     }
-    
+
     final normalizedEnd = DateTime(endDate.year, endDate.month, endDate.day);
-    
+
     // Check if date is within range (inclusive)
-    return (normalizedDate.isAtSameMomentAs(normalizedStart) || normalizedDate.isAfter(normalizedStart)) &&
-           (normalizedDate.isAtSameMomentAs(normalizedEnd) || normalizedDate.isBefore(normalizedEnd));
+    return (normalizedDate.isAtSameMomentAs(normalizedStart) ||
+            normalizedDate.isAfter(normalizedStart)) &&
+        (normalizedDate.isAtSameMomentAs(normalizedEnd) ||
+            normalizedDate.isBefore(normalizedEnd));
   }
 
   bool _hasAssignmentsOnDate(
@@ -912,7 +923,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String _getCourseTimeForSelectedDate(CourseModel course) {
-    if (course.schedules.isEmpty) return 'No schedule';
+    if (course.schedules.isEmpty) return '';
 
     final selectedDayOfWeek = _selectedDate.weekday % 7;
 
@@ -954,16 +965,19 @@ class _HomeScreenState extends State<HomeScreen> {
         }
 
         try {
-          final start = startTime.substring(0, 5);
-          final end = endTime.substring(0, 5);
-          return '$start - $end';
+          final start = DateFormat(
+            'h:mm a',
+          ).format(DateFormat('HH:mm:ss').parse('$startTime'));
+          // final end = DateFormat('h:mm a').format(DateFormat('HH:mm:ss').parse('$endTime'));
+          // return '$start - $end';
+          return start;
         } catch (e) {
-          return '$startTime - $endTime';
+          return startTime;
         }
       }
     }
 
-    return 'No class today';
+    return '';
   }
 
   String _normalizeCourseTitle(String title) {
@@ -1295,10 +1309,12 @@ class _HomeScreenState extends State<HomeScreen> {
                             setState(() {
                               final enabled = value ?? false;
                               _externalCalendarEnabled = enabled;
-                              
+
                               // Simple toggle: Add or remove from selected categories
                               if (enabled) {
-                                if (!selectedCategories.contains('External Calendars')) {
+                                if (!selectedCategories.contains(
+                                  'External Calendars',
+                                )) {
                                   selectedCategories = [
                                     ...selectedCategories,
                                     'External Calendars',
@@ -1309,7 +1325,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     .where((cat) => cat != 'External Calendars')
                                     .toList();
                               }
-                              
+
                               _externalCalendarPreferenceCached = enabled;
                               _saveExternalCalendarState(enabled);
                             });
@@ -1493,14 +1509,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                   },
                                   title: Row(
                                     children: [
-                                      Container(
-                                        width: 12.h,
-                                        height: 12.h,
-                                        decoration: BoxDecoration(
-                                          color: category.getColor(),
-                                          shape: BoxShape.circle,
-                                        ),
-                                      ),
+                                      // Container(
+                                      //   width: 12.h,
+                                      //   height: 12.h,
+                                      //   decoration: BoxDecoration(
+                                      //     color: category.getColor(),
+                                      //     shape: BoxShape.circle,
+                                      //   ),
+                                      // ),
                                       SizedBox(width: 8.h),
                                       Expanded(
                                         child: Text(
@@ -1741,27 +1757,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ],
                                   ),
                                 ),
-                                if (course.hasGrade()) ...[
-                                  SizedBox(width: 8.h),
-                                  Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 6.h,
-                                      vertical: 2.v,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: courseColor.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Text(
-                                      course.getFormattedGrade(),
-                                      style: AppTextStyle.eTextStyle.copyWith(
-                                        color: courseColor,
-                                        fontSize: 9,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                ],
                               ],
                             ),
                             controlAffinity: ListTileControlAffinity.leading,
@@ -2207,9 +2202,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildListView({
     List<CourseModel> courses = const [],
-    List<HomeworkResponseModel> homeworks = const [],
-    List<EventResponseModel> events = const [],
-    List<ExternalCalendarEventModel> externalEvents = const [],
+    List<HomeworkResponseModel> homeworks = const []
   }) {
     List<Widget> allItems = [];
     final classFilteredAssignments = _filterAssignmentsByClassSelection(
@@ -2219,44 +2212,14 @@ class _HomeScreenState extends State<HomeScreen> {
     final categoryFilteredAssignments = _applyCategoryFilterToHomeworks(
       classFilteredAssignments,
     );
-    final classFilteredEvents = _filterEventsByClassSelection(events, courses);
-    final filteredExternalEvents = _filterExternalEventsForSelection(
-      externalEvents,
-    );
+
     final showAssignments = _isCategoryEnabled('Assignments');
-    final showEvents = _isCategoryEnabled('Events');
-    final showClassSchedule = _isCategoryEnabled('Class Schedules');
-    final showExternal = _isCategoryEnabled('External Calendars');
-
-    // Show courses if "Class Schedule" is selected OR if course is explicitly checked
-    if (showClassSchedule && courses.isNotEmpty) {
-      for (var course in courses) {
-        final isClassSelected =
-            selectedClasses.isEmpty || selectedClasses[course.title] == true;
-
-        if (isClassSelected) {
-          allItems.add(_buildCourseCard(course, courses.indexOf(course)));
-        }
-      }
-    }
 
     if (showAssignments && categoryFilteredAssignments.isNotEmpty) {
       for (var homework in categoryFilteredAssignments) {
         if (_matchesAssignmentStatus(homework)) {
           allItems.add(_buildAssignmentCard(homework, courses));
         }
-      }
-    }
-
-    if (showEvents && classFilteredEvents.isNotEmpty) {
-      for (var event in classFilteredEvents) {
-        allItems.add(_buildEventCard(context, event));
-      }
-    }
-
-    if (showExternal && filteredExternalEvents.isNotEmpty) {
-      for (var externalEvent in filteredExternalEvents) {
-        allItems.add(_buildExternalCalendarEventCard(context, externalEvent));
       }
     }
 
@@ -3044,12 +3007,20 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         SizedBox(height: 16.v),
 
-                        Text(
-                          DateFormat('EEEE, MMMM dd').format(_selectedDate),
-                          style: AppTextStyle.bTextStyle.copyWith(
-                            color: blackColor,
+                        if (_currentViewMode != 'Todo')
+                          Text(
+                            DateFormat('EEEE, MMMM dd').format(_selectedDate),
+                            style: AppTextStyle.bTextStyle.copyWith(
+                              color: blackColor,
+                            ),
+                          )
+                        else
+                          Text(
+                            'Assignments',
+                            style: AppTextStyle.bTextStyle.copyWith(
+                              color: blackColor,
+                            ),
                           ),
-                        ),
                         SizedBox(height: 12.v),
 
                         if (_currentViewMode == 'Week')
@@ -3147,11 +3118,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                                     );
 
                                                 return _buildListView(
-                                                  homeworks: homeworks,
-                                                  events: events,
                                                   courses: courses,
-                                                  externalEvents:
-                                                      externalEvents,
+                                                  homeworks: homeworks,
+                                                  // events: events,
+                                                  // externalEvents:
+                                                  //     externalEvents,
                                                 );
                                               },
                                         );
@@ -3379,10 +3350,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                                       homework.start,
                                                     );
                                                 DateTime? homeworkEnd;
-                                                if (homework.end != null && homework.end!.isNotEmpty) {
-                                                  homeworkEnd = DateTime.parse(homework.end!);
+                                                if (homework.end != null &&
+                                                    homework.end!.isNotEmpty) {
+                                                  homeworkEnd = DateTime.parse(
+                                                    homework.end!,
+                                                  );
                                                 }
-                                                if (!_isDateInRange(_selectedDate, homeworkStart, homeworkEnd)) return false;
+                                                if (!_isDateInRange(
+                                                  _selectedDate,
+                                                  homeworkStart,
+                                                  homeworkEnd,
+                                                ))
+                                                  return false;
                                                 return _matchesAssignmentStatus(
                                                   homework,
                                                 );
@@ -3411,10 +3390,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 final eventStart =
                                                     DateTime.parse(event.start);
                                                 DateTime? eventEnd;
-                                                if (event.end != null && event.end!.isNotEmpty) {
-                                                  eventEnd = DateTime.parse(event.end!);
+                                                if (event.end != null &&
+                                                    event.end!.isNotEmpty) {
+                                                  eventEnd = DateTime.parse(
+                                                    event.end!,
+                                                  );
                                                 }
-                                                return _isDateInRange(_selectedDate, eventStart, eventEnd);
+                                                return _isDateInRange(
+                                                  _selectedDate,
+                                                  eventStart,
+                                                  eventEnd,
+                                                );
                                               } catch (e) {
                                                 return false;
                                               }
@@ -3437,10 +3423,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 event.start,
                                               );
                                               DateTime? eventEnd;
-                                              if (event.end != null && event.end!.isNotEmpty) {
-                                                eventEnd = DateTime.parse(event.end!);
+                                              if (event.end != null &&
+                                                  event.end!.isNotEmpty) {
+                                                eventEnd = DateTime.parse(
+                                                  event.end!,
+                                                );
                                               }
-                                              return _isDateInRange(_selectedDate, eventStart, eventEnd);
+                                              return _isDateInRange(
+                                                _selectedDate,
+                                                eventStart,
+                                                eventEnd,
+                                              );
                                             } catch (e) {
                                               return false;
                                             }
@@ -3585,7 +3578,8 @@ class _HomeScreenState extends State<HomeScreen> {
             child: FloatingActionButton(
               backgroundColor: primaryColor,
               elevation: 6,
-              shape: const CircleBorder(), // ensures perfect circle shape
+              shape: const CircleBorder(),
+              // ensures perfect circle shape
               onPressed: () {
                 Navigator.pushNamed(context, AppRoutes.addAssignmentScreen);
               },
@@ -3660,7 +3654,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 SizedBox(height: 4.v),
                 // Show schedule time for selected day
-                if (course.schedules.isNotEmpty)
+                if (course.schedules.isNotEmpty &&
+                    _getCourseTimeForSelectedDate(course).isNotEmpty)
                   Row(
                     children: [
                       Icon(
@@ -3870,17 +3865,21 @@ class _HomeScreenState extends State<HomeScreen> {
     // Parse homework time
     String timeDisplay = '';
     try {
-      final startTime = DateTime.parse(homework.start);
-      final formattedTime = DateFormat('HH:mm').format(startTime);
-      if (homework.end != null) {
-        final endTime = DateTime.parse(homework.end!);
-        final formattedEndTime = DateFormat('HH:mm').format(endTime);
-        timeDisplay = '$formattedTime - $formattedEndTime';
+      if (homework.allDay) {
+        timeDisplay = '';
       } else {
-        timeDisplay = formattedTime;
+        final startTime = DateTime.parse(homework.start);
+        final formattedTime = DateFormat('h:mm a').format(startTime);
+        if (homework.end != null && homework.end!.isNotEmpty && homework.start != homework.end) {
+          final endTime = DateTime.parse(homework.end!);
+          final formattedEndTime = DateFormat('h:mm a').format(endTime);
+          timeDisplay = '$formattedTime - $formattedEndTime';
+        } else {
+          timeDisplay = formattedTime;
+        }
       }
     } catch (e) {
-      timeDisplay = 'All day';
+      timeDisplay = '';
     }
 
     final bool isCompleted = _completedOverrides.containsKey(homework.id)
@@ -3988,6 +3987,23 @@ class _HomeScreenState extends State<HomeScreen> {
                     })(),
                   ],
                 ),
+                if (timeDisplay.isNotEmpty)
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.access_time,
+                        size: 14,
+                        color: assignmentColor.withOpacity(0.7),
+                      ),
+                      SizedBox(width: 4.h),
+                      Text(
+                        timeDisplay,
+                        style: AppTextStyle.fTextStyle.copyWith(
+                          color: assignmentColor.withOpacity(0.7),
+                        ),
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),
@@ -4002,11 +4018,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 arguments: {'homework': homework, 'isEditMode': true},
               );
             },
-            child: Icon(
-              Icons.edit_outlined,
-              size: 22,
-              color: assignmentColor,
-            ),
+            child: Icon(Icons.edit_outlined, size: 22, color: assignmentColor),
           ),
           SizedBox(width: 12.h),
           BlocBuilder<HomeworkBloc, HomeworkState>(
@@ -4020,11 +4032,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     context.read<HomeworkBloc>(),
                   );
                 },
-                child: Icon(
-                  Icons.delete_outline,
-                  size: 22,
-                  color: redColor,
-                ),
+                child: Icon(Icons.delete_outline, size: 22, color: redColor),
               );
             },
           ),
@@ -4045,10 +4053,10 @@ class _HomeScreenState extends State<HomeScreen> {
         timeDisplay = 'All day';
       } else {
         final startTime = DateTime.parse(event.start);
-        final formattedTime = DateFormat('HH:mm').format(startTime);
-        if (event.end != null && event.end!.isNotEmpty) {
+        final formattedTime = DateFormat('h:mm a').format(startTime);
+        if (event.end != null && event.end!.isNotEmpty && event.start != event.end) {
           final endTime = DateTime.parse(event.end!);
-          final formattedEndTime = DateFormat('HH:mm').format(endTime);
+          final formattedEndTime = DateFormat('h:mm a').format(endTime);
           timeDisplay = '$formattedTime - $formattedEndTime';
         } else {
           timeDisplay = formattedTime;
@@ -4095,22 +4103,23 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
                 SizedBox(height: 6.v),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.access_time,
-                      size: 14,
-                      color: eventColor.withOpacity(0.7),
-                    ),
-                    SizedBox(width: 4.h),
-                    Text(
-                      timeDisplay,
-                      style: AppTextStyle.fTextStyle.copyWith(
+                if (timeDisplay.isNotEmpty)
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.access_time,
+                        size: 14,
                         color: eventColor.withOpacity(0.7),
                       ),
-                    ),
-                  ],
-                ),
+                      SizedBox(width: 4.h),
+                      Text(
+                        timeDisplay,
+                        style: AppTextStyle.fTextStyle.copyWith(
+                          color: eventColor.withOpacity(0.7),
+                        ),
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),
@@ -4205,10 +4214,10 @@ class _HomeScreenState extends State<HomeScreen> {
         timeDisplay = 'All day';
       } else {
         final startTime = DateTime.parse(externalEvent.start);
-        final formattedTime = DateFormat('HH:mm').format(startTime);
-        if (externalEvent.end != null && externalEvent.end!.isNotEmpty) {
+        final formattedTime = DateFormat('h:mm a').format(startTime);
+        if (externalEvent.end != null && externalEvent.end!.isNotEmpty && externalEvent.start != externalEvent.end) {
           final endTime = DateTime.parse(externalEvent.end!);
-          final formattedEndTime = DateFormat('HH:mm').format(endTime);
+          final formattedEndTime = DateFormat('h:mm a').format(endTime);
           timeDisplay = '$formattedTime - $formattedEndTime';
         } else {
           timeDisplay = formattedTime;

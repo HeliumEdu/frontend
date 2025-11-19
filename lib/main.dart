@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:helium_student_flutter/config/app_route.dart';
 import 'package:helium_student_flutter/config/routes_observer.dart';
@@ -18,7 +19,11 @@ void main() async {
   final fcmService = FCMService();
   await fcmService.initialize();
 
-  runApp(MyApp(fcmService: fcmService));
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]).then((_) {
+    runApp(MyApp(fcmService: fcmService));
+  });
 }
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();

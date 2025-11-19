@@ -466,7 +466,7 @@ class _ReminderScreenState extends State<ReminderScreen> {
                         ),
                       ),
                       value: methodSelection,
-                      items: reminderDeliveryOptions.map((method) {
+                      items: remainderPreferences.map((method) {
                         return DropdownMenuItem<String>(
                           value: method,
                           child: Row(
@@ -898,7 +898,7 @@ class _ReminderScreenState extends State<ReminderScreen> {
                         ),
                       ),
                       value: methodSelection,
-                      items: reminderDeliveryOptions.map((method) {
+                      items: remainderPreferences.map((method) {
                         return DropdownMenuItem<String>(
                           value: method,
                           child: Row(

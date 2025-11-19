@@ -16,7 +16,7 @@ class SignUpController {
   bool isConfirmPasswordVisible = false;
   bool isLoading = false;
   bool agreeToTerms = false;
-  String selectedTimezone = 'Asia/Karachi';
+  String selectedTimezone = 'America/Chicago';
 
   // Populated from tz database
   List<String> timezones = [];
@@ -161,7 +161,7 @@ class SignUpController {
     passwordController.clear();
     confirmPasswordController.clear();
     agreeToTerms = false;
-    selectedTimezone = 'Asia/Karachi';
+    selectedTimezone = 'America/Chicago';
   }
 
   // Dispose controllers

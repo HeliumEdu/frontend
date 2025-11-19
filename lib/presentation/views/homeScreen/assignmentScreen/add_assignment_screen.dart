@@ -232,7 +232,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
   }
 
   String _formatDateForDisplay(DateTime date) {
-    return DateFormat('dd/MM/yyyy').format(date);
+    return DateFormat('MMM dd, yyyy').format(date);
   }
 
   String _formatTime(TimeOfDay time) {
