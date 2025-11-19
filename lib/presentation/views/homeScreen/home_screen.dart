@@ -62,7 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String? selectedReminderPreference;
   Map<String, bool> selectedClasses = {};
   int selectedIndex = 2; // Default to Days view (index 2)
-  String _currentViewMode = 'Days'; // 'Month', 'Weeks', 'Days'
+  String _currentViewMode = 'Day'; // 'Month', 'Week', 'Day'
   int _selectedWeekIndex = 0; // For week view selection
   Color _eventColor = greenColor;
   static const Color _defaultExternalEventColor = Colors.purple;
@@ -71,7 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Map<int, List<ExternalCalendarEventModel>> _externalEventsByCalendar = {};
   Set<int>? _savedExternalCalendarSelection;
 
-  List<String> selectedCategories = ['Assignments', 'Events', 'Class Schedule'];
+  List<String> selectedCategories = ['Assignments', 'Events', 'Class Schedules'];
   List<String> selectedCategoryFilters = [];
   Set<String> selectedStatuses = {};
   bool _externalCalendarEnabled = false;
@@ -162,8 +162,8 @@ class _HomeScreenState extends State<HomeScreen> {
       _externalCalendarPreferenceCached = savedState;
       _externalCalendarEnabled = savedState ?? false;
       if (_externalCalendarEnabled &&
-          !selectedCategories.contains('External Calendar')) {
-        selectedCategories.add('External Calendar');
+          !selectedCategories.contains('External Calendars')) {
+        selectedCategories.add('External Calendars');
       }
     });
   }
@@ -283,7 +283,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (hasAnyShownCalendars && mounted) {
       bool shouldEnable = _externalCalendarPreferenceCached != true;
       bool shouldAddCategory = !selectedCategories.contains(
-        'External Calendar',
+        'External Calendars',
       );
 
       if (shouldEnable || shouldAddCategory) {
@@ -298,7 +298,7 @@ class _HomeScreenState extends State<HomeScreen> {
           }
 
           if (shouldAddCategory) {
-            selectedCategories = [...selectedCategories, 'External Calendar'];
+            selectedCategories = [...selectedCategories, 'External Calendars'];
             if (kDebugMode) {
               print('   ✅ Added External Calendar to selected categories');
             }
@@ -331,12 +331,12 @@ class _HomeScreenState extends State<HomeScreen> {
       print('   - Total events: ${externalEvents.length}');
       print('   - External calendar enabled: $_externalCalendarEnabled');
       print(
-        '   - Category enabled: ${_isCategoryEnabled('External Calendar')}',
+        '   - Category enabled: ${_isCategoryEnabled('External Calendars')}',
       );
       print('   - Selected categories: $selectedCategories');
     }
 
-    if (!_externalCalendarEnabled || !_isCategoryEnabled('External Calendar')) {
+    if (!_externalCalendarEnabled || !_isCategoryEnabled('External Calendars')) {
       if (kDebugMode) {
         print('   ❌ External calendar filtering disabled');
       }
@@ -517,13 +517,13 @@ class _HomeScreenState extends State<HomeScreen> {
           _currentViewMode = 'Month';
           break;
         case 1:
-          _currentViewMode = 'Weeks';
+          _currentViewMode = 'Week';
           break;
         case 2:
-          _currentViewMode = 'Days';
+          _currentViewMode = 'Day';
           break;
         case 3:
-          _currentViewMode = 'List';
+          _currentViewMode = 'Todo';
           break;
       }
     });
@@ -700,8 +700,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final showAssignments = _isCategoryEnabled('Assignments');
     final showEvents = _isCategoryEnabled('Events');
-    final showClassSchedule = _isCategoryEnabled('Class Schedule');
-    final showExternal = _isCategoryEnabled('External Calendar');
+    final showClassSchedule = _isCategoryEnabled('Class Schedules');
+    final showExternal = _isCategoryEnabled('External Calendars');
 
     // Only show dots for selected categories
     if (showAssignments && _hasAssignmentsOnDate(date, homeworks)) {
@@ -804,8 +804,8 @@ class _HomeScreenState extends State<HomeScreen> {
         _filterExternalEventsForSelection(externalEvents);
     final showAssignments = _isCategoryEnabled('Assignments');
     final showEvents = _isCategoryEnabled('Events');
-    final showClassSchedule = _isCategoryEnabled('Class Schedule');
-    final showExternal = _isCategoryEnabled('External Calendar');
+    final showClassSchedule = _isCategoryEnabled('Class Schedules');
+    final showExternal = _isCategoryEnabled('External Calendars');
 
     List<DateTime> weekDates = [];
     for (int i = 0; i < 7; i++) {
@@ -1143,7 +1143,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           selectedCategories = [
                             'Assignments',
                             'Events',
-                            'Class Schedule',
+                            'Class Schedules',
                           ];
                           selectedCategoryFilters = [];
                           selectedStatuses = {};
@@ -1256,21 +1256,21 @@ class _HomeScreenState extends State<HomeScreen> {
                           activeColor: primaryColor,
                         ),
                         CheckboxListTile(
-                          value: selectedCategories.contains('Class Schedule'),
+                          value: selectedCategories.contains('Class Schedules'),
                           onChanged: (value) {
                             setState(() {
                               if (value == true) {
                                 if (!selectedCategories.contains(
-                                  'Class Schedule',
+                                  'Class Schedules',
                                 )) {
                                   selectedCategories = [
                                     ...selectedCategories,
-                                    'Class Schedule',
+                                    'Class Schedules',
                                   ];
                                 }
                               } else {
                                 selectedCategories = selectedCategories
-                                    .where((cat) => cat != 'Class Schedule')
+                                    .where((cat) => cat != 'Class Schedules')
                                     .toList();
                               }
                             });
@@ -1279,7 +1279,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             });
                           },
                           title: Text(
-                            'Class Schedule',
+                            'Class Schedules',
                             style: AppTextStyle.eTextStyle.copyWith(
                               color: textColor,
                             ),
@@ -1298,15 +1298,15 @@ class _HomeScreenState extends State<HomeScreen> {
                               
                               // Simple toggle: Add or remove from selected categories
                               if (enabled) {
-                                if (!selectedCategories.contains('External Calendar')) {
+                                if (!selectedCategories.contains('External Calendars')) {
                                   selectedCategories = [
                                     ...selectedCategories,
-                                    'External Calendar',
+                                    'External Calendars',
                                   ];
                                 }
                               } else {
                                 selectedCategories = selectedCategories
-                                    .where((cat) => cat != 'External Calendar')
+                                    .where((cat) => cat != 'External Calendars')
                                     .toList();
                               }
                               
@@ -1316,7 +1316,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             setMenuState(() {});
                           },
                           title: Text(
-                            'External Calendar',
+                            'External Calendars',
                             style: AppTextStyle.eTextStyle.copyWith(
                               color: textColor,
                             ),
@@ -1637,7 +1637,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     height: 60,
                     child: Center(
                       child: Text(
-                        'No courses available',
+                        'No classes available',
                         style: AppTextStyle.eTextStyle.copyWith(
                           color: textColor.withOpacity(0.6),
                           fontSize: 12,
@@ -1937,8 +1937,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
     final showAssignments = _isCategoryEnabled('Assignments');
     final showEvents = _isCategoryEnabled('Events');
-    final showClassSchedule = _isCategoryEnabled('Class Schedule');
-    final showExternal = _isCategoryEnabled('External Calendar');
+    final showClassSchedule = _isCategoryEnabled('Class Schedules');
+    final showExternal = _isCategoryEnabled('External Calendars');
     return Column(
       children: [
         // Week selector
@@ -2225,8 +2225,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
     final showAssignments = _isCategoryEnabled('Assignments');
     final showEvents = _isCategoryEnabled('Events');
-    final showClassSchedule = _isCategoryEnabled('Class Schedule');
-    final showExternal = _isCategoryEnabled('External Calendar');
+    final showClassSchedule = _isCategoryEnabled('Class Schedules');
+    final showExternal = _isCategoryEnabled('External Calendars');
 
     // Show courses if "Class Schedule" is selected OR if course is explicitly checked
     if (showClassSchedule && courses.isNotEmpty) {
@@ -2752,10 +2752,19 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Container(
                   padding: EdgeInsets.symmetric(
-                    vertical: 12.v,
-                    horizontal: 12.h,
+                    vertical: 16.v,
+                    horizontal: 16.h,
                   ),
-                  decoration: BoxDecoration(color: whiteColor),
+                  decoration: BoxDecoration(
+                    color: whiteColor,
+                    boxShadow: [
+                      BoxShadow(
+                        color: blackColor.withOpacity(0.05),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -2776,14 +2785,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
 
-                      SizedBox(width: 100.h),
                       Text(
-                        'Dashboard',
-                        style: AppTextStyle.aTextStyle.copyWith(
+                        'Calendar',
+                        style: AppTextStyle.bTextStyle.copyWith(
                           color: textColor,
                         ),
                       ),
-                      SizedBox(width: 100.h),
                       GestureDetector(
                         onTap: () {
                           Navigator.pushNamed(
@@ -2804,7 +2811,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(height: 22.v),
+                        SizedBox(height: 16.v),
 
                         Container(
                           padding: EdgeInsets.all(16.h),
@@ -2927,7 +2934,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   ),
                                                 ),
                                                 child: Icon(
-                                                  Icons.book_outlined,
+                                                  Icons.menu_book,
                                                   color: primaryColor,
                                                   size: 20,
                                                 ),
@@ -2938,7 +2945,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       },
                                     ),
                                   ),
-                                  SizedBox(width: 22.h),
+                                  SizedBox(width: 12.h),
                                   Builder(
                                     builder: (filterContext) {
                                       return GestureDetector(
@@ -2963,7 +2970,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             ),
                                           ),
                                           child: Icon(
-                                            Icons.filter_list,
+                                            Icons.filter_alt,
                                             color: primaryColor,
                                             size: 20.adaptSize,
                                           ),
@@ -2971,7 +2978,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       );
                                     },
                                   ),
-                                  SizedBox(width: 16.h),
+                                  SizedBox(width: 22.h),
 
                                   Expanded(
                                     child: SizedBox(
@@ -3035,7 +3042,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ],
                           ),
                         ),
-                        SizedBox(height: 22.v),
+                        SizedBox(height: 16.v),
 
                         Text(
                           DateFormat('EEEE, MMMM dd').format(_selectedDate),
@@ -3045,7 +3052,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         SizedBox(height: 12.v),
 
-                        if (_currentViewMode == 'Weeks')
+                        if (_currentViewMode == 'Week')
                           Expanded(
                             child: BlocBuilder<CourseBloc, CourseState>(
                               builder: (context, courseState) {
@@ -3100,7 +3107,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               },
                             ),
                           )
-                        else if (_currentViewMode == 'List')
+                        else if (_currentViewMode == 'Todo')
                           Expanded(
                             child: BlocBuilder<CourseBloc, CourseState>(
                               builder: (context, courseState) {
@@ -3273,9 +3280,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
                         SizedBox(height: 12.v),
 
-                        if (_currentViewMode != 'Weeks' &&
+                        if (_currentViewMode != 'Week' &&
                             _currentViewMode != 'Month' &&
-                            _currentViewMode != 'List')
+                            _currentViewMode != 'Todo')
                           Expanded(
                             child: BlocBuilder<CourseBloc, CourseState>(
                               builder: (context, courseState) {
@@ -3345,9 +3352,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                         'Events',
                                       );
                                       final showClassSchedule =
-                                          _isCategoryEnabled('Class Schedule');
+                                          _isCategoryEnabled('Class Schedules');
                                       final showExternal = _isCategoryEnabled(
-                                        'External Calendar',
+                                        'External Calendars',
                                       );
 
                                       List<HomeworkResponseModel>
@@ -3649,21 +3656,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       SizedBox(width: 12.h),
                     ],
-                    if (course.hasGrade()) ...[
-                      Icon(
-                        Icons.grade_outlined,
-                        size: 14,
-                        color: courseColor.withOpacity(0.7),
-                      ),
-                      SizedBox(width: 4.h),
-                      Text(
-                        course.getFormattedGrade(),
-                        style: AppTextStyle.fTextStyle.copyWith(
-                          color: courseColor.withOpacity(0.7),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
                   ],
                 ),
                 SizedBox(height: 4.v),
@@ -3706,7 +3698,7 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Unable to delete: Course not found'),
+          content: Text('Unable to delete: class not found'),
           backgroundColor: redColor,
         ),
       );
@@ -3984,7 +3976,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         info.add(SizedBox(width: 4.h));
                         info.add(
                           Text(
-                            homework.currentGrade!.trim(),
+                            homework.getFormattedGrade(),
                             style: AppTextStyle.fTextStyle.copyWith(
                               color: assignmentColor.withOpacity(0.7),
                               fontWeight: FontWeight.w600,
@@ -4013,7 +4005,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Icon(
               Icons.edit_outlined,
               size: 22,
-              color: assignmentColor.withOpacity(0.7),
+              color: assignmentColor,
             ),
           ),
           SizedBox(width: 12.h),
@@ -4031,7 +4023,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Icon(
                   Icons.delete_outline,
                   size: 22,
-                  color: redColor.withOpacity(0.7),
+                  color: redColor,
                 ),
               );
             },

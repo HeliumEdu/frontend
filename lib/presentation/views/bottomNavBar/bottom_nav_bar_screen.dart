@@ -67,17 +67,14 @@ class BottomNavBarView extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Image.asset(
-                                state.selectedIndex == 0
-                                    ? AppAssets.homeIconFill
-                                    : AppAssets.homeIcon,
-                                width: 24.h,
-                                height: 24.v,
+                              Icon(
+                                Icons.calendar_month,
+                                size: 24,
                                 color: whiteColor,
                               ),
                               SizedBox(height: 4.v),
                               Text(
-                                'Dashboard',
+                                'Calendar',
                                 style: GoogleFonts.nunito(
                                   fontSize: 12.adaptSize,
                                   fontWeight: FontWeight.w400,
@@ -106,12 +103,9 @@ class BottomNavBarView extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Image.asset(
-                                state.selectedIndex == 1
-                                    ? AppAssets.classIconFill
-                                    : AppAssets.classIcon,
-                                width: 24.h,
-                                height: 24.v,
+                              Icon(
+                                Icons.menu_book,
+                                size: 24,
                                 color: whiteColor,
                               ),
                               SizedBox(height: 4.v),
@@ -145,17 +139,14 @@ class BottomNavBarView extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Image.asset(
-                                state.selectedIndex == 2
-                                    ? AppAssets.materialIconFill
-                                    : AppAssets.materialIcon,
-                                width: 24.h,
-                                height: 24.v,
+                              Icon(
+                                Icons.business_center,
+                                size: 24,
                                 color: whiteColor,
                               ),
                               SizedBox(height: 4.v),
                               Text(
-                                'Material',
+                                'Materials',
                                 style: GoogleFonts.nunito(
                                   fontSize: 12.adaptSize,
                                   fontWeight: FontWeight.w400,
@@ -184,12 +175,9 @@ class BottomNavBarView extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Image.asset(
-                                state.selectedIndex == 3
-                                    ? AppAssets.gradeIconFill
-                                    : AppAssets.gradeIcon,
-                                width: 24.h,
-                                height: 24.v,
+                              Icon(
+                                Icons.bar_chart,
+                                size: 24,
                                 color: whiteColor,
                               ),
                               SizedBox(height: 4.v),

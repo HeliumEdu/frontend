@@ -40,7 +40,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: EdgeInsets.symmetric(vertical: 2.v, horizontal: 2.h),
+                  padding: EdgeInsets.symmetric(
+                      vertical: 16.v,
+                      horizontal: 16.h
+                  ),
                   decoration: BoxDecoration(
                     color: whiteColor,
                     boxShadow: [
@@ -66,9 +69,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       ),
                       Text(
                         'Change Password',
-                        style: AppTextStyle.aTextStyle.copyWith(
-                          color: blackColor,
-                          fontWeight: FontWeight.w600,
+                        style: AppTextStyle.bTextStyle.copyWith(
+                          color: blackColor
                         ),
                       ),
                       Icon(Icons.abc, color: transparentColor),
@@ -266,7 +268,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                                         ),
                                       )
                                     : Text(
-                                        'Submit ',
+                                        'Save',
                                         style: AppTextStyle.mTextStyle.copyWith(
                                           color: Colors.white,
                                         ),

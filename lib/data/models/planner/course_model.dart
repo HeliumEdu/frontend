@@ -145,13 +145,13 @@ class CourseModel {
   // Helper to get formatted grade
   String getFormattedGrade() {
     if (!hasGrade()) {
-      return 'No grade';
+      return '';
     }
     try {
       final grade = double.parse(currentGrade);
       return '${grade.toStringAsFixed(2)}%';
     } catch (e) {
-      return currentGrade;
+      return '';
     }
   }
 }

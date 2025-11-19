@@ -54,23 +54,27 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
 
   // Status mapping
   final Map<String, int> statusMap = {
-    'Not Purchased': 0,
-    'Purchased': 1,
+    'Owned': 0,
+    'Rented': 1,
     'Ordered': 2,
-    'Rented': 3,
-    'Borrowed': 4,
+    'Shipped': 3,
+    'Needed': 4,
     'Returned': 5,
+    'To Sell': 6,
+    'Digital': 7,
   };
 
   // Condition mapping
   final Map<String, int> conditionMap = {
-    'N/A': 0,
-    'New': 1,
+    'Brand New': 0,
+    'Refurbished': 1,
     'Used - Like New': 2,
     'Used - Very Good': 3,
     'Used - Good': 4,
     'Used - Acceptable': 5,
-    'Digital': 6,
+    'Used - Poor': 6,
+    'Broken': 7,
+    'Digital': 8,
   };
 
   @override
@@ -253,7 +257,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                 Navigator.pop(dialogCtx);
               },
               child: Text(
-                'Add Selected',
+                'Confirm',
                 style: AppTextStyle.eTextStyle.copyWith(
                   color: primaryColor,
                   fontWeight: FontWeight.w700,
@@ -354,6 +358,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                           : 'Add Material',
                       style: AppTextStyle.aTextStyle.copyWith(
                         color: blackColor,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     Icon(Icons.import_contacts, color: Colors.transparent),
@@ -403,7 +408,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                           if (selectedCourseIds.isEmpty)
                             Text(
                               (_courses.isEmpty && widget.courses.isEmpty)
-                                  ? 'No courses available'
+                                  ? 'No classes available'
                                   : 'No classes selected',
                               style: AppTextStyle.eTextStyle.copyWith(
                                 color: blackColor.withOpacity(0.5),
@@ -478,7 +483,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                         isExpanded: true,
                         underline: SizedBox(),
                         hint: Text(
-                          "Choose Status (Optional)",
+                          "Choose Status",
                           style: AppTextStyle.eTextStyle.copyWith(
                             color: blackColor.withOpacity(0.5),
                           ),
@@ -527,7 +532,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                         isExpanded: true,
                         underline: SizedBox(),
                         hint: Text(
-                          "Add Condition (Optional)",
+                          "Choose Condition",
                           style: AppTextStyle.eTextStyle.copyWith(
                             color: blackColor.withOpacity(0.5),
                           ),
@@ -611,9 +616,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                             state is material_state.MaterialCreating;
 
                         return CustomTextButton(
-                          buttonText: widget.existingMaterial != null
-                              ? 'Update'
-                              : 'Submit',
+                          buttonText: 'Save',
                           isLoading: isCreating,
                           onPressed: () => _submitMaterial(context),
                         );

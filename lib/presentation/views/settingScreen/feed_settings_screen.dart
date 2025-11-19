@@ -99,8 +99,8 @@ class FeedSettingsView extends StatelessWidget {
                 children: [
                   Container(
                     padding: EdgeInsets.symmetric(
-                      vertical: 16.v,
                       horizontal: 16.h,
+                      vertical: 16.v,
                     ),
                     decoration: BoxDecoration(
                       color: whiteColor,
@@ -126,9 +126,8 @@ class FeedSettingsView extends StatelessWidget {
                         ),
                         Text(
                           'Feed Settings',
-                          style: AppTextStyle.aTextStyle.copyWith(
+                          style: AppTextStyle.bTextStyle.copyWith(
                             color: textColor,
-                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         SizedBox(width: 40.h),
@@ -325,7 +324,10 @@ class FeedSettingsView extends StatelessWidget {
               child: Column(
                 children: [
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 16.h),
+                    padding: EdgeInsets.symmetric(
+                      vertical: 16.v,
+                      horizontal: 16.h,
+                    ),
                     decoration: BoxDecoration(
                       color: whiteColor,
                       border: Border(
@@ -350,9 +352,8 @@ class FeedSettingsView extends StatelessWidget {
                         ),
                         Text(
                           'Feed Settings',
-                          style: AppTextStyle.aTextStyle.copyWith(
+                          style: AppTextStyle.bTextStyle.copyWith(
                             color: textColor,
-                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         SizedBox(width: 40.h),
@@ -468,9 +469,8 @@ class FeedSettingsView extends StatelessWidget {
                         ),
                         Text(
                           'Feed Settings',
-                          style: AppTextStyle.aTextStyle.copyWith(
+                          style: AppTextStyle.bTextStyle.copyWith(
                             color: textColor,
-                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         SizedBox(width: 40.h),
@@ -788,7 +788,10 @@ class FeedSettingsView extends StatelessWidget {
               child: Column(
                 children: [
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 16.h),
+                    padding: EdgeInsets.symmetric(
+                        vertical: 16.v,
+                        horizontal: 16.h,
+                    ),
                     decoration: BoxDecoration(
                       color: whiteColor,
                       border: Border(
@@ -813,9 +816,8 @@ class FeedSettingsView extends StatelessWidget {
                         ),
                         Text(
                           'Feed Settings',
-                          style: AppTextStyle.aTextStyle.copyWith(
+                          style: AppTextStyle.bTextStyle.copyWith(
                             color: textColor,
-                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         SizedBox(width: 40.h),

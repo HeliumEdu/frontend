@@ -272,6 +272,7 @@ class _ScheduleAddClassState extends State<ScheduleAddClass> {
       initialTime: isStartTime
           ? (startTimes[dayIndex] ?? TimeOfDay.now())
           : (endTimes[dayIndex] ?? TimeOfDay.now()),
+      initialEntryMode: TimePickerEntryMode.input
     );
     if (pickedTime != null) {
       setState(() {
@@ -288,6 +289,7 @@ class _ScheduleAddClassState extends State<ScheduleAddClass> {
     final pickedTime = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
+      initialEntryMode: TimePickerEntryMode.input
     );
     if (pickedTime != null) {
       setState(() {
@@ -666,9 +668,10 @@ class _ScheduleAddClassState extends State<ScheduleAddClass> {
                           ),
                         ),
                         Text(
-                          widget.isEdit ? 'Edit Schedule' : 'Schedule Class',
+                          widget.isEdit ? 'Edit Class' : 'Add Class',
                           style: AppTextStyle.aTextStyle.copyWith(
                             color: blackColor,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         Icon(Icons.import_contacts, color: Colors.transparent),
@@ -787,7 +790,7 @@ class _ScheduleAddClassState extends State<ScheduleAddClass> {
                               ),
                               child: Center(
                                 child: Icon(
-                                  Icons.edit_outlined,
+                                  Icons.menu_book,
                                   color: primaryColor,
                                   size: 20.adaptSize,
                                 ),
@@ -796,7 +799,7 @@ class _ScheduleAddClassState extends State<ScheduleAddClass> {
                             customTitle: Padding(
                               padding: EdgeInsets.only(top: 8.v),
                               child: Text(
-                                'Class',
+                                'Details',
                                 style: AppTextStyle.iTextStyle.copyWith(
                                   color: blackColor,
                                   fontWeight: FontWeight.w600,
@@ -827,7 +830,7 @@ class _ScheduleAddClassState extends State<ScheduleAddClass> {
                               ),
                               child: Center(
                                 child: Icon(
-                                  Icons.access_time_outlined,
+                                  Icons.calendar_month,
                                   color: whiteColor,
                                   size: 20.adaptSize,
                                 ),
@@ -957,24 +960,13 @@ class _ScheduleAddClassState extends State<ScheduleAddClass> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            'Varies by Day',
+                                            'Varies by day',
                                             style: AppTextStyle.cTextStyle
                                                 .copyWith(
                                                   color: blackColor,
                                                   fontWeight: FontWeight.w600,
                                                 ),
-                                          ),
-                                          SizedBox(height: 4.v),
-                                          Text(
-                                            'Enable if class times differ each day',
-                                            style: AppTextStyle.iTextStyle
-                                                .copyWith(
-                                                  color: textColor.withOpacity(
-                                                    0.6,
-                                                  ),
-                                                  fontSize: 12,
-                                                ),
-                                          ),
+                                          )
                                         ],
                                       ),
                                     ),
@@ -985,7 +977,7 @@ class _ScheduleAddClassState extends State<ScheduleAddClass> {
                               if (isSchedule) ...[
                                 // Day Selection Section
                                 Text(
-                                  'Select Days',
+                                  'Class Days',
                                   style: AppTextStyle.bTextStyle.copyWith(
                                     color: blackColor,
                                     fontWeight: FontWeight.w600,
@@ -1396,33 +1388,6 @@ class _ScheduleAddClassState extends State<ScheduleAddClass> {
                               Row(
                                 children: [
                                   Expanded(
-                                    child: OutlinedButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      style: OutlinedButton.styleFrom(
-                                        padding: EdgeInsets.symmetric(
-                                          vertical: 12.v,
-                                        ),
-                                        side: BorderSide(
-                                          color: primaryColor,
-                                          width: 1.5,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            8.adaptSize,
-                                          ),
-                                        ),
-                                      ),
-                                      child: Text(
-                                        'Cancel',
-                                        style: AppTextStyle.cTextStyle.copyWith(
-                                          color: primaryColor,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(width: 12.h),
-                                  Expanded(
                                     child: _isCreating
                                         ? Center(
                                             child: CircularProgressIndicator(
@@ -1450,7 +1415,7 @@ class _ScheduleAddClassState extends State<ScheduleAddClass> {
                                               ),
                                             ),
                                             child: Text(
-                                              widget.isEdit ? 'Update' : 'Next',
+                                              'Save',
                                               style: AppTextStyle.cTextStyle
                                                   .copyWith(
                                                     color: whiteColor,

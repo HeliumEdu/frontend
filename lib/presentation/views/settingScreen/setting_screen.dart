@@ -39,7 +39,6 @@ class SettingScreenView extends StatefulWidget {
 class _SettingScreenViewState extends State<SettingScreenView> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
   TextEditingController? _deletePasswordController;
 
   void _showLogoutDialog(BuildContext context) {
@@ -109,7 +108,6 @@ class _SettingScreenViewState extends State<SettingScreenView> {
   void dispose() {
     _usernameController.dispose();
     _emailController.dispose();
-    _phoneController.dispose();
     _deletePasswordController?.dispose();
     super.dispose();
   }
@@ -135,150 +133,6 @@ class _SettingScreenViewState extends State<SettingScreenView> {
             }
           },
         ),
-      ),
-    );
-  }
-
-  void _showUpdatePhoneDialog(BuildContext context) {
-    final TextEditingController phoneController = TextEditingController(
-      text: _phoneController.text.isEmpty ? '' : _phoneController.text,
-    );
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            Icon(Icons.phone_android_rounded, color: primaryColor, size: 24),
-            SizedBox(width: 12),
-            Text(
-              'Update Phone Number',
-              style: AppTextStyle.bTextStyle.copyWith(
-                color: blackColor,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Enter your phone number to receive a verification code',
-              style: AppTextStyle.eTextStyle.copyWith(
-                color: textColor,
-                height: 1.4,
-              ),
-            ),
-            SizedBox(height: 20.v),
-            Container(
-              decoration: BoxDecoration(
-                color: softGrey,
-                borderRadius: BorderRadius.circular(12.adaptSize),
-                border: Border.all(
-                  color: Colors.grey.withOpacity(0.3),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12.h),
-                    child: Icon(
-                      Icons.phone_outlined,
-                      color: primaryColor,
-                      size: 20.adaptSize,
-                    ),
-                  ),
-                  Expanded(
-                    child: TextFormField(
-                      controller: phoneController,
-                      keyboardType: TextInputType.phone,
-                      style: AppTextStyle.eTextStyle.copyWith(
-                        color: blackColor,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: '+1234567890',
-                        hintStyle: AppTextStyle.eTextStyle.copyWith(
-                          color: textColor.withOpacity(0.4),
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 12.h,
-                          vertical: 14.v,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(
-              'Cancel',
-              style: AppTextStyle.eTextStyle.copyWith(
-                color: textColor,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final phone = phoneController.text.trim();
-              if (phone.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Please enter phone number'),
-                    backgroundColor: redColor,
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-                return;
-              }
-
-              Navigator.of(dialogContext).pop();
-
-              // Send phone number first (without verification code)
-              // This will trigger sending OTP to the phone
-              context.read<AuthBloc>().add(UpdatePhoneEvent(phone: phone));
-
-              // Navigate to OTP screen after a short delay
-              Future.delayed(const Duration(milliseconds: 500), () {
-                Navigator.pushNamed(
-                  context,
-                  AppRoutes.otpVerificationScreen,
-                  arguments: phone,
-                ).then((success) {
-                  if (success == true) {
-                    // Refresh profile to get updated phone
-                    context.read<AuthBloc>().add(const GetProfileEvent());
-                  }
-                });
-              });
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: primaryColor,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              padding: EdgeInsets.symmetric(horizontal: 20.h, vertical: 12.v),
-            ),
-            child: Text(
-              'Send Code',
-              style: AppTextStyle.eTextStyle.copyWith(
-                color: whiteColor,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -462,7 +316,6 @@ class _SettingScreenViewState extends State<SettingScreenView> {
           setState(() {
             _usernameController.text = state.username;
             _emailController.text = state.email;
-            _phoneController.text = state.phone ?? '';
           });
         } else if (state is AuthLogoutSuccess) {
           _showSnackBar(context, 'Logged out successfully', isError: false);
@@ -502,14 +355,16 @@ class _SettingScreenViewState extends State<SettingScreenView> {
           child: Column(
             children: [
               Container(
-                padding: EdgeInsets.symmetric(vertical: 2.v, horizontal: 12.h),
+                padding: EdgeInsets.symmetric(
+                    vertical: 16.v,
+                    horizontal: 16.h),
                 decoration: BoxDecoration(
                   color: whiteColor,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 8,
-                      offset: Offset(0, 2),
+                      color: blackColor.withOpacity(0.05),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
@@ -528,9 +383,8 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                     ),
                     Text(
                       'Settings',
-                      style: AppTextStyle.aTextStyle.copyWith(
-                        color: blackColor,
-                        fontWeight: FontWeight.w600,
+                      style: AppTextStyle.bTextStyle.copyWith(
+                        color: blackColor
                       ),
                     ),
                     GestureDetector(
@@ -547,36 +401,6 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Padding(
-                        padding: EdgeInsets.only(left: 4.h, bottom: 16.v),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: EdgeInsets.all(8.adaptSize),
-                              decoration: BoxDecoration(
-                                color: primaryColor.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(
-                                  8.adaptSize,
-                                ),
-                              ),
-                              child: Icon(
-                                Icons.person_outline,
-                                color: primaryColor,
-                                size: 20.adaptSize,
-                              ),
-                            ),
-                            SizedBox(width: 12.h),
-                            Text(
-                              'Personal Information',
-                              style: AppTextStyle.bTextStyle.copyWith(
-                                color: blackColor,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
                       BlocBuilder<AuthBloc, AuthState>(
                         builder: (context, state) {
                           final isLoading = state is AuthLoading;
@@ -773,99 +597,6 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                   ],
                                 ),
                                 SizedBox(height: 20.v),
-
-                                // Phone Input
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Phone Number',
-                                      style: AppTextStyle.cTextStyle.copyWith(
-                                        color: textColor.withOpacity(0.7),
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                    SizedBox(height: 8.v),
-                                    GestureDetector(
-                                      onTap: () =>
-                                          _showUpdatePhoneDialog(context),
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          color: softGrey,
-                                          borderRadius: BorderRadius.circular(
-                                            12.adaptSize,
-                                          ),
-                                          border: Border.all(
-                                            color: Colors.grey.withOpacity(0.2),
-                                            width: 1,
-                                          ),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Padding(
-                                              padding: EdgeInsets.symmetric(
-                                                horizontal: 12.h,
-                                              ),
-                                              child: Icon(
-                                                Icons.phone_outlined,
-                                                color: textColor.withOpacity(
-                                                  0.4,
-                                                ),
-                                                size: 20.adaptSize,
-                                              ),
-                                            ),
-                                            Expanded(
-                                              child: TextFormField(
-                                                controller: _phoneController,
-                                                keyboardType:
-                                                    TextInputType.phone,
-                                                enabled: true,
-                                                readOnly: true,
-                                                onTap: () =>
-                                                    _showUpdatePhoneDialog(
-                                                      context,
-                                                    ),
-                                                style: AppTextStyle.eTextStyle
-                                                    .copyWith(
-                                                      color: blackColor,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    ),
-                                                decoration: InputDecoration(
-                                                  hintText: 'Add Phone Number',
-                                                  hintStyle: AppTextStyle
-                                                      .eTextStyle
-                                                      .copyWith(
-                                                        color: textColor
-                                                            .withOpacity(0.4),
-                                                      ),
-                                                  border: InputBorder.none,
-                                                  contentPadding:
-                                                      EdgeInsets.symmetric(
-                                                        horizontal: 12.h,
-                                                        vertical: 14.v,
-                                                      ),
-                                                ),
-                                              ),
-                                            ),
-                                            IconButton(
-                                              icon: Icon(
-                                                Icons.edit_outlined,
-                                                color: primaryColor,
-                                                size: 20.adaptSize,
-                                              ),
-                                              onPressed: () =>
-                                                  _showUpdatePhoneDialog(
-                                                    context,
-                                                  ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
                               ],
                             ),
                           );
@@ -874,16 +605,16 @@ class _SettingScreenViewState extends State<SettingScreenView> {
 
                       SizedBox(height: 24.v),
 
-                      Padding(
-                        padding: EdgeInsets.only(left: 4.h, bottom: 16.v),
-                        child: Text(
-                          'Account Settings',
-                          style: AppTextStyle.bTextStyle.copyWith(
-                            color: blackColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
+                      // Padding(
+                      //   padding: EdgeInsets.only(left: 4.h, bottom: 16.v),
+                      //   child: Text(
+                      //     'Account Settings',
+                      //     style: AppTextStyle.bTextStyle.copyWith(
+                      //       color: blackColor,
+                      //       fontWeight: FontWeight.w600,
+                      //     ),
+                      //   ),
+                      // ),
 
                       Container(
                         decoration: BoxDecoration(
@@ -949,78 +680,6 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                             SizedBox(height: 2.v),
                                             Text(
                                               'Update your password',
-                                              style: AppTextStyle.cTextStyle
-                                                  .copyWith(
-                                                    color: textColor
-                                                        .withOpacity(0.6),
-                                                    fontSize: 12,
-                                                  ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      Icon(
-                                        Icons.arrow_forward_ios,
-                                        color: textColor.withOpacity(0.3),
-                                        size: 16.adaptSize,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Divider(height: 1, indent: 68.h),
-
-                            Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                onTap: () {
-                                  Navigator.pushNamed(
-                                    context,
-                                    AppRoutes.notificationScreen,
-                                  );
-                                },
-                                borderRadius: BorderRadius.circular(
-                                  16.adaptSize,
-                                ),
-                                child: Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 16.h,
-                                    vertical: 16.v,
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Container(
-                                        padding: EdgeInsets.all(10.adaptSize),
-                                        decoration: BoxDecoration(
-                                          color: Colors.orange.withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(
-                                            12.adaptSize,
-                                          ),
-                                        ),
-                                        child: Icon(
-                                          Icons.notifications_outlined,
-                                          color: Colors.orange,
-                                          size: 22.adaptSize,
-                                        ),
-                                      ),
-                                      SizedBox(width: 16.h),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              'Notifications',
-                                              style: AppTextStyle.eTextStyle
-                                                  .copyWith(
-                                                    color: textColor,
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                            ),
-                                            SizedBox(height: 2.v),
-                                            Text(
-                                              'Manage notification preferences',
                                               style: AppTextStyle.cTextStyle
                                                   .copyWith(
                                                     color: textColor

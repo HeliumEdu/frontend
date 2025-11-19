@@ -73,7 +73,7 @@ class AttachmentRemoteDataSourceImpl implements AttachmentRemoteDataSource {
       if (course == null && event == null && homework == null) {
         throw ValidationException(
           message:
-              'At least one of course, event, or homework must be provided',
+              'At least one of class, event, or homework must be provided',
         );
       }
 

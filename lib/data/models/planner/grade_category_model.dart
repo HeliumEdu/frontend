@@ -6,6 +6,7 @@ class GradeCategoryModel {
   final String color;
   final double gradeByWeight;
   final double? trend;
+  final int numHomework;
   final int numHomeworkGraded;
 
   GradeCategoryModel({
@@ -16,6 +17,7 @@ class GradeCategoryModel {
     required this.color,
     required this.gradeByWeight,
     this.trend,
+    required this.numHomework,
     required this.numHomeworkGraded,
   });
 
@@ -28,6 +30,7 @@ class GradeCategoryModel {
       color: json['color'] as String? ?? '#000000',
       gradeByWeight: (json['grade_by_weight'] as num?)?.toDouble() ?? 0.0,
       trend: (json['trend'] as num?)?.toDouble(),
+      numHomework: json['num_homework'] as int? ?? 0,
       numHomeworkGraded: json['num_homework_graded'] as int? ?? 0,
     );
   }
@@ -41,6 +44,7 @@ class GradeCategoryModel {
       'color': color,
       'grade_by_weight': gradeByWeight,
       'trend': trend,
+      'num_homework': numHomework,
       'num_homework_graded': numHomeworkGraded,
     };
   }

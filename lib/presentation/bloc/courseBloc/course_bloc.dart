@@ -354,7 +354,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
           event.homeworkId == null) {
         throw ValidationException(
           message:
-              'At least one of course, event, or homework must be provided',
+              'At least one of class, event, or homework must be provided',
         );
       }
 

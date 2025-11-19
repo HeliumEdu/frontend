@@ -1,20 +1,21 @@
 import 'dart:io';
-import 'package:flutter/material.dart';
+
+import 'package:easy_stepper/easy_stepper.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart';
 import 'package:helium_student_flutter/core/dio_client.dart';
-import 'package:helium_student_flutter/data/datasources/reminder_remote_data_source.dart';
 import 'package:helium_student_flutter/data/datasources/attachment_remote_data_source.dart';
+import 'package:helium_student_flutter/data/datasources/reminder_remote_data_source.dart';
+import 'package:helium_student_flutter/data/models/planner/attachment_model.dart';
 import 'package:helium_student_flutter/data/models/planner/reminder_request_model.dart';
 import 'package:helium_student_flutter/data/models/planner/reminder_response_model.dart';
-import 'package:helium_student_flutter/data/repositories/reminder_repository_impl.dart';
 import 'package:helium_student_flutter/data/repositories/attachment_repository_impl.dart';
-import 'package:helium_student_flutter/data/models/planner/attachment_model.dart';
+import 'package:helium_student_flutter/data/repositories/reminder_repository_impl.dart';
 import 'package:helium_student_flutter/presentation/views/homeScreen/home_screen.dart';
 import 'package:helium_student_flutter/utils/app_colors.dart';
 import 'package:helium_student_flutter/utils/app_list.dart';
 import 'package:helium_student_flutter/utils/app_size.dart';
 import 'package:helium_student_flutter/utils/app_text_style.dart';
-import 'package:easy_stepper/easy_stepper.dart';
 
 // Local model to stage multiple reminders before submitting
 class _PendingReminder {
@@ -66,6 +67,7 @@ class _ReminderScreenState extends State<ReminderScreen> {
 
   // Multiple reminders support
   final List<_PendingReminder> _pendingReminders = [];
+
   // Server reminders (fetched via API)
   List<ReminderResponseModel> _serverReminders = [];
   List<AttachmentModel> _serverAttachments = [];
@@ -1314,15 +1316,9 @@ class _ReminderScreenState extends State<ReminderScreen> {
 
             // Stepper
             Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: 12.h,
-                vertical: 12.v,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: 12.h, vertical: 12.v),
               child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 16.h,
-                  vertical: 20.v,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 20.v),
                 decoration: BoxDecoration(
                   color: whiteColor,
                   borderRadius: BorderRadius.circular(16.adaptSize),
@@ -1363,10 +1359,7 @@ class _ReminderScreenState extends State<ReminderScreen> {
                   showLoadingAnimation: false,
                   stepRadius: 28.adaptSize,
                   showStepBorder: true,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 8.h,
-                    vertical: 8.v,
-                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 8.h, vertical: 8.v),
                   stepShape: StepShape.circle,
                   stepBorderRadius: 15,
                   steppingEnabled: true,
@@ -1519,7 +1512,7 @@ class _ReminderScreenState extends State<ReminderScreen> {
                               // Server reminders list
                               if (_serverReminders.isNotEmpty) ...[
                                 Text(
-                                  'Existing Reminders',
+                                  'Reminders',
                                   style: AppTextStyle.cTextStyle.copyWith(
                                     color: blackColor,
                                     fontWeight: FontWeight.w600,
@@ -1982,9 +1975,7 @@ class _ReminderScreenState extends State<ReminderScreen> {
                                           ),
                                         )
                                       : Text(
-                                          widget.isEditMode == true
-                                              ? 'Update Assignment'
-                                              : 'Submit Assignment',
+                                          'Save',
                                           style: AppTextStyle.cTextStyle
                                               .copyWith(
                                                 color: whiteColor,

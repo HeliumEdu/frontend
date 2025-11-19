@@ -192,6 +192,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
       initialTime: isStartTime
           ? (_startTime ?? TimeOfDay.now())
           : (_endTime ?? TimeOfDay.now()),
+      initialEntryMode: TimePickerEntryMode.input
     );
 
     if (picked != null) {
@@ -594,7 +595,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                           child: Center(
                                             child: Icon(
                                               Icons.edit_outlined,
-                                              color: accentColor,
+                                              color: whiteColor,
                                               size: 20.adaptSize,
                                             ),
                                           ),
@@ -651,18 +652,6 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                   ),
                                 ),
                               ),
-
-                              SizedBox(height: 22.v),
-                              // Event Information Section
-                              Text(
-                                'Event Information',
-                                style: AppTextStyle.cTextStyle.copyWith(
-                                  color: blackColor,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              SizedBox(height: 16.v),
                               // Title
                               Text(
                                 'Title',
@@ -1095,16 +1084,6 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                 ),
                               ],
                               // End Date section moved above when Show End is enabled
-                              SizedBox(height: 24.v),
-                              // Priority & Status Section
-                              Text(
-                                'Priority & Status',
-                                style: AppTextStyle.cTextStyle.copyWith(
-                                  color: blackColor,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 16,
-                                ),
-                              ),
                               SizedBox(height: 12.v),
                               // Priority Slider
                               Row(
@@ -1112,7 +1091,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    'Priority Level',
+                                    'Priority',
                                     style: AppTextStyle.eTextStyle.copyWith(
                                       color: blackColor.withOpacity(0.8),
                                       fontWeight: FontWeight.w500,
@@ -1239,9 +1218,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
                               SizedBox(
                                 width: double.infinity,
                                 child: CustomTextButton(
-                                  buttonText: isEditMode
-                                      ? 'Update Event'
-                                      : 'Next',
+                                  buttonText: 'Save',
                                   onPressed: () => isEditMode
                                       ? _handleUpdateEvent(context)
                                       : _goToEventReminderScreen(context),

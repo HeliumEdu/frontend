@@ -583,9 +583,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                                           ),
                                         )
                                       : Text(
-                                          isEdit
-                                              ? 'Update Calendar'
-                                              : 'Add Calendar',
+                                          'Confirm',
                                           style: AppTextStyle.cTextStyle.copyWith(
                                             color: whiteColor,
                                             fontWeight: FontWeight.w600,
@@ -858,7 +856,10 @@ class _PreferenceViewState extends State<PreferenceView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: EdgeInsets.symmetric(vertical: 2.v, horizontal: 2.h),
+                padding: EdgeInsets.symmetric(
+                    vertical: 16.v,
+                    horizontal: 16.h
+                ),
                 decoration: BoxDecoration(
                   color: whiteColor,
                   boxShadow: [
@@ -884,9 +885,8 @@ class _PreferenceViewState extends State<PreferenceView> {
                     ),
                     Text(
                       'Preferences',
-                      style: AppTextStyle.aTextStyle.copyWith(
+                      style: AppTextStyle.bTextStyle.copyWith(
                         color: blackColor,
-                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     Icon(Icons.abc, color: transparentColor),
@@ -1377,9 +1377,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                           builder: (context, state) {
                             final isSubmitting = state.isSubmitting;
                             return CustomTextButton(
-                              buttonText: isSubmitting
-                                  ? 'Submitting...'
-                                  : 'Submit ',
+                              buttonText: 'Save',
                               isLoading: isSubmitting,
                               onPressed: () {
                                 final tz = selectedTimezonePreference ?? 'UTC';

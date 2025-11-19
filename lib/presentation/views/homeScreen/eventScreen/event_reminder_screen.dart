@@ -1008,7 +1008,7 @@ class _EventRemainderScreenState extends State<EventRemainderScreen> {
                     ),
                   ),
                   Text(
-                    isEditMode ? 'Update Reminder' : 'Add Reminder',
+                    'Confirm',
                     style: AppTextStyle.aTextStyle.copyWith(
                       color: blackColor,
                       fontWeight: FontWeight.w600,
@@ -1217,7 +1217,7 @@ class _EventRemainderScreenState extends State<EventRemainderScreen> {
                         )
                       else if (_serverReminders.isNotEmpty) ...[
                         Text(
-                          'Existing Reminders',
+                          'Reminders',
                           style: AppTextStyle.cTextStyle.copyWith(
                             color: blackColor,
                             fontWeight: FontWeight.w600,
@@ -1516,7 +1516,7 @@ class _EventRemainderScreenState extends State<EventRemainderScreen> {
                                   ),
                                 )
                               : Text(
-                                  isEditMode ? 'Update Event' : 'Submit Event',
+                                  'Save',
                                   style: AppTextStyle.cTextStyle.copyWith(
                                     color: whiteColor,
                                     fontWeight: FontWeight.w600,

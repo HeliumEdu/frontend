@@ -171,16 +171,16 @@ class _GradesScreenState extends State<GradesScreen> {
                     children: [
                       Container(
                         padding: EdgeInsets.symmetric(
-                          vertical: 12.v,
-                          horizontal: 12.h,
+                          vertical: 16.v,
+                          horizontal: 16.h,
                         ),
                         decoration: BoxDecoration(
                           color: whiteColor,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 8,
-                              offset: Offset(0, 2),
+                              color: blackColor.withOpacity(0.05),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
                             ),
                           ],
                         ),
@@ -202,9 +202,8 @@ class _GradesScreenState extends State<GradesScreen> {
                             ),
                             Text(
                               'Grades',
-                              style: AppTextStyle.aTextStyle.copyWith(
+                              style: AppTextStyle.bTextStyle.copyWith(
                                 color: blackColor,
-                                fontWeight: FontWeight.w600,
                               ),
                             ),
                             GestureDetector(
@@ -284,7 +283,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                   },
                                 ),
                               ),
-                              SizedBox(height: 22.v),
+                              SizedBox(height: 16.v),
                               Container(
                                 padding: EdgeInsets.all(20.adaptSize),
                                 decoration: BoxDecoration(
@@ -316,7 +315,8 @@ class _GradesScreenState extends State<GradesScreen> {
                                     GridView.builder(
                                       shrinkWrap: true,
                                       physics: NeverScrollableScrollPhysics(),
-                                      itemCount: 4, // 4 summary cards
+                                      itemCount: 4,
+                                      // 4 summary cards
                                       gridDelegate:
                                           SliverGridDelegateWithFixedCrossAxisCount(
                                             crossAxisCount: 2,
@@ -357,7 +357,52 @@ class _GradesScreenState extends State<GradesScreen> {
                                         // Build summary cards based on index
                                         Widget cardContent;
                                         switch (index) {
-                                          case 0: // "thru term" card
+                                          case 0: // "complete" card
+                                            cardContent = Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Container(
+                                                  width: 40.adaptSize,
+                                                  height: 40.adaptSize,
+                                                  decoration: BoxDecoration(
+                                                    shape: BoxShape.circle,
+                                                    color: whiteColor
+                                                        .withOpacity(0.2),
+                                                  ),
+                                                  child: Stack(
+                                                    children: [
+                                                      Center(
+                                                        child: Text(
+                                                          '$completionPercentage%',
+                                                          style: AppTextStyle
+                                                              .aTextStyle
+                                                              .copyWith(
+                                                                color:
+                                                                    whiteColor,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w700,
+                                                                fontSize: 12,
+                                                              ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                SizedBox(height: 8.v),
+                                                Text(
+                                                  '$completedAssignments complete',
+                                                  style: AppTextStyle.cTextStyle
+                                                      .copyWith(
+                                                        color: whiteColor
+                                                            .withOpacity(0.9),
+                                                        fontSize: 11,
+                                                      ),
+                                                ),
+                                              ],
+                                            );
+                                          case 1: // "through term" card
                                             // Get dates from course group if grade model dates are empty
                                             String startDate =
                                                 selectedGroup.startDate;
@@ -416,7 +461,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                                 ),
                                                 SizedBox(height: 8.v),
                                                 Text(
-                                                  'thru term',
+                                                  'through term',
                                                   style: AppTextStyle.cTextStyle
                                                       .copyWith(
                                                         color: whiteColor
@@ -428,7 +473,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                             );
                                             break;
 
-                                          case 1: // "assignments" card
+                                          case 2: // "assignments" card
                                             cardContent = Row(
                                               mainAxisAlignment:
                                                   MainAxisAlignment.center,
@@ -453,7 +498,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                                           ),
                                                     ),
                                                     Text(
-                                                      'assignments',
+                                                      'total assignments',
                                                       style: AppTextStyle
                                                           .cTextStyle
                                                           .copyWith(
@@ -470,7 +515,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                             );
                                             break;
 
-                                          case 2: // "graded" card
+                                          case 3: // "graded" card
                                             cardContent = Row(
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.center,
@@ -514,53 +559,6 @@ class _GradesScreenState extends State<GradesScreen> {
                                             );
                                             break;
 
-                                          case 3: // "complete" card
-                                            cardContent = Column(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                Container(
-                                                  width: 40.adaptSize,
-                                                  height: 40.adaptSize,
-                                                  decoration: BoxDecoration(
-                                                    shape: BoxShape.circle,
-                                                    color: whiteColor
-                                                        .withOpacity(0.2),
-                                                  ),
-                                                  child: Stack(
-                                                    children: [
-                                                      Center(
-                                                        child: Text(
-                                                          '$completionPercentage%',
-                                                          style: AppTextStyle
-                                                              .aTextStyle
-                                                              .copyWith(
-                                                                color:
-                                                                    whiteColor,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w700,
-                                                                fontSize: 12,
-                                                              ),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                                SizedBox(height: 8.v),
-                                                Text(
-                                                  '$completedAssignments complete',
-                                                  style: AppTextStyle.cTextStyle
-                                                      .copyWith(
-                                                        color: whiteColor
-                                                            .withOpacity(0.9),
-                                                        fontSize: 11,
-                                                      ),
-                                                ),
-                                              ],
-                                            );
-                                            break;
-
                                           default:
                                             cardContent = SizedBox.shrink();
                                         }
@@ -585,43 +583,6 @@ class _GradesScreenState extends State<GradesScreen> {
                                     ),
                                   ],
                                 ),
-                              ),
-
-                              SizedBox(height: 28.v),
-
-                              // Course Section Header
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Courses',
-                                    style: AppTextStyle.aTextStyle.copyWith(
-                                      color: blackColor,
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 20,
-                                    ),
-                                  ),
-                                  Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 12.h,
-                                      vertical: 6.v,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: primaryColor.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(
-                                        20.adaptSize,
-                                      ),
-                                    ),
-                                    child: Text(
-                                      '${courses.length} Active',
-                                      style: AppTextStyle.cTextStyle.copyWith(
-                                        color: primaryColor,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                ],
                               ),
 
                               SizedBox(height: 16.v),
@@ -901,7 +862,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                                           Expanded(
                                                             flex: 2,
                                                             child: Text(
-                                                              'Recorded',
+                                                              'Graded',
                                                               textAlign:
                                                                   TextAlign
                                                                       .center,
@@ -1026,7 +987,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                                               Expanded(
                                                                 flex: 2,
                                                                 child: Text(
-                                                                  '${category.numHomeworkGraded}',
+                                                                  '${category.numHomeworkGraded} of ${category.numHomework}',
                                                                   textAlign:
                                                                       TextAlign
                                                                           .center,
@@ -1051,10 +1012,10 @@ class _GradesScreenState extends State<GradesScreen> {
                                                                   style: AppTextStyle
                                                                       .cTextStyle
                                                                       .copyWith(
-                                                                        color:
-                                                                            categoryColor,
-                                                                        fontWeight:
-                                                                            FontWeight.w600,
+                                                                        color: textColor
+                                                                            .withOpacity(
+                                                                              0.7,
+                                                                            ),
                                                                       ),
                                                                 ),
                                                               ),

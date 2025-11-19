@@ -64,25 +64,29 @@ class MaterialModel {
   // Helper getters for status and condition display
   String get statusDisplay {
     const statusMap = {
-      0: 'Not Purchased',
-      1: 'Purchased',
+      0: 'Owned',
+      1: 'Rented',
       2: 'Ordered',
-      3: 'Rented',
-      4: 'Borrowed',
+      3: 'Shipped',
+      4: 'Needed',
       5: 'Returned',
+      6: 'To Sell',
+      7: 'Digital',
     };
     return statusMap[status] ?? 'Unknown';
   }
 
   String get conditionDisplay {
     const conditionMap = {
-      0: 'N/A',
-      1: 'New',
+      0: 'Brand New',
+      1: 'Refurbished',
       2: 'Used - Like New',
       3: 'Used - Very Good',
       4: 'Used - Good',
       5: 'Used - Acceptable',
-      6: 'Digital',
+      6: 'Used - Poor',
+      7: 'Broken',
+      8: 'Digital',
     };
     return conditionMap[condition] ?? 'Unknown';
   }

@@ -321,14 +321,17 @@ class _NotificationScreenState extends State<NotificationScreen> {
         child: Column(
           children: [
             Container(
-              padding: EdgeInsets.symmetric(vertical: 2.v, horizontal: 2.h),
+              padding: EdgeInsets.symmetric(
+                  vertical: 16.v,
+                  horizontal: 16.h
+              ),
               decoration: BoxDecoration(
                 color: whiteColor,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 8,
-                    offset: Offset(0, 2),
+                    color: blackColor.withOpacity(0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
@@ -347,9 +350,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   ),
                   Text(
                     'Notifications',
-                    style: AppTextStyle.aTextStyle.copyWith(
+                    style: AppTextStyle.bTextStyle.copyWith(
                       color: blackColor,
-                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   Row(
@@ -377,7 +379,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 ],
               ),
             ),
-            SizedBox(height: 5.v),
+            SizedBox(height: 16.v),
             Expanded(
               child: _isLoading
                   ? Center(

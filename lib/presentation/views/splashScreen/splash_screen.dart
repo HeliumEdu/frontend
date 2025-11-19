@@ -117,26 +117,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     AppAssets.welcomeImagePath,
                     width: 300.adaptSize,
                     height: 300.adaptSize,
-                  ),
-                  SizedBox(height: 12.v),
-
-                  // // App Title with Gradient
-                  // ShaderMask(
-                  //   shaderCallback: (bounds) => LinearGradient(
-                  //     colors: [Color(0xFF00E5FF), Color(0xFF2196F3)],
-                  //     begin: Alignment.centerLeft,
-                  //     end: Alignment.centerRight,
-                  //   ).createShader(bounds),
-                  //   child: Text(
-                  //     'Helium Student Planner',
-                  //     style: GoogleFonts.roboto(
-                  //       fontSize: 20.adaptSize,
-                  //       fontWeight: FontWeight.w600,
-                  //       color: Colors.white,
-                  //     ),
-                  //   ),
-                  // ),
-                  SizedBox(height: 10.v),
+                  )
                 ],
               ),
             ),

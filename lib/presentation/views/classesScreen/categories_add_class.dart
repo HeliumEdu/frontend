@@ -86,9 +86,7 @@ class _CategoriesAddClassState extends State<CategoriesAddClass> {
   // Helper to format weight for display (converts decimal to percentage)
   String _formatWeight(String weight) {
     try {
-      final doubleValue = double.parse(weight);
-      // Convert decimal to percentage (0.30 -> 30%)
-      final percentage = (doubleValue * 100);
+      final percentage = double.parse(weight);
       if (percentage == percentage.roundToDouble()) {
         return '${percentage.toInt()}%';
       } else {
@@ -307,8 +305,8 @@ class _CategoriesAddClassState extends State<CategoriesAddClass> {
       _categoryNameController.text = existingCategory.title;
       // Convert weight double to percentage for display (e.g., 0.20 -> "20")
       try {
-        final weightValue = (existingCategory.weight ?? 0.0) * 100;
-        _categoryWeightController.text = weightValue.toStringAsFixed(0);
+        // final weightValue = (existingCategory.weight ?? 0.0) * 100;
+        _categoryWeightController.text = (existingCategory.weight ?? 0.0).toStringAsFixed(0);
       } catch (e) {
         _categoryWeightController.text = '';
       }
@@ -520,20 +518,9 @@ class _CategoriesAddClassState extends State<CategoriesAddClass> {
                                     isCreatingCategory = true;
                                   });
 
-                                  // Convert weight percentage to decimal (e.g., "20" -> "0.20")
-                                  String weightValue = '0';
-                                  if (_categoryWeightController.text
-                                      .trim()
-                                      .isNotEmpty) {
-                                    try {
-                                      final percentage = double.parse(
-                                        _categoryWeightController.text.trim(),
-                                      );
-                                      weightValue = (percentage / 100)
-                                          .toStringAsFixed(2);
-                                    } catch (e) {
-                                      weightValue = '0';
-                                    }
+                                  String weightValue = "0";
+                                  if (_categoryWeightController.text.trim().isNotEmpty) {
+                                    weightValue = _categoryWeightController.text.trim();
                                   }
 
                                   final request = CategoryRequestModel(
@@ -582,7 +569,7 @@ class _CategoriesAddClassState extends State<CategoriesAddClass> {
                                   ),
                                 )
                               : Text(
-                                  isEdit ? 'Update Category' : 'Add Category',
+                                  'Confirm',
                                   style: AppTextStyle.cTextStyle.copyWith(
                                     color: whiteColor,
                                     fontWeight: FontWeight.w600,
@@ -863,11 +850,10 @@ class _CategoriesAddClassState extends State<CategoriesAddClass> {
                           ),
                         ),
                         Text(
-                          widget.isEdit
-                              ? 'Manage Categories'
-                              : 'Add Categories',
+                          widget.isEdit ? 'Edit Class' : 'Add Class',
                           style: AppTextStyle.aTextStyle.copyWith(
                             color: blackColor,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         Icon(Icons.import_contacts, color: Colors.transparent),
@@ -975,7 +961,7 @@ class _CategoriesAddClassState extends State<CategoriesAddClass> {
                               ),
                               child: Center(
                                 child: Icon(
-                                  Icons.edit_outlined,
+                                  Icons.menu_book,
                                   color: primaryColor,
                                   size: 20.adaptSize,
                                 ),
@@ -984,7 +970,7 @@ class _CategoriesAddClassState extends State<CategoriesAddClass> {
                             customTitle: Padding(
                               padding: EdgeInsets.only(top: 8.v),
                               child: Text(
-                                'Class',
+                                'Details',
                                 style: AppTextStyle.iTextStyle.copyWith(
                                   color: blackColor,
                                   fontWeight: FontWeight.w600,
@@ -1007,7 +993,7 @@ class _CategoriesAddClassState extends State<CategoriesAddClass> {
                               ),
                               child: Center(
                                 child: Icon(
-                                  Icons.access_time_outlined,
+                                  Icons.calendar_month,
                                   color: primaryColor,
                                   size: 20.adaptSize,
                                 ),
@@ -1584,7 +1570,7 @@ class _CategoriesAddClassState extends State<CategoriesAddClass> {
                         ),
                         SizedBox(height: 16.v),
                         Text(
-                          'Uploaded Files',
+                          'Attachments',
                           style: AppTextStyle.bTextStyle.copyWith(
                             color: blackColor,
                             fontWeight: FontWeight.w600,
@@ -1847,8 +1833,8 @@ class _CategoriesAddClassState extends State<CategoriesAddClass> {
                                 SnackBar(
                                   content: Text(
                                     widget.isEdit
-                                        ? 'Course updated successfully!'
-                                        : 'Course created successfully!',
+                                        ? 'Class updated successfully!'
+                                        : 'Class created successfully!',
                                     style: AppTextStyle.cTextStyle.copyWith(
                                       color: whiteColor,
                                     ),
@@ -1869,8 +1855,9 @@ class _CategoriesAddClassState extends State<CategoriesAddClass> {
                               ),
                             ),
                             child: Text(
-                              widget.isEdit ? 'Done' : 'Submit',
-                              style: AppTextStyle.bTextStyle.copyWith(
+                              'Save',
+                              style: AppTextStyle.cTextStyle
+                                  .copyWith(
                                 color: whiteColor,
                                 fontWeight: FontWeight.w600,
                               ),

@@ -346,7 +346,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  'Failed to load course: ${state.message}',
+                  'Failed to load class: ${state.message}',
                   style: AppTextStyle.cTextStyle.copyWith(color: whiteColor),
                 ),
                 backgroundColor: redColor,
@@ -366,7 +366,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  'Course created successfully!',
+                  'Class created successfully!',
                   style: AppTextStyle.cTextStyle.copyWith(color: whiteColor),
                 ),
                 backgroundColor: Colors.green,
@@ -406,7 +406,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  'Course updated successfully!',
+                  'Class updated successfully!',
                   style: AppTextStyle.cTextStyle.copyWith(color: whiteColor),
                 ),
                 backgroundColor: Colors.green,
@@ -431,8 +431,8 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
 
             // Get error message based on state type
             final errorTitle = state is CourseCreateError
-                ? 'Failed to create course'
-                : 'Failed to update course';
+                ? 'Failed to create class'
+                : 'Failed to update class';
             final errorMessage = state is CourseCreateError
                 ? state.message
                 : (state as CourseUpdateError).message;
@@ -477,7 +477,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                 Container(
                   padding: EdgeInsets.symmetric(
                     vertical: 16.v,
-                    horizontal: 12.h,
+                    horizontal: 16.h,
                   ),
                   width: double.infinity,
                   decoration: BoxDecoration(color: whiteColor),
@@ -497,6 +497,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                         widget.isEdit ? 'Edit Class' : 'Add Class',
                         style: AppTextStyle.aTextStyle.copyWith(
                           color: blackColor,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                       Icon(Icons.import_contacts, color: Colors.transparent),
@@ -584,7 +585,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                             ),
                             child: Center(
                               child: Icon(
-                                Icons.edit_outlined,
+                                Icons.menu_book,
                                 color: whiteColor,
                                 size: 20.adaptSize,
                               ),
@@ -593,7 +594,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                           customTitle: Padding(
                             padding: EdgeInsets.only(top: 8.v),
                             child: Text(
-                              'Class',
+                              'Details',
                               style: AppTextStyle.iTextStyle.copyWith(
                                 color: primaryColor,
                                 fontWeight: FontWeight.w700,
@@ -613,7 +614,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                             ),
                             child: Center(
                               child: Icon(
-                                Icons.access_time_outlined,
+                                Icons.calendar_month,
                                 color: primaryColor,
                                 size: 20.adaptSize,
                               ),
@@ -682,7 +683,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                           ),
                           SizedBox(height: 9.v),
                           CustomClassTextField(
-                            text: 'Enter Course Title',
+                            text: 'Enter Class Title',
                             controller: _titleController,
                           ),
                           SizedBox(height: 14.v),
@@ -782,7 +783,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                           ),
                           SizedBox(height: 9.v),
                           CustomClassTextField(
-                            text: 'Enter Course Credits Hour',
+                            text: 'Enter Class Credit Hours',
                             controller: _creditsController,
                           ),
                           SizedBox(height: 14.v),
@@ -831,8 +832,8 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                           ),
 
                           SizedBox(height: 33.v),
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 88.h),
+                          SizedBox(
+                            width: double.infinity,
                             child: _isCreating
                                 ? Center(
                                     child: CircularProgressIndicator(
@@ -843,9 +844,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                                     ),
                                   )
                                 : CustomTextButton(
-                                    buttonText: widget.isEdit
-                                        ? 'Update'
-                                        : 'Next',
+                                    buttonText: 'Save',
                                     onPressed: _validateAndCreateCourse,
                                   ),
                           ),

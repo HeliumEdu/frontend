@@ -14,9 +14,9 @@ import 'package:helium_student_flutter/presentation/views/classesScreen/classes_
 import 'package:helium_student_flutter/presentation/views/classesScreen/schedule_add_class.dart';
 import 'package:helium_student_flutter/presentation/views/gradeScreen/grades_screen.dart';
 import 'package:helium_student_flutter/presentation/views/homeScreen/assignmentScreen/add_assignment_screen.dart';
-import 'package:helium_student_flutter/presentation/views/homeScreen/assignmentScreen/remainder_screen.dart';
+import 'package:helium_student_flutter/presentation/views/homeScreen/assignmentScreen/assignment_reminder_screen.dart';
 import 'package:helium_student_flutter/presentation/views/homeScreen/eventScreen/add_event_screen.dart';
-import 'package:helium_student_flutter/presentation/views/homeScreen/eventScreen/event_remainder_screen.dart';
+import 'package:helium_student_flutter/presentation/views/homeScreen/eventScreen/event_reminder_screen.dart';
 import 'package:helium_student_flutter/presentation/views/homeScreen/home_screen.dart';
 import 'package:helium_student_flutter/presentation/views/materialScreen/add_material_screen.dart';
 import 'package:helium_student_flutter/presentation/views/materialScreen/material_screen.dart';

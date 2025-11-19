@@ -104,7 +104,7 @@ class ICalFeedRemoteDataSourceImpl implements ICalFeedRemoteDataSource {
         NetworkUrl.disablePrivateFeedsUrl,
       );
 
-      if (response.statusCode != 200) {
+      if (response.statusCode != 204) {
         throw ServerException(
           message: 'Failed to disable private feeds. Please try again.',
         );

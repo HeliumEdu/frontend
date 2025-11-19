@@ -260,7 +260,10 @@ class _MaterialScreenState extends State<MaterialScreen> {
           children: [
             // App Bar
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 16.v),
+              padding: EdgeInsets.symmetric(
+                  horizontal: 16.h,
+                  vertical: 16.v
+              ),
               decoration: BoxDecoration(
                 color: whiteColor,
                 boxShadow: [
@@ -276,7 +279,10 @@ class _MaterialScreenState extends State<MaterialScreen> {
                 children: [
                   GestureDetector(
                     onTap: () {
-                      Navigator.pushNamed(context, AppRoutes.settingScreen);
+                      Navigator.pushNamed(
+                          context,
+                          AppRoutes.settingScreen
+                      );
                     },
                     child: Icon(
                       Icons.settings_outlined,
@@ -287,8 +293,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
                   Text(
                     'Materials',
                     style: AppTextStyle.bTextStyle.copyWith(
-                      color: textColor,
-                      fontWeight: FontWeight.w600,
+                      color: textColor
                     ),
                   ),
                   GestureDetector(
@@ -298,15 +303,19 @@ class _MaterialScreenState extends State<MaterialScreen> {
                         AppRoutes.notificationScreen,
                       );
                     },
-                    child: Icon(Icons.notifications, color: primaryColor),
+                    child: Icon(
+                        Icons.notifications,
+                        color: primaryColor
+                    ),
                   ),
                 ],
               ),
             ),
 
-            SizedBox(height: 12.v),
+            SizedBox(height: 16.v),
+
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.h),
+              padding: EdgeInsets.symmetric(horizontal: 16.h),
               child: Container(
                 padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
@@ -325,9 +334,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
                         isExpanded: true,
                         underline: SizedBox(),
                         hint: Text(
-                          _selectedGroup == null
-                              ? "All Materials"
-                              : "Filter by Group",
+                          "Loading groups ...",
                           style: AppTextStyle.eTextStyle.copyWith(
                             color: blackColor.withOpacity(0.5),
                           ),
@@ -345,7 +352,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
                                       child: Text(
                                         group.title,
                                         style: AppTextStyle.eTextStyle.copyWith(
-                                          color: blackColor.withOpacity(0.5),
+                                          color: blackColor.withOpacity(0.8),
                                         ),
                                       ),
                                     ),
@@ -608,7 +615,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
 
                                   SizedBox(height: 12.v),
 
-                                  // Status and Condition Row
+                                  // Status and Price Row
                                   Row(
                                     children: [
                                       if (material.status != null) ...[
@@ -908,6 +915,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
                             isEdit ? 'Edit Group' : 'Add Group',
                             style: AppTextStyle.aTextStyle.copyWith(
                               color: blackColor,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
@@ -988,7 +996,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
                             ),
                             Expanded(
                               child: Text(
-                                'Hide Material in the group on the Calendar',
+                                "Hide this group's materials from Calendar",
                                 style: AppTextStyle.iTextStyle.copyWith(
                                   color: blackColor,
                                 ),
@@ -1088,7 +1096,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
                                           ),
                                         )
                                       : Text(
-                                          isEdit ? 'Update' : 'Save',
+                                          'Save',
                                           style: AppTextStyle.iTextStyle
                                               .copyWith(color: whiteColor),
                                         ),

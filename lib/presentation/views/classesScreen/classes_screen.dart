@@ -160,6 +160,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                               isEdit ? 'Edit Group' : 'Add Group',
                               style: AppTextStyle.aTextStyle.copyWith(
                                 color: blackColor,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
@@ -282,7 +283,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                               ),
                               Expanded(
                                 child: Text(
-                                  'Hide this group, including its classes and content, on the Calendar',
+                                  "Hide this group's classes and assignments from the Calendar",
                                   style: AppTextStyle.iTextStyle.copyWith(
                                     color: blackColor,
                                   ),
@@ -487,7 +488,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                         child: Text(
                           course.title.isNotEmpty
                               ? course.title
-                              : 'Untitled Course',
+                              : 'Untitled Class',
                           style: AppTextStyle.cTextStyle.copyWith(
                             color: courseColor,
                             fontWeight: FontWeight.w600,
@@ -541,7 +542,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                           borderRadius: BorderRadius.circular(12.adaptSize),
                         ),
                         title: Text(
-                          'Delete Course',
+                          'Delete Class',
                           style: AppTextStyle.bTextStyle.copyWith(
                             color: textColor,
                           ),
@@ -792,7 +793,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      'Course deleted successfully!',
+                      'Class deleted successfully!',
                       style: AppTextStyle.cTextStyle.copyWith(
                         color: whiteColor,
                       ),
@@ -817,7 +818,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Failed to delete course',
+                          'Failed to delete class',
                           style: AppTextStyle.cTextStyle.copyWith(
                             color: whiteColor,
                             fontWeight: FontWeight.bold,
@@ -894,7 +895,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      'Course group created successfully!',
+                      'Class group created successfully!',
                       style: AppTextStyle.cTextStyle.copyWith(
                         color: whiteColor,
                       ),
@@ -956,7 +957,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      'Course group deleted successfully!',
+                      'Class group deleted successfully!',
                       style: AppTextStyle.cTextStyle.copyWith(
                         color: whiteColor,
                       ),
@@ -1008,7 +1009,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      'Course group updated successfully!',
+                      'Class group updated successfully!',
                       style: AppTextStyle.cTextStyle.copyWith(
                         color: whiteColor,
                       ),
@@ -1086,8 +1087,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                           Text(
                             'Classes',
                             style: AppTextStyle.bTextStyle.copyWith(
-                              color: textColor,
-                              fontWeight: FontWeight.w600,
+                              color: textColor
                             ),
                           ),
                           GestureDetector(
@@ -1106,7 +1106,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                       ),
                     ),
 
-                    SizedBox(height: 7.v),
+                    SizedBox(height: 16.v),
 
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16.h),
@@ -1155,9 +1155,9 @@ class _ClassesScreenState extends State<ClassesScreen> {
                                                   "Loading groups...",
                                                   style: AppTextStyle.eTextStyle
                                                       .copyWith(
-                                                        color: blackColor
-                                                            .withOpacity(0.5),
-                                                      ),
+                                                    color: blackColor
+                                                        .withOpacity(0.5),
+                                                  ),
                                                 ),
                                               ],
                                             )
@@ -1218,13 +1218,11 @@ class _ClassesScreenState extends State<ClassesScreen> {
                                               },
                                               child: Icon(
                                                 Icons.edit,
-                                                size: 20,
-                                                color: primaryColor.withOpacity(
-                                                  0.7,
-                                                ),
+                                                size: 20.adaptSize,
+                                                color: primaryColor
                                               ),
                                             ),
-                                            SizedBox(width: 12.h),
+                                            SizedBox(width: 8.h),
                                             GestureDetector(
                                               onTap: () {
                                                 // Show confirmation dialog
@@ -1239,7 +1237,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                                                             ),
                                                       ),
                                                       title: Text(
-                                                        'Delete Course Group',
+                                                        'Delete Class Group',
                                                         style: AppTextStyle
                                                             .bTextStyle
                                                             .copyWith(
@@ -1319,13 +1317,10 @@ class _ClassesScreenState extends State<ClassesScreen> {
                                               },
                                               child: Icon(
                                                 Icons.delete,
-                                                size: 20,
-                                                color: redColor.withOpacity(
-                                                  0.7,
-                                                ),
+                                                size: 20.adaptSize,
+                                                color: redColor
                                               ),
                                             ),
-                                            SizedBox(width: 12.h),
                                           ],
                                         ),
                                       );
@@ -1516,7 +1511,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
 
                           return Center(
                             child: Text(
-                              'Loading courses...',
+                              'Loading classes ...',
                               style: AppTextStyle.cTextStyle.copyWith(
                                 color: textColor.withOpacity(0.6),
                               ),
@@ -1554,7 +1549,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            'Please select a course group first',
+                            'Please select a class group first',
                             style: AppTextStyle.cTextStyle.copyWith(
                               color: whiteColor,
                             ),

@@ -278,6 +278,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
       initialTime: isStartTime
           ? (_startTime ?? TimeOfDay.now())
           : (_endTime ?? TimeOfDay.now()),
+      initialEntryMode: TimePickerEntryMode.input
     );
 
     if (picked != null) {
@@ -380,7 +381,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                 Navigator.pop(dialogCtx);
               },
               child: Text(
-                'Add Selected',
+                'Confirm',
                 style: AppTextStyle.eTextStyle.copyWith(
                   color: primaryColor,
                   fontWeight: FontWeight.w700,
@@ -553,7 +554,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'Error: Missing course information. Please try again.',
+                'Error: Missing class information. Please try again.',
               ),
               backgroundColor: redColor,
             ),
@@ -867,7 +868,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                           child: Center(
                             child: Icon(
                               Icons.edit_outlined,
-                              color: primaryColor,
+                              color: whiteColor,
                               size: 20.adaptSize,
                             ),
                           ),
@@ -924,21 +925,10 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
               Expanded(
                 child: SingleChildScrollView(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 14.h),
+                    padding: EdgeInsets.symmetric(horizontal: 12.h),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(height: 22.v),
-                        // Assignment Information Section
-                        Text(
-                          'Assignment Information',
-                          style: AppTextStyle.cTextStyle.copyWith(
-                            color: blackColor,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
-                          ),
-                        ),
-                        SizedBox(height: 16.v),
                         // Title
                         Text(
                           'Title',
@@ -986,8 +976,8 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                             underline: SizedBox(),
                             hint: Text(
                               _courses.isEmpty
-                                  ? 'Loading courses...'
-                                  : 'Select Class (Optional)',
+                                  ? 'Loading classes ...'
+                                  : 'Select Class',
                               style: AppTextStyle.eTextStyle.copyWith(
                                 color: blackColor.withOpacity(0.5),
                               ),
@@ -1036,18 +1026,6 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                   },
                           ),
                         ),
-                        if (isEditMode)
-                          Padding(
-                            padding: EdgeInsets.only(top: 4.v),
-                            child: Text(
-                              'Course cannot be changed when editing',
-                              style: AppTextStyle.eTextStyle.copyWith(
-                                color: Colors.orange.withOpacity(0.8),
-                                fontSize: 11,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          ),
                         SizedBox(height: 18.v),
                         // Category Dropdown
                         Text(
@@ -1552,22 +1530,13 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                             ],
                           ),
                         ],
-                        SizedBox(height: 24.v),
-                        Text(
-                          'Priority & Status',
-                          style: AppTextStyle.cTextStyle.copyWith(
-                            color: blackColor,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
-                          ),
-                        ),
                         SizedBox(height: 12.v),
                         // Priority Slider
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Priority Level',
+                              'Priority',
                               style: AppTextStyle.eTextStyle.copyWith(
                                 color: blackColor.withOpacity(0.8),
                                 fontWeight: FontWeight.w500,
@@ -1741,7 +1710,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                         SizedBox(
                           width: double.infinity,
                           child: CustomTextButton(
-                            buttonText: isEditMode ? 'Update & Next' : 'Next',
+                            buttonText: 'Save',
                             onPressed: () => _goToReminderScreen(context),
                           ),
                         ),

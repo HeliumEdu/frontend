@@ -35,7 +35,10 @@ class CustomTextButton extends StatelessWidget {
             )
           : Text(
               buttonText,
-              style: AppTextStyle.mTextStyle.copyWith(color: Colors.white),
+              style: AppTextStyle.cTextStyle.copyWith(
+                color: whiteColor,
+                fontWeight: FontWeight.w600,
+              ),
             ),
     );
   }
