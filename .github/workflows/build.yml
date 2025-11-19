@@ -43,10 +43,11 @@ jobs:
           build-tools-version: "36.1.0"
       - name: Decode Keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/debug-keystore.jks
-      - name: List files in lib directory
-        run: flutter doctor
+      - name: Get cwd
+        run: pwd
       - name: Test
-        run: make test
+        run: make clean test
+        working-directory: ./
       - name: Build iOS
         run: make build-ios
       - name: Build Android
