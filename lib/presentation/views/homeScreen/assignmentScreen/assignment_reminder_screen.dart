@@ -21,7 +21,7 @@ import 'package:helium_student_flutter/utils/app_text_style.dart';
 class _PendingReminder {
   final String message;
   final int offset; // minutes before
-  final int type; // notification channel (popup/email)
+  final int type; // notification channel
 
   _PendingReminder({
     required this.message,

@@ -43,6 +43,7 @@ import 'package:helium_student_flutter/utils/app_size.dart';
 import 'package:helium_student_flutter/utils/app_text_style.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -65,6 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String _currentViewMode = 'Day'; // 'Month', 'Week', 'Day'
   int _selectedWeekIndex = 0; // For week view selection
   Color _eventColor = greenColor;
+  String _timeZone = 'America/Chicago';
   static const Color _defaultExternalEventColor = Colors.purple;
   List<ExternalCalendarModel> _externalCalendars = [];
   Map<int, List<ExternalCalendarEventModel>> _externalEventsByCalendar = {};
@@ -100,12 +102,14 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _loadExternalCalendarState();
     _loadEventColor();
+    _loadTimeZone();
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _loadEventColor();
+    _loadTimeZone();
     if (_needsRefresh) {
       _needsRefresh = false;
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -197,6 +201,37 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _loadTimeZone() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? timeZone = prefs.getString('user_time_zone');
+
+    if (timeZone == null || timeZone.isEmpty) {
+      try {
+        final dioClient = DioClient();
+        final authRepository = AuthRepositoryImpl(
+          remoteDataSource: AuthRemoteDataSourceImpl(dioClient: dioClient),
+        );
+        final profile = await authRepository.getProfile();
+        final timeZone = profile.settings?.timeZone;
+        if (timeZone != null && timeZone.trim().isNotEmpty) {
+          await prefs.setString('user_time_zone', timeZone);
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('⚠️ Failed to load time zone from profile: $e');
+        }
+      }
+
+      if (timeZone == null || timeZone.isEmpty) return;
+
+      if (mounted && timeZone != _timeZone) {
+        setState(() {
+          _timeZone = timeZone;
+        });
+      }
+    }
+  }
+
   Color _colorFromHex(String hex, {required Color fallback}) {
     try {
       var cleaned = hex.trim().toLowerCase();
@@ -276,7 +311,7 @@ class _HomeScreenState extends State<HomeScreen> {
           if (shouldEnable) {
             _externalCalendarEnabled = true;
             _externalCalendarPreferenceCached = true;
-            _saveExternalCalendarState(true);
+            _saveExternalCalendarState(_externalCalendarEnabled);
             if (kDebugMode) {
               print('   ✅ Auto-enabled external calendar');
             }
@@ -1143,9 +1178,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           ];
                           selectedCategoryFilters = [];
                           selectedStatuses = {};
-                          _externalCalendarEnabled = false;
+                          _externalCalendarEnabled = true;
                           // Save the state to SharedPreferences
-                          _saveExternalCalendarState(false);
+                          _saveExternalCalendarState(_externalCalendarEnabled);
                         });
                         _refetchHomeworkWithCurrentFilters(
                           homeworkBloc: homeworkBloc,
@@ -2721,6 +2756,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           );
                           if (mounted) {
                             await _loadEventColor();
+                            await _loadTimeZone();
                           }
                         },
                         child: Icon(
@@ -3850,10 +3886,13 @@ class _HomeScreenState extends State<HomeScreen> {
       if (homework.allDay) {
         timeDisplay = '';
       } else {
-        final startTime = DateTime.parse(homework.start);
+        final timeZone = tz.getLocation(_timeZone);
+        final startTime = tz.TZDateTime.from(DateTime.parse(homework.start), timeZone);
         final formattedTime = DateFormat('h:mm a').format(startTime);
-        if (homework.end != null && homework.end!.isNotEmpty && homework.start != homework.end) {
-          final endTime = DateTime.parse(homework.end!);
+        if (homework.end != null &&
+            homework.end!.isNotEmpty &&
+            homework.start != homework.end) {
+          final endTime = tz.TZDateTime.from(DateTime.parse(homework.end!), timeZone);
           final formattedEndTime = DateFormat('h:mm a').format(endTime);
           timeDisplay = '$formattedTime - $formattedEndTime';
         } else {
@@ -4033,10 +4072,13 @@ class _HomeScreenState extends State<HomeScreen> {
       if (event.allDay) {
         timeDisplay = 'All day';
       } else {
-        final startTime = DateTime.parse(event.start);
+        final timeZone = tz.getLocation(_timeZone);
+        final startTime = tz.TZDateTime.from(DateTime.parse(event.start), timeZone);
         final formattedTime = DateFormat('h:mm a').format(startTime);
-        if (event.end != null && event.end!.isNotEmpty && event.start != event.end) {
-          final endTime = DateTime.parse(event.end!);
+        if (event.end != null &&
+            event.end!.isNotEmpty &&
+            event.start != event.end) {
+          final endTime = tz.TZDateTime.from(DateTime.parse(event.end!), timeZone);
           final formattedEndTime = DateFormat('h:mm a').format(endTime);
           timeDisplay = '$formattedTime - $formattedEndTime';
         } else {
@@ -4194,10 +4236,13 @@ class _HomeScreenState extends State<HomeScreen> {
       if (externalEvent.allDay) {
         timeDisplay = 'All day';
       } else {
-        final startTime = DateTime.parse(externalEvent.start);
+        final timeZone = tz.getLocation(_timeZone);
+        final startTime = tz.TZDateTime.from(DateTime.parse(externalEvent.start), timeZone);
         final formattedTime = DateFormat('h:mm a').format(startTime);
-        if (externalEvent.end != null && externalEvent.end!.isNotEmpty && externalEvent.start != externalEvent.end) {
-          final endTime = DateTime.parse(externalEvent.end!);
+        if (externalEvent.end != null &&
+            externalEvent.end!.isNotEmpty &&
+            externalEvent.start != externalEvent.end) {
+          final endTime = tz.TZDateTime.from(DateTime.parse(externalEvent.end!), timeZone);
           final formattedEndTime = DateFormat('h:mm a').format(endTime);
           timeDisplay = '$formattedTime - $formattedEndTime';
         } else {

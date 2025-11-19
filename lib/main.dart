@@ -10,9 +10,13 @@ import 'package:helium_student_flutter/utils/app_colors.dart';
 import 'package:helium_student_flutter/utils/app_size.dart';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:timezone/data/latest.dart' as tz;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  tz.initializeTimeZones();
+
   await Firebase.initializeApp();
 
   // Initialize FCM Service

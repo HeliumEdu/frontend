@@ -45,6 +45,7 @@ class PreferenceBloc extends Bloc<PreferenceEvent, PreferenceState> {
 
       final normalized = _normalizeHex(eventsColor);
       await _cacheEventColor(normalized);
+      await _cacheTimeZone(timeZone);
 
       emit(
         state.copyWith(
@@ -66,7 +67,6 @@ class PreferenceBloc extends Bloc<PreferenceEvent, PreferenceState> {
   }
 
   String _mapDefaultViewIndexToName(int index) {
-    // 0=list,1=month,2=week,3=day
     switch (index) {
       case 1:
         return 'Month';
@@ -162,6 +162,7 @@ class PreferenceBloc extends Bloc<PreferenceEvent, PreferenceState> {
 
       await authRepository.updateUserSettings(request);
       await _cacheEventColor(sanitizedColor);
+      await _cacheTimeZone(request.timeZone);
 
       emit(
         state.copyWith(
@@ -264,5 +265,11 @@ class PreferenceBloc extends Bloc<PreferenceEvent, PreferenceState> {
     await prefs.setString(_eventColorPrefsKey, _normalizeHex(hex));
   }
 
+  Future<void> _cacheTimeZone(String timeZone) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_userTimeZonePrefsKey, timeZone);
+  }
+
   static const String _eventColorPrefsKey = 'user_events_color';
+  static const String _userTimeZonePrefsKey = 'user_time_zone';
 }
