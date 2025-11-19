@@ -5,13 +5,15 @@ SHELL := /usr/bin/env bash
 all: test
 
 env:
-	cp -n .env.example .env | true
-
-	@if [[ -z "${ANDROID_GOOGLE_SERVICES_JSON}" ]] || \
-		[[ -z "${IOS_GOOGLE_SERVICES_PLIST}" ]]; then \
-		echo "Error: ANDROID_GOOGLE_SERVICES_JSON and IOS_GOOGLE_SERVICES_PLIST environment variables are required."; \
+	@if [[ -z "$${ANDROID_GOOGLE_SERVICES_JSON}" ]] || \
+		[[ -z "$${IOS_GOOGLE_SERVICES_PLIST}" ]]; then \
+		echo "Set all env vars required: [\
+ANDROID_GOOGLE_SERVICES_JSON, \
+IOS_GOOGLE_SERVICES_PLIST]"; \
 		exit 1; \
 	fi
+
+	cp -n .env.example .env | true
 
 	echo "$${ANDROID_GOOGLE_SERVICES_JSON}" > android/app/google-services.json
 	echo "$${IOS_GOOGLE_SERVICES_PLIST}" > ios/Runner/GoogleService-Info.plist
