@@ -8,7 +8,7 @@ class AppAssets {
   static const String materialIconFill = "assets/images/matrial-icon-fill.png";
   static const String gradeIcon = "assets/images/grade-icon.png";
   static const String gradeIconFill = "assets/images/grade-icon-fill.png";
-  static const String assignmentIcon = "assets/images/asignment-icon.png";
+  static const String assignmentIcon = "assets/images/assignment-icon.png";
   static const String completeIcon = "assets/images/complete-icon.png";
   static const String termsIcon = "assets/images/terms-icon.png";
 }

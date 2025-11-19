@@ -35,7 +35,9 @@ jobs:
           version: "3.38.1"
       - name: Decode Keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/debug-keystore.jks
-      - name: Build mobile
-        run: make build
-      - name: Test mobile
+      - name: Test
         run: make test
+      - name: Build iOS
+        run: make build-ios
+      - name: Build Android
+        run: make build-android

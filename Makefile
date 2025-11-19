@@ -24,8 +24,11 @@ install: env
 clean:
 	flutter clean
 
-build: install
+build-android: install
 	flutter build apk
+
+build-ios: install
+	flutter build ios
 
 test: install
 	flutter test
