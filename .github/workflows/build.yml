@@ -28,25 +28,17 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
           version: "3.38.1"
-      - uses: actions/setup-java@v4
-        with:
-          distribution: "temurin"
-          java-version: "17"
-      - uses: android-actions/setup-android@v3
-        with:
-          api-level: "36"
-          build-tools-version: "36.1.0"
       - name: Decode Keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/debug-keystore.jks
-      - name: Install
-        run: make install
-      - name: Check files
-        run: cat android/app/google-services.json
 #       - name: Test
 #         run: make test
       - name: Build iOS
