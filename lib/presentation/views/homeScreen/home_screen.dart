@@ -67,14 +67,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Color _eventColor = greenColor;
   static const Color _defaultExternalEventColor = Colors.purple;
   List<ExternalCalendarModel> _externalCalendars = [];
-  Map<int, bool> _selectedExternalCalendars = {};
   Map<int, List<ExternalCalendarEventModel>> _externalEventsByCalendar = {};
-  Set<int>? _savedExternalCalendarSelection;
 
   List<String> selectedCategories = [
     'Assignments',
     'Events',
     'Class Schedules',
+    'External Calendars',
   ];
   List<String> selectedCategoryFilters = [];
   Set<String> selectedStatuses = {};
@@ -154,18 +153,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final bool? savedState = prefs.containsKey('external_calendar_enabled')
         ? prefs.getBool('external_calendar_enabled')
         : null;
-    final savedSelection = prefs.getStringList(
-      'selected_external_calendar_ids',
-    );
-    if (savedSelection != null) {
-      _savedExternalCalendarSelection = savedSelection
-          .map((id) => int.tryParse(id))
-          .whereType<int>()
-          .toSet();
-    }
     setState(() {
       _externalCalendarPreferenceCached = savedState;
-      _externalCalendarEnabled = savedState ?? false;
+      _externalCalendarEnabled = savedState ?? true;
       if (_externalCalendarEnabled &&
           !selectedCategories.contains('External Calendars')) {
         selectedCategories.add('External Calendars');
@@ -236,15 +226,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final prefs = await SharedPreferences.getInstance();
     _externalCalendarPreferenceCached = value;
     await prefs.setBool('external_calendar_enabled', value);
-  }
-
-  Future<void> _persistSelectedExternalCalendars() async {
-    final prefs = await SharedPreferences.getInstance();
-    final selectedIds = _selectedExternalCalendars.entries
-        .where((entry) => entry.value)
-        .map((entry) => entry.key.toString())
-        .toList();
-    await prefs.setStringList('selected_external_calendar_ids', selectedIds);
   }
 
   void _applyExternalCalendarData(
@@ -1158,6 +1139,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             'Assignments',
                             'Events',
                             'Class Schedules',
+                            'External Calendars',
                           ];
                           selectedCategoryFilters = [];
                           selectedStatuses = {};
@@ -3942,8 +3924,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     // Category and Grade inline
                     ...(() {
                       final List<Widget> info = [];
-                      // Category (fallback to ID if title not available here)
-                      if (homework.category != null && homework.category! > 0) {
+                      if (homework.category != null) {
                         info.add(
                           Icon(
                             Icons.label_outline,
@@ -3954,7 +3935,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         info.add(SizedBox(width: 4.h));
                         info.add(
                           Text(
-                            'Category ${homework.category}',
+                            '${_categoryTitlesById[homework.category]}',
                             style: AppTextStyle.fTextStyle.copyWith(
                               color: assignmentColor.withOpacity(0.7),
                             ),
