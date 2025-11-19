@@ -664,7 +664,7 @@ $(document).ready(function () {
 
                                             // Build the course grading details div for this course
                                             category_table =
-                                                $("<table class=\"table table-striped table-bordered\"><thead><tr><th>Category</th><th class=\"hidden-xs\">Graded</th><th>Average Grade</th></tr></thead><tbody id=\"category-table-course-"
+                                                $("<table class=\"table table-striped table-bordered\"><thead><tr><th>Category</th><th class=\"hidden-xs\">Graded</th><th>Average</th></tr></thead><tbody id=\"category-table-course-"
                                                   + course.id + "\"></tbody></table>");
                                             category_table_body =
                                                 category_table.find("#category-table-course-" + course.id);
@@ -723,7 +723,7 @@ $(document).ready(function () {
                                                     course.has_weighted_grading
                                                     ? ("<div class=\"col-xs-12 col-md-3\"><div class=\"row\"><h5 class='align-center'>Weight Distribution</h5><hr /></div><div id=\"course-weight-piechart-"
                                                        + course.id
-                                                       + "\"></div></div><div class=\"col-xs-12 col-md-3\"><div class=\"row\"><h5 class='align-center'>Current Grade Distribution</h5><hr /></div><div id=\"course-grade-by-weight-piechart-"
+                                                       + "\"></div></div><div class=\"col-xs-12 col-md-3\"><div class=\"row\"><h5 class='align-center'>Current Distribution</h5><hr /></div><div id=\"course-grade-by-weight-piechart-"
                                                        + course.id + "\"></div></div>") : "";
                                                 course_body_div =
                                                     course_div.find("#course-body-" + course.id).append(
