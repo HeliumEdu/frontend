@@ -28,7 +28,7 @@ build-android: install
 	flutter build apk --release
 
 build-ios: install
-	flutter build ios --release --no-codesign
+	flutter build ipa --release --no-codesign
 
 test: install
 	flutter test
