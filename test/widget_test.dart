@@ -6,13 +6,19 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumedu/core/fcm_service.dart';
 import 'package:heliumedu/main.dart';
+
 import 'mock_firebase_setup.dart';
 
 void main() async {
   await mockFirebaseInitialiseApp();
+
+  setUpAll(() async {
+    await dotenv.load(fileName: ".env");
+  });
 
   group('HeliumEdu App Tests', () {
     testWidgets('App initializes with splash screen', (
