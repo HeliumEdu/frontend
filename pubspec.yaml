@@ -49,8 +49,8 @@ dependencies:
   file_picker: ^8.1.4
   share_plus: ^7.2.1
   change_app_package_name: ^1.5.0
-  firebase_core: ^3.15.2
-  firebase_messaging: ^15.2.10
+  firebase_core: ^4.2.1
+  firebase_messaging: ^16.0.4
   flutter_local_notifications: ^18.0.1
   timezone: ^0.10.1
   easy_stepper: ^0.8.5+1

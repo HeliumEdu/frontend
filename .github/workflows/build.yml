@@ -21,7 +21,6 @@ jobs:
 
     env:
       ANDROID_GOOGLE_SERVICES_JSON: ${{ secrets.ANDROID_GOOGLE_SERVICES_JSON }}
-      KEYSTORE_PATH: android/app/debug-keystore.jks
       IOS_GOOGLE_SERVICES_PLIST: ${{ secrets.IOS_GOOGLE_SERVICES_PLIST }}
 
     runs-on: macos-latest
@@ -43,8 +42,6 @@ jobs:
         with:
           channel: stable
           version: "3.38.1"
-#       - name: Decode Keystore
-#         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > $KEYSTORE_PATH
       - name: trigger pub
         run: flutter clean && flutter pub get && flutter test
       - name: Build Android

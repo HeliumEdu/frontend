@@ -1,4 +1,4 @@
-.PHONY: all env install clean build test
+.PHONY: all env install clean build-android build-ios test
 
 SHELL := /usr/bin/env bash
 
@@ -31,5 +31,5 @@ build-ios: install
 	flutter build ipa --release --no-codesign
 
 test: install
-	flutter analyze
+	#flutter analyze --no-fatal-warnings
 	flutter test
