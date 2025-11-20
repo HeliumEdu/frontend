@@ -139,7 +139,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         Text(
                           _emailSent
                               ? 'We have sent a password reset link to ${_controller.emailController.text}. Please check your inbox and spam folder.'
-                              : 'Enter your email address and we\'ll send you a link to reset your password.',
+                              : 'Enter the email associated with your account. We\'ll reset your password and send a temporary password to your email address.',
                           style: AppTextStyle.eTextStyle.copyWith(
                             color: textColor.withOpacity(0.7),
                             height: 1.5,
@@ -149,20 +149,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         SizedBox(height: 40.v),
 
                         if (!_emailSent) ...[
-                          // Email Field Label
-                          Text(
-                            'Email Address',
-                            style: AppTextStyle.cTextStyle.copyWith(
-                              color: textColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-
-                          SizedBox(height: 8.v),
-
                           // Email Field
                           CustomTextField(
-                            hintText: 'Enter your email',
+                            hintText: 'Email',
                             prefixIcon: Icons.email_outlined,
                             controller: _controller.emailController,
                             validator: _controller.validateEmail,
@@ -203,11 +192,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                       ),
                                     )
                                   : Text(
-                                      'Send Reset Link',
+                                      'Get It',
                                       style: AppTextStyle.mTextStyle.copyWith(
                                         color: Colors.white,
                                         fontWeight: FontWeight.w600,
-                                        fontSize: 16,
+                                         fontSize: 16,
                                       ),
                                     ),
                             ),

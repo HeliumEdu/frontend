@@ -244,20 +244,13 @@ class _SignUpScreenViewState extends State<SignUpScreenView> {
                     SizedBox(height: 28.v),
 
                     Text(
-                      'Create your account',
+                      'New User Registration',
                       style: AppTextStyle.hTextStyle.copyWith(
                         color: Colors.black87,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    SizedBox(height: 14.v),
 
-                    Text(
-                      'Let\'s get started',
-                      style: AppTextStyle.fTextStyle.copyWith(
-                        color: Colors.grey[600],
-                      ),
-                    ),
                     SizedBox(height: 44.v),
 
                     CustomTextField(
@@ -406,7 +399,7 @@ class _SignUpScreenViewState extends State<SignUpScreenView> {
                       builder: (context, state) {
                         final isLoading = state is AuthLoading;
                         return CustomTextButton(
-                          buttonText: 'Sign Up',
+                          buttonText: 'Sign Me Up',
                           onPressed: _handleSignUp,
                           isLoading: isLoading,
                         );

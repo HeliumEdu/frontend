@@ -335,28 +335,28 @@ class _GradesScreenState extends State<GradesScreen> {
                                         // Calculate real metrics from API data
                                         final totalGraded =
                                             selectedGroup.totalGradedHomework;
-                                        final totalCourses =
-                                            selectedGroup.courses.length;
                                         final totalAssignments = selectedGroup
                                             .courses
                                             .fold(
                                               0,
                                               (sum, course) =>
                                                   sum +
-                                                  course.numHomeworkGraded,
+                                                  course.numHomework,
                                             );
 
                                         // Calculate completion percentage
-                                        final completedAssignments =
-                                            selectedGroup.courses
-                                                .where(
-                                                  (course) => course.hasGrade,
-                                                )
-                                                .length;
+                                        final completedAssignments = selectedGroup
+                                            .courses
+                                            .fold(
+                                          0,
+                                              (sum, course) =>
+                                          sum +
+                                              course.numHomeworkCompleted,
+                                        );
                                         final completionPercentage =
-                                            totalCourses > 0
+                                        totalAssignments > 0
                                             ? (completedAssignments /
-                                                      totalCourses *
+                                                      totalAssignments *
                                                       100)
                                                   .round()
                                             : 0;

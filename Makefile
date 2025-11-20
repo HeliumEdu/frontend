@@ -22,7 +22,7 @@ install: env
 	flutter pub get
 
 install-ios: env
-	pod install
+	pod install --project-directory=ios
 
 clean:
 	flutter clean

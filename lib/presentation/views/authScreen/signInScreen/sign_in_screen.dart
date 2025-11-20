@@ -136,22 +136,10 @@ class _SignInScreenViewState extends State<SignInScreenView> {
                         width: 600.h,
                       ),
                     ),
-                    SizedBox(height: 44.h),
-                    Text(
-                      'Welcome Back!!',
-                      style: AppTextStyle.hTextStyle.copyWith(color: textColor),
-                    ),
-                    SizedBox(height: 22.h),
-                    Text(
-                      'Sign In to Continue',
-                      style: AppTextStyle.mTextStyle.copyWith(
-                        color: Colors.blueGrey,
-                      ),
-                    ),
-                    SizedBox(height: 44.h),
+                    SizedBox(height: 140.h),
 
                     CustomTextField(
-                      hintText: 'Enter Username',
+                      hintText: 'Username',
                       prefixIcon: Icons.person,
                       controller: _controller.usernameController,
                       validator: _controller.validateUsername,
@@ -160,7 +148,7 @@ class _SignInScreenViewState extends State<SignInScreenView> {
                     SizedBox(height: 32.h),
 
                     CustomTextField(
-                      hintText: 'Enter Password',
+                      hintText: 'Password',
                       prefixIcon: Icons.lock,
                       controller: _controller.passwordController,
                       validator: _controller.validatePassword,
@@ -196,7 +184,7 @@ class _SignInScreenViewState extends State<SignInScreenView> {
                       child: Align(
                         alignment: Alignment.centerRight,
                         child: Text(
-                          'Forgot Password?',
+                          'Forgot your password?',
                           style: AppTextStyle.fTextStyle.copyWith(
                             color: primaryColor,
                           ),
@@ -250,19 +238,19 @@ class _SignInScreenViewState extends State<SignInScreenView> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'Don\'t have a account ',
+                            'Need an account? ',
                             style: AppTextStyle.mTextStyle.copyWith(
                               color: textColor,
                             ),
                           ),
                           Text(
-                            'Sign Up ',
+                            'Sign Up',
                             style: AppTextStyle.cTextStyle.copyWith(
                               decoration: TextDecoration.underline,
                               decorationColor: primaryColor,
                               color: primaryColor,
                             ),
-                          ),
+                          )
                         ],
                       ),
                     ),
