@@ -735,20 +735,19 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
   Future<void> _pickFile() async {
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'],
+          type: FileType.any
       );
 
       if (result != null) {
         final file = File(result.files.single.path!);
         final fileSize = await file.length();
 
-        // Check file size (max 10MB)
+        // Check file size (max 10mb)
         if (fileSize > 10 * 1024 * 1024) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('File size exceeds 10MB limit'),
+                content: Text('File size exceeds 10mb limit'),
                 backgroundColor: redColor,
               ),
             );
@@ -1189,7 +1188,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                       Icon(Icons.add, color: whiteColor, size: 20),
                       SizedBox(width: 6.h),
                       Text(
-                        'Add Event Reminder',
+                        'Reminder',
                         style: AppTextStyle.cTextStyle.copyWith(
                           color: whiteColor,
                           fontWeight: FontWeight.w600,
@@ -1372,14 +1371,6 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                         }),
                         SizedBox(height: 12.v),
                       ],
-                      Text(
-                        'Upload File (Optional)',
-                        style: AppTextStyle.eTextStyle.copyWith(
-                          color: blackColor.withOpacity(0.8),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      SizedBox(height: 8.v),
 
                       // File Upload Container
                       GestureDetector(
@@ -1484,15 +1475,6 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                                     ),
                                   ],
                                 ),
-                        ),
-                      ),
-
-                      SizedBox(height: 8.v),
-                      Text(
-                        'Supported formats: PDF, DOC, DOCX, JPG, PNG',
-                        style: AppTextStyle.eTextStyle.copyWith(
-                          color: blackColor.withOpacity(0.5),
-                          fontSize: 12,
                         ),
                       ),
 

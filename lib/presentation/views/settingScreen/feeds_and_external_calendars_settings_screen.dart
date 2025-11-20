@@ -19,8 +19,8 @@ import 'package:heliumedu/utils/app_size.dart';
 import 'package:heliumedu/utils/app_text_style.dart';
 import 'package:share_plus/share_plus.dart';
 
-class FeedSettingsScreen extends StatelessWidget {
-  const FeedSettingsScreen({super.key});
+class FeedsAndExternalCalendarsSettingsScreen extends StatelessWidget {
+  const FeedsAndExternalCalendarsSettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -537,7 +537,7 @@ class FeedSettingsView extends StatelessWidget {
                                         ),
                                         SizedBox(height: 4.v),
                                         Text(
-                                          'Toggle to disable if you no longer want feeds to work',
+                                          'Toggle if you want to disable Feeds',
                                           style: AppTextStyle.cTextStyle
                                               .copyWith(
                                                 color: textColor.withOpacity(
@@ -563,23 +563,6 @@ class FeedSettingsView extends StatelessWidget {
                               ),
                             ),
                             SizedBox(height: 24.v),
-                            Text(
-                              'Calendar Feeds',
-                              style: AppTextStyle.aTextStyle.copyWith(
-                                color: textColor,
-                                fontSize: 24,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            SizedBox(height: 8.v),
-                            Text(
-                              'Sync your schedule with Google Calendar or other calendar apps',
-                              style: AppTextStyle.cTextStyle.copyWith(
-                                color: textColor.withOpacity(0.6),
-                                height: 1.4,
-                              ),
-                            ),
-                            SizedBox(height: 24.v),
 
                             // Assignments Card
                             _buildFeedCard(
@@ -588,7 +571,6 @@ class FeedSettingsView extends StatelessWidget {
                               iconColor: Colors.orange[600]!,
                               iconBgColor: Colors.orange,
                               title: 'Assignments',
-                              subtitle: 'Homework & assignments',
                               url: state.privateFeed.homeworkUrl,
                               label: 'Assignments',
                               buttonColor: Colors.orange,
@@ -603,7 +585,6 @@ class FeedSettingsView extends StatelessWidget {
                               iconColor: primaryColor,
                               iconBgColor: primaryColor,
                               title: 'Class Schedule',
-                              subtitle: 'All classes & lectures',
                               url: state.privateFeed.classSchedulesUrl,
                               label: 'Class Schedule',
                               buttonColor: primaryColor,
@@ -618,74 +599,12 @@ class FeedSettingsView extends StatelessWidget {
                               iconColor: greenColor,
                               iconBgColor: greenColor,
                               title: 'Events',
-                              subtitle: 'Campus events & activities',
                               url: state.privateFeed.eventsUrl,
                               label: 'Events',
                               buttonColor: greenColor,
                             ),
 
                             SizedBox(height: 24.v),
-
-                            // Information Box
-                            Container(
-                              padding: EdgeInsets.all(16.h),
-                              decoration: BoxDecoration(
-                                color: primaryColor.withOpacity(0.08),
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(
-                                  color: primaryColor.withOpacity(0.2),
-                                ),
-                              ),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    padding: EdgeInsets.all(8.h),
-                                    decoration: BoxDecoration(
-                                      color: primaryColor.withOpacity(0.15),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Icon(
-                                      Icons.info_outline_rounded,
-                                      color: primaryColor,
-                                      size: 20,
-                                    ),
-                                  ),
-                                  SizedBox(width: 12.h),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'About Private Feeds',
-                                          style: AppTextStyle.bTextStyle
-                                              .copyWith(
-                                                color: primaryColor,
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 14,
-                                              ),
-                                        ),
-                                        SizedBox(height: 6.v),
-                                        Text(
-                                          'Private feed URLs can be added to Google Calendar, Outlook, Apple Calendar, and other compatible calendar applications to sync your Helium schedule.',
-                                          style: AppTextStyle.eTextStyle
-                                              .copyWith(
-                                                color: textColor.withOpacity(
-                                                  0.7,
-                                                ),
-                                                height: 1.5,
-                                                fontSize: 13,
-                                              ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            SizedBox(height: 16.v),
 
                             // Security Warning
                             Container(
@@ -707,7 +626,7 @@ class FeedSettingsView extends StatelessWidget {
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Icon(
-                                      Icons.lock_outline_rounded,
+                                      Icons.privacy_tip_outlined,
                                       color: Colors.amber[700],
                                       size: 20,
                                     ),
@@ -719,17 +638,7 @@ class FeedSettingsView extends StatelessWidget {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          'Security Notice',
-                                          style: AppTextStyle.bTextStyle
-                                              .copyWith(
-                                                color: Colors.amber[900],
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 14,
-                                              ),
-                                        ),
-                                        SizedBox(height: 6.v),
-                                        Text(
-                                          'Keep your feed URLs private and secure. If compromised, regenerate them by disabling and re-enabling private feeds.',
+                                          'Keep private feed URLs secret. If a feed is compromised, disabling and re-enabling feeds will regenerate URLs.',
                                           style: AppTextStyle.eTextStyle
                                               .copyWith(
                                                 color: textColor.withOpacity(
@@ -918,7 +827,6 @@ class FeedSettingsView extends StatelessWidget {
     required Color iconColor,
     required Color iconBgColor,
     required String title,
-    required String subtitle,
     required String url,
     required String label,
     required Color buttonColor,
@@ -963,14 +871,6 @@ class FeedSettingsView extends StatelessWidget {
                           fontSize: 16,
                         ),
                       ),
-                      SizedBox(height: 2.v),
-                      Text(
-                        subtitle,
-                        style: AppTextStyle.fTextStyle.copyWith(
-                          color: textColor.withOpacity(0.5),
-                          fontSize: 12,
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -983,15 +883,6 @@ class FeedSettingsView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Private Feed URL',
-                  style: AppTextStyle.fTextStyle.copyWith(
-                    color: textColor.withOpacity(0.7),
-                    fontWeight: FontWeight.w500,
-                    fontSize: 12,
-                  ),
-                ),
-                SizedBox(height: 10.v),
                 Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: 12.h,
@@ -1009,7 +900,7 @@ class FeedSettingsView extends StatelessWidget {
                       fontSize: 11,
                       height: 1.5,
                     ),
-                    maxLines: 4,
+                    maxLines: 2,
                   ),
                 ),
                 SizedBox(height: 12.v),

@@ -8,11 +8,14 @@
 import 'dart:io';
 
 import 'package:easy_stepper/easy_stepper.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumedu/config/app_routes.dart';
 import 'package:heliumedu/core/dio_client.dart';
+import 'package:heliumedu/data/datasources/attachment_remote_data_source.dart';
 import 'package:heliumedu/data/datasources/course_remote_data_source.dart';
+import 'package:heliumedu/data/models/planner/attachment_model.dart';
 import 'package:heliumedu/data/models/planner/category_model.dart';
 import 'package:heliumedu/data/models/planner/category_request_model.dart';
 import 'package:heliumedu/data/repositories/course_repository_impl.dart';
@@ -22,7 +25,8 @@ import 'package:heliumedu/presentation/bloc/courseBloc/course_state.dart';
 import 'package:heliumedu/utils/app_colors.dart';
 import 'package:heliumedu/utils/app_size.dart';
 import 'package:heliumedu/utils/app_text_style.dart';
-import 'package:image_picker/image_picker.dart';
+
+import '../../../data/repositories/attachment_repository_impl.dart';
 
 class AddClassesCategoriesScreen extends StatefulWidget {
   final int courseId;
@@ -50,8 +54,10 @@ class _AddClassesCategoriesScreenState
       TextEditingController();
 
   late CourseBloc _courseBloc;
-  List<File> selectedFiles = [];
-  bool _isUploading = false;
+  String? uploadedFileName;
+  File? _selectedFile;
+  bool _isSubmitting = false;
+  List<AttachmentModel> _serverAttachments = [];
 
   @override
   void initState() {
@@ -67,7 +73,123 @@ class _AddClassesCategoriesScreenState
         courseId: widget.courseId,
       ),
     );
-    _courseBloc.add(FetchAttachmentsEvent(courseId: widget.courseId));
+    _refreshAttachments();
+  }
+
+  Future<void> _refreshAttachments() async {
+    if (widget.courseId == null) return;
+    try {
+      final attachmentDataSource = AttachmentRemoteDataSourceImpl(
+        dioClient: DioClient(),
+      );
+      final attachments = await attachmentDataSource.getAttachments();
+      setState(() {
+        _serverAttachments = attachments
+            .where((a) => a.course == widget.courseId)
+            .toList();
+      });
+    } catch (e) {
+      // Non-blocking
+      debugPrint('Failed to load attachments: $e');
+    }
+  }
+
+  Future<void> _confirmDeleteAttachment(AttachmentModel attachment) async {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(
+          'Delete Attachment',
+          style: AppTextStyle.cTextStyle.copyWith(fontWeight: FontWeight.w600),
+        ),
+        content: Text(
+          'Are you sure you want to delete this attachment?',
+          style: AppTextStyle.eTextStyle,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(
+              'Cancel',
+              style: AppTextStyle.eTextStyle.copyWith(color: greyColor),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              try {
+                final attachmentDataSource = AttachmentRemoteDataSourceImpl(
+                  dioClient: DioClient(),
+                );
+                await attachmentDataSource.deleteAttachment(attachment.id);
+                await _refreshAttachments();
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Attachment deleted'),
+                      backgroundColor: greenColor,
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Failed to delete: $e'),
+                      backgroundColor: redColor,
+                    ),
+                  );
+                }
+              }
+            },
+            child: Text(
+              'Delete',
+              style: AppTextStyle.eTextStyle.copyWith(color: redColor),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _pickFile() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.any,
+      );
+
+      if (result != null && result.files.single.path != null) {
+        final file = File(result.files.single.path!);
+        final fileSize = await file.length();
+
+        // Check file size (max 10mb)
+        if (fileSize > 10 * 1024 * 1024) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('File size exceeds 10mb limit'),
+                backgroundColor: redColor,
+              ),
+            );
+          }
+          return;
+        }
+
+        setState(() {
+          _selectedFile = file;
+          uploadedFileName = result.files.single.name;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error picking file: $e'),
+            backgroundColor: redColor,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -107,131 +229,45 @@ class _AddClassesCategoriesScreenState
     }
   }
 
-  // Show image source selection dialog
-  Future<void> _showImageSourceDialog() async {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.adaptSize),
-        ),
-        title: Text(
-          'Select Image Source',
-          style: AppTextStyle.bTextStyle.copyWith(color: blackColor),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: Icon(Icons.photo_library, color: primaryColor),
-              title: Text(
-                'Gallery',
-                style: AppTextStyle.cTextStyle.copyWith(color: blackColor),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                _pickImages(ImageSource.gallery);
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.camera_alt, color: primaryColor),
-              title: Text(
-                'Camera',
-                style: AppTextStyle.cTextStyle.copyWith(color: blackColor),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                _pickImages(ImageSource.camera);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  Future<void> _handleSubmit() async {
+    setState(() {
+      _isSubmitting = true;
+    });
 
-  Future<void> _pickImages(ImageSource source) async {
     try {
-      final ImagePicker picker = ImagePicker();
+      final courseId = widget.courseId;
 
-      if (source == ImageSource.gallery) {
-        // Pick multiple images from gallery
-        final List<XFile> images = await picker.pickMultiImage();
-        if (images.isNotEmpty) {
-          setState(() {
-            selectedFiles.addAll(images.map((xFile) => File(xFile.path)));
-          });
-        }
-      } else {
-        // Pick single image from camera
-        final XFile? image = await picker.pickImage(source: ImageSource.camera);
-        if (image != null) {
-          setState(() {
-            selectedFiles.add(File(image.path));
-          });
-        }
+      // Step 2: Upload Attachment (if file is selected)
+      if (_selectedFile != null) {
+        print('📎 Uploading attachment...');
+        final attachmentDataSource = AttachmentRemoteDataSourceImpl(
+          dioClient: DioClient(),
+        );
+        final attachmentRepo = AttachmentRepositoryImpl(
+          remoteDataSource: attachmentDataSource,
+        );
+
+        await attachmentRepo.createAttachment(
+          file: _selectedFile!,
+          course: courseId,
+        );
+        print('✅ Attachment uploaded successfully');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Failed to pick images: $e',
-            style: AppTextStyle.cTextStyle.copyWith(color: whiteColor),
-          ),
-          backgroundColor: redColor,
-        ),
-      );
-    }
-  }
-
-  Future<void> _uploadFiles() async {
-    if (selectedFiles.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Please select at least one file',
-            style: AppTextStyle.cTextStyle.copyWith(color: whiteColor),
-          ),
-          backgroundColor: redColor,
-        ),
-      );
-      return;
-    }
-
-    // Validate file sizes (max 10MB per file)
-    for (var file in selectedFiles) {
-      final fileSizeInBytes = file.lengthSync();
-      final fileSizeInMB = fileSizeInBytes / (1024 * 1024);
-      if (fileSizeInMB > 10) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'File ${file.path.split('/').last} exceeds 10MB limit',
-              style: AppTextStyle.cTextStyle.copyWith(color: whiteColor),
-            ),
+            content: Text('Error: ${e.toString()}'),
             backgroundColor: redColor,
           ),
         );
-        return;
       }
-    }
-
-    setState(() {
-      _isUploading = true;
-    });
-
-    _courseBloc.add(
-      UploadAttachmentsEvent(files: selectedFiles, courseId: widget.courseId),
-    );
-  }
-
-  String _formatFileSize(int bytes) {
-    if (bytes < 1024) {
-      return '$bytes B';
-    } else if (bytes < 1024 * 1024) {
-      return '${(bytes / 1024).toStringAsFixed(1)} KB';
-    } else {
-      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
     }
   }
 
@@ -728,102 +764,6 @@ class _AddClassesCategoriesScreenState
                     SizedBox(height: 4.v),
                     Text(
                       errorMessage,
-                      style: AppTextStyle.iTextStyle.copyWith(
-                        color: whiteColor,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-                backgroundColor: redColor,
-                duration: const Duration(seconds: 5),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-          } else if (state is AttachmentsUploading) {
-            setState(() {
-              _isUploading = true;
-            });
-          } else if (state is AttachmentsUploaded) {
-            setState(() {
-              _isUploading = false;
-              selectedFiles.clear();
-            });
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  'Images uploaded successfully!',
-                  style: AppTextStyle.cTextStyle.copyWith(color: whiteColor),
-                ),
-                backgroundColor: Colors.green,
-                duration: const Duration(seconds: 2),
-              ),
-            );
-
-            _courseBloc.add(FetchAttachmentsEvent(courseId: widget.courseId));
-          } else if (state is AttachmentsUploadError) {
-            setState(() {
-              _isUploading = false;
-            });
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Failed to upload images',
-                      style: AppTextStyle.cTextStyle.copyWith(
-                        color: whiteColor,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 4.v),
-                    Text(
-                      state.message,
-                      style: AppTextStyle.iTextStyle.copyWith(
-                        color: whiteColor,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-                backgroundColor: redColor,
-                duration: const Duration(seconds: 5),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-          } else if (state is AttachmentDeleted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  'File deleted successfully!',
-                  style: AppTextStyle.cTextStyle.copyWith(color: whiteColor),
-                ),
-                backgroundColor: Colors.green,
-                duration: const Duration(seconds: 2),
-              ),
-            );
-            _courseBloc.add(FetchAttachmentsEvent(courseId: widget.courseId));
-          } else if (state is AttachmentDeleteError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Failed to delete file',
-                      style: AppTextStyle.cTextStyle.copyWith(
-                        color: whiteColor,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 4.v),
-                    Text(
-                      state.message,
                       style: AppTextStyle.iTextStyle.copyWith(
                         color: whiteColor,
                         fontSize: 12,
@@ -1381,443 +1321,168 @@ class _AddClassesCategoriesScreenState
                           thickness: 1,
                         ),
                         SizedBox(height: 32.v),
+
+                        // Attachments Section
                         Text(
-                          'Upload File',
-                          style: AppTextStyle.bTextStyle.copyWith(
+                          'Attachments',
+                          style: AppTextStyle.cTextStyle.copyWith(
                             color: blackColor,
                             fontWeight: FontWeight.w600,
+                            fontSize: 16,
                           ),
                         ),
-                        SizedBox(height: 16.v),
-                        GestureDetector(
-                          onTap: _isUploading ? null : _showImageSourceDialog,
-                          child: Container(
-                            padding: EdgeInsets.symmetric(vertical: 40.v),
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: _isUploading ? greyColor : primaryColor,
-                                width: 2,
-                              ),
-                              color: _isUploading
-                                  ? greyColor.withOpacity(0.05)
-                                  : primaryColor.withOpacity(0.08),
-                              borderRadius: BorderRadius.circular(12.adaptSize),
-                            ),
-                            child: Center(
-                              child: Column(
-                                children: [
-                                  Icon(
-                                    Icons.cloud_upload_outlined,
-                                    color: _isUploading
-                                        ? greyColor
-                                        : primaryColor,
-                                    size: 40,
-                                  ),
-                                  SizedBox(height: 12.v),
-                                  Text(
-                                    selectedFiles.isEmpty
-                                        ? 'Click to select images'
-                                        : '${selectedFiles.length} image(s) selected',
-                                    style: AppTextStyle.cTextStyle.copyWith(
-                                      color: _isUploading
-                                          ? greyColor
-                                          : primaryColor,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  if (selectedFiles.isEmpty)
-                                    Padding(
-                                      padding: EdgeInsets.only(top: 4.v),
-                                      child: Text(
-                                        'Max 10MB per file',
-                                        style: AppTextStyle.iTextStyle.copyWith(
-                                          color: textColor.withOpacity(0.5),
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
+                        SizedBox(height: 12.v),
 
-                        // Selected Files List
-                        if (selectedFiles.isNotEmpty) ...[
-                          SizedBox(height: 16.v),
-                          ...selectedFiles.map((file) {
-                            final fileName = file.path.split('/').last;
-                            final fileSize = file.lengthSync();
+                        if (_serverAttachments.isNotEmpty) ...[
+                          ..._serverAttachments.map((att) {
                             return Container(
-                              margin: EdgeInsets.only(bottom: 8.v),
+                              margin: EdgeInsets.only(bottom: 10.v),
                               padding: EdgeInsets.all(12.h),
                               decoration: BoxDecoration(
                                 color: whiteColor,
+                                border: Border.all(color: softGrey, width: 1),
                                 borderRadius: BorderRadius.circular(
                                   8.adaptSize,
                                 ),
-                                border: Border.all(color: softGrey, width: 1),
                               ),
                               child: Row(
                                 children: [
                                   Icon(
-                                    Icons.image,
+                                    Icons.insert_drive_file,
                                     color: primaryColor,
-                                    size: 20.adaptSize,
+                                    size: 20,
                                   ),
                                   SizedBox(width: 8.h),
                                   Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          fileName,
-                                          style: AppTextStyle.cTextStyle
-                                              .copyWith(
-                                                color: blackColor,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        SizedBox(height: 2.v),
-                                        Text(
-                                          _formatFileSize(fileSize),
-                                          style: AppTextStyle.iTextStyle
-                                              .copyWith(
-                                                color: textColor.withOpacity(
-                                                  0.6,
-                                                ),
-                                                fontSize: 11,
-                                              ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  if (!_isUploading)
-                                    GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          selectedFiles.remove(file);
-                                        });
-                                      },
-                                      child: Icon(
-                                        Icons.close,
-                                        color: redColor,
-                                        size: 20.adaptSize,
+                                    child: Text(
+                                      att.title,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: AppTextStyle.eTextStyle.copyWith(
+                                        color: blackColor,
                                       ),
                                     ),
+                                  ),
+                                  SizedBox(width: 8.h),
+                                  GestureDetector(
+                                    onTap: () => _confirmDeleteAttachment(att),
+                                    child: Icon(
+                                      Icons.delete_outline,
+                                      color: redColor,
+                                      size: 20.adaptSize,
+                                    ),
+                                  ),
                                 ],
                               ),
                             );
                           }),
+                          SizedBox(height: 12.v),
                         ],
 
-                        SizedBox(height: 32.v),
-
-                        // Upload Button
-                        if (selectedFiles.isNotEmpty)
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: _isUploading ? null : _uploadFiles,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: _isUploading
-                                    ? primaryColor.withOpacity(0.6)
-                                    : primaryColor,
-                                padding: EdgeInsets.symmetric(vertical: 14.v),
-                                elevation: 2,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(
-                                    8.adaptSize,
-                                  ),
-                                ),
+                        // File Upload Container
+                        GestureDetector(
+                          onTap: _pickFile,
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 14.h,
+                              vertical: 16.v,
+                            ),
+                            decoration: BoxDecoration(
+                              color: whiteColor,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: uploadedFileName != null
+                                    ? primaryColor
+                                    : primaryColor.withOpacity(0.3),
+                                width: 1.5,
                               ),
-                              child: _isUploading
-                                  ? Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        SizedBox(
-                                          width: 20.adaptSize,
-                                          height: 20.adaptSize,
-                                          child: CircularProgressIndicator(
-                                            color: whiteColor,
-                                            strokeWidth: 2,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: blackColor.withOpacity(0.03),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: uploadedFileName != null
+                                ? Row(
+                                    children: [
+                                      Container(
+                                        padding: EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: primaryColor.withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
                                           ),
                                         ),
-                                        SizedBox(width: 12.h),
-                                        Text(
-                                          'Uploading...',
-                                          style: AppTextStyle.bTextStyle
-                                              .copyWith(
-                                                color: whiteColor,
-                                                fontWeight: FontWeight.w600,
-                                              ),
+                                        child: Icon(
+                                          Icons.insert_drive_file,
+                                          color: primaryColor,
+                                          size: 20,
                                         ),
-                                      ],
-                                    )
-                                  : Text(
-                                      'Upload Images',
-                                      style: AppTextStyle.bTextStyle.copyWith(
-                                        color: whiteColor,
-                                        fontWeight: FontWeight.w600,
                                       ),
-                                    ),
-                            ),
-                          ),
-
-                        // Uploaded Files List
-                        SizedBox(height: 32.v),
-                        Divider(
-                          color: greyColor.withOpacity(0.2),
-                          thickness: 1,
-                        ),
-                        SizedBox(height: 16.v),
-                        Text(
-                          'Attachments',
-                          style: AppTextStyle.bTextStyle.copyWith(
-                            color: blackColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        SizedBox(height: 16.v),
-
-                        // BlocBuilder for Attachments List
-                        BlocBuilder<CourseBloc, CourseState>(
-                          buildWhen: (previous, current) {
-                            return current is AttachmentsLoading ||
-                                current is AttachmentsLoaded ||
-                                current is AttachmentsError;
-                          },
-                          builder: (context, state) {
-                            if (state is AttachmentsLoading) {
-                              return Center(
-                                child: Padding(
-                                  padding: EdgeInsets.all(20.v),
-                                  child: CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation(
-                                      whiteColor,
-                                    ),
-                                    color: primaryColor,
-                                  ),
-                                ),
-                              );
-                            } else if (state is AttachmentsError) {
-                              return Center(
-                                child: Padding(
-                                  padding: EdgeInsets.all(20.v),
-                                  child: Column(
+                                      SizedBox(width: 12.h),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              uploadedFileName!,
+                                              style: AppTextStyle.eTextStyle
+                                                  .copyWith(
+                                                    color: blackColor,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            SizedBox(height: 2.v),
+                                            Text(
+                                              'Tap to change file',
+                                              style: AppTextStyle.eTextStyle
+                                                  .copyWith(
+                                                    color: blackColor
+                                                        .withOpacity(0.5),
+                                                    fontSize: 12,
+                                                  ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: Icon(
+                                          Icons.close,
+                                          color: Colors.red,
+                                          size: 20,
+                                        ),
+                                        onPressed: () {
+                                          setState(() {
+                                            uploadedFileName = null;
+                                          });
+                                        },
+                                      ),
+                                    ],
+                                  )
+                                : Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Icon(
-                                        Icons.error_outline,
-                                        color: redColor,
-                                        size: 40.adaptSize,
+                                        Icons.cloud_upload_outlined,
+                                        color: primaryColor,
+                                        size: 24,
                                       ),
-                                      SizedBox(height: 8.v),
+                                      SizedBox(width: 12.h),
                                       Text(
-                                        state.message,
-                                        style: AppTextStyle.cTextStyle.copyWith(
-                                          color: redColor,
+                                        'Choose File',
+                                        style: AppTextStyle.eTextStyle.copyWith(
+                                          color: primaryColor,
+                                          fontWeight: FontWeight.w600,
                                         ),
-                                        textAlign: TextAlign.center,
                                       ),
                                     ],
                                   ),
-                                ),
-                              );
-                            } else if (state is AttachmentsLoaded) {
-                              if (state.attachments.isEmpty) {
-                                return Center(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(20.v),
-                                    child: Text(
-                                      'No files uploaded yet',
-                                      style: AppTextStyle.cTextStyle.copyWith(
-                                        color: textColor.withOpacity(0.5),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              }
-
-                              return Column(
-                                children: state.attachments.map((attachment) {
-                                  return Container(
-                                    margin: EdgeInsets.only(bottom: 12.v),
-                                    padding: EdgeInsets.all(16.h),
-                                    decoration: BoxDecoration(
-                                      color: whiteColor,
-                                      borderRadius: BorderRadius.circular(
-                                        10.adaptSize,
-                                      ),
-                                      border: Border.all(
-                                        color: softGrey,
-                                        width: 1,
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: blackColor.withOpacity(0.04),
-                                          blurRadius: 6,
-                                          offset: Offset(0, 1),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          padding: EdgeInsets.all(8.h),
-                                          decoration: BoxDecoration(
-                                            color: primaryColor.withOpacity(
-                                              0.1,
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                              8.adaptSize,
-                                            ),
-                                          ),
-                                          child: Icon(
-                                            Icons.image,
-                                            color: primaryColor,
-                                            size: 24.adaptSize,
-                                          ),
-                                        ),
-                                        SizedBox(width: 12.h),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                attachment.title,
-                                                style: AppTextStyle.cTextStyle
-                                                    .copyWith(
-                                                      color: blackColor,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                    ),
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                              SizedBox(height: 4.v),
-                                              Text(
-                                                attachment.getFormattedSize(),
-                                                style: AppTextStyle.iTextStyle
-                                                    .copyWith(
-                                                      color: textColor
-                                                          .withOpacity(0.6),
-                                                      fontSize: 12.fSize,
-                                                    ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        GestureDetector(
-                                          onTap: () {
-                                            showDialog(
-                                              context: context,
-                                              builder: (confirmContext) {
-                                                return AlertDialog(
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          12.adaptSize,
-                                                        ),
-                                                  ),
-                                                  title: Text(
-                                                    'Delete File',
-                                                    style: AppTextStyle
-                                                        .bTextStyle
-                                                        .copyWith(
-                                                          color: textColor,
-                                                        ),
-                                                  ),
-                                                  content: Text(
-                                                    'Are you sure you want to delete "${attachment.title}"? This action cannot be undone.',
-                                                    style: AppTextStyle
-                                                        .cTextStyle
-                                                        .copyWith(
-                                                          color: textColor
-                                                              .withOpacity(0.7),
-                                                        ),
-                                                  ),
-                                                  actions: [
-                                                    TextButton(
-                                                      onPressed: () {
-                                                        Navigator.pop(
-                                                          confirmContext,
-                                                        );
-                                                      },
-                                                      child: Text(
-                                                        'Cancel',
-                                                        style: AppTextStyle
-                                                            .cTextStyle
-                                                            .copyWith(
-                                                              color: textColor,
-                                                            ),
-                                                      ),
-                                                    ),
-                                                    ElevatedButton(
-                                                      onPressed: () {
-                                                        Navigator.pop(
-                                                          confirmContext,
-                                                        );
-                                                        _courseBloc.add(
-                                                          DeleteAttachmentEvent(
-                                                            attachmentId:
-                                                                attachment.id,
-                                                          ),
-                                                        );
-                                                      },
-                                                      style: ElevatedButton.styleFrom(
-                                                        backgroundColor:
-                                                            redColor,
-                                                        shape: RoundedRectangleBorder(
-                                                          borderRadius:
-                                                              BorderRadius.circular(
-                                                                8.adaptSize,
-                                                              ),
-                                                        ),
-                                                      ),
-                                                      child: Text(
-                                                        'Delete',
-                                                        style: AppTextStyle
-                                                            .cTextStyle
-                                                            .copyWith(
-                                                              color: whiteColor,
-                                                            ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                );
-                                              },
-                                            );
-                                          },
-                                          child: Icon(
-                                            Icons.delete,
-                                            color: redColor,
-                                            size: 20.adaptSize,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }).toList(),
-                              );
-                            }
-
-                            return Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(20.v),
-                                child: Text(
-                                  'Loading files...',
-                                  style: AppTextStyle.cTextStyle.copyWith(
-                                    color: textColor.withOpacity(0.5),
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
+                          ),
                         ),
 
                         SizedBox(height: 32.v),
@@ -1825,10 +1490,7 @@ class _AddClassesCategoriesScreenState
                           width: double.infinity,
                           child: ElevatedButton(
                             onPressed: () {
-                              // Upload any pending images first
-                              if (selectedFiles.isNotEmpty && !_isUploading) {
-                                _uploadFiles();
-                              }
+                              _isSubmitting ? null : _handleSubmit();
 
                               // Close and toast once all is triggered
                               Navigator.popUntil(

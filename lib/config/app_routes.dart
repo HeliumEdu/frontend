@@ -21,10 +21,10 @@ import 'package:heliumedu/presentation/views/calendarScreen/calendar_screen.dart
 import 'package:heliumedu/presentation/views/materialsScreen/add_material_screen.dart';
 import 'package:heliumedu/presentation/views/materialsScreen/materials_screen.dart';
 import 'package:heliumedu/presentation/views/settingScreen/change_password_screen.dart';
+import 'package:heliumedu/presentation/views/settingScreen/feeds_and_external_calendars_settings_screen.dart';
 import 'package:heliumedu/presentation/views/settingScreen/notification_screen.dart';
 import 'package:heliumedu/presentation/views/settingScreen/preference_screen.dart';
 import 'package:heliumedu/presentation/views/settingScreen/setting_screen.dart';
-import 'package:heliumedu/presentation/views/settingScreen/feed_settings_screen.dart';
 import 'package:heliumedu/presentation/views/splashScreen/splash_screen.dart';
 
 class AppRoutes {
@@ -153,7 +153,7 @@ class AppRoutes {
 
         return EventReminderScreen(eventRequest: args?['eventRequest']);
       },
-      feedSettingsScreen: (context) => const FeedSettingsScreen(),
+      feedSettingsScreen: (context) => const FeedsAndExternalCalendarsSettingsScreen(),
       // notificationTestScreen: (context) => const NotificationTestScreen(),
     };
   }

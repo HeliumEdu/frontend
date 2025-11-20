@@ -54,7 +54,7 @@ class AttachmentRemoteDataSourceImpl implements AttachmentRemoteDataSource {
       } else if (statusCode == 404) {
         return ServerException(message: 'Attachment not found');
       } else if (statusCode == 413) {
-        return ValidationException(message: 'File size exceeds 10MB limit');
+        return ValidationException(message: 'File size exceeds 10mb limit');
       } else if (statusCode != null && statusCode >= 500) {
         return ServerException(message: 'Server error occurred');
       }
@@ -85,10 +85,10 @@ class AttachmentRemoteDataSourceImpl implements AttachmentRemoteDataSource {
         );
       }
 
-      // Check file size (max 10MB)
+      // Check file size (max 10mb)
       final fileSize = await file.length();
       if (fileSize > 10 * 1024 * 1024) {
-        throw ValidationException(message: 'File size exceeds 10MB limit');
+        throw ValidationException(message: 'File size exceeds 10mb limit');
       }
 
       // Create FormData for file upload
