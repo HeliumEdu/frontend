@@ -14,7 +14,6 @@ import 'package:heliumedu/data/datasources/grade_remote_data_source.dart';
 import 'package:heliumedu/data/models/planner/course_group_response_model.dart';
 import 'package:heliumedu/data/repositories/course_repository_impl.dart';
 import 'package:heliumedu/data/repositories/grade_repository_impl.dart';
-// Removed Auth-related imports as logout functionality is moved to settings
 import 'package:heliumedu/presentation/bloc/courseBloc/course_bloc.dart';
 import 'package:heliumedu/presentation/bloc/courseBloc/course_event.dart';
 import 'package:heliumedu/presentation/bloc/courseBloc/course_state.dart';
@@ -22,6 +21,7 @@ import 'package:heliumedu/presentation/bloc/gradeBloc/grade_bloc.dart';
 import 'package:heliumedu/presentation/bloc/gradeBloc/grade_event.dart';
 import 'package:heliumedu/presentation/bloc/gradeBloc/grade_state.dart';
 import 'package:heliumedu/utils/app_colors.dart';
+import 'package:heliumedu/utils/app_list.dart';
 import 'package:heliumedu/utils/app_size.dart';
 import 'package:heliumedu/utils/app_text_style.dart';
 
@@ -340,21 +340,28 @@ class _GradesScreenState extends State<GradesScreen> {
                                             .fold(
                                               0,
                                               (sum, course) =>
-                                                  sum +
-                                                  course.numHomework,
+                                                  sum + course.numHomework,
                                             );
 
                                         // Calculate completion percentage
-                                        final completedAssignments = selectedGroup
-                                            .courses
-                                            .fold(
-                                          0,
+                                        final completedAssignments =
+                                            selectedGroup.courses.fold(
+                                              0,
                                               (sum, course) =>
-                                          sum +
-                                              course.numHomeworkCompleted,
-                                        );
+                                                  sum +
+                                                  course.numHomeworkCompleted,
+                                            );
+                                        final remainingAssignments =
+                                            selectedGroup.courses.fold(
+                                              0,
+                                              (sum, course) =>
+                                                  sum +
+                                                  (course.numHomework -
+                                                      course
+                                                          .numHomeworkCompleted),
+                                            );
                                         final completionPercentage =
-                                        totalAssignments > 0
+                                            totalAssignments > 0
                                             ? (completedAssignments /
                                                       totalAssignments *
                                                       100)
@@ -407,6 +414,20 @@ class _GradesScreenState extends State<GradesScreen> {
                                                         fontSize: 11,
                                                       ),
                                                 ),
+                                                Text(
+                                                  '$remainingAssignments ' +
+                                                      remainingAssignments
+                                                          .plural(
+                                                            'assignment',
+                                                          ) +
+                                                      ' left',
+                                                  style: AppTextStyle.cTextStyle
+                                                      .copyWith(
+                                                        color: whiteColor
+                                                            .withOpacity(0.9),
+                                                        fontSize: 11,
+                                                      ),
+                                                ),
                                               ],
                                             );
                                           case 1: // "through term" card
@@ -434,6 +455,10 @@ class _GradesScreenState extends State<GradesScreen> {
                                                   startDate: startDate,
                                                   endDate: endDate,
                                                 );
+                                            final daysLeft = _calculateDaysLeft(
+                                              startDate: startDate,
+                                              endDate: endDate,
+                                            );
                                             cardContent = Column(
                                               mainAxisAlignment:
                                                   MainAxisAlignment.center,
@@ -476,6 +501,17 @@ class _GradesScreenState extends State<GradesScreen> {
                                                         fontSize: 11,
                                                       ),
                                                 ),
+                                                Text(
+                                                  '$daysLeft ' +
+                                                      daysLeft.plural('day') +
+                                                      ' left',
+                                                  style: AppTextStyle.cTextStyle
+                                                      .copyWith(
+                                                        color: whiteColor
+                                                            .withOpacity(0.9),
+                                                        fontSize: 11,
+                                                      ),
+                                                ),
                                               ],
                                             );
                                             break;
@@ -505,7 +541,11 @@ class _GradesScreenState extends State<GradesScreen> {
                                                           ),
                                                     ),
                                                     Text(
-                                                      'total assignments',
+                                                      'total ' +
+                                                          totalAssignments
+                                                              .plural(
+                                                                'assignment',
+                                                              ),
                                                       style: AppTextStyle
                                                           .cTextStyle
                                                           .copyWith(
@@ -1078,6 +1118,39 @@ class _GradesScreenState extends State<GradesScreen> {
         ),
       ),
     );
+  }
+
+  int _calculateDaysLeft({required String startDate, required String endDate}) {
+    if (startDate.isEmpty || endDate.isEmpty) {
+      return 0;
+    }
+
+    try {
+      final start = DateTime.parse(startDate);
+      final end = DateTime.parse(endDate);
+      final now = DateTime.now();
+
+      // If before start date, return 0%
+      if (now.isBefore(start)) {
+        return 0;
+      }
+
+      // If after end date, return 100%
+      if (now.isAfter(end)) {
+        return 100;
+      }
+
+      // Calculate percentage
+      final totalDays = end.difference(start).inDays;
+      if (totalDays <= 0) {
+        return 0;
+      }
+
+      return now.difference(start).inDays;
+    } catch (e) {
+      // If date parsing fails, return 0
+      return 0;
+    }
   }
 
   // Calculate percentage of days completed through the term

@@ -62,6 +62,6 @@ class GradeCategoryModel {
   // Format grade as percentage string
   String get formattedGrade {
     if (!hasGrade) return 'N/A';
-    return '${overallGrade.toStringAsFixed(1)}%';
+    return '${overallGrade.toStringAsFixed(2)}%';
   }
 }

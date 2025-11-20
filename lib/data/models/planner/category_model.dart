@@ -81,7 +81,7 @@ class CategoryModel {
   // Helper method to get formatted grade
   String getFormattedGrade() {
     if (!hasGrade()) return 'N/A';
-    return '${overallGrade!.toStringAsFixed(1)}%';
+    return '${overallGrade!.toStringAsFixed(2)}%';
   }
 
   // Helper method to get color as Color object

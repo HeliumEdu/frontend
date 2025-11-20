@@ -43,3 +43,11 @@ final List<String> timezonesPreference = [
 const List<String> reminderPreferences = ["Popup", "Email", "Text", "Push"];
 const List<String> reminderTimeUnits = ["Minutes", "Hours", "Days", "Weeks"];
 const List<String> listofTime = ["Month", "Week", "Day", "Todo"];
+
+extension PluralExtension on int {
+  String plural(String singularWord, [String pluralLetters = "s"]) {
+    return (this == 0 || this > 1)
+        ? "$singularWord$pluralLetters"
+        : "$singularWord";
+  }
+}

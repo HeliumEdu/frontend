@@ -100,7 +100,7 @@ class _AddClassesCategoriesScreenState
       if (percentage == percentage.roundToDouble()) {
         return '${percentage.toInt()}%';
       } else {
-        return '${percentage.toStringAsFixed(1).replaceAll(RegExp(r'\.?0+$'), '')}%';
+        return '${percentage.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '')}%';
       }
     } catch (e) {
       return '$weight%';
