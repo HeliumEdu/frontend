@@ -9,6 +9,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:heliumedu/config/app_routes.dart';
 import 'package:heliumedu/config/route_observer.dart';
 import 'package:heliumedu/core/fcm_service.dart';
@@ -22,6 +23,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   tz.initializeTimeZones();
+  await dotenv.load(fileName: ".env");
 
   await Firebase.initializeApp();
 
