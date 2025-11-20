@@ -31,5 +31,5 @@ build-ios: install
 	flutter build ipa --release --no-codesign
 
 test: install
-	#flutter analyze --no-fatal-warnings
+	flutter analyze --no-fatal-infos --no-fatal-warnings
 	flutter test
