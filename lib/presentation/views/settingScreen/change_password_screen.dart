@@ -1,11 +1,18 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:heliumedu/presentation/bloc/authBloc/auth_bloc.dart';
-import 'package:heliumedu/presentation/bloc/authBloc/auth_event.dart';
-import 'package:heliumedu/presentation/bloc/authBloc/auth_state.dart';
 import 'package:heliumedu/core/dio_client.dart';
 import 'package:heliumedu/data/datasources/auth_remote_data_source.dart';
 import 'package:heliumedu/data/repositories/auth_repository_impl.dart';
+import 'package:heliumedu/presentation/bloc/authBloc/auth_bloc.dart';
+import 'package:heliumedu/presentation/bloc/authBloc/auth_event.dart';
+import 'package:heliumedu/presentation/bloc/authBloc/auth_state.dart';
 import 'package:heliumedu/presentation/views/settingScreen/change_password_controller.dart';
 import 'package:heliumedu/presentation/widgets/custom_text_field.dart';
 import 'package:heliumedu/utils/app_colors.dart';
@@ -41,8 +48,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               children: [
                 Container(
                   padding: EdgeInsets.symmetric(
-                      vertical: 16.v,
-                      horizontal: 16.h
+                    vertical: 16.v,
+                    horizontal: 16.h,
                   ),
                   decoration: BoxDecoration(
                     color: whiteColor,
@@ -70,7 +77,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       Text(
                         'Change Password',
                         style: AppTextStyle.bTextStyle.copyWith(
-                          color: blackColor
+                          color: blackColor,
                         ),
                       ),
                       Icon(Icons.abc, color: transparentColor),

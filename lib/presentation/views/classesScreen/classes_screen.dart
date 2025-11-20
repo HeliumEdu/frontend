@@ -1,13 +1,18 @@
-// ignore_for_file: deprecated_member_use
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumedu/config/app_routes.dart';
 import 'package:heliumedu/core/dio_client.dart';
 import 'package:heliumedu/data/datasources/course_remote_data_source.dart';
-import 'package:heliumedu/data/models/planner/course_model.dart';
 import 'package:heliumedu/data/models/planner/course_group_request_model.dart';
 import 'package:heliumedu/data/models/planner/course_group_response_model.dart';
+import 'package:heliumedu/data/models/planner/course_model.dart';
 import 'package:heliumedu/data/repositories/course_repository_impl.dart';
 import 'package:heliumedu/presentation/bloc/courseBloc/course_bloc.dart';
 import 'package:heliumedu/presentation/bloc/courseBloc/course_event.dart';
@@ -1087,7 +1092,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                           Text(
                             'Classes',
                             style: AppTextStyle.bTextStyle.copyWith(
-                              color: textColor
+                              color: textColor,
                             ),
                           ),
                           GestureDetector(
@@ -1155,9 +1160,9 @@ class _ClassesScreenState extends State<ClassesScreen> {
                                                   "Loading groups...",
                                                   style: AppTextStyle.eTextStyle
                                                       .copyWith(
-                                                    color: blackColor
-                                                        .withOpacity(0.5),
-                                                  ),
+                                                        color: blackColor
+                                                            .withOpacity(0.5),
+                                                      ),
                                                 ),
                                               ],
                                             )
@@ -1219,7 +1224,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                                               child: Icon(
                                                 Icons.edit,
                                                 size: 20.adaptSize,
-                                                color: primaryColor
+                                                color: primaryColor,
                                               ),
                                             ),
                                             SizedBox(width: 8.h),
@@ -1318,7 +1323,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                                               child: Icon(
                                                 Icons.delete,
                                                 size: 20.adaptSize,
-                                                color: redColor
+                                                color: redColor,
                                               ),
                                             ),
                                           ],

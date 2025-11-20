@@ -1,3 +1,10 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumedu/config/app_routes.dart';
@@ -9,8 +16,8 @@ import 'package:heliumedu/presentation/bloc/authBloc/auth_event.dart';
 import 'package:heliumedu/presentation/bloc/authBloc/auth_state.dart';
 import 'package:heliumedu/presentation/views/authScreen/signupScreen/sign_up_controller.dart';
 import 'package:heliumedu/presentation/widgets/custom_drop_down.dart';
-import 'package:heliumedu/presentation/widgets/custom_text_field.dart';
 import 'package:heliumedu/presentation/widgets/custom_text_button.dart';
+import 'package:heliumedu/presentation/widgets/custom_text_field.dart';
 import 'package:heliumedu/utils/app_assets.dart';
 import 'package:heliumedu/utils/app_colors.dart';
 import 'package:heliumedu/utils/app_size.dart';

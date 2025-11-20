@@ -1,30 +1,35 @@
-// ignore_for_file: depend_on_referenced_packages
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:heliumedu/config/app_routes.dart';
 import 'package:heliumedu/core/dio_client.dart';
-import 'package:heliumedu/data/datasources/material_remote_data_source.dart';
 import 'package:heliumedu/data/datasources/course_remote_data_source.dart';
+import 'package:heliumedu/data/datasources/material_remote_data_source.dart';
+import 'package:heliumedu/data/models/planner/course_model.dart';
 import 'package:heliumedu/data/models/planner/material_group_request_model.dart';
 import 'package:heliumedu/data/models/planner/material_group_response_model.dart';
 import 'package:heliumedu/data/models/planner/material_model.dart';
-import 'package:heliumedu/data/models/planner/course_model.dart';
-import 'package:heliumedu/data/repositories/material_repository_impl.dart';
 import 'package:heliumedu/data/repositories/course_repository_impl.dart';
-import 'package:heliumedu/presentation/bloc/materialBloc/material_bloc.dart';
-import 'package:heliumedu/presentation/bloc/materialBloc/material_event.dart';
-import 'package:heliumedu/presentation/bloc/materialBloc/material_state.dart'
-    as material_state;
+import 'package:heliumedu/data/repositories/material_repository_impl.dart';
 import 'package:heliumedu/presentation/bloc/courseBloc/course_bloc.dart';
 import 'package:heliumedu/presentation/bloc/courseBloc/course_event.dart';
 import 'package:heliumedu/presentation/bloc/courseBloc/course_state.dart'
     as course_state;
+import 'package:heliumedu/presentation/bloc/materialBloc/material_bloc.dart';
+import 'package:heliumedu/presentation/bloc/materialBloc/material_event.dart';
+import 'package:heliumedu/presentation/bloc/materialBloc/material_state.dart'
+    as material_state;
 import 'package:heliumedu/presentation/widgets/custom_class_textfield.dart';
 import 'package:heliumedu/utils/app_colors.dart';
 import 'package:heliumedu/utils/app_size.dart';
 import 'package:heliumedu/utils/app_text_style.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MaterialsScreen extends StatefulWidget {
   const MaterialsScreen({super.key});
@@ -260,10 +265,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
           children: [
             // App Bar
             Container(
-              padding: EdgeInsets.symmetric(
-                  horizontal: 16.h,
-                  vertical: 16.v
-              ),
+              padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 16.v),
               decoration: BoxDecoration(
                 color: whiteColor,
                 boxShadow: [
@@ -279,10 +281,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                 children: [
                   GestureDetector(
                     onTap: () {
-                      Navigator.pushNamed(
-                          context,
-                          AppRoutes.settingScreen
-                      );
+                      Navigator.pushNamed(context, AppRoutes.settingScreen);
                     },
                     child: Icon(
                       Icons.settings_outlined,
@@ -292,9 +291,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                   ),
                   Text(
                     'Materials',
-                    style: AppTextStyle.bTextStyle.copyWith(
-                      color: textColor
-                    ),
+                    style: AppTextStyle.bTextStyle.copyWith(color: textColor),
                   ),
                   GestureDetector(
                     onTap: () {
@@ -303,10 +300,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                         AppRoutes.notificationScreen,
                       );
                     },
-                    child: Icon(
-                        Icons.notifications,
-                        color: primaryColor
-                    ),
+                    child: Icon(Icons.notifications, color: primaryColor),
                   ),
                 ],
               ),

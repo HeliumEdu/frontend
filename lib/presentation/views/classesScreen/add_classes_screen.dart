@@ -1,4 +1,11 @@
-// ignore_for_file: deprecated_member_use
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
+import 'package:easy_stepper/easy_stepper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumedu/config/app_routes.dart';
@@ -17,7 +24,6 @@ import 'package:heliumedu/utils/app_size.dart';
 import 'package:heliumedu/utils/app_text_style.dart';
 import 'package:heliumedu/utils/custom_calendar_textfield.dart';
 import 'package:heliumedu/utils/custom_color_picker.dart';
-import 'package:easy_stepper/easy_stepper.dart';
 
 class AddClassesScreen extends StatefulWidget {
   final int courseGroupId;
@@ -53,7 +59,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
   DateTime? _endDate;
   bool _isCreating = false;
   int? _stepperTargetIndex;
-  
+
   // Course group default dates
   String? _groupStartDate;
   String? _groupEndDate;
@@ -93,21 +99,25 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
         (g) => g.id == widget.courseGroupId,
         orElse: () => groups.first,
       );
-      
+
       setState(() {
         _groupStartDate = group.startDate;
         _groupEndDate = group.endDate;
-        
+
         // If user hasn't set dates and group has dates, display them
-        if (_startDate == null && _groupStartDate != null && _groupStartDate!.isNotEmpty) {
+        if (_startDate == null &&
+            _groupStartDate != null &&
+            _groupStartDate!.isNotEmpty) {
           try {
             _startDate = DateTime.parse(_groupStartDate!);
           } catch (e) {
             print('Error parsing group start date: $e');
           }
         }
-        
-        if (_endDate == null && _groupEndDate != null && _groupEndDate!.isNotEmpty) {
+
+        if (_endDate == null &&
+            _groupEndDate != null &&
+            _groupEndDate!.isNotEmpty) {
           try {
             _endDate = DateTime.parse(_groupEndDate!);
           } catch (e) {
@@ -212,7 +222,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
     // Use user dates if set, otherwise fallback to course group dates
     String startDateStr;
     String endDateStr;
-    
+
     if (_startDate != null) {
       startDateStr = _formatDateForApi(_startDate!);
     } else if (_groupStartDate != null && _groupStartDate!.isNotEmpty) {
@@ -220,7 +230,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
     } else {
       startDateStr = ''; // Will be handled by API or use current date
     }
-    
+
     if (_endDate != null) {
       endDateStr = _formatDateForApi(_endDate!);
     } else if (_groupEndDate != null && _groupEndDate!.isNotEmpty) {
@@ -228,7 +238,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
     } else {
       endDateStr = ''; // Will be handled by API or use current date
     }
-    
+
     // Create request model
     final request = CourseRequestModel(
       title: _titleController.text.trim().isEmpty
@@ -296,7 +306,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
     // Use user dates if set, otherwise fallback to course group dates
     String startDateStr;
     String endDateStr;
-    
+
     if (_startDate != null) {
       startDateStr = _formatDateForApi(_startDate!);
     } else if (_groupStartDate != null && _groupStartDate!.isNotEmpty) {
@@ -304,7 +314,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
     } else {
       startDateStr = '';
     }
-    
+
     if (_endDate != null) {
       endDateStr = _formatDateForApi(_endDate!);
     } else if (_groupEndDate != null && _groupEndDate!.isNotEmpty) {

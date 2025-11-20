@@ -1,3 +1,11 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
+import 'package:easy_stepper/easy_stepper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumedu/config/app_routes.dart';
@@ -13,7 +21,6 @@ import 'package:heliumedu/utils/app_colors.dart';
 import 'package:heliumedu/utils/app_list.dart';
 import 'package:heliumedu/utils/app_size.dart';
 import 'package:heliumedu/utils/app_text_style.dart';
-import 'package:easy_stepper/easy_stepper.dart';
 
 class AddClassesScheduleScreen extends StatefulWidget {
   final int courseId;
@@ -28,7 +35,8 @@ class AddClassesScheduleScreen extends StatefulWidget {
   });
 
   @override
-  State<AddClassesScheduleScreen> createState() => _AddClassesScheduleScreenState();
+  State<AddClassesScheduleScreen> createState() =>
+      _AddClassesScheduleScreenState();
 }
 
 class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
@@ -272,7 +280,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
       initialTime: isStartTime
           ? (startTimes[dayIndex] ?? TimeOfDay.now())
           : (endTimes[dayIndex] ?? TimeOfDay.now()),
-      initialEntryMode: TimePickerEntryMode.input
+      initialEntryMode: TimePickerEntryMode.input,
     );
     if (pickedTime != null) {
       setState(() {
@@ -289,7 +297,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
     final pickedTime = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
-      initialEntryMode: TimePickerEntryMode.input
+      initialEntryMode: TimePickerEntryMode.input,
     );
     if (pickedTime != null) {
       setState(() {
@@ -966,7 +974,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                                                   color: blackColor,
                                                   fontWeight: FontWeight.w600,
                                                 ),
-                                          )
+                                          ),
                                         ],
                                       ),
                                     ),

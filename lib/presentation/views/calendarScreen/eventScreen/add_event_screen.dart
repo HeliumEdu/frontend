@@ -1,3 +1,11 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
+import 'package:easy_stepper/easy_stepper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumedu/config/app_routes.dart';
@@ -13,7 +21,6 @@ import 'package:heliumedu/utils/app_colors.dart';
 import 'package:heliumedu/utils/app_size.dart';
 import 'package:heliumedu/utils/app_text_style.dart';
 import 'package:intl/intl.dart';
-import 'package:easy_stepper/easy_stepper.dart';
 
 class AddEventScreen extends StatefulWidget {
   const AddEventScreen({super.key});
@@ -163,13 +170,13 @@ class _AddEventScreenState extends State<AddEventScreen> {
       lastDate: DateTime(2101),
       builder: (context, child) {
         return Theme(
-      data: Theme.of(context).copyWith(
-        colorScheme: ColorScheme.light(
-          primary: primaryColor,
-          onPrimary: Colors.white,
-          onSurface: blackColor,
-        ),
-      ),
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: primaryColor,
+              onPrimary: Colors.white,
+              onSurface: blackColor,
+            ),
+          ),
           child: child!,
         );
       },
@@ -192,7 +199,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
       initialTime: isStartTime
           ? (_startTime ?? TimeOfDay.now())
           : (_endTime ?? TimeOfDay.now()),
-      initialEntryMode: TimePickerEntryMode.input
+      initialEntryMode: TimePickerEntryMode.input,
     );
 
     if (picked != null) {
@@ -521,8 +528,9 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                   ),
                                   decoration: BoxDecoration(
                                     color: whiteColor,
-                                    borderRadius:
-                                        BorderRadius.circular(16.adaptSize),
+                                    borderRadius: BorderRadius.circular(
+                                      16.adaptSize,
+                                    ),
                                     boxShadow: [
                                       BoxShadow(
                                         color: blackColor.withOpacity(0.06),
@@ -539,8 +547,9 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                       lineThickness: 3,
                                       lineSpace: 4,
                                       lineType: LineType.normal,
-                                      defaultLineColor:
-                                          greyColor.withOpacity(0.3),
+                                      defaultLineColor: greyColor.withOpacity(
+                                        0.3,
+                                      ),
                                       finishedLineColor: accentColor,
                                       activeLineColor: accentColor,
                                     ),
@@ -549,16 +558,16 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                     activeStepBackgroundColor: accentColor,
                                     activeStepTextColor: accentColor,
                                     finishedStepBorderColor: accentColor,
-                                    finishedStepBackgroundColor:
-                                        accentColor.withOpacity(0.1),
+                                    finishedStepBackgroundColor: accentColor
+                                        .withOpacity(0.1),
                                     finishedStepIconColor: accentColor,
                                     finishedStepTextColor: blackColor,
-                                    unreachedStepBorderColor:
-                                        greyColor.withOpacity(0.3),
+                                    unreachedStepBorderColor: greyColor
+                                        .withOpacity(0.3),
                                     unreachedStepBackgroundColor: softGrey,
                                     unreachedStepIconColor: greyColor,
-                                    unreachedStepTextColor:
-                                        textColor.withOpacity(0.5),
+                                    unreachedStepTextColor: textColor
+                                        .withOpacity(0.5),
                                     borderThickness: 2,
                                     internalPadding: 12,
                                     showLoadingAnimation: false,
@@ -576,9 +585,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                       if (index == 1) {
                                         isEditMode
                                             ? _handleUpdateEvent(context)
-                                            : _goToEventReminderScreen(
-                                                context,
-                                              );
+                                            : _goToEventReminderScreen(context);
                                       }
                                     },
                                     steps: [
@@ -604,12 +611,12 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                           padding: EdgeInsets.only(top: 8.v),
                                           child: Text(
                                             'Event',
-                                            style:
-                                                AppTextStyle.iTextStyle.copyWith(
-                                              color: blackColor,
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 13.fSize,
-                                            ),
+                                            style: AppTextStyle.iTextStyle
+                                                .copyWith(
+                                                  color: blackColor,
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 13.fSize,
+                                                ),
                                             textAlign: TextAlign.center,
                                           ),
                                         ),
@@ -627,7 +634,8 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                           ),
                                           child: Center(
                                             child: Icon(
-                                              Icons.notifications_active_outlined,
+                                              Icons
+                                                  .notifications_active_outlined,
                                               color: accentColor,
                                               size: 20.adaptSize,
                                             ),
@@ -637,12 +645,12 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                           padding: EdgeInsets.only(top: 8.v),
                                           child: Text(
                                             'Reminder',
-                                            style:
-                                                AppTextStyle.iTextStyle.copyWith(
-                                              color: blackColor,
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 13.fSize,
-                                            ),
+                                            style: AppTextStyle.iTextStyle
+                                                .copyWith(
+                                                  color: blackColor,
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 13.fSize,
+                                                ),
                                             textAlign: TextAlign.center,
                                           ),
                                         ),
@@ -872,7 +880,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                                   ),
                                                   Icon(
                                                     Icons.calendar_today,
-                                                  color: accentColor,
+                                                    color: accentColor,
                                                     size: 18,
                                                   ),
                                                 ],
@@ -1000,7 +1008,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                                   ),
                                                   Icon(
                                                     Icons.access_time,
-                                                color: accentColor,
+                                                    color: accentColor,
                                                     size: 18,
                                                   ),
                                                 ],

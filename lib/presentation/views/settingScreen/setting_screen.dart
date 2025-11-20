@@ -1,3 +1,10 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumedu/config/app_routes.dart';
@@ -355,9 +362,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
           child: Column(
             children: [
               Container(
-                padding: EdgeInsets.symmetric(
-                    vertical: 16.v,
-                    horizontal: 16.h),
+                padding: EdgeInsets.symmetric(vertical: 16.v, horizontal: 16.h),
                 decoration: BoxDecoration(
                   color: whiteColor,
                   boxShadow: [
@@ -384,7 +389,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                     Text(
                       'Settings',
                       style: AppTextStyle.bTextStyle.copyWith(
-                        color: blackColor
+                        color: blackColor,
                       ),
                     ),
                     GestureDetector(
@@ -615,7 +620,6 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                       //     ),
                       //   ),
                       // ),
-
                       Container(
                         decoration: BoxDecoration(
                           color: whiteColor,
@@ -783,8 +787,6 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                             ),
                             Divider(height: 1, indent: 68.h),
 
-                            
-
                             Material(
                               color: Colors.transparent,
                               child: InkWell(
@@ -834,7 +836,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                             ),
                                             SizedBox(height: 2.v),
                                             Text(
-                                              'Manage calendar feeds and external calendars',
+                                              'Manage private feeds and external calendars',
                                               style: AppTextStyle.cTextStyle
                                                   .copyWith(
                                                     color: textColor

@@ -1,4 +1,12 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:heliumedu/core/app_exception.dart';
 import 'package:heliumedu/core/dio_client.dart';
@@ -14,6 +22,7 @@ abstract class AttachmentRemoteDataSource {
   });
 
   Future<List<AttachmentModel>> getAttachments();
+
   Future<void> deleteAttachment(int attachmentId);
 }
 
@@ -72,8 +81,7 @@ class AttachmentRemoteDataSourceImpl implements AttachmentRemoteDataSource {
       // Validate that at least one of course, event, or homework is provided
       if (course == null && event == null && homework == null) {
         throw ValidationException(
-          message:
-              'At least one of class, event, or homework must be provided',
+          message: 'At least one of class, event, or homework must be provided',
         );
       }
 

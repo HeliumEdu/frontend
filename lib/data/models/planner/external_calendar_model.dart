@@ -1,3 +1,10 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 class ExternalCalendarModel {
   final int id;
   final String title;
@@ -21,13 +28,17 @@ class ExternalCalendarModel {
   bool get enabled => shownOnCalendar;
 
   factory ExternalCalendarModel.fromJson(Map<String, dynamic> json) {
-    final bool shown = (json['shown_on_calendar'] ??
-            json['enabled'] ??
-            json['is_enabled'] ??
-            false) as bool;
+    final bool shown =
+        (json['shown_on_calendar'] ??
+                json['enabled'] ??
+                json['is_enabled'] ??
+                false)
+            as bool;
 
     return ExternalCalendarModel(
-      id: json['id'] is int ? json['id'] as int : int.tryParse('${json['id']}') ?? 0,
+      id: json['id'] is int
+          ? json['id'] as int
+          : int.tryParse('${json['id']}') ?? 0,
       title: json['title']?.toString() ?? '',
       url: json['url']?.toString() ?? '',
       color: _normalizeColor(json['color']?.toString()),

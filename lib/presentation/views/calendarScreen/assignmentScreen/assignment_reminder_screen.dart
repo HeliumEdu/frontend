@@ -1,3 +1,10 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'dart:io';
 
 import 'package:easy_stepper/easy_stepper.dart';
@@ -20,8 +27,8 @@ import 'package:heliumedu/utils/app_text_style.dart';
 // Local model to stage multiple reminders before submitting
 class _PendingReminder {
   final String message;
-  final int offset; // minutes before
-  final int type; // notification channel
+  final int offset;
+  final int type;
 
   _PendingReminder({
     required this.message,
@@ -45,7 +52,8 @@ class AssignmentReminderScreen extends StatefulWidget {
   });
 
   @override
-  State<AssignmentReminderScreen> createState() => _AssignmentReminderScreenState();
+  State<AssignmentReminderScreen> createState() =>
+      _AssignmentReminderScreenState();
 }
 
 class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
@@ -754,7 +762,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                             ),
                           ),
                           child: Text(
-                            existing == null ? 'Add' : 'Update',
+                            'Save',
                             style: AppTextStyle.cTextStyle.copyWith(
                               color: whiteColor,
                               fontWeight: FontWeight.w600,
@@ -1126,7 +1134,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                             ),
                           ),
                           child: Text(
-                            existing == null ? 'Add' : 'Update',
+                            'Save',
                             style: AppTextStyle.cTextStyle.copyWith(
                               color: whiteColor,
                               fontWeight: FontWeight.w600,
@@ -1466,15 +1474,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.add, color: whiteColor, size: 20),
-                      SizedBox(width: 6.h),
-                      Text(
-                        'Add Reminder',
-                        style: AppTextStyle.cTextStyle.copyWith(
-                          color: whiteColor,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      Icon(Icons.add, color: whiteColor, size: 20)
                     ],
                   ),
                 ),

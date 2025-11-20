@@ -1,6 +1,12 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumedu/core/dio_client.dart';
 import 'package:heliumedu/data/datasources/private_feed_remote_data_source.dart';
@@ -11,6 +17,7 @@ import 'package:heliumedu/presentation/bloc/privateFeedBloc/private_feed_state.d
 import 'package:heliumedu/utils/app_colors.dart';
 import 'package:heliumedu/utils/app_size.dart';
 import 'package:heliumedu/utils/app_text_style.dart';
+import 'package:share_plus/share_plus.dart';
 
 class FeedSettingsScreen extends StatelessWidget {
   const FeedSettingsScreen({super.key});
@@ -789,8 +796,8 @@ class FeedSettingsView extends StatelessWidget {
                 children: [
                   Container(
                     padding: EdgeInsets.symmetric(
-                        vertical: 16.v,
-                        horizontal: 16.h,
+                      vertical: 16.v,
+                      horizontal: 16.h,
                     ),
                     decoration: BoxDecoration(
                       color: whiteColor,

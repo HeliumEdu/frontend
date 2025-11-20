@@ -1,10 +1,18 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:heliumedu/presentation/bloc/preferenceBloc/preference_states.dart';
 import 'package:heliumedu/data/models/auth/update_settings_request_model.dart';
 import 'package:heliumedu/data/models/auth/user_profile_model.dart';
 import 'package:heliumedu/data/repositories/auth_repository_impl.dart';
+import 'package:heliumedu/presentation/bloc/preferenceBloc/preference_states.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import 'preference_event.dart';
 
 class PreferenceBloc extends Bloc<PreferenceEvent, PreferenceState> {
@@ -168,11 +176,13 @@ class PreferenceBloc extends Bloc<PreferenceEvent, PreferenceState> {
         state.copyWith(
           isSubmitting: false,
           submitSuccess: true,
-          selectedDefaultPreference:
-              _mapDefaultViewIndexToName(event.defaultView),
+          selectedDefaultPreference: _mapDefaultViewIndexToName(
+            event.defaultView,
+          ),
           selectedTimezonePreference: event.timeZone,
-          selectedReminderPreference:
-              _mapReminderTypeIndexToName(event.defaultReminderType),
+          selectedReminderPreference: _mapReminderTypeIndexToName(
+            event.defaultReminderType,
+          ),
           selectedReminderTypePreference: _mapReminderOffsetTypeIndexToName(
             event.defaultReminderOffsetType,
           ),

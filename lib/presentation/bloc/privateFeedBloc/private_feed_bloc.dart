@@ -1,3 +1,10 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumedu/core/app_exception.dart';
 import 'package:heliumedu/domain/repositories/private_feed_repository.dart';
@@ -7,7 +14,8 @@ import 'package:heliumedu/presentation/bloc/privateFeedBloc/private_feed_state.d
 class PrivateFeedBloc extends Bloc<PrivateFeedEvent, PrivateFeedState> {
   final PrivateFeedRepository privateFeedRepository;
 
-  PrivateFeedBloc({required this.privateFeedRepository}) : super(PrivateFeedInitial()) {
+  PrivateFeedBloc({required this.privateFeedRepository})
+    : super(PrivateFeedInitial()) {
     on<FetchPrivateFeedUrlsEvent>(_onFetchPrivateFeedUrls);
     on<EnablePrivateFeedsEvent>(_onEnablePrivateFeeds);
     on<DisablePrivateFeedsEvent>(_onDisablePrivateFeeds);
@@ -60,7 +68,9 @@ class PrivateFeedBloc extends Bloc<PrivateFeedEvent, PrivateFeedState> {
       print('🛑 Disabling private feeds...');
       await privateFeedRepository.disablePrivateFeeds();
       print('✅ Private feeds disabled successfully');
-      emit(PrivateFeedDisabled(message: 'Private feeds disabled successfully!'));
+      emit(
+        PrivateFeedDisabled(message: 'Private feeds disabled successfully!'),
+      );
     } on AppException catch (e) {
       print('❌ App error: ${e.message}');
       emit(PrivateFeedError(message: e.message));

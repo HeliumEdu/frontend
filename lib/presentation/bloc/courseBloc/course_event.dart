@@ -1,8 +1,16 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'dart:io';
-import 'package:heliumedu/data/models/planner/course_request_model.dart';
-import 'package:heliumedu/data/models/planner/course_schedule_request_model.dart';
+
 import 'package:heliumedu/data/models/planner/category_request_model.dart';
 import 'package:heliumedu/data/models/planner/course_group_request_model.dart';
+import 'package:heliumedu/data/models/planner/course_request_model.dart';
+import 'package:heliumedu/data/models/planner/course_schedule_request_model.dart';
 
 abstract class CourseEvent {}
 

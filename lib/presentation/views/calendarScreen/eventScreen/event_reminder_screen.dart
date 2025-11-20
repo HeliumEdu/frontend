@@ -1,3 +1,10 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
@@ -570,7 +577,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                             ),
                           ),
                           child: Text(
-                            existing == null ? 'Add' : 'Update',
+                            'Save',
                             style: AppTextStyle.cTextStyle.copyWith(
                               color: whiteColor,
                               fontWeight: FontWeight.w600,

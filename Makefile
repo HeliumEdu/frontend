@@ -1,4 +1,4 @@
-.PHONY: all env install clean build-android build-ios test
+.PHONY: all env install install-ios clean build-android build-ios test
 
 SHELL := /usr/bin/env bash
 
@@ -21,13 +21,16 @@ IOS_GOOGLE_SERVICES_PLIST]"; \
 install: env
 	flutter pub get
 
+install-ios: env
+	pod install
+
 clean:
 	flutter clean
 
 build-android: install
 	flutter build apk --release
 
-build-ios: install
+build-ios: install install-ios
 	flutter build ipa --release --no-codesign
 
 test: install

@@ -1,9 +1,17 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'dart:io';
+
+import 'package:easy_stepper/easy_stepper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:heliumedu/core/dio_client.dart';
 import 'package:heliumedu/config/app_routes.dart';
+import 'package:heliumedu/core/dio_client.dart';
 import 'package:heliumedu/data/datasources/course_remote_data_source.dart';
 import 'package:heliumedu/data/models/planner/category_model.dart';
 import 'package:heliumedu/data/models/planner/category_request_model.dart';
@@ -14,7 +22,7 @@ import 'package:heliumedu/presentation/bloc/courseBloc/course_state.dart';
 import 'package:heliumedu/utils/app_colors.dart';
 import 'package:heliumedu/utils/app_size.dart';
 import 'package:heliumedu/utils/app_text_style.dart';
-import 'package:easy_stepper/easy_stepper.dart';
+import 'package:image_picker/image_picker.dart';
 
 class AddClassesCategoriesScreen extends StatefulWidget {
   final int courseId;
@@ -29,10 +37,12 @@ class AddClassesCategoriesScreen extends StatefulWidget {
   });
 
   @override
-  State<AddClassesCategoriesScreen> createState() => _AddClassesCategoriesScreenState();
+  State<AddClassesCategoriesScreen> createState() =>
+      _AddClassesCategoriesScreenState();
 }
 
-class _AddClassesCategoriesScreenState extends State<AddClassesCategoriesScreen> {
+class _AddClassesCategoriesScreenState
+    extends State<AddClassesCategoriesScreen> {
   Color dialogSelectedColor = const Color(0xFF16a765);
 
   final TextEditingController _categoryNameController = TextEditingController();
@@ -306,7 +316,8 @@ class _AddClassesCategoriesScreenState extends State<AddClassesCategoriesScreen>
       // Convert weight double to percentage for display (e.g., 0.20 -> "20")
       try {
         // final weightValue = (existingCategory.weight ?? 0.0) * 100;
-        _categoryWeightController.text = (existingCategory.weight ?? 0.0).toStringAsFixed(0);
+        _categoryWeightController.text = (existingCategory.weight ?? 0.0)
+            .toStringAsFixed(0);
       } catch (e) {
         _categoryWeightController.text = '';
       }
@@ -519,8 +530,11 @@ class _AddClassesCategoriesScreenState extends State<AddClassesCategoriesScreen>
                                   });
 
                                   String weightValue = "0";
-                                  if (_categoryWeightController.text.trim().isNotEmpty) {
-                                    weightValue = _categoryWeightController.text.trim();
+                                  if (_categoryWeightController.text
+                                      .trim()
+                                      .isNotEmpty) {
+                                    weightValue = _categoryWeightController.text
+                                        .trim();
                                   }
 
                                   final request = CategoryRequestModel(
@@ -1098,14 +1112,6 @@ class _AddClassesCategoriesScreenState extends State<AddClassesCategoriesScreen>
                                       Icons.add,
                                       color: whiteColor,
                                       size: 20,
-                                    ),
-                                    SizedBox(width: 6.h),
-                                    Text(
-                                      'Add Category',
-                                      style: AppTextStyle.cTextStyle.copyWith(
-                                        color: whiteColor,
-                                        fontWeight: FontWeight.w600,
-                                      ),
                                     ),
                                   ],
                                 ),
@@ -1856,8 +1862,7 @@ class _AddClassesCategoriesScreenState extends State<AddClassesCategoriesScreen>
                             ),
                             child: Text(
                               'Save',
-                              style: AppTextStyle.cTextStyle
-                                  .copyWith(
+                              style: AppTextStyle.cTextStyle.copyWith(
                                 color: whiteColor,
                                 fontWeight: FontWeight.w600,
                               ),

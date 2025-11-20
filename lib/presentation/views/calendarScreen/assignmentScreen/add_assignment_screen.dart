@@ -1,16 +1,24 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
+import 'package:easy_stepper/easy_stepper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumedu/config/app_routes.dart';
 import 'package:heliumedu/core/dio_client.dart';
 import 'package:heliumedu/data/datasources/course_remote_data_source.dart';
-import 'package:heliumedu/data/datasources/material_remote_data_source.dart';
 import 'package:heliumedu/data/datasources/homework_remote_data_source.dart';
-import 'package:heliumedu/data/models/planner/course_model.dart';
+import 'package:heliumedu/data/datasources/material_remote_data_source.dart';
 import 'package:heliumedu/data/models/planner/category_model.dart';
-import 'package:heliumedu/data/models/planner/material_model.dart';
-import 'package:heliumedu/data/models/planner/material_group_response_model.dart';
+import 'package:heliumedu/data/models/planner/course_model.dart';
 import 'package:heliumedu/data/models/planner/homework_request_model.dart';
 import 'package:heliumedu/data/models/planner/homework_response_model.dart';
+import 'package:heliumedu/data/models/planner/material_group_response_model.dart';
+import 'package:heliumedu/data/models/planner/material_model.dart';
 import 'package:heliumedu/data/repositories/course_repository_impl.dart';
 import 'package:heliumedu/data/repositories/homework_repository_impl.dart';
 import 'package:heliumedu/data/repositories/material_repository_impl.dart';
@@ -32,7 +40,6 @@ import 'package:heliumedu/utils/app_colors.dart';
 import 'package:heliumedu/utils/app_size.dart';
 import 'package:heliumedu/utils/app_text_style.dart';
 import 'package:intl/intl.dart';
-import 'package:easy_stepper/easy_stepper.dart';
 
 class AddAssignmentScreen extends StatefulWidget {
   const AddAssignmentScreen({super.key});
@@ -71,6 +78,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
   List<CategoryModel> _categories = [];
   List<MaterialModel> _materials = [];
   List<MaterialGroupResponseModel> _materialGroups = [];
+
   // ignore: unused_field
   int? _selectedCourseGroupId;
 
@@ -278,7 +286,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
       initialTime: isStartTime
           ? (_startTime ?? TimeOfDay.now())
           : (_endTime ?? TimeOfDay.now()),
-      initialEntryMode: TimePickerEntryMode.input
+      initialEntryMode: TimePickerEntryMode.input,
     );
 
     if (picked != null) {

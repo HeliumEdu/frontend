@@ -1,16 +1,23 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'package:flutter/material.dart';
+import 'package:heliumedu/core/app_exception.dart';
+import 'package:heliumedu/core/dio_client.dart';
+import 'package:heliumedu/core/fcm_service.dart';
+import 'package:heliumedu/data/datasources/reminder_remote_data_source.dart';
+import 'package:heliumedu/data/models/notification/notification_model.dart';
+import 'package:heliumedu/data/models/planner/reminder_response_model.dart';
+import 'package:heliumedu/data/repositories/reminder_repository_impl.dart';
 import 'package:heliumedu/utils/app_colors.dart';
 import 'package:heliumedu/utils/app_size.dart';
 import 'package:heliumedu/utils/app_text_style.dart';
-import 'package:heliumedu/data/models/notification/notification_model.dart';
-import 'package:heliumedu/core/fcm_service.dart';
-import 'package:heliumedu/data/repositories/reminder_repository_impl.dart';
-import 'package:heliumedu/data/datasources/reminder_remote_data_source.dart';
-import 'package:heliumedu/data/models/planner/reminder_response_model.dart';
-import 'package:heliumedu/core/dio_client.dart';
-import 'package:heliumedu/core/app_exception.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
@@ -321,10 +328,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         child: Column(
           children: [
             Container(
-              padding: EdgeInsets.symmetric(
-                  vertical: 16.v,
-                  horizontal: 16.h
-              ),
+              padding: EdgeInsets.symmetric(vertical: 16.v, horizontal: 16.h),
               decoration: BoxDecoration(
                 color: whiteColor,
                 boxShadow: [
@@ -350,9 +354,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   ),
                   Text(
                     'Notifications',
-                    style: AppTextStyle.bTextStyle.copyWith(
-                      color: blackColor,
-                    ),
+                    style: AppTextStyle.bTextStyle.copyWith(color: blackColor),
                   ),
                   Row(
                     children: [

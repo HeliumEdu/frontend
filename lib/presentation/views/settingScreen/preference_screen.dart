@@ -1,14 +1,12 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:heliumedu/presentation/bloc/preferenceBloc/preference_bloc.dart';
-import 'package:heliumedu/presentation/bloc/preferenceBloc/preference_event.dart';
-import 'package:heliumedu/presentation/bloc/preferenceBloc/preference_states.dart';
-import 'package:heliumedu/presentation/widgets/custom_text_button.dart';
-import 'package:heliumedu/utils/app_colors.dart';
-import 'package:heliumedu/utils/app_list.dart';
-import 'package:heliumedu/utils/app_size.dart';
-import 'package:heliumedu/utils/app_text_style.dart';
-import 'package:heliumedu/utils/custom_color_picker.dart';
 import 'package:heliumedu/core/dio_client.dart';
 import 'package:heliumedu/data/datasources/auth_remote_data_source.dart';
 import 'package:heliumedu/data/datasources/external_calendar_remote_data_source.dart';
@@ -19,6 +17,15 @@ import 'package:heliumedu/data/repositories/external_calendar_repository_impl.da
 import 'package:heliumedu/presentation/bloc/externalCalendarBloc/external_calendar_bloc.dart';
 import 'package:heliumedu/presentation/bloc/externalCalendarBloc/external_calendar_event.dart';
 import 'package:heliumedu/presentation/bloc/externalCalendarBloc/external_calendar_state.dart';
+import 'package:heliumedu/presentation/bloc/preferenceBloc/preference_bloc.dart';
+import 'package:heliumedu/presentation/bloc/preferenceBloc/preference_event.dart';
+import 'package:heliumedu/presentation/bloc/preferenceBloc/preference_states.dart';
+import 'package:heliumedu/presentation/widgets/custom_text_button.dart';
+import 'package:heliumedu/utils/app_colors.dart';
+import 'package:heliumedu/utils/app_list.dart';
+import 'package:heliumedu/utils/app_size.dart';
+import 'package:heliumedu/utils/app_text_style.dart';
+import 'package:heliumedu/utils/custom_color_picker.dart';
 
 class PreferenceScreen extends StatelessWidget {
   const PreferenceScreen({super.key});
@@ -181,8 +188,9 @@ class _PreferenceViewState extends State<PreferenceView> {
     if (isEdit) {
       _calendarTitleController.text = existingCalendar!.title;
       _calendarUrlController.text = existingCalendar.url;
-      _externalDialogSelectedColor =
-          _externalHexToColor(existingCalendar.color);
+      _externalDialogSelectedColor = _externalHexToColor(
+        existingCalendar.color,
+      );
       _externalShownOnCalendar = existingCalendar.shownOnCalendar;
     } else {
       _resetExternalCalendarForm();
@@ -335,21 +343,29 @@ class _PreferenceViewState extends State<PreferenceView> {
                               filled: true,
                               fillColor: softGrey,
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8.adaptSize),
+                                borderRadius: BorderRadius.circular(
+                                  8.adaptSize,
+                                ),
                                 borderSide: BorderSide(
                                   color: greyColor.withOpacity(0.3),
                                 ),
                               ),
                               enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8.adaptSize),
+                                borderRadius: BorderRadius.circular(
+                                  8.adaptSize,
+                                ),
                                 borderSide: BorderSide(
                                   color: greyColor.withOpacity(0.3),
                                 ),
                               ),
                               focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8.adaptSize),
-                                borderSide:
-                                    BorderSide(color: primaryColor, width: 2),
+                                borderRadius: BorderRadius.circular(
+                                  8.adaptSize,
+                                ),
+                                borderSide: BorderSide(
+                                  color: primaryColor,
+                                  width: 2,
+                                ),
                               ),
                               contentPadding: EdgeInsets.symmetric(
                                 horizontal: 12.h,
@@ -377,21 +393,29 @@ class _PreferenceViewState extends State<PreferenceView> {
                               filled: true,
                               fillColor: softGrey,
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8.adaptSize),
+                                borderRadius: BorderRadius.circular(
+                                  8.adaptSize,
+                                ),
                                 borderSide: BorderSide(
                                   color: greyColor.withOpacity(0.3),
                                 ),
                               ),
                               enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8.adaptSize),
+                                borderRadius: BorderRadius.circular(
+                                  8.adaptSize,
+                                ),
                                 borderSide: BorderSide(
                                   color: greyColor.withOpacity(0.3),
                                 ),
                               ),
                               focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8.adaptSize),
-                                borderSide:
-                                    BorderSide(color: primaryColor, width: 2),
+                                borderRadius: BorderRadius.circular(
+                                  8.adaptSize,
+                                ),
+                                borderSide: BorderSide(
+                                  color: primaryColor,
+                                  width: 2,
+                                ),
                               ),
                               contentPadding: EdgeInsets.symmetric(
                                 horizontal: 12.h,
@@ -411,8 +435,9 @@ class _PreferenceViewState extends State<PreferenceView> {
                               ),
                               SizedBox(width: 12.h),
                               GestureDetector(
-                                onTap:
-                                    isSubmitting ? null : () => openColorPicker(setDialogState),
+                                onTap: isSubmitting
+                                    ? null
+                                    : () => openColorPicker(setDialogState),
                                 child: Container(
                                   width: 33,
                                   height: 33,
@@ -459,8 +484,9 @@ class _PreferenceViewState extends State<PreferenceView> {
                               padding: EdgeInsets.all(12.h),
                               decoration: BoxDecoration(
                                 color: redColor.withOpacity(0.08),
-                                borderRadius:
-                                    BorderRadius.circular(10.adaptSize),
+                                borderRadius: BorderRadius.circular(
+                                  10.adaptSize,
+                                ),
                                 border: Border.all(
                                   color: redColor.withOpacity(0.3),
                                   width: 1,
@@ -480,17 +506,19 @@ class _PreferenceViewState extends State<PreferenceView> {
                             children: [
                               Expanded(
                                 child: OutlinedButton(
-                                  onPressed:
-                                      isSubmitting ? null : closeDialog,
+                                  onPressed: isSubmitting ? null : closeDialog,
                                   style: OutlinedButton.styleFrom(
-                                    padding: EdgeInsets.symmetric(vertical: 12.v),
+                                    padding: EdgeInsets.symmetric(
+                                      vertical: 12.v,
+                                    ),
                                     side: BorderSide(
                                       color: primaryColor,
                                       width: 1.5,
                                     ),
                                     shape: RoundedRectangleBorder(
-                                      borderRadius:
-                                          BorderRadius.circular(8.adaptSize),
+                                      borderRadius: BorderRadius.circular(
+                                        8.adaptSize,
+                                      ),
                                     ),
                                   ),
                                   child: Text(
@@ -511,7 +539,8 @@ class _PreferenceViewState extends State<PreferenceView> {
                                           final name = _calendarTitleController
                                               .text
                                               .trim();
-                                          final url = _calendarUrlController.text
+                                          final url = _calendarUrlController
+                                              .text
                                               .trim();
 
                                           if (name.isEmpty) {
@@ -537,40 +566,48 @@ class _PreferenceViewState extends State<PreferenceView> {
 
                                           final payload =
                                               ExternalCalendarRequestModel(
-                                            title: name,
-                                            url: url,
-                                            color: _externalColorToHex(
-                                              _externalDialogSelectedColor,
-                                            ),
-                                            shownOnCalendar:
-                                                _externalShownOnCalendar,
-                                          );
+                                                title: name,
+                                                url: url,
+                                                color: _externalColorToHex(
+                                                  _externalDialogSelectedColor,
+                                                ),
+                                                shownOnCalendar:
+                                                    _externalShownOnCalendar,
+                                              );
 
-                                          if (isEdit && existingCalendar != null) {
-                                            context.read<ExternalCalendarBloc>().add(
-                                              UpdateExternalCalendarEvent(
-                                                calendarId: existingCalendar.id,
-                                                payload: payload,
-                                              ),
-                                            );
+                                          if (isEdit &&
+                                              existingCalendar != null) {
+                                            context
+                                                .read<ExternalCalendarBloc>()
+                                                .add(
+                                                  UpdateExternalCalendarEvent(
+                                                    calendarId:
+                                                        existingCalendar.id,
+                                                    payload: payload,
+                                                  ),
+                                                );
                                           } else {
-                                            context.read<ExternalCalendarBloc>().add(
-                                              CreateExternalCalendarEvent(
-                                                payload: payload,
-                                              ),
-                                            );
+                                            context
+                                                .read<ExternalCalendarBloc>()
+                                                .add(
+                                                  CreateExternalCalendarEvent(
+                                                    payload: payload,
+                                                  ),
+                                                );
                                           }
                                         },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: isSubmitting
                                         ? primaryColor.withOpacity(0.6)
                                         : primaryColor,
-                                    padding:
-                                        EdgeInsets.symmetric(vertical: 12.v),
+                                    padding: EdgeInsets.symmetric(
+                                      vertical: 12.v,
+                                    ),
                                     elevation: 2,
                                     shape: RoundedRectangleBorder(
-                                      borderRadius:
-                                          BorderRadius.circular(8.adaptSize),
+                                      borderRadius: BorderRadius.circular(
+                                        8.adaptSize,
+                                      ),
                                     ),
                                   ),
                                   child: isSubmitting
@@ -584,10 +621,11 @@ class _PreferenceViewState extends State<PreferenceView> {
                                         )
                                       : Text(
                                           'Confirm',
-                                          style: AppTextStyle.cTextStyle.copyWith(
-                                            color: whiteColor,
-                                            fontWeight: FontWeight.w600,
-                                          ),
+                                          style: AppTextStyle.cTextStyle
+                                              .copyWith(
+                                                color: whiteColor,
+                                                fontWeight: FontWeight.w600,
+                                              ),
                                         ),
                                 ),
                               ),
@@ -623,11 +661,8 @@ class _PreferenceViewState extends State<PreferenceView> {
     );
 
     context.read<ExternalCalendarBloc>().add(
-          UpdateExternalCalendarEvent(
-            calendarId: calendar.id,
-            payload: payload,
-          ),
-        );
+      UpdateExternalCalendarEvent(calendarId: calendar.id, payload: payload),
+    );
   }
 
   Widget _buildExternalCalendarCard(
@@ -641,10 +676,7 @@ class _PreferenceViewState extends State<PreferenceView> {
       decoration: BoxDecoration(
         color: whiteColor,
         borderRadius: BorderRadius.circular(10.adaptSize),
-        border: Border.all(
-          color: softGrey,
-          width: 1,
-        ),
+        border: Border.all(color: softGrey, width: 1),
         boxShadow: [
           BoxShadow(
             color: blackColor.withOpacity(0.04),
@@ -698,10 +730,9 @@ class _PreferenceViewState extends State<PreferenceView> {
           ),
           SizedBox(width: 8.h),
           GestureDetector(
-            onTap:
-                isActionInProgress ? null : () => _showExternalCalendarDialog(
-                      existingCalendar: calendar,
-                    ),
+            onTap: isActionInProgress
+                ? null
+                : () => _showExternalCalendarDialog(existingCalendar: calendar),
             child: Icon(
               Icons.edit_outlined,
               color: isActionInProgress ? greyColor : primaryColor,
@@ -748,16 +779,17 @@ class _PreferenceViewState extends State<PreferenceView> {
                               onPressed: () {
                                 Navigator.pop(confirmContext);
                                 context.read<ExternalCalendarBloc>().add(
-                                      DeleteExternalCalendarEvent(
-                                        calendarId: calendar.id,
-                                      ),
-                                    );
+                                  DeleteExternalCalendarEvent(
+                                    calendarId: calendar.id,
+                                  ),
+                                );
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: redColor,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius:
-                                      BorderRadius.circular(8.adaptSize),
+                                  borderRadius: BorderRadius.circular(
+                                    8.adaptSize,
+                                  ),
                                 ),
                               ),
                               child: Text(
@@ -834,7 +866,9 @@ class _PreferenceViewState extends State<PreferenceView> {
                   SnackBar(
                     content: Text(
                       state.message,
-                      style: AppTextStyle.cTextStyle.copyWith(color: whiteColor),
+                      style: AppTextStyle.cTextStyle.copyWith(
+                        color: whiteColor,
+                      ),
                     ),
                     backgroundColor: redColor,
                     duration: const Duration(seconds: 4),
@@ -856,10 +890,7 @@ class _PreferenceViewState extends State<PreferenceView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: EdgeInsets.symmetric(
-                    vertical: 16.v,
-                    horizontal: 16.h
-                ),
+                padding: EdgeInsets.symmetric(vertical: 16.v, horizontal: 16.h),
                 decoration: BoxDecoration(
                   color: whiteColor,
                   boxShadow: [
@@ -1230,38 +1261,44 @@ class _PreferenceViewState extends State<PreferenceView> {
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            ElevatedButton.icon(
-                              onPressed: () => _showExternalCalendarDialog(),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: primaryColor,
+                            GestureDetector(
+                              onTap: _showExternalCalendarDialog,
+                              child: Container(
                                 padding: EdgeInsets.symmetric(
-                                  vertical: 10.v,
                                   horizontal: 12.h,
+                                  vertical: 8.v,
                                 ),
-                                elevation: 2,
-                                shape: RoundedRectangleBorder(
+                                decoration: BoxDecoration(
+                                  color: primaryColor,
                                   borderRadius: BorderRadius.circular(
                                     8.adaptSize,
                                   ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: primaryColor.withOpacity(0.2),
+                                      blurRadius: 6,
+                                      offset: Offset(0, 2),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              icon: Icon(
-                                Icons.add,
-                                size: 18.adaptSize,
-                                color: whiteColor,
-                              ),
-                              label: Text(
-                                'Add External Calendar',
-                                style: AppTextStyle.cTextStyle.copyWith(
-                                  color: whiteColor,
-                                  fontWeight: FontWeight.w600,
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.add,
+                                      color: whiteColor,
+                                      size: 20,
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
                           ],
                         ),
                         SizedBox(height: 16.v),
-                        BlocBuilder<ExternalCalendarBloc, ExternalCalendarState>(
+                        BlocBuilder<
+                          ExternalCalendarBloc,
+                          ExternalCalendarState
+                        >(
                           buildWhen: (previous, current) {
                             return current is ExternalCalendarsLoading ||
                                 current is ExternalCalendarsLoaded ||
@@ -1295,8 +1332,9 @@ class _PreferenceViewState extends State<PreferenceView> {
                                 padding: EdgeInsets.all(16.h),
                                 decoration: BoxDecoration(
                                   color: redColor.withOpacity(0.08),
-                                  borderRadius:
-                                      BorderRadius.circular(10.adaptSize),
+                                  borderRadius: BorderRadius.circular(
+                                    10.adaptSize,
+                                  ),
                                   border: Border.all(
                                     color: redColor.withOpacity(0.3),
                                   ),
@@ -1326,8 +1364,9 @@ class _PreferenceViewState extends State<PreferenceView> {
                                 padding: EdgeInsets.all(20.h),
                                 decoration: BoxDecoration(
                                   color: softGrey,
-                                  borderRadius:
-                                      BorderRadius.circular(10.adaptSize),
+                                  borderRadius: BorderRadius.circular(
+                                    10.adaptSize,
+                                  ),
                                 ),
                                 child: Text(
                                   'No external calendars added yet.',
