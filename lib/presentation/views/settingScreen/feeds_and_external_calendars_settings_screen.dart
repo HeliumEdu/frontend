@@ -55,16 +55,16 @@ class FeedsAndExternalCalendarsSettingsScreen extends StatelessWidget {
           )..add(FetchPrivateFeedUrlsEvent()),
         ),
       ],
-      child: const FeedSettingsView(),
+      child: const FeedsAndExternalCalendarsSettingsView(),
     );
   }
 }
 
-class FeedSettingsView extends StatefulWidget {
-  const FeedSettingsView({super.key});
+class FeedsAndExternalCalendarsSettingsView extends StatefulWidget {
+  const FeedsAndExternalCalendarsSettingsView({super.key});
 
   @override
-  State<FeedSettingsView> createState() => _FeedSettingsViewState();
+  State<FeedsAndExternalCalendarsSettingsView> createState() => _FeedsAndExternalCalendarsSettingsViewState();
 }
 
 Color dialogSelectedColor = const Color(0xFF26A69A);
@@ -73,7 +73,7 @@ String? selectedTimezonePreference;
 String? selectedReminderPreference;
 String? selectedReminderTypePreference;
 
-class _FeedSettingsViewState extends State<FeedSettingsView> {
+class _FeedsAndExternalCalendarsSettingsViewState extends State<FeedsAndExternalCalendarsSettingsView> {
   late TextEditingController _calendarTitleController;
   late TextEditingController _calendarUrlController;
   static const String _defaultExternalCalendarTitle = 'Holidays';
