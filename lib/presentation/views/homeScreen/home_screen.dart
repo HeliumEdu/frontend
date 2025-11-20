@@ -82,7 +82,8 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _externalCalendarEnabled = false;
   bool? _externalCalendarPreferenceCached;
   final Map<int, bool> _completedOverrides = {};
-  final Map<int, String> _categoryTitlesById = {};
+  final Map<int, CategoryModel> _categoriesById = {};
+  final List<CategoryModel> _deduplicatedCategories = [];
   static bool _needsRefresh = false;
 
   static void triggerRefresh() {
@@ -810,11 +811,11 @@ class _HomeScreenState extends State<HomeScreen> {
       if (categoryId == null || categoryId <= 0) {
         return false;
       }
-      final title = _categoryTitlesById[categoryId];
-      if (title == null || title.trim().isEmpty) {
+      final category = _categoriesById[categoryId];
+      if (category == null || category.title.trim().isEmpty) {
         return false;
       }
-      return filters.contains(title.trim());
+      return filters.contains(category.title.trim());
     }).toList();
   }
 
@@ -1030,13 +1031,19 @@ class _HomeScreenState extends State<HomeScreen> {
     return unique.toList();
   }
 
-  void _rememberCategories(List<CategoryModel> categories) {
+  void _populateCategories(List<CategoryModel> categories) {
     for (final category in categories) {
-      final existing = _categoryTitlesById[category.id];
-      if (existing != category.title) {
-        _categoryTitlesById[category.id] = category.title;
+      _categoriesById[category.id] = category;
+    }
+
+    final uniqueCategories = <String, CategoryModel>{};
+    for (var category in categories) {
+      if (!uniqueCategories.containsKey(category.title)) {
+        uniqueCategories[category.title] = category;
       }
     }
+
+    _deduplicatedCategories.addAll(uniqueCategories.values.toList());
   }
 
   List<String>? _activeCategoryFiltersOrNull() {
@@ -1206,16 +1213,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 Divider(height: 20.v),
 
-                // Assignments section
-                Text(
-                  'Assignments',
-                  style: AppTextStyle.bTextStyle.copyWith(
-                    color: textColor,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                SizedBox(height: 8.v),
                 StatefulBuilder(
                   builder: (context, setMenuState) {
                     return Column(
@@ -1275,11 +1272,24 @@ class _HomeScreenState extends State<HomeScreen> {
                               // Trigger menu rebuild
                             });
                           },
-                          title: Text(
-                            'Events',
-                            style: AppTextStyle.eTextStyle.copyWith(
-                              color: textColor,
-                            ),
+                          title: Row(
+                            children: [
+                              Text(
+                                'Events',
+                                style: AppTextStyle.eTextStyle.copyWith(
+                                  color: textColor,
+                                ),
+                              ),
+                              SizedBox(width: 8.h),
+                              Container(
+                                width: 12.h,
+                                height: 12.h,
+                                decoration: BoxDecoration(
+                                  color: _eventColor,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ],
                           ),
                           controlAffinity: ListTileControlAffinity.leading,
                           dense: true,
@@ -1364,18 +1374,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 ),
                 Divider(height: 20.v),
-                //make here Compltete , Incomplte , Overdue status filter
-                Divider(height: 20.v),
-                // Status section
-                Text(
-                  'Status',
-                  style: AppTextStyle.bTextStyle.copyWith(
-                    color: textColor,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                SizedBox(height: 8.v),
                 StatefulBuilder(
                   builder: (context, setMenuState) {
                     Widget buildStatusTile(String label) {
@@ -1428,148 +1426,62 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 SizedBox(height: 8.v),
-                BlocProvider(
-                  create: (context) => CategoryBloc(
-                    categoryRepository: CategoryRepositoryImpl(
-                      remoteDataSource: CategoryRemoteDataSourceImpl(
-                        dioClient: DioClient(),
-                      ),
-                    ),
-                  )..add(const category_event.FetchCategoriesEvent()),
-                  child: BlocBuilder<CategoryBloc, CategoryState>(
-                    builder: (context, categoryState) {
-                      if (categoryState is CategoryLoading) {
-                        return Container(
-                          height: 40,
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                whiteColor,
-                              ),
-                              color: primaryColor,
-                              strokeWidth: 2,
-                            ),
+                StatefulBuilder(
+                  builder: (context, setMenuState) {
+                    return Column(
+                      children: _deduplicatedCategories.map((category) {
+                        return CheckboxListTile(
+                          value: selectedCategoryFilters.contains(
+                            category.title,
                           ),
-                        );
-                      }
-
-                      if (categoryState is CategoryError) {
-                        return Container(
-                          height: 40,
-                          child: Center(
-                            child: Text(
-                              'Failed to load categories',
-                              style: AppTextStyle.eTextStyle.copyWith(
-                                color: Colors.red,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ),
-                        );
-                      }
-
-                      if (categoryState is CategoryLoaded) {
-                        final categories = categoryState.categories;
-                        _rememberCategories(categories);
-
-                        if (categories.isEmpty) {
-                          return Container(
-                            height: 40,
-                            child: Center(
-                              child: Text(
-                                'No categories available',
-                                style: AppTextStyle.eTextStyle.copyWith(
-                                  color: textColor.withOpacity(0.6),
-                                  fontSize: 12,
+                          onChanged: (value) {
+                            setState(() {
+                              final updatedFilters = <String>{
+                                ...selectedCategoryFilters,
+                              };
+                              if (value == true) {
+                                updatedFilters.add(category.title);
+                              } else {
+                                updatedFilters.remove(category.title);
+                              }
+                              selectedCategoryFilters = updatedFilters.toList();
+                            });
+                            _refetchHomeworkWithCurrentFilters(
+                              homeworkBloc: homeworkBloc,
+                            );
+                            setMenuState(() {
+                              // Trigger menu rebuild
+                            });
+                          },
+                          title: Row(
+                            children: [
+                              // Container(
+                              //   width: 12.h,
+                              //   height: 12.h,
+                              //   decoration: BoxDecoration(
+                              //     color: category.getColor(),
+                              //     shape: BoxShape.circle,
+                              //   ),
+                              // ),
+                              SizedBox(width: 8.h),
+                              Expanded(
+                                child: Text(
+                                  category.title,
+                                  style: AppTextStyle.eTextStyle.copyWith(
+                                    color: textColor,
+                                  ),
                                 ),
                               ),
-                            ),
-                          );
-                        }
-
-                        final uniqueCategories = <String, dynamic>{};
-                        for (var category in categories) {
-                          if (!uniqueCategories.containsKey(category.title)) {
-                            uniqueCategories[category.title] = category;
-                          }
-                        }
-                        final deduplicatedCategories = uniqueCategories.values
-                            .toList();
-
-                        return StatefulBuilder(
-                          builder: (context, setMenuState) {
-                            return Column(
-                              children: deduplicatedCategories.map((category) {
-                                return CheckboxListTile(
-                                  value: selectedCategoryFilters.contains(
-                                    category.title,
-                                  ),
-                                  onChanged: (value) {
-                                    setState(() {
-                                      final updatedFilters = <String>{
-                                        ...selectedCategoryFilters,
-                                      };
-                                      if (value == true) {
-                                        updatedFilters.add(category.title);
-                                      } else {
-                                        updatedFilters.remove(category.title);
-                                      }
-                                      selectedCategoryFilters = updatedFilters
-                                          .toList();
-                                    });
-                                    _refetchHomeworkWithCurrentFilters(
-                                      homeworkBloc: homeworkBloc,
-                                    );
-                                    setMenuState(() {
-                                      // Trigger menu rebuild
-                                    });
-                                  },
-                                  title: Row(
-                                    children: [
-                                      // Container(
-                                      //   width: 12.h,
-                                      //   height: 12.h,
-                                      //   decoration: BoxDecoration(
-                                      //     color: category.getColor(),
-                                      //     shape: BoxShape.circle,
-                                      //   ),
-                                      // ),
-                                      SizedBox(width: 8.h),
-                                      Expanded(
-                                        child: Text(
-                                          category.title,
-                                          style: AppTextStyle.eTextStyle
-                                              .copyWith(color: textColor),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  controlAffinity:
-                                      ListTileControlAffinity.leading,
-                                  dense: true,
-                                  contentPadding: EdgeInsets.zero,
-                                  activeColor: primaryColor,
-                                );
-                              }).toList(),
-                            );
-                          },
-                        );
-                      }
-
-                      return Container(
-                        height: 40,
-                        child: Center(
-                          child: Text(
-                            'Loading categories...',
-                            style: AppTextStyle.eTextStyle.copyWith(
-                              color: textColor.withOpacity(0.6),
-                              fontSize: 12,
-                            ),
+                            ],
                           ),
-                        ),
-                      );
-                    },
-                  ),
+                          controlAffinity: ListTileControlAffinity.leading,
+                          dense: true,
+                          contentPadding: EdgeInsets.zero,
+                          activeColor: primaryColor,
+                        );
+                      }).toList(),
+                    );
+                  },
                 ),
               ],
             ),
@@ -1641,7 +1553,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Padding(
                         padding: EdgeInsets.symmetric(vertical: 8.v),
                         child: Text(
-                          'Clear All',
+                          'Clear Filters',
                           style: AppTextStyle.cTextStyle.copyWith(
                             color: textColor,
                             fontWeight: FontWeight.w500,
@@ -1656,15 +1568,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
                 Divider(height: 20.v),
-                Text(
-                  'Classes (${selectedCount > 0 ? selectedCount : displayCourses.length})',
-                  style: AppTextStyle.bTextStyle.copyWith(
-                    color: textColor,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                SizedBox(height: 8.v),
+
                 if (displayCourses.isEmpty)
                   Container(
                     height: 60,
@@ -2219,7 +2123,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildListView({
     List<CourseModel> courses = const [],
-    List<HomeworkResponseModel> homeworks = const []
+    List<HomeworkResponseModel> homeworks = const [],
   }) {
     List<Widget> allItems = [];
     final classFilteredAssignments = _filterAssignmentsByClassSelection(
@@ -2601,6 +2505,15 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           )..add(FetchAllExternalCalendarEventsEvent()),
         ),
+        BlocProvider(
+          create: (context) => CategoryBloc(
+            categoryRepository: CategoryRepositoryImpl(
+              remoteDataSource: CategoryRemoteDataSourceImpl(
+                dioClient: DioClient(),
+              ),
+            ),
+          )..add(const category_event.FetchCategoriesEvent()),
+        ),
       ],
       child: MultiBlocListener(
         listeners: [
@@ -2721,6 +2634,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   state.calendars,
                   state.eventsByCalendar,
                 );
+              }
+            },
+          ),
+          BlocListener<CategoryBloc, CategoryState>(
+            listener: (context, state) {
+              if (state is CategoryLoaded) {
+                _populateCategories(state.categories);
               }
             },
           ),
@@ -3887,12 +3807,18 @@ class _HomeScreenState extends State<HomeScreen> {
         timeDisplay = '';
       } else {
         final timeZone = tz.getLocation(_timeZone);
-        final startTime = tz.TZDateTime.from(DateTime.parse(homework.start), timeZone);
+        final startTime = tz.TZDateTime.from(
+          DateTime.parse(homework.start),
+          timeZone,
+        );
         final formattedTime = DateFormat('h:mm a').format(startTime);
         if (homework.end != null &&
             homework.end!.isNotEmpty &&
             homework.start != homework.end) {
-          final endTime = tz.TZDateTime.from(DateTime.parse(homework.end!), timeZone);
+          final endTime = tz.TZDateTime.from(
+            DateTime.parse(homework.end!),
+            timeZone,
+          );
           final formattedEndTime = DateFormat('h:mm a').format(endTime);
           timeDisplay = '$formattedTime - $formattedEndTime';
         } else {
@@ -3963,7 +3889,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     // Category and Grade inline
                     ...(() {
                       final List<Widget> info = [];
-                      if (homework.category != null) {
+                      if (homework.category != null &&
+                          _categoriesById[homework.category] != null) {
                         info.add(
                           Icon(
                             Icons.label_outline,
@@ -3974,7 +3901,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         info.add(SizedBox(width: 4.h));
                         info.add(
                           Text(
-                            '${_categoryTitlesById[homework.category]}',
+                            '${_categoriesById[homework.category]!.title}',
                             style: AppTextStyle.fTextStyle.copyWith(
                               color: assignmentColor.withOpacity(0.7),
                             ),
@@ -4073,12 +4000,18 @@ class _HomeScreenState extends State<HomeScreen> {
         timeDisplay = 'All day';
       } else {
         final timeZone = tz.getLocation(_timeZone);
-        final startTime = tz.TZDateTime.from(DateTime.parse(event.start), timeZone);
+        final startTime = tz.TZDateTime.from(
+          DateTime.parse(event.start),
+          timeZone,
+        );
         final formattedTime = DateFormat('h:mm a').format(startTime);
         if (event.end != null &&
             event.end!.isNotEmpty &&
             event.start != event.end) {
-          final endTime = tz.TZDateTime.from(DateTime.parse(event.end!), timeZone);
+          final endTime = tz.TZDateTime.from(
+            DateTime.parse(event.end!),
+            timeZone,
+          );
           final formattedEndTime = DateFormat('h:mm a').format(endTime);
           timeDisplay = '$formattedTime - $formattedEndTime';
         } else {
@@ -4237,12 +4170,18 @@ class _HomeScreenState extends State<HomeScreen> {
         timeDisplay = 'All day';
       } else {
         final timeZone = tz.getLocation(_timeZone);
-        final startTime = tz.TZDateTime.from(DateTime.parse(externalEvent.start), timeZone);
+        final startTime = tz.TZDateTime.from(
+          DateTime.parse(externalEvent.start),
+          timeZone,
+        );
         final formattedTime = DateFormat('h:mm a').format(startTime);
         if (externalEvent.end != null &&
             externalEvent.end!.isNotEmpty &&
             externalEvent.start != externalEvent.end) {
-          final endTime = tz.TZDateTime.from(DateTime.parse(externalEvent.end!), timeZone);
+          final endTime = tz.TZDateTime.from(
+            DateTime.parse(externalEvent.end!),
+            timeZone,
+          );
           final formattedEndTime = DateFormat('h:mm a').format(endTime);
           timeDisplay = '$formattedTime - $formattedEndTime';
         } else {
