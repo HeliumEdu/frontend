@@ -3792,6 +3792,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Parse homework time
     String timeDisplay = '';
+    String dateDisplay = '';
     final timeZone = tz.getLocation(_timeZone);
     try {
       if (homework.allDay) {
@@ -3803,6 +3804,7 @@ class _HomeScreenState extends State<HomeScreen> {
           timeDisplay = DateFormat('MMM dd, yyyy').format(startTime);
         } else {
           timeDisplay = '';
+          dateDisplay = '';
         }
       } else {
         final startTime = tz.TZDateTime.from(
@@ -3821,17 +3823,18 @@ class _HomeScreenState extends State<HomeScreen> {
           final formattedEndTime = DateFormat('h:mm a').format(endTime);
           timeDisplay = '$formattedTime - $formattedEndTime';
           if (_currentViewMode == 'Todo') {
-            timeDisplay = '$formattedDate $timeDisplay';
+            dateDisplay = formattedDate;
           }
         } else {
           timeDisplay = formattedTime;
           if (_currentViewMode == 'Todo') {
-            timeDisplay = '$formattedDate $timeDisplay';
+            dateDisplay = formattedDate;
           }
         }
       }
     } catch (e) {
       timeDisplay = '';
+      dateDisplay = '';
     }
 
     final bool isCompleted = _completedOverrides.containsKey(homework.id)
@@ -3939,6 +3942,23 @@ class _HomeScreenState extends State<HomeScreen> {
                     })(),
                   ],
                 ),
+                if (dateDisplay.isNotEmpty)
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_today,
+                        size: 14,
+                        color: assignmentColor.withOpacity(0.7),
+                      ),
+                      SizedBox(width: 4.h),
+                      Text(
+                        dateDisplay,
+                        style: AppTextStyle.fTextStyle.copyWith(
+                          color: assignmentColor.withOpacity(0.7),
+                        ),
+                      ),
+                    ],
+                  ),
                 if (timeDisplay.isNotEmpty)
                   Row(
                     children: [
