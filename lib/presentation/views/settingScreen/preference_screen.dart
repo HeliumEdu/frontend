@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:helium_student_flutter/presentation/bloc/preferenceBloc/preference_bloc.dart';
-import 'package:helium_student_flutter/presentation/bloc/preferenceBloc/preference_event.dart';
-import 'package:helium_student_flutter/presentation/bloc/preferenceBloc/preference_states.dart';
-import 'package:helium_student_flutter/presentation/widgets/custom_text_button.dart';
-import 'package:helium_student_flutter/utils/app_colors.dart';
-import 'package:helium_student_flutter/utils/app_list.dart';
-import 'package:helium_student_flutter/utils/app_size.dart';
-import 'package:helium_student_flutter/utils/app_text_style.dart';
-import 'package:helium_student_flutter/utils/custom_color_picker.dart';
-import 'package:helium_student_flutter/core/dio_client.dart';
-import 'package:helium_student_flutter/data/datasources/auth_remote_data_source.dart';
-import 'package:helium_student_flutter/data/datasources/external_calendar_remote_data_source.dart';
-import 'package:helium_student_flutter/data/models/planner/external_calendar_model.dart';
-import 'package:helium_student_flutter/data/models/planner/external_calendar_request_model.dart';
-import 'package:helium_student_flutter/data/repositories/auth_repository_impl.dart';
-import 'package:helium_student_flutter/data/repositories/external_calendar_repository_impl.dart';
-import 'package:helium_student_flutter/presentation/bloc/externalCalendarBloc/external_calendar_bloc.dart';
-import 'package:helium_student_flutter/presentation/bloc/externalCalendarBloc/external_calendar_event.dart';
-import 'package:helium_student_flutter/presentation/bloc/externalCalendarBloc/external_calendar_state.dart';
+import 'package:heliumedu/presentation/bloc/preferenceBloc/preference_bloc.dart';
+import 'package:heliumedu/presentation/bloc/preferenceBloc/preference_event.dart';
+import 'package:heliumedu/presentation/bloc/preferenceBloc/preference_states.dart';
+import 'package:heliumedu/presentation/widgets/custom_text_button.dart';
+import 'package:heliumedu/utils/app_colors.dart';
+import 'package:heliumedu/utils/app_list.dart';
+import 'package:heliumedu/utils/app_size.dart';
+import 'package:heliumedu/utils/app_text_style.dart';
+import 'package:heliumedu/utils/custom_color_picker.dart';
+import 'package:heliumedu/core/dio_client.dart';
+import 'package:heliumedu/data/datasources/auth_remote_data_source.dart';
+import 'package:heliumedu/data/datasources/external_calendar_remote_data_source.dart';
+import 'package:heliumedu/data/models/planner/external_calendar_model.dart';
+import 'package:heliumedu/data/models/planner/external_calendar_request_model.dart';
+import 'package:heliumedu/data/repositories/auth_repository_impl.dart';
+import 'package:heliumedu/data/repositories/external_calendar_repository_impl.dart';
+import 'package:heliumedu/presentation/bloc/externalCalendarBloc/external_calendar_bloc.dart';
+import 'package:heliumedu/presentation/bloc/externalCalendarBloc/external_calendar_event.dart';
+import 'package:heliumedu/presentation/bloc/externalCalendarBloc/external_calendar_state.dart';
 
 class PreferenceScreen extends StatelessWidget {
   const PreferenceScreen({super.key});
@@ -1027,7 +1027,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                         ),
                         SizedBox(height: 22.h),
                         Text(
-                          'Default Remainder',
+                          'Default Reminder',
                           style: AppTextStyle.cTextStyle.copyWith(
                             color: blackColor.withOpacity(0.8),
                           ),
@@ -1050,13 +1050,13 @@ class _PreferenceViewState extends State<PreferenceView> {
                             isExpanded: true,
                             underline: SizedBox(),
                             hint: Text(
-                              "Remainder",
+                              "Reminder",
                               style: AppTextStyle.eTextStyle.copyWith(
                                 color: blackColor.withOpacity(0.5),
                               ),
                             ),
                             value: selectedReminderPreference,
-                            items: remainderPreferences.map((course) {
+                            items: reminderPreferences.map((course) {
                               return DropdownMenuItem(
                                 value: course,
                                 child: Text(
@@ -1078,7 +1078,7 @@ class _PreferenceViewState extends State<PreferenceView> {
 
                         // BLoC Implementation for Offset Field
                         Text(
-                          'Default Remainder OffSet',
+                          'Default Reminder OffSet',
                           style: AppTextStyle.cTextStyle.copyWith(
                             color: blackColor.withOpacity(0.8),
                           ),
@@ -1171,7 +1171,7 @@ class _PreferenceViewState extends State<PreferenceView> {
 
                         SizedBox(height: 22.h),
                         Text(
-                          'Default Remainder OffSet Type',
+                          'Default Reminder OffSet Type',
                           style: AppTextStyle.cTextStyle.copyWith(
                             color: blackColor.withOpacity(0.8),
                           ),
@@ -1194,7 +1194,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                             isExpanded: true,
                             underline: SizedBox(),
                             hint: Text(
-                              "Remainder Type",
+                              "Reminder Type",
                               style: AppTextStyle.eTextStyle.copyWith(
                                 color: blackColor.withOpacity(0.5),
                               ),
@@ -1407,7 +1407,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                                   if (selectedReminderPreference == null) {
                                     return 0;
                                   }
-                                  final idx = remainderPreferences.indexOf(
+                                  final idx = reminderPreferences.indexOf(
                                     selectedReminderPreference!,
                                   );
                                   return idx >= 0 ? idx : 0;

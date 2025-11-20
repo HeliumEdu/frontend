@@ -2,26 +2,26 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:helium_student_flutter/core/dio_client.dart';
-import 'package:helium_student_flutter/config/app_route.dart';
-import 'package:helium_student_flutter/data/datasources/course_remote_data_source.dart';
-import 'package:helium_student_flutter/data/models/planner/category_model.dart';
-import 'package:helium_student_flutter/data/models/planner/category_request_model.dart';
-import 'package:helium_student_flutter/data/repositories/course_repository_impl.dart';
-import 'package:helium_student_flutter/presentation/bloc/courseBloc/course_bloc.dart';
-import 'package:helium_student_flutter/presentation/bloc/courseBloc/course_event.dart';
-import 'package:helium_student_flutter/presentation/bloc/courseBloc/course_state.dart';
-import 'package:helium_student_flutter/utils/app_colors.dart';
-import 'package:helium_student_flutter/utils/app_size.dart';
-import 'package:helium_student_flutter/utils/app_text_style.dart';
+import 'package:heliumedu/core/dio_client.dart';
+import 'package:heliumedu/config/app_routes.dart';
+import 'package:heliumedu/data/datasources/course_remote_data_source.dart';
+import 'package:heliumedu/data/models/planner/category_model.dart';
+import 'package:heliumedu/data/models/planner/category_request_model.dart';
+import 'package:heliumedu/data/repositories/course_repository_impl.dart';
+import 'package:heliumedu/presentation/bloc/courseBloc/course_bloc.dart';
+import 'package:heliumedu/presentation/bloc/courseBloc/course_event.dart';
+import 'package:heliumedu/presentation/bloc/courseBloc/course_state.dart';
+import 'package:heliumedu/utils/app_colors.dart';
+import 'package:heliumedu/utils/app_size.dart';
+import 'package:heliumedu/utils/app_text_style.dart';
 import 'package:easy_stepper/easy_stepper.dart';
 
-class CategoriesAddClass extends StatefulWidget {
+class AddClassesCategoriesScreen extends StatefulWidget {
   final int courseId;
   final int courseGroupId;
   final bool isEdit;
 
-  const CategoriesAddClass({
+  const AddClassesCategoriesScreen({
     super.key,
     required this.courseId,
     required this.courseGroupId,
@@ -29,10 +29,10 @@ class CategoriesAddClass extends StatefulWidget {
   });
 
   @override
-  State<CategoriesAddClass> createState() => _CategoriesAddClassState();
+  State<AddClassesCategoriesScreen> createState() => _AddClassesCategoriesScreenState();
 }
 
-class _CategoriesAddClassState extends State<CategoriesAddClass> {
+class _AddClassesCategoriesScreenState extends State<AddClassesCategoriesScreen> {
   Color dialogSelectedColor = const Color(0xFF16a765);
 
   final TextEditingController _categoryNameController = TextEditingController();

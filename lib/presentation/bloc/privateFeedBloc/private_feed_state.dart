@@ -1,4 +1,4 @@
-import 'package:helium_student_flutter/data/models/planner/private_feed_model.dart';
+import 'package:heliumedu/data/models/planner/private_feed_model.dart';
 
 abstract class PrivateFeedState {}
 

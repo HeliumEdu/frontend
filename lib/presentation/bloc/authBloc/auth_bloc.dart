@@ -1,16 +1,15 @@
 import 'package:bloc/bloc.dart';
-import 'package:helium_student_flutter/core/app_exception.dart';
-import 'package:helium_student_flutter/core/dio_client.dart';
-import 'package:helium_student_flutter/data/models/auth/delete_account_request_model.dart';
-import 'package:helium_student_flutter/data/models/auth/login_request_model.dart';
-import 'package:helium_student_flutter/data/models/auth/refresh_token_request_model.dart';
-import 'package:helium_student_flutter/data/models/auth/register_request_model.dart';
-import 'package:helium_student_flutter/data/models/auth/update_phone_request_model.dart';
-import 'package:helium_student_flutter/data/models/auth/change_password_request_model.dart';
-import 'package:helium_student_flutter/data/models/auth/forgot_password_request_model.dart';
-import 'package:helium_student_flutter/domain/repositories/auth_repository.dart';
-import 'package:helium_student_flutter/presentation/bloc/authBloc/auth_event.dart';
-import 'package:helium_student_flutter/presentation/bloc/authBloc/auth_state.dart';
+import 'package:heliumedu/core/app_exception.dart';
+import 'package:heliumedu/core/dio_client.dart';
+import 'package:heliumedu/data/models/auth/delete_account_request_model.dart';
+import 'package:heliumedu/data/models/auth/login_request_model.dart';
+import 'package:heliumedu/data/models/auth/refresh_token_request_model.dart';
+import 'package:heliumedu/data/models/auth/register_request_model.dart';
+import 'package:heliumedu/data/models/auth/change_password_request_model.dart';
+import 'package:heliumedu/data/models/auth/forgot_password_request_model.dart';
+import 'package:heliumedu/domain/repositories/auth_repository.dart';
+import 'package:heliumedu/presentation/bloc/authBloc/auth_event.dart';
+import 'package:heliumedu/presentation/bloc/authBloc/auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository authRepository;
@@ -24,7 +23,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<BlacklistTokenEvent>(_onBlacklistToken);
     on<GetProfileEvent>(_onGetProfile);
     on<DeleteAccountEvent>(_onDeleteAccount);
-    on<UpdatePhoneEvent>(_onUpdatePhone);
     on<ChangePasswordEvent>(_onChangePassword);
     on<ForgotPasswordEvent>(_onForgotPassword);
     on<RefreshTokenEvent>(_onRefreshToken);
@@ -192,7 +190,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         AuthProfileLoaded(
           username: profile.username,
           email: profile.email,
-          phone: profile.profile?.phone,
         ),
       );
     } on NetworkException catch (e) {
@@ -217,41 +214,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final response = await authRepository.deleteAccount(request);
 
       emit(AuthAccountDeletedSuccess(message: response.message));
-    } on ValidationException catch (e) {
-      emit(AuthError(message: e.message, code: e.code));
-    } on NetworkException catch (e) {
-      emit(AuthError(message: e.message, code: e.code));
-    } on ServerException catch (e) {
-      emit(AuthError(message: e.message, code: e.code));
-    } on UnauthorizedException catch (e) {
-      emit(AuthError(message: e.message, code: e.code));
-    } on AppException catch (e) {
-      emit(AuthError(message: e.message, code: e.code));
-    } catch (e) {
-      emit(AuthError(message: 'An unexpected error occurred: $e'));
-    }
-  }
-
-  Future<void> _onUpdatePhone(
-    UpdatePhoneEvent event,
-    Emitter<AuthState> emit,
-  ) async {
-    emit(const AuthLoading());
-
-    try {
-      final request = UpdatePhoneRequestModel(
-        phone: event.phone,
-        phoneVerificationCode: event.verificationCode,
-      );
-      final response = await authRepository.updatePhoneProfile(request);
-
-      emit(
-        AuthPhoneUpdateSuccess(
-          phone: response.phone,
-          phoneChanging: response.phoneChanging,
-          phoneVerified: response.phoneVerified,
-        ),
-      );
     } on ValidationException catch (e) {
       emit(AuthError(message: e.message, code: e.code));
     } on NetworkException catch (e) {

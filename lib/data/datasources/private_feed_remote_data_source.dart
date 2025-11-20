@@ -1,8 +1,8 @@
-import 'package:helium_student_flutter/core/app_exception.dart';
-import 'package:helium_student_flutter/core/dio_client.dart';
-import 'package:helium_student_flutter/core/network_urls.dart';
-import 'package:helium_student_flutter/data/models/auth/user_profile_model.dart';
-import 'package:helium_student_flutter/data/models/planner/private_feed_model.dart';
+import 'package:heliumedu/core/app_exception.dart';
+import 'package:heliumedu/core/dio_client.dart';
+import 'package:heliumedu/core/network_urls.dart';
+import 'package:heliumedu/data/models/auth/user_profile_model.dart';
+import 'package:heliumedu/data/models/planner/private_feed_model.dart';
 
 abstract class PrivateFeedRemoteDataSource {
   Future<PrivateFeedModel> getPrivateFeedUrls();

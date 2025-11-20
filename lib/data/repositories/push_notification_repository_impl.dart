@@ -1,8 +1,8 @@
-import 'package:helium_student_flutter/core/app_exception.dart';
-import 'package:helium_student_flutter/data/datasources/push_notification_remote_data_source.dart';
-import 'package:helium_student_flutter/data/models/notification/push_token_request_model.dart';
-import 'package:helium_student_flutter/data/models/notification/push_token_response_model.dart';
-import 'package:helium_student_flutter/domain/repositories/push_notification_repository.dart';
+import 'package:heliumedu/core/app_exception.dart';
+import 'package:heliumedu/data/datasources/push_notification_remote_data_source.dart';
+import 'package:heliumedu/data/models/notification/push_token_request_model.dart';
+import 'package:heliumedu/data/models/notification/push_token_response_model.dart';
+import 'package:heliumedu/domain/repositories/push_notification_repository.dart';
 
 class PushNotificationRepositoryImpl implements PushNotificationRepository {
   final PushNotificationRemoteDataSource remoteDataSource;

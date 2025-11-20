@@ -1,6 +1,6 @@
-import 'package:helium_student_flutter/data/datasources/private_feed_remote_data_source.dart';
-import 'package:helium_student_flutter/data/models/planner/private_feed_model.dart';
-import 'package:helium_student_flutter/domain/repositories/private_feed_repository.dart';
+import 'package:heliumedu/data/datasources/private_feed_remote_data_source.dart';
+import 'package:heliumedu/data/models/planner/private_feed_model.dart';
+import 'package:heliumedu/domain/repositories/private_feed_repository.dart';
 
 class PrivateFeedRepositoryImpl implements PrivateFeedRepository {
   final PrivateFeedRemoteDataSource remoteDataSource;

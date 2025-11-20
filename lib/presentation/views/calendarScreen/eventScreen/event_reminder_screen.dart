@@ -1,34 +1,34 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:helium_student_flutter/core/dio_client.dart';
-import 'package:helium_student_flutter/data/datasources/event_remote_data_source.dart';
-import 'package:helium_student_flutter/data/datasources/reminder_remote_data_source.dart';
-import 'package:helium_student_flutter/data/datasources/attachment_remote_data_source.dart';
-import 'package:helium_student_flutter/data/models/planner/attachment_model.dart';
-import 'package:helium_student_flutter/data/models/planner/event_request_model.dart';
-import 'package:helium_student_flutter/data/models/planner/reminder_request_model.dart';
-import 'package:helium_student_flutter/data/models/planner/reminder_response_model.dart';
-import 'package:helium_student_flutter/data/repositories/event_repository_impl.dart';
-import 'package:helium_student_flutter/data/repositories/reminder_repository_impl.dart';
-import 'package:helium_student_flutter/data/repositories/attachment_repository_impl.dart';
-import 'package:helium_student_flutter/utils/app_colors.dart';
-import 'package:helium_student_flutter/utils/app_list.dart';
-import 'package:helium_student_flutter/utils/app_size.dart';
-import 'package:helium_student_flutter/utils/app_text_style.dart';
-import 'package:helium_student_flutter/core/fcm_service.dart';
+import 'package:heliumedu/core/dio_client.dart';
+import 'package:heliumedu/data/datasources/event_remote_data_source.dart';
+import 'package:heliumedu/data/datasources/reminder_remote_data_source.dart';
+import 'package:heliumedu/data/datasources/attachment_remote_data_source.dart';
+import 'package:heliumedu/data/models/planner/attachment_model.dart';
+import 'package:heliumedu/data/models/planner/event_request_model.dart';
+import 'package:heliumedu/data/models/planner/reminder_request_model.dart';
+import 'package:heliumedu/data/models/planner/reminder_response_model.dart';
+import 'package:heliumedu/data/repositories/event_repository_impl.dart';
+import 'package:heliumedu/data/repositories/reminder_repository_impl.dart';
+import 'package:heliumedu/data/repositories/attachment_repository_impl.dart';
+import 'package:heliumedu/utils/app_colors.dart';
+import 'package:heliumedu/utils/app_list.dart';
+import 'package:heliumedu/utils/app_size.dart';
+import 'package:heliumedu/utils/app_text_style.dart';
+import 'package:heliumedu/core/fcm_service.dart';
 import 'package:easy_stepper/easy_stepper.dart';
 
-class EventRemainderScreen extends StatefulWidget {
+class EventReminderScreen extends StatefulWidget {
   final EventRequestModel? eventRequest;
 
-  const EventRemainderScreen({super.key, this.eventRequest});
+  const EventReminderScreen({super.key, this.eventRequest});
 
   @override
-  State<EventRemainderScreen> createState() => _EventRemainderScreenState();
+  State<EventReminderScreen> createState() => _EventReminderScreenState();
 }
 
-class _EventRemainderScreenState extends State<EventRemainderScreen> {
+class _EventReminderScreenState extends State<EventReminderScreen> {
   final TextEditingController _messageController = TextEditingController();
   final TextEditingController _timeValueController = TextEditingController();
 
@@ -287,7 +287,7 @@ class _EventRemainderScreenState extends State<EventRemainderScreen> {
                         ),
                       ),
                       value: methodSelection,
-                      items: remainderPreferences.map((method) {
+                      items: reminderPreferences.map((method) {
                         return DropdownMenuItem<String>(
                           value: method,
                           child: Row(

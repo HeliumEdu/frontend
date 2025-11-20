@@ -1,8 +1,8 @@
 import 'package:bloc/bloc.dart';
-import 'package:helium_student_flutter/core/app_exception.dart';
-import 'package:helium_student_flutter/domain/repositories/category_repository.dart';
-import 'package:helium_student_flutter/presentation/bloc/categoryBloc/category_event.dart';
-import 'package:helium_student_flutter/presentation/bloc/categoryBloc/category_state.dart';
+import 'package:heliumedu/core/app_exception.dart';
+import 'package:heliumedu/domain/repositories/category_repository.dart';
+import 'package:heliumedu/presentation/bloc/categoryBloc/category_event.dart';
+import 'package:heliumedu/presentation/bloc/categoryBloc/category_state.dart';
 
 class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
   final CategoryRepository categoryRepository;

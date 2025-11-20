@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
-import 'package:helium_student_flutter/data/models/notification/notification_model.dart';
-import 'package:helium_student_flutter/data/models/notification/fcm_token_model.dart';
+import 'package:heliumedu/data/models/notification/notification_model.dart';
+import 'package:heliumedu/data/models/notification/fcm_token_model.dart';
 
 abstract class NotificationState extends Equatable {
   const NotificationState();

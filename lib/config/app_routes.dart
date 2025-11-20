@@ -1,38 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:helium_student_flutter/core/dio_client.dart';
-import 'package:helium_student_flutter/data/datasources/material_remote_data_source.dart';
-import 'package:helium_student_flutter/data/repositories/material_repository_impl.dart';
-import 'package:helium_student_flutter/presentation/bloc/materialBloc/material_bloc.dart';
-import 'package:helium_student_flutter/presentation/views/authScreen/forgotPassword/forgot_password_screen.dart';
-import 'package:helium_student_flutter/presentation/views/authScreen/signInScreen/sign_in_screen.dart';
-import 'package:helium_student_flutter/presentation/views/authScreen/signupScreen/sign_up_screen.dart';
-import 'package:helium_student_flutter/presentation/views/bottomNavBar/bottom_nav_bar_screen.dart';
-import 'package:helium_student_flutter/presentation/views/classesScreen/add_classes_screen.dart';
-import 'package:helium_student_flutter/presentation/views/classesScreen/categories_add_class.dart';
-import 'package:helium_student_flutter/presentation/views/classesScreen/classes_screen.dart';
-import 'package:helium_student_flutter/presentation/views/classesScreen/schedule_add_class.dart';
-import 'package:helium_student_flutter/presentation/views/gradeScreen/grades_screen.dart';
-import 'package:helium_student_flutter/presentation/views/homeScreen/assignmentScreen/add_assignment_screen.dart';
-import 'package:helium_student_flutter/presentation/views/homeScreen/assignmentScreen/assignment_reminder_screen.dart';
-import 'package:helium_student_flutter/presentation/views/homeScreen/eventScreen/add_event_screen.dart';
-import 'package:helium_student_flutter/presentation/views/homeScreen/eventScreen/event_reminder_screen.dart';
-import 'package:helium_student_flutter/presentation/views/homeScreen/home_screen.dart';
-import 'package:helium_student_flutter/presentation/views/materialScreen/add_material_screen.dart';
-import 'package:helium_student_flutter/presentation/views/materialScreen/material_screen.dart';
-import 'package:helium_student_flutter/presentation/views/authScreen/otpScreen/otp_verification_screen.dart';
-import 'package:helium_student_flutter/presentation/views/settingScreen/change_password_screen.dart';
-import 'package:helium_student_flutter/presentation/views/settingScreen/notification_screen.dart';
-import 'package:helium_student_flutter/presentation/views/settingScreen/preference_screen.dart';
-import 'package:helium_student_flutter/presentation/views/settingScreen/setting_screen.dart';
-import 'package:helium_student_flutter/presentation/views/settingScreen/feed_settings_screen.dart';
-import 'package:helium_student_flutter/presentation/views/splashScreen/splash_screen.dart';
+import 'package:heliumedu/core/dio_client.dart';
+import 'package:heliumedu/data/datasources/material_remote_data_source.dart';
+import 'package:heliumedu/data/repositories/material_repository_impl.dart';
+import 'package:heliumedu/presentation/bloc/materialBloc/material_bloc.dart';
+import 'package:heliumedu/presentation/views/authScreen/forgotPassword/forgot_password_screen.dart';
+import 'package:heliumedu/presentation/views/authScreen/signInScreen/sign_in_screen.dart';
+import 'package:heliumedu/presentation/views/authScreen/signupScreen/sign_up_screen.dart';
+import 'package:heliumedu/presentation/views/bottomNavBar/bottom_nav_bar_screen.dart';
+import 'package:heliumedu/presentation/views/classesScreen/add_classes_screen.dart';
+import 'package:heliumedu/presentation/views/classesScreen/add_classes_categories_screen.dart';
+import 'package:heliumedu/presentation/views/classesScreen/classes_screen.dart';
+import 'package:heliumedu/presentation/views/classesScreen/add_classes_schedule_screen.dart';
+import 'package:heliumedu/presentation/views/gradeScreen/grades_screen.dart';
+import 'package:heliumedu/presentation/views/calendarScreen/assignmentScreen/add_assignment_screen.dart';
+import 'package:heliumedu/presentation/views/calendarScreen/assignmentScreen/assignment_reminder_screen.dart';
+import 'package:heliumedu/presentation/views/calendarScreen/eventScreen/add_event_screen.dart';
+import 'package:heliumedu/presentation/views/calendarScreen/eventScreen/event_reminder_screen.dart';
+import 'package:heliumedu/presentation/views/calendarScreen/calendar_screen.dart';
+import 'package:heliumedu/presentation/views/materialsScreen/add_material_screen.dart';
+import 'package:heliumedu/presentation/views/materialsScreen/materials_screen.dart';
+import 'package:heliumedu/presentation/views/settingScreen/change_password_screen.dart';
+import 'package:heliumedu/presentation/views/settingScreen/notification_screen.dart';
+import 'package:heliumedu/presentation/views/settingScreen/preference_screen.dart';
+import 'package:heliumedu/presentation/views/settingScreen/setting_screen.dart';
+import 'package:heliumedu/presentation/views/settingScreen/feed_settings_screen.dart';
+import 'package:heliumedu/presentation/views/splashScreen/splash_screen.dart';
 
 class AppRoutes {
   static const String splashScreen = '/splashScreen';
-  static const String homeScreen = '/homeScreen';
+  static const String calendarScreen = '/calendarScreen';
   static const String classesScreen = '/classesScreen';
-  static const String materialScreen = '/materialScreen';
+  static const String materialsScreen = '/materialsScreen';
   static const String gradesScreen = '/gradesScreen';
   static const String signInScreen = '/signInScreen';
   static const String signUpScreen = '/signUpScreen';
@@ -43,24 +42,22 @@ class AppRoutes {
   static const String changePasswordScreen = '/changePasswordScreen';
   static const String preferenceScreen = '/preferenceScreen';
   static const String notificationScreen = '/notificationScreen';
-  static const String otpVerificationScreen = '/otpVerificationScreen';
   static const String forgotPasswordScreen = '/forgotPasswordScreen';
   static const String scheduleAddClass = '/scheduleAddClass';
   static const String categoriesAddClass = '/categoriesAddClass';
   static const String addAssignmentScreen = '/addAssignmentScreen';
   static const String addEventScreen = '/addEventScreen';
-  static const String remainderScreen = '/remainderScreen';
-  static const String eventRemainderScreen = '/eventRemainderScreen';
+  static const String assignmentReminderScreen = '/assignmentReminderScreen';
+  static const String eventReminderScreen = '/eventReminderScreen';
   static const String feedSettingsScreen = '/feedSettingsScreen';
   static const String addAssignmentEvent = '/addAssignmentEvent';
-  // static const String notificationTestScreen = '/notificationTestScreen';
 
   static Map<String, WidgetBuilder> getRoutes() {
     return {
       splashScreen: (context) => const SplashScreen(),
-      homeScreen: (context) => const HomeScreen(),
+      calendarScreen: (context) => const HomeScreen(),
       classesScreen: (context) => const ClassesScreen(),
-      materialScreen: (context) => MaterialScreen(),
+      materialsScreen: (context) => MaterialsScreen(),
       gradesScreen: (context) => const GradesScreen(),
       signInScreen: (context) => const SignInScreen(),
       signUpScreen: (context) => const SignUpScreen(),
@@ -121,7 +118,7 @@ class AppRoutes {
       scheduleAddClass: (context) {
         final args =
             ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-        return ScheduleAddClass(
+        return AddClassesScheduleScreen(
           courseId: args?['courseId'] ?? 0,
           courseGroupId: args?['courseGroupId'] ?? 0,
           isEdit: args?['isEdit'] as bool? ?? false,
@@ -130,36 +127,31 @@ class AppRoutes {
       categoriesAddClass: (context) {
         final args =
             ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-        return CategoriesAddClass(
+        return AddClassesCategoriesScreen(
           courseId: args?['courseId'] ?? 0,
           courseGroupId: args?['courseGroupId'] ?? 0,
           isEdit: args?['isEdit'] as bool? ?? false,
         );
       },
-      otpVerificationScreen: (context) {
-        final phoneNumber =
-            ModalRoute.of(context)?.settings.arguments as String;
-        return OtpVerificationScreen(phoneNumber: phoneNumber);
-      },
 
       addAssignmentScreen: (context) => const AddAssignmentScreen(),
       addEventScreen: (context) => const AddEventScreen(),
-      remainderScreen: (context) {
+      assignmentReminderScreen: (context) {
         final args =
             ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
 
-        return ReminderScreen(
+        return AssignmentReminderScreen(
           homeworkId: args?['homeworkId'],
           groupId: args?['groupId'],
           courseId: args?['courseId'],
           isEditMode: args?['isEditMode'],
         );
       },
-      eventRemainderScreen: (context) {
+      eventReminderScreen: (context) {
         final args =
             ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
 
-        return EventRemainderScreen(eventRequest: args?['eventRequest']);
+        return EventReminderScreen(eventRequest: args?['eventRequest']);
       },
       feedSettingsScreen: (context) => const FeedSettingsScreen(),
       // notificationTestScreen: (context) => const NotificationTestScreen(),

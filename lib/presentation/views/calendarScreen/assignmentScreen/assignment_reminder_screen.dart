@@ -3,19 +3,19 @@ import 'dart:io';
 import 'package:easy_stepper/easy_stepper.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:helium_student_flutter/core/dio_client.dart';
-import 'package:helium_student_flutter/data/datasources/attachment_remote_data_source.dart';
-import 'package:helium_student_flutter/data/datasources/reminder_remote_data_source.dart';
-import 'package:helium_student_flutter/data/models/planner/attachment_model.dart';
-import 'package:helium_student_flutter/data/models/planner/reminder_request_model.dart';
-import 'package:helium_student_flutter/data/models/planner/reminder_response_model.dart';
-import 'package:helium_student_flutter/data/repositories/attachment_repository_impl.dart';
-import 'package:helium_student_flutter/data/repositories/reminder_repository_impl.dart';
-import 'package:helium_student_flutter/presentation/views/homeScreen/home_screen.dart';
-import 'package:helium_student_flutter/utils/app_colors.dart';
-import 'package:helium_student_flutter/utils/app_list.dart';
-import 'package:helium_student_flutter/utils/app_size.dart';
-import 'package:helium_student_flutter/utils/app_text_style.dart';
+import 'package:heliumedu/core/dio_client.dart';
+import 'package:heliumedu/data/datasources/attachment_remote_data_source.dart';
+import 'package:heliumedu/data/datasources/reminder_remote_data_source.dart';
+import 'package:heliumedu/data/models/planner/attachment_model.dart';
+import 'package:heliumedu/data/models/planner/reminder_request_model.dart';
+import 'package:heliumedu/data/models/planner/reminder_response_model.dart';
+import 'package:heliumedu/data/repositories/attachment_repository_impl.dart';
+import 'package:heliumedu/data/repositories/reminder_repository_impl.dart';
+import 'package:heliumedu/presentation/views/calendarScreen/calendar_screen.dart';
+import 'package:heliumedu/utils/app_colors.dart';
+import 'package:heliumedu/utils/app_list.dart';
+import 'package:heliumedu/utils/app_size.dart';
+import 'package:heliumedu/utils/app_text_style.dart';
 
 // Local model to stage multiple reminders before submitting
 class _PendingReminder {
@@ -30,13 +30,13 @@ class _PendingReminder {
   });
 }
 
-class ReminderScreen extends StatefulWidget {
+class AssignmentReminderScreen extends StatefulWidget {
   final int? groupId;
   final int? courseId;
   final bool? isEditMode;
   final int? homeworkId;
 
-  const ReminderScreen({
+  const AssignmentReminderScreen({
     super.key,
     this.groupId,
     this.courseId,
@@ -45,10 +45,10 @@ class ReminderScreen extends StatefulWidget {
   });
 
   @override
-  State<ReminderScreen> createState() => _ReminderScreenState();
+  State<AssignmentReminderScreen> createState() => _AssignmentReminderScreenState();
 }
 
-class _ReminderScreenState extends State<ReminderScreen> {
+class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
   final TextEditingController _messageController = TextEditingController();
   final TextEditingController _timeValueController = TextEditingController();
 
@@ -467,7 +467,7 @@ class _ReminderScreenState extends State<ReminderScreen> {
                         ),
                       ),
                       value: methodSelection,
-                      items: remainderPreferences.map((method) {
+                      items: reminderPreferences.map((method) {
                         return DropdownMenuItem<String>(
                           value: method,
                           child: Row(
@@ -899,7 +899,7 @@ class _ReminderScreenState extends State<ReminderScreen> {
                         ),
                       ),
                       value: methodSelection,
-                      items: remainderPreferences.map((method) {
+                      items: reminderPreferences.map((method) {
                         return DropdownMenuItem<String>(
                           value: method,
                           child: Row(
@@ -1244,7 +1244,7 @@ class _ReminderScreenState extends State<ReminderScreen> {
         );
         // Pop both screens to go back to home and refresh
         Navigator.of(context)
-          ..pop() // Pop remainder screen
+          ..pop() // Pop event reminder screen
           ..pop(); // Pop add assignment screen
 
         // Trigger immediate refresh of home screen data
@@ -2002,7 +2002,7 @@ class _ReminderScreenState extends State<ReminderScreen> {
   void _triggerHomeScreenRefresh() {
     Future.delayed(Duration(milliseconds: 500), () {
       HomeScreen.triggerRefresh();
-      print('🔄 Home screen refresh triggered from remainder screen');
+      print('🔄 Home screen refresh triggered from reminder screen');
     });
   }
 }

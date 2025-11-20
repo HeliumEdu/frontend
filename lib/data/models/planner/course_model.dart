@@ -1,4 +1,4 @@
-import 'package:helium_student_flutter/data/models/planner/course_schedule_model.dart';
+import 'package:heliumedu/data/models/planner/course_schedule_model.dart';
 
 class CourseModel {
   final int id;

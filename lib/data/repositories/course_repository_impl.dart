@@ -1,15 +1,15 @@
 import 'dart:io';
-import 'package:helium_student_flutter/data/datasources/course_remote_data_source.dart';
-import 'package:helium_student_flutter/data/models/planner/course_model.dart';
-import 'package:helium_student_flutter/data/models/planner/course_request_model.dart';
-import 'package:helium_student_flutter/data/models/planner/course_schedule_model.dart';
-import 'package:helium_student_flutter/data/models/planner/course_schedule_request_model.dart';
-import 'package:helium_student_flutter/data/models/planner/category_model.dart';
-import 'package:helium_student_flutter/data/models/planner/category_request_model.dart';
-import 'package:helium_student_flutter/data/models/planner/attachment_model.dart';
-import 'package:helium_student_flutter/data/models/planner/course_group_request_model.dart';
-import 'package:helium_student_flutter/data/models/planner/course_group_response_model.dart';
-import 'package:helium_student_flutter/domain/repositories/course_repository.dart';
+import 'package:heliumedu/data/datasources/course_remote_data_source.dart';
+import 'package:heliumedu/data/models/planner/course_model.dart';
+import 'package:heliumedu/data/models/planner/course_request_model.dart';
+import 'package:heliumedu/data/models/planner/course_schedule_model.dart';
+import 'package:heliumedu/data/models/planner/course_schedule_request_model.dart';
+import 'package:heliumedu/data/models/planner/category_model.dart';
+import 'package:heliumedu/data/models/planner/category_request_model.dart';
+import 'package:heliumedu/data/models/planner/attachment_model.dart';
+import 'package:heliumedu/data/models/planner/course_group_request_model.dart';
+import 'package:heliumedu/data/models/planner/course_group_response_model.dart';
+import 'package:heliumedu/domain/repositories/course_repository.dart';
 
 class CourseRepositoryImpl implements CourseRepository {
   final CourseRemoteDataSource remoteDataSource;

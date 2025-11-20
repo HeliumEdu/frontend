@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:helium_student_flutter/config/app_route.dart';
-import 'package:helium_student_flutter/core/dio_client.dart';
-import 'package:helium_student_flutter/data/datasources/event_remote_data_source.dart';
-import 'package:helium_student_flutter/data/models/planner/event_request_model.dart';
-import 'package:helium_student_flutter/data/models/planner/event_response_model.dart';
-import 'package:helium_student_flutter/data/repositories/event_repository_impl.dart';
-import 'package:helium_student_flutter/presentation/bloc/eventBloc/event_bloc.dart';
-import 'package:helium_student_flutter/presentation/widgets/custom_class_textfield.dart';
-import 'package:helium_student_flutter/presentation/widgets/custom_text_button.dart';
-import 'package:helium_student_flutter/utils/app_colors.dart';
-import 'package:helium_student_flutter/utils/app_size.dart';
-import 'package:helium_student_flutter/utils/app_text_style.dart';
+import 'package:heliumedu/config/app_routes.dart';
+import 'package:heliumedu/core/dio_client.dart';
+import 'package:heliumedu/data/datasources/event_remote_data_source.dart';
+import 'package:heliumedu/data/models/planner/event_request_model.dart';
+import 'package:heliumedu/data/models/planner/event_response_model.dart';
+import 'package:heliumedu/data/repositories/event_repository_impl.dart';
+import 'package:heliumedu/presentation/bloc/eventBloc/event_bloc.dart';
+import 'package:heliumedu/presentation/widgets/custom_class_textfield.dart';
+import 'package:heliumedu/presentation/widgets/custom_text_button.dart';
+import 'package:heliumedu/utils/app_colors.dart';
+import 'package:heliumedu/utils/app_size.dart';
+import 'package:heliumedu/utils/app_text_style.dart';
 import 'package:intl/intl.dart';
 import 'package:easy_stepper/easy_stepper.dart';
 
@@ -305,7 +305,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
         if (context.mounted) Navigator.of(context).pop();
         Navigator.pushNamed(
           context,
-          AppRoutes.eventRemainderScreen,
+          AppRoutes.eventReminderScreen,
           arguments: {
             'eventId': updated.id,
             'isEditMode': true,
@@ -403,7 +403,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
         if (context.mounted) Navigator.of(context).pop();
         Navigator.pushNamed(
           context,
-          AppRoutes.eventRemainderScreen,
+          AppRoutes.eventReminderScreen,
           arguments: {'eventId': created.id, 'isEditMode': false},
         );
       } catch (e) {

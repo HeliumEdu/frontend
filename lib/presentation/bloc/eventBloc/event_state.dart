@@ -1,4 +1,4 @@
-import 'package:helium_student_flutter/data/models/planner/event_response_model.dart';
+import 'package:heliumedu/data/models/planner/event_response_model.dart';
 
 abstract class EventState {}
 

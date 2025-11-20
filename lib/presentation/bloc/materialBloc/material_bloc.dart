@@ -1,8 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:helium_student_flutter/core/app_exception.dart';
-import 'package:helium_student_flutter/domain/repositories/material_repository.dart';
-import 'package:helium_student_flutter/presentation/bloc/materialBloc/material_event.dart';
-import 'package:helium_student_flutter/presentation/bloc/materialBloc/material_state.dart';
+import 'package:heliumedu/core/app_exception.dart';
+import 'package:heliumedu/domain/repositories/material_repository.dart';
+import 'package:heliumedu/presentation/bloc/materialBloc/material_event.dart';
+import 'package:heliumedu/presentation/bloc/materialBloc/material_state.dart';
 
 class MaterialBloc extends Bloc<MaterialEvent, MaterialState> {
   final MaterialRepository materialRepository;

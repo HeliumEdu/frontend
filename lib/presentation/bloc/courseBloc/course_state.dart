@@ -1,8 +1,8 @@
-import 'package:helium_student_flutter/data/models/planner/course_model.dart';
-import 'package:helium_student_flutter/data/models/planner/course_schedule_model.dart';
-import 'package:helium_student_flutter/data/models/planner/category_model.dart';
-import 'package:helium_student_flutter/data/models/planner/attachment_model.dart';
-import 'package:helium_student_flutter/data/models/planner/course_group_response_model.dart';
+import 'package:heliumedu/data/models/planner/course_model.dart';
+import 'package:heliumedu/data/models/planner/course_schedule_model.dart';
+import 'package:heliumedu/data/models/planner/category_model.dart';
+import 'package:heliumedu/data/models/planner/attachment_model.dart';
+import 'package:heliumedu/data/models/planner/course_group_response_model.dart';
 
 abstract class CourseState {}
 

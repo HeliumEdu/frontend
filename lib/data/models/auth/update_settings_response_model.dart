@@ -1,4 +1,4 @@
-import 'package:helium_student_flutter/data/models/auth/user_profile_model.dart';
+import 'package:heliumedu/data/models/auth/user_profile_model.dart';
 
 class UpdateSettingsResponseModel {
   final UserSettings settings;

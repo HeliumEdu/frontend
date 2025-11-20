@@ -1,26 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:helium_student_flutter/config/app_route.dart';
-import 'package:helium_student_flutter/core/dio_client.dart';
-import 'package:helium_student_flutter/data/datasources/course_remote_data_source.dart';
-import 'package:helium_student_flutter/data/models/planner/course_model.dart';
-import 'package:helium_student_flutter/data/models/planner/course_schedule_request_model.dart';
-import 'package:helium_student_flutter/data/repositories/course_repository_impl.dart';
-import 'package:helium_student_flutter/presentation/bloc/courseBloc/course_bloc.dart';
-import 'package:helium_student_flutter/presentation/bloc/courseBloc/course_event.dart';
-import 'package:helium_student_flutter/presentation/bloc/courseBloc/course_state.dart';
-import 'package:helium_student_flutter/utils/app_colors.dart';
-import 'package:helium_student_flutter/utils/app_list.dart';
-import 'package:helium_student_flutter/utils/app_size.dart';
-import 'package:helium_student_flutter/utils/app_text_style.dart';
+import 'package:heliumedu/config/app_routes.dart';
+import 'package:heliumedu/core/dio_client.dart';
+import 'package:heliumedu/data/datasources/course_remote_data_source.dart';
+import 'package:heliumedu/data/models/planner/course_model.dart';
+import 'package:heliumedu/data/models/planner/course_schedule_request_model.dart';
+import 'package:heliumedu/data/repositories/course_repository_impl.dart';
+import 'package:heliumedu/presentation/bloc/courseBloc/course_bloc.dart';
+import 'package:heliumedu/presentation/bloc/courseBloc/course_event.dart';
+import 'package:heliumedu/presentation/bloc/courseBloc/course_state.dart';
+import 'package:heliumedu/utils/app_colors.dart';
+import 'package:heliumedu/utils/app_list.dart';
+import 'package:heliumedu/utils/app_size.dart';
+import 'package:heliumedu/utils/app_text_style.dart';
 import 'package:easy_stepper/easy_stepper.dart';
 
-class ScheduleAddClass extends StatefulWidget {
+class AddClassesScheduleScreen extends StatefulWidget {
   final int courseId;
   final int courseGroupId;
   final bool isEdit;
 
-  const ScheduleAddClass({
+  const AddClassesScheduleScreen({
     super.key,
     required this.courseId,
     required this.courseGroupId,
@@ -28,10 +28,10 @@ class ScheduleAddClass extends StatefulWidget {
   });
 
   @override
-  State<ScheduleAddClass> createState() => _ScheduleAddClassState();
+  State<AddClassesScheduleScreen> createState() => _AddClassesScheduleScreenState();
 }
 
-class _ScheduleAddClassState extends State<ScheduleAddClass> {
+class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
   bool isSchedule = false;
   List<int> selectedDays = [];
   TimeOfDay? singleStartTime;

@@ -1,5 +1,5 @@
-import 'package:helium_student_flutter/data/models/planner/external_calendar_event_model.dart';
-import 'package:helium_student_flutter/data/models/planner/external_calendar_model.dart';
+import 'package:heliumedu/data/models/planner/external_calendar_event_model.dart';
+import 'package:heliumedu/data/models/planner/external_calendar_model.dart';
 
 abstract class ExternalCalendarState {}
 

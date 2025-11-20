@@ -1,8 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:helium_student_flutter/core/app_exception.dart';
-import 'package:helium_student_flutter/domain/repositories/homework_repository.dart';
-import 'package:helium_student_flutter/presentation/bloc/homeworkBloc/homework_event.dart';
-import 'package:helium_student_flutter/presentation/bloc/homeworkBloc/homework_state.dart';
+import 'package:heliumedu/core/app_exception.dart';
+import 'package:heliumedu/domain/repositories/homework_repository.dart';
+import 'package:heliumedu/presentation/bloc/homeworkBloc/homework_event.dart';
+import 'package:heliumedu/presentation/bloc/homeworkBloc/homework_state.dart';
 
 class HomeworkBloc extends Bloc<HomeworkEvent, HomeworkState> {
   final HomeworkRepository homeworkRepository;

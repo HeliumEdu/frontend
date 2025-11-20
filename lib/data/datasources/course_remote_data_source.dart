@@ -1,17 +1,17 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
-import 'package:helium_student_flutter/core/app_exception.dart';
-import 'package:helium_student_flutter/core/dio_client.dart';
-import 'package:helium_student_flutter/core/network_urls.dart';
-import 'package:helium_student_flutter/data/models/planner/course_model.dart';
-import 'package:helium_student_flutter/data/models/planner/course_request_model.dart';
-import 'package:helium_student_flutter/data/models/planner/course_schedule_model.dart';
-import 'package:helium_student_flutter/data/models/planner/course_schedule_request_model.dart';
-import 'package:helium_student_flutter/data/models/planner/category_model.dart';
-import 'package:helium_student_flutter/data/models/planner/category_request_model.dart';
-import 'package:helium_student_flutter/data/models/planner/attachment_model.dart';
-import 'package:helium_student_flutter/data/models/planner/course_group_request_model.dart';
-import 'package:helium_student_flutter/data/models/planner/course_group_response_model.dart';
+import 'package:heliumedu/core/app_exception.dart';
+import 'package:heliumedu/core/dio_client.dart';
+import 'package:heliumedu/core/network_urls.dart';
+import 'package:heliumedu/data/models/planner/course_model.dart';
+import 'package:heliumedu/data/models/planner/course_request_model.dart';
+import 'package:heliumedu/data/models/planner/course_schedule_model.dart';
+import 'package:heliumedu/data/models/planner/course_schedule_request_model.dart';
+import 'package:heliumedu/data/models/planner/category_model.dart';
+import 'package:heliumedu/data/models/planner/category_request_model.dart';
+import 'package:heliumedu/data/models/planner/attachment_model.dart';
+import 'package:heliumedu/data/models/planner/course_group_request_model.dart';
+import 'package:heliumedu/data/models/planner/course_group_response_model.dart';
 
 abstract class CourseRemoteDataSource {
   Future<List<CourseModel>> getCourses();

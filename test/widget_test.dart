@@ -6,8 +6,8 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:helium_student_flutter/core/fcm_service.dart';
-import 'package:helium_student_flutter/main.dart';
+import 'package:heliumedu/core/fcm_service.dart';
+import 'package:heliumedu/main.dart';
 
 void main() {
   setUpAll(() async {

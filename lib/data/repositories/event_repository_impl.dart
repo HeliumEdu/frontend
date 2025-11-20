@@ -1,7 +1,7 @@
-import 'package:helium_student_flutter/data/datasources/event_remote_data_source.dart';
-import 'package:helium_student_flutter/data/models/planner/event_request_model.dart';
-import 'package:helium_student_flutter/data/models/planner/event_response_model.dart';
-import 'package:helium_student_flutter/domain/repositories/event_repository.dart';
+import 'package:heliumedu/data/datasources/event_remote_data_source.dart';
+import 'package:heliumedu/data/models/planner/event_request_model.dart';
+import 'package:heliumedu/data/models/planner/event_response_model.dart';
+import 'package:heliumedu/domain/repositories/event_repository.dart';
 
 class EventRepositoryImpl implements EventRepository {
   final EventRemoteDataSource remoteDataSource;

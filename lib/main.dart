@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:helium_student_flutter/config/app_route.dart';
-import 'package:helium_student_flutter/config/routes_observer.dart';
-import 'package:helium_student_flutter/presentation/bloc/bottombarBloc/bottom_bar_bloc.dart';
-import 'package:helium_student_flutter/presentation/bloc/notificationBloc/notification_bloc.dart';
-import 'package:helium_student_flutter/core/fcm_service.dart';
-import 'package:helium_student_flutter/utils/app_colors.dart';
-import 'package:helium_student_flutter/utils/app_size.dart';
+import 'package:heliumedu/config/app_routes.dart';
+import 'package:heliumedu/config/route_observer.dart';
+import 'package:heliumedu/presentation/bloc/bottombarBloc/bottom_bar_bloc.dart';
+import 'package:heliumedu/presentation/bloc/notificationBloc/notification_bloc.dart';
+import 'package:heliumedu/core/fcm_service.dart';
+import 'package:heliumedu/utils/app_colors.dart';
+import 'package:heliumedu/utils/app_size.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:timezone/data/latest.dart' as tz;

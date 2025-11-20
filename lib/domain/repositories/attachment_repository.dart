@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:helium_student_flutter/data/models/planner/attachment_model.dart';
+import 'package:heliumedu/data/models/planner/attachment_model.dart';
 
 abstract class AttachmentRepository {
   Future<List<AttachmentModel>> createAttachment({

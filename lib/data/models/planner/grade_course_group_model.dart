@@ -1,4 +1,4 @@
-import 'package:helium_student_flutter/data/models/planner/grade_course_model.dart';
+import 'package:heliumedu/data/models/planner/grade_course_model.dart';
 
 class GradeCourseGroupModel {
   final int id;

@@ -34,6 +34,6 @@ final List<String> timezonesPreference = [
   'Australia/Sydney',
   'Australia/Melbourne',
 ];
-const List<String> remainderPreferences = ["Popup", "Email", "Text", "Push"];
+const List<String> reminderPreferences = ["Popup", "Email", "Text", "Push"];
 const List<String> reminderTimeUnits = ["Minutes", "Hours", "Days", "Weeks"];
 const List<String> listofTime = ["Month", "Week", "Day", "Todo"];

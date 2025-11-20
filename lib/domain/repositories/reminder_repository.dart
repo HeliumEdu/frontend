@@ -1,5 +1,5 @@
-import 'package:helium_student_flutter/data/models/planner/reminder_request_model.dart';
-import 'package:helium_student_flutter/data/models/planner/reminder_response_model.dart';
+import 'package:heliumedu/data/models/planner/reminder_request_model.dart';
+import 'package:heliumedu/data/models/planner/reminder_response_model.dart';
 
 abstract class ReminderRepository {
   Future<ReminderResponseModel> createReminder(ReminderRequestModel request);

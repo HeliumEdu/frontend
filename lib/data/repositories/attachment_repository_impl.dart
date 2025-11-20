@@ -1,7 +1,7 @@
 import 'dart:io';
-import 'package:helium_student_flutter/data/datasources/attachment_remote_data_source.dart';
-import 'package:helium_student_flutter/data/models/planner/attachment_model.dart';
-import 'package:helium_student_flutter/domain/repositories/attachment_repository.dart';
+import 'package:heliumedu/data/datasources/attachment_remote_data_source.dart';
+import 'package:heliumedu/data/models/planner/attachment_model.dart';
+import 'package:heliumedu/domain/repositories/attachment_repository.dart';
 
 class AttachmentRepositoryImpl implements AttachmentRepository {
   final AttachmentRemoteDataSource remoteDataSource;

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:helium_student_flutter/presentation/bloc/bottombarBloc/bottom_bar_bloc.dart';
-import 'package:helium_student_flutter/presentation/bloc/bottombarBloc/bottom_bar_event.dart';
-import 'package:helium_student_flutter/presentation/bloc/bottombarBloc/bottom_bar_state.dart';
-import 'package:helium_student_flutter/utils/app_colors.dart';
-import 'package:helium_student_flutter/utils/app_size.dart';
+import 'package:heliumedu/presentation/bloc/bottombarBloc/bottom_bar_bloc.dart';
+import 'package:heliumedu/presentation/bloc/bottombarBloc/bottom_bar_event.dart';
+import 'package:heliumedu/presentation/bloc/bottombarBloc/bottom_bar_state.dart';
+import 'package:heliumedu/utils/app_colors.dart';
+import 'package:heliumedu/utils/app_size.dart';
 
 class BottomNavBarScreen extends StatelessWidget {
   const BottomNavBarScreen({super.key});

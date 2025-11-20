@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:helium_student_flutter/data/models/planner/category_model.dart';
+import 'package:heliumedu/data/models/planner/category_model.dart';
 
 abstract class CategoryState extends Equatable {
   const CategoryState();

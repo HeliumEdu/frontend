@@ -1,8 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:helium_student_flutter/core/app_exception.dart';
-import 'package:helium_student_flutter/domain/repositories/private_feed_repository.dart';
-import 'package:helium_student_flutter/presentation/bloc/privateFeedBloc/private_feed_event.dart';
-import 'package:helium_student_flutter/presentation/bloc/privateFeedBloc/private_feed_state.dart';
+import 'package:heliumedu/core/app_exception.dart';
+import 'package:heliumedu/domain/repositories/private_feed_repository.dart';
+import 'package:heliumedu/presentation/bloc/privateFeedBloc/private_feed_event.dart';
+import 'package:heliumedu/presentation/bloc/privateFeedBloc/private_feed_state.dart';
 
 class PrivateFeedBloc extends Bloc<PrivateFeedEvent, PrivateFeedState> {
   final PrivateFeedRepository privateFeedRepository;

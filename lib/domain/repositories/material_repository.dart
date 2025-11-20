@@ -1,7 +1,7 @@
-import 'package:helium_student_flutter/data/models/planner/material_group_request_model.dart';
-import 'package:helium_student_flutter/data/models/planner/material_group_response_model.dart';
-import 'package:helium_student_flutter/data/models/planner/material_model.dart';
-import 'package:helium_student_flutter/data/models/planner/material_request_model.dart';
+import 'package:heliumedu/data/models/planner/material_group_request_model.dart';
+import 'package:heliumedu/data/models/planner/material_group_response_model.dart';
+import 'package:heliumedu/data/models/planner/material_model.dart';
+import 'package:heliumedu/data/models/planner/material_request_model.dart';
 
 abstract class MaterialRepository {
   Future<List<MaterialGroupResponseModel>> getMaterialGroups();

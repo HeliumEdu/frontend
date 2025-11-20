@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:helium_student_flutter/core/jwt_utils.dart';
+import 'package:heliumedu/core/jwt_utils.dart';
 
 void main() {
   group('JWTUtils', () {

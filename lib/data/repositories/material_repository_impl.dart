@@ -1,9 +1,9 @@
-import 'package:helium_student_flutter/data/datasources/material_remote_data_source.dart';
-import 'package:helium_student_flutter/data/models/planner/material_group_request_model.dart';
-import 'package:helium_student_flutter/data/models/planner/material_group_response_model.dart';
-import 'package:helium_student_flutter/data/models/planner/material_model.dart';
-import 'package:helium_student_flutter/data/models/planner/material_request_model.dart';
-import 'package:helium_student_flutter/domain/repositories/material_repository.dart';
+import 'package:heliumedu/data/datasources/material_remote_data_source.dart';
+import 'package:heliumedu/data/models/planner/material_group_request_model.dart';
+import 'package:heliumedu/data/models/planner/material_group_response_model.dart';
+import 'package:heliumedu/data/models/planner/material_model.dart';
+import 'package:heliumedu/data/models/planner/material_request_model.dart';
+import 'package:heliumedu/domain/repositories/material_repository.dart';
 
 class MaterialRepositoryImpl implements MaterialRepository {
   final MaterialRemoteDataSource remoteDataSource;

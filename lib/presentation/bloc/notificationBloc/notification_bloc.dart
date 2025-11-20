@@ -1,9 +1,9 @@
 import 'package:bloc/bloc.dart';
-import 'package:helium_student_flutter/core/app_exception.dart';
-import 'package:helium_student_flutter/core/fcm_service.dart';
-import 'package:helium_student_flutter/data/models/notification/notification_model.dart';
-import 'package:helium_student_flutter/presentation/bloc/notificationBloc/notification_event.dart';
-import 'package:helium_student_flutter/presentation/bloc/notificationBloc/notification_state.dart';
+import 'package:heliumedu/core/app_exception.dart';
+import 'package:heliumedu/core/fcm_service.dart';
+import 'package:heliumedu/data/models/notification/notification_model.dart';
+import 'package:heliumedu/presentation/bloc/notificationBloc/notification_event.dart';
+import 'package:heliumedu/presentation/bloc/notificationBloc/notification_state.dart';
 
 class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
   final FCMService fcmService;
