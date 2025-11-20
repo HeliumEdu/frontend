@@ -37,13 +37,16 @@ jobs:
         with:
           flutter-version: '3.38.1'
           channel: stable
+          cache: false
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
           version: "3.38.1"
-      - name: Decode Keystore
-        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/debug-keystore.jks
+#       - name: Decode Keystore
+#         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > $KEYSTORE_PATH
+      - name: trigger pub
+        run: flutter clean && flutter pub get && flutter test
       - name: Build Android
         run: make build-android
       - name: Build iOS
