@@ -201,15 +201,15 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
       barrierDismissible: false,
       builder: (dialogContext) => StatefulBuilder(
         builder: (dialogContext, setDialogState) => Dialog(
-          backgroundColor: Colors.transparent,
+          backgroundColor: transparentColor,
           child: Container(
             padding: EdgeInsets.all(24.h),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: whiteColor,
               borderRadius: BorderRadius.circular(16.adaptSize),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: blackColor.withOpacity(0.1),
                   blurRadius: 10,
                   offset: Offset(0, 4),
                 ),
@@ -242,7 +242,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: blackColor.withOpacity(0.15)),
-                      color: Colors.white,
+                      color: whiteColor,
                     ),
                     child: TextField(
                       controller: messageCtrl,
@@ -277,14 +277,14 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: blackColor.withOpacity(0.15)),
-                      color: Colors.white,
+                      color: whiteColor,
                     ),
                     child: DropdownButton<String>(
                       icon: Icon(
                         Icons.keyboard_arrow_down,
                         color: blackColor.withOpacity(0.6),
                       ),
-                      dropdownColor: Colors.white,
+                      dropdownColor: whiteColor,
                       isExpanded: true,
                       underline: SizedBox(),
                       hint: Text(
@@ -351,7 +351,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                             border: Border.all(
                               color: blackColor.withOpacity(0.15),
                             ),
-                            color: Colors.white,
+                            color: whiteColor,
                           ),
                           child: TextField(
                             controller: customValueCtrl,
@@ -386,14 +386,14 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                             border: Border.all(
                               color: blackColor.withOpacity(0.15),
                             ),
-                            color: Colors.white,
+                            color: whiteColor,
                           ),
                           child: DropdownButton<String>(
                             icon: Icon(
                               Icons.keyboard_arrow_down,
                               color: blackColor.withOpacity(0.6),
                             ),
-                            dropdownColor: Colors.white,
+                            dropdownColor: whiteColor,
                             isExpanded: true,
                             underline: SizedBox(),
                             hint: Text(
@@ -1020,7 +1020,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  Icon(Icons.notifications_outlined, color: Colors.transparent),
+                  Icon(Icons.notifications_outlined, color: transparentColor),
                 ],
               ),
             ),
@@ -1445,7 +1445,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                                     IconButton(
                                       icon: Icon(
                                         Icons.close,
-                                        color: Colors.red,
+                                        color: redColor,
                                         size: 20,
                                       ),
                                       onPressed: () {
@@ -1500,7 +1500,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2.5,
                                     valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white,
+                                      whiteColor,
                                     ),
                                   ),
                                 )

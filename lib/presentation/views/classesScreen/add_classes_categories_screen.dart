@@ -18,6 +18,7 @@ import 'package:heliumedu/data/datasources/course_remote_data_source.dart';
 import 'package:heliumedu/data/models/planner/attachment_model.dart';
 import 'package:heliumedu/data/models/planner/category_model.dart';
 import 'package:heliumedu/data/models/planner/category_request_model.dart';
+import 'package:heliumedu/data/repositories/attachment_repository_impl.dart';
 import 'package:heliumedu/data/repositories/course_repository_impl.dart';
 import 'package:heliumedu/presentation/bloc/courseBloc/course_bloc.dart';
 import 'package:heliumedu/presentation/bloc/courseBloc/course_event.dart';
@@ -25,8 +26,6 @@ import 'package:heliumedu/presentation/bloc/courseBloc/course_state.dart';
 import 'package:heliumedu/utils/app_colors.dart';
 import 'package:heliumedu/utils/app_size.dart';
 import 'package:heliumedu/utils/app_text_style.dart';
-
-import '../../../data/repositories/attachment_repository_impl.dart';
 
 class AddClassesCategoriesScreen extends StatefulWidget {
   final int courseId;
@@ -329,7 +328,7 @@ class _AddClassesCategoriesScreenState
                             border: Border.all(
                               color: dialogSelectedColor == color
                                   ? blackColor
-                                  : Colors.transparent,
+                                  : transparentColor,
                               width: 3,
                             ),
                           ),
@@ -371,7 +370,7 @@ class _AddClassesCategoriesScreenState
       barrierDismissible: false,
       builder: (dialogContext) => StatefulBuilder(
         builder: (dialogContext, setDialogState) => Dialog(
-          backgroundColor: Colors.transparent,
+          backgroundColor: transparentColor,
           child: Container(
             padding: EdgeInsets.all(24.h),
             decoration: BoxDecoration(
@@ -653,7 +652,7 @@ class _AddClassesCategoriesScreenState
                   'Category added successfully!',
                   style: AppTextStyle.cTextStyle.copyWith(color: whiteColor),
                 ),
-                backgroundColor: Colors.green,
+                backgroundColor: greenColor,
                 duration: const Duration(seconds: 2),
               ),
             );
@@ -673,7 +672,7 @@ class _AddClassesCategoriesScreenState
                   'Category updated successfully!',
                   style: AppTextStyle.cTextStyle.copyWith(color: whiteColor),
                 ),
-                backgroundColor: Colors.green,
+                backgroundColor: greenColor,
                 duration: const Duration(seconds: 2),
               ),
             );
@@ -691,7 +690,7 @@ class _AddClassesCategoriesScreenState
                   'Category deleted successfully!',
                   style: AppTextStyle.cTextStyle.copyWith(color: whiteColor),
                 ),
-                backgroundColor: Colors.green,
+                backgroundColor: greenColor,
                 duration: const Duration(seconds: 2),
               ),
             );
@@ -810,7 +809,7 @@ class _AddClassesCategoriesScreenState
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        Icon(Icons.import_contacts, color: Colors.transparent),
+                        Icon(Icons.import_contacts, color: transparentColor),
                       ],
                     ),
                   ),
@@ -1453,7 +1452,7 @@ class _AddClassesCategoriesScreenState
                                       IconButton(
                                         icon: Icon(
                                           Icons.close,
-                                          color: Colors.red,
+                                          color: redColor,
                                           size: 20,
                                         ),
                                         onPressed: () {
@@ -1507,7 +1506,7 @@ class _AddClassesCategoriesScreenState
                                       color: whiteColor,
                                     ),
                                   ),
-                                  backgroundColor: Colors.green,
+                                  backgroundColor: greenColor,
                                   duration: const Duration(seconds: 2),
                                 ),
                               );

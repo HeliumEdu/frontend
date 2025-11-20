@@ -24,7 +24,7 @@ const List<String> listOfClassesSchedule = [
   'Sun',
 ];
 
-const List<String> defaultPreferences = ["List", "Month", "Week", "Day"];
+const List<String> defaultPreferences = ["Month", "Week", "Day", "Todos"];
 final List<String> timezonesPreference = [
   'Asia/Karachi',
   'Asia/Dubai',
@@ -42,7 +42,7 @@ final List<String> timezonesPreference = [
 ];
 const List<String> reminderPreferences = ["Popup", "Email", "Text", "Push"];
 const List<String> reminderTimeUnits = ["Minutes", "Hours", "Days", "Weeks"];
-const List<String> listofTime = ["Month", "Week", "Day", "Todo"];
+const List<String> viewList = ["Month", "Week", "Day", "Todos"];
 
 extension PluralExtension on int {
   String plural(String singularWord, [String pluralLetters = "s"]) {

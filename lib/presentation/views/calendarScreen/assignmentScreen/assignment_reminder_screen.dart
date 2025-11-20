@@ -381,7 +381,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
       barrierDismissible: false,
       builder: (dialogContext) => StatefulBuilder(
         builder: (dialogContext, setDialogState) => Dialog(
-          backgroundColor: Colors.transparent,
+          backgroundColor: transparentColor,
           child: Container(
             padding: EdgeInsets.all(24.h),
             decoration: BoxDecoration(
@@ -813,7 +813,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
       barrierDismissible: false,
       builder: (dialogContext) => StatefulBuilder(
         builder: (dialogContext, setDialogState) => Dialog(
-          backgroundColor: Colors.transparent,
+          backgroundColor: transparentColor,
           child: Container(
             padding: EdgeInsets.all(24.h),
             decoration: BoxDecoration(
@@ -1316,7 +1316,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  Icon(Icons.notifications_outlined, color: Colors.transparent),
+                  Icon(Icons.notifications_outlined, color: transparentColor),
                 ],
               ),
             ),
@@ -1899,7 +1899,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                                             IconButton(
                                               icon: Icon(
                                                 Icons.close,
-                                                color: Colors.red,
+                                                color: redColor,
                                                 size: 20,
                                               ),
                                               onPressed: () {

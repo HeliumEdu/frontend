@@ -74,7 +74,6 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedWeekIndex = 0; // For week view selection
   Color _eventColor = greenColor;
   String _timeZone = 'America/Chicago';
-  static const Color _defaultExternalEventColor = Colors.purple;
   List<ExternalCalendarModel> _externalCalendars = [];
   Map<int, List<ExternalCalendarEventModel>> _externalEventsByCalendar = {};
 
@@ -188,7 +187,7 @@ class _HomeScreenState extends State<HomeScreen> {
         final profile = await authRepository.getProfile();
         final profileHex = profile.settings?.eventsColor;
         if (profileHex != null && profileHex.trim().isNotEmpty) {
-          final parsed = _colorFromHex(profileHex, fallback: _eventColor);
+          final parsed = _colorFromHex(profileHex);
           storedHex = _colorToHex(parsed);
           await prefs.setString('user_events_color', storedHex);
         }
@@ -201,7 +200,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (storedHex == null || storedHex.isEmpty) return;
 
-    final parsedColor = _colorFromHex(storedHex, fallback: _eventColor);
+    final parsedColor = _colorFromHex(storedHex);
     if (mounted && parsedColor != _eventColor) {
       setState(() {
         _eventColor = parsedColor;
@@ -240,24 +239,19 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Color _colorFromHex(String hex, {required Color fallback}) {
-    try {
-      var cleaned = hex.trim().toLowerCase();
-      if (cleaned.startsWith('#')) {
-        cleaned = cleaned.substring(1);
-      }
-      if (cleaned.length == 3) {
-        cleaned = cleaned.split('').map((c) => '$c$c').join();
-      }
-      if (cleaned.length == 8) {
-        // strip alpha channel if provided
-        cleaned = cleaned.substring(2);
-      }
-      if (cleaned.length != 6) return fallback;
-      return Color(int.parse('ff$cleaned', radix: 16));
-    } catch (_) {
-      return fallback;
+  Color _colorFromHex(String hex) {
+    var cleaned = hex.trim().toLowerCase();
+    if (cleaned.startsWith('#')) {
+      cleaned = cleaned.substring(1);
     }
+    if (cleaned.length == 3) {
+      cleaned = cleaned.split('').map((c) => '$c$c').join();
+    }
+    if (cleaned.length == 8) {
+      // strip alpha channel if provided
+      cleaned = cleaned.substring(2);
+    }
+    return Color(int.parse('ff$cleaned', radix: 16));
   }
 
   String _colorToHex(Color color) {
@@ -468,12 +462,11 @@ class _HomeScreenState extends State<HomeScreen> {
     for (final calendar in _externalCalendars) {
       if (calendar.id == calendarId) {
         return _colorFromHex(
-          calendar.color,
-          fallback: _defaultExternalEventColor,
+          calendar.color
         );
       }
     }
-    return _defaultExternalEventColor;
+    return blackColor;
   }
 
   List<ExternalCalendarEventModel> _resolveExternalEventsFromState(
@@ -548,7 +541,7 @@ class _HomeScreenState extends State<HomeScreen> {
           _currentViewMode = 'Day';
           break;
         case 3:
-          _currentViewMode = 'Todo';
+          _currentViewMode = 'Todos';
           break;
       }
     });
@@ -736,13 +729,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Only show dots for selected categories
     if (showAssignments && _hasAssignmentsOnDate(date, homeworks)) {
-      dots.add(primaryColor); // Blue for assignments
+      dots.add(primaryColor);
     }
     if (showEvents && _hasEventsOnDate(date, events)) {
-      dots.add(greenColor); // Green for events
+      dots.add(_eventColor);
     }
     if (showClassSchedule && _hasCoursesOnDate(date, courses)) {
-      dots.add(Colors.orange); // Orange for courses
+      dots.add(greenColor);
     }
     if (showExternal) {
       final externalColors = <Color>{};
@@ -1810,7 +1803,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ? primaryColor
               : isToday
               ? primaryColor.withOpacity(0.2)
-              : Colors.transparent,
+              : transparentColor,
           borderRadius: BorderRadius.circular(8),
           border: isToday && !isSelected
               ? Border.all(color: primaryColor, width: 2)
@@ -1941,12 +1934,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           vertical: 8.v,
                         ),
                         decoration: BoxDecoration(
-                          color: isSelected ? primaryColor : Colors.transparent,
+                          color: isSelected ? primaryColor : transparentColor,
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
                             color: isSelected
                                 ? primaryColor
-                                : Colors.grey.withOpacity(0.5),
+                                : greyColor.withOpacity(0.5),
                           ),
                         ),
                         child: Row(
@@ -2018,7 +2011,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
+                    color: greyColor.withOpacity(0.1),
                     blurRadius: 10,
                     offset: const Offset(0, 2),
                   ),
@@ -2408,7 +2401,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ? primaryColor
               : isToday
               ? primaryColor.withOpacity(0.2)
-              : Colors.transparent,
+              : transparentColor,
           borderRadius: BorderRadius.circular(6),
           border: isToday && !isSelected
               ? Border.all(color: primaryColor, width: 1)
@@ -2720,11 +2713,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         Container(
                           padding: EdgeInsets.all(16.h),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: whiteColor,
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.grey.withOpacity(0.1),
+                                color: greyColor.withOpacity(0.1),
                                 blurRadius: 10,
                                 offset: const Offset(0, 2),
                               ),
@@ -2849,7 +2842,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       },
                                     ),
                                   ),
-                                  SizedBox(width: 12.h),
+                                  SizedBox(width: 8.h),
                                   Builder(
                                     builder: (filterContext) {
                                       return GestureDetector(
@@ -2889,7 +2882,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       height: 38.v,
                                       child: ListView.separated(
                                         shrinkWrap: true,
-                                        itemCount: listofTime.length,
+                                        itemCount: viewList.length,
                                         scrollDirection: Axis.horizontal,
                                         itemBuilder: (context, index) {
                                           bool isSelected =
@@ -2909,22 +2902,22 @@ class _HomeScreenState extends State<HomeScreen> {
                                                     BorderRadius.circular(6),
                                                 color: isSelected
                                                     ? primaryColor
-                                                    : Colors.transparent,
+                                                    : transparentColor,
                                                 border: Border.all(
                                                   color: isSelected
                                                       ? primaryColor
-                                                      : Colors.grey.withOpacity(
+                                                      : greyColor.withOpacity(
                                                           0.5,
                                                         ),
                                                 ),
                                               ),
                                               child: Center(
                                                 child: Text(
-                                                  listofTime[index],
+                                                  viewList[index],
                                                   style: AppTextStyle.eTextStyle
                                                       .copyWith(
                                                         color: isSelected
-                                                            ? Colors.white
+                                                            ? whiteColor
                                                             : textColor,
                                                         fontSize: 13,
                                                       ),
@@ -2934,7 +2927,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           );
                                         },
                                         separatorBuilder: (context, index) {
-                                          return SizedBox(width: 8.h);
+                                          return SizedBox(width: 6.h);
                                         },
                                       ),
                                     ),
@@ -2948,7 +2941,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         SizedBox(height: 16.v),
 
-                        if (_currentViewMode != 'Todo')
+                        if (_currentViewMode != 'Todos')
                           Text(
                             DateFormat('EEEE, MMMM dd').format(_selectedDate),
                             style: AppTextStyle.bTextStyle.copyWith(
@@ -3019,7 +3012,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               },
                             ),
                           )
-                        else if (_currentViewMode == 'Todo')
+                        else if (_currentViewMode == 'Todos')
                           Expanded(
                             child: BlocBuilder<CourseBloc, CourseState>(
                               builder: (context, courseState) {
@@ -3128,8 +3121,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                         ),
                                                     decoration: BoxDecoration(
                                                       color: isSelected
-                                                          ? Colors.blue
-                                                          : Colors.transparent,
+                                                          ? primaryColor
+                                                          : transparentColor,
                                                       borderRadius:
                                                           BorderRadius.circular(
                                                             8,
@@ -3142,8 +3135,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                           style: TextStyle(
                                                             fontSize: 12,
                                                             color: isSelected
-                                                                ? Colors.white
-                                                                : Colors.grey,
+                                                                ? whiteColor
+                                                                : greyColor,
                                                             fontWeight:
                                                                 FontWeight.w500,
                                                           ),
@@ -3154,7 +3147,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                           style: TextStyle(
                                                             fontSize: 16,
                                                             color: isSelected
-                                                                ? Colors.white
+                                                                ? whiteColor
                                                                 : textColor,
                                                             fontWeight:
                                                                 FontWeight.w600,
@@ -3180,7 +3173,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                         if (_currentViewMode != 'Week' &&
                             _currentViewMode != 'Month' &&
-                            _currentViewMode != 'Todo')
+                            _currentViewMode != 'Todos')
                           Expanded(
                             child: BlocBuilder<CourseBloc, CourseState>(
                               builder: (context, courseState) {
@@ -3207,7 +3200,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             Icon(
                                               Icons.error_outline,
                                               size: 48,
-                                              color: Colors.red,
+                                              color: redColor,
                                             ),
                                             SizedBox(height: 16),
                                             Text(
@@ -3639,7 +3632,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           title: Row(
             children: [
-              Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
               SizedBox(width: 12),
               Text(
                 'Delete Assignment',
@@ -3796,7 +3788,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final timeZone = tz.getLocation(_timeZone);
     try {
       if (homework.allDay) {
-        if (_currentViewMode == 'Todo') {
+        if (_currentViewMode == 'Todos') {
           final startTime = tz.TZDateTime.from(
             DateTime.parse(homework.start),
             timeZone,
@@ -3822,12 +3814,12 @@ class _HomeScreenState extends State<HomeScreen> {
           );
           final formattedEndTime = DateFormat('h:mm a').format(endTime);
           timeDisplay = '$formattedTime - $formattedEndTime';
-          if (_currentViewMode == 'Todo') {
+          if (_currentViewMode == 'Todos') {
             dateDisplay = formattedDate;
           }
         } else {
           timeDisplay = formattedTime;
-          if (_currentViewMode == 'Todo') {
+          if (_currentViewMode == 'Todos') {
             dateDisplay = formattedDate;
           }
         }
@@ -4014,10 +4006,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildEventCard(BuildContext context, EventResponseModel event) {
-    Color eventColor = _eventColor;
+    Color eventColor = blackColor;
     final eventHex = event.colorHex;
     if (eventHex != null && eventHex.isNotEmpty) {
-      eventColor = _colorFromHex(eventHex, fallback: _eventColor);
+      eventColor = _colorFromHex(eventHex);
     }
     String timeDisplay = '';
     try {

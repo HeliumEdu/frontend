@@ -86,7 +86,7 @@ class BottomNavBarView extends StatelessWidget {
                                   fontWeight: FontWeight.w400,
                                   color: state.selectedIndex == 0
                                       ? whiteColor
-                                      : Colors.transparent,
+                                      : transparentColor,
                                 ),
                               ),
                             ],
@@ -122,7 +122,7 @@ class BottomNavBarView extends StatelessWidget {
                                   fontWeight: FontWeight.w400,
                                   color: state.selectedIndex == 1
                                       ? whiteColor
-                                      : Colors.transparent,
+                                      : transparentColor,
                                 ),
                               ),
                             ],
@@ -158,7 +158,7 @@ class BottomNavBarView extends StatelessWidget {
                                   fontWeight: FontWeight.w400,
                                   color: state.selectedIndex == 2
                                       ? whiteColor
-                                      : Colors.transparent,
+                                      : transparentColor,
                                 ),
                               ),
                             ],
@@ -194,7 +194,7 @@ class BottomNavBarView extends StatelessWidget {
                                   fontWeight: FontWeight.w400,
                                   color: state.selectedIndex == 3
                                       ? whiteColor
-                                      : Colors.transparent,
+                                      : transparentColor,
                                 ),
                               ),
                             ],

@@ -55,12 +55,12 @@ class _SignInScreenViewState extends State<SignInScreenView> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? Colors.red : Colors.green,
+        backgroundColor: isError ? redColor : greenColor,
         duration: const Duration(seconds: 3),
         behavior: SnackBarBehavior.floating,
         action: SnackBarAction(
           label: 'Dismiss',
-          textColor: Colors.white,
+          textColor: whiteColor,
           onPressed: () {
             if (mounted) {
               ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -99,10 +99,6 @@ class _SignInScreenViewState extends State<SignInScreenView> {
       listener: (context, state) {
         if (state is AuthLoading) {
         } else if (state is AuthLoginSuccess) {
-          _showSnackBar(
-            'Login successful! Welcome ${state.username ?? "back"}!',
-            isError: false,
-          );
           _controller.clearForm();
           Future.delayed(const Duration(milliseconds: 500), () {
             if (mounted) {
@@ -210,7 +206,7 @@ class _SignInScreenViewState extends State<SignInScreenView> {
                                 width: double.infinity,
                                 height: 48,
                                 decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.red),
+                                  border: Border.all(color: redColor),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: TextButton(
@@ -218,7 +214,7 @@ class _SignInScreenViewState extends State<SignInScreenView> {
                                   child: Text(
                                     'Logout (Debug)',
                                     style: AppTextStyle.cTextStyle.copyWith(
-                                      color: Colors.red,
+                                      color: redColor,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),

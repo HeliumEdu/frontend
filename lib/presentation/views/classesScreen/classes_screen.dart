@@ -803,7 +803,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                         color: whiteColor,
                       ),
                     ),
-                    backgroundColor: Colors.green,
+                    backgroundColor: greenColor,
                     duration: const Duration(seconds: 2),
                   ),
                 );
@@ -905,7 +905,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                         color: whiteColor,
                       ),
                     ),
-                    backgroundColor: Colors.green,
+                    backgroundColor: greenColor,
                     duration: const Duration(seconds: 2),
                   ),
                 );
@@ -967,7 +967,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                         color: whiteColor,
                       ),
                     ),
-                    backgroundColor: Colors.green,
+                    backgroundColor: greenColor,
                     duration: const Duration(seconds: 2),
                   ),
                 );
@@ -1019,7 +1019,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                         color: whiteColor,
                       ),
                     ),
-                    backgroundColor: Colors.green,
+                    backgroundColor: greenColor,
                     duration: const Duration(seconds: 2),
                   ),
                 );

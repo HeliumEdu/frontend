@@ -68,12 +68,12 @@ class _SignUpScreenViewState extends State<SignUpScreenView> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? Colors.red : Colors.green,
+        backgroundColor: isError ? redColor : greenColor,
         duration: const Duration(seconds: 4),
         behavior: SnackBarBehavior.floating,
         action: SnackBarAction(
           label: 'Dismiss',
-          textColor: Colors.white,
+          textColor: whiteColor,
           onPressed: () {
             if (mounted) {
               ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -246,7 +246,7 @@ class _SignUpScreenViewState extends State<SignUpScreenView> {
                     Text(
                       'New User Registration',
                       style: AppTextStyle.hTextStyle.copyWith(
-                        color: Colors.black87,
+                        color: blackColor,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -354,7 +354,7 @@ class _SignUpScreenViewState extends State<SignUpScreenView> {
                             text: TextSpan(
                               text: 'I agree to Helium\'s ',
                               style: AppTextStyle.fTextStyle.copyWith(
-                                color: Colors.grey[600],
+                                color: greyColor,
                               ),
                               children: [
                                 WidgetSpan(
@@ -372,7 +372,7 @@ class _SignUpScreenViewState extends State<SignUpScreenView> {
                                 TextSpan(
                                   text: ' and ',
                                   style: AppTextStyle.fTextStyle.copyWith(
-                                    color: Colors.grey[600],
+                                    color: greyColor,
                                   ),
                                 ),
                                 WidgetSpan(
@@ -413,7 +413,7 @@ class _SignUpScreenViewState extends State<SignUpScreenView> {
                         Text(
                           'Already have an account? ',
                           style: AppTextStyle.fTextStyle.copyWith(
-                            color: Colors.grey[600],
+                            color: greyColor,
                           ),
                         ),
                         GestureDetector(

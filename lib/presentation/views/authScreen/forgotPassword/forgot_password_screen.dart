@@ -87,7 +87,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               } else if (state is AuthError) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    backgroundColor: Colors.red,
+                    backgroundColor: redColor,
                     content: Text(state.message),
                   ),
                 );
@@ -187,14 +187,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                         strokeWidth: 2,
                                         valueColor:
                                             AlwaysStoppedAnimation<Color>(
-                                              Colors.white,
+                                              whiteColor,
                                             ),
                                       ),
                                     )
                                   : Text(
                                       'Get It',
                                       style: AppTextStyle.mTextStyle.copyWith(
-                                        color: Colors.white,
+                                        color: whiteColor,
                                         fontWeight: FontWeight.w600,
                                          fontSize: 16,
                                       ),
@@ -247,7 +247,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               child: Text(
                                 'Open Email App',
                                 style: AppTextStyle.mTextStyle.copyWith(
-                                  color: Colors.white,
+                                  color: whiteColor,
                                   fontWeight: FontWeight.w600,
                                   fontSize: 16,
                                 ),

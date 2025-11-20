@@ -173,7 +173,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
               primary: primaryColor,
-              onPrimary: Colors.white,
+              onPrimary: whiteColor,
               onSurface: blackColor,
             ),
           ),
@@ -1302,7 +1302,7 @@ class _AssignmentEventToggle extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         padding: EdgeInsets.symmetric(horizontal: 12.h, vertical: 6.v),
         decoration: BoxDecoration(
-          color: selected ? accentColor : Colors.transparent,
+          color: selected ? accentColor : transparentColor,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Text(

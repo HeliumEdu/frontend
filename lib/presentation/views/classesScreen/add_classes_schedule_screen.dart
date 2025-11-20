@@ -562,7 +562,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                   'Schedule created successfully!',
                   style: AppTextStyle.cTextStyle.copyWith(color: whiteColor),
                 ),
-                backgroundColor: Colors.green,
+                backgroundColor: greenColor,
                 duration: const Duration(seconds: 2),
               ),
             );
@@ -590,7 +590,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                   'Schedule updated successfully!',
                   style: AppTextStyle.cTextStyle.copyWith(color: whiteColor),
                 ),
-                backgroundColor: Colors.green,
+                backgroundColor: greenColor,
                 duration: const Duration(seconds: 2),
               ),
             );
@@ -682,7 +682,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        Icon(Icons.import_contacts, color: Colors.transparent),
+                        Icon(Icons.import_contacts, color: transparentColor),
                       ],
                     ),
                   ),

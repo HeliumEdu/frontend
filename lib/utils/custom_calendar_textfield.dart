@@ -52,7 +52,7 @@ class _CustomCalendarTextfieldState extends State<CustomCalendarTextfield> {
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
               primary: primaryColor, // header background color
-              onPrimary: Colors.white, // header text color
+              onPrimary: whiteColor, // header text color
               onSurface: blackColor, // body text color
             ),
           ),

@@ -16,6 +16,7 @@ import 'package:heliumedu/presentation/bloc/authBloc/auth_bloc.dart';
 import 'package:heliumedu/presentation/bloc/authBloc/auth_event.dart';
 import 'package:heliumedu/presentation/bloc/authBloc/auth_state.dart';
 import 'package:heliumedu/utils/app_assets.dart';
+import 'package:heliumedu/utils/app_colors.dart';
 import 'package:heliumedu/utils/app_size.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -111,7 +112,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: whiteColor,
       body: SafeArea(
         child: Stack(
           children: [

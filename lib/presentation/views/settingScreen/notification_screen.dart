@@ -240,7 +240,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('All notifications cleared'),
-        backgroundColor: Colors.green,
+        backgroundColor: greenColor,
       ),
     );
   }
@@ -284,7 +284,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(errorMessage),
-          backgroundColor: Colors.red,
+          backgroundColor: redColor,
           duration: const Duration(seconds: 5),
         ),
       );
@@ -311,7 +311,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 Navigator.of(context).pop();
                 _deleteNotification(notification);
               },
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              style: TextButton.styleFrom(foregroundColor: redColor),
               child: const Text('Delete'),
             ),
           ],
@@ -364,7 +364,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('Notifications refreshed'),
-                              backgroundColor: Colors.green,
+                              backgroundColor: greenColor,
                             ),
                           );
                         },
@@ -545,7 +545,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                             value: 'delete',
                             child: Row(
                               children: [
-                                Icon(Icons.delete, color: Colors.red, size: 18),
+                                Icon(Icons.delete, color: redColor, size: 18),
                                 SizedBox(width: 8),
                                 Text('Delete'),
                               ],
@@ -555,7 +555,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         child: Container(
                           padding: EdgeInsets.all(4.adaptSize),
                           decoration: BoxDecoration(
-                            color: Colors.grey.withOpacity(0.1),
+                            color: greyColor.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(4.adaptSize),
                           ),
                           child: Icon(

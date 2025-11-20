@@ -260,7 +260,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
               primary: primaryColor,
-              onPrimary: Colors.white,
+              onPrimary: whiteColor,
               onSurface: blackColor,
             ),
           ),
@@ -968,10 +968,10 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(
-                              color: Colors.black.withOpacity(0.15),
+                              color: blackColor.withOpacity(0.15),
                             ),
                             color: isEditMode
-                                ? Colors.grey.withOpacity(0.1)
+                                ? greyColor.withOpacity(0.1)
                                 : whiteColor,
                           ),
                           child: DropdownButton<int>(
@@ -1052,7 +1052,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(
-                              color: Colors.black.withOpacity(0.15),
+                              color: blackColor.withOpacity(0.15),
                             ),
                             color: whiteColor,
                           ),
@@ -1113,7 +1113,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(
-                              color: Colors.black.withOpacity(0.15),
+                              color: blackColor.withOpacity(0.15),
                             ),
                             color: whiteColor,
                           ),
@@ -1788,7 +1788,7 @@ class _AssignmentEventToggle extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         padding: EdgeInsets.symmetric(horizontal: 12.h, vertical: 6.v),
         decoration: BoxDecoration(
-          color: selected ? primaryColor : Colors.transparent,
+          color: selected ? primaryColor : transparentColor,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Text(

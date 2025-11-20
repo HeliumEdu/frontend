@@ -366,7 +366,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    Icon(Icons.import_contacts, color: Colors.transparent),
+                    Icon(Icons.import_contacts, color: transparentColor),
                   ],
                 ),
               ),
@@ -403,7 +403,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(6),
                         border: Border.all(
-                          color: Colors.black.withOpacity(0.3),
+                          color: blackColor.withOpacity(0.3),
                         ),
                         color: whiteColor,
                       ),
@@ -479,7 +479,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(6),
                         border: Border.all(
-                          color: Colors.black.withOpacity(0.3),
+                          color: blackColor.withOpacity(0.3),
                         ),
                       ),
                       child: DropdownButton<int>(
@@ -528,7 +528,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(6),
                         border: Border.all(
-                          color: Colors.black.withOpacity(0.3),
+                          color: blackColor.withOpacity(0.3),
                         ),
                       ),
                       child: DropdownButton<int>(

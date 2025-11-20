@@ -32,7 +32,6 @@ class CustomDropdown extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey[100],
         border: Border.all(color: textColor.withOpacity(0.1)),
         borderRadius: BorderRadius.circular(8.h),
       ),
@@ -47,7 +46,7 @@ class CustomDropdown extends StatelessWidget {
           border: InputBorder.none,
         ),
         style: AppTextStyle.fTextStyle.copyWith(color: textColor),
-        dropdownColor: Colors.white,
+        dropdownColor: whiteColor,
         icon: Icon(Icons.keyboard_arrow_down, color: textColor),
         isExpanded: true,
         items: items.map((String timezone) {
@@ -55,7 +54,9 @@ class CustomDropdown extends StatelessWidget {
             value: timezone,
             child: Text(
               timezone.replaceAll('_', ' '),
-              style: AppTextStyle.fTextStyle.copyWith(color: textColor),
+              style: AppTextStyle.eTextStyle.copyWith(
+                color: blackColor.withOpacity(0.5),
+              ),
             ),
           );
         }).toList(),

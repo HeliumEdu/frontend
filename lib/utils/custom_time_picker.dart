@@ -66,7 +66,7 @@ class _CustomTimeTextFieldState extends State<CustomTimeTextField> {
         decoration: BoxDecoration(
           color: whiteColor,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(color: greyColor.shade300),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -226,7 +226,7 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
       width: width,
       height: 150,
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: greyColor.shade300),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Stack(
@@ -283,7 +283,7 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
                   );
                 }
               },
-              child: Icon(Icons.keyboard_arrow_up, color: Colors.grey.shade600),
+              child: Icon(Icons.keyboard_arrow_up, color: greyColor.shade600),
             ),
           ),
           // Down arrow
@@ -303,7 +303,7 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
               },
               child: Icon(
                 Icons.keyboard_arrow_down,
-                color: Colors.grey.shade600,
+                color: greyColor.shade600,
               ),
             ),
           ),

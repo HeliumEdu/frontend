@@ -379,7 +379,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                   'Class created successfully!',
                   style: AppTextStyle.cTextStyle.copyWith(color: whiteColor),
                 ),
-                backgroundColor: Colors.green,
+                backgroundColor: greenColor,
                 duration: const Duration(seconds: 2),
               ),
             );
@@ -419,7 +419,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                   'Class updated successfully!',
                   style: AppTextStyle.cTextStyle.copyWith(color: whiteColor),
                 ),
-                backgroundColor: Colors.green,
+                backgroundColor: greenColor,
                 duration: const Duration(seconds: 2),
               ),
             );
@@ -510,7 +510,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      Icon(Icons.import_contacts, color: Colors.transparent),
+                      Icon(Icons.import_contacts, color: transparentColor),
                     ],
                   ),
                 ),
@@ -832,7 +832,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                                     color: selectedColor,
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(
-                                      color: Colors.grey.shade300,
+                                      color: greyColor,
                                       width: 1,
                                     ),
                                   ),

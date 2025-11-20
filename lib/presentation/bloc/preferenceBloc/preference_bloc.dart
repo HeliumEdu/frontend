@@ -76,14 +76,14 @@ class PreferenceBloc extends Bloc<PreferenceEvent, PreferenceState> {
 
   String _mapDefaultViewIndexToName(int index) {
     switch (index) {
-      case 1:
+      case 0:
         return 'Month';
-      case 2:
+      case 1:
         return 'Week';
-      case 3:
+      case 2:
         return 'Day';
       default:
-        return 'List';
+        return 'Todos';
     }
   }
 

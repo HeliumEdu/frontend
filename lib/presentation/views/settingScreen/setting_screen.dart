@@ -128,12 +128,12 @@ class _SettingScreenViewState extends State<SettingScreenView> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? Colors.red : Colors.green,
+        backgroundColor: isError ? redColor : greenColor,
         duration: const Duration(seconds: 3),
         behavior: SnackBarBehavior.floating,
         action: SnackBarAction(
           label: 'Dismiss',
-          textColor: Colors.white,
+          textColor: whiteColor,
           onPressed: () {
             if (context.mounted) {
               ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -203,7 +203,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                     color: softGrey,
                     borderRadius: BorderRadius.circular(12.adaptSize),
                     border: Border.all(
-                      color: Colors.grey.withOpacity(0.3),
+                      color: greyColor.withOpacity(0.3),
                       width: 1,
                     ),
                   ),
@@ -325,7 +325,6 @@ class _SettingScreenViewState extends State<SettingScreenView> {
             _emailController.text = state.email;
           });
         } else if (state is AuthLogoutSuccess) {
-          _showSnackBar(context, 'Logged out successfully', isError: false);
           Future.delayed(const Duration(milliseconds: 500), () {
             Navigator.of(
               context,
@@ -420,7 +419,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.04),
+                                    color: blackColor.withOpacity(0.04),
                                     blurRadius: 10,
                                     offset: Offset(0, 2),
                                   ),
@@ -455,7 +454,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                               borderRadius: BorderRadius.circular(16.adaptSize),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.04),
+                                  color: blackColor.withOpacity(0.04),
                                   blurRadius: 10,
                                   offset: Offset(0, 2),
                                 ),
@@ -483,7 +482,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                           12.adaptSize,
                                         ),
                                         border: Border.all(
-                                          color: Colors.grey.withOpacity(0.2),
+                                          color: greyColor.withOpacity(0.2),
                                           width: 1,
                                         ),
                                       ),
@@ -552,7 +551,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                           12.adaptSize,
                                         ),
                                         border: Border.all(
-                                          color: Colors.grey.withOpacity(0.2),
+                                          color: greyColor.withOpacity(0.2),
                                           width: 1,
                                         ),
                                       ),
@@ -626,7 +625,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                           borderRadius: BorderRadius.circular(16.adaptSize),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.04),
+                              color: blackColor.withOpacity(0.04),
                               blurRadius: 10,
                               offset: Offset(0, 2),
                             ),
@@ -635,7 +634,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                         child: Column(
                           children: [
                             Material(
-                              color: Colors.transparent,
+                              color: transparentColor,
                               child: InkWell(
                                 onTap: () {
                                   Navigator.pushNamed(
@@ -707,7 +706,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                             Divider(height: 1, indent: 68.h),
 
                             Material(
-                              color: Colors.transparent,
+                              color: transparentColor,
                               child: InkWell(
                                 onTap: () {
                                   Navigator.pushNamed(
@@ -788,7 +787,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                             Divider(height: 1, indent: 68.h),
 
                             Material(
-                              color: Colors.transparent,
+                              color: transparentColor,
                               child: InkWell(
                                 onTap: () {
                                   Navigator.pushNamed(
@@ -873,14 +872,14 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.04),
+                              color: blackColor.withOpacity(0.04),
                               blurRadius: 10,
                               offset: Offset(0, 2),
                             ),
                           ],
                         ),
                         child: Material(
-                          color: Colors.transparent,
+                          color: transparentColor,
                           child: InkWell(
                             onTap: () => _showDeleteAccountDialog(context),
                             borderRadius: BorderRadius.circular(16.adaptSize),

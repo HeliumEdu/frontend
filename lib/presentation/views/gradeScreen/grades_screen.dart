@@ -94,7 +94,7 @@ class _GradesScreenState extends State<GradesScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.error_outline, size: 60, color: Colors.red),
+                        Icon(Icons.error_outline, size: 60, color: redColor),
                         SizedBox(height: 16),
                         Padding(
                           padding: EdgeInsets.symmetric(horizontal: 24.h),
@@ -657,7 +657,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                   return Column(
                                     children: [
                                       Material(
-                                        color: Colors.transparent,
+                                        color: transparentColor,
                                         child: InkWell(
                                           onTap: () {
                                             setState(() {
@@ -683,7 +683,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                                   ),
                                               boxShadow: [
                                                 BoxShadow(
-                                                  color: Colors.black
+                                                  color: blackColor
                                                       .withOpacity(0.04),
                                                   blurRadius: 10,
                                                   offset: Offset(0, 2),
@@ -779,10 +779,10 @@ class _GradesScreenState extends State<GradesScreen> {
                                                               color:
                                                                   course.trend! >
                                                                       0
-                                                                  ? Colors.green
+                                                                  ? greenColor
                                                                   : course.trend! <
                                                                         0
-                                                                  ? Colors.red
+                                                                  ? redColor
                                                                   : textColor
                                                                         .withOpacity(
                                                                           0.5,
@@ -1076,7 +1076,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                                               height: 1,
                                                               indent: 12.h,
                                                               endIndent: 12.h,
-                                                              color: Colors.grey
+                                                              color: greyColor
                                                                   .withOpacity(
                                                                     0.2,
                                                                   ),

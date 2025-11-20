@@ -55,7 +55,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     color: whiteColor,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: blackColor.withOpacity(0.05),
                         blurRadius: 8,
                         offset: Offset(0, 2),
                       ),
@@ -187,7 +187,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                               if (state is AuthPasswordChangeSuccess) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    backgroundColor: Colors.red,
+                                    backgroundColor: redColor,
                                     content: Text(state.message),
                                   ),
                                 );
@@ -195,7 +195,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                               } else if (state is AuthError) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    backgroundColor: Colors.red,
+                                    backgroundColor: redColor,
                                     content: Text(state.message),
                                   ),
                                 );
@@ -219,7 +219,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                                               context,
                                             ).showSnackBar(
                                               const SnackBar(
-                                                backgroundColor: Colors.red,
+                                                backgroundColor: redColor,
                                                 content: Text(
                                                   'New password same like current password',
                                                 ),
@@ -237,7 +237,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                                               context,
                                             ).showSnackBar(
                                               const SnackBar(
-                                                backgroundColor: Colors.red,
+                                                backgroundColor: redColor,
                                                 content: Text(
                                                   'New and confirm passwords do not match',
                                                 ),
@@ -271,13 +271,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                                         width: 20,
                                         child: CircularProgressIndicator(
                                           strokeWidth: 2,
-                                          color: Colors.white,
+                                          color: whiteColor,
                                         ),
                                       )
                                     : Text(
                                         'Save',
                                         style: AppTextStyle.mTextStyle.copyWith(
-                                          color: Colors.white,
+                                          color: whiteColor,
                                         ),
                                       ),
                               );

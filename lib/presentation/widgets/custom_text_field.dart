@@ -38,7 +38,7 @@ class CustomTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: whiteColor,
 
         border: Border.all(color: textColor.withOpacity(0.1)),
         borderRadius: BorderRadius.circular(8.h),
@@ -61,7 +61,7 @@ class CustomTextField extends StatelessWidget {
           errorText: errorText,
           errorMaxLines: 3,
           errorStyle: AppTextStyle.pTextStyle.copyWith(
-            color: Colors.red,
+            color: redColor,
 
             height: 1.2,
           ),
