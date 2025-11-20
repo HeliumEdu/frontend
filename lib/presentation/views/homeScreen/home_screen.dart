@@ -3783,18 +3783,28 @@ class _HomeScreenState extends State<HomeScreen> {
       assignmentColor = primaryColor;
     }
 
+
     // Parse homework time
     String timeDisplay = '';
+    final timeZone = tz.getLocation(_timeZone);
     try {
       if (homework.allDay) {
-        timeDisplay = '';
+        if (_currentViewMode == 'Todo') {
+          final startTime = tz.TZDateTime.from(
+            DateTime.parse(homework.start),
+            timeZone,
+          );
+          timeDisplay = DateFormat('MMM dd, yyyy').format(startTime);
+        } else {
+          timeDisplay = '';
+        }
       } else {
-        final timeZone = tz.getLocation(_timeZone);
         final startTime = tz.TZDateTime.from(
           DateTime.parse(homework.start),
           timeZone,
         );
         final formattedTime = DateFormat('h:mm a').format(startTime);
+        final formattedDate = DateFormat('MMM dd, yyyy').format(startTime);
         if (homework.end != null &&
             homework.end!.isNotEmpty &&
             homework.start != homework.end) {
@@ -3804,8 +3814,14 @@ class _HomeScreenState extends State<HomeScreen> {
           );
           final formattedEndTime = DateFormat('h:mm a').format(endTime);
           timeDisplay = '$formattedTime - $formattedEndTime';
+          if (_currentViewMode == 'Todo') {
+            timeDisplay = '$formattedDate $timeDisplay';
+          }
         } else {
           timeDisplay = formattedTime;
+          if (_currentViewMode == 'Todo') {
+            timeDisplay = '$formattedDate $timeDisplay';
+          }
         }
       }
     } catch (e) {
