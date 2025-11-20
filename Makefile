@@ -31,4 +31,5 @@ build-ios: install
 	flutter build ipa --release --no-codesign
 
 test: install
+	flutter analyze
 	flutter test
