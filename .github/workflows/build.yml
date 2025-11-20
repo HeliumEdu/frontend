@@ -24,7 +24,7 @@ jobs:
       KEYSTORE_PATH: android/app/debug-keystore.jks
       IOS_GOOGLE_SERVICES_PLIST: ${{ secrets.IOS_GOOGLE_SERVICES_PLIST }}
 
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v5
@@ -32,17 +32,17 @@ jobs:
 #         with:
 #           distribution: "temurin"
 #           java-version: "17"
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.38.1'
-          channel: stable
-          cache: false
-#       - name: Setup Flutter SDK
-#         uses: flutter-actions/setup-flutter@v4
+#       - name: Set up Flutter
+#         uses: subosito/flutter-action@v2
 #         with:
+#           flutter-version: '3.38.1'
 #           channel: stable
-#           version: "3.38.1"
+#           cache: false
+      - name: Setup Flutter SDK
+        uses: flutter-actions/setup-flutter@v4
+        with:
+          channel: stable
+          version: "3.38.1"
 #       - name: Decode Keystore
 #         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > $KEYSTORE_PATH
       - name: trigger pub
