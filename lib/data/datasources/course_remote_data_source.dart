@@ -476,7 +476,7 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
       for (var file in files) {
         final fileName = file.path.split('/').last;
         final fileSize = file.lengthSync();
-        print('  - $fileName (${fileSize} bytes)');
+        print('  - $fileName ($fileSize bytes)');
 
         multipartFiles.add(
           await MultipartFile.fromFile(file.path, filename: fileName),

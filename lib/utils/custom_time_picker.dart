@@ -7,8 +7,7 @@ class CustomTimeTextField extends StatefulWidget {
   final String text;
   final Function(TimeOfDay)? onTimeSelected;
 
-  const CustomTimeTextField({Key? key, required this.text, this.onTimeSelected})
-    : super(key: key);
+  const CustomTimeTextField({super.key, required this.text, this.onTimeSelected});
 
   @override
   State<CustomTimeTextField> createState() => _CustomTimeTextFieldState();
@@ -78,7 +77,7 @@ class _CustomTimeTextFieldState extends State<CustomTimeTextField> {
 }
 
 class CustomTimePicker extends StatefulWidget {
-  const CustomTimePicker({Key? key}) : super(key: key);
+  const CustomTimePicker({super.key});
 
   @override
   State<CustomTimePicker> createState() => _CustomTimePickerState();

@@ -457,10 +457,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return false;
   }
 
-  int _externalEventCountForCalendar(int calendarId) {
-    return _externalEventsByCalendar[calendarId]?.length ?? 0;
-  }
-
   Color _externalCalendarColor(int calendarId) {
     for (final calendar in _externalCalendars) {
       if (calendar.id == calendarId) {
@@ -984,7 +980,7 @@ class _HomeScreenState extends State<HomeScreen> {
         try {
           final start = DateFormat(
             'h:mm a',
-          ).format(DateFormat('HH:mm:ss').parse('$startTime'));
+          ).format(DateFormat('HH:mm:ss').parse(startTime));
           // final end = DateFormat('h:mm a').format(DateFormat('HH:mm:ss').parse('$endTime'));
           // return '$start - $end';
           return start;
@@ -3044,23 +3040,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                                       homeworkState.homeworks;
                                                 }
 
-                                                List<EventResponseModel>
-                                                events = [];
-                                                if (eventState is EventLoaded) {
-                                                  events = eventState.events;
-                                                }
-
-                                                final externalEvents =
-                                                    _resolveExternalEventsFromState(
-                                                      externalCalendarState,
-                                                    );
-
                                                 return _buildListView(
                                                   courses: courses,
-                                                  homeworks: homeworks,
-                                                  // events: events,
-                                                  // externalEvents:
-                                                  //     externalEvents,
+                                                  homeworks: homeworks
                                                 );
                                               },
                                         );
@@ -3298,8 +3280,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   _selectedDate,
                                                   homeworkStart,
                                                   homeworkEnd,
-                                                ))
+                                                )) {
                                                   return false;
+                                                }
                                                 return _matchesAssignmentStatus(
                                                   homework,
                                                 );

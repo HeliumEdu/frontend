@@ -52,8 +52,9 @@ class HomeworkRequestModel {
     if (url != null && url!.isNotEmpty) data['url'] = url;
     if (comments != null && comments!.isNotEmpty) data['comments'] = comments;
     if (category != null) data['category'] = category;
-    if (materials != null && materials!.isNotEmpty)
+    if (materials != null && materials!.isNotEmpty) {
       data['materials'] = materials;
+    }
 
     return data;
   }

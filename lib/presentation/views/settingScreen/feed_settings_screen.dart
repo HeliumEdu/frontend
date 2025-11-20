@@ -3,11 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:helium_student_flutter/core/dio_client.dart';
-import 'package:helium_student_flutter/data/datasources/ical_feed_remote_data_source.dart';
-import 'package:helium_student_flutter/data/repositories/ical_feed_repository_impl.dart';
-import 'package:helium_student_flutter/presentation/bloc/iCalFeedBloc/ical_feed_bloc.dart';
-import 'package:helium_student_flutter/presentation/bloc/iCalFeedBloc/ical_feed_event.dart';
-import 'package:helium_student_flutter/presentation/bloc/iCalFeedBloc/ical_feed_state.dart';
+import 'package:helium_student_flutter/data/datasources/private_feed_remote_data_source.dart';
+import 'package:helium_student_flutter/data/repositories/private_feed_repository_impl.dart';
+import 'package:helium_student_flutter/presentation/bloc/privateFeedBloc/private_feed_bloc.dart';
+import 'package:helium_student_flutter/presentation/bloc/privateFeedBloc/private_feed_event.dart';
+import 'package:helium_student_flutter/presentation/bloc/privateFeedBloc/private_feed_state.dart';
 import 'package:helium_student_flutter/utils/app_colors.dart';
 import 'package:helium_student_flutter/utils/app_size.dart';
 import 'package:helium_student_flutter/utils/app_text_style.dart';
@@ -18,13 +18,13 @@ class FeedSettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => ICalFeedBloc(
-        iCalFeedRepository: ICalFeedRepositoryImpl(
-          remoteDataSource: ICalFeedRemoteDataSourceImpl(
+      create: (context) => PrivateFeedBloc(
+        privateFeedRepository: PrivateFeedRepositoryImpl(
+          remoteDataSource: PrivateFeedRemoteDataSourceImpl(
             dioClient: DioClient(),
           ),
         ),
-      )..add(FetchICalFeedUrlsEvent()),
+      )..add(FetchPrivateFeedUrlsEvent()),
       child: const FeedSettingsView(),
     );
   }
@@ -69,9 +69,9 @@ class FeedSettingsView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FC),
-      body: BlocBuilder<ICalFeedBloc, ICalFeedState>(
+      body: BlocBuilder<PrivateFeedBloc, PrivateFeedState>(
         builder: (context, state) {
-          if (state is ICalFeedLoading) {
+          if (state is PrivateFeedLoading) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -93,7 +93,7 @@ class FeedSettingsView extends StatelessWidget {
             );
           }
 
-          if (state is ICalFeedError) {
+          if (state is PrivateFeedError) {
             return SafeArea(
               child: Column(
                 children: [
@@ -125,7 +125,7 @@ class FeedSettingsView extends StatelessWidget {
                           constraints: const BoxConstraints(),
                         ),
                         Text(
-                          'Feed Settings',
+                          'Feeds & External Calendars',
                           style: AppTextStyle.bTextStyle.copyWith(
                             color: textColor,
                           ),
@@ -184,7 +184,7 @@ class FeedSettingsView extends StatelessWidget {
                                         ),
                                         SizedBox(height: 4.v),
                                         Text(
-                                          'Enable to generate iCal URLs for your calendars',
+                                          'Enable to generate Private Feed URLs for your calendars',
                                           style: AppTextStyle.cTextStyle
                                               .copyWith(
                                                 color: textColor.withOpacity(
@@ -200,7 +200,7 @@ class FeedSettingsView extends StatelessWidget {
                                     activeColor: primaryColor,
                                     onChanged: (val) {
                                       if (val) {
-                                        context.read<ICalFeedBloc>().add(
+                                        context.read<PrivateFeedBloc>().add(
                                           EnablePrivateFeedsEvent(),
                                         );
                                       }
@@ -248,8 +248,8 @@ class FeedSettingsView extends StatelessWidget {
                               height: 48,
                               child: ElevatedButton(
                                 onPressed: () {
-                                  context.read<ICalFeedBloc>().add(
-                                    FetchICalFeedUrlsEvent(),
+                                  context.read<PrivateFeedBloc>().add(
+                                    FetchPrivateFeedUrlsEvent(),
                                   );
                                 },
                                 style: ElevatedButton.styleFrom(
@@ -279,7 +279,7 @@ class FeedSettingsView extends StatelessWidget {
             );
           }
 
-          if (state is ICalFeedEnabling) {
+          if (state is PrivateFeedEnabling) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -319,7 +319,7 @@ class FeedSettingsView extends StatelessWidget {
             );
           }
 
-          if (state is ICalFeedEnabled) {
+          if (state is PrivateFeedEnabled) {
             return SafeArea(
               child: Column(
                 children: [
@@ -351,7 +351,7 @@ class FeedSettingsView extends StatelessWidget {
                           constraints: const BoxConstraints(),
                         ),
                         Text(
-                          'Feed Settings',
+                          'Feeds & External Calendars',
                           style: AppTextStyle.bTextStyle.copyWith(
                             color: textColor,
                           ),
@@ -405,8 +405,8 @@ class FeedSettingsView extends StatelessWidget {
                               height: 48,
                               child: ElevatedButton(
                                 onPressed: () {
-                                  context.read<ICalFeedBloc>().add(
-                                    FetchICalFeedUrlsEvent(),
+                                  context.read<PrivateFeedBloc>().add(
+                                    FetchPrivateFeedUrlsEvent(),
                                   );
                                 },
                                 style: ElevatedButton.styleFrom(
@@ -436,7 +436,7 @@ class FeedSettingsView extends StatelessWidget {
             );
           }
 
-          if (state is ICalFeedLoaded) {
+          if (state is PrivateFeedLoaded) {
             return SafeArea(
               child: Column(
                 children: [
@@ -468,7 +468,7 @@ class FeedSettingsView extends StatelessWidget {
                           constraints: const BoxConstraints(),
                         ),
                         Text(
-                          'Feed Settings',
+                          'Feeds & External Calendars',
                           style: AppTextStyle.bTextStyle.copyWith(
                             color: textColor,
                           ),
@@ -546,7 +546,7 @@ class FeedSettingsView extends StatelessWidget {
                                     activeColor: primaryColor,
                                     onChanged: (val) {
                                       if (!val) {
-                                        context.read<ICalFeedBloc>().add(
+                                        context.read<PrivateFeedBloc>().add(
                                           DisablePrivateFeedsEvent(),
                                         );
                                       }
@@ -582,7 +582,7 @@ class FeedSettingsView extends StatelessWidget {
                               iconBgColor: Colors.orange,
                               title: 'Assignments',
                               subtitle: 'Homework & assignments',
-                              url: state.icalFeed.homeworkUrl,
+                              url: state.privateFeed.homeworkUrl,
                               label: 'Assignments',
                               buttonColor: Colors.orange,
                             ),
@@ -597,7 +597,7 @@ class FeedSettingsView extends StatelessWidget {
                               iconBgColor: primaryColor,
                               title: 'Class Schedule',
                               subtitle: 'All classes & lectures',
-                              url: state.icalFeed.allCalendarUrl,
+                              url: state.privateFeed.classSchedulesUrl,
                               label: 'Class Schedule',
                               buttonColor: primaryColor,
                             ),
@@ -612,7 +612,7 @@ class FeedSettingsView extends StatelessWidget {
                               iconBgColor: greenColor,
                               title: 'Events',
                               subtitle: 'Campus events & activities',
-                              url: state.icalFeed.eventsUrl,
+                              url: state.privateFeed.eventsUrl,
                               label: 'Events',
                               buttonColor: greenColor,
                             ),
@@ -750,7 +750,7 @@ class FeedSettingsView extends StatelessWidget {
             );
           }
 
-          if (state is ICalFeedDisabling) {
+          if (state is PrivateFeedDisabling) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -783,7 +783,7 @@ class FeedSettingsView extends StatelessWidget {
             );
           }
 
-          if (state is ICalFeedDisabled) {
+          if (state is PrivateFeedDisabled) {
             return SafeArea(
               child: Column(
                 children: [
@@ -815,7 +815,7 @@ class FeedSettingsView extends StatelessWidget {
                           constraints: const BoxConstraints(),
                         ),
                         Text(
-                          'Feed Settings',
+                          'Feeds & External Calendars',
                           style: AppTextStyle.bTextStyle.copyWith(
                             color: textColor,
                           ),
@@ -868,7 +868,7 @@ class FeedSettingsView extends StatelessWidget {
                               height: 48,
                               child: ElevatedButton(
                                 onPressed: () {
-                                  context.read<ICalFeedBloc>().add(
+                                  context.read<PrivateFeedBloc>().add(
                                     EnablePrivateFeedsEvent(),
                                   );
                                 },
@@ -977,7 +977,7 @@ class FeedSettingsView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'iCal Feed URL',
+                  'Private Feed URL',
                   style: AppTextStyle.fTextStyle.copyWith(
                     color: textColor.withOpacity(0.7),
                     fontWeight: FontWeight.w500,

@@ -8,7 +8,6 @@ import 'package:helium_student_flutter/presentation/bloc/authBloc/auth_bloc.dart
 import 'package:helium_student_flutter/presentation/bloc/authBloc/auth_event.dart';
 import 'package:helium_student_flutter/presentation/bloc/authBloc/auth_state.dart';
 import 'package:helium_student_flutter/utils/app_assets.dart';
-import 'package:helium_student_flutter/utils/app_colors.dart';
 import 'package:helium_student_flutter/utils/app_size.dart';
 
 class SplashScreen extends StatefulWidget {

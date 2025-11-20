@@ -1,7 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:helium_student_flutter/core/app_exception.dart';
 import 'package:helium_student_flutter/data/models/planner/external_calendar_event_model.dart';
-import 'package:helium_student_flutter/data/models/planner/external_calendar_request_model.dart';
 import 'package:helium_student_flutter/domain/repositories/external_calendar_repository.dart';
 import 'package:helium_student_flutter/presentation/bloc/externalCalendarBloc/external_calendar_event.dart';
 import 'package:helium_student_flutter/presentation/bloc/externalCalendarBloc/external_calendar_state.dart';

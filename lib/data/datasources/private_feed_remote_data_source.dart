@@ -2,23 +2,23 @@ import 'package:helium_student_flutter/core/app_exception.dart';
 import 'package:helium_student_flutter/core/dio_client.dart';
 import 'package:helium_student_flutter/core/network_urls.dart';
 import 'package:helium_student_flutter/data/models/auth/user_profile_model.dart';
-import 'package:helium_student_flutter/data/models/planner/ical_feed_model.dart';
+import 'package:helium_student_flutter/data/models/planner/private_feed_model.dart';
 
-abstract class ICalFeedRemoteDataSource {
-  Future<ICalFeedModel> getICalFeedUrls();
+abstract class PrivateFeedRemoteDataSource {
+  Future<PrivateFeedModel> getPrivateFeedUrls();
   Future<void> enablePrivateFeeds();
   Future<void> disablePrivateFeeds();
 }
 
-class ICalFeedRemoteDataSourceImpl implements ICalFeedRemoteDataSource {
+class PrivateFeedRemoteDataSourceImpl implements PrivateFeedRemoteDataSource {
   final DioClient dioClient;
 
-  ICalFeedRemoteDataSourceImpl({required this.dioClient});
+  PrivateFeedRemoteDataSourceImpl({required this.dioClient});
 
   @override
-  Future<ICalFeedModel> getICalFeedUrls() async {
+  Future<PrivateFeedModel> getPrivateFeedUrls() async {
     try {
-      print(' Fetching iCal feed URLs...');
+      print(' Fetching Private Feed URLs...');
 
       print(' Fetching user profile to get private slug...');
       final response = await dioClient.dio.get(NetworkUrl.getProfileUrl);
@@ -46,24 +46,24 @@ class ICalFeedRemoteDataSourceImpl implements ICalFeedRemoteDataSource {
 
       print(' Private slug retrieved: $privateSlug');
 
-      final icalFeed = ICalFeedModel.fromPrivateSlug(
+      final privateFeed = PrivateFeedModel.fromPrivateSlug(
         baseUrl: NetworkUrl.baseUrl,
         privateSlug: privateSlug,
       );
 
-      print(' iCal feed URLs generated successfully');
-      print('   - All Calendar: ${icalFeed.allCalendarUrl}');
-      print('   - Homework: ${icalFeed.homeworkUrl}');
-      print('   - Events: ${icalFeed.eventsUrl}');
+      print(' Private Feed URLs generated successfully');
+      print('   - All Calendar: ${privateFeed.classSchedulesUrl}');
+      print('   - Homework: ${privateFeed.homeworkUrl}');
+      print('   - Events: ${privateFeed.eventsUrl}');
 
-      return icalFeed;
+      return privateFeed;
     } catch (e) {
-      print(' Exception in getICalFeedUrls: $e');
+      print(' Exception in getPrivateFeedUrls: $e');
       if (e is AppException) {
         rethrow;
       }
       throw ServerException(
-        message: 'Failed to generate iCal feed URLs: ${e.toString()}',
+        message: 'Failed to generate Private Feed URLs: ${e.toString()}',
       );
     }
   }

@@ -1304,7 +1304,7 @@ class _EventRemainderScreenState extends State<EventRemainderScreen> {
                               ],
                             ),
                           );
-                        }).toList(),
+                        }),
                         SizedBox(height: 8.v),
                         Divider(
                           color: greyColor.withOpacity(0.2),
@@ -1362,7 +1362,7 @@ class _EventRemainderScreenState extends State<EventRemainderScreen> {
                               ],
                             ),
                           );
-                        }).toList(),
+                        }),
                         SizedBox(height: 12.v),
                       ],
                       Text(

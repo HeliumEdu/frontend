@@ -335,8 +335,9 @@ class _ReminderScreenState extends State<ReminderScreen> {
     if (offset >= 10080) return '1 week before';
     if (offset >= 2880) return '2 days before';
     if (offset >= 1440) return '1 day before';
-    if (offset >= 60 && offset % 60 == 0)
+    if (offset >= 60 && offset % 60 == 0) {
       return '${(offset / 60).round()} hour${(offset / 60).round() == 1 ? '' : 's'} before';
+    }
     return '$offset minute${offset == 1 ? '' : 's'} before';
   }
 
@@ -1620,7 +1621,7 @@ class _ReminderScreenState extends State<ReminderScreen> {
                                       ],
                                     ),
                                   );
-                                }).toList(),
+                                }),
                                 SizedBox(height: 8.v),
                                 Divider(
                                   color: greyColor.withOpacity(0.2),
@@ -1743,7 +1744,7 @@ class _ReminderScreenState extends State<ReminderScreen> {
                                       ],
                                     ),
                                   );
-                                }).toList(),
+                                }),
                                 SizedBox(height: 8.v),
                                 Divider(
                                   color: greyColor.withOpacity(0.2),
@@ -1809,7 +1810,7 @@ class _ReminderScreenState extends State<ReminderScreen> {
                                       ],
                                     ),
                                   );
-                                }).toList(),
+                                }),
                                 SizedBox(height: 12.v),
                               ],
                               Text(

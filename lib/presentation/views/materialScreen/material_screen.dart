@@ -27,7 +27,7 @@ import 'package:helium_student_flutter/utils/app_size.dart';
 import 'package:helium_student_flutter/utils/app_text_style.dart';
 
 class MaterialScreen extends StatefulWidget {
-  MaterialScreen({super.key});
+  const MaterialScreen({super.key});
 
   @override
   State<MaterialScreen> createState() => _MaterialScreenState();

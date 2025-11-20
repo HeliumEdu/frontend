@@ -273,9 +273,7 @@ class FCMService {
     ].join('|');
 
     final String key = contentFingerprint.trim().isEmpty
-        ? (message.notification?.title ?? '') +
-              '|' +
-              (message.notification?.body ?? '')
+        ? '${message.notification?.title ?? ''}|${message.notification?.body ?? ''}'
         : contentFingerprint;
 
     final now = DateTime.now();

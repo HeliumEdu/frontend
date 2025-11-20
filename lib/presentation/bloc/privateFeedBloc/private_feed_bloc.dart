@@ -1,0 +1,72 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:helium_student_flutter/core/app_exception.dart';
+import 'package:helium_student_flutter/domain/repositories/private_feed_repository.dart';
+import 'package:helium_student_flutter/presentation/bloc/privateFeedBloc/private_feed_event.dart';
+import 'package:helium_student_flutter/presentation/bloc/privateFeedBloc/private_feed_state.dart';
+
+class PrivateFeedBloc extends Bloc<PrivateFeedEvent, PrivateFeedState> {
+  final PrivateFeedRepository privateFeedRepository;
+
+  PrivateFeedBloc({required this.privateFeedRepository}) : super(PrivateFeedInitial()) {
+    on<FetchPrivateFeedUrlsEvent>(_onFetchPrivateFeedUrls);
+    on<EnablePrivateFeedsEvent>(_onEnablePrivateFeeds);
+    on<DisablePrivateFeedsEvent>(_onDisablePrivateFeeds);
+  }
+
+  Future<void> _onFetchPrivateFeedUrls(
+    FetchPrivateFeedUrlsEvent event,
+    Emitter<PrivateFeedState> emit,
+  ) async {
+    emit(PrivateFeedLoading());
+    try {
+      print('🎯 Fetching Private Feed URLs from repository...');
+      final privateFeed = await privateFeedRepository.getPrivateFeedUrls();
+      print('✅ Private Feed URLs fetched successfully');
+      emit(PrivateFeedLoaded(privateFeed: privateFeed));
+    } on AppException catch (e) {
+      print('❌ App error: ${e.message}');
+      emit(PrivateFeedError(message: e.message));
+    } catch (e) {
+      print('❌ Unexpected error: $e');
+      emit(PrivateFeedError(message: 'An unexpected error occurred: $e'));
+    }
+  }
+
+  Future<void> _onEnablePrivateFeeds(
+    EnablePrivateFeedsEvent event,
+    Emitter<PrivateFeedState> emit,
+  ) async {
+    emit(PrivateFeedEnabling());
+    try {
+      print('🔧 Enabling private feeds...');
+      await privateFeedRepository.enablePrivateFeeds();
+      print('✅ Private feeds enabled successfully');
+      emit(PrivateFeedEnabled(message: 'Private feeds enabled successfully!'));
+    } on AppException catch (e) {
+      print('❌ App error: ${e.message}');
+      emit(PrivateFeedError(message: e.message));
+    } catch (e) {
+      print('❌ Unexpected error: $e');
+      emit(PrivateFeedError(message: 'An unexpected error occurred: $e'));
+    }
+  }
+
+  Future<void> _onDisablePrivateFeeds(
+    DisablePrivateFeedsEvent event,
+    Emitter<PrivateFeedState> emit,
+  ) async {
+    emit(PrivateFeedDisabling());
+    try {
+      print('🛑 Disabling private feeds...');
+      await privateFeedRepository.disablePrivateFeeds();
+      print('✅ Private feeds disabled successfully');
+      emit(PrivateFeedDisabled(message: 'Private feeds disabled successfully!'));
+    } on AppException catch (e) {
+      print('❌ App error: ${e.message}');
+      emit(PrivateFeedError(message: e.message));
+    } catch (e) {
+      print('❌ Unexpected error: $e');
+      emit(PrivateFeedError(message: 'An unexpected error occurred: $e'));
+    }
+  }
+}

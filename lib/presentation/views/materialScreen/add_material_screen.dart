@@ -28,7 +28,7 @@ class AddMaterialScreen extends StatefulWidget {
   final List<Map<String, dynamic>> courses;
   final MaterialModel? existingMaterial; // Add this for editing
 
-  AddMaterialScreen({
+  const AddMaterialScreen({
     super.key,
     required this.materialGroup,
     this.courses = const [],

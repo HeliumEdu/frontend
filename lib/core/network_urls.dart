@@ -57,10 +57,6 @@ class NetworkUrl {
       "/feed/externalcalendars/$calendarId/";
   static String externalCalendarEventsUrl(int calendarId) =>
       "/feed/externalcalendars/$calendarId/events/";
-  // iCal Feed URLs for exporting to Google Calendar
-  static const iCalAllCalendarUrl = "/feed/ical/calendar/";
-  static const iCalHomeworkUrl = "/feed/ical/homework/";
-  static const iCalEventsUrl = "/feed/ical/events/";
   // Private Feed URLs
   static const enablePrivateFeedsUrl = "/feed/private/enable/";
   static const disablePrivateFeedsUrl = "/feed/private/disable/";

@@ -1232,7 +1232,7 @@ class _ScheduleAddClassState extends State<ScheduleAddClass> {
                                       ],
                                     ),
                                   );
-                                }).toList(),
+                                }),
                               ] else ...[
                                 // Single Time Section
                                 Text(

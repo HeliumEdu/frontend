@@ -759,7 +759,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                   ],
                 ),
               );
-            }).toList(),
+            }),
           ],
         ],
       ),

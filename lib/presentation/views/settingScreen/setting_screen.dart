@@ -825,7 +825,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              'Feed Settings',
+                                              'Feeds & External Calendars',
                                               style: AppTextStyle.eTextStyle
                                                   .copyWith(
                                                     color: textColor,

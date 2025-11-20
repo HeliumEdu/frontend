@@ -1505,7 +1505,7 @@ class _CategoriesAddClassState extends State<CategoriesAddClass> {
                                 ],
                               ),
                             );
-                          }).toList(),
+                          }),
                         ],
 
                         SizedBox(height: 32.v),
