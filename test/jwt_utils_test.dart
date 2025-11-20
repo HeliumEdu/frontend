@@ -34,7 +34,6 @@ void main() {
           'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzYxMzA4NDY4LCJpYXQiOjE3NjEzMDc1MDgsImp0aSI6IjMxM2FhNjU1YjgwNDQzNjM4OWVkYWViNjBkNGM3ZDBmIiwidXNlcl9pZCI6IjEzNDQ2In0.48BQ2-BU8SZkPgJVi00b2Rwh9FT200VonAzizSrMTsA';
 
       final isExpired = JWTUtils.isTokenExpired(expiredToken);
-      // The token might not be expired yet, so we just check that the function works
       expect(isExpired, isA<bool>());
     });
   });
