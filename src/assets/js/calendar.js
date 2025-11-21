@@ -1268,7 +1268,7 @@ function HeliumCalendar() {
                         start = moment(event.start).format(helium.HE_REMINDER_DATE_STRING);
                         // Construct a pleasant start date/time
                         if (!event.allDay) {
-                            start += (" at " + moment(event.start).format(helium.HE_TIME_STRING_CLIENT));
+                            start += (" • " + moment(event.start).format(helium.HE_TIME_STRING_CLIENT));
                         }
 
                         // Construct a pleasant end date/time

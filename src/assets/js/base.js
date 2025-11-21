@@ -357,14 +357,14 @@ function Helium() {
             id_str = "reminder-for-homework-" + reminder.homework.id;
             start = moment(reminder.homework.start).format(helium.HE_REMINDER_DATE_STRING);
             if (!reminder.homework.all_day) {
-                start += (" at " + moment(reminder.homework.start).format(helium.HE_TIME_STRING_CLIENT));
+                start += (" • " + moment(reminder.homework.start).format(helium.HE_TIME_STRING_CLIENT));
             }
         } else if (reminder.event !== null) {
             type = "event";
             id_str = "reminder-for-event-" + reminder.event.id;
             start = moment(reminder.event.start).format(helium.HE_REMINDER_DATE_STRING);
             if (!reminder.event.all_day) {
-                start += (" at " + moment(reminder.event.start).format(helium.HE_TIME_STRING_CLIENT));
+                start += (" • " + moment(reminder.event.start).format(helium.HE_TIME_STRING_CLIENT));
             }
         }
 
