@@ -440,7 +440,7 @@ function Helium() {
             helium.ajax_error_occurred = false;
 
             const put_data = {
-                'sent': true
+                'dismissed': true
             }, reminder_div = $(this).parent();
             helium.planner_api.edit_reminder(function (data) {
                 if (helium.data_has_err_msg(data)) {

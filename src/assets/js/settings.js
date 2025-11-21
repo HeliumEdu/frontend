@@ -669,6 +669,8 @@ function HeliumSettings() {
                    url: helium.API_URL + "/importexport/import/exampleschedule/",
                    type: "POST",
                    success: function () {
+                       helium.planner_api.process_reminders(false);
+                       
                        helium.planner_api.update_user_details(function () {
                            $("#status_importexport").html("\"Example Schedule\" imported successfully.").addClass("alert-success")
                                .removeClass("hidden alert-danger");
