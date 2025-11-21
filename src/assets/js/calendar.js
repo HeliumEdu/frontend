@@ -392,7 +392,8 @@ function HeliumCalendar() {
         $("#homework-end-date").datepicker("setDate", self.end.toDate());
         $("#homework-all-day").prop("checked", self.all_day).trigger("change");
         $("#homework-show-end-time").prop("checked", self.show_end_time).trigger("change");
-        $("#homework-priority > span").slider("value", "50");
+        $("#homework-priority > span").slider("value", 50);
+
         $("#homework-completed").prop("checked", false).trigger("change");
         $("#homework-grade").val("");
         $("#homework-grade-percent > span").text("");
@@ -2467,8 +2468,7 @@ function HeliumCalendar() {
                             return "";
                         }
 
-                        let course_string = eventDef.miscProps.calendar_item_type === 1
-                                            ? ('<span class="label label-sm title-label" style="background-color: '
+                        let course_string = '<span class="label label-sm title-label" style="background-color: '
                                                + helium.calendar.courses[eventDef.miscProps.course].color
                                                + ' !important">'
                                                + (helium.str_not_empty(
@@ -2488,7 +2488,7 @@ function HeliumCalendar() {
                                     "").length
                                                   > 0 ? " <i class=\"icon-external-link\"></i></a>"
                                                       : "")
-                                               + '</span>') : "";
+                                               + '</span>';
 
                         return '<tr class="' + classes.join(' ') + '">' +
                                '<td class="' + theme.getClass('widgetContent') + '">' + eventDef.miscProps.checkbox
@@ -2502,25 +2502,20 @@ function HeliumCalendar() {
                                '<td class="' + theme.getClass('widgetContent')
                                + '">' + course_string + '</td>' +
                                '<td class="' + theme.getClass('widgetContent') + '">'
-                               + (eventDef.miscProps.calendar_item_type
-                                  === 1 ? (eventDef.miscProps.category
+                               + (eventDef.miscProps.category
                                            !== null
                                            ? ("<span class=\"label label-sm\" style=\"background-color: "
                                + helium.calendar.categories[eventDef.miscProps.category].color + " !important\">"
-                               + helium.calendar.categories[eventDef.miscProps.category].title + "</span>") : "") : "")
+                               + helium.calendar.categories[eventDef.miscProps.category].title + "</span>") : "")
                                + '</td>' +
                                '<td class="' + theme.getClass('widgetContent') + '">'
-                               + (eventDef.miscProps.calendar_item_type
-                                  === 1
-                                  ? helium.calendar.get_materials_titles_badges_from_ids(
-                                    eventDef.miscProps.materials) : "") + '</td>' +
+                               + helium.calendar.get_materials_titles_badges_from_ids(
+                                    eventDef.miscProps.materials) + '</td>' +
                                '<td class="' + theme.getClass('widgetContent') + '">'
-                               + (eventDef.miscProps.calendar_item_type
-                                  === 1
-                                  ? "<div class=\"progress progress-mini progress-striped\" style=\"margin-top: 6px; margin-bottom: 0;\"><div class=\"progress-bar progress-bar-success\" style=\"width: "
-                               + eventDef.miscProps.priority + "%;\"><span class=\"hidden\">"
+                               + "<div class=\"progress progress-mini\" style=\"margin-top: 6px; margin-bottom: 0;\"><div class=\"progress-bar\" style=\"width: "
+                               + eventDef.miscProps.priority + "%; background-color: " + helium.get_color_for_priority(eventDef.miscProps.priority) + "\"><span class=\"hidden\">"
                                + eventDef.miscProps.priority
-                               + "</span></div></div>" : "") + '</td>' +
+                               + "</span></div></div>" + '</td>' +
                                '<td class="' + theme.getClass('widgetContent') + '">' + (eventDef.miscProps.completed
                                                                                          && eventDef.miscProps.current_grade
                                                                                          !== "-1/100"
@@ -2778,11 +2773,33 @@ $(document).ready(function () {
         });
         $("#homework-priority > span").css({width: "90%", "float": "left", margin: "15px"}).each(function () {
             const value = parseInt($(this).text(), 10);
-            $(this).empty().slider({
-                                       value: value,
-                                       range: "min",
-                                       animate: true
-                                   });
+            $(this).empty().slider(
+                {
+                    value: 50,
+                    step: 10,
+                    slide: function (event, ui) {
+                        const color = helium.get_color_for_priority(ui.value);
+
+                        $(this).find(".ui-slider-range").css("background-color", color);
+
+                        if (!ui.handle.firstChild) {
+                            $("<div class='tooltip top in' style='display:none;left:-4px;bottom:18px;'><div class='tooltip-arrow'></div><div class='tooltip-inner'></div></div>")
+                                .prependTo(ui.handle);
+                        }
+                        $(ui.handle.firstChild).show().children().eq(1).text(Math.round(ui.value / 10));
+                    },
+                    change: function (event, ui) {
+                        const color = helium.get_color_for_priority(ui.value);
+
+                        $(this).find(".ui-slider-range").css("background-color", color);
+                    },
+                    stop: function (event, ui) {
+                        if (ui.handle.firstChild) {
+                            $(ui.handle.firstChild).remove();
+                        }
+                    },
+                    range: "min"
+                });
         });
         if ($(window).width() > 768) {
             $("#homework-materials").chosen({

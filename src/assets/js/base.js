@@ -506,6 +506,25 @@ function Helium() {
             helium.location_hash = null;
         }
     }
+
+    this.get_color_for_priority = function (value) {
+        const index = Math.min(Math.floor((value - 1) / 10), 9);
+
+        const colors = [
+            "#6FCC43", // (green)
+            "#86D238",
+            "#A1D72E",
+            "#BEDC26",
+            "#D9DF1E",
+            "#F2DD19",
+            "#FBC313",
+            "#F79E0E",
+            "#EF6A0B",
+            "#D92727"  // (red)
+        ];
+
+        return colors[index];
+    }
 }
 
 // Initialize the Helium object
