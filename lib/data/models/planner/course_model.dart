@@ -22,6 +22,7 @@ class CourseModel {
   final String startDate;
   final String endDate;
   final List<CourseScheduleModel> schedules;
+  final bool shownOnCalendar;
   final int courseGroup;
   final int numDays;
   final int numDaysCompleted;
@@ -46,6 +47,7 @@ class CourseModel {
     required this.endDate,
     required this.schedules,
     required this.courseGroup,
+    required this.shownOnCalendar,
     required this.numDays,
     required this.numDaysCompleted,
     required this.hasWeightedGrading,
@@ -75,6 +77,7 @@ class CourseModel {
               .toList() ??
           [],
       courseGroup: json['course_group'] ?? 0,
+      shownOnCalendar: json['shown_on_calendar'] ?? true,
       numDays: json['num_days'] ?? 0,
       numDaysCompleted: json['num_days_completed'] ?? 0,
       hasWeightedGrading: json['has_weighted_grading'] ?? false,
@@ -101,6 +104,7 @@ class CourseModel {
       'end_date': endDate,
       'schedules': schedules.map((schedule) => schedule.toJson()).toList(),
       'course_group': courseGroup,
+      'shown_on_calendar': shownOnCalendar,
       'num_days': numDays,
       'num_days_completed': numDaysCompleted,
       'has_weighted_grading': hasWeightedGrading,

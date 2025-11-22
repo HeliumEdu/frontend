@@ -152,7 +152,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
 
       // Parse color
       try {
-        selectedColor = Color(int.parse('0xFF${course.color.substring(1)}'));
+        selectedColor = Color(int.parse('0xff${course.color.substring(1)}'));
       } catch (e) {
         print('Error parsing color: $e');
       }
@@ -693,7 +693,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                           ),
                           SizedBox(height: 9.v),
                           CustomClassTextField(
-                            text: 'Enter Class Title',
+                            text: '',
                             controller: _titleController,
                           ),
                           SizedBox(height: 14.v),
@@ -707,7 +707,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                           CustomCalendarTextfield(
                             text: _startDate != null
                                 ? _formatDateForDisplay(_startDate!)
-                                : 'Select Date',
+                                : '',
                             onDateSelected: (selectedDate) {
                               setState(() {
                                 _startDate = selectedDate;
@@ -725,7 +725,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                           CustomCalendarTextfield(
                             text: _endDate != null
                                 ? _formatDateForDisplay(_endDate!)
-                                : 'Select Date',
+                                : '',
                             onDateSelected: (selectedDate) {
                               setState(() {
                                 _endDate = selectedDate;
@@ -743,7 +743,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                             ),
                             SizedBox(height: 9.v),
                             CustomClassTextField(
-                              text: 'Enter Room No.',
+                              text: '',
                               controller: _roomController,
                             ),
                             SizedBox(height: 14.v),
@@ -757,19 +757,19 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                           ),
                           SizedBox(height: 9.v),
                           CustomClassTextField(
-                            text: 'Enter Website',
+                            text: '',
                             controller: _websiteController,
                           ),
                           SizedBox(height: 14.v),
                           Text(
-                            'Teacher Name',
+                            'Teacher',
                             style: AppTextStyle.cTextStyle.copyWith(
                               color: blackColor.withOpacity(0.8),
                             ),
                           ),
                           SizedBox(height: 9.v),
                           CustomClassTextField(
-                            text: 'Enter Teacher Name',
+                            text: '',
                             controller: _teacherNameController,
                           ),
                           SizedBox(height: 14.v),
@@ -781,19 +781,19 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                           ),
                           SizedBox(height: 9.v),
                           CustomClassTextField(
-                            text: 'Enter Teacher Email',
+                            text: '',
                             controller: _teacherEmailController,
                           ),
                           SizedBox(height: 14.v),
                           Text(
-                            'Credits hour',
+                            'Credits',
                             style: AppTextStyle.cTextStyle.copyWith(
                               color: blackColor.withOpacity(0.8),
                             ),
                           ),
                           SizedBox(height: 9.v),
                           CustomClassTextField(
-                            text: 'Enter Class Credit Hours',
+                            text: '',
                             controller: _creditsController,
                           ),
                           SizedBox(height: 14.v),

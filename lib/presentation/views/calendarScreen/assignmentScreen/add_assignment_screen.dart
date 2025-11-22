@@ -40,6 +40,11 @@ import 'package:heliumedu/utils/app_colors.dart';
 import 'package:heliumedu/utils/app_size.dart';
 import 'package:heliumedu/utils/app_text_style.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timezone/timezone.dart' as tz;
+
+import '../../../../data/datasources/auth_remote_data_source.dart';
+import '../../../../data/repositories/auth_repository_impl.dart';
 
 class AddAssignmentScreen extends StatefulWidget {
   const AddAssignmentScreen({super.key});
@@ -65,6 +70,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
   int? courseId;
   int? selectedCourseId;
   int? selectedCategoryId;
+  String _timeZone = 'America/Chicago';
   List<int> selectedMaterialIds = [];
   bool isAllDay = false;
   bool isCompleted = false;
@@ -79,7 +85,6 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
   List<MaterialModel> _materials = [];
   List<MaterialGroupResponseModel> _materialGroups = [];
 
-  // ignore: unused_field
   int? _selectedCourseGroupId;
 
   bool _isInitialized = false;
@@ -87,6 +92,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
   @override
   void initState() {
     super.initState();
+    _loadTimeZone();
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) return;
@@ -94,6 +100,35 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
         Navigator.pushReplacementNamed(context, AppRoutes.addEventScreen);
       }
     });
+  }
+
+  Future<void> _loadTimeZone() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? timeZone = prefs.getString('user_time_zone');
+
+    if (timeZone == null || timeZone.isEmpty) {
+      try {
+        final dioClient = DioClient();
+        final authRepository = AuthRepositoryImpl(
+          remoteDataSource: AuthRemoteDataSourceImpl(dioClient: dioClient),
+        );
+        final profile = await authRepository.getProfile();
+        final timeZone = profile.settings?.timeZone;
+        if (timeZone != null && timeZone.trim().isNotEmpty) {
+          await prefs.setString('user_time_zone', timeZone);
+        }
+      } catch (e) {
+        print('⚠️ Failed to load time zone from profile: $e');
+      }
+
+      if (timeZone == null || timeZone.isEmpty) return;
+
+      if (mounted && timeZone != _timeZone) {
+        setState(() {
+          _timeZone = timeZone;
+        });
+      }
+    }
   }
 
   @override
@@ -205,8 +240,9 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
       }
 
       // Parse start date/time
+      final timeZone = tz.getLocation(_timeZone);
       try {
-        final startDateTime = DateTime.parse(homework.start);
+        final startDateTime = tz.TZDateTime.from(DateTime.parse(homework.start), timeZone);
         _startDate = startDateTime;
         if (!isAllDay) {
           _startTime = TimeOfDay.fromDateTime(startDateTime);
@@ -217,7 +253,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
 
       if (homework.end != null) {
         try {
-          final endDateTime = DateTime.parse(homework.end!);
+          final endDateTime = tz.TZDateTime.from(DateTime.parse(homework.end!), timeZone);
           _endDate = endDateTime;
           if (!isAllDay) {
             _endTime = TimeOfDay.fromDateTime(endDateTime);
@@ -319,13 +355,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
   Future<void> _openMaterialPicker() async {
     if (selectedCourseId == null || _materials.isEmpty) return;
 
-    final available = _materials
-        .where((m) => !selectedMaterialIds.contains(m.id))
-        .toList();
-
-    if (available.isEmpty) return;
-
-    final Set<int> tempSelected = {};
+    final Set<int> tempSelected = selectedMaterialIds.toSet();
 
     await showDialog(
       context: context,
@@ -345,9 +375,9 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                 width: double.maxFinite,
                 child: ListView.builder(
                   shrinkWrap: true,
-                  itemCount: available.length,
+                  itemCount: _materials.length,
                   itemBuilder: (context, index) {
-                    final mat = available[index];
+                    final mat = _materials[index];
                     final checked = tempSelected.contains(mat.id);
                     return CheckboxListTile(
                       value: checked,
@@ -384,7 +414,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
             TextButton(
               onPressed: () {
                 setState(() {
-                  selectedMaterialIds.addAll(tempSelected);
+                  selectedMaterialIds = tempSelected.toList();
                 });
                 Navigator.pop(dialogCtx);
               },
@@ -415,7 +445,8 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
         time.hour,
         time.minute,
       );
-      return dateTime.toIso8601String();
+      final timeZone = tz.getLocation(_timeZone);
+      return tz.TZDateTime.from(dateTime, timeZone).toIso8601String();
     }
     return date.toIso8601String();
   }
@@ -477,6 +508,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
 
     // Ensure backend always receives an end value to avoid validation errors.
     // If End is hidden or not set, default end to start.
+    // TODO: the website has logic here that picks a time 30 mins in the future (unless close to midnight, then subtract)
     String endDateTime;
     if (isShowEndDateTime && _endDate != null) {
       endDateTime = _formatDateTimeToISO(_endDate!, isAllDay ? null : _endTime);
@@ -612,6 +644,29 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
         ),
       );
     }
+  }
+
+  Color _getColorForPriority(double value) {
+    // Clamp value to 1–100
+    value = value.clamp(1, 100);
+
+    // Determine bucket index (0–9)
+    int index = ((value - 1) / 10).floor();
+
+    const colors = [
+      Color(0xff6FCC43), // (green)
+      Color(0xff86D238),
+      Color(0xffA1D72E),
+      Color(0xffBEDC26),
+      Color(0xffD9DF1E),
+      Color(0xffF2DD19),
+      Color(0xffFBC313),
+      Color(0xffF79E0E),
+      Color(0xffEF6A0B),
+      Color(0xffD92727), // (red)
+    ];
+
+    return colors[index];
   }
 
   @override
@@ -947,7 +1002,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                         ),
                         SizedBox(height: 8.v),
                         CustomClassTextField(
-                          text: 'Enter Assignment Title',
+                          text: '',
                           controller: _titleController,
                         ),
                         SizedBox(height: 18.v),
@@ -985,7 +1040,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                             hint: Text(
                               _courses.isEmpty
                                   ? 'Loading classes ...'
-                                  : 'Select Class',
+                                  : '',
                               style: AppTextStyle.eTextStyle.copyWith(
                                 color: blackColor.withOpacity(0.5),
                               ),
@@ -1066,10 +1121,10 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                             underline: SizedBox(),
                             hint: Text(
                               selectedCourseId == null
-                                  ? 'Select a class first'
+                                  ? ''
                                   : _categories.isEmpty
                                   ? 'No categories available'
-                                  : 'Select Category',
+                                  : '',
                               style: AppTextStyle.eTextStyle.copyWith(
                                 color: blackColor.withOpacity(0.5),
                               ),
@@ -1123,7 +1178,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                               if (selectedMaterialIds.isEmpty)
                                 Text(
                                   selectedCourseId == null
-                                      ? 'Select a class first'
+                                      ? ''
                                       : _materials.isEmpty
                                       ? 'No materials available'
                                       : 'No materials selected',
@@ -1281,7 +1336,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                                   ? _formatDateForDisplay(
                                                       _startDate!,
                                                     )
-                                                  : 'Select Start Date',
+                                                  : '',
                                               style: AppTextStyle.eTextStyle
                                                   .copyWith(
                                                     color: _startDate != null
@@ -1393,7 +1448,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                   Text(
                                     _startDate != null
                                         ? _formatDateForDisplay(_startDate!)
-                                        : 'Select Start Date',
+                                        : '',
                                     style: AppTextStyle.eTextStyle.copyWith(
                                       color: _startDate != null
                                           ? blackColor
@@ -1419,7 +1474,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Start Time',
+                                      '',
                                       style: AppTextStyle.eTextStyle.copyWith(
                                         color: blackColor.withOpacity(0.8),
                                         fontWeight: FontWeight.w500,
@@ -1449,7 +1504,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                             Text(
                                               _startTime != null
                                                   ? _formatTime(_startTime!)
-                                                  : 'Start Time',
+                                                  : '',
                                               style: AppTextStyle.eTextStyle
                                                   .copyWith(
                                                     color: _startTime != null
@@ -1555,22 +1610,10 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                 horizontal: 12.h,
                                 vertical: 6.v,
                               ),
-                              decoration: BoxDecoration(
-                                color: _priorityValue <= 33
-                                    ? const Color(0xff28A745).withOpacity(0.1)
-                                    : _priorityValue <= 66
-                                    ? const Color(0xffFFC107).withOpacity(0.1)
-                                    : const Color(0xffDC3545).withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
                               child: Text(
-                                '${_priorityValue.round()}',
+                                '${(_priorityValue / 10).round()}',
                                 style: AppTextStyle.eTextStyle.copyWith(
-                                  color: _priorityValue <= 33
-                                      ? const Color(0xff28A745)
-                                      : _priorityValue <= 66
-                                      ? const Color(0xffFFC107)
-                                      : const Color(0xffDC3545),
+                                  color: _getColorForPriority(_priorityValue),
                                   fontWeight: FontWeight.w700,
                                   fontSize: 16,
                                 ),
@@ -1581,24 +1624,13 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                         SizedBox(height: 12.v),
                         SliderTheme(
                           data: SliderTheme.of(context).copyWith(
-                            activeTrackColor: _priorityValue <= 33
-                                ? const Color(0xff28A745)
-                                : _priorityValue <= 66
-                                ? const Color(0xffFFC107)
-                                : const Color(0xffDC3545),
+                            activeTrackColor: _getColorForPriority(_priorityValue),
                             inactiveTrackColor: greyColor.withOpacity(0.3),
-                            thumbColor: _priorityValue <= 33
-                                ? const Color(0xff28A745)
-                                : _priorityValue <= 66
-                                ? const Color(0xffFFC107)
-                                : const Color(0xffDC3545),
+                            thumbColor: _getColorForPriority(_priorityValue),
                             overlayColor:
-                                (_priorityValue <= 33
-                                        ? const Color(0xff28A745)
-                                        : _priorityValue <= 66
-                                        ? const Color(0xffFFC107)
-                                        : const Color(0xffDC3545))
+                                (_getColorForPriority(_priorityValue))
                                     .withOpacity(0.2),
+                            showValueIndicator: ShowValueIndicator.never,
                             thumbShape: RoundSliderThumbShape(
                               enabledThumbRadius: 12.0,
                             ),
@@ -1611,7 +1643,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                             value: _priorityValue,
                             min: 0,
                             max: 100,
-                            divisions: 100,
+                            divisions: 10,
                             label: '${_priorityValue.round()}',
                             onChanged: (value) {
                               setState(() {
@@ -1702,7 +1734,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                               color: blackColor,
                             ),
                             decoration: InputDecoration(
-                              hintText: 'Add Assignment Details',
+                              hintText: '',
                               hintStyle: AppTextStyle.eTextStyle.copyWith(
                                 color: blackColor.withOpacity(0.5),
                               ),

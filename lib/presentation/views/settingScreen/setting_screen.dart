@@ -226,7 +226,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                             fontWeight: FontWeight.w500,
                           ),
                           decoration: InputDecoration(
-                            hintText: 'Password',
+                            hintText: '',
                             hintStyle: AppTextStyle.eTextStyle.copyWith(
                               color: textColor.withOpacity(0.4),
                             ),

@@ -101,7 +101,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                         SizedBox(height: 12.v),
 
                         CustomTextField(
-                          hintText: 'Enter Current Password',
+                          hintText: '',
                           prefixIcon: Icons.lock,
                           controller: _controller.changePasswordController,
                           validator: _controller.validateChangePassword,
@@ -130,7 +130,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                         SizedBox(height: 12.v),
 
                         CustomTextField(
-                          hintText: 'Enter New Password',
+                          hintText: '',
                           prefixIcon: Icons.lock,
                           controller: _controller.changeNewPasswordController,
                           validator: _controller.validateChangePassword,
@@ -159,7 +159,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                         SizedBox(height: 12.v),
 
                         CustomTextField(
-                          hintText: 'Enter Confirm Password',
+                          hintText: '',
                           prefixIcon: Icons.lock,
                           controller:
                               _controller.changeConfirmPasswordController,

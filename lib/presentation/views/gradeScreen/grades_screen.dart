@@ -646,7 +646,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                   Color courseColor = primaryColor;
                                   try {
                                     final colorValue = int.parse(
-                                      course.color.replaceFirst('#', 'FF'),
+                                      course.color.replaceFirst('#', 'ff'),
                                       radix: 16,
                                     );
                                     courseColor = Color(colorValue);
@@ -973,7 +973,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                                                 category.color
                                                                     .replaceFirst(
                                                                       '#',
-                                                                      'FF',
+                                                                      'ff',
                                                                     ),
                                                                 radix: 16,
                                                               );

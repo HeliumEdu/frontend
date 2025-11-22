@@ -229,7 +229,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                           ),
                           SizedBox(height: 9.v),
                           CustomClassTextField(
-                            text: 'Enter Fall Semester 2025',
+                            text: '',
                             controller: _titleController,
                           ),
                           SizedBox(height: 12.v),
@@ -243,7 +243,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                           CustomCalendarTextfield(
                             text: _startDate != null
                                 ? _formatDateForDisplay(_startDate!)
-                                : 'Select Date',
+                                : '',
                             onDateSelected: (selectedDate) {
                               setDialogState(() {
                                 _startDate = selectedDate;
@@ -263,7 +263,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                           CustomCalendarTextfield(
                             text: _endDate != null
                                 ? _formatDateForDisplay(_endDate!)
-                                : 'Select Date',
+                                : '',
                             onDateSelected: (selectedDate) {
                               setDialogState(() {
                                 _endDate = selectedDate;

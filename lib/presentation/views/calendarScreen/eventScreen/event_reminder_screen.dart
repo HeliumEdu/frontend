@@ -60,13 +60,24 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
   List<AttachmentModel> _serverAttachments = [];
 
   int _mapMethodToType(String? method) {
-    if ((method ?? '').toLowerCase() == 'email') return 0;
-    return 3;
+    method = (method ?? '').toLowerCase();
+    if (method == 'email') {
+      return 1;
+    } else if (method == 'text') {
+      return 2;
+    } else {
+      return 0;
+    }
   }
 
   String _mapTypeToMethod(int type) {
-    if (type == 0) return 'Email';
-    return 'Push';
+    if (type == 0) {
+      return 'Popup';
+    } else if (type == 1) {
+      return 'Text';
+    } else {
+      return 'Email';
+    }
   }
 
   @override
@@ -96,7 +107,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
       }
     }
 
-    selectedReminderMethod ??= 'Push';
+    selectedReminderMethod ??= 'Popup';
   }
 
   void _populateReminderData() {
@@ -152,7 +163,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
       );
       final reminders = await reminderRepo.getReminders();
       setState(() {
-        _serverReminders = reminders.where((r) => r.event == eventId).toList();
+        _serverReminders = reminders.where((r) => r.event != null && r.event!['id'] == eventId).toList();
       });
     } catch (e) {
       if (mounted) {
@@ -180,7 +191,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
     String? unitSelection;
     String? methodSelection = existing != null
         ? _mapTypeToMethod(existing.type)
-        : 'Push';
+        : 'Popup';
 
     if (existing != null) {
       final off = existing.offset;
@@ -251,7 +262,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                         color: blackColor,
                       ),
                       decoration: InputDecoration(
-                        hintText: 'Enter reminder message',
+                        hintText: 'A friendly reminder',
                         hintStyle: AppTextStyle.eTextStyle.copyWith(
                           color: blackColor.withOpacity(0.5),
                         ),
@@ -288,13 +299,13 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                       isExpanded: true,
                       underline: SizedBox(),
                       hint: Text(
-                        'Select method',
+                        '',
                         style: AppTextStyle.eTextStyle.copyWith(
                           color: blackColor.withOpacity(0.5),
                         ),
                       ),
                       value: methodSelection,
-                      items: reminderPreferences.map((method) {
+                      items: reminderTypes.map((method) {
                         return DropdownMenuItem<String>(
                           value: method,
                           child: Row(
@@ -397,13 +408,13 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                             isExpanded: true,
                             underline: SizedBox(),
                             hint: Text(
-                              'Select unit',
+                              '',
                               style: AppTextStyle.eTextStyle.copyWith(
                                 color: blackColor.withOpacity(0.5),
                               ),
                             ),
                             value: unitSelection,
-                            items: reminderTimeUnits.map((unit) {
+                            items: reminderOffsetUnits.map((unit) {
                               return DropdownMenuItem<String>(
                                 value: unit,
                                 child: Text(
@@ -518,7 +529,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
 
                               if (existing != null) {
                                 final req = ReminderRequestModel(
-                                  title: 'Event Reminder',
+                                  title: messageCtrl.text.trim(),
                                   message: messageCtrl.text.trim(),
                                   offset: computedOffset,
                                   offsetType: 0,
@@ -532,7 +543,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                                 );
                               } else {
                                 final req = ReminderRequestModel(
-                                  title: 'Event Reminder',
+                                  title: messageCtrl.text.trim(),
                                   message: messageCtrl.text.trim(),
                                   offset: computedOffset,
                                   offsetType: 0,

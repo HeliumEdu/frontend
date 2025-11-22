@@ -294,9 +294,6 @@ class FCMService {
           message.messageId ?? DateTime.now().millisecondsSinceEpoch.toString(),
       title: message.notification?.title ?? 'HeliumEdu Reminder',
       body: message.notification?.body ?? 'You have a new reminder.',
-      imageUrl:
-          message.notification?.android?.imageUrl ??
-          message.notification?.apple?.imageUrl,
       data: message.data,
       timestamp: message.sentTime ?? DateTime.now(),
       isRead: false,
@@ -414,7 +411,6 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
           message.messageId ?? DateTime.now().millisecondsSinceEpoch.toString(),
       title: 'HeliumEdu Reminder',
       body: 'You have a new reminder.',
-      imageUrl: null,
       data: message.data,
       timestamp: message.sentTime ?? DateTime.now(),
       isRead: false,

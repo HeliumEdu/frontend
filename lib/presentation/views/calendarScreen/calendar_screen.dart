@@ -77,16 +77,9 @@ class _HomeScreenState extends State<HomeScreen> {
   List<ExternalCalendarModel> _externalCalendars = [];
   Map<int, List<ExternalCalendarEventModel>> _externalEventsByCalendar = {};
 
-  List<String> selectedCategories = [
-    'Assignments',
-    'Events',
-    'Class Schedules',
-    'External Calendars',
-  ];
+  List<String> selectedCategories = [];
   List<String> selectedCategoryFilters = [];
   Set<String> selectedStatuses = {};
-  bool _externalCalendarEnabled = false;
-  bool? _externalCalendarPreferenceCached;
   final Map<int, bool> _completedOverrides = {};
   final Map<int, CategoryModel> _categoriesById = {};
   final List<CategoryModel> _deduplicatedCategories = [];
@@ -107,7 +100,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadExternalCalendarState();
     _loadEventColor();
     _loadTimeZone();
   }
@@ -157,21 +149,6 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       });
     }
-  }
-
-  Future<void> _loadExternalCalendarState() async {
-    final prefs = await SharedPreferences.getInstance();
-    final bool? savedState = prefs.containsKey('external_calendar_enabled')
-        ? prefs.getBool('external_calendar_enabled')
-        : null;
-    setState(() {
-      _externalCalendarPreferenceCached = savedState;
-      _externalCalendarEnabled = savedState ?? true;
-      if (_externalCalendarEnabled &&
-          !selectedCategories.contains('External Calendars')) {
-        selectedCategories.add('External Calendars');
-      }
-    });
   }
 
   Future<void> _loadEventColor() async {
@@ -259,73 +236,52 @@ class _HomeScreenState extends State<HomeScreen> {
     return '#${value.substring(2)}';
   }
 
-  Future<void> _saveExternalCalendarState(bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    _externalCalendarPreferenceCached = value;
-    await prefs.setBool('external_calendar_enabled', value);
-  }
-
   void _applyExternalCalendarData(
-    List<ExternalCalendarModel> calendars,
+    List<ExternalCalendarModel> externalCalendars,
     Map<int, List<ExternalCalendarEventModel>> eventsByCalendar,
   ) {
     if (!mounted) return;
 
     if (kDebugMode) {
       print('📅 Applying external calendar data:');
-      print('   - Calendars count: ${calendars.length}');
+      print('   - Calendars count: ${externalCalendars.length}');
       int totalEvents = eventsByCalendar.values.fold(
         0,
         (sum, list) => sum + list.length,
       );
       print('   - Total events: $totalEvents');
-      for (var calendar in calendars) {
+      for (var external_calendar in externalCalendars) {
         print(
-          '   - Calendar: ${calendar.title} (ID: ${calendar.id}, shown: ${calendar.shownOnCalendar})',
+          '   - Calendar: ${external_calendar.title} (ID: ${external_calendar.id}, shown: ${external_calendar.shownOnCalendar})',
         );
-        print('     Events: ${eventsByCalendar[calendar.id]?.length ?? 0}');
+        print('     Events: ${eventsByCalendar[external_calendar.id]?.length ?? 0}');
       }
     }
 
     setState(() {
-      _externalCalendars = calendars;
+      _externalCalendars = externalCalendars;
       _externalEventsByCalendar = eventsByCalendar;
     });
 
     // Auto-enable external calendar filter if any calendars are shown
-    final hasAnyShownCalendars = calendars.any(
-      (calendar) => calendar.shownOnCalendar,
+    final hasAnyShownCalendars = externalCalendars.any(
+      (externalCalendar) => externalCalendar.shownOnCalendar,
     );
     if (kDebugMode) {
       print('   - Has shown calendars: $hasAnyShownCalendars');
-      print('   - External calendar enabled: $_externalCalendarEnabled');
       print('   - Selected categories: $selectedCategories');
     }
 
     if (hasAnyShownCalendars && mounted) {
-      bool shouldEnable = _externalCalendarPreferenceCached != true;
-      bool shouldAddCategory = !selectedCategories.contains(
+      bool shouldAddCategory = selectedCategories.contains(
         'External Calendars',
       );
 
-      if (shouldEnable || shouldAddCategory) {
-        setState(() {
-          if (shouldEnable) {
-            _externalCalendarEnabled = true;
-            _externalCalendarPreferenceCached = true;
-            _saveExternalCalendarState(_externalCalendarEnabled);
-            if (kDebugMode) {
-              print('   ✅ Auto-enabled external calendar');
-            }
-          }
-
-          if (shouldAddCategory) {
-            selectedCategories = [...selectedCategories, 'External Calendars'];
-            if (kDebugMode) {
-              print('   ✅ Added External Calendar to selected categories');
-            }
-          }
-        });
+      if (shouldAddCategory) {
+        selectedCategories = [...selectedCategories, 'External Calendars'];
+        if (kDebugMode) {
+          print('   ✅ Added External Calendar to selected categories');
+        }
       }
     }
   }
@@ -351,15 +307,13 @@ class _HomeScreenState extends State<HomeScreen> {
     if (kDebugMode) {
       print('🔍 Filtering external events:');
       print('   - Total events: ${externalEvents.length}');
-      print('   - External calendar enabled: $_externalCalendarEnabled');
       print(
         '   - Category enabled: ${_isCategoryEnabled('External Calendars')}',
       );
       print('   - Selected categories: $selectedCategories');
     }
 
-    if (!_externalCalendarEnabled ||
-        !_isCategoryEnabled('External Calendars')) {
+    if (!_isCategoryEnabled('External Calendars')) {
       if (kDebugMode) {
         print('   ❌ External calendar filtering disabled');
       }
@@ -729,7 +683,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Only show dots for selected categories
     if (showAssignments && _hasAssignmentsOnDate(date, homeworks)) {
-      dots.add(primaryColor);
+      dots.add(darkBlueColor);
     }
     if (showEvents && _hasEventsOnDate(date, events)) {
       dots.add(_eventColor);
@@ -737,25 +691,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (showClassSchedule && _hasCoursesOnDate(date, courses)) {
       dots.add(greenColor);
     }
-    if (showExternal) {
-      final externalColors = <Color>{};
-      for (final externalEvent in filteredExternalEvents) {
-        try {
-          final startDate = DateTime.parse(externalEvent.start);
-          DateTime? endDate;
-          if (externalEvent.end != null && externalEvent.end!.isNotEmpty) {
-            endDate = DateTime.parse(externalEvent.end!);
-          }
-          if (_isDateInRange(date, startDate, endDate)) {
-            externalColors.add(
-              _externalCalendarColor(externalEvent.externalCalendar),
-            );
-          }
-        } catch (_) {
-          continue;
-        }
-      }
-      dots.addAll(externalColors);
+    if (showExternal && _hasExternalEventsOnDate(date, filteredExternalEvents)) {
+      dots.add(yellowColor);
     }
 
     return dots;
@@ -1173,17 +1110,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       onTap: () {
                         setState(() {
                           selectedClasses = {};
-                          selectedCategories = [
-                            'Assignments',
-                            'Events',
-                            'Class Schedules',
-                            'External Calendars',
-                          ];
+                          selectedCategories = [];
                           selectedCategoryFilters = [];
                           selectedStatuses = {};
-                          _externalCalendarEnabled = true;
-                          // Save the state to SharedPreferences
-                          _saveExternalCalendarState(_externalCalendarEnabled);
                         });
                         _refetchHomeworkWithCurrentFilters(
                           homeworkBloc: homeworkBloc,
@@ -1327,14 +1256,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           activeColor: primaryColor,
                         ),
                         CheckboxListTile(
-                          value: _externalCalendarEnabled,
+                          value: selectedCategories.contains('External Calendars'),
                           onChanged: (value) {
                             setState(() {
-                              final enabled = value ?? false;
-                              _externalCalendarEnabled = enabled;
-
-                              // Simple toggle: Add or remove from selected categories
-                              if (enabled) {
+                              if (value == true) {
                                 if (!selectedCategories.contains(
                                   'External Calendars',
                                 )) {
@@ -1348,11 +1273,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                     .where((cat) => cat != 'External Calendars')
                                     .toList();
                               }
-
-                              _externalCalendarPreferenceCached = enabled;
-                              _saveExternalCalendarState(enabled);
                             });
-                            setMenuState(() {});
+                            setMenuState(() {
+                              // Trigger menu rebuild
+                            });
                           },
                           title: Text(
                             'External Calendars',
@@ -1451,14 +1375,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           },
                           title: Row(
                             children: [
-                              // Container(
-                              //   width: 12.h,
-                              //   height: 12.h,
-                              //   decoration: BoxDecoration(
-                              //     color: category.getColor(),
-                              //     shape: BoxShape.circle,
-                              //   ),
-                              // ),
                               SizedBox(width: 8.h),
                               Expanded(
                                 child: Text(
@@ -1586,7 +1502,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Color courseColor = primaryColor;
                           try {
                             final colorValue = int.parse(
-                              course.color.replaceFirst('#', 'FF'),
+                              course.color.replaceFirst('#', 'ff'),
                               radix: 16,
                             );
                             courseColor = Color(colorValue);
@@ -2429,7 +2345,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: colorDots
-                    .take(3)
+                    .take(4)
                     .map(
                       (color) => Container(
                         width: 4,
@@ -2882,7 +2798,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       height: 38.v,
                                       child: ListView.separated(
                                         shrinkWrap: true,
-                                        itemCount: viewList.length,
+                                        itemCount: mobileViews.length,
                                         scrollDirection: Axis.horizontal,
                                         itemBuilder: (context, index) {
                                           bool isSelected =
@@ -2913,7 +2829,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                               ),
                                               child: Center(
                                                 child: Text(
-                                                  viewList[index],
+                                                  mobileViews[index],
                                                   style: AppTextStyle.eTextStyle
                                                       .copyWith(
                                                         color: isSelected
@@ -3517,12 +3433,12 @@ class _HomeScreenState extends State<HomeScreen> {
     Color courseColor = primaryColor;
     try {
       final colorValue = int.parse(
-        course.color.replaceFirst('#', 'FF'),
+        course.color.replaceFirst('#', 'ff'),
         radix: 16,
       );
       courseColor = Color(colorValue);
     } catch (e) {
-      courseColor = colorsList[index % colorsList.length];
+      courseColor = preferredColors[index % preferredColors.length];
     }
 
     return Container(
@@ -3774,7 +3690,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
       );
       final colorValue = int.parse(
-        course.color.replaceFirst('#', 'FF'),
+        course.color.replaceFirst('#', 'ff'),
         radix: 16,
       );
       assignmentColor = Color(colorValue);
@@ -4006,11 +3922,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildEventCard(BuildContext context, EventResponseModel event) {
-    Color eventColor = blackColor;
-    final eventHex = event.colorHex;
-    if (eventHex != null && eventHex.isNotEmpty) {
-      eventColor = _colorFromHex(eventHex);
-    }
+    Color eventColor = _eventColor;
     String timeDisplay = '';
     try {
       if (event.allDay) {

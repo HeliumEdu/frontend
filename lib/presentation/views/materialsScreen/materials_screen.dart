@@ -464,7 +464,6 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Books List
                     BlocBuilder<MaterialBloc, material_state.MaterialState>(
                       builder: (context, state) {
                         if (state is material_state.MaterialsLoading) {
@@ -708,7 +707,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                           final colorHex = course.color
                                               .replaceAll('#', '');
                                           courseColor = Color(
-                                            int.parse('FF$colorHex', radix: 16),
+                                            int.parse('ff$colorHex', radix: 16),
                                           );
                                         } catch (e) {
                                           courseColor = primaryColor;
@@ -971,7 +970,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                         ),
                         SizedBox(height: 9.v),
                         CustomClassTextField(
-                          text: 'Enter Group Name',
+                          text: '',
                           controller: _titleController,
                         ),
                         SizedBox(height: 20.v),

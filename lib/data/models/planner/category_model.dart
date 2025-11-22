@@ -87,10 +87,10 @@ class CategoryModel {
   // Helper method to get color as Color object
   Color getColor() {
     try {
-      final colorValue = int.parse(color.replaceFirst('#', 'FF'), radix: 16);
+      final colorValue = int.parse(color.replaceFirst('#', 'ff'), radix: 16);
       return Color(colorValue);
     } catch (e) {
-      return const Color(0xFF3F51B5); // Default blue color
+      return const Color(0xff3F51B5); // Default blue color
     }
   }
 }

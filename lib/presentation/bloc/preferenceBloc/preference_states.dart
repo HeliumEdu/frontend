@@ -8,23 +8,21 @@
 import 'dart:ui';
 
 class PreferenceState {
-  final int offsetValue;
-  final String? selectedDefaultPreference;
-  final String? selectedTimezonePreference;
-  final String? selectedReminderPreference;
-  final String? selectedReminderTypePreference;
-  final Color selectedColor;
+  final int reminderOffset;
+  final String? defaultView;
+  final String? timeZone;
+  final String? reminderOffsetUnit;
+  final Color eventColor;
   final bool isSubmitting;
   final String? submitError;
   final bool submitSuccess;
 
   PreferenceState({
-    this.offsetValue = 0,
-    this.selectedDefaultPreference,
-    this.selectedTimezonePreference,
-    this.selectedReminderPreference,
-    this.selectedReminderTypePreference,
-    this.selectedColor = const Color(0xFF26A69A),
+    this.reminderOffset = 0,
+    this.defaultView,
+    this.timeZone,
+    this.reminderOffsetUnit,
+    this.eventColor = const Color(0xff26A69A),
     this.isSubmitting = false,
     this.submitError,
     this.submitSuccess = false,
@@ -32,26 +30,24 @@ class PreferenceState {
 
   PreferenceState copyWith({
     int? offsetValue,
-    String? selectedDefaultPreference,
-    String? selectedTimezonePreference,
+    String? selectedDefaultView,
+    String? selectedTimeZone,
     String? selectedReminderPreference,
-    String? selectedReminderTypePreference,
-    Color? selectedColor,
+    String? selectedReminderOffsetUnit,
+    Color? selectedEventsColor,
     bool? isSubmitting,
     String? submitError,
     bool? submitSuccess,
   }) {
     return PreferenceState(
-      offsetValue: offsetValue ?? this.offsetValue,
-      selectedDefaultPreference:
-          selectedDefaultPreference ?? this.selectedDefaultPreference,
-      selectedTimezonePreference:
-          selectedTimezonePreference ?? this.selectedTimezonePreference,
-      selectedReminderPreference:
-          selectedReminderPreference ?? this.selectedReminderPreference,
-      selectedReminderTypePreference:
-          selectedReminderTypePreference ?? this.selectedReminderTypePreference,
-      selectedColor: selectedColor ?? this.selectedColor,
+      defaultView:
+          selectedDefaultView ?? this.defaultView,
+      timeZone:
+          selectedTimeZone ?? this.timeZone,
+      reminderOffsetUnit:
+          selectedReminderOffsetUnit ?? this.reminderOffsetUnit,
+      reminderOffset: offsetValue ?? this.reminderOffset,
+      eventColor: selectedEventsColor ?? this.eventColor,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       submitError: submitError,
       submitSuccess: submitSuccess ?? this.submitSuccess,

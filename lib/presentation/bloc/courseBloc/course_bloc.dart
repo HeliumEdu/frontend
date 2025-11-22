@@ -44,7 +44,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
 
     try {
       final courses = await courseRepository.getCourses();
-      emit(CourseLoaded(courses: courses));
+      emit(CourseLoaded(courses: courses.where((course) => course.shownOnCalendar).toList()));
     } on NetworkException catch (e) {
       emit(CourseError(message: e.message));
     } on ServerException catch (e) {

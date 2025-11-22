@@ -49,11 +49,10 @@ class PreferenceView extends StatefulWidget {
   State<PreferenceView> createState() => _PreferenceViewState();
 }
 
-Color dialogSelectedColor = const Color(0xFF26A69A);
-String? selectedDefaultPreference;
-String? selectedTimezonePreference;
-String? selectedReminderPreference;
-String? selectedReminderTypePreference;
+Color selectedEventColor = const Color(0xff26A69A);
+String? selectedDefaultView;
+String? selectedTimeZone;
+String? selectedReminderOffsetUnit;
 
 class _PreferenceViewState extends State<PreferenceView> {
   late TextEditingController _offsetController;
@@ -83,10 +82,10 @@ class _PreferenceViewState extends State<PreferenceView> {
         backgroundColor: whiteColor,
         contentPadding: EdgeInsets.zero,
         content: CustomColorPickerWidget(
-          initialColor: dialogSelectedColor,
+          initialColor: selectedEventColor,
           onColorSelected: (color) {
             setState(() {
-              dialogSelectedColor = color;
+              selectedEventColor = color;
               Navigator.pop(context);
             });
           },
@@ -102,22 +101,19 @@ class _PreferenceViewState extends State<PreferenceView> {
         BlocListener<PreferenceBloc, PreferenceState>(
           listener: (context, state) {
             setState(() {
-              if (state.selectedDefaultPreference != null) {
-                selectedDefaultPreference = state.selectedDefaultPreference;
+              if (state.defaultView != null) {
+                selectedDefaultView = state.defaultView;
               }
-              if (state.selectedTimezonePreference != null) {
-                selectedTimezonePreference = state.selectedTimezonePreference;
+              if (state.timeZone != null) {
+                selectedTimeZone = state.timeZone;
               }
-              if (state.selectedReminderPreference != null) {
-                selectedReminderPreference = state.selectedReminderPreference;
+              if (state.reminderOffsetUnit != null) {
+                selectedReminderOffsetUnit =
+                    state.reminderOffsetUnit;
               }
-              if (state.selectedReminderTypePreference != null) {
-                selectedReminderTypePreference =
-                    state.selectedReminderTypePreference;
-              }
-              dialogSelectedColor = state.selectedColor;
-              if (_offsetController.text != state.offsetValue.toString()) {
-                _offsetController.text = state.offsetValue.toString();
+              selectedEventColor = state.eventColor;
+              if (_offsetController.text != state.reminderOffset.toString()) {
+                _offsetController.text = state.reminderOffset.toString();
               }
             });
           },
@@ -173,7 +169,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Default View',
+                          'Default view',
                           style: AppTextStyle.cTextStyle.copyWith(
                             color: blackColor.withOpacity(0.8),
                           ),
@@ -195,8 +191,8 @@ class _PreferenceViewState extends State<PreferenceView> {
                             dropdownColor: whiteColor,
                             isExpanded: true,
                             underline: SizedBox(),
-                            value: selectedDefaultPreference,
-                            items: defaultPreferences.map((course) {
+                            value: selectedDefaultView,
+                            items: mobileViews.map((course) {
                               return DropdownMenuItem(
                                 value: course,
                                 child: Text(
@@ -209,14 +205,14 @@ class _PreferenceViewState extends State<PreferenceView> {
                             }).toList(),
                             onChanged: (value) {
                               setState(() {
-                                selectedDefaultPreference = value!;
+                                selectedDefaultView = value!;
                               });
                             },
                           ),
                         ),
                         SizedBox(height: 22.h),
                         Text(
-                          'Time Zone',
+                          'Time zone',
                           style: AppTextStyle.cTextStyle.copyWith(
                             color: blackColor.withOpacity(0.8),
                           ),
@@ -238,8 +234,8 @@ class _PreferenceViewState extends State<PreferenceView> {
                             dropdownColor: whiteColor,
                             isExpanded: true,
                             underline: SizedBox(),
-                            value: selectedTimezonePreference,
-                            items: timezonesPreference.toSet().map((timeZone) {
+                            value: selectedTimeZone,
+                            items: timeZones.toSet().map((timeZone) {
                               return DropdownMenuItem(
                                 value: timeZone,
                                 child: Text(
@@ -252,7 +248,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                             }).toList(),
                             onChanged: (value) {
                               setState(() {
-                                selectedTimezonePreference = value!;
+                                selectedTimeZone = value!;
                               });
                             },
                           ),
@@ -273,7 +269,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                                 width: 33,
                                 height: 33,
                                 decoration: BoxDecoration(
-                                  color: dialogSelectedColor,
+                                  color: selectedEventColor,
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
                                     color: greyColor,
@@ -288,7 +284,7 @@ class _PreferenceViewState extends State<PreferenceView> {
 
                         // BLoC Implementation for Offset Field
                         Text(
-                          'Default Reminder Offset',
+                          'Default reminder offset',
                           style: AppTextStyle.cTextStyle.copyWith(
                             color: blackColor.withOpacity(0.8),
                           ),
@@ -298,8 +294,8 @@ class _PreferenceViewState extends State<PreferenceView> {
                           listener: (context, state) {
                             // Update text controller when state changes
                             if (_offsetController.text !=
-                                state.offsetValue.toString()) {
-                              _offsetController.text = state.offsetValue
+                                state.reminderOffset.toString()) {
+                              _offsetController.text = state.reminderOffset
                                   .toString();
                             }
                           },
@@ -381,7 +377,7 @@ class _PreferenceViewState extends State<PreferenceView> {
 
                         SizedBox(height: 22.h),
                         Text(
-                          'Default Reminder Offset Type',
+                          'Default reminder offset type',
                           style: AppTextStyle.cTextStyle.copyWith(
                             color: blackColor.withOpacity(0.8),
                           ),
@@ -404,13 +400,13 @@ class _PreferenceViewState extends State<PreferenceView> {
                             isExpanded: true,
                             underline: SizedBox(),
                             hint: Text(
-                              "Reminder Type",
+                              '',
                               style: AppTextStyle.eTextStyle.copyWith(
                                 color: blackColor.withOpacity(0.5),
                               ),
                             ),
-                            value: selectedReminderTypePreference,
-                            items: reminderTimeUnits.map((course) {
+                            value: selectedReminderOffsetUnit,
+                            items: reminderOffsetUnits.map((course) {
                               return DropdownMenuItem(
                                 value: course,
                                 child: Text(
@@ -423,7 +419,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                             }).toList(),
                             onChanged: (value) {
                               setState(() {
-                                selectedReminderTypePreference = value!;
+                                selectedReminderOffsetUnit = value!;
                               });
                             },
                           ),
@@ -457,35 +453,26 @@ class _PreferenceViewState extends State<PreferenceView> {
                               buttonText: 'Save',
                               isLoading: isSubmitting,
                               onPressed: () {
-                                final tz = selectedTimezonePreference ?? 'UTC';
+                                final tz = selectedTimeZone ?? 'UTC';
                                 final viewIndex =
-                                    selectedDefaultPreference == null
+                                    selectedDefaultView == null
                                     ? 0
-                                    : defaultPreferences.indexOf(
-                                        selectedDefaultPreference!,
+                                    : mobileViews.indexOf(
+                                        selectedDefaultView!,
                                       );
                                 // Normalize to #rrggbb (strip alpha and ensure #)
                                 String colorHex =
-                                    '#${dialogSelectedColor.value.toRadixString(16).substring(2)}';
+                                    '#${selectedEventColor.value.toRadixString(16).substring(2)}';
                                 if (colorHex.length == 9) {
                                   colorHex = '#${colorHex.substring(3)}';
                                 }
                                 colorHex = colorHex.toLowerCase();
                                 final reminderTypeIndex = () {
-                                  if (selectedReminderTypePreference == null) {
+                                  if (selectedReminderOffsetUnit == null) {
                                     return 0;
                                   }
-                                  final idx = reminderTimeUnits.indexOf(
-                                    selectedReminderTypePreference!,
-                                  );
-                                  return idx >= 0 ? idx : 0;
-                                }();
-                                final reminderPreferenceIndex = () {
-                                  if (selectedReminderPreference == null) {
-                                    return 0;
-                                  }
-                                  final idx = reminderPreferences.indexOf(
-                                    selectedReminderPreference!,
+                                  final idx = reminderOffsetUnits.indexOf(
+                                    selectedReminderOffsetUnit!,
                                   );
                                   return idx >= 0 ? idx : 0;
                                 }();
@@ -497,8 +484,6 @@ class _PreferenceViewState extends State<PreferenceView> {
                                     timeZone: tz,
                                     defaultView: viewIndex,
                                     eventsColor: colorHex,
-                                    defaultReminderType:
-                                        reminderPreferenceIndex,
                                     defaultReminderOffset: offsetVal,
                                     defaultReminderOffsetType:
                                         reminderTypeIndex,

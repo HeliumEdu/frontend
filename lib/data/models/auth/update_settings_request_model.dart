@@ -14,7 +14,6 @@ class UpdateSettingsRequestModel {
   final int defaultReminderOffset;
   final bool calendarEventLimit;
   final int defaultReminderOffsetType;
-  final int defaultReminderType;
   final bool receiveEmailsFromAdmin;
 
   UpdateSettingsRequestModel({
@@ -26,7 +25,6 @@ class UpdateSettingsRequestModel {
     required this.defaultReminderOffset,
     required this.calendarEventLimit,
     required this.defaultReminderOffsetType,
-    required this.defaultReminderType,
     required this.receiveEmailsFromAdmin,
   });
 
@@ -39,7 +37,6 @@ class UpdateSettingsRequestModel {
     'default_reminder_offset': defaultReminderOffset,
     'calendar_event_limit': calendarEventLimit,
     'default_reminder_offset_type': defaultReminderOffsetType,
-    'default_reminder_type': defaultReminderType,
     'receive_emails_from_admin': receiveEmailsFromAdmin,
   };
 }

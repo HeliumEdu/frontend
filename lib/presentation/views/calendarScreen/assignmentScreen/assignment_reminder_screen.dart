@@ -81,13 +81,24 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
   List<AttachmentModel> _serverAttachments = [];
 
   int _mapMethodToType(String? method) {
-    if ((method ?? '').toLowerCase() == 'email') return 0;
-    return 3; // default to push
+    method = (method ?? '').toLowerCase();
+    if (method == 'email') {
+      return 1;
+    } else if (method == 'text') {
+      return 2;
+    } else {
+      return 0;
+    }
   }
 
   String _mapTypeToMethod(int type) {
-    if (type == 0) return 'Email';
-    return 'Push';
+    if (type == 0) {
+      return 'Popup';
+    } else if (type == 1) {
+      return 'Text';
+    } else {
+      return 'Email';
+    }
   }
 
   Future<void> _confirmDeleteReminder(ReminderResponseModel reminder) async {
@@ -154,7 +165,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
   @override
   void initState() {
     super.initState();
-    _singleReminderMethod = 'Push';
+    _singleReminderMethod = 'Popup';
     // Fetch reminder if in edit mode
     if (widget.homeworkId != null) {
       _refreshServerReminders();
@@ -178,7 +189,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
 
       final reminders = await reminderRepo.getReminders();
       final filtered = reminders
-          .where((r) => r.homework == widget.homeworkId)
+          .where((r) => r.homework != null && r.homework!['id'] == widget.homeworkId)
           .toList();
 
       setState(() {
@@ -359,7 +370,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
     String? unitSelection;
     String? methodSelection = existing != null
         ? _mapTypeToMethod(existing.type)
-        : 'Push';
+        : 'Popup';
 
     // If editing and existing offset does not match presets, prefill custom
     if (existing != null) {
@@ -431,7 +442,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                         color: blackColor,
                       ),
                       decoration: InputDecoration(
-                        hintText: 'Enter reminder message',
+                        hintText: '',
                         hintStyle: AppTextStyle.eTextStyle.copyWith(
                           color: blackColor.withOpacity(0.5),
                         ),
@@ -441,14 +452,6 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                           vertical: 12.v,
                         ),
                       ),
-                    ),
-                  ),
-                  SizedBox(height: 16.v),
-                  Text(
-                    'Notification method',
-                    style: AppTextStyle.cTextStyle.copyWith(
-                      color: blackColor,
-                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   SizedBox(height: 8.v),
@@ -468,13 +471,13 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                       isExpanded: true,
                       underline: SizedBox(),
                       hint: Text(
-                        'Select method',
+                        '',
                         style: AppTextStyle.eTextStyle.copyWith(
                           color: blackColor.withOpacity(0.5),
                         ),
                       ),
                       value: methodSelection,
-                      items: reminderPreferences.map((method) {
+                      items: reminderTypes.map((method) {
                         return DropdownMenuItem<String>(
                           value: method,
                           child: Row(
@@ -504,19 +507,12 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                       },
                     ),
                   ),
+                  SizedBox(height: 12.v),
                   Text(
-                    'When to remind?',
+                    'When',
                     style: AppTextStyle.cTextStyle.copyWith(
                       color: blackColor,
                       fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  SizedBox(height: 8.v),
-                  Text(
-                    'Or enter custom time',
-                    style: AppTextStyle.eTextStyle.copyWith(
-                      color: blackColor.withOpacity(0.8),
-                      fontWeight: FontWeight.w500,
                     ),
                   ),
                   SizedBox(height: 8.v),
@@ -539,7 +535,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                               color: blackColor,
                             ),
                             decoration: InputDecoration(
-                              hintText: 'Enter time',
+                              hintText: '',
                               hintStyle: AppTextStyle.eTextStyle.copyWith(
                                 color: blackColor.withOpacity(0.5),
                               ),
@@ -576,13 +572,13 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                             isExpanded: true,
                             underline: SizedBox(),
                             hint: Text(
-                              'Select unit',
+                              '',
                               style: AppTextStyle.eTextStyle.copyWith(
                                 color: blackColor.withOpacity(0.5),
                               ),
                             ),
                             value: unitSelection,
-                            items: reminderTimeUnits.map((unit) {
+                            items: reminderOffsetUnits.map((unit) {
                               return DropdownMenuItem<String>(
                                 value: unit,
                                 child: Text(
@@ -675,7 +671,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                               computedOffset = customVal * 24 * 60;
                             }
 
-                            final method = methodSelection ?? 'Push';
+                            final method = methodSelection ?? 'Popup';
                             try {
                               final reminderDataSource =
                                   ReminderRemoteDataSourceImpl(
@@ -700,7 +696,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                               if (existing != null && index != null) {
                                 // Update existing server reminder
                                 final req = ReminderRequestModel(
-                                  title: 'Assignment Reminder',
+                                  title: messageCtrl.text.trim(),
                                   message: messageCtrl.text.trim(),
                                   offset: computedOffset,
                                   offsetType: 0,
@@ -715,7 +711,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                               } else {
                                 // Create new server reminder immediately
                                 final req = ReminderRequestModel(
-                                  title: 'Assignment Reminder',
+                                  title: messageCtrl.text.trim(),
                                   message: messageCtrl.text.trim(),
                                   offset: computedOffset,
                                   offsetType: 0,
@@ -792,7 +788,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
     String? unitSelection;
     String? methodSelection = existing != null
         ? _mapTypeToMethod(existing.type)
-        : 'Push';
+        : 'Popup';
 
     if (existing != null) {
       final off = existing.offset;
@@ -906,7 +902,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                         ),
                       ),
                       value: methodSelection,
-                      items: reminderPreferences.map((method) {
+                      items: reminderTypes.map((method) {
                         return DropdownMenuItem<String>(
                           value: method,
                           child: Row(
@@ -936,20 +932,12 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                       },
                     ),
                   ),
-                  SizedBox(height: 16.v),
+                  SizedBox(height: 12.v),
                   Text(
-                    'When to remind?',
+                    'When',
                     style: AppTextStyle.cTextStyle.copyWith(
                       color: blackColor,
                       fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  SizedBox(height: 8.v),
-                  Text(
-                    'Or enter custom time',
-                    style: AppTextStyle.eTextStyle.copyWith(
-                      color: blackColor.withOpacity(0.8),
-                      fontWeight: FontWeight.w500,
                     ),
                   ),
                   SizedBox(height: 8.v),
@@ -1015,7 +1003,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                               ),
                             ),
                             value: unitSelection,
-                            items: reminderTimeUnits.map((unit) {
+                            items: reminderOffsetUnits.map((unit) {
                               return DropdownMenuItem<String>(
                                 value: unit,
                                 child: Text(
@@ -1107,7 +1095,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                               computedOffset = customVal * 24 * 60;
                             }
 
-                            final method = methodSelection ?? 'Push';
+                            final method = methodSelection ?? 'Popup';
                             final item = _PendingReminder(
                               message: messageCtrl.text.trim(),
                               offset: computedOffset,

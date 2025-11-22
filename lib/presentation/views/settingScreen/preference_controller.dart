@@ -65,7 +65,7 @@ class OffsetController extends ChangeNotifier {
 class ExternalCalendarFormController extends ChangeNotifier {
   final TextEditingController titleController = TextEditingController();
   final TextEditingController urlController = TextEditingController();
-  Color selectedColor = const Color(0xFF16a765);
+  Color selectedColor = const Color(0xff16a765);
   bool shownOnCalendar = true;
 
   void populateFromModel(ExternalCalendarModel model) {
@@ -79,7 +79,7 @@ class ExternalCalendarFormController extends ChangeNotifier {
   void reset() {
     titleController.clear();
     urlController.clear();
-    selectedColor = const Color(0xFF16a765);
+    selectedColor = const Color(0xff16a765);
     shownOnCalendar = true;
     notifyListeners();
   }
@@ -115,9 +115,9 @@ class ExternalCalendarFormController extends ChangeNotifier {
       } else if (value.length == 9) {
         value = '#${value.substring(3)}';
       }
-      return Color(int.parse(value.substring(1), radix: 16) + 0xFF000000);
+      return Color(int.parse(value.substring(1), radix: 16) + 0xff000000);
     } catch (_) {
-      return const Color(0xFF16a765);
+      return const Color(0xff16a765);
     }
   }
 

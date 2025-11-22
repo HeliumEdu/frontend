@@ -91,7 +91,6 @@ class UserSettings {
   final int defaultReminderOffset;
   final bool calendarEventLimit;
   final int defaultReminderOffsetType;
-  final int defaultReminderType;
   final bool receiveEmailsFromAdmin;
   final String privateSlug;
   final int userId;
@@ -106,7 +105,6 @@ class UserSettings {
     required this.defaultReminderOffset,
     required this.calendarEventLimit,
     required this.defaultReminderOffsetType,
-    required this.defaultReminderType,
     required this.receiveEmailsFromAdmin,
     required this.privateSlug,
     required this.userId,
@@ -123,7 +121,6 @@ class UserSettings {
       defaultReminderOffset: json['default_reminder_offset'] ?? 0,
       calendarEventLimit: json['calendar_event_limit'] ?? true,
       defaultReminderOffsetType: json['default_reminder_offset_type'] ?? 0,
-      defaultReminderType: json['default_reminder_type'] ?? 0,
       receiveEmailsFromAdmin: json['receive_emails_from_admin'] ?? true,
       privateSlug: json['private_slug'] ?? '',
       userId: json['user'] ?? 0,
@@ -141,7 +138,6 @@ class UserSettings {
       'default_reminder_offset': defaultReminderOffset,
       'calendar_event_limit': calendarEventLimit,
       'default_reminder_offset_type': defaultReminderOffsetType,
-      'default_reminder_type': defaultReminderType,
       'receive_emails_from_admin': receiveEmailsFromAdmin,
       'private_slug': privateSlug,
       'user': userId,

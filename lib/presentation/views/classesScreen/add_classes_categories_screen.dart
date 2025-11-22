@@ -23,9 +23,12 @@ import 'package:heliumedu/data/repositories/course_repository_impl.dart';
 import 'package:heliumedu/presentation/bloc/courseBloc/course_bloc.dart';
 import 'package:heliumedu/presentation/bloc/courseBloc/course_event.dart';
 import 'package:heliumedu/presentation/bloc/courseBloc/course_state.dart';
+import 'package:heliumedu/presentation/views/settingScreen/feeds_and_external_calendars_settings_screen.dart';
 import 'package:heliumedu/utils/app_colors.dart';
 import 'package:heliumedu/utils/app_size.dart';
 import 'package:heliumedu/utils/app_text_style.dart';
+
+import '../../../utils/custom_color_picker.dart';
 
 class AddClassesCategoriesScreen extends StatefulWidget {
   final int courseId;
@@ -46,8 +49,6 @@ class AddClassesCategoriesScreen extends StatefulWidget {
 
 class _AddClassesCategoriesScreenState
     extends State<AddClassesCategoriesScreen> {
-  Color dialogSelectedColor = const Color(0xFF16a765);
-
   final TextEditingController _categoryNameController = TextEditingController();
   final TextEditingController _categoryWeightController =
       TextEditingController();
@@ -57,6 +58,7 @@ class _AddClassesCategoriesScreenState
   File? _selectedFile;
   bool _isSubmitting = false;
   List<AttachmentModel> _serverAttachments = [];
+  Color selectedColor = const Color(0xFF16a765);
 
   @override
   void initState() {
@@ -210,7 +212,7 @@ class _AddClassesCategoriesScreenState
       buffer.write(hexString.replaceFirst('#', ''));
       return Color(int.parse(buffer.toString(), radix: 16));
     } catch (e) {
-      return const Color(0xFF16A765); // Default color if parsing fails
+      return const Color(0xff16A765); // Default color if parsing fails
     }
   }
 
@@ -273,70 +275,17 @@ class _AddClassesCategoriesScreenState
   void _showColorPicker() {
     showDialog(
       context: context,
-      builder: (colorPickerContext) => AlertDialog(
+      builder: (context) => AlertDialog(
         backgroundColor: whiteColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.adaptSize),
-        ),
-        title: Text(
-          'Select Color',
-          style: AppTextStyle.bTextStyle.copyWith(color: blackColor),
-        ),
-        content: SingleChildScrollView(
-          child: Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children:
-                [
-                      Color(0xFFac725e), // #ac725e - Brown
-                      Color(0xFFd06b64), // #d06b64 - Light Red
-                      Color(0xFFf83a22), // #f83a22 - Red
-                      Color(0xFFfa573c), // #fa573c - Orange Red
-                      Color(0xFFffad46), // #ffad46 - Orange
-                      Color(0xFF42d692), // #42d692 - Mint Green
-                      Color(0xFF16a765), // #16a765 - Green
-                      Color(0xFF7bd148), // #7bd148 - Light Green
-                      Color(0xFFb3dc6c), // #b3dc6c - Yellow Green
-                      Color(0xFFfad165), // #fad165 - Light Yellow
-                      Color(0xFF92e1c0), // #92e1c0 - Turquoise
-                      Color(0xFF9fe1e7), // #9fe1e7 - Light Cyan
-                      Color(0xFF9fc6e7), // #9fc6e7 - Sky Blue
-                      Color(0xFF4986e7), // #4986e7 - Blue
-                      Color(0xFF9a9cff), // #9a9cff - Periwinkle
-                      Color(0xFFb99aff), // #b99aff - Light Purple
-                      Color(0xFFc2c2c2), // #c2c2c2 - Gray
-                      Color(0xFFcabdbf), // #cabdbf - Beige
-                      Color(0xFFcca6ac), // #cca6ac - Pink Gray
-                      Color(0xFFf691b2), // #f691b2 - Pink
-                      Color(0xFFcd74e6), // #cd74e6 - Purple
-                      Color(0xFFa47ae2), // #a47ae2 - Lavender
-                    ]
-                    .map(
-                      (color) => GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            dialogSelectedColor = color;
-                          });
-                          Navigator.pop(colorPickerContext);
-                        },
-                        child: Container(
-                          width: 50,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            color: color,
-                            borderRadius: BorderRadius.circular(8.adaptSize),
-                            border: Border.all(
-                              color: dialogSelectedColor == color
-                                  ? blackColor
-                                  : transparentColor,
-                              width: 3,
-                            ),
-                          ),
-                        ),
-                      ),
-                    )
-                    .toList(),
-          ),
+        contentPadding: EdgeInsets.zero,
+        content: CustomColorPickerWidget(
+          initialColor: selectedColor,
+          onColorSelected: (color) {
+            setState(() {
+              selectedColor = color;
+              Navigator.pop(context);
+            });
+          },
         ),
       ),
     );
@@ -356,11 +305,11 @@ class _AddClassesCategoriesScreenState
       } catch (e) {
         _categoryWeightController.text = '';
       }
-      dialogSelectedColor = _hexToColor(existingCategory.color);
+      selectedColor = _hexToColor(existingCategory.color);
     } else {
       _categoryNameController.clear();
       _categoryWeightController.clear();
-      dialogSelectedColor = const Color(0xFF16a765);
+      selectedColor = const Color(0xff16a765);
     }
 
     bool isCreatingCategory = false;
@@ -400,7 +349,7 @@ class _AddClassesCategoriesScreenState
                   ),
                   SizedBox(height: 28.v),
                   Text(
-                    'Category Name',
+                    'Title',
                     style: AppTextStyle.cTextStyle.copyWith(
                       color: blackColor,
                       fontWeight: FontWeight.w600,
@@ -410,7 +359,7 @@ class _AddClassesCategoriesScreenState
                   TextField(
                     controller: _categoryNameController,
                     decoration: InputDecoration(
-                      hintText: 'Enter category name',
+                      hintText: '',
                       hintStyle: AppTextStyle.iTextStyle.copyWith(
                         color: textColor.withOpacity(0.5),
                       ),
@@ -440,7 +389,7 @@ class _AddClassesCategoriesScreenState
                   ),
                   SizedBox(height: 16.v),
                   Text(
-                    'Category Weight (%)',
+                    'Weight (%)',
                     style: AppTextStyle.cTextStyle.copyWith(
                       color: blackColor,
                       fontWeight: FontWeight.w600,
@@ -451,7 +400,7 @@ class _AddClassesCategoriesScreenState
                     controller: _categoryWeightController,
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
-                      hintText: 'Enter weight percentage',
+                      hintText: '',
                       hintStyle: AppTextStyle.iTextStyle.copyWith(
                         color: textColor.withOpacity(0.5),
                       ),
@@ -493,22 +442,15 @@ class _AddClassesCategoriesScreenState
                       GestureDetector(
                         onTap: _showColorPicker,
                         child: Container(
-                          width: 40,
-                          height: 40,
+                          width: 33,
+                          height: 33,
                           decoration: BoxDecoration(
-                            color: dialogSelectedColor,
-                            borderRadius: BorderRadius.circular(8.adaptSize),
+                            color: selectedColor,
+                            borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: greyColor.withOpacity(0.3),
-                              width: 2,
+                              color: greyColor,
+                              width: 1,
                             ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: dialogSelectedColor.withOpacity(0.3),
-                                blurRadius: 6,
-                                offset: Offset(0, 2),
-                              ),
-                            ],
                           ),
                         ),
                       ),
@@ -575,7 +517,7 @@ class _AddClassesCategoriesScreenState
                                   final request = CategoryRequestModel(
                                     title: _categoryNameController.text.trim(),
                                     weight: weightValue,
-                                    color: _colorToHex(dialogSelectedColor),
+                                    color: _colorToHex(selectedColor),
                                   );
 
                                   // Create or Update based on mode

@@ -5,15 +5,8 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:flutter/material.dart';
 
-final List<Color> colorsList = [
-  const Color(0xffFD7E14), // orangeColor
-  const Color(0xff007BFF), // primaryColor
-  const Color(0xff28A745), // greenColor
-  const Color(0xffFFC107), // yellowColor
-  const Color(0xffDC3545), // redColor
-];
+
 const List<String> listOfClassesSchedule = [
   'Mon',
   'Tue',
@@ -24,8 +17,8 @@ const List<String> listOfClassesSchedule = [
   'Sun',
 ];
 
-const List<String> defaultPreferences = ["Month", "Week", "Day", "Todos"];
-final List<String> timezonesPreference = [
+const List<String> mobileViews = ["Month", "Week", "Day", "Todos"];
+final List<String> timeZones = [
   'Asia/Karachi',
   'Asia/Dubai',
   'Asia/Kolkata',
@@ -40,9 +33,8 @@ final List<String> timezonesPreference = [
   'Australia/Sydney',
   'Australia/Melbourne',
 ];
-const List<String> reminderPreferences = ["Popup", "Email", "Text", "Push"];
-const List<String> reminderTimeUnits = ["Minutes", "Hours", "Days", "Weeks"];
-const List<String> viewList = ["Month", "Week", "Day", "Todos"];
+const List<String> reminderTypes = ["Popup", "Email"];
+const List<String> reminderOffsetUnits = ["Minutes", "Hours", "Days", "Weeks"];
 
 extension PluralExtension on int {
   String plural(String singularWord, [String pluralLetters = "s"]) {

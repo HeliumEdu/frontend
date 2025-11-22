@@ -101,7 +101,7 @@ class EventResponseModel {
       reminders: remindersList,
       userId: json['user'] ?? 0,
       calendarItemType: json['calendar_item_type'],
-      colorHex: _extractColorHex(json),
+      colorHex: json['color'],
       courseId: effectiveCourseId,
       courseScheduleId: parsedSchedule.id,
       courseTitle: effectiveCourseTitle,
@@ -131,16 +131,6 @@ class EventResponseModel {
     if (courseScheduleId != null) data['course_schedule'] = courseScheduleId;
 
     return data;
-  }
-
-  static String? _extractColorHex(Map<String, dynamic> json) {
-    final candidates = [json['color_hex'], json['color'], json['events_color']];
-    for (final candidate in candidates) {
-      if (candidate is String && candidate.trim().isNotEmpty) {
-        return candidate.trim();
-      }
-    }
-    return null;
   }
 
   static _ParsedCourse _parseCourse(dynamic courseData) {

@@ -67,7 +67,7 @@ class FeedsAndExternalCalendarsSettingsView extends StatefulWidget {
   State<FeedsAndExternalCalendarsSettingsView> createState() => _FeedsAndExternalCalendarsSettingsViewState();
 }
 
-Color dialogSelectedColor = const Color(0xFF26A69A);
+Color dialogSelectedColor = const Color(0xff26A69A);
 String? selectedDefaultPreference;
 String? selectedTimezonePreference;
 String? selectedReminderPreference;
@@ -79,37 +79,12 @@ class _FeedsAndExternalCalendarsSettingsViewState extends State<FeedsAndExternal
   static const String _defaultExternalCalendarTitle = 'Holidays';
   static const String _defaultExternalCalendarUrl =
       'https://calendar.google.com/calendar/ical/en.usa%23holiday%40group.v.calendar.google.com/public/basic.ics';
-  static const Color _defaultExternalCalendarColor = Color(0xFFffad46);
+  static const Color _defaultExternalCalendarColor = Color(0xffffad46);
 
   Color _externalDialogSelectedColor = _defaultExternalCalendarColor;
   bool _externalShownOnCalendar = false;
   bool _isExternalCalendarDialogOpen = false;
   List<ExternalCalendarModel> _cachedExternalCalendars = [];
-
-  static const List<Color> _externalCalendarColors = [
-    Color(0xFFac725e),
-    Color(0xFFd06b64),
-    Color(0xFFf83a22),
-    Color(0xFFfa573c),
-    Color(0xFFffad46),
-    Color(0xFF42d692),
-    Color(0xFF16a765),
-    Color(0xFF7bd148),
-    Color(0xFFb3dc6c),
-    Color(0xFFfad165),
-    Color(0xFF92e1c0),
-    Color(0xFF9fe1e7),
-    Color(0xFF9fc6e7),
-    Color(0xFF4986e7),
-    Color(0xFF9a9cff),
-    Color(0xFFb99aff),
-    Color(0xFFc2c2c2),
-    Color(0xFFcabdbf),
-    Color(0xFFcca6ac),
-    Color(0xFFf691b2),
-    Color(0xFFcd74e6),
-    Color(0xFFa47ae2),
-  ];
 
   @override
   void initState() {
@@ -144,9 +119,9 @@ class _FeedsAndExternalCalendarsSettingsViewState extends State<FeedsAndExternal
       } else if (value.length == 9) {
         value = '#${value.substring(3)}';
       }
-      return Color(int.parse(value.substring(1), radix: 16) + 0xFF000000);
+      return Color(int.parse(value.substring(1), radix: 16) + 0xff000000);
     } catch (_) {
-      return const Color(0xFF16a765);
+      return const Color(0xff16a765);
     }
   }
 
@@ -210,7 +185,7 @@ class _FeedsAndExternalCalendarsSettingsViewState extends State<FeedsAndExternal
                 child: Wrap(
                   spacing: 10,
                   runSpacing: 10,
-                  children: _externalCalendarColors
+                  children: preferredColors
                       .map(
                         (color) => GestureDetector(
                           onTap: () {
@@ -866,7 +841,7 @@ class _FeedsAndExternalCalendarsSettingsViewState extends State<FeedsAndExternal
         ),
       ],
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8F9FC),
+        backgroundColor: const Color(0xfff8f9fc),
         body: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1059,9 +1034,6 @@ class _FeedsAndExternalCalendarsSettingsViewState extends State<FeedsAndExternal
                             return current is PrivateFeedLoading ||
                                 current is PrivateFeedLoaded ||
                                 current is PrivateFeedError ||
-                                current is PrivateFeedEnabling ||
-                                current is PrivateFeedDisabling ||
-                                current is PrivateFeedEnabled ||
                                 current is PrivateFeedDisabled;
                           },
                           builder: (context, state) {
@@ -1315,180 +1287,180 @@ class _FeedsAndExternalCalendarsSettingsViewState extends State<FeedsAndExternal
                               );
                             }
 
-                            if (state is PrivateFeedEnabling) {
-                              return Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Container(
-                                      width: 80,
-                                      height: 80,
-                                      decoration: BoxDecoration(
-                                        color: primaryColor.withOpacity(0.1),
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      child: Center(
-                                        child: CircularProgressIndicator(
-                                          color: primaryColor,
-                                          strokeWidth: 2.5,
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(height: 24.v),
-                                    Text(
-                                      'Enabling Private Feeds...',
-                                      style: AppTextStyle.bTextStyle.copyWith(
-                                        color: textColor,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 18,
-                                      ),
-                                    ),
-                                    SizedBox(height: 8.v),
-                                    Text(
-                                      'This may take a moment',
-                                      style: AppTextStyle.cTextStyle.copyWith(
-                                        color: textColor.withOpacity(0.6),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }
+                            // if (state is PrivateFeedEnabling) {
+                            //   return Center(
+                            //     child: Column(
+                            //       mainAxisAlignment: MainAxisAlignment.center,
+                            //       children: [
+                            //         Container(
+                            //           width: 80,
+                            //           height: 80,
+                            //           decoration: BoxDecoration(
+                            //             color: primaryColor.withOpacity(0.1),
+                            //             borderRadius: BorderRadius.circular(16),
+                            //           ),
+                            //           child: Center(
+                            //             child: CircularProgressIndicator(
+                            //               color: primaryColor,
+                            //               strokeWidth: 2.5,
+                            //             ),
+                            //           ),
+                            //         ),
+                            //         SizedBox(height: 24.v),
+                            //         Text(
+                            //           'Enabling Private Feeds...',
+                            //           style: AppTextStyle.bTextStyle.copyWith(
+                            //             color: textColor,
+                            //             fontWeight: FontWeight.w600,
+                            //             fontSize: 18,
+                            //           ),
+                            //         ),
+                            //         SizedBox(height: 8.v),
+                            //         Text(
+                            //           'This may take a moment',
+                            //           style: AppTextStyle.cTextStyle.copyWith(
+                            //             color: textColor.withOpacity(0.6),
+                            //           ),
+                            //         ),
+                            //       ],
+                            //     ),
+                            //   );
+                            // }
 
-                            if (state is PrivateFeedEnabled) {
-                              return SafeArea(
-                                child: Column(
-                                  children: [
-                                    Container(
-                                      padding: EdgeInsets.symmetric(
-                                        vertical: 16.v,
-                                        horizontal: 16.h,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: whiteColor,
-                                        border: Border(
-                                          bottom: BorderSide(
-                                            color: greyColor.withOpacity(0.1),
-                                            width: 1,
-                                          ),
-                                        ),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          IconButton(
-                                            onPressed: () =>
-                                                Navigator.pop(context),
-                                            icon: Icon(
-                                              Icons.arrow_back_ios_new,
-                                              color: textColor,
-                                              size: 20,
-                                            ),
-                                            padding: EdgeInsets.zero,
-                                            constraints: const BoxConstraints(),
-                                          ),
-                                          Text(
-                                            'Feeds & External Calendars',
-                                            style: AppTextStyle.bTextStyle
-                                                .copyWith(color: textColor),
-                                          ),
-                                          SizedBox(width: 40.h),
-                                        ],
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: Center(
-                                        child: Padding(
-                                          padding: EdgeInsets.all(24.h),
-                                          child: Column(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Container(
-                                                width: 80,
-                                                height: 80,
-                                                decoration: BoxDecoration(
-                                                  color: greenColor.withOpacity(
-                                                    0.1,
-                                                  ),
-                                                  borderRadius:
-                                                      BorderRadius.circular(16),
-                                                ),
-                                                child: Icon(
-                                                  Icons.check_circle_rounded,
-                                                  size: 40,
-                                                  color: greenColor,
-                                                ),
-                                              ),
-                                              SizedBox(height: 20.v),
-                                              Text(
-                                                'Private Feeds Enabled!',
-                                                style: AppTextStyle.bTextStyle
-                                                    .copyWith(
-                                                      color: textColor,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                      fontSize: 18,
-                                                    ),
-                                                textAlign: TextAlign.center,
-                                              ),
-                                              SizedBox(height: 12.v),
-                                              Text(
-                                                state.message,
-                                                style: AppTextStyle.cTextStyle
-                                                    .copyWith(
-                                                      color: textColor
-                                                          .withOpacity(0.6),
-                                                      height: 1.5,
-                                                    ),
-                                                textAlign: TextAlign.center,
-                                              ),
-                                              SizedBox(height: 32.v),
-                                              SizedBox(
-                                                width: double.infinity,
-                                                height: 48,
-                                                child: ElevatedButton(
-                                                  onPressed: () {
-                                                    context
-                                                        .read<PrivateFeedBloc>()
-                                                        .add(
-                                                          FetchPrivateFeedUrlsEvent(),
-                                                        );
-                                                  },
-                                                  style: ElevatedButton.styleFrom(
-                                                    backgroundColor:
-                                                        primaryColor,
-                                                    foregroundColor: whiteColor,
-                                                    elevation: 0,
-                                                    shape: RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            10,
-                                                          ),
-                                                    ),
-                                                  ),
-                                                  child: Text(
-                                                    'Load Feed URLs',
-                                                    style: AppTextStyle
-                                                        .cTextStyle
-                                                        .copyWith(
-                                                          color: whiteColor,
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                        ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }
+                            // if (state is PrivateFeedEnabled) {
+                            //   return SafeArea(
+                            //     child: Column(
+                            //       children: [
+                            //         Container(
+                            //           padding: EdgeInsets.symmetric(
+                            //             vertical: 16.v,
+                            //             horizontal: 16.h,
+                            //           ),
+                            //           decoration: BoxDecoration(
+                            //             color: whiteColor,
+                            //             border: Border(
+                            //               bottom: BorderSide(
+                            //                 color: greyColor.withOpacity(0.1),
+                            //                 width: 1,
+                            //               ),
+                            //             ),
+                            //           ),
+                            //           child: Row(
+                            //             mainAxisAlignment:
+                            //                 MainAxisAlignment.spaceBetween,
+                            //             children: [
+                            //               IconButton(
+                            //                 onPressed: () =>
+                            //                     Navigator.pop(context),
+                            //                 icon: Icon(
+                            //                   Icons.arrow_back_ios_new,
+                            //                   color: textColor,
+                            //                   size: 20,
+                            //                 ),
+                            //                 padding: EdgeInsets.zero,
+                            //                 constraints: const BoxConstraints(),
+                            //               ),
+                            //               Text(
+                            //                 'Feeds & External Calendars',
+                            //                 style: AppTextStyle.bTextStyle
+                            //                     .copyWith(color: textColor),
+                            //               ),
+                            //               SizedBox(width: 40.h),
+                            //             ],
+                            //           ),
+                            //         ),
+                            //         Expanded(
+                            //           child: Center(
+                            //             child: Padding(
+                            //               padding: EdgeInsets.all(24.h),
+                            //               child: Column(
+                            //                 mainAxisAlignment:
+                            //                     MainAxisAlignment.center,
+                            //                 children: [
+                            //                   Container(
+                            //                     width: 80,
+                            //                     height: 80,
+                            //                     decoration: BoxDecoration(
+                            //                       color: greenColor.withOpacity(
+                            //                         0.1,
+                            //                       ),
+                            //                       borderRadius:
+                            //                           BorderRadius.circular(16),
+                            //                     ),
+                            //                     child: Icon(
+                            //                       Icons.check_circle_rounded,
+                            //                       size: 40,
+                            //                       color: greenColor,
+                            //                     ),
+                            //                   ),
+                            //                   SizedBox(height: 20.v),
+                            //                   Text(
+                            //                     'Private Feeds Enabled!',
+                            //                     style: AppTextStyle.bTextStyle
+                            //                         .copyWith(
+                            //                           color: textColor,
+                            //                           fontWeight:
+                            //                               FontWeight.w600,
+                            //                           fontSize: 18,
+                            //                         ),
+                            //                     textAlign: TextAlign.center,
+                            //                   ),
+                            //                   SizedBox(height: 12.v),
+                            //                   Text(
+                            //                     state.message,
+                            //                     style: AppTextStyle.cTextStyle
+                            //                         .copyWith(
+                            //                           color: textColor
+                            //                               .withOpacity(0.6),
+                            //                           height: 1.5,
+                            //                         ),
+                            //                     textAlign: TextAlign.center,
+                            //                   ),
+                            //                   SizedBox(height: 32.v),
+                            //                   SizedBox(
+                            //                     width: double.infinity,
+                            //                     height: 48,
+                            //                     child: ElevatedButton(
+                            //                       onPressed: () {
+                            //                         context
+                            //                             .read<PrivateFeedBloc>()
+                            //                             .add(
+                            //                               FetchPrivateFeedUrlsEvent(),
+                            //                             );
+                            //                       },
+                            //                       style: ElevatedButton.styleFrom(
+                            //                         backgroundColor:
+                            //                             primaryColor,
+                            //                         foregroundColor: whiteColor,
+                            //                         elevation: 0,
+                            //                         shape: RoundedRectangleBorder(
+                            //                           borderRadius:
+                            //                               BorderRadius.circular(
+                            //                                 10,
+                            //                               ),
+                            //                         ),
+                            //                       ),
+                            //                       child: Text(
+                            //                         'Load Feed URLs',
+                            //                         style: AppTextStyle
+                            //                             .cTextStyle
+                            //                             .copyWith(
+                            //                               color: whiteColor,
+                            //                               fontWeight:
+                            //                                   FontWeight.w600,
+                            //                             ),
+                            //                       ),
+                            //                     ),
+                            //                   ),
+                            //                 ],
+                            //               ),
+                            //             ),
+                            //           ),
+                            //         ),
+                            //       ],
+                            //     ),
+                            //   );
+                            // }
 
                             if (state is PrivateFeedLoaded) {
                               return SafeArea(
@@ -1758,38 +1730,38 @@ class _FeedsAndExternalCalendarsSettingsViewState extends State<FeedsAndExternal
                               );
                             }
 
-                            if (state is PrivateFeedDisabling) {
-                              return Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Container(
-                                      width: 80,
-                                      height: 80,
-                                      decoration: BoxDecoration(
-                                        color: redColor.withOpacity(0.08),
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      child: Center(
-                                        child: CircularProgressIndicator(
-                                          color: redColor,
-                                          strokeWidth: 2.5,
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(height: 24.v),
-                                    Text(
-                                      'Disabling Private Feeds...',
-                                      style: AppTextStyle.bTextStyle.copyWith(
-                                        color: textColor,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 18,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }
+                            // if (state is PrivateFeedDisabling) {
+                            //   return Center(
+                            //     child: Column(
+                            //       mainAxisAlignment: MainAxisAlignment.center,
+                            //       children: [
+                            //         Container(
+                            //           width: 80,
+                            //           height: 80,
+                            //           decoration: BoxDecoration(
+                            //             color: redColor.withOpacity(0.08),
+                            //             borderRadius: BorderRadius.circular(16),
+                            //           ),
+                            //           child: Center(
+                            //             child: CircularProgressIndicator(
+                            //               color: redColor,
+                            //               strokeWidth: 2.5,
+                            //             ),
+                            //           ),
+                            //         ),
+                            //         SizedBox(height: 24.v),
+                            //         Text(
+                            //           'Disabling Private Feeds...',
+                            //           style: AppTextStyle.bTextStyle.copyWith(
+                            //             color: textColor,
+                            //             fontWeight: FontWeight.w600,
+                            //             fontSize: 18,
+                            //           ),
+                            //         ),
+                            //       ],
+                            //     ),
+                            //   );
+                            // }
 
                             if (state is PrivateFeedDisabled) {
                               return SafeArea(
@@ -2008,7 +1980,7 @@ class _FeedsAndExternalCalendarsSettingsViewState extends State<FeedsAndExternal
                     vertical: 12.v,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF5F6F9),
+                    color: const Color(0xfff5f6f9),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: greyColor.withOpacity(0.1)),
                   ),

@@ -384,7 +384,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                     ),
                     SizedBox(height: 9.v),
                     CustomClassTextField(
-                      text: 'Enter Title Name',
+                      text: '',
                       controller: _titleController,
                     ),
                     SizedBox(height: 14.v),
@@ -414,7 +414,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                             Text(
                               (_courses.isEmpty && widget.courses.isEmpty)
                                   ? 'No classes available'
-                                  : 'No classes selected',
+                                  : '',
                               style: AppTextStyle.eTextStyle.copyWith(
                                 color: blackColor.withOpacity(0.5),
                               ),
@@ -488,7 +488,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                         isExpanded: true,
                         underline: SizedBox(),
                         hint: Text(
-                          "Choose Status",
+                          "",
                           style: AppTextStyle.eTextStyle.copyWith(
                             color: blackColor.withOpacity(0.5),
                           ),
@@ -537,7 +537,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                         isExpanded: true,
                         underline: SizedBox(),
                         hint: Text(
-                          "Choose Condition",
+                          "",
                           style: AppTextStyle.eTextStyle.copyWith(
                             color: blackColor.withOpacity(0.5),
                           ),
@@ -570,7 +570,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                     ),
                     SizedBox(height: 9.v),
                     CustomClassTextField(
-                      text: 'Enter Web Link',
+                      text: '',
                       controller: _websiteController,
                     ),
                     SizedBox(height: 14.v),
@@ -582,7 +582,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                     ),
                     SizedBox(height: 9.v),
                     CustomClassTextField(
-                      text: 'Enter Price',
+                      text: '',
                       controller: _priceController,
                     ),
                     SizedBox(height: 14.v),
@@ -606,7 +606,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                           color: blackColor,
                         ),
                         decoration: InputDecoration(
-                          hintText: 'Add Descriptions (e.g., ISBN: 978-xxx)',
+                          hintText: '',
                           hintStyle: AppTextStyle.eTextStyle.copyWith(
                             color: blackColor.withOpacity(0.5),
                           ),

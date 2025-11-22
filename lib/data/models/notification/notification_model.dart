@@ -5,10 +5,12 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:ui';
+
 class NotificationModel {
   final String? title;
   final String? body;
-  final String? imageUrl;
+  final Color? color;
   final Map<String, dynamic>? data;
   final String? notificationId;
   final DateTime? timestamp;
@@ -20,7 +22,7 @@ class NotificationModel {
   NotificationModel({
     this.title,
     this.body,
-    this.imageUrl,
+    this.color,
     this.data,
     this.notificationId,
     this.timestamp,
@@ -34,7 +36,7 @@ class NotificationModel {
     return NotificationModel(
       title: json['title'],
       body: json['body'],
-      imageUrl: json['image_url'] ?? json['imageUrl'],
+      color: json['color'],
       data: json['data'] != null
           ? Map<String, dynamic>.from(json['data'])
           : null,
@@ -53,7 +55,7 @@ class NotificationModel {
     return {
       'title': title,
       'body': body,
-      'image_url': imageUrl,
+      'color': color,
       'data': data,
       'notification_id': notificationId,
       'timestamp': timestamp?.toIso8601String(),
@@ -67,7 +69,7 @@ class NotificationModel {
   NotificationModel copyWith({
     String? title,
     String? body,
-    String? imageUrl,
+    Color? color,
     Map<String, dynamic>? data,
     String? notificationId,
     DateTime? timestamp,
@@ -79,7 +81,7 @@ class NotificationModel {
     return NotificationModel(
       title: title ?? this.title,
       body: body ?? this.body,
-      imageUrl: imageUrl ?? this.imageUrl,
+      color: color ?? this.color,
       data: data ?? this.data,
       notificationId: notificationId ?? this.notificationId,
       timestamp: timestamp ?? this.timestamp,

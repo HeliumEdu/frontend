@@ -9,8 +9,6 @@ import 'package:heliumedu/data/models/planner/private_feed_model.dart';
 
 abstract class PrivateFeedState {}
 
-class PrivateFeedInitial extends PrivateFeedState {}
-
 class PrivateFeedLoading extends PrivateFeedState {}
 
 class PrivateFeedLoaded extends PrivateFeedState {
@@ -24,16 +22,6 @@ class PrivateFeedError extends PrivateFeedState {
 
   PrivateFeedError({required this.message});
 }
-
-class PrivateFeedEnabling extends PrivateFeedState {}
-
-class PrivateFeedEnabled extends PrivateFeedState {
-  final String message;
-
-  PrivateFeedEnabled({required this.message});
-}
-
-class PrivateFeedDisabling extends PrivateFeedState {}
 
 class PrivateFeedDisabled extends PrivateFeedState {
   final String message;

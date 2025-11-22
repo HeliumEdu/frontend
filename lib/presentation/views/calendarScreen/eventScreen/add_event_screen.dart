@@ -21,6 +21,11 @@ import 'package:heliumedu/utils/app_colors.dart';
 import 'package:heliumedu/utils/app_size.dart';
 import 'package:heliumedu/utils/app_text_style.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timezone/timezone.dart' as tz;
+
+import '../../../../data/datasources/auth_remote_data_source.dart';
+import '../../../../data/repositories/auth_repository_impl.dart';
 
 class AddEventScreen extends StatefulWidget {
   const AddEventScreen({super.key});
@@ -35,6 +40,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
   final TextEditingController _detailsController = TextEditingController();
   bool isAllDay = false;
   bool isShowEndDateTime = false;
+  String _timeZone = 'America/Chicago';
   DateTime? _startDate;
   DateTime? _endDate;
   TimeOfDay? _startTime;
@@ -44,6 +50,41 @@ class _AddEventScreenState extends State<AddEventScreen> {
   bool isEditMode = false;
   int? eventId;
   bool isLoadingEvent = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTimeZone();
+  }
+
+  Future<void> _loadTimeZone() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? timeZone = prefs.getString('user_time_zone');
+
+    if (timeZone == null || timeZone.isEmpty) {
+      try {
+        final dioClient = DioClient();
+        final authRepository = AuthRepositoryImpl(
+          remoteDataSource: AuthRemoteDataSourceImpl(dioClient: dioClient),
+        );
+        final profile = await authRepository.getProfile();
+        final timeZone = profile.settings?.timeZone;
+        if (timeZone != null && timeZone.trim().isNotEmpty) {
+          await prefs.setString('user_time_zone', timeZone);
+        }
+      } catch (e) {
+        print('⚠️ Failed to load time zone from profile: $e');
+      }
+
+      if (timeZone == null || timeZone.isEmpty) return;
+
+      if (mounted && timeZone != _timeZone) {
+        setState(() {
+          _timeZone = timeZone;
+        });
+      }
+    }
+  }
 
   @override
   void didChangeDependencies() {
@@ -119,8 +160,9 @@ class _AddEventScreenState extends State<AddEventScreen> {
       _priorityValue = event.priority.toDouble();
 
       // Parse and set start date/time
+      final timeZone = tz.getLocation(_timeZone);
       try {
-        final startDateTime = DateTime.parse(event.start);
+        final startDateTime = tz.TZDateTime.from(DateTime.parse(event.start), timeZone);
         _startDate = startDateTime;
         if (!event.allDay) {
           _startTime = TimeOfDay.fromDateTime(startDateTime);
@@ -132,7 +174,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
       // Parse and set end date/time
       if (event.end != null && event.end!.isNotEmpty) {
         try {
-          final endDateTime = DateTime.parse(event.end!);
+          final endDateTime = tz.TZDateTime.from(DateTime.parse(event.end!), timeZone);
           _endDate = endDateTime;
           if (!event.allDay) {
             _endTime = TimeOfDay.fromDateTime(endDateTime);
@@ -425,6 +467,29 @@ class _AddEventScreenState extends State<AddEventScreen> {
     })();
   }
 
+  Color _getColorForPriority(double value) {
+    // Clamp value to 1–100
+    value = value.clamp(1, 100);
+
+    // Determine bucket index (0–9)
+    int index = ((value - 1) / 10).floor();
+
+    const colors = [
+      Color(0xff6FCC43), // (green)
+      Color(0xff86D238),
+      Color(0xffA1D72E),
+      Color(0xffBEDC26),
+      Color(0xffD9DF1E),
+      Color(0xffF2DD19),
+      Color(0xffFBC313),
+      Color(0xffF79E0E),
+      Color(0xffEF6A0B),
+      Color(0xffD92727), // (red)
+    ];
+
+    return colors[index];
+  }
+
   @override
   Widget build(BuildContext context) {
     final accentColor = primaryColor;
@@ -670,7 +735,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
                               ),
                               SizedBox(height: 8.v),
                               CustomClassTextField(
-                                text: 'Enter Event Title',
+                                text: '',
                                 controller: _titleController,
                               ),
                               SizedBox(height: 18.v),
@@ -795,7 +860,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                                         ? _formatDateForDisplay(
                                                             _startDate!,
                                                           )
-                                                        : 'Select Start Date',
+                                                        : '',
                                                     style: AppTextStyle
                                                         .eTextStyle
                                                         .copyWith(
@@ -924,7 +989,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                               ? _formatDateForDisplay(
                                                   _startDate!,
                                                 )
-                                              : 'Select Start Date',
+                                              : '',
                                           style: AppTextStyle.eTextStyle
                                               .copyWith(
                                                 color: _startDate != null
@@ -955,7 +1020,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            'Start Time',
+                                            '',
                                             style: AppTextStyle.eTextStyle
                                                 .copyWith(
                                                   color: blackColor.withOpacity(
@@ -993,7 +1058,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                                         ? _formatTime(
                                                             _startTime!,
                                                           )
-                                                        : 'Start Time',
+                                                        : '',
                                                     style: AppTextStyle
                                                         .eTextStyle
                                                         .copyWith(
@@ -1095,8 +1160,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
                               SizedBox(height: 12.v),
                               // Priority Slider
                               Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     'Priority',
@@ -1110,28 +1174,10 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                       horizontal: 12.h,
                                       vertical: 6.v,
                                     ),
-                                    decoration: BoxDecoration(
-                                      color: _priorityValue <= 33
-                                          ? const Color(
-                                              0xff28A745,
-                                            ).withOpacity(0.1)
-                                          : _priorityValue <= 66
-                                          ? const Color(
-                                              0xffFFC107,
-                                            ).withOpacity(0.1)
-                                          : const Color(
-                                              0xffDC3545,
-                                            ).withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
                                     child: Text(
-                                      '${_priorityValue.round()}',
+                                      '${(_priorityValue / 10).round()}',
                                       style: AppTextStyle.eTextStyle.copyWith(
-                                        color: _priorityValue <= 33
-                                            ? const Color(0xff28A745)
-                                            : _priorityValue <= 66
-                                            ? const Color(0xffFFC107)
-                                            : const Color(0xffDC3545),
+                                        color: _getColorForPriority(_priorityValue),
                                         fontWeight: FontWeight.w700,
                                         fontSize: 16,
                                       ),
@@ -1142,26 +1188,13 @@ class _AddEventScreenState extends State<AddEventScreen> {
                               SizedBox(height: 12.v),
                               SliderTheme(
                                 data: SliderTheme.of(context).copyWith(
-                                  activeTrackColor: _priorityValue <= 33
-                                      ? const Color(0xff28A745)
-                                      : _priorityValue <= 66
-                                      ? const Color(0xffFFC107)
-                                      : const Color(0xffDC3545),
-                                  inactiveTrackColor: greyColor.withOpacity(
-                                    0.3,
-                                  ),
-                                  thumbColor: _priorityValue <= 33
-                                      ? const Color(0xff28A745)
-                                      : _priorityValue <= 66
-                                      ? const Color(0xffFFC107)
-                                      : const Color(0xffDC3545),
+                                  activeTrackColor: _getColorForPriority(_priorityValue),
+                                  inactiveTrackColor: greyColor.withOpacity(0.3),
+                                  thumbColor: _getColorForPriority(_priorityValue),
                                   overlayColor:
-                                      (_priorityValue <= 33
-                                              ? const Color(0xff28A745)
-                                              : _priorityValue <= 66
-                                              ? const Color(0xffFFC107)
-                                              : const Color(0xffDC3545))
-                                          .withOpacity(0.2),
+                                  (_getColorForPriority(_priorityValue))
+                                      .withOpacity(0.2),
+                                  showValueIndicator: ShowValueIndicator.never,
                                   thumbShape: RoundSliderThumbShape(
                                     enabledThumbRadius: 12.0,
                                   ),
@@ -1174,7 +1207,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                   value: _priorityValue,
                                   min: 0,
                                   max: 100,
-                                  divisions: 100,
+                                  divisions: 10,
                                   label: '${_priorityValue.round()}',
                                   onChanged: (value) {
                                     setState(() {
@@ -1183,6 +1216,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                   },
                                 ),
                               ),
+
                               SizedBox(height: 24.v),
                               // Details Section
                               Text(
@@ -1210,7 +1244,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                     color: blackColor,
                                   ),
                                   decoration: InputDecoration(
-                                    hintText: 'Add Event Details',
+                                    hintText: '',
                                     hintStyle: AppTextStyle.eTextStyle.copyWith(
                                       color: blackColor.withOpacity(0.5),
                                     ),

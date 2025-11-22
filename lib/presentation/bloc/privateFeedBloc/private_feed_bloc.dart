@@ -15,7 +15,7 @@ class PrivateFeedBloc extends Bloc<PrivateFeedEvent, PrivateFeedState> {
   final PrivateFeedRepository privateFeedRepository;
 
   PrivateFeedBloc({required this.privateFeedRepository})
-    : super(PrivateFeedInitial()) {
+    : super(PrivateFeedLoading()) {
     on<FetchPrivateFeedUrlsEvent>(_onFetchPrivateFeedUrls);
     on<EnablePrivateFeedsEvent>(_onEnablePrivateFeeds);
     on<DisablePrivateFeedsEvent>(_onDisablePrivateFeeds);
@@ -44,12 +44,13 @@ class PrivateFeedBloc extends Bloc<PrivateFeedEvent, PrivateFeedState> {
     EnablePrivateFeedsEvent event,
     Emitter<PrivateFeedState> emit,
   ) async {
-    emit(PrivateFeedEnabling());
+    emit(PrivateFeedLoading());
     try {
       print('🔧 Enabling private feeds...');
       await privateFeedRepository.enablePrivateFeeds();
+      final privateFeed = await privateFeedRepository.getPrivateFeedUrls();
       print('✅ Private feeds enabled successfully');
-      emit(PrivateFeedEnabled(message: 'Private feeds enabled successfully!'));
+      emit(PrivateFeedLoaded(privateFeed: privateFeed));
     } on AppException catch (e) {
       print('❌ App error: ${e.message}');
       emit(PrivateFeedError(message: e.message));
@@ -63,7 +64,7 @@ class PrivateFeedBloc extends Bloc<PrivateFeedEvent, PrivateFeedState> {
     DisablePrivateFeedsEvent event,
     Emitter<PrivateFeedState> emit,
   ) async {
-    emit(PrivateFeedDisabling());
+    emit(PrivateFeedLoading());
     try {
       print('🛑 Disabling private feeds...');
       await privateFeedRepository.disablePrivateFeeds();
