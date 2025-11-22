@@ -6,8 +6,8 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:heliumedu/data/models/planner/external_calendar_model.dart';
-import 'package:heliumedu/data/models/planner/external_calendar_request_model.dart';
+import 'package:helium_mobile/data/models/planner/external_calendar_model.dart';
+import 'package:helium_mobile/data/models/planner/external_calendar_request_model.dart';
 
 class OffsetController extends ChangeNotifier {
   int _offsetValue = 0;

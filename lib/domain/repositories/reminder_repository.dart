@@ -5,8 +5,8 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:heliumedu/data/models/planner/reminder_request_model.dart';
-import 'package:heliumedu/data/models/planner/reminder_response_model.dart';
+import 'package:helium_mobile/data/models/planner/reminder_request_model.dart';
+import 'package:helium_mobile/data/models/planner/reminder_response_model.dart';
 
 abstract class ReminderRepository {
   Future<ReminderResponseModel> createReminder(ReminderRequestModel request);

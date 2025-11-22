@@ -1,14 +1,14 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:heliumedu/config/app_routes.dart';
-import 'package:heliumedu/core/network_urls.dart';
-import 'package:heliumedu/main.dart';
-import 'package:heliumedu/data/models/auth/refresh_token_request_model.dart';
-import 'package:heliumedu/data/models/auth/refresh_token_response_model.dart';
+import 'package:helium_mobile/config/app_routes.dart';
+import 'package:helium_mobile/core/network_urls.dart';
+import 'package:helium_mobile/main.dart';
+import 'package:helium_mobile/data/models/auth/refresh_token_request_model.dart';
+import 'package:helium_mobile/data/models/auth/refresh_token_response_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:heliumedu/utils/app_colors.dart';
+import 'package:helium_mobile/utils/app_colors.dart';
 
 class DioClient {
   static final DioClient _instance = DioClient._internal();

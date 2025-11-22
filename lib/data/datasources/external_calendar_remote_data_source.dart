@@ -6,12 +6,12 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:dio/dio.dart';
-import 'package:heliumedu/core/app_exception.dart';
-import 'package:heliumedu/core/dio_client.dart';
-import 'package:heliumedu/core/network_urls.dart';
-import 'package:heliumedu/data/models/planner/external_calendar_event_model.dart';
-import 'package:heliumedu/data/models/planner/external_calendar_model.dart';
-import 'package:heliumedu/data/models/planner/external_calendar_request_model.dart';
+import 'package:helium_mobile/core/app_exception.dart';
+import 'package:helium_mobile/core/dio_client.dart';
+import 'package:helium_mobile/core/network_urls.dart';
+import 'package:helium_mobile/data/models/planner/external_calendar_event_model.dart';
+import 'package:helium_mobile/data/models/planner/external_calendar_model.dart';
+import 'package:helium_mobile/data/models/planner/external_calendar_request_model.dart';
 import 'package:intl/intl.dart';
 
 abstract class ExternalCalendarRemoteDataSource {

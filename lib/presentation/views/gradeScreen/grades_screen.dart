@@ -7,23 +7,23 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:heliumedu/config/app_routes.dart';
-import 'package:heliumedu/core/dio_client.dart';
-import 'package:heliumedu/data/datasources/course_remote_data_source.dart';
-import 'package:heliumedu/data/datasources/grade_remote_data_source.dart';
-import 'package:heliumedu/data/models/planner/course_group_response_model.dart';
-import 'package:heliumedu/data/repositories/course_repository_impl.dart';
-import 'package:heliumedu/data/repositories/grade_repository_impl.dart';
-import 'package:heliumedu/presentation/bloc/courseBloc/course_bloc.dart';
-import 'package:heliumedu/presentation/bloc/courseBloc/course_event.dart';
-import 'package:heliumedu/presentation/bloc/courseBloc/course_state.dart';
-import 'package:heliumedu/presentation/bloc/gradeBloc/grade_bloc.dart';
-import 'package:heliumedu/presentation/bloc/gradeBloc/grade_event.dart';
-import 'package:heliumedu/presentation/bloc/gradeBloc/grade_state.dart';
-import 'package:heliumedu/utils/app_colors.dart';
-import 'package:heliumedu/utils/app_list.dart';
-import 'package:heliumedu/utils/app_size.dart';
-import 'package:heliumedu/utils/app_text_style.dart';
+import 'package:helium_mobile/config/app_routes.dart';
+import 'package:helium_mobile/core/dio_client.dart';
+import 'package:helium_mobile/data/datasources/course_remote_data_source.dart';
+import 'package:helium_mobile/data/datasources/grade_remote_data_source.dart';
+import 'package:helium_mobile/data/models/planner/course_group_response_model.dart';
+import 'package:helium_mobile/data/repositories/course_repository_impl.dart';
+import 'package:helium_mobile/data/repositories/grade_repository_impl.dart';
+import 'package:helium_mobile/presentation/bloc/courseBloc/course_bloc.dart';
+import 'package:helium_mobile/presentation/bloc/courseBloc/course_event.dart';
+import 'package:helium_mobile/presentation/bloc/courseBloc/course_state.dart';
+import 'package:helium_mobile/presentation/bloc/gradeBloc/grade_bloc.dart';
+import 'package:helium_mobile/presentation/bloc/gradeBloc/grade_event.dart';
+import 'package:helium_mobile/presentation/bloc/gradeBloc/grade_state.dart';
+import 'package:helium_mobile/utils/app_colors.dart';
+import 'package:helium_mobile/utils/app_list.dart';
+import 'package:helium_mobile/utils/app_size.dart';
+import 'package:helium_mobile/utils/app_text_style.dart';
 
 class GradesScreen extends StatefulWidget {
   const GradesScreen({super.key});

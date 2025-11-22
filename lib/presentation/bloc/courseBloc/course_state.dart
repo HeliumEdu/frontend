@@ -5,11 +5,11 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:heliumedu/data/models/planner/attachment_model.dart';
-import 'package:heliumedu/data/models/planner/category_model.dart';
-import 'package:heliumedu/data/models/planner/course_group_response_model.dart';
-import 'package:heliumedu/data/models/planner/course_model.dart';
-import 'package:heliumedu/data/models/planner/course_schedule_model.dart';
+import 'package:helium_mobile/data/models/planner/attachment_model.dart';
+import 'package:helium_mobile/data/models/planner/category_model.dart';
+import 'package:helium_mobile/data/models/planner/course_group_response_model.dart';
+import 'package:helium_mobile/data/models/planner/course_model.dart';
+import 'package:helium_mobile/data/models/planner/course_schedule_model.dart';
 
 abstract class CourseState {}
 

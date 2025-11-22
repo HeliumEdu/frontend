@@ -1,4 +1,4 @@
-package com.alexdlaird.heliumedu
+package com.heliumedu.helium_mobile
 
 import io.flutter.embedding.android.FlutterActivity
 

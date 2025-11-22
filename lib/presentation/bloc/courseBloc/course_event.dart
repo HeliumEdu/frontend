@@ -7,10 +7,10 @@
 
 import 'dart:io';
 
-import 'package:heliumedu/data/models/planner/category_request_model.dart';
-import 'package:heliumedu/data/models/planner/course_group_request_model.dart';
-import 'package:heliumedu/data/models/planner/course_request_model.dart';
-import 'package:heliumedu/data/models/planner/course_schedule_request_model.dart';
+import 'package:helium_mobile/data/models/planner/category_request_model.dart';
+import 'package:helium_mobile/data/models/planner/course_group_request_model.dart';
+import 'package:helium_mobile/data/models/planner/course_request_model.dart';
+import 'package:helium_mobile/data/models/planner/course_schedule_request_model.dart';
 
 abstract class CourseEvent {}
 

@@ -5,7 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:heliumedu/data/models/planner/private_feed_model.dart';
+import 'package:helium_mobile/data/models/planner/private_feed_model.dart';
 
 abstract class PrivateFeedRepository {
   Future<PrivateFeedModel> getPrivateFeedUrls();

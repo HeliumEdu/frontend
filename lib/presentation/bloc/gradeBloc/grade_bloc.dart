@@ -6,10 +6,10 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:heliumedu/core/app_exception.dart';
-import 'package:heliumedu/domain/repositories/grade_repository.dart';
-import 'package:heliumedu/presentation/bloc/gradeBloc/grade_event.dart';
-import 'package:heliumedu/presentation/bloc/gradeBloc/grade_state.dart';
+import 'package:helium_mobile/core/app_exception.dart';
+import 'package:helium_mobile/domain/repositories/grade_repository.dart';
+import 'package:helium_mobile/presentation/bloc/gradeBloc/grade_event.dart';
+import 'package:helium_mobile/presentation/bloc/gradeBloc/grade_state.dart';
 
 class GradeBloc extends Bloc<GradeEvent, GradeState> {
   final GradeRepository gradeRepository;

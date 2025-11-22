@@ -1,7 +1,5 @@
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-
 class NetworkUrl {
-  static final baseUrl = dotenv.env['PROJECT_API_HOST'] ?? "https://api.heliumedu.com";
+  static final baseUrl = String.fromEnvironment('PROJECT_API_HOST', defaultValue: 'https://api.heliumedu.com');
   static const signUpUrl = "/auth/user/register/";
   static const signInUrl = "/auth/token/";
   static const refreshTokenUrl = "/auth/token/refresh/";

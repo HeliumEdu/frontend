@@ -6,10 +6,10 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:heliumedu/core/app_exception.dart';
-import 'package:heliumedu/domain/repositories/private_feed_repository.dart';
-import 'package:heliumedu/presentation/bloc/privateFeedBloc/private_feed_event.dart';
-import 'package:heliumedu/presentation/bloc/privateFeedBloc/private_feed_state.dart';
+import 'package:helium_mobile/core/app_exception.dart';
+import 'package:helium_mobile/domain/repositories/private_feed_repository.dart';
+import 'package:helium_mobile/presentation/bloc/privateFeedBloc/private_feed_event.dart';
+import 'package:helium_mobile/presentation/bloc/privateFeedBloc/private_feed_state.dart';
 
 class PrivateFeedBloc extends Bloc<PrivateFeedEvent, PrivateFeedState> {
   final PrivateFeedRepository privateFeedRepository;

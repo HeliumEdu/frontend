@@ -6,10 +6,10 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:heliumedu/core/app_exception.dart';
-import 'package:heliumedu/domain/repositories/event_repository.dart';
-import 'package:heliumedu/presentation/bloc/eventBloc/event_event.dart';
-import 'package:heliumedu/presentation/bloc/eventBloc/event_state.dart';
+import 'package:helium_mobile/core/app_exception.dart';
+import 'package:helium_mobile/domain/repositories/event_repository.dart';
+import 'package:helium_mobile/presentation/bloc/eventBloc/event_event.dart';
+import 'package:helium_mobile/presentation/bloc/eventBloc/event_state.dart';
 
 class EventBloc extends Bloc<EventEvent, EventState> {
   final EventRepository eventRepository;
