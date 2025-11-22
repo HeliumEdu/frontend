@@ -426,8 +426,8 @@ function HeliumPlannerAPI() {
         } else {
             ret_val = $.ajax({
                                  type: "GET",
-                                 url: helium.API_URL + "/planner/courseschedules/events/"
-                                      + (start !== undefined ? "?start__gte=" + start : "")
+                                 url: helium.API_URL + "/planner/courseschedules/events/?shown_on_calendar=true"
+                                      + (start !== undefined ? "&start__gte=" + start : "")
                                       + (end !== undefined ? "&end__lt=" + end : "")
                                       + (helium.str_not_empty(search) ? "&search=" + search : ""),
                                  async: async,
@@ -1650,8 +1650,8 @@ function HeliumPlannerAPI() {
         } else {
             ret_val = $.ajax({
                                  type: "GET",
-                                 url: helium.API_URL + "/feed/externalcalendars/events/"
-                                      + (start !== undefined ? "?start__gte=" + start : "")
+                                 url: helium.API_URL + "/feed/externalcalendars/events/?shown_on_calendar=true"
+                                      + (start !== undefined ? "&start__gte=" + start : "")
                                       + (end !== undefined ? "&end__lt=" + end : "")
                                       + (helium.str_not_empty(search) ? "&search=" + search : ""),
                                  async: async,
