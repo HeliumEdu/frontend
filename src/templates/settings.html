@@ -48,6 +48,13 @@
                                 </li>
 
                                 <li class="col-sm-reset">
+                                    <a data-toggle="tab" href="#tab-externalcalendars">
+                                        <i class="light-red icon-download-alt bigger-120"></i>
+                                        <span class="hidden-xs">External Calendars</span>
+                                    </a>
+                                </li>
+
+                                <li class="col-sm-reset">
                                     <a data-toggle="tab" href="#tab-feeds">
                                         <i class="red icon-rss bigger-120"></i>
                                         <span class="hidden-xs">Feeds</span>
@@ -69,7 +76,9 @@
 
                                 {% include "snippets/settings/accounttab.html" %}
 
-                                {% include "snippets/settings/feedtab.html" %}
+                                {% include "snippets/settings/externalcalendarstab.html" %}
+
+                                {% include "snippets/settings/feedstab.html" %}
 
                                 {% include "snippets/settings/importexporttab.html" %}
                             </div>

@@ -42,7 +42,7 @@ http://localhost:3000. The shell of the container can be accessed with:
 docker exec -it frontend-frontend-1 /bin/bash
 ```
 
-Before commits are made, be sure to run tests and check the generated coverage report
+Before commits are made, be sure to run tests and check the generated coverage report.
 
 ```sh
 make test
