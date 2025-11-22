@@ -2,6 +2,12 @@
 
 SHELL := /usr/bin/env bash
 
+ifdef PROJECT_API_HOST
+    RUN_ARGS := --dart-define=PROJECT_API_HOST=$(PROJECT_API_HOST)
+else
+    RUN_ARGS :=
+endif
+
 all: test
 
 env:
@@ -38,4 +44,4 @@ test: install
 	flutter test
 
 run: install
-	flutter run
+	flutter run $(RUN_ARGS)

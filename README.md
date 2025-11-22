@@ -45,9 +45,7 @@ make test
 ### Platform
 
 The backend `platform` is served from a separate repository and can be found [here](https://github.com/HeliumEdu/platform#readme).
-Assuming `platform` has been provisioned and is running locally, setting `PROJECT_API_HOST` to point to the local host
-instead of production can be accomplished by passing this when running Dart to start an Android emulator:
+If `platform` has been provisioned and is running locally, and you would like to run the mobile app against the local
+backend instead of production, set the environment variable `PROJECT_API_HOST` before executing `make run`.
 
-```sh
---dart-define=PROJECT_API_HOST=http://10.0.2.2:8000
-```
+Note that to reach `localhost` from within an Android emulator, use `10.0.2.2` instead of `127.0.0.1`.
