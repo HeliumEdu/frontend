@@ -8,24 +8,24 @@
 import 'package:easy_stepper/easy_stepper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:heliumedu/config/app_routes.dart';
-import 'package:heliumedu/core/dio_client.dart';
-import 'package:heliumedu/data/datasources/event_remote_data_source.dart';
-import 'package:heliumedu/data/models/planner/event_request_model.dart';
-import 'package:heliumedu/data/models/planner/event_response_model.dart';
-import 'package:heliumedu/data/repositories/event_repository_impl.dart';
-import 'package:heliumedu/presentation/bloc/eventBloc/event_bloc.dart';
-import 'package:heliumedu/presentation/widgets/custom_class_textfield.dart';
-import 'package:heliumedu/presentation/widgets/custom_text_button.dart';
-import 'package:heliumedu/utils/app_colors.dart';
-import 'package:heliumedu/utils/app_size.dart';
-import 'package:heliumedu/utils/app_text_style.dart';
+import 'package:helium_mobile/config/app_routes.dart';
+import 'package:helium_mobile/core/dio_client.dart';
+import 'package:helium_mobile/data/datasources/event_remote_data_source.dart';
+import 'package:helium_mobile/data/models/planner/event_request_model.dart';
+import 'package:helium_mobile/data/models/planner/event_response_model.dart';
+import 'package:helium_mobile/data/repositories/event_repository_impl.dart';
+import 'package:helium_mobile/presentation/bloc/eventBloc/event_bloc.dart';
+import 'package:helium_mobile/presentation/widgets/custom_class_textfield.dart';
+import 'package:helium_mobile/presentation/widgets/custom_text_button.dart';
+import 'package:helium_mobile/utils/app_colors.dart';
+import 'package:helium_mobile/utils/app_size.dart';
+import 'package:helium_mobile/utils/app_text_style.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;
 
-import 'package:heliumedu/data/datasources/auth_remote_data_source.dart';
-import 'package:heliumedu/data/repositories/auth_repository_impl.dart';
+import 'package:helium_mobile/data/datasources/auth_remote_data_source.dart';
+import 'package:helium_mobile/data/repositories/auth_repository_impl.dart';
 
 class AddEventScreen extends StatefulWidget {
   const AddEventScreen({super.key});

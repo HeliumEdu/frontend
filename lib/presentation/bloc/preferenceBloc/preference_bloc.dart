@@ -7,14 +7,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:heliumedu/data/models/auth/update_settings_request_model.dart';
-import 'package:heliumedu/data/models/auth/user_profile_model.dart';
-import 'package:heliumedu/data/repositories/auth_repository_impl.dart';
-import 'package:heliumedu/presentation/bloc/preferenceBloc/preference_states.dart';
+import 'package:helium_mobile/data/models/auth/update_settings_request_model.dart';
+import 'package:helium_mobile/data/models/auth/user_profile_model.dart';
+import 'package:helium_mobile/data/repositories/auth_repository_impl.dart';
+import 'package:helium_mobile/presentation/bloc/preferenceBloc/preference_states.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:heliumedu/utils/app_colors.dart';
-import 'package:heliumedu/utils/app_list.dart';
+import 'package:helium_mobile/utils/app_colors.dart';
+import 'package:helium_mobile/utils/app_list.dart';
 import 'preference_event.dart';
 
 class PreferenceBloc extends Bloc<PreferenceEvent, PreferenceState> {

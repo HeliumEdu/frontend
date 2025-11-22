@@ -6,18 +6,18 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:heliumedu/core/app_exception.dart';
-import 'package:heliumedu/core/dio_client.dart';
-import 'package:heliumedu/core/fcm_service.dart';
-import 'package:heliumedu/data/datasources/auth_remote_data_source.dart';
-import 'package:heliumedu/data/datasources/reminder_remote_data_source.dart';
-import 'package:heliumedu/data/models/notification/notification_model.dart';
-import 'package:heliumedu/data/models/planner/reminder_response_model.dart';
-import 'package:heliumedu/data/repositories/auth_repository_impl.dart';
-import 'package:heliumedu/data/repositories/reminder_repository_impl.dart';
-import 'package:heliumedu/utils/app_colors.dart';
-import 'package:heliumedu/utils/app_size.dart';
-import 'package:heliumedu/utils/app_text_style.dart';
+import 'package:helium_mobile/core/app_exception.dart';
+import 'package:helium_mobile/core/dio_client.dart';
+import 'package:helium_mobile/core/fcm_service.dart';
+import 'package:helium_mobile/data/datasources/auth_remote_data_source.dart';
+import 'package:helium_mobile/data/datasources/reminder_remote_data_source.dart';
+import 'package:helium_mobile/data/models/notification/notification_model.dart';
+import 'package:helium_mobile/data/models/planner/reminder_response_model.dart';
+import 'package:helium_mobile/data/repositories/auth_repository_impl.dart';
+import 'package:helium_mobile/data/repositories/reminder_repository_impl.dart';
+import 'package:helium_mobile/utils/app_colors.dart';
+import 'package:helium_mobile/utils/app_size.dart';
+import 'package:helium_mobile/utils/app_text_style.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;

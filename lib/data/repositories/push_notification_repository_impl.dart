@@ -5,11 +5,11 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:heliumedu/core/app_exception.dart';
-import 'package:heliumedu/data/datasources/push_notification_remote_data_source.dart';
-import 'package:heliumedu/data/models/notification/push_token_request_model.dart';
-import 'package:heliumedu/data/models/notification/push_token_response_model.dart';
-import 'package:heliumedu/domain/repositories/push_notification_repository.dart';
+import 'package:helium_mobile/core/app_exception.dart';
+import 'package:helium_mobile/data/datasources/push_notification_remote_data_source.dart';
+import 'package:helium_mobile/data/models/notification/push_token_request_model.dart';
+import 'package:helium_mobile/data/models/notification/push_token_response_model.dart';
+import 'package:helium_mobile/domain/repositories/push_notification_repository.dart';
 
 class PushNotificationRepositoryImpl implements PushNotificationRepository {
   final PushNotificationRemoteDataSource remoteDataSource;

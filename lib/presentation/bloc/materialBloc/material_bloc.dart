@@ -6,10 +6,10 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:heliumedu/core/app_exception.dart';
-import 'package:heliumedu/domain/repositories/material_repository.dart';
-import 'package:heliumedu/presentation/bloc/materialBloc/material_event.dart';
-import 'package:heliumedu/presentation/bloc/materialBloc/material_state.dart';
+import 'package:helium_mobile/core/app_exception.dart';
+import 'package:helium_mobile/domain/repositories/material_repository.dart';
+import 'package:helium_mobile/presentation/bloc/materialBloc/material_event.dart';
+import 'package:helium_mobile/presentation/bloc/materialBloc/material_state.dart';
 
 class MaterialBloc extends Bloc<MaterialEvent, MaterialState> {
   final MaterialRepository materialRepository;

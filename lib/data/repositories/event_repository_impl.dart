@@ -5,10 +5,10 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:heliumedu/data/datasources/event_remote_data_source.dart';
-import 'package:heliumedu/data/models/planner/event_request_model.dart';
-import 'package:heliumedu/data/models/planner/event_response_model.dart';
-import 'package:heliumedu/domain/repositories/event_repository.dart';
+import 'package:helium_mobile/data/datasources/event_remote_data_source.dart';
+import 'package:helium_mobile/data/models/planner/event_request_model.dart';
+import 'package:helium_mobile/data/models/planner/event_response_model.dart';
+import 'package:helium_mobile/domain/repositories/event_repository.dart';
 
 class EventRepositoryImpl implements EventRepository {
   final EventRemoteDataSource remoteDataSource;

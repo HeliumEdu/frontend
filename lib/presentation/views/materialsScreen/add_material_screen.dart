@@ -7,26 +7,26 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:heliumedu/core/dio_client.dart';
-import 'package:heliumedu/data/datasources/course_remote_data_source.dart';
-import 'package:heliumedu/data/models/planner/course_model.dart';
-import 'package:heliumedu/data/models/planner/material_group_response_model.dart';
-import 'package:heliumedu/data/models/planner/material_model.dart';
-import 'package:heliumedu/data/models/planner/material_request_model.dart';
-import 'package:heliumedu/data/repositories/course_repository_impl.dart';
-import 'package:heliumedu/presentation/bloc/courseBloc/course_bloc.dart';
-import 'package:heliumedu/presentation/bloc/courseBloc/course_event.dart';
-import 'package:heliumedu/presentation/bloc/courseBloc/course_state.dart'
+import 'package:helium_mobile/core/dio_client.dart';
+import 'package:helium_mobile/data/datasources/course_remote_data_source.dart';
+import 'package:helium_mobile/data/models/planner/course_model.dart';
+import 'package:helium_mobile/data/models/planner/material_group_response_model.dart';
+import 'package:helium_mobile/data/models/planner/material_model.dart';
+import 'package:helium_mobile/data/models/planner/material_request_model.dart';
+import 'package:helium_mobile/data/repositories/course_repository_impl.dart';
+import 'package:helium_mobile/presentation/bloc/courseBloc/course_bloc.dart';
+import 'package:helium_mobile/presentation/bloc/courseBloc/course_event.dart';
+import 'package:helium_mobile/presentation/bloc/courseBloc/course_state.dart'
     as course_state;
-import 'package:heliumedu/presentation/bloc/materialBloc/material_bloc.dart';
-import 'package:heliumedu/presentation/bloc/materialBloc/material_event.dart';
-import 'package:heliumedu/presentation/bloc/materialBloc/material_state.dart'
+import 'package:helium_mobile/presentation/bloc/materialBloc/material_bloc.dart';
+import 'package:helium_mobile/presentation/bloc/materialBloc/material_event.dart';
+import 'package:helium_mobile/presentation/bloc/materialBloc/material_state.dart'
     as material_state;
-import 'package:heliumedu/presentation/widgets/custom_class_textfield.dart';
-import 'package:heliumedu/presentation/widgets/custom_text_button.dart';
-import 'package:heliumedu/utils/app_colors.dart';
-import 'package:heliumedu/utils/app_size.dart';
-import 'package:heliumedu/utils/app_text_style.dart';
+import 'package:helium_mobile/presentation/widgets/custom_class_textfield.dart';
+import 'package:helium_mobile/presentation/widgets/custom_text_button.dart';
+import 'package:helium_mobile/utils/app_colors.dart';
+import 'package:helium_mobile/utils/app_size.dart';
+import 'package:helium_mobile/utils/app_text_style.dart';
 
 class AddMaterialScreen extends StatefulWidget {
   final MaterialGroupResponseModel materialGroup;

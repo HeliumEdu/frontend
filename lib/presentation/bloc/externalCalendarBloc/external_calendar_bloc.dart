@@ -6,11 +6,11 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:heliumedu/core/app_exception.dart';
-import 'package:heliumedu/data/models/planner/external_calendar_event_model.dart';
-import 'package:heliumedu/domain/repositories/external_calendar_repository.dart';
-import 'package:heliumedu/presentation/bloc/externalCalendarBloc/external_calendar_event.dart';
-import 'package:heliumedu/presentation/bloc/externalCalendarBloc/external_calendar_state.dart';
+import 'package:helium_mobile/core/app_exception.dart';
+import 'package:helium_mobile/data/models/planner/external_calendar_event_model.dart';
+import 'package:helium_mobile/domain/repositories/external_calendar_repository.dart';
+import 'package:helium_mobile/presentation/bloc/externalCalendarBloc/external_calendar_event.dart';
+import 'package:helium_mobile/presentation/bloc/externalCalendarBloc/external_calendar_state.dart';
 
 class ExternalCalendarBloc
     extends Bloc<ExternalCalendarEvent, ExternalCalendarState> {

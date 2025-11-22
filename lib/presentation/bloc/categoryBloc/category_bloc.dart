@@ -6,10 +6,10 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:bloc/bloc.dart';
-import 'package:heliumedu/core/app_exception.dart';
-import 'package:heliumedu/domain/repositories/category_repository.dart';
-import 'package:heliumedu/presentation/bloc/categoryBloc/category_event.dart';
-import 'package:heliumedu/presentation/bloc/categoryBloc/category_state.dart';
+import 'package:helium_mobile/core/app_exception.dart';
+import 'package:helium_mobile/domain/repositories/category_repository.dart';
+import 'package:helium_mobile/presentation/bloc/categoryBloc/category_event.dart';
+import 'package:helium_mobile/presentation/bloc/categoryBloc/category_state.dart';
 
 class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
   final CategoryRepository categoryRepository;

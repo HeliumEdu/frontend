@@ -5,9 +5,9 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:heliumedu/data/datasources/grade_remote_data_source.dart';
-import 'package:heliumedu/data/models/planner/grade_course_group_model.dart';
-import 'package:heliumedu/domain/repositories/grade_repository.dart';
+import 'package:helium_mobile/data/datasources/grade_remote_data_source.dart';
+import 'package:helium_mobile/data/models/planner/grade_course_group_model.dart';
+import 'package:helium_mobile/domain/repositories/grade_repository.dart';
 
 class GradeRepositoryImpl implements GradeRepository {
   final GradeRemoteDataSource remoteDataSource;

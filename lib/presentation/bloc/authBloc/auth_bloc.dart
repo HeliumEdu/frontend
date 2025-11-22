@@ -6,17 +6,17 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:bloc/bloc.dart';
-import 'package:heliumedu/core/app_exception.dart';
-import 'package:heliumedu/core/dio_client.dart';
-import 'package:heliumedu/data/models/auth/change_password_request_model.dart';
-import 'package:heliumedu/data/models/auth/delete_account_request_model.dart';
-import 'package:heliumedu/data/models/auth/forgot_password_request_model.dart';
-import 'package:heliumedu/data/models/auth/login_request_model.dart';
-import 'package:heliumedu/data/models/auth/refresh_token_request_model.dart';
-import 'package:heliumedu/data/models/auth/register_request_model.dart';
-import 'package:heliumedu/domain/repositories/auth_repository.dart';
-import 'package:heliumedu/presentation/bloc/authBloc/auth_event.dart';
-import 'package:heliumedu/presentation/bloc/authBloc/auth_state.dart';
+import 'package:helium_mobile/core/app_exception.dart';
+import 'package:helium_mobile/core/dio_client.dart';
+import 'package:helium_mobile/data/models/auth/change_password_request_model.dart';
+import 'package:helium_mobile/data/models/auth/delete_account_request_model.dart';
+import 'package:helium_mobile/data/models/auth/forgot_password_request_model.dart';
+import 'package:helium_mobile/data/models/auth/login_request_model.dart';
+import 'package:helium_mobile/data/models/auth/refresh_token_request_model.dart';
+import 'package:helium_mobile/data/models/auth/register_request_model.dart';
+import 'package:helium_mobile/domain/repositories/auth_repository.dart';
+import 'package:helium_mobile/presentation/bloc/authBloc/auth_event.dart';
+import 'package:helium_mobile/presentation/bloc/authBloc/auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository authRepository;

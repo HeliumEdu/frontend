@@ -7,7 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:heliumedu/utils/app_size.dart';
+import 'package:helium_mobile/utils/app_size.dart';
 
 class AppTextStyle {
   static final TextStyle aTextStyle = GoogleFonts.poppins(

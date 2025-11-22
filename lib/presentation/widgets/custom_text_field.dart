@@ -6,9 +6,9 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:heliumedu/utils/app_colors.dart';
-import 'package:heliumedu/utils/app_size.dart';
-import 'package:heliumedu/utils/app_text_style.dart';
+import 'package:helium_mobile/utils/app_colors.dart';
+import 'package:helium_mobile/utils/app_size.dart';
+import 'package:helium_mobile/utils/app_text_style.dart';
 
 class CustomTextField extends StatelessWidget {
   final String hintText;

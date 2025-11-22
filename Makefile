@@ -36,3 +36,6 @@ build-ios: install install-ios
 test: install
 	flutter analyze --no-fatal-infos --no-fatal-warnings
 	flutter test
+
+run: install
+	flutter run
