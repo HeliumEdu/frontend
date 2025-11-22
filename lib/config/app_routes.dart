@@ -21,7 +21,8 @@ import 'package:helium_mobile/presentation/views/calendarScreen/calendar_screen.
 import 'package:helium_mobile/presentation/views/materialsScreen/add_material_screen.dart';
 import 'package:helium_mobile/presentation/views/materialsScreen/materials_screen.dart';
 import 'package:helium_mobile/presentation/views/settingScreen/change_password_screen.dart';
-import 'package:helium_mobile/presentation/views/settingScreen/feeds_and_external_calendars_settings_screen.dart';
+import 'package:helium_mobile/presentation/views/settingScreen/external_calendars_settings_screen.dart';
+import 'package:helium_mobile/presentation/views/settingScreen/feeds_settings_screen.dart';
 import 'package:helium_mobile/presentation/views/settingScreen/notification_screen.dart';
 import 'package:helium_mobile/presentation/views/settingScreen/preference_screen.dart';
 import 'package:helium_mobile/presentation/views/settingScreen/setting_screen.dart';
@@ -50,6 +51,7 @@ class AppRoutes {
   static const String assignmentReminderScreen = '/assignmentReminderScreen';
   static const String eventReminderScreen = '/eventReminderScreen';
   static const String feedSettingsScreen = '/feedSettingsScreen';
+  static const String externalCalendarsSettingsScreen = '/externalCalendarsSettingsScreen';
   static const String addAssignmentEvent = '/addAssignmentEvent';
 
   static Map<String, WidgetBuilder> getRoutes() {
@@ -153,7 +155,8 @@ class AppRoutes {
 
         return EventReminderScreen(eventRequest: args?['eventRequest']);
       },
-      feedSettingsScreen: (context) => const FeedsAndExternalCalendarsSettingsScreen(),
+      externalCalendarsSettingsScreen: (context) => const ExternalCalendarsSettingsScreen(),
+      feedSettingsScreen: (context) => const FeedsSettingsScreen(),
       // notificationTestScreen: (context) => const NotificationTestScreen(),
     };
   }

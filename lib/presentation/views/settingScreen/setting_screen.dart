@@ -792,6 +792,78 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                 onTap: () {
                                   Navigator.pushNamed(
                                     context,
+                                    AppRoutes.externalCalendarsSettingsScreen,
+                                  );
+                                },
+                                borderRadius: BorderRadius.circular(
+                                  16.adaptSize,
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 16.h,
+                                    vertical: 16.v,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        padding: EdgeInsets.all(10.adaptSize),
+                                        decoration: BoxDecoration(
+                                          color: primaryColor.withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(
+                                            12.adaptSize,
+                                          ),
+                                        ),
+                                        child: Icon(
+                                          Icons.cloud_download,
+                                          color: primaryColor,
+                                          size: 22.adaptSize,
+                                        ),
+                                      ),
+                                      SizedBox(width: 16.h),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'External Calendars',
+                                              style: AppTextStyle.eTextStyle
+                                                  .copyWith(
+                                                color: textColor,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                            SizedBox(height: 2.v),
+                                            Text(
+                                              'Bring other calendars in to Helium',
+                                              style: AppTextStyle.cTextStyle
+                                                  .copyWith(
+                                                color: textColor
+                                                    .withOpacity(0.6),
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Icon(
+                                        Icons.arrow_forward_ios,
+                                        color: textColor.withOpacity(0.3),
+                                        size: 16.adaptSize,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Divider(height: 1, indent: 68.h),
+
+                            Material(
+                              color: transparentColor,
+                              child: InkWell(
+                                onTap: () {
+                                  Navigator.pushNamed(
+                                    context,
                                     AppRoutes.feedSettingsScreen,
                                   );
                                 },
@@ -826,7 +898,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              'Feeds & External Calendars',
+                                              'Feeds',
                                               style: AppTextStyle.eTextStyle
                                                   .copyWith(
                                                     color: textColor,
@@ -835,7 +907,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                             ),
                                             SizedBox(height: 2.v),
                                             Text(
-                                              'Manage private feeds and external calendars',
+                                              'Take Helium\'s calendars elsewhere',
                                               style: AppTextStyle.cTextStyle
                                                   .copyWith(
                                                     color: textColor
