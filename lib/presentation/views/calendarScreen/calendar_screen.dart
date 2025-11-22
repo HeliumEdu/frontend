@@ -1776,12 +1776,11 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               // Left arrow
               IconButton(
-                icon: Icon(Icons.chevron_left, color: textColor),
+                icon: Icon(Icons.chevron_left, color: primaryColor),
                 onPressed: _previousWeekRange,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
               ),
-              SizedBox(width: 8.h),
 
               // Week ranges list
               Expanded(
@@ -1905,10 +1904,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-              SizedBox(width: 8.h),
               // Right arrow
               IconButton(
-                icon: Icon(Icons.chevron_right, color: textColor),
+                icon: Icon(Icons.chevron_right, color: primaryColor),
                 onPressed: _nextWeekRange,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),

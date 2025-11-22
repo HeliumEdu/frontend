@@ -3,7 +3,7 @@ description: "Helium is a smart student planner that lets organizes your classes
 
 publish_to: 'none'
 
-version: 1.0.0+1
+version: 1.0.0
 
 environment:
   sdk: ^3.8.1
@@ -11,33 +11,28 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^1.0.8
   bloc: ^9.0.0
-  flutter_svg: ^2.2.1
   google_fonts: ^6.3.2
   url_launcher: ^6.3.2
   flutter_bloc: ^9.1.1
-  table_calendar: ^3.2.0
   flutter_colorpicker: ^1.1.0
-  flutter_datetime_picker: ^1.5.1
   dio: ^5.4.0
   equatable: ^2.0.5
   shared_preferences: ^2.2.2
-  image_picker: ^1.1.2
   file_picker: ^8.1.4
   share_plus: ^7.2.1
-  change_app_package_name: ^1.5.0
   firebase_core: ^3.15.2
   firebase_messaging: ^15.2.10
   flutter_local_notifications: ^18.0.1
   timezone: ^0.10.1
-  easy_stepper: ^0.8.5+1
-  flutter_dotenv: ^5.1.0
+  intl: ^0.20.1
+  easy_stepper: ^0.9.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  flutter_dotenv: ^5.2.1
 
 flutter:
   uses-material-design: true

@@ -23,7 +23,11 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   tz.initializeTimeZones();
-  await dotenv.load(fileName: ".env");
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    print("dotenv not initialized, this is normal outside of development");
+  }
 
   await Firebase.initializeApp();
 

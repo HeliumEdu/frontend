@@ -43,8 +43,8 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;
 
-import '../../../../data/datasources/auth_remote_data_source.dart';
-import '../../../../data/repositories/auth_repository_impl.dart';
+import 'package:heliumedu/data/datasources/auth_remote_data_source.dart';
+import 'package:heliumedu/data/repositories/auth_repository_impl.dart';
 
 class AddAssignmentScreen extends StatefulWidget {
   const AddAssignmentScreen({super.key});

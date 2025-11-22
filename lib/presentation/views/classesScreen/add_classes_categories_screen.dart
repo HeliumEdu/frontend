@@ -23,12 +23,11 @@ import 'package:heliumedu/data/repositories/course_repository_impl.dart';
 import 'package:heliumedu/presentation/bloc/courseBloc/course_bloc.dart';
 import 'package:heliumedu/presentation/bloc/courseBloc/course_event.dart';
 import 'package:heliumedu/presentation/bloc/courseBloc/course_state.dart';
-import 'package:heliumedu/presentation/views/settingScreen/feeds_and_external_calendars_settings_screen.dart';
 import 'package:heliumedu/utils/app_colors.dart';
 import 'package:heliumedu/utils/app_size.dart';
 import 'package:heliumedu/utils/app_text_style.dart';
 
-import '../../../utils/custom_color_picker.dart';
+import 'package:heliumedu/utils/custom_color_picker.dart';
 
 class AddClassesCategoriesScreen extends StatefulWidget {
   final int courseId;

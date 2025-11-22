@@ -1063,7 +1063,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                                       );
                                     },
                                     separatorBuilder: (context, index) =>
-                                        SizedBox(width: 10.h),
+                                        SizedBox(width: 6.h),
                                   ),
                                 ),
                                 SizedBox(height: 28.v),

@@ -5,6 +5,8 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:intl/intl.dart';
+
 class CourseScheduleModel {
   final int id;
   final String daysOfWeek;
@@ -23,6 +25,7 @@ class CourseScheduleModel {
   final String satStartTime;
   final String satEndTime;
   final int course;
+  final serverDateFormat = DateFormat('HH:mm:ss');
 
   CourseScheduleModel({
     required this.id,
@@ -144,6 +147,9 @@ class CourseScheduleModel {
         endTime = satEndTime;
         break;
     }
+
+    startTime = DateFormat('hh:mm a').format(serverDateFormat.parse(startTime));
+    endTime = DateFormat('hh:mm a').format(serverDateFormat.parse(endTime));
 
     return '$startTime - $endTime';
   }

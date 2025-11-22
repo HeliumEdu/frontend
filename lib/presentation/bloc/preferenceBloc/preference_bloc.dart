@@ -13,8 +13,8 @@ import 'package:heliumedu/data/repositories/auth_repository_impl.dart';
 import 'package:heliumedu/presentation/bloc/preferenceBloc/preference_states.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../utils/app_colors.dart';
-import '../../../utils/app_list.dart';
+import 'package:heliumedu/utils/app_colors.dart';
+import 'package:heliumedu/utils/app_list.dart';
 import 'preference_event.dart';
 
 class PreferenceBloc extends Bloc<PreferenceEvent, PreferenceState> {

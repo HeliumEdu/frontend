@@ -1062,7 +1062,7 @@ class _FeedsAndExternalCalendarsSettingsViewState extends State<FeedsAndExternal
                             }
 
                             if (state is PrivateFeedError) {
-                              return SafeArea(
+                              return Center(
                                 child: Column(
                                   children: [
                                     Container(
@@ -1328,7 +1328,7 @@ class _FeedsAndExternalCalendarsSettingsViewState extends State<FeedsAndExternal
                             // }
 
                             // if (state is PrivateFeedEnabled) {
-                            //   return SafeArea(
+                            //   return Expanded(
                             //     child: Column(
                             //       children: [
                             //         Container(
@@ -1463,8 +1463,7 @@ class _FeedsAndExternalCalendarsSettingsViewState extends State<FeedsAndExternal
                             // }
 
                             if (state is PrivateFeedLoaded) {
-                              return SafeArea(
-                                child: Column(
+                              return Row(
                                   children: [
                                     Container(
                                       padding: EdgeInsets.symmetric(
@@ -1505,7 +1504,6 @@ class _FeedsAndExternalCalendarsSettingsViewState extends State<FeedsAndExternal
                                       ),
                                     ),
                                     Expanded(
-                                      child: SingleChildScrollView(
                                         child: Padding(
                                           padding: EdgeInsets.symmetric(
                                             horizontal: 16.h,
@@ -1724,10 +1722,8 @@ class _FeedsAndExternalCalendarsSettingsViewState extends State<FeedsAndExternal
                                           ),
                                         ),
                                       ),
-                                    ),
                                   ],
-                                ),
-                              );
+                                );
                             }
 
                             // if (state is PrivateFeedDisabling) {
@@ -1764,7 +1760,7 @@ class _FeedsAndExternalCalendarsSettingsViewState extends State<FeedsAndExternal
                             // }
 
                             if (state is PrivateFeedDisabled) {
-                              return SafeArea(
+                              return Center(
                                 child: Column(
                                   children: [
                                     Container(
