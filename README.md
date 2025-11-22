@@ -16,11 +16,6 @@ release it for Android and iOS near the beginning of 2026.
 
 ## Getting Started
 
-This project is the result of separating the `frontend` code from the backend `platform`, with the intention of someday
-rewriting it in a modern framework. But we have not had the capacity (or expertise) to do that. Are you a frontend
-expert in search of an open source project and interested in joining forces? [Reach out](mailto:contact@alexlaird.com)
-and let us know!
-
 ## Development
 
 With an emulator running, you can start the app by executing:
