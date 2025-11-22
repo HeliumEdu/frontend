@@ -1,3 +1,10 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'package:flutter/material.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
@@ -16,7 +23,7 @@ class SignUpController {
   bool isConfirmPasswordVisible = false;
   bool isLoading = false;
   bool agreeToTerms = false;
-  String selectedTimezone = 'Asia/Karachi';
+  String selectedTimezone = 'America/Chicago';
 
   // Populated from tz database
   List<String> timezones = [];
@@ -161,7 +168,7 @@ class SignUpController {
     passwordController.clear();
     confirmPasswordController.clear();
     agreeToTerms = false;
-    selectedTimezone = 'Asia/Karachi';
+    selectedTimezone = 'America/Chicago';
   }
 
   // Dispose controllers

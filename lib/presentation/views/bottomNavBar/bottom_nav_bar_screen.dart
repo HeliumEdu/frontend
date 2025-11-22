@@ -1,12 +1,18 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:helium_student_flutter/presentation/bloc/bottombarBloc/bottom_bar_bloc.dart';
-import 'package:helium_student_flutter/presentation/bloc/bottombarBloc/bottom_bar_event.dart';
-import 'package:helium_student_flutter/presentation/bloc/bottombarBloc/bottom_bar_state.dart';
-import 'package:helium_student_flutter/utils/app_assets.dart';
-import 'package:helium_student_flutter/utils/app_colors.dart';
-import 'package:helium_student_flutter/utils/app_size.dart';
+import 'package:heliumedu/presentation/bloc/bottombarBloc/bottom_bar_bloc.dart';
+import 'package:heliumedu/presentation/bloc/bottombarBloc/bottom_bar_event.dart';
+import 'package:heliumedu/presentation/bloc/bottombarBloc/bottom_bar_state.dart';
+import 'package:heliumedu/utils/app_colors.dart';
+import 'package:heliumedu/utils/app_size.dart';
 
 class BottomNavBarScreen extends StatelessWidget {
   const BottomNavBarScreen({super.key});
@@ -67,23 +73,20 @@ class BottomNavBarView extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Image.asset(
-                                state.selectedIndex == 0
-                                    ? AppAssets.homeIconFill
-                                    : AppAssets.homeIcon,
-                                width: 24.h,
-                                height: 24.v,
+                              Icon(
+                                Icons.calendar_month,
+                                size: 24,
                                 color: whiteColor,
                               ),
                               SizedBox(height: 4.v),
                               Text(
-                                'Dashboard',
+                                'Calendar',
                                 style: GoogleFonts.nunito(
                                   fontSize: 12.adaptSize,
                                   fontWeight: FontWeight.w400,
                                   color: state.selectedIndex == 0
                                       ? whiteColor
-                                      : Colors.transparent,
+                                      : transparentColor,
                                 ),
                               ),
                             ],
@@ -106,12 +109,9 @@ class BottomNavBarView extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Image.asset(
-                                state.selectedIndex == 1
-                                    ? AppAssets.classIconFill
-                                    : AppAssets.classIcon,
-                                width: 24.h,
-                                height: 24.v,
+                              Icon(
+                                Icons.menu_book,
+                                size: 24,
                                 color: whiteColor,
                               ),
                               SizedBox(height: 4.v),
@@ -122,7 +122,7 @@ class BottomNavBarView extends StatelessWidget {
                                   fontWeight: FontWeight.w400,
                                   color: state.selectedIndex == 1
                                       ? whiteColor
-                                      : Colors.transparent,
+                                      : transparentColor,
                                 ),
                               ),
                             ],
@@ -145,23 +145,20 @@ class BottomNavBarView extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Image.asset(
-                                state.selectedIndex == 2
-                                    ? AppAssets.materialIconFill
-                                    : AppAssets.materialIcon,
-                                width: 24.h,
-                                height: 24.v,
+                              Icon(
+                                Icons.business_center,
+                                size: 24,
                                 color: whiteColor,
                               ),
                               SizedBox(height: 4.v),
                               Text(
-                                'Material',
+                                'Materials',
                                 style: GoogleFonts.nunito(
                                   fontSize: 12.adaptSize,
                                   fontWeight: FontWeight.w400,
                                   color: state.selectedIndex == 2
                                       ? whiteColor
-                                      : Colors.transparent,
+                                      : transparentColor,
                                 ),
                               ),
                             ],
@@ -184,12 +181,9 @@ class BottomNavBarView extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Image.asset(
-                                state.selectedIndex == 3
-                                    ? AppAssets.gradeIconFill
-                                    : AppAssets.gradeIcon,
-                                width: 24.h,
-                                height: 24.v,
+                              Icon(
+                                Icons.bar_chart,
+                                size: 24,
                                 color: whiteColor,
                               ),
                               SizedBox(height: 4.v),
@@ -200,7 +194,7 @@ class BottomNavBarView extends StatelessWidget {
                                   fontWeight: FontWeight.w400,
                                   color: state.selectedIndex == 3
                                       ? whiteColor
-                                      : Colors.transparent,
+                                      : transparentColor,
                                 ),
                               ),
                             ],

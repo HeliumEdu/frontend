@@ -1,9 +1,16 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'package:bloc/bloc.dart';
-import 'package:helium_student_flutter/core/app_exception.dart';
-import 'package:helium_student_flutter/core/fcm_service.dart';
-import 'package:helium_student_flutter/data/models/notification/notification_model.dart';
-import 'package:helium_student_flutter/presentation/bloc/notificationBloc/notification_event.dart';
-import 'package:helium_student_flutter/presentation/bloc/notificationBloc/notification_state.dart';
+import 'package:heliumedu/core/app_exception.dart';
+import 'package:heliumedu/core/fcm_service.dart';
+import 'package:heliumedu/data/models/notification/notification_model.dart';
+import 'package:heliumedu/presentation/bloc/notificationBloc/notification_event.dart';
+import 'package:heliumedu/presentation/bloc/notificationBloc/notification_state.dart';
 
 class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
   final FCMService fcmService;

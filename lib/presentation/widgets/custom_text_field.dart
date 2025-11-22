@@ -1,7 +1,14 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'package:flutter/material.dart';
-import 'package:helium_student_flutter/utils/app_colors.dart';
-import 'package:helium_student_flutter/utils/app_size.dart';
-import 'package:helium_student_flutter/utils/app_text_style.dart';
+import 'package:heliumedu/utils/app_colors.dart';
+import 'package:heliumedu/utils/app_size.dart';
+import 'package:heliumedu/utils/app_text_style.dart';
 
 class CustomTextField extends StatelessWidget {
   final String hintText;
@@ -31,7 +38,7 @@ class CustomTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: whiteColor,
 
         border: Border.all(color: textColor.withOpacity(0.1)),
         borderRadius: BorderRadius.circular(8.h),
@@ -49,11 +56,12 @@ class CustomTextField extends StatelessWidget {
           hintText: hintText,
           hintStyle: AppTextStyle.fTextStyle.copyWith(color: textColor),
           border: InputBorder.none,
-          suffixIcon: suffixIcon, // Will be null if not provided
+          suffixIcon: suffixIcon,
+          // Will be null if not provided
           errorText: errorText,
           errorMaxLines: 3,
           errorStyle: AppTextStyle.pTextStyle.copyWith(
-            color: Colors.red,
+            color: redColor,
 
             height: 1.2,
           ),

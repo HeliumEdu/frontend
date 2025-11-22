@@ -1,8 +1,15 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:helium_student_flutter/core/app_exception.dart';
-import 'package:helium_student_flutter/domain/repositories/course_repository.dart';
-import 'package:helium_student_flutter/presentation/bloc/courseBloc/course_event.dart';
-import 'package:helium_student_flutter/presentation/bloc/courseBloc/course_state.dart';
+import 'package:heliumedu/core/app_exception.dart';
+import 'package:heliumedu/domain/repositories/course_repository.dart';
+import 'package:heliumedu/presentation/bloc/courseBloc/course_event.dart';
+import 'package:heliumedu/presentation/bloc/courseBloc/course_state.dart';
 
 class CourseBloc extends Bloc<CourseEvent, CourseState> {
   final CourseRepository courseRepository;
@@ -353,8 +360,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
           event.eventId == null &&
           event.homeworkId == null) {
         throw ValidationException(
-          message:
-              'At least one of course, event, or homework must be provided',
+          message: 'At least one of class, event, or homework must be provided',
         );
       }
 

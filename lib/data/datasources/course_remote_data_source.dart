@@ -1,78 +1,105 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'dart:io';
+
 import 'package:dio/dio.dart';
-import 'package:helium_student_flutter/core/app_exception.dart';
-import 'package:helium_student_flutter/core/dio_client.dart';
-import 'package:helium_student_flutter/core/network_urls.dart';
-import 'package:helium_student_flutter/data/models/planner/course_model.dart';
-import 'package:helium_student_flutter/data/models/planner/course_request_model.dart';
-import 'package:helium_student_flutter/data/models/planner/course_schedule_model.dart';
-import 'package:helium_student_flutter/data/models/planner/course_schedule_request_model.dart';
-import 'package:helium_student_flutter/data/models/planner/category_model.dart';
-import 'package:helium_student_flutter/data/models/planner/category_request_model.dart';
-import 'package:helium_student_flutter/data/models/planner/attachment_model.dart';
-import 'package:helium_student_flutter/data/models/planner/course_group_request_model.dart';
-import 'package:helium_student_flutter/data/models/planner/course_group_response_model.dart';
+import 'package:heliumedu/core/app_exception.dart';
+import 'package:heliumedu/core/dio_client.dart';
+import 'package:heliumedu/core/network_urls.dart';
+import 'package:heliumedu/data/models/planner/attachment_model.dart';
+import 'package:heliumedu/data/models/planner/category_model.dart';
+import 'package:heliumedu/data/models/planner/category_request_model.dart';
+import 'package:heliumedu/data/models/planner/course_group_request_model.dart';
+import 'package:heliumedu/data/models/planner/course_group_response_model.dart';
+import 'package:heliumedu/data/models/planner/course_model.dart';
+import 'package:heliumedu/data/models/planner/course_request_model.dart';
+import 'package:heliumedu/data/models/planner/course_schedule_model.dart';
+import 'package:heliumedu/data/models/planner/course_schedule_request_model.dart';
 
 abstract class CourseRemoteDataSource {
   Future<List<CourseModel>> getCourses();
+
   Future<List<CourseModel>> getCoursesByGroupId(int groupId);
+
   Future<CourseModel> getCourseById(int groupId, int courseId);
+
   Future<CourseModel> createCourse(CourseRequestModel request);
+
   Future<CourseModel> updateCourse(
     int groupId,
     int courseId,
     CourseRequestModel request,
   );
+
   Future<void> deleteCourse(int groupId, int courseId);
+
   Future<CourseScheduleModel> createCourseSchedule(
     int groupId,
     int courseId,
     CourseScheduleRequestModel request,
   );
+
   Future<CourseScheduleModel> updateCourseSchedule(
     int groupId,
     int courseId,
     int scheduleId,
     CourseScheduleRequestModel request,
   );
+
   Future<CourseScheduleModel> getCourseScheduleById(
     int groupId,
     int courseId,
     int scheduleId,
   );
+
   Future<List<CategoryModel>> getCategoriesByCourse(int groupId, int courseId);
+
   Future<CategoryModel> createCategory(
     int groupId,
     int courseId,
     CategoryRequestModel request,
   );
+
   Future<CategoryModel> updateCategory(
     int groupId,
     int courseId,
     int categoryId,
     CategoryRequestModel request,
   );
+
   Future<void> deleteCategory(int groupId, int courseId, int categoryId);
+
   Future<List<AttachmentModel>> uploadAttachments({
     required List<File> files,
     int? courseId,
     int? eventId,
     int? homeworkId,
   });
+
   Future<List<AttachmentModel>> getAttachments({
     int? courseId,
     int? eventId,
     int? homeworkId,
   });
+
   Future<void> deleteAttachment(int attachmentId);
+
   Future<List<CourseGroupResponseModel>> getCourseGroups();
+
   Future<CourseGroupResponseModel> createCourseGroup(
     CourseGroupRequestModel request,
   );
+
   Future<CourseGroupResponseModel> updateCourseGroup(
     int groupId,
     CourseGroupRequestModel request,
   );
+
   Future<void> deleteCourseGroup(int groupId);
 }
 
@@ -476,7 +503,7 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
       for (var file in files) {
         final fileName = file.path.split('/').last;
         final fileSize = file.lengthSync();
-        print('  - $fileName (${fileSize} bytes)');
+        print('  - $fileName ($fileSize bytes)');
 
         multipartFiles.add(
           await MultipartFile.fromFile(file.path, filename: fileName),

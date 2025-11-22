@@ -1,3 +1,10 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 class HomeworkRequestModel {
   final String title;
   final bool allDay;
@@ -52,8 +59,9 @@ class HomeworkRequestModel {
     if (url != null && url!.isNotEmpty) data['url'] = url;
     if (comments != null && comments!.isNotEmpty) data['comments'] = comments;
     if (category != null) data['category'] = category;
-    if (materials != null && materials!.isNotEmpty)
+    if (materials != null && materials!.isNotEmpty) {
       data['materials'] = materials;
+    }
 
     return data;
   }

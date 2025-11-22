@@ -1,5 +1,7 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class NetworkUrl {
-  static const baseUrl = "https://api.heliumedu.com";
+  static final baseUrl = dotenv.env['PROJECT_API_HOST'] ?? "https://api.heliumedu.com";
   static const signUpUrl = "/auth/user/register/";
   static const signInUrl = "/auth/token/";
   static const refreshTokenUrl = "/auth/token/refresh/";
@@ -57,10 +59,6 @@ class NetworkUrl {
       "/feed/externalcalendars/$calendarId/";
   static String externalCalendarEventsUrl(int calendarId) =>
       "/feed/externalcalendars/$calendarId/events/";
-  // iCal Feed URLs for exporting to Google Calendar
-  static const iCalAllCalendarUrl = "/feed/ical/calendar/";
-  static const iCalHomeworkUrl = "/feed/ical/homework/";
-  static const iCalEventsUrl = "/feed/ical/events/";
   // Private Feed URLs
   static const enablePrivateFeedsUrl = "/feed/private/enable/";
   static const disablePrivateFeedsUrl = "/feed/private/disable/";

@@ -1,16 +1,26 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'package:flutter/material.dart';
-import 'package:helium_student_flutter/utils/app_colors.dart';
-import 'package:helium_student_flutter/utils/app_size.dart';
-import 'package:helium_student_flutter/utils/app_text_style.dart';
-import 'package:helium_student_flutter/data/models/notification/notification_model.dart';
-import 'package:helium_student_flutter/core/fcm_service.dart';
-import 'package:helium_student_flutter/data/repositories/reminder_repository_impl.dart';
-import 'package:helium_student_flutter/data/datasources/reminder_remote_data_source.dart';
-import 'package:helium_student_flutter/data/models/planner/reminder_response_model.dart';
-import 'package:helium_student_flutter/core/dio_client.dart';
-import 'package:helium_student_flutter/core/app_exception.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:heliumedu/core/app_exception.dart';
+import 'package:heliumedu/core/dio_client.dart';
+import 'package:heliumedu/core/fcm_service.dart';
+import 'package:heliumedu/data/datasources/auth_remote_data_source.dart';
+import 'package:heliumedu/data/datasources/reminder_remote_data_source.dart';
+import 'package:heliumedu/data/models/notification/notification_model.dart';
+import 'package:heliumedu/data/models/planner/reminder_response_model.dart';
+import 'package:heliumedu/data/repositories/auth_repository_impl.dart';
+import 'package:heliumedu/data/repositories/reminder_repository_impl.dart';
+import 'package:heliumedu/utils/app_colors.dart';
+import 'package:heliumedu/utils/app_size.dart';
+import 'package:heliumedu/utils/app_text_style.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
@@ -26,46 +36,46 @@ class _NotificationScreenState extends State<NotificationScreen> {
   bool _isLoading = false;
   Set<String> _readNotificationIds = <String>{};
   bool _isDeleting = false;
+  String _timeZone = 'America/Chicago';
 
-  String _methodLabel(int type) => type == 0 ? 'Email' : 'Push';
-
-  String _typeKey(int type) => type == 0 ? 'email' : 'push';
+  String _typeKey(int type) => type == 0 ? 'popup' : 'email';
 
   DateTime? _parseReminderDate(String? isoString) {
+    final timeZone = tz.getLocation(_timeZone);
+
     if (isoString == null) return null;
     try {
-      return DateTime.parse(isoString).toLocal();
+      return tz.TZDateTime.from(DateTime.parse(isoString), timeZone);
     } catch (_) {
       return null;
     }
   }
 
-  String _formatReminderDate(DateTime? dateTime) {
-    if (dateTime == null) return 'Scheduled: N/A';
-    return 'Scheduled: ${_dateFormatter.format(dateTime)}';
-  }
-
   NotificationModel _mapReminderToNotification(ReminderResponseModel reminder) {
     final scheduledAt = _parseReminderDate(reminder.startOfRange);
-    final method = _methodLabel(reminder.type);
 
-    final details = [
-      reminder.message,
-      'Method: $method',
-      _formatReminderDate(scheduledAt),
-    ].where((line) => line.trim().isNotEmpty).join('\n');
+    final String title;
+    final Color? color;
+    if (reminder.homework != null) {
+      title =
+          '${reminder.homework!['title']} in ${reminder.homework!['course']['title']}';
+      color = parseColor(reminder.homework!['course']['color']);
+    } else {
+      title = reminder.event!['title'];
+      color = null;
+    }
 
     return NotificationModel(
       notificationId: reminder.id.toString(),
-      title: reminder.title.isNotEmpty ? reminder.title : 'Reminder',
-      body: details,
-      timestamp: scheduledAt ?? DateTime.now(),
+      title: title,
+      body: reminder.title,
+      color: color,
+      timestamp: scheduledAt,
       isRead: false,
       type: _typeKey(reminder.type),
       action: 'view_reminder',
       apiId: reminder.id,
       data: {
-        'method': method,
         'offset': reminder.offset,
         'homework': reminder.homework,
         'event': reminder.event,
@@ -77,6 +87,36 @@ class _NotificationScreenState extends State<NotificationScreen> {
   void initState() {
     super.initState();
     _loadNotifications();
+    _loadTimeZone();
+  }
+
+  Future<void> _loadTimeZone() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? timeZone = prefs.getString('user_time_zone');
+
+    if (timeZone == null || timeZone.isEmpty) {
+      try {
+        final dioClient = DioClient();
+        final authRepository = AuthRepositoryImpl(
+          remoteDataSource: AuthRemoteDataSourceImpl(dioClient: dioClient),
+        );
+        final profile = await authRepository.getProfile();
+        final timeZone = profile.settings?.timeZone;
+        if (timeZone != null && timeZone.trim().isNotEmpty) {
+          await prefs.setString('user_time_zone', timeZone);
+        }
+      } catch (e) {
+        print('⚠️ Failed to load time zone from profile: $e');
+      }
+
+      if (timeZone == null || timeZone.isEmpty) return;
+
+      if (mounted && timeZone != _timeZone) {
+        setState(() {
+          _timeZone = timeZone;
+        });
+      }
+    }
   }
 
   Future<void> _loadNotifications() async {
@@ -87,16 +127,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
       });
       // Get user ID from SharedPreferences
       final prefs = await SharedPreferences.getInstance();
-      final userId = prefs.getInt('user_id');
       // Load persisted read IDs
       final storedRead = prefs.getStringList('read_notification_ids') ?? [];
       _readNotificationIds = storedRead.toSet();
-
-      if (userId == null) {
-        print('⚠️ No user ID found, loading sample notifications');
-        _loadSampleNotifications();
-        return;
-      }
 
       final reminderRepo = ReminderRepositoryImpl(
         remoteDataSource: ReminderRemoteDataSourceImpl(dioClient: DioClient()),
@@ -124,6 +157,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       });
 
       final reminderNotifications = reminders
+          .where((r) => (r.sent && !r.dismissed && r.type == 0))
           .map(_mapReminderToNotification)
           .map((n) {
             final id = n.notificationId ?? '';
@@ -132,13 +166,13 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 notificationId: n.notificationId,
                 title: n.title,
                 body: n.body,
+                color: n.color,
                 timestamp: n.timestamp,
                 isRead: true,
                 type: n.type,
                 action: n.action,
                 apiId: n.apiId,
                 data: n.data,
-                imageUrl: n.imageUrl,
               );
             }
             return n;
@@ -152,8 +186,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
       print('✅ Loaded ${_notifications.length} reminder notifications');
     } catch (e) {
       print('❌ Failed to load notifications from API: $e');
-      // Fallback to sample notifications
-      _loadSampleNotifications();
     } finally {
       if (mounted) {
         setState(() {
@@ -161,40 +193,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
         });
       }
     }
-  }
-
-  void _loadSampleNotifications() {
-    final now = DateTime.now();
-    setState(() {
-      _notifications = [
-        NotificationModel(
-          notificationId: 'sample_push',
-          title: 'Assignment Reminder',
-          body: [
-            'Don\'t forget to submit Math Homework.',
-            'Method: Push',
-            _formatReminderDate(now.add(const Duration(minutes: 45))),
-          ].join('\n'),
-          timestamp: now.add(const Duration(minutes: 45)),
-          isRead: false,
-          type: 'push',
-          action: 'view_reminder',
-        ),
-        NotificationModel(
-          notificationId: 'sample_email',
-          title: 'Email Reminder',
-          body: [
-            'Weekly status report is due tomorrow morning.',
-            'Method: Email',
-            _formatReminderDate(now.add(const Duration(hours: 12))),
-          ].join('\n'),
-          timestamp: now.add(const Duration(hours: 12)),
-          isRead: true,
-          type: 'email',
-          action: 'view_reminder',
-        ),
-      ];
-    });
   }
 
   void _markAsRead(String notificationId) {
@@ -217,7 +215,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
             type: notification.type,
             action: notification.action,
             data: notification.data,
-            imageUrl: notification.imageUrl,
           );
         }
         return notification;
@@ -233,7 +230,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('All notifications cleared'),
-        backgroundColor: Colors.green,
+        backgroundColor: greenColor,
       ),
     );
   }
@@ -277,7 +274,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(errorMessage),
-          backgroundColor: Colors.red,
+          backgroundColor: redColor,
           duration: const Duration(seconds: 5),
         ),
       );
@@ -304,7 +301,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 Navigator.of(context).pop();
                 _deleteNotification(notification);
               },
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              style: TextButton.styleFrom(foregroundColor: redColor),
               child: const Text('Delete'),
             ),
           ],
@@ -321,14 +318,14 @@ class _NotificationScreenState extends State<NotificationScreen> {
         child: Column(
           children: [
             Container(
-              padding: EdgeInsets.symmetric(vertical: 2.v, horizontal: 2.h),
+              padding: EdgeInsets.symmetric(vertical: 16.v, horizontal: 16.h),
               decoration: BoxDecoration(
                 color: whiteColor,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 8,
-                    offset: Offset(0, 2),
+                    color: blackColor.withOpacity(0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
@@ -347,10 +344,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   ),
                   Text(
                     'Notifications',
-                    style: AppTextStyle.aTextStyle.copyWith(
-                      color: blackColor,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: AppTextStyle.bTextStyle.copyWith(color: blackColor),
                   ),
                   Row(
                     children: [
@@ -360,7 +354,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('Notifications refreshed'),
-                              backgroundColor: Colors.green,
+                              backgroundColor: greenColor,
                             ),
                           );
                         },
@@ -377,7 +371,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 ],
               ),
             ),
-            SizedBox(height: 5.v),
+            SizedBox(height: 16.v),
             Expanded(
               child: _isLoading
                   ? Center(
@@ -499,14 +493,29 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     ],
                   ),
                   SizedBox(height: 4.v),
-                  Text(
-                    notification.body ?? '',
-                    style: AppTextStyle.fTextStyle.copyWith(
-                      color: textColor.withOpacity(0.7),
-                      fontSize: 12.fSize,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                  SizedBox(width: 8.h),
+                  Row(
+                    children: [
+                      if (notification.color != null)
+                        Container(
+                          width: 12.h,
+                          height: 12.h,
+                          decoration: BoxDecoration(
+                            color: notification.color,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      SizedBox(width: 8.v),
+                      Text(
+                        notification.body ?? '',
+                        style: AppTextStyle.fTextStyle.copyWith(
+                          color: textColor.withOpacity(0.7),
+                          fontSize: 12.fSize,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                   SizedBox(height: 8.v),
                   Row(
@@ -518,7 +527,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       ),
                       SizedBox(width: 4.h),
                       Text(
-                        _formatTimestamp(
+                        _dateFormatter.format(
                           notification.timestamp ?? DateTime.now(),
                         ),
                         style: AppTextStyle.fTextStyle.copyWith(
@@ -541,7 +550,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                             value: 'delete',
                             child: Row(
                               children: [
-                                Icon(Icons.delete, color: Colors.red, size: 18),
+                                Icon(Icons.delete, color: redColor, size: 18),
                                 SizedBox(width: 8),
                                 Text('Delete'),
                               ],
@@ -551,7 +560,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         child: Container(
                           padding: EdgeInsets.all(4.adaptSize),
                           decoration: BoxDecoration(
-                            color: Colors.grey.withOpacity(0.1),
+                            color: greyColor.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(4.adaptSize),
                           ),
                           child: Icon(
@@ -574,7 +583,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   Color _getNotificationColor(String? type) {
     switch (type) {
-      case 'push':
+      case 'popup':
         return primaryColor;
       case 'email':
         return Colors.orange;
@@ -585,7 +594,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   IconData _getNotificationIcon(String? type) {
     switch (type) {
-      case 'push':
+      case 'popup':
         return Icons.notifications_active;
       case 'email':
         return Icons.mail_outline;

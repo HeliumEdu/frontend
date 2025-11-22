@@ -1,3 +1,10 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 class GradeCategoryModel {
   final int id;
   final String title;
@@ -6,6 +13,7 @@ class GradeCategoryModel {
   final String color;
   final double gradeByWeight;
   final double? trend;
+  final int numHomework;
   final int numHomeworkGraded;
 
   GradeCategoryModel({
@@ -16,6 +24,7 @@ class GradeCategoryModel {
     required this.color,
     required this.gradeByWeight,
     this.trend,
+    required this.numHomework,
     required this.numHomeworkGraded,
   });
 
@@ -28,6 +37,7 @@ class GradeCategoryModel {
       color: json['color'] as String? ?? '#000000',
       gradeByWeight: (json['grade_by_weight'] as num?)?.toDouble() ?? 0.0,
       trend: (json['trend'] as num?)?.toDouble(),
+      numHomework: json['num_homework'] as int? ?? 0,
       numHomeworkGraded: json['num_homework_graded'] as int? ?? 0,
     );
   }
@@ -41,6 +51,7 @@ class GradeCategoryModel {
       'color': color,
       'grade_by_weight': gradeByWeight,
       'trend': trend,
+      'num_homework': numHomework,
       'num_homework_graded': numHomeworkGraded,
     };
   }
@@ -51,6 +62,6 @@ class GradeCategoryModel {
   // Format grade as percentage string
   String get formattedGrade {
     if (!hasGrade) return 'N/A';
-    return '${overallGrade.toStringAsFixed(1)}%';
+    return '${overallGrade.toStringAsFixed(2)}%';
   }
 }

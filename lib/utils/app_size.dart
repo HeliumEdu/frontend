@@ -1,8 +1,16 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'package:flutter/material.dart';
 
 const num FIGMA_DESIGN_WIDTH = 450;
 const num FIGMA_DESIGN_HEIGHT = 926;
 const num FIGMA_DESIGN_STATUS_BAR = 0;
+
 typedef ResponsiveBuild =
     Widget Function(
       BuildContext context,
@@ -105,7 +113,6 @@ extension ResponsiveExtension on num {
 extension FormatExtension on double {
   /// Return a [double] value with formatted according to provided fractionDigits
   double toDoubleValue({int fractionDigits = 2}) {
-    // ignore: unnecessary_this
     return double.parse(this.toStringAsFixed(fractionDigits));
   }
 

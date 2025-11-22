@@ -1,3 +1,10 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 class PushTokenResponseModel {
   final int id;
   final String deviceId;
@@ -26,7 +33,8 @@ class PushTokenResponseModel {
       token: json['token'] ?? '',
       user: json['user'] ?? 0,
       registrationId: json['registration_id'] ?? json['registrationId'],
-      type: json['type'] ?? 'android', // Default to android if not provided
+      type: json['type'] ?? 'android',
+      // Default to android if not provided
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'].toString())
           : null,

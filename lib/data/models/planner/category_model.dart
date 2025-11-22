@@ -1,3 +1,10 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'package:flutter/material.dart';
 
 class CategoryModel {
@@ -74,16 +81,16 @@ class CategoryModel {
   // Helper method to get formatted grade
   String getFormattedGrade() {
     if (!hasGrade()) return 'N/A';
-    return '${overallGrade!.toStringAsFixed(1)}%';
+    return '${overallGrade!.toStringAsFixed(2)}%';
   }
 
   // Helper method to get color as Color object
   Color getColor() {
     try {
-      final colorValue = int.parse(color.replaceFirst('#', 'FF'), radix: 16);
+      final colorValue = int.parse(color.replaceFirst('#', 'ff'), radix: 16);
       return Color(colorValue);
     } catch (e) {
-      return const Color(0xFF3F51B5); // Default blue color
+      return const Color(0xff3F51B5); // Default blue color
     }
   }
 }

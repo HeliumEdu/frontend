@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:helium_student_flutter/config/app_route.dart';
-import 'package:helium_student_flutter/core/network_urls.dart';
-import 'package:helium_student_flutter/main.dart';
-import 'package:helium_student_flutter/data/models/auth/refresh_token_request_model.dart';
-import 'package:helium_student_flutter/data/models/auth/refresh_token_response_model.dart';
+import 'package:heliumedu/config/app_routes.dart';
+import 'package:heliumedu/core/network_urls.dart';
+import 'package:heliumedu/main.dart';
+import 'package:heliumedu/data/models/auth/refresh_token_request_model.dart';
+import 'package:heliumedu/data/models/auth/refresh_token_response_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:heliumedu/utils/app_colors.dart';
 
 class DioClient {
   static final DioClient _instance = DioClient._internal();
@@ -304,7 +306,7 @@ class DioClient {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(message),
-            backgroundColor: Colors.red,
+            backgroundColor: redColor,
             duration: const Duration(seconds: 3),
             behavior: SnackBarBehavior.floating,
           ),

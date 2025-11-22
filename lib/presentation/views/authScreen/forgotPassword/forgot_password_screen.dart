@@ -1,16 +1,23 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:helium_student_flutter/core/dio_client.dart';
-import 'package:helium_student_flutter/data/datasources/auth_remote_data_source.dart';
-import 'package:helium_student_flutter/data/repositories/auth_repository_impl.dart';
-import 'package:helium_student_flutter/presentation/bloc/authBloc/auth_bloc.dart';
-import 'package:helium_student_flutter/presentation/bloc/authBloc/auth_event.dart';
-import 'package:helium_student_flutter/presentation/bloc/authBloc/auth_state.dart';
-import 'package:helium_student_flutter/presentation/views/authScreen/signUpScreen/sign_up_controller.dart';
-import 'package:helium_student_flutter/presentation/widgets/custom_text_field.dart';
-import 'package:helium_student_flutter/utils/app_colors.dart';
-import 'package:helium_student_flutter/utils/app_size.dart';
-import 'package:helium_student_flutter/utils/app_text_style.dart';
+import 'package:heliumedu/core/dio_client.dart';
+import 'package:heliumedu/data/datasources/auth_remote_data_source.dart';
+import 'package:heliumedu/data/repositories/auth_repository_impl.dart';
+import 'package:heliumedu/presentation/bloc/authBloc/auth_bloc.dart';
+import 'package:heliumedu/presentation/bloc/authBloc/auth_event.dart';
+import 'package:heliumedu/presentation/bloc/authBloc/auth_state.dart';
+import 'package:heliumedu/presentation/views/authScreen/signUpScreen/sign_up_controller.dart';
+import 'package:heliumedu/presentation/widgets/custom_text_field.dart';
+import 'package:heliumedu/utils/app_colors.dart';
+import 'package:heliumedu/utils/app_size.dart';
+import 'package:heliumedu/utils/app_text_style.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -80,7 +87,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               } else if (state is AuthError) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    backgroundColor: Colors.red,
+                    backgroundColor: redColor,
                     content: Text(state.message),
                   ),
                 );
@@ -132,7 +139,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         Text(
                           _emailSent
                               ? 'We have sent a password reset link to ${_controller.emailController.text}. Please check your inbox and spam folder.'
-                              : 'Enter your email address and we\'ll send you a link to reset your password.',
+                              : 'Enter the email associated with your account. We\'ll reset your password and send a temporary password to your email address.',
                           style: AppTextStyle.eTextStyle.copyWith(
                             color: textColor.withOpacity(0.7),
                             height: 1.5,
@@ -142,20 +149,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         SizedBox(height: 40.v),
 
                         if (!_emailSent) ...[
-                          // Email Field Label
-                          Text(
-                            'Email Address',
-                            style: AppTextStyle.cTextStyle.copyWith(
-                              color: textColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-
-                          SizedBox(height: 8.v),
-
                           // Email Field
                           CustomTextField(
-                            hintText: 'Enter your email',
+                            hintText: 'Email',
                             prefixIcon: Icons.email_outlined,
                             controller: _controller.emailController,
                             validator: _controller.validateEmail,
@@ -191,16 +187,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                         strokeWidth: 2,
                                         valueColor:
                                             AlwaysStoppedAnimation<Color>(
-                                              Colors.white,
+                                              whiteColor,
                                             ),
                                       ),
                                     )
                                   : Text(
-                                      'Send Reset Link',
+                                      'Get It',
                                       style: AppTextStyle.mTextStyle.copyWith(
-                                        color: Colors.white,
+                                        color: whiteColor,
                                         fontWeight: FontWeight.w600,
-                                        fontSize: 16,
+                                         fontSize: 16,
                                       ),
                                     ),
                             ),
@@ -251,7 +247,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               child: Text(
                                 'Open Email App',
                                 style: AppTextStyle.mTextStyle.copyWith(
-                                  color: Colors.white,
+                                  color: whiteColor,
                                   fontWeight: FontWeight.w600,
                                   fontSize: 16,
                                 ),

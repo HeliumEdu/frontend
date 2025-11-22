@@ -1,19 +1,26 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:helium_student_flutter/config/app_route.dart';
-import 'package:helium_student_flutter/core/dio_client.dart';
-import 'package:helium_student_flutter/data/datasources/auth_remote_data_source.dart';
-import 'package:helium_student_flutter/data/repositories/auth_repository_impl.dart';
-import 'package:helium_student_flutter/presentation/bloc/authBloc/auth_bloc.dart';
-import 'package:helium_student_flutter/presentation/bloc/authBloc/auth_event.dart';
-import 'package:helium_student_flutter/presentation/bloc/authBloc/auth_state.dart';
-import 'package:helium_student_flutter/presentation/views/authScreen/signInScreen/sign_in_controller.dart';
-import 'package:helium_student_flutter/presentation/widgets/custom_text_button.dart';
-import 'package:helium_student_flutter/presentation/widgets/custom_text_field.dart';
-import 'package:helium_student_flutter/utils/app_assets.dart';
-import 'package:helium_student_flutter/utils/app_colors.dart';
-import 'package:helium_student_flutter/utils/app_size.dart';
-import 'package:helium_student_flutter/utils/app_text_style.dart';
+import 'package:heliumedu/config/app_routes.dart';
+import 'package:heliumedu/core/dio_client.dart';
+import 'package:heliumedu/data/datasources/auth_remote_data_source.dart';
+import 'package:heliumedu/data/repositories/auth_repository_impl.dart';
+import 'package:heliumedu/presentation/bloc/authBloc/auth_bloc.dart';
+import 'package:heliumedu/presentation/bloc/authBloc/auth_event.dart';
+import 'package:heliumedu/presentation/bloc/authBloc/auth_state.dart';
+import 'package:heliumedu/presentation/views/authScreen/signInScreen/sign_in_controller.dart';
+import 'package:heliumedu/presentation/widgets/custom_text_button.dart';
+import 'package:heliumedu/presentation/widgets/custom_text_field.dart';
+import 'package:heliumedu/utils/app_assets.dart';
+import 'package:heliumedu/utils/app_colors.dart';
+import 'package:heliumedu/utils/app_size.dart';
+import 'package:heliumedu/utils/app_text_style.dart';
 
 class SignInScreen extends StatelessWidget {
   const SignInScreen({super.key});
@@ -48,12 +55,12 @@ class _SignInScreenViewState extends State<SignInScreenView> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? Colors.red : Colors.green,
+        backgroundColor: isError ? redColor : greenColor,
         duration: const Duration(seconds: 3),
         behavior: SnackBarBehavior.floating,
         action: SnackBarAction(
           label: 'Dismiss',
-          textColor: Colors.white,
+          textColor: whiteColor,
           onPressed: () {
             if (mounted) {
               ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -92,10 +99,6 @@ class _SignInScreenViewState extends State<SignInScreenView> {
       listener: (context, state) {
         if (state is AuthLoading) {
         } else if (state is AuthLoginSuccess) {
-          _showSnackBar(
-            'Login successful! Welcome ${state.username ?? "back"}!',
-            isError: false,
-          );
           _controller.clearForm();
           Future.delayed(const Duration(milliseconds: 500), () {
             if (mounted) {
@@ -129,22 +132,10 @@ class _SignInScreenViewState extends State<SignInScreenView> {
                         width: 600.h,
                       ),
                     ),
-                    SizedBox(height: 44.h),
-                    Text(
-                      'Welcome Back!!',
-                      style: AppTextStyle.hTextStyle.copyWith(color: textColor),
-                    ),
-                    SizedBox(height: 22.h),
-                    Text(
-                      'Sign In to Continue',
-                      style: AppTextStyle.mTextStyle.copyWith(
-                        color: Colors.blueGrey,
-                      ),
-                    ),
-                    SizedBox(height: 44.h),
+                    SizedBox(height: 140.h),
 
                     CustomTextField(
-                      hintText: 'Enter Username',
+                      hintText: 'Username',
                       prefixIcon: Icons.person,
                       controller: _controller.usernameController,
                       validator: _controller.validateUsername,
@@ -153,7 +144,7 @@ class _SignInScreenViewState extends State<SignInScreenView> {
                     SizedBox(height: 32.h),
 
                     CustomTextField(
-                      hintText: 'Enter Password',
+                      hintText: 'Password',
                       prefixIcon: Icons.lock,
                       controller: _controller.passwordController,
                       validator: _controller.validatePassword,
@@ -189,7 +180,7 @@ class _SignInScreenViewState extends State<SignInScreenView> {
                       child: Align(
                         alignment: Alignment.centerRight,
                         child: Text(
-                          'Forgot Password?',
+                          'Forgot your password?',
                           style: AppTextStyle.fTextStyle.copyWith(
                             color: primaryColor,
                           ),
@@ -215,7 +206,7 @@ class _SignInScreenViewState extends State<SignInScreenView> {
                                 width: double.infinity,
                                 height: 48,
                                 decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.red),
+                                  border: Border.all(color: redColor),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: TextButton(
@@ -223,7 +214,7 @@ class _SignInScreenViewState extends State<SignInScreenView> {
                                   child: Text(
                                     'Logout (Debug)',
                                     style: AppTextStyle.cTextStyle.copyWith(
-                                      color: Colors.red,
+                                      color: redColor,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -243,19 +234,19 @@ class _SignInScreenViewState extends State<SignInScreenView> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'Don\'t have a account ',
+                            'Need an account? ',
                             style: AppTextStyle.mTextStyle.copyWith(
                               color: textColor,
                             ),
                           ),
                           Text(
-                            'Sign Up ',
+                            'Sign Up',
                             style: AppTextStyle.cTextStyle.copyWith(
                               decoration: TextDecoration.underline,
                               decorationColor: primaryColor,
                               color: primaryColor,
                             ),
-                          ),
+                          )
                         ],
                       ),
                     ),

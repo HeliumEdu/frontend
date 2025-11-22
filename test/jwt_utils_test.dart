@@ -1,5 +1,12 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'package:flutter_test/flutter_test.dart';
-import 'package:helium_student_flutter/core/jwt_utils.dart';
+import 'package:heliumedu/core/jwt_utils.dart';
 
 void main() {
   group('JWTUtils', () {
@@ -34,7 +41,6 @@ void main() {
           'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzYxMzA4NDY4LCJpYXQiOjE3NjEzMDc1MDgsImp0aSI6IjMxM2FhNjU1YjgwNDQzNjM4OWVkYWViNjBkNGM3ZDBmIiwidXNlcl9pZCI6IjEzNDQ2In0.48BQ2-BU8SZkPgJVi00b2Rwh9FT200VonAzizSrMTsA';
 
       final isExpired = JWTUtils.isTokenExpired(expiredToken);
-      // The token might not be expired yet, so we just check that the function works
       expect(isExpired, isA<bool>());
     });
   });

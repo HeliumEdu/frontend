@@ -1,15 +1,23 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:helium_student_flutter/config/app_route.dart';
-import 'package:helium_student_flutter/core/dio_client.dart';
-import 'package:helium_student_flutter/data/datasources/auth_remote_data_source.dart';
-import 'package:helium_student_flutter/data/repositories/auth_repository_impl.dart';
-import 'package:helium_student_flutter/presentation/bloc/authBloc/auth_bloc.dart';
-import 'package:helium_student_flutter/presentation/bloc/authBloc/auth_event.dart';
-import 'package:helium_student_flutter/presentation/bloc/authBloc/auth_state.dart';
-import 'package:helium_student_flutter/utils/app_assets.dart';
-import 'package:helium_student_flutter/utils/app_colors.dart';
-import 'package:helium_student_flutter/utils/app_size.dart';
+import 'package:heliumedu/config/app_routes.dart';
+import 'package:heliumedu/core/dio_client.dart';
+import 'package:heliumedu/data/datasources/auth_remote_data_source.dart';
+import 'package:heliumedu/data/repositories/auth_repository_impl.dart';
+import 'package:heliumedu/presentation/bloc/authBloc/auth_bloc.dart';
+import 'package:heliumedu/presentation/bloc/authBloc/auth_event.dart';
+import 'package:heliumedu/presentation/bloc/authBloc/auth_state.dart';
+import 'package:heliumedu/utils/app_assets.dart';
+import 'package:heliumedu/utils/app_colors.dart';
+import 'package:heliumedu/utils/app_size.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -104,7 +112,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: whiteColor,
       body: SafeArea(
         child: Stack(
           children: [
@@ -118,25 +126,6 @@ class _SplashScreenState extends State<SplashScreen> {
                     width: 300.adaptSize,
                     height: 300.adaptSize,
                   ),
-                  SizedBox(height: 12.v),
-
-                  // // App Title with Gradient
-                  // ShaderMask(
-                  //   shaderCallback: (bounds) => LinearGradient(
-                  //     colors: [Color(0xFF00E5FF), Color(0xFF2196F3)],
-                  //     begin: Alignment.centerLeft,
-                  //     end: Alignment.centerRight,
-                  //   ).createShader(bounds),
-                  //   child: Text(
-                  //     'Helium Student Planner',
-                  //     style: GoogleFonts.roboto(
-                  //       fontSize: 20.adaptSize,
-                  //       fontWeight: FontWeight.w600,
-                  //       color: Colors.white,
-                  //     ),
-                  //   ),
-                  // ),
-                  SizedBox(height: 10.v),
                 ],
               ),
             ),

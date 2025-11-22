@@ -1,16 +1,23 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:helium_student_flutter/presentation/bloc/authBloc/auth_bloc.dart';
-import 'package:helium_student_flutter/presentation/bloc/authBloc/auth_event.dart';
-import 'package:helium_student_flutter/presentation/bloc/authBloc/auth_state.dart';
-import 'package:helium_student_flutter/core/dio_client.dart';
-import 'package:helium_student_flutter/data/datasources/auth_remote_data_source.dart';
-import 'package:helium_student_flutter/data/repositories/auth_repository_impl.dart';
-import 'package:helium_student_flutter/presentation/views/settingScreen/change_password_controller.dart';
-import 'package:helium_student_flutter/presentation/widgets/custom_text_field.dart';
-import 'package:helium_student_flutter/utils/app_colors.dart';
-import 'package:helium_student_flutter/utils/app_size.dart';
-import 'package:helium_student_flutter/utils/app_text_style.dart';
+import 'package:heliumedu/core/dio_client.dart';
+import 'package:heliumedu/data/datasources/auth_remote_data_source.dart';
+import 'package:heliumedu/data/repositories/auth_repository_impl.dart';
+import 'package:heliumedu/presentation/bloc/authBloc/auth_bloc.dart';
+import 'package:heliumedu/presentation/bloc/authBloc/auth_event.dart';
+import 'package:heliumedu/presentation/bloc/authBloc/auth_state.dart';
+import 'package:heliumedu/presentation/views/settingScreen/change_password_controller.dart';
+import 'package:heliumedu/presentation/widgets/custom_text_field.dart';
+import 'package:heliumedu/utils/app_colors.dart';
+import 'package:heliumedu/utils/app_size.dart';
+import 'package:heliumedu/utils/app_text_style.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -40,12 +47,15 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: EdgeInsets.symmetric(vertical: 2.v, horizontal: 2.h),
+                  padding: EdgeInsets.symmetric(
+                    vertical: 16.v,
+                    horizontal: 16.h,
+                  ),
                   decoration: BoxDecoration(
                     color: whiteColor,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: blackColor.withOpacity(0.05),
                         blurRadius: 8,
                         offset: Offset(0, 2),
                       ),
@@ -66,9 +76,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       ),
                       Text(
                         'Change Password',
-                        style: AppTextStyle.aTextStyle.copyWith(
+                        style: AppTextStyle.bTextStyle.copyWith(
                           color: blackColor,
-                          fontWeight: FontWeight.w600,
                         ),
                       ),
                       Icon(Icons.abc, color: transparentColor),
@@ -92,7 +101,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                         SizedBox(height: 12.v),
 
                         CustomTextField(
-                          hintText: 'Enter Current Password',
+                          hintText: '',
                           prefixIcon: Icons.lock,
                           controller: _controller.changePasswordController,
                           validator: _controller.validateChangePassword,
@@ -121,7 +130,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                         SizedBox(height: 12.v),
 
                         CustomTextField(
-                          hintText: 'Enter New Password',
+                          hintText: '',
                           prefixIcon: Icons.lock,
                           controller: _controller.changeNewPasswordController,
                           validator: _controller.validateChangePassword,
@@ -150,7 +159,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                         SizedBox(height: 12.v),
 
                         CustomTextField(
-                          hintText: 'Enter Confirm Password',
+                          hintText: '',
                           prefixIcon: Icons.lock,
                           controller:
                               _controller.changeConfirmPasswordController,
@@ -178,7 +187,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                               if (state is AuthPasswordChangeSuccess) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    backgroundColor: Colors.red,
+                                    backgroundColor: redColor,
                                     content: Text(state.message),
                                   ),
                                 );
@@ -186,7 +195,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                               } else if (state is AuthError) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    backgroundColor: Colors.red,
+                                    backgroundColor: redColor,
                                     content: Text(state.message),
                                   ),
                                 );
@@ -210,7 +219,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                                               context,
                                             ).showSnackBar(
                                               const SnackBar(
-                                                backgroundColor: Colors.red,
+                                                backgroundColor: redColor,
                                                 content: Text(
                                                   'New password same like current password',
                                                 ),
@@ -228,7 +237,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                                               context,
                                             ).showSnackBar(
                                               const SnackBar(
-                                                backgroundColor: Colors.red,
+                                                backgroundColor: redColor,
                                                 content: Text(
                                                   'New and confirm passwords do not match',
                                                 ),
@@ -262,13 +271,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                                         width: 20,
                                         child: CircularProgressIndicator(
                                           strokeWidth: 2,
-                                          color: Colors.white,
+                                          color: whiteColor,
                                         ),
                                       )
                                     : Text(
-                                        'Submit ',
+                                        'Save',
                                         style: AppTextStyle.mTextStyle.copyWith(
-                                          color: Colors.white,
+                                          color: whiteColor,
                                         ),
                                       ),
                               );

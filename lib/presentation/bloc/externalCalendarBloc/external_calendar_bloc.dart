@@ -1,10 +1,16 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:helium_student_flutter/core/app_exception.dart';
-import 'package:helium_student_flutter/data/models/planner/external_calendar_event_model.dart';
-import 'package:helium_student_flutter/data/models/planner/external_calendar_request_model.dart';
-import 'package:helium_student_flutter/domain/repositories/external_calendar_repository.dart';
-import 'package:helium_student_flutter/presentation/bloc/externalCalendarBloc/external_calendar_event.dart';
-import 'package:helium_student_flutter/presentation/bloc/externalCalendarBloc/external_calendar_state.dart';
+import 'package:heliumedu/core/app_exception.dart';
+import 'package:heliumedu/data/models/planner/external_calendar_event_model.dart';
+import 'package:heliumedu/domain/repositories/external_calendar_repository.dart';
+import 'package:heliumedu/presentation/bloc/externalCalendarBloc/external_calendar_event.dart';
+import 'package:heliumedu/presentation/bloc/externalCalendarBloc/external_calendar_state.dart';
 
 class ExternalCalendarBloc
     extends Bloc<ExternalCalendarEvent, ExternalCalendarState> {
@@ -83,12 +89,13 @@ class ExternalCalendarBloc
       print('🎯 Fetching all external calendar events...');
 
       // First, fetch all external calendars
-      final calendars =
-          await externalCalendarRepository.getAllExternalCalendars();
+      final calendars = await externalCalendarRepository
+          .getAllExternalCalendars();
       print('📅 Found ${calendars.length} external calendars');
 
       final Map<int, List<ExternalCalendarEventModel>> eventsByCalendar = {
-        for (final calendar in calendars) calendar.id: <ExternalCalendarEventModel>[],
+        for (final calendar in calendars)
+          calendar.id: <ExternalCalendarEventModel>[],
       };
 
       final now = DateTime.now().toUtc();
@@ -104,10 +111,10 @@ class ExternalCalendarBloc
         try {
           final events = await externalCalendarRepository
               .getExternalCalendarEvents(
-            calendarId: calendar.id,
-            start: startRange,
-            end: endRange,
-          );
+                calendarId: calendar.id,
+                start: startRange,
+                end: endRange,
+              );
           allEvents.addAll(events);
           eventsByCalendar[calendar.id] = events;
           print(
@@ -171,8 +178,8 @@ class ExternalCalendarBloc
         payload: event.payload,
       );
 
-      final calendars =
-          await externalCalendarRepository.getAllExternalCalendars();
+      final calendars = await externalCalendarRepository
+          .getAllExternalCalendars();
 
       emit(
         ExternalCalendarActionSuccess(
@@ -208,8 +215,8 @@ class ExternalCalendarBloc
         payload: event.payload,
       );
 
-      final calendars =
-          await externalCalendarRepository.getAllExternalCalendars();
+      final calendars = await externalCalendarRepository
+          .getAllExternalCalendars();
 
       emit(
         ExternalCalendarActionSuccess(
@@ -244,8 +251,8 @@ class ExternalCalendarBloc
         calendarId: event.calendarId,
       );
 
-      final calendars =
-          await externalCalendarRepository.getAllExternalCalendars();
+      final calendars = await externalCalendarRepository
+          .getAllExternalCalendars();
 
       emit(
         ExternalCalendarActionSuccess(

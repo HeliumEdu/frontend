@@ -1,7 +1,14 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'package:flutter/material.dart';
-import 'package:helium_student_flutter/utils/app_colors.dart';
-import 'package:helium_student_flutter/utils/app_size.dart';
-import 'package:helium_student_flutter/utils/app_text_style.dart';
+import 'package:heliumedu/utils/app_colors.dart';
+import 'package:heliumedu/utils/app_size.dart';
+import 'package:heliumedu/utils/app_text_style.dart';
 import 'package:intl/intl.dart';
 
 class CustomCalendarTextfield extends StatefulWidget {
@@ -30,7 +37,7 @@ class _CustomCalendarTextfieldState extends State<CustomCalendarTextfield> {
     super.initState();
     _selectedDate = widget.initialDate;
     if (_selectedDate != null) {
-      _controller.text = DateFormat('dd/MM/yyyy').format(_selectedDate!);
+      _controller.text = DateFormat('MMM dd, yyyy').format(_selectedDate!);
     }
   }
 
@@ -45,7 +52,7 @@ class _CustomCalendarTextfieldState extends State<CustomCalendarTextfield> {
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
               primary: primaryColor, // header background color
-              onPrimary: Colors.white, // header text color
+              onPrimary: whiteColor, // header text color
               onSurface: blackColor, // body text color
             ),
           ),
@@ -57,7 +64,7 @@ class _CustomCalendarTextfieldState extends State<CustomCalendarTextfield> {
     if (picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
-        _controller.text = DateFormat('dd/MM/yyyy').format(picked);
+        _controller.text = DateFormat('MMM dd, yyyy').format(picked);
       });
 
       // Call the callback function if provided

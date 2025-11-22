@@ -1,27 +1,38 @@
-.PHONY: all env install clean build test
+.PHONY: all env install install-ios clean build-android build-ios test
 
 SHELL := /usr/bin/env bash
 
 all: test
 
 env:
-	cp -n .env.example .env | true
-
-	@if [[ -z "${GOOGLE_SERVICES_JSON}" ]]; then \
-		echo "Error: GOOGLE_SERVICES_JSON environment variable is not set."; \
+	@if [[ -z "$${ANDROID_GOOGLE_SERVICES_JSON}" ]] || \
+		[[ -z "$${IOS_GOOGLE_SERVICES_PLIST}" ]]; then \
+		echo "Set all env vars required: [\
+ANDROID_GOOGLE_SERVICES_JSON, \
+IOS_GOOGLE_SERVICES_PLIST]"; \
 		exit 1; \
 	fi
 
-	echo "$${GOOGLE_SERVICES_JSON}" > android/app/google-services.json
+	cp -n .env.example .env | true
+
+	echo "$${ANDROID_GOOGLE_SERVICES_JSON}" > android/app/google-services.json
+	echo "$${IOS_GOOGLE_SERVICES_PLIST}" > ios/Runner/GoogleService-Info.plist
 
 install: env
 	flutter pub get
 
+install-ios: env
+	pod install --project-directory=ios
+
 clean:
 	flutter clean
 
-build: install
+build-android: install
 	flutter build apk --release
 
+build-ios: install install-ios
+	flutter build ipa --release --no-codesign
+
 test: install
+	flutter analyze --no-fatal-infos --no-fatal-warnings
 	flutter test

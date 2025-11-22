@@ -1,23 +1,29 @@
-// ignore_for_file: deprecated_member_use
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
+import 'package:easy_stepper/easy_stepper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:helium_student_flutter/config/app_route.dart';
-import 'package:helium_student_flutter/core/dio_client.dart';
-import 'package:helium_student_flutter/data/datasources/course_remote_data_source.dart';
-import 'package:helium_student_flutter/data/models/planner/course_model.dart';
-import 'package:helium_student_flutter/data/models/planner/course_request_model.dart';
-import 'package:helium_student_flutter/data/repositories/course_repository_impl.dart';
-import 'package:helium_student_flutter/presentation/bloc/courseBloc/course_bloc.dart';
-import 'package:helium_student_flutter/presentation/bloc/courseBloc/course_event.dart';
-import 'package:helium_student_flutter/presentation/bloc/courseBloc/course_state.dart';
-import 'package:helium_student_flutter/presentation/widgets/custom_class_textfield.dart';
-import 'package:helium_student_flutter/presentation/widgets/custom_text_button.dart';
-import 'package:helium_student_flutter/utils/app_colors.dart';
-import 'package:helium_student_flutter/utils/app_size.dart';
-import 'package:helium_student_flutter/utils/app_text_style.dart';
-import 'package:helium_student_flutter/utils/custom_calendar_textfield.dart';
-import 'package:helium_student_flutter/utils/custom_color_picker.dart';
-import 'package:easy_stepper/easy_stepper.dart';
+import 'package:heliumedu/config/app_routes.dart';
+import 'package:heliumedu/core/dio_client.dart';
+import 'package:heliumedu/data/datasources/course_remote_data_source.dart';
+import 'package:heliumedu/data/models/planner/course_model.dart';
+import 'package:heliumedu/data/models/planner/course_request_model.dart';
+import 'package:heliumedu/data/repositories/course_repository_impl.dart';
+import 'package:heliumedu/presentation/bloc/courseBloc/course_bloc.dart';
+import 'package:heliumedu/presentation/bloc/courseBloc/course_event.dart';
+import 'package:heliumedu/presentation/bloc/courseBloc/course_state.dart';
+import 'package:heliumedu/presentation/widgets/custom_class_textfield.dart';
+import 'package:heliumedu/presentation/widgets/custom_text_button.dart';
+import 'package:heliumedu/utils/app_colors.dart';
+import 'package:heliumedu/utils/app_size.dart';
+import 'package:heliumedu/utils/app_text_style.dart';
+import 'package:heliumedu/utils/custom_calendar_textfield.dart';
+import 'package:heliumedu/utils/custom_color_picker.dart';
 
 class AddClassesScreen extends StatefulWidget {
   final int courseGroupId;
@@ -53,7 +59,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
   DateTime? _endDate;
   bool _isCreating = false;
   int? _stepperTargetIndex;
-  
+
   // Course group default dates
   String? _groupStartDate;
   String? _groupEndDate;
@@ -93,21 +99,25 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
         (g) => g.id == widget.courseGroupId,
         orElse: () => groups.first,
       );
-      
+
       setState(() {
         _groupStartDate = group.startDate;
         _groupEndDate = group.endDate;
-        
+
         // If user hasn't set dates and group has dates, display them
-        if (_startDate == null && _groupStartDate != null && _groupStartDate!.isNotEmpty) {
+        if (_startDate == null &&
+            _groupStartDate != null &&
+            _groupStartDate!.isNotEmpty) {
           try {
             _startDate = DateTime.parse(_groupStartDate!);
           } catch (e) {
             print('Error parsing group start date: $e');
           }
         }
-        
-        if (_endDate == null && _groupEndDate != null && _groupEndDate!.isNotEmpty) {
+
+        if (_endDate == null &&
+            _groupEndDate != null &&
+            _groupEndDate!.isNotEmpty) {
           try {
             _endDate = DateTime.parse(_groupEndDate!);
           } catch (e) {
@@ -142,7 +152,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
 
       // Parse color
       try {
-        selectedColor = Color(int.parse('0xFF${course.color.substring(1)}'));
+        selectedColor = Color(int.parse('0xff${course.color.substring(1)}'));
       } catch (e) {
         print('Error parsing color: $e');
       }
@@ -212,7 +222,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
     // Use user dates if set, otherwise fallback to course group dates
     String startDateStr;
     String endDateStr;
-    
+
     if (_startDate != null) {
       startDateStr = _formatDateForApi(_startDate!);
     } else if (_groupStartDate != null && _groupStartDate!.isNotEmpty) {
@@ -220,7 +230,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
     } else {
       startDateStr = ''; // Will be handled by API or use current date
     }
-    
+
     if (_endDate != null) {
       endDateStr = _formatDateForApi(_endDate!);
     } else if (_groupEndDate != null && _groupEndDate!.isNotEmpty) {
@@ -228,7 +238,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
     } else {
       endDateStr = ''; // Will be handled by API or use current date
     }
-    
+
     // Create request model
     final request = CourseRequestModel(
       title: _titleController.text.trim().isEmpty
@@ -296,7 +306,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
     // Use user dates if set, otherwise fallback to course group dates
     String startDateStr;
     String endDateStr;
-    
+
     if (_startDate != null) {
       startDateStr = _formatDateForApi(_startDate!);
     } else if (_groupStartDate != null && _groupStartDate!.isNotEmpty) {
@@ -304,7 +314,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
     } else {
       startDateStr = '';
     }
-    
+
     if (_endDate != null) {
       endDateStr = _formatDateForApi(_endDate!);
     } else if (_groupEndDate != null && _groupEndDate!.isNotEmpty) {
@@ -346,7 +356,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  'Failed to load course: ${state.message}',
+                  'Failed to load class: ${state.message}',
                   style: AppTextStyle.cTextStyle.copyWith(color: whiteColor),
                 ),
                 backgroundColor: redColor,
@@ -366,10 +376,10 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  'Course created successfully!',
+                  'Class created successfully!',
                   style: AppTextStyle.cTextStyle.copyWith(color: whiteColor),
                 ),
-                backgroundColor: Colors.green,
+                backgroundColor: greenColor,
                 duration: const Duration(seconds: 2),
               ),
             );
@@ -406,10 +416,10 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  'Course updated successfully!',
+                  'Class updated successfully!',
                   style: AppTextStyle.cTextStyle.copyWith(color: whiteColor),
                 ),
-                backgroundColor: Colors.green,
+                backgroundColor: greenColor,
                 duration: const Duration(seconds: 2),
               ),
             );
@@ -431,8 +441,8 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
 
             // Get error message based on state type
             final errorTitle = state is CourseCreateError
-                ? 'Failed to create course'
-                : 'Failed to update course';
+                ? 'Failed to create class'
+                : 'Failed to update class';
             final errorMessage = state is CourseCreateError
                 ? state.message
                 : (state as CourseUpdateError).message;
@@ -477,7 +487,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                 Container(
                   padding: EdgeInsets.symmetric(
                     vertical: 16.v,
-                    horizontal: 12.h,
+                    horizontal: 16.h,
                   ),
                   width: double.infinity,
                   decoration: BoxDecoration(color: whiteColor),
@@ -497,9 +507,10 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                         widget.isEdit ? 'Edit Class' : 'Add Class',
                         style: AppTextStyle.aTextStyle.copyWith(
                           color: blackColor,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      Icon(Icons.import_contacts, color: Colors.transparent),
+                      Icon(Icons.import_contacts, color: transparentColor),
                     ],
                   ),
                 ),
@@ -584,7 +595,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                             ),
                             child: Center(
                               child: Icon(
-                                Icons.edit_outlined,
+                                Icons.menu_book,
                                 color: whiteColor,
                                 size: 20.adaptSize,
                               ),
@@ -593,7 +604,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                           customTitle: Padding(
                             padding: EdgeInsets.only(top: 8.v),
                             child: Text(
-                              'Class',
+                              'Details',
                               style: AppTextStyle.iTextStyle.copyWith(
                                 color: primaryColor,
                                 fontWeight: FontWeight.w700,
@@ -613,7 +624,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                             ),
                             child: Center(
                               child: Icon(
-                                Icons.access_time_outlined,
+                                Icons.calendar_month,
                                 color: primaryColor,
                                 size: 20.adaptSize,
                               ),
@@ -682,7 +693,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                           ),
                           SizedBox(height: 9.v),
                           CustomClassTextField(
-                            text: 'Enter Course Title',
+                            text: '',
                             controller: _titleController,
                           ),
                           SizedBox(height: 14.v),
@@ -696,7 +707,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                           CustomCalendarTextfield(
                             text: _startDate != null
                                 ? _formatDateForDisplay(_startDate!)
-                                : 'Select Date',
+                                : '',
                             onDateSelected: (selectedDate) {
                               setState(() {
                                 _startDate = selectedDate;
@@ -714,7 +725,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                           CustomCalendarTextfield(
                             text: _endDate != null
                                 ? _formatDateForDisplay(_endDate!)
-                                : 'Select Date',
+                                : '',
                             onDateSelected: (selectedDate) {
                               setState(() {
                                 _endDate = selectedDate;
@@ -732,7 +743,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                             ),
                             SizedBox(height: 9.v),
                             CustomClassTextField(
-                              text: 'Enter Room No.',
+                              text: '',
                               controller: _roomController,
                             ),
                             SizedBox(height: 14.v),
@@ -746,19 +757,19 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                           ),
                           SizedBox(height: 9.v),
                           CustomClassTextField(
-                            text: 'Enter Website',
+                            text: '',
                             controller: _websiteController,
                           ),
                           SizedBox(height: 14.v),
                           Text(
-                            'Teacher Name',
+                            'Teacher',
                             style: AppTextStyle.cTextStyle.copyWith(
                               color: blackColor.withOpacity(0.8),
                             ),
                           ),
                           SizedBox(height: 9.v),
                           CustomClassTextField(
-                            text: 'Enter Teacher Name',
+                            text: '',
                             controller: _teacherNameController,
                           ),
                           SizedBox(height: 14.v),
@@ -770,19 +781,19 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                           ),
                           SizedBox(height: 9.v),
                           CustomClassTextField(
-                            text: 'Enter Teacher Email',
+                            text: '',
                             controller: _teacherEmailController,
                           ),
                           SizedBox(height: 14.v),
                           Text(
-                            'Credits hour',
+                            'Credits',
                             style: AppTextStyle.cTextStyle.copyWith(
                               color: blackColor.withOpacity(0.8),
                             ),
                           ),
                           SizedBox(height: 9.v),
                           CustomClassTextField(
-                            text: 'Enter Course Credits Hour',
+                            text: '',
                             controller: _creditsController,
                           ),
                           SizedBox(height: 14.v),
@@ -821,7 +832,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                                     color: selectedColor,
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(
-                                      color: Colors.grey.shade300,
+                                      color: greyColor,
                                       width: 1,
                                     ),
                                   ),
@@ -831,8 +842,8 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                           ),
 
                           SizedBox(height: 33.v),
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 88.h),
+                          SizedBox(
+                            width: double.infinity,
                             child: _isCreating
                                 ? Center(
                                     child: CircularProgressIndicator(
@@ -843,9 +854,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                                     ),
                                   )
                                 : CustomTextButton(
-                                    buttonText: widget.isEdit
-                                        ? 'Update'
-                                        : 'Next',
+                                    buttonText: 'Save',
                                     onPressed: _validateAndCreateCourse,
                                   ),
                           ),

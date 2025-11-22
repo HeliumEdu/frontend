@@ -1,3 +1,10 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 class ReminderResponseModel {
   final int id;
   final String title;
@@ -7,8 +14,9 @@ class ReminderResponseModel {
   final int offsetType;
   final int type;
   final bool sent;
-  final int? homework;
-  final int? event;
+  final bool dismissed;
+  final Map? homework;
+  final Map? event;
   final int userId;
 
   ReminderResponseModel({
@@ -20,6 +28,7 @@ class ReminderResponseModel {
     required this.offsetType,
     required this.type,
     required this.sent,
+    required this.dismissed,
     this.homework,
     this.event,
     required this.userId,
@@ -49,8 +58,9 @@ class ReminderResponseModel {
       offsetType: json['offset_type'] ?? 0,
       type: json['type'] ?? 0,
       sent: json['sent'] ?? false,
-      homework: _parseId(json['homework']),
-      event: _parseId(json['event']),
+      dismissed: json['dismissed'] ?? false,
+      homework: parseCalendarItem(json['homework']),
+      event: parseCalendarItem(json['event']),
       userId: _parseId(json['user']) ?? 0,
     );
   }
@@ -65,9 +75,18 @@ class ReminderResponseModel {
       'offset_type': offsetType,
       'type': type,
       'sent': sent,
+      'dismissed': dismissed,
       'homework': homework,
       'event': event,
       'user': userId,
     };
+  }
+
+  static Map<dynamic, dynamic>? parseCalendarItem(value) {
+    if (value is int) {
+      return {'id': value};
+    } else {
+      return value;
+    }
   }
 }

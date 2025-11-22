@@ -3,14 +3,14 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:helium_student_flutter/config/app_route.dart';
-import 'package:helium_student_flutter/data/models/notification/notification_model.dart';
-import 'package:helium_student_flutter/data/models/notification/fcm_token_model.dart';
-import 'package:helium_student_flutter/data/models/notification/push_token_request_model.dart';
-import 'package:helium_student_flutter/data/repositories/push_notification_repository_impl.dart';
-import 'package:helium_student_flutter/data/datasources/push_notification_remote_data_source.dart';
-import 'package:helium_student_flutter/core/dio_client.dart';
-import 'package:helium_student_flutter/main.dart';
+import 'package:heliumedu/config/app_routes.dart';
+import 'package:heliumedu/data/models/notification/notification_model.dart';
+import 'package:heliumedu/data/models/notification/fcm_token_model.dart';
+import 'package:heliumedu/data/models/notification/push_token_request_model.dart';
+import 'package:heliumedu/data/repositories/push_notification_repository_impl.dart';
+import 'package:heliumedu/data/datasources/push_notification_remote_data_source.dart';
+import 'package:heliumedu/core/dio_client.dart';
+import 'package:heliumedu/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FCMService {
@@ -273,9 +273,7 @@ class FCMService {
     ].join('|');
 
     final String key = contentFingerprint.trim().isEmpty
-        ? (message.notification?.title ?? '') +
-              '|' +
-              (message.notification?.body ?? '')
+        ? '${message.notification?.title ?? ''}|${message.notification?.body ?? ''}'
         : contentFingerprint;
 
     final now = DateTime.now();
@@ -296,9 +294,6 @@ class FCMService {
           message.messageId ?? DateTime.now().millisecondsSinceEpoch.toString(),
       title: message.notification?.title ?? 'HeliumEdu Reminder',
       body: message.notification?.body ?? 'You have a new reminder.',
-      imageUrl:
-          message.notification?.android?.imageUrl ??
-          message.notification?.apple?.imageUrl,
       data: message.data,
       timestamp: message.sentTime ?? DateTime.now(),
       isRead: false,
@@ -416,7 +411,6 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
           message.messageId ?? DateTime.now().millisecondsSinceEpoch.toString(),
       title: 'HeliumEdu Reminder',
       body: 'You have a new reminder.',
-      imageUrl: null,
       data: message.data,
       timestamp: message.sentTime ?? DateTime.now(),
       isRead: false,

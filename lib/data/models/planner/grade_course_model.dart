@@ -1,4 +1,11 @@
-import 'package:helium_student_flutter/data/models/planner/grade_category_model.dart';
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
+import 'package:heliumedu/data/models/planner/grade_category_model.dart';
 
 class GradeCourseModel {
   final int id;
@@ -6,6 +13,8 @@ class GradeCourseModel {
   final double overallGrade;
   final String color;
   final double? trend;
+  final int numHomework;
+  final int numHomeworkCompleted;
   final int numHomeworkGraded;
   final List<List<dynamic>>
   gradePoints; // [["2025-10-09T17:00:00Z", 90.0], ...]
@@ -17,6 +26,8 @@ class GradeCourseModel {
     required this.overallGrade,
     required this.color,
     this.trend,
+    required this.numHomework,
+    required this.numHomeworkCompleted,
     required this.numHomeworkGraded,
     required this.gradePoints,
     required this.categories,
@@ -29,6 +40,8 @@ class GradeCourseModel {
       overallGrade: (json['overall_grade'] as num?)?.toDouble() ?? -1.0,
       color: json['color'] as String? ?? '#000000',
       trend: (json['trend'] as num?)?.toDouble(),
+      numHomework: json['num_homework'] as int? ?? 0,
+      numHomeworkCompleted: json['num_homework_completed'] as int? ?? 0,
       numHomeworkGraded: json['num_homework_graded'] as int? ?? 0,
       gradePoints:
           (json['grade_points'] as List<dynamic>?)
@@ -54,6 +67,8 @@ class GradeCourseModel {
       'overall_grade': overallGrade,
       'color': color,
       'trend': trend,
+      'num_homework': numHomework,
+      'num_homework_completed': numHomeworkCompleted,
       'num_homework_graded': numHomeworkGraded,
       'grade_points': gradePoints,
       'categories': categories.map((c) => c.toJson()).toList(),

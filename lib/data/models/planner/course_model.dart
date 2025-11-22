@@ -1,4 +1,11 @@
-import 'package:helium_student_flutter/data/models/planner/course_schedule_model.dart';
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
+import 'package:heliumedu/data/models/planner/course_schedule_model.dart';
 
 class CourseModel {
   final int id;
@@ -145,13 +152,13 @@ class CourseModel {
   // Helper to get formatted grade
   String getFormattedGrade() {
     if (!hasGrade()) {
-      return 'No grade';
+      return '';
     }
     try {
       final grade = double.parse(currentGrade);
       return '${grade.toStringAsFixed(2)}%';
     } catch (e) {
-      return currentGrade;
+      return '';
     }
   }
 }

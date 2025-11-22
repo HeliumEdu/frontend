@@ -1,8 +1,15 @@
-import 'package:helium_student_flutter/data/datasources/external_calendar_remote_data_source.dart';
-import 'package:helium_student_flutter/data/models/planner/external_calendar_event_model.dart';
-import 'package:helium_student_flutter/data/models/planner/external_calendar_model.dart';
-import 'package:helium_student_flutter/data/models/planner/external_calendar_request_model.dart';
-import 'package:helium_student_flutter/domain/repositories/external_calendar_repository.dart';
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
+import 'package:heliumedu/data/datasources/external_calendar_remote_data_source.dart';
+import 'package:heliumedu/data/models/planner/external_calendar_event_model.dart';
+import 'package:heliumedu/data/models/planner/external_calendar_model.dart';
+import 'package:heliumedu/data/models/planner/external_calendar_request_model.dart';
+import 'package:heliumedu/domain/repositories/external_calendar_repository.dart';
 
 class ExternalCalendarRepositoryImpl implements ExternalCalendarRepository {
   final ExternalCalendarRemoteDataSource remoteDataSource;

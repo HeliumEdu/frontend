@@ -1,6 +1,13 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'package:flutter/material.dart';
-import 'package:helium_student_flutter/data/models/planner/external_calendar_model.dart';
-import 'package:helium_student_flutter/data/models/planner/external_calendar_request_model.dart';
+import 'package:heliumedu/data/models/planner/external_calendar_model.dart';
+import 'package:heliumedu/data/models/planner/external_calendar_request_model.dart';
 
 class OffsetController extends ChangeNotifier {
   int _offsetValue = 0;
@@ -58,7 +65,7 @@ class OffsetController extends ChangeNotifier {
 class ExternalCalendarFormController extends ChangeNotifier {
   final TextEditingController titleController = TextEditingController();
   final TextEditingController urlController = TextEditingController();
-  Color selectedColor = const Color(0xFF16a765);
+  Color selectedColor = const Color(0xff16a765);
   bool shownOnCalendar = true;
 
   void populateFromModel(ExternalCalendarModel model) {
@@ -72,7 +79,7 @@ class ExternalCalendarFormController extends ChangeNotifier {
   void reset() {
     titleController.clear();
     urlController.clear();
-    selectedColor = const Color(0xFF16a765);
+    selectedColor = const Color(0xff16a765);
     shownOnCalendar = true;
     notifyListeners();
   }
@@ -108,9 +115,9 @@ class ExternalCalendarFormController extends ChangeNotifier {
       } else if (value.length == 9) {
         value = '#${value.substring(3)}';
       }
-      return Color(int.parse(value.substring(1), radix: 16) + 0xFF000000);
+      return Color(int.parse(value.substring(1), radix: 16) + 0xff000000);
     } catch (_) {
-      return const Color(0xFF16a765);
+      return const Color(0xff16a765);
     }
   }
 

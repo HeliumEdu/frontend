@@ -20,18 +20,21 @@ jobs:
     name: Build
 
     env:
-      GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+      ANDROID_GOOGLE_SERVICES_JSON: ${{ secrets.ANDROID_GOOGLE_SERVICES_JSON }}
+      IOS_GOOGLE_SERVICES_PLIST: ${{ secrets.IOS_GOOGLE_SERVICES_PLIST }}
 
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
           version: "3.38.1"
-      - name: Build mobile
-        run: make build
-      - name: Test mobile
+      - name: Build Android
+        run: make build-android
+      - name: Build iOS
+        run: make build-ios
+      - name: Test
         run: make test

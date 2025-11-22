@@ -1,8 +1,15 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:helium_student_flutter/core/app_exception.dart';
-import 'package:helium_student_flutter/domain/repositories/homework_repository.dart';
-import 'package:helium_student_flutter/presentation/bloc/homeworkBloc/homework_event.dart';
-import 'package:helium_student_flutter/presentation/bloc/homeworkBloc/homework_state.dart';
+import 'package:heliumedu/core/app_exception.dart';
+import 'package:heliumedu/domain/repositories/homework_repository.dart';
+import 'package:heliumedu/presentation/bloc/homeworkBloc/homework_event.dart';
+import 'package:heliumedu/presentation/bloc/homeworkBloc/homework_state.dart';
 
 class HomeworkBloc extends Bloc<HomeworkEvent, HomeworkState> {
   final HomeworkRepository homeworkRepository;

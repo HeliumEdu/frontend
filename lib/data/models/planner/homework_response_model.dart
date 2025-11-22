@@ -1,3 +1,10 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 class HomeworkResponseModel {
   final int id;
   final String title;
@@ -73,5 +80,24 @@ class HomeworkResponseModel {
       'course': course,
       'user': userId,
     };
+  }
+
+  // Helper to check if course has grade
+  bool hasGrade() {
+    return currentGrade != '-1/100' && currentGrade!.isNotEmpty;
+  }
+
+  // Helper to get formatted grade
+  String getFormattedGrade() {
+    if (!hasGrade()) {
+      return '';
+    }
+    try {
+      final split = currentGrade!.split("/");
+      final grade = (double.parse(split[0]) / double.parse(split[1])) * 100;
+      return '${grade.toStringAsFixed(2)}%';
+    } catch (e) {
+      return '';
+    }
   }
 }

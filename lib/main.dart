@@ -1,24 +1,44 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:helium_student_flutter/config/app_route.dart';
-import 'package:helium_student_flutter/config/routes_observer.dart';
-import 'package:helium_student_flutter/presentation/bloc/bottombarBloc/bottom_bar_bloc.dart';
-import 'package:helium_student_flutter/presentation/bloc/notificationBloc/notification_bloc.dart';
-import 'package:helium_student_flutter/core/fcm_service.dart';
-import 'package:helium_student_flutter/utils/app_colors.dart';
-import 'package:helium_student_flutter/utils/app_size.dart';
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:heliumedu/config/app_routes.dart';
+import 'package:heliumedu/config/route_observer.dart';
+import 'package:heliumedu/core/fcm_service.dart';
+import 'package:heliumedu/presentation/bloc/bottombarBloc/bottom_bar_bloc.dart';
+import 'package:heliumedu/presentation/bloc/notificationBloc/notification_bloc.dart';
+import 'package:heliumedu/utils/app_colors.dart';
+import 'package:heliumedu/utils/app_size.dart';
+import 'package:timezone/data/latest.dart' as tz;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  tz.initializeTimeZones();
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    print("dotenv not initialized, this is normal outside of development");
+  }
+
   await Firebase.initializeApp();
 
-  // Initialize FCM Service
   final fcmService = FCMService();
   await fcmService.initialize();
 
-  runApp(MyApp(fcmService: fcmService));
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]).then((
+    _,
+  ) {
+    runApp(MyApp(fcmService: fcmService));
+  });
 }
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();

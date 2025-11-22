@@ -1,20 +1,27 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:helium_student_flutter/config/app_route.dart';
-import 'package:helium_student_flutter/core/dio_client.dart';
-import 'package:helium_student_flutter/data/datasources/auth_remote_data_source.dart';
-import 'package:helium_student_flutter/data/repositories/auth_repository_impl.dart';
-import 'package:helium_student_flutter/presentation/bloc/authBloc/auth_bloc.dart';
-import 'package:helium_student_flutter/presentation/bloc/authBloc/auth_event.dart';
-import 'package:helium_student_flutter/presentation/bloc/authBloc/auth_state.dart';
-import 'package:helium_student_flutter/presentation/views/authScreen/signupScreen/sign_up_controller.dart';
-import 'package:helium_student_flutter/presentation/widgets/custom_drop_down.dart';
-import 'package:helium_student_flutter/presentation/widgets/custom_text_field.dart';
-import 'package:helium_student_flutter/presentation/widgets/custom_text_button.dart';
-import 'package:helium_student_flutter/utils/app_assets.dart';
-import 'package:helium_student_flutter/utils/app_colors.dart';
-import 'package:helium_student_flutter/utils/app_size.dart';
-import 'package:helium_student_flutter/utils/app_text_style.dart';
+import 'package:heliumedu/config/app_routes.dart';
+import 'package:heliumedu/core/dio_client.dart';
+import 'package:heliumedu/data/datasources/auth_remote_data_source.dart';
+import 'package:heliumedu/data/repositories/auth_repository_impl.dart';
+import 'package:heliumedu/presentation/bloc/authBloc/auth_bloc.dart';
+import 'package:heliumedu/presentation/bloc/authBloc/auth_event.dart';
+import 'package:heliumedu/presentation/bloc/authBloc/auth_state.dart';
+import 'package:heliumedu/presentation/views/authScreen/signupScreen/sign_up_controller.dart';
+import 'package:heliumedu/presentation/widgets/custom_drop_down.dart';
+import 'package:heliumedu/presentation/widgets/custom_text_button.dart';
+import 'package:heliumedu/presentation/widgets/custom_text_field.dart';
+import 'package:heliumedu/utils/app_assets.dart';
+import 'package:heliumedu/utils/app_colors.dart';
+import 'package:heliumedu/utils/app_size.dart';
+import 'package:heliumedu/utils/app_text_style.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SignUpScreen extends StatelessWidget {
@@ -61,12 +68,12 @@ class _SignUpScreenViewState extends State<SignUpScreenView> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? Colors.red : Colors.green,
+        backgroundColor: isError ? redColor : greenColor,
         duration: const Duration(seconds: 4),
         behavior: SnackBarBehavior.floating,
         action: SnackBarAction(
           label: 'Dismiss',
-          textColor: Colors.white,
+          textColor: whiteColor,
           onPressed: () {
             if (mounted) {
               ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -237,20 +244,13 @@ class _SignUpScreenViewState extends State<SignUpScreenView> {
                     SizedBox(height: 28.v),
 
                     Text(
-                      'Create your account',
+                      'New User Registration',
                       style: AppTextStyle.hTextStyle.copyWith(
-                        color: Colors.black87,
+                        color: blackColor,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    SizedBox(height: 14.v),
 
-                    Text(
-                      'Let\'s get started',
-                      style: AppTextStyle.fTextStyle.copyWith(
-                        color: Colors.grey[600],
-                      ),
-                    ),
                     SizedBox(height: 44.v),
 
                     CustomTextField(
@@ -354,7 +354,7 @@ class _SignUpScreenViewState extends State<SignUpScreenView> {
                             text: TextSpan(
                               text: 'I agree to Helium\'s ',
                               style: AppTextStyle.fTextStyle.copyWith(
-                                color: Colors.grey[600],
+                                color: greyColor,
                               ),
                               children: [
                                 WidgetSpan(
@@ -372,7 +372,7 @@ class _SignUpScreenViewState extends State<SignUpScreenView> {
                                 TextSpan(
                                   text: ' and ',
                                   style: AppTextStyle.fTextStyle.copyWith(
-                                    color: Colors.grey[600],
+                                    color: greyColor,
                                   ),
                                 ),
                                 WidgetSpan(
@@ -399,7 +399,7 @@ class _SignUpScreenViewState extends State<SignUpScreenView> {
                       builder: (context, state) {
                         final isLoading = state is AuthLoading;
                         return CustomTextButton(
-                          buttonText: 'Sign Up',
+                          buttonText: 'Sign Me Up',
                           onPressed: _handleSignUp,
                           isLoading: isLoading,
                         );
@@ -413,7 +413,7 @@ class _SignUpScreenViewState extends State<SignUpScreenView> {
                         Text(
                           'Already have an account? ',
                           style: AppTextStyle.fTextStyle.copyWith(
-                            color: Colors.grey[600],
+                            color: greyColor,
                           ),
                         ),
                         GestureDetector(

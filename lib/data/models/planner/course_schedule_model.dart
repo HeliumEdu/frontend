@@ -1,3 +1,12 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
+import 'package:intl/intl.dart';
+
 class CourseScheduleModel {
   final int id;
   final String daysOfWeek;
@@ -16,6 +25,7 @@ class CourseScheduleModel {
   final String satStartTime;
   final String satEndTime;
   final int course;
+  final serverDateFormat = DateFormat('HH:mm:ss');
 
   CourseScheduleModel({
     required this.id,
@@ -137,6 +147,9 @@ class CourseScheduleModel {
         endTime = satEndTime;
         break;
     }
+
+    startTime = DateFormat('hh:mm a').format(serverDateFormat.parse(startTime));
+    endTime = DateFormat('hh:mm a').format(serverDateFormat.parse(endTime));
 
     return '$startTime - $endTime';
   }

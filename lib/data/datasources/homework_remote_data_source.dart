@@ -1,9 +1,16 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'package:dio/dio.dart';
-import 'package:helium_student_flutter/core/app_exception.dart';
-import 'package:helium_student_flutter/core/dio_client.dart';
-import 'package:helium_student_flutter/core/network_urls.dart';
-import 'package:helium_student_flutter/data/models/planner/homework_request_model.dart';
-import 'package:helium_student_flutter/data/models/planner/homework_response_model.dart';
+import 'package:heliumedu/core/app_exception.dart';
+import 'package:heliumedu/core/dio_client.dart';
+import 'package:heliumedu/core/network_urls.dart';
+import 'package:heliumedu/data/models/planner/homework_request_model.dart';
+import 'package:heliumedu/data/models/planner/homework_response_model.dart';
 
 abstract class HomeworkRemoteDataSource {
   Future<List<HomeworkResponseModel>> getAllHomework({
@@ -99,10 +106,9 @@ class HomeworkRemoteDataSourceImpl implements HomeworkRemoteDataSource {
         }
       }
 
-      final filterSummary =
-          queryParameters.containsKey('category__title_in')
-              ? " with categories: ${queryParameters['category__title_in']}"
-              : '';
+      final filterSummary = queryParameters.containsKey('category__title_in')
+          ? " with categories: ${queryParameters['category__title_in']}"
+          : '';
       print('📚 Fetching all homework$filterSummary...');
       final response = await dioClient.dio.get(
         NetworkUrl.allHomeworkUrl,

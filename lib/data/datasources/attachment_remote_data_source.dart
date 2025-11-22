@@ -1,9 +1,17 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'dart:io';
+
 import 'package:dio/dio.dart';
-import 'package:helium_student_flutter/core/app_exception.dart';
-import 'package:helium_student_flutter/core/dio_client.dart';
-import 'package:helium_student_flutter/core/network_urls.dart';
-import 'package:helium_student_flutter/data/models/planner/attachment_model.dart';
+import 'package:heliumedu/core/app_exception.dart';
+import 'package:heliumedu/core/dio_client.dart';
+import 'package:heliumedu/core/network_urls.dart';
+import 'package:heliumedu/data/models/planner/attachment_model.dart';
 
 abstract class AttachmentRemoteDataSource {
   Future<List<AttachmentModel>> createAttachment({
@@ -14,6 +22,7 @@ abstract class AttachmentRemoteDataSource {
   });
 
   Future<List<AttachmentModel>> getAttachments();
+
   Future<void> deleteAttachment(int attachmentId);
 }
 
@@ -45,7 +54,7 @@ class AttachmentRemoteDataSourceImpl implements AttachmentRemoteDataSource {
       } else if (statusCode == 404) {
         return ServerException(message: 'Attachment not found');
       } else if (statusCode == 413) {
-        return ValidationException(message: 'File size exceeds 10MB limit');
+        return ValidationException(message: 'File size exceeds 10mb limit');
       } else if (statusCode != null && statusCode >= 500) {
         return ServerException(message: 'Server error occurred');
       }
@@ -72,15 +81,14 @@ class AttachmentRemoteDataSourceImpl implements AttachmentRemoteDataSource {
       // Validate that at least one of course, event, or homework is provided
       if (course == null && event == null && homework == null) {
         throw ValidationException(
-          message:
-              'At least one of course, event, or homework must be provided',
+          message: 'At least one of class, event, or homework must be provided',
         );
       }
 
-      // Check file size (max 10MB)
+      // Check file size (max 10mb)
       final fileSize = await file.length();
       if (fileSize > 10 * 1024 * 1024) {
-        throw ValidationException(message: 'File size exceeds 10MB limit');
+        throw ValidationException(message: 'File size exceeds 10mb limit');
       }
 
       // Create FormData for file upload

@@ -1,7 +1,14 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'package:flutter/material.dart';
-import 'package:helium_student_flutter/utils/app_colors.dart';
-import 'package:helium_student_flutter/utils/app_size.dart';
-import 'package:helium_student_flutter/utils/app_text_style.dart';
+import 'package:heliumedu/utils/app_colors.dart';
+import 'package:heliumedu/utils/app_size.dart';
+import 'package:heliumedu/utils/app_text_style.dart';
 
 class CustomDropdown extends StatelessWidget {
   final String hintText;
@@ -25,7 +32,6 @@ class CustomDropdown extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey[100],
         border: Border.all(color: textColor.withOpacity(0.1)),
         borderRadius: BorderRadius.circular(8.h),
       ),
@@ -40,7 +46,7 @@ class CustomDropdown extends StatelessWidget {
           border: InputBorder.none,
         ),
         style: AppTextStyle.fTextStyle.copyWith(color: textColor),
-        dropdownColor: Colors.white,
+        dropdownColor: whiteColor,
         icon: Icon(Icons.keyboard_arrow_down, color: textColor),
         isExpanded: true,
         items: items.map((String timezone) {
@@ -48,7 +54,9 @@ class CustomDropdown extends StatelessWidget {
             value: timezone,
             child: Text(
               timezone.replaceAll('_', ' '),
-              style: AppTextStyle.fTextStyle.copyWith(color: textColor),
+              style: AppTextStyle.eTextStyle.copyWith(
+                color: blackColor.withOpacity(0.5),
+              ),
             ),
           );
         }).toList(),

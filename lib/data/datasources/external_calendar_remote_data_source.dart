@@ -1,29 +1,38 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'package:dio/dio.dart';
-import 'package:helium_student_flutter/core/app_exception.dart';
-import 'package:helium_student_flutter/core/dio_client.dart';
-import 'package:helium_student_flutter/core/network_urls.dart';
-import 'package:helium_student_flutter/data/models/planner/external_calendar_event_model.dart';
-import 'package:helium_student_flutter/data/models/planner/external_calendar_model.dart';
-import 'package:helium_student_flutter/data/models/planner/external_calendar_request_model.dart';
+import 'package:heliumedu/core/app_exception.dart';
+import 'package:heliumedu/core/dio_client.dart';
+import 'package:heliumedu/core/network_urls.dart';
+import 'package:heliumedu/data/models/planner/external_calendar_event_model.dart';
+import 'package:heliumedu/data/models/planner/external_calendar_model.dart';
+import 'package:heliumedu/data/models/planner/external_calendar_request_model.dart';
 import 'package:intl/intl.dart';
 
 abstract class ExternalCalendarRemoteDataSource {
   Future<List<ExternalCalendarModel>> getAllExternalCalendars();
+
   Future<List<ExternalCalendarEventModel>> getExternalCalendarEvents({
     required int calendarId,
     DateTime? start,
     DateTime? end,
   });
+
   Future<ExternalCalendarModel> addExternalCalendar({
     required ExternalCalendarRequestModel payload,
   });
+
   Future<ExternalCalendarModel> updateExternalCalendar({
     required int calendarId,
     required ExternalCalendarRequestModel payload,
   });
-  Future<void> deleteExternalCalendar({
-    required int calendarId,
-  });
+
+  Future<void> deleteExternalCalendar({required int calendarId});
 }
 
 class ExternalCalendarRemoteDataSourceImpl
@@ -124,7 +133,7 @@ class ExternalCalendarRemoteDataSourceImpl
       String? nextUrl;
 
       String formatDate(DateTime value) =>
-          DateFormat('yyyy-MM-dd').format(value.toUtc());
+          DateFormat('MMM dd, yyyy').format(value.toUtc());
 
       Map<String, dynamic>? buildQueryParams() {
         final params = <String, dynamic>{'limit': 500};
@@ -231,7 +240,9 @@ class ExternalCalendarRemoteDataSourceImpl
     required ExternalCalendarRequestModel payload,
   }) async {
     try {
-      print('📅 Updating external calendar: ${payload.title} (ID: $calendarId)');
+      print(
+        '📅 Updating external calendar: ${payload.title} (ID: $calendarId)',
+      );
 
       final response = await dioClient.dio.put(
         NetworkUrl.externalCalendarDetailUrl(calendarId),
