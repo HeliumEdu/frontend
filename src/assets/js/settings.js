@@ -225,9 +225,66 @@ function HeliumSettings() {
                            .removeClass("hidden alert-danger");
                        $("#id_file").ace_file_input('reset_input');
 
+                       $.extend(helium.USER_PREFS.settings, data);
+                       if (!helium.USER_PREFS.settings.remember_filter_state) {
+                           helium.clear_storage();
+                       }
+
                        $("#loading-importexport").spin(false);
                    }
                });
+    });
+
+    $("#externalcalendars-form").submit(function (e) {
+        // Prevent default submit
+        e.preventDefault();
+        e.returnValue = false;
+
+        $("#loading-externalcalendars").spin(helium.SMALL_LOADING_OPTS);
+
+        helium.clear_form_errors($(this).attr("id"));
+        helium.ajax_error_occurred = false;
+
+        $.ajax().always(function () {
+            const form = $("#externalcalendars-form"), data = form.serializeArray();
+
+            self.save_externalcalendars(form);
+
+            $.each(self.to_delete, function (index, id) {
+                if (helium.ajax_error_occurred) {
+                    return false;
+                }
+
+                $.ajax({
+                           async: false,
+                           type: 'DELETE',
+                           url: helium.API_URL + '/feed/externalcalendars/' + id + '/',
+                           error: function (xhr) {
+                               helium.ajax_error_occurred = true;
+
+                               self.show_error("externalcalendars", xhr);
+                           }
+                       });
+            });
+
+            self.to_delete = [];
+
+            self.populate_externalcalendars();
+
+            if (!helium.ajax_error_occurred) {
+                helium.clear_form_errors("externalcalendars-form");
+
+                $("#status_externalcalendars").html("Changes saved.").addClass("alert-success")
+                    .removeClass("hidden alert-danger");
+
+                $.extend(helium.USER_PREFS.settings, data);
+                if (!helium.USER_PREFS.settings.remember_filter_state) {
+                    helium.clear_storage();
+                }
+
+                $("#loading-externalcalendars").spin(false);
+            }
+        });
     });
 
     $("#preferences-form").submit(function (e) {
@@ -258,31 +315,6 @@ function HeliumSettings() {
                           "value": $("#id_calendar_use_category_colors").is(":checked")
                       });
             data.push({"name": "remember_filter_state", "value": $("#id_remember_filter_state").is(":checked")});
-
-            self.save_externalcalendars(form);
-
-            $.each(self.to_delete, function (index, id) {
-                if (helium.ajax_error_occurred) {
-                    return false;
-                }
-
-                $.ajax({
-                           async: false,
-                           type: 'DELETE',
-                           url: helium.API_URL + '/feed/externalcalendars/' + id + '/',
-                           error: function (xhr) {
-                               self.show_error("preferences", xhr);
-                           }
-                       });
-            });
-
-            self.to_delete = [];
-
-            self.populate_externalcalendars();
-
-            if (helium.ajax_error_occurred) {
-                return false;
-            }
 
             $.ajax({
                        async: false,
@@ -674,6 +706,11 @@ function HeliumSettings() {
                        helium.planner_api.update_user_details(function () {
                            $("#status_importexport").html("\"Example Schedule\" imported successfully.").addClass("alert-success")
                                .removeClass("hidden alert-danger");
+
+                           $.extend(helium.USER_PREFS.settings, data);
+                           if (!helium.USER_PREFS.settings.remember_filter_state) {
+                               helium.clear_storage();
+                           }
 
                            $("#loading-importexport").spin(false);
                            $("#reimport-exampleschedule").attr("disabled", false);
