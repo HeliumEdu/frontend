@@ -997,7 +997,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                                   child: ListView.separated(
                                     shrinkWrap: true,
                                     scrollDirection: Axis.horizontal,
-                                    itemCount: listOfClassesSchedule.length,
+                                    itemCount: listOfDays.length,
                                     itemBuilder: (context, index) {
                                       bool isSelected = selectedDays.contains(
                                         index,
@@ -1049,7 +1049,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                                           ),
                                           child: Center(
                                             child: Text(
-                                              listOfClassesSchedule[index],
+                                              listOfDays[index],
                                               style: AppTextStyle.cTextStyle
                                                   .copyWith(
                                                     color: isSelected

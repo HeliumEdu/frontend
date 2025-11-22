@@ -69,8 +69,8 @@ class _HomeScreenState extends State<HomeScreen> {
   DateTime _calendarFocusedMonth = DateTime.now();
   String? selectedReminderPreference;
   Map<String, bool> selectedClasses = {};
-  int selectedIndex = 2; // Default to Days view (index 2)
-  String _currentViewMode = 'Day'; // 'Month', 'Week', 'Day'
+  int selectedIndex = 2; // Default to day view
+  String _currentViewMode = 'Day';
   int _selectedWeekIndex = 0; // For week view selection
   Color _eventColor = greenColor;
   String _timeZone = 'America/Chicago';
@@ -254,7 +254,9 @@ class _HomeScreenState extends State<HomeScreen> {
         print(
           '   - Calendar: ${external_calendar.title} (ID: ${external_calendar.id}, shown: ${external_calendar.shownOnCalendar})',
         );
-        print('     Events: ${eventsByCalendar[external_calendar.id]?.length ?? 0}');
+        print(
+          '     Events: ${eventsByCalendar[external_calendar.id]?.length ?? 0}',
+        );
       }
     }
 
@@ -415,9 +417,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Color _externalCalendarColor(int calendarId) {
     for (final calendar in _externalCalendars) {
       if (calendar.id == calendarId) {
-        return _colorFromHex(
-          calendar.color
-        );
+        return _colorFromHex(calendar.color);
       }
     }
     return blackColor;
@@ -691,7 +691,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (showClassSchedule && _hasCoursesOnDate(date, courses)) {
       dots.add(greenColor);
     }
-    if (showExternal && _hasExternalEventsOnDate(date, filteredExternalEvents)) {
+    if (showExternal &&
+        _hasExternalEventsOnDate(date, filteredExternalEvents)) {
       dots.add(yellowColor);
     }
 
@@ -1256,7 +1257,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           activeColor: primaryColor,
                         ),
                         CheckboxListTile(
-                          value: selectedCategories.contains('External Calendars'),
+                          value: selectedCategories.contains(
+                            'External Calendars',
+                          ),
                           onChanged: (value) {
                             setState(() {
                               if (value == true) {
@@ -1609,142 +1612,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildCalendarGrid(StateSetter setModalState) {
-    final firstDayOfMonth = DateTime(
-      _calendarFocusedMonth.year,
-      _calendarFocusedMonth.month,
-      1,
-    );
-    final lastDayOfMonth = DateTime(
-      _calendarFocusedMonth.year,
-      _calendarFocusedMonth.month + 1,
-      0,
-    );
-    final startingWeekday = firstDayOfMonth.weekday % 7;
-    final daysInMonth = lastDayOfMonth.day;
-
-    final previousMonth = DateTime(
-      _calendarFocusedMonth.year,
-      _calendarFocusedMonth.month,
-      0,
-    );
-    final daysFromPreviousMonth = startingWeekday;
-
-    List<Widget> dayWidgets = [];
-
-    for (int i = daysFromPreviousMonth; i > 0; i--) {
-      final day = previousMonth.day - i + 1;
-      dayWidgets.add(
-        _buildDayCell(
-          day,
-          isCurrentMonth: false,
-          date: DateTime(previousMonth.year, previousMonth.month, day),
-          setModalState: setModalState,
-        ),
-      );
-    }
-
-    for (int day = 1; day <= daysInMonth; day++) {
-      final date = DateTime(
-        _calendarFocusedMonth.year,
-        _calendarFocusedMonth.month,
-        day,
-      );
-      dayWidgets.add(
-        _buildDayCell(
-          day,
-          isCurrentMonth: true,
-          date: date,
-          setModalState: setModalState,
-        ),
-      );
-    }
-
-    final remainingCells = (7 - (dayWidgets.length % 7)) % 7;
-    for (int day = 1; day <= remainingCells; day++) {
-      final nextMonth = DateTime(
-        _calendarFocusedMonth.year,
-        _calendarFocusedMonth.month + 1,
-        day,
-      );
-      dayWidgets.add(
-        _buildDayCell(
-          day,
-          isCurrentMonth: false,
-          date: nextMonth,
-          setModalState: setModalState,
-        ),
-      );
-    }
-
-    return GridView.count(
-      crossAxisCount: 7,
-      shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
-      children: dayWidgets,
-    );
-  }
-
-  Widget _buildDayCell(
-    int day, {
-    required bool isCurrentMonth,
-    required DateTime date,
-    required StateSetter setModalState,
-  }) {
-    final isSelected =
-        _selectedDate.year == date.year &&
-        _selectedDate.month == date.month &&
-        _selectedDate.day == date.day;
-
-    final isToday =
-        DateTime.now().year == date.year &&
-        DateTime.now().month == date.month &&
-        DateTime.now().day == date.day;
-
-    return GestureDetector(
-      onTap: () {
-        setModalState(() {
-          _selectedDate = date;
-        });
-        setState(() {
-          _selectedDate = date;
-          _focusedWeek = date;
-        });
-        Navigator.pop(context);
-      },
-      child: Container(
-        margin: EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? primaryColor
-              : isToday
-              ? primaryColor.withOpacity(0.2)
-              : transparentColor,
-          borderRadius: BorderRadius.circular(8),
-          border: isToday && !isSelected
-              ? Border.all(color: primaryColor, width: 2)
-              : null,
-        ),
-        child: Center(
-          child: Text(
-            '$day',
-            style: TextStyle(
-              color: isSelected
-                  ? whiteColor
-                  : isCurrentMonth
-                  ? textColor
-                  : textColor.withOpacity(0.3),
-              fontWeight: isSelected || isToday
-                  ? FontWeight.w600
-                  : FontWeight.w400,
-              fontSize: 14,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildWeekView({
     List<CourseModel> courses = const [],
     List<HomeworkResponseModel> homeworks = const [],
@@ -2031,7 +1898,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildListView({
+  Widget _buildTodosView({
     List<CourseModel> courses = const [],
     List<HomeworkResponseModel> homeworks = const [],
   }) {
@@ -2123,6 +1990,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     });
                   },
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
                 ),
                 Text(
                   DateFormat('MMMM yyyy').format(_calendarFocusedMonth),
@@ -2142,13 +2011,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     });
                   },
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
                 ),
               ],
             ),
             SizedBox(height: 8.v),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+              children: listOfDays
                   .map(
                     (day) => Expanded(
                       child: Center(
@@ -2848,8 +2719,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 ],
                               ),
-
-                              SizedBox(height: 16.v),
                             ],
                           ),
                         ),
@@ -2954,7 +2823,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                       homeworkState.homeworks;
                                                 }
 
-                                                return _buildListView(
+                                                return _buildTodosView(
                                                   courses: courses,
                                                   homeworks: homeworks,
                                                 );
@@ -3698,7 +3567,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Parse homework time
     String timeDisplay = '';
-    String dateDisplay = '';
     final timeZone = tz.getLocation(_timeZone);
     try {
       if (homework.allDay) {
@@ -3710,7 +3578,6 @@ class _HomeScreenState extends State<HomeScreen> {
           timeDisplay = DateFormat('MMM dd, yyyy').format(startTime);
         } else {
           timeDisplay = '';
-          dateDisplay = '';
         }
       } else {
         final startTime = tz.TZDateTime.from(
@@ -3729,18 +3596,17 @@ class _HomeScreenState extends State<HomeScreen> {
           final formattedEndTime = DateFormat('h:mm a').format(endTime);
           timeDisplay = '$formattedTime - $formattedEndTime';
           if (_currentViewMode == 'Todos') {
-            dateDisplay = formattedDate;
+            timeDisplay = '$formattedDate • $timeDisplay';
           }
         } else {
           timeDisplay = formattedTime;
           if (_currentViewMode == 'Todos') {
-            dateDisplay = formattedDate;
+            timeDisplay = '$formattedDate • $timeDisplay';
           }
         }
       }
     } catch (e) {
       timeDisplay = '';
-      dateDisplay = '';
     }
 
     final bool isCompleted = _completedOverrides.containsKey(homework.id)
@@ -3848,23 +3714,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     })(),
                   ],
                 ),
-                if (dateDisplay.isNotEmpty)
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.calendar_today,
-                        size: 14,
-                        color: assignmentColor.withOpacity(0.7),
-                      ),
-                      SizedBox(width: 4.h),
-                      Text(
-                        dateDisplay,
-                        style: AppTextStyle.fTextStyle.copyWith(
-                          color: assignmentColor.withOpacity(0.7),
-                        ),
-                      ),
-                    ],
-                  ),
                 if (timeDisplay.isNotEmpty)
                   Row(
                     children: [

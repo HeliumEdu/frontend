@@ -7,14 +7,14 @@
 
 
 
-const List<String> listOfClassesSchedule = [
+const List<String> listOfDays = [
+  'Sun',
   'Mon',
   'Tue',
   'Wed',
   'Thur',
   'Fri',
   'Sat',
-  'Sun',
 ];
 
 const List<String> mobileViews = ["Month", "Week", "Day", "Todos"];

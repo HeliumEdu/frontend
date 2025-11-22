@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:helium_mobile/utils/app_list.dart';
 import 'package:intl/intl.dart';
 
 class CourseScheduleModel {
@@ -93,12 +94,11 @@ class CourseScheduleModel {
 
   // Helper method to get active days
   List<String> getActiveDays() {
-    List<String> days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     List<String> activeDays = [];
 
-    for (int i = 0; i < daysOfWeek.length && i < days.length; i++) {
+    for (int i = 0; i < daysOfWeek.length && i < listOfDays.length; i++) {
       if (daysOfWeek[i] == '1') {
-        activeDays.add(days[i]);
+        activeDays.add(listOfDays[i]);
       }
     }
 
