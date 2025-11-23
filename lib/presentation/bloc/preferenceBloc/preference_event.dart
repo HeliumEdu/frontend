@@ -23,6 +23,8 @@ class SubmitPreferencesEvent extends PreferenceEvent {
   final String timeZone;
   final int defaultView;
   final String eventsColor;
+  final String gradesColor;
+  final String materialsColor;
   final int defaultReminderOffset;
   final int defaultReminderOffsetType;
 
@@ -30,6 +32,8 @@ class SubmitPreferencesEvent extends PreferenceEvent {
     required this.timeZone,
     required this.defaultView,
     required this.eventsColor,
+    required this.gradesColor,
+    required this.materialsColor,
     required this.defaultReminderOffset,
     required this.defaultReminderOffsetType,
   });

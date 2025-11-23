@@ -118,7 +118,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
             onPressed: () => Navigator.pop(dialogContext),
             child: Text(
               'Cancel',
-              style: AppTextStyle.eTextStyle.copyWith(color: greyColor),
+              style: AppTextStyle.eTextStyle.copyWith(color: textColor),
             ),
           ),
           TextButton(
@@ -248,7 +248,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
             onPressed: () => Navigator.pop(dialogContext),
             child: Text(
               'Cancel',
-              style: AppTextStyle.eTextStyle.copyWith(color: greyColor),
+              style: AppTextStyle.eTextStyle.copyWith(color: textColor),
             ),
           ),
           TextButton(

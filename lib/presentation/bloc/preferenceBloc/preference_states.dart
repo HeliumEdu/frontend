@@ -12,7 +12,9 @@ class PreferenceState {
   final String? defaultView;
   final String? timeZone;
   final String? reminderOffsetUnit;
-  final Color eventColor;
+  final Color eventsColor;
+  final Color materialsColor;
+  final Color gradesColor;
   final bool isSubmitting;
   final String? submitError;
   final bool submitSuccess;
@@ -22,7 +24,9 @@ class PreferenceState {
     this.defaultView,
     this.timeZone,
     this.reminderOffsetUnit,
-    this.eventColor = const Color(0xff26A69A),
+    this.eventsColor = const Color(0xffe74674),
+    this.materialsColor = const Color(0xffdc7d50),
+    this.gradesColor = const Color(0xff9d629d),
     this.isSubmitting = false,
     this.submitError,
     this.submitSuccess = false,
@@ -35,6 +39,8 @@ class PreferenceState {
     String? selectedReminderPreference,
     String? selectedReminderOffsetUnit,
     Color? selectedEventsColor,
+    Color? selectedMaterialsColor,
+    Color? selectedGradesColor,
     bool? isSubmitting,
     String? submitError,
     bool? submitSuccess,
@@ -47,7 +53,9 @@ class PreferenceState {
       reminderOffsetUnit:
           selectedReminderOffsetUnit ?? this.reminderOffsetUnit,
       reminderOffset: offsetValue ?? this.reminderOffset,
-      eventColor: selectedEventsColor ?? this.eventColor,
+      eventsColor: selectedEventsColor ?? this.eventsColor,
+      materialsColor: selectedMaterialsColor ?? this.materialsColor,
+      gradesColor: selectedGradesColor ?? this.gradesColor,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       submitError: submitError,
       submitSuccess: submitSuccess ?? this.submitSuccess,

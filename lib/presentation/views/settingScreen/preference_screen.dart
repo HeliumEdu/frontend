@@ -49,7 +49,9 @@ class PreferenceView extends StatefulWidget {
   State<PreferenceView> createState() => _PreferenceViewState();
 }
 
-Color selectedEventColor = const Color(0xff26A69A);
+Color selectedEventColor = const Color(0xffe74674);
+Color selectedMaterialColor = const Color(0xffdc7d50);
+Color selectedGradeColor = const Color(0xff9d629d);
 String? selectedDefaultView;
 String? selectedTimeZone;
 String? selectedReminderOffsetUnit;
@@ -75,7 +77,7 @@ class _PreferenceViewState extends State<PreferenceView> {
     super.dispose();
   }
 
-  void _showDialogColorPicker() {
+  void _showEventColorPicker() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -86,6 +88,44 @@ class _PreferenceViewState extends State<PreferenceView> {
           onColorSelected: (color) {
             setState(() {
               selectedEventColor = color;
+              Navigator.pop(context);
+            });
+          },
+        ),
+      ),
+    );
+  }
+
+  void _showGradeColorPicker() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: whiteColor,
+        contentPadding: EdgeInsets.zero,
+        content: CustomColorPickerWidget(
+          initialColor: selectedGradeColor,
+          onColorSelected: (color) {
+            setState(() {
+              selectedGradeColor = color;
+              Navigator.pop(context);
+            });
+          },
+        ),
+      ),
+    );
+  }
+
+  void _showMaterialColorPicker() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: whiteColor,
+        contentPadding: EdgeInsets.zero,
+        content: CustomColorPickerWidget(
+          initialColor: selectedMaterialColor,
+          onColorSelected: (color) {
+            setState(() {
+              selectedMaterialColor = color;
               Navigator.pop(context);
             });
           },
@@ -111,7 +151,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                 selectedReminderOffsetUnit =
                     state.reminderOffsetUnit;
               }
-              selectedEventColor = state.eventColor;
+              selectedEventColor = state.eventsColor;
               if (_offsetController.text != state.reminderOffset.toString()) {
                 _offsetController.text = state.reminderOffset.toString();
               }
@@ -257,19 +297,75 @@ class _PreferenceViewState extends State<PreferenceView> {
                         Row(
                           children: [
                             Text(
-                              'Events color',
+                              'Color for Events',
                               style: AppTextStyle.cTextStyle.copyWith(
                                 color: blackColor.withOpacity(0.8),
                               ),
                             ),
                             SizedBox(width: 12.h),
                             GestureDetector(
-                              onTap: _showDialogColorPicker,
+                              onTap: _showEventColorPicker,
                               child: Container(
                                 width: 33,
                                 height: 33,
                                 decoration: BoxDecoration(
                                   color: selectedEventColor,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: greyColor,
+                                    width: 1,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 22.h),
+
+                        Row(
+                          children: [
+                            Text(
+                              'Color for grades badges',
+                              style: AppTextStyle.cTextStyle.copyWith(
+                                color: blackColor.withOpacity(0.8),
+                              ),
+                            ),
+                            SizedBox(width: 12.h),
+                            GestureDetector(
+                              onTap: _showGradeColorPicker,
+                              child: Container(
+                                width: 33,
+                                height: 33,
+                                decoration: BoxDecoration(
+                                  color: selectedGradeColor,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: greyColor,
+                                    width: 1,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 22.h),
+
+                        Row(
+                          children: [
+                            Text(
+                              'Color for material badges',
+                              style: AppTextStyle.cTextStyle.copyWith(
+                                color: blackColor.withOpacity(0.8),
+                              ),
+                            ),
+                            SizedBox(width: 12.h),
+                            GestureDetector(
+                              onTap: _showMaterialColorPicker,
+                              child: Container(
+                                width: 33,
+                                height: 33,
+                                decoration: BoxDecoration(
+                                  color: selectedMaterialColor,
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
                                     color: greyColor,
@@ -461,12 +557,24 @@ class _PreferenceViewState extends State<PreferenceView> {
                                         selectedDefaultView!,
                                       );
                                 // Normalize to #rrggbb (strip alpha and ensure #)
-                                String colorHex =
+                                String eventColorHex =
                                     '#${selectedEventColor.value.toRadixString(16).substring(2)}';
-                                if (colorHex.length == 9) {
-                                  colorHex = '#${colorHex.substring(3)}';
+                                if (eventColorHex.length == 9) {
+                                  eventColorHex = '#${eventColorHex.substring(3)}';
                                 }
-                                colorHex = colorHex.toLowerCase();
+                                eventColorHex = eventColorHex.toLowerCase();
+                                String materialsColorHex =
+                                    '#${selectedMaterialColor.value.toRadixString(16).substring(2)}';
+                                if (materialsColorHex.length == 9) {
+                                  materialsColorHex = '#${materialsColorHex.substring(3)}';
+                                }
+                                materialsColorHex = materialsColorHex.toLowerCase();
+                                String gradesColorHex =
+                                    '#${selectedGradeColor.value.toRadixString(16).substring(2)}';
+                                if (gradesColorHex.length == 9) {
+                                  gradesColorHex = '#${gradesColorHex.substring(3)}';
+                                }
+                                gradesColorHex = gradesColorHex.toLowerCase();
                                 final reminderTypeIndex = () {
                                   if (selectedReminderOffsetUnit == null) {
                                     return 0;
@@ -483,7 +591,9 @@ class _PreferenceViewState extends State<PreferenceView> {
                                   SubmitPreferencesEvent(
                                     timeZone: tz,
                                     defaultView: viewIndex,
-                                    eventsColor: colorHex,
+                                    eventsColor: eventColorHex,
+                                    gradesColor: eventColorHex,
+                                    materialsColor: eventColorHex,
                                     defaultReminderOffset: offsetVal,
                                     defaultReminderOffsetType:
                                         reminderTypeIndex,

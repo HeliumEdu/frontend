@@ -111,7 +111,7 @@ class _AddClassesCategoriesScreenState
             onPressed: () => Navigator.pop(dialogContext),
             child: Text(
               'Cancel',
-              style: AppTextStyle.eTextStyle.copyWith(color: greyColor),
+              style: AppTextStyle.eTextStyle.copyWith(color: textColor),
             ),
           ),
           TextButton(

@@ -194,6 +194,12 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
     return match.isNotEmpty ? match.first.title : 'Unknown';
   }
 
+  Color _courseColorById(int id) {
+    final courses = _courseOptions();
+    final match = courses.where((c) => c.id == id);
+    return match.isNotEmpty ? parseColor(match.first.color) : whiteColor;
+  }
+
   Future<void> _openCoursePicker() async {
     final options = _courseOptions();
     if (options.isEmpty) return;
@@ -205,8 +211,9 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
       barrierDismissible: true,
       builder: (dialogCtx) {
         return AlertDialog(
+          backgroundColor: whiteColor,
           title: Text(
-            'Select Classes',
+            '',
             style: AppTextStyle.cTextStyle.copyWith(
               color: blackColor,
               fontWeight: FontWeight.w600,
@@ -251,7 +258,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
               onPressed: () => Navigator.pop(dialogCtx),
               child: Text(
                 'Cancel',
-                style: AppTextStyle.eTextStyle.copyWith(color: greyColor),
+                style: AppTextStyle.eTextStyle.copyWith(color: textColor),
               ),
             ),
             TextButton(
@@ -425,10 +432,12 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                               runSpacing: -8,
                               children: selectedCourseIds.map((id) {
                                 return Chip(
+                                  backgroundColor: _courseColorById(id),
+                                  deleteIconColor: whiteColor,
                                   label: Text(
                                     _courseTitleById(id),
                                     style: AppTextStyle.eTextStyle.copyWith(
-                                      color: blackColor,
+                                      color: whiteColor,
                                     ),
                                   ),
                                   onDeleted: () {
@@ -450,7 +459,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                                   onPressed: () => _openCoursePicker(),
                                   icon: Icon(Icons.add, color: primaryColor),
                                   label: Text(
-                                    'Add classes',
+                                    'Select classes',
                                     style: AppTextStyle.eTextStyle.copyWith(
                                       color: primaryColor,
                                       fontWeight: FontWeight.w600,

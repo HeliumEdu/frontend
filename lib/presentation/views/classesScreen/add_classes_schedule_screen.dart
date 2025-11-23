@@ -40,7 +40,7 @@ class AddClassesScheduleScreen extends StatefulWidget {
 }
 
 class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
-  bool isSchedule = false;
+  bool scheduleVariesByDay = false;
   List<int> selectedDays = [];
   TimeOfDay? singleStartTime;
   TimeOfDay? singleEndTime;
@@ -220,12 +220,11 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
     setState(() {
       if (allSameTime && commonStartTime != null && commonEndTime != null) {
         // Use "Same Time" mode
-        isSchedule = false;
+        scheduleVariesByDay = false;
         singleStartTime = commonStartTime;
         singleEndTime = commonEndTime;
       } else {
-        // Use "Varies by Day" mode
-        isSchedule = true;
+        scheduleVariesByDay = true;
         selectedDays = activeDays;
 
         // Set individual times for each day
@@ -317,7 +316,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
 
   // Generate days_of_week string (7 digits: Sun-Sat, 1 = active, 0 = inactive)
   String _generateDaysOfWeek() {
-    if (!isSchedule || selectedDays.isEmpty) {
+    if (!scheduleVariesByDay || selectedDays.isEmpty) {
       // No specific days selected, all days are active
       return '1111111';
     }
@@ -342,7 +341,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
 
   void _validateAndCreateSchedule() {
     // Validation
-    if (isSchedule) {
+    if (scheduleVariesByDay) {
       // Varies by day - need at least one day selected
       if (selectedDays.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -402,7 +401,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
     String friStart, friEnd;
     String satStart, satEnd;
 
-    if (isSchedule) {
+    if (scheduleVariesByDay) {
       // Varies by day - set times based on selectedDays
       // Map selectedDays indices to API day indices
       sunStart = selectedDays.contains(6) && startTimes[6] != null
@@ -943,11 +942,11 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                                     Transform.scale(
                                       scale: 1.2,
                                       child: Checkbox(
-                                        value: isSchedule,
+                                        value: scheduleVariesByDay,
                                         onChanged: (bool? newValue) {
                                           setState(() {
-                                            isSchedule = newValue ?? false;
-                                            if (!isSchedule) {
+                                            scheduleVariesByDay = newValue ?? false;
+                                            if (!scheduleVariesByDay) {
                                               selectedDays.clear();
                                               startTimes.clear();
                                               endTimes.clear();
@@ -982,91 +981,91 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                                 ),
                               ),
                               SizedBox(height: 28.v),
-                              if (isSchedule) ...[
-                                // Day Selection Section
-                                Text(
-                                  'Class Days',
-                                  style: AppTextStyle.bTextStyle.copyWith(
-                                    color: blackColor,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                              // Day Selection Section
+                              Text(
+                                'Class Days',
+                                style: AppTextStyle.bTextStyle.copyWith(
+                                  color: blackColor,
+                                  fontWeight: FontWeight.w600,
                                 ),
-                                SizedBox(height: 12.v),
-                                SizedBox(
-                                  height: 40.v,
-                                  child: ListView.separated(
-                                    shrinkWrap: true,
-                                    scrollDirection: Axis.horizontal,
-                                    itemCount: listOfDays.length,
-                                    itemBuilder: (context, index) {
-                                      bool isSelected = selectedDays.contains(
-                                        index,
-                                      );
-                                      return GestureDetector(
-                                        onTap: () {
-                                          setState(() {
-                                            if (isSelected) {
-                                              selectedDays.remove(index);
-                                              startTimes.remove(index);
-                                              endTimes.remove(index);
-                                            } else {
-                                              selectedDays.add(index);
-                                            }
-                                          });
-                                        },
-                                        child: Container(
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 14.h,
-                                            vertical: 8.v,
+                              ),
+                              SizedBox(height: 12.v),
+                              SizedBox(
+                                height: 40.v,
+                                child: ListView.separated(
+                                  shrinkWrap: true,
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: listOfDays.length,
+                                  itemBuilder: (context, index) {
+                                    bool isSelected = selectedDays.contains(
+                                      index,
+                                    );
+                                    return GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          if (isSelected) {
+                                            selectedDays.remove(index);
+                                            startTimes.remove(index);
+                                            endTimes.remove(index);
+                                          } else {
+                                            selectedDays.add(index);
+                                          }
+                                        });
+                                      },
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 14.h,
+                                          vertical: 8.v,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: isSelected
+                                              ? primaryColor
+                                              : softGrey,
+                                          borderRadius: BorderRadius.circular(
+                                            8.adaptSize,
                                           ),
-                                          decoration: BoxDecoration(
-                                            color: isSelected
-                                                ? primaryColor
-                                                : softGrey,
-                                            borderRadius: BorderRadius.circular(
-                                              8.adaptSize,
-                                            ),
-                                            border: isSelected
-                                                ? Border.all(
-                                                    color: primaryColor,
-                                                    width: 1.5,
-                                                  )
-                                                : Border.all(
-                                                    color: greyColor
-                                                        .withOpacity(0.3),
-                                                    width: 1,
+                                          border: isSelected
+                                              ? Border.all(
+                                                  color: primaryColor,
+                                                  width: 1.5,
+                                                )
+                                              : Border.all(
+                                                  color: greyColor
+                                                      .withOpacity(0.3),
+                                                  width: 1,
+                                                ),
+                                          boxShadow: isSelected
+                                              ? [
+                                                  BoxShadow(
+                                                    color: primaryColor
+                                                        .withOpacity(0.2),
+                                                    blurRadius: 6,
+                                                    offset: Offset(0, 2),
                                                   ),
-                                            boxShadow: isSelected
-                                                ? [
-                                                    BoxShadow(
-                                                      color: primaryColor
-                                                          .withOpacity(0.2),
-                                                      blurRadius: 6,
-                                                      offset: Offset(0, 2),
-                                                    ),
-                                                  ]
-                                                : null,
-                                          ),
-                                          child: Center(
-                                            child: Text(
-                                              listOfDays[index],
-                                              style: AppTextStyle.cTextStyle
-                                                  .copyWith(
-                                                    color: isSelected
-                                                        ? whiteColor
-                                                        : textColor,
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                            ),
+                                                ]
+                                              : null,
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            listOfDays[index],
+                                            style: AppTextStyle.cTextStyle
+                                                .copyWith(
+                                                  color: isSelected
+                                                      ? whiteColor
+                                                      : textColor,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
                                           ),
                                         ),
-                                      );
-                                    },
-                                    separatorBuilder: (context, index) =>
-                                        SizedBox(width: 6.h),
-                                  ),
+                                      ),
+                                    );
+                                  },
+                                  separatorBuilder: (context, index) =>
+                                      SizedBox(width: 6.h),
                                 ),
-                                SizedBox(height: 28.v),
+                              ),
+                              SizedBox(height: 28.v),
+                              if (scheduleVariesByDay) ...[
                                 // Class Times Section
                                 Text(
                                   'Class Times',
@@ -1450,13 +1449,13 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
 
 String _getDayName(int index) {
   const days = [
+    'Sunday',
     'Monday',
     'Tuesday',
     'Wednesday',
     'Thursday',
     'Friday',
     'Saturday',
-    'Sunday',
   ];
   return days[index];
 }

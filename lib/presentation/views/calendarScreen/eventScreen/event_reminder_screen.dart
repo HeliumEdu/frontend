@@ -262,7 +262,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                         color: blackColor,
                       ),
                       decoration: InputDecoration(
-                        hintText: 'A friendly reminder',
+                        hintText: '',
                         hintStyle: AppTextStyle.eTextStyle.copyWith(
                           color: blackColor.withOpacity(0.5),
                         ),
@@ -272,14 +272,6 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                           vertical: 12.v,
                         ),
                       ),
-                    ),
-                  ),
-                  SizedBox(height: 16.v),
-                  Text(
-                    'Notification method',
-                    style: AppTextStyle.cTextStyle.copyWith(
-                      color: blackColor,
-                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   SizedBox(height: 8.v),
@@ -337,18 +329,10 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                   ),
                   SizedBox(height: 16.v),
                   Text(
-                    'When to remind?',
+                    'When',
                     style: AppTextStyle.cTextStyle.copyWith(
                       color: blackColor,
                       fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  SizedBox(height: 8.v),
-                  Text(
-                    'Or enter custom time',
-                    style: AppTextStyle.eTextStyle.copyWith(
-                      color: blackColor.withOpacity(0.8),
-                      fontWeight: FontWeight.w500,
                     ),
                   ),
                   SizedBox(height: 8.v),
@@ -371,7 +355,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                               color: blackColor,
                             ),
                             decoration: InputDecoration(
-                              hintText: 'Enter time',
+                              hintText: '',
                               hintStyle: AppTextStyle.eTextStyle.copyWith(
                                 color: blackColor.withOpacity(0.5),
                               ),
@@ -624,7 +608,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
             onPressed: () => Navigator.pop(dialogContext),
             child: Text(
               'Cancel',
-              style: AppTextStyle.eTextStyle.copyWith(color: greyColor),
+              style: AppTextStyle.eTextStyle.copyWith(color: textColor),
             ),
           ),
           TextButton(
@@ -695,7 +679,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
             onPressed: () => Navigator.pop(dialogContext),
             child: Text(
               'Cancel',
-              style: AppTextStyle.eTextStyle.copyWith(color: greyColor),
+              style: AppTextStyle.eTextStyle.copyWith(color: textColor),
             ),
           ),
           TextButton(

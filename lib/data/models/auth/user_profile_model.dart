@@ -88,6 +88,8 @@ class UserSettings {
   final int allDayOffset;
   final bool showGettingStarted;
   final String eventsColor;
+  final String materialsColor;
+  final String gradesColor;
   final int defaultReminderOffset;
   final bool calendarEventLimit;
   final int defaultReminderOffsetType;
@@ -102,6 +104,8 @@ class UserSettings {
     required this.allDayOffset,
     required this.showGettingStarted,
     required this.eventsColor,
+    required this.materialsColor,
+    required this.gradesColor,
     required this.defaultReminderOffset,
     required this.calendarEventLimit,
     required this.defaultReminderOffsetType,
@@ -117,7 +121,9 @@ class UserSettings {
       weekStartsOn: json['week_starts_on'] ?? 0,
       allDayOffset: json['all_day_offset'] ?? 0,
       showGettingStarted: json['show_getting_started'] ?? true,
-      eventsColor: json['events_color'] ?? '#ac725e',
+      eventsColor: json['events_color'] ?? '#e74674',
+      materialsColor: json['materials_color'] ?? '#dc7d50',
+      gradesColor: json['grades_color'] ?? '#9d629d',
       defaultReminderOffset: json['default_reminder_offset'] ?? 0,
       calendarEventLimit: json['calendar_event_limit'] ?? true,
       defaultReminderOffsetType: json['default_reminder_offset_type'] ?? 0,
@@ -135,6 +141,8 @@ class UserSettings {
       'all_day_offset': allDayOffset,
       'show_getting_started': showGettingStarted,
       'events_color': eventsColor,
+      'grades_color': gradesColor,
+      'materials_color': materialsColor,
       'default_reminder_offset': defaultReminderOffset,
       'calendar_event_limit': calendarEventLimit,
       'default_reminder_offset_type': defaultReminderOffsetType,
