@@ -500,12 +500,16 @@ function HeliumSettings() {
             const base_url = helium.API_URL + "/feed/private/" + helium.USER_PREFS.settings.private_slug;
 
             $("#private-feed-urls").html(
-                "<strong>Assignments: </strong><a href=\"" + base_url + "/homework.ics\">" + base_url
-                + "/homework.ics</a>" +
-                "<br /><strong>Class Schedule: </strong><a href=\"" + base_url + "/courseschedules.ics\">" + base_url
-                + "/courseschedules.ics</a>"
-                + "<br /><strong>Events: </strong><a href=\"" + base_url + "/events.ics\">" + base_url
-                + "/events.ics</a>");
+                "<h4 class=\"header smaller blue\"><i class=\"icon-pencil\"></i> Assignments</h4><div class='row left-buffer-15'><div class='well col-xs-9 overflow-hidden' style='padding: 2px'><a href=\"" + base_url + "/homework.ics\">" + base_url
+                + "/homework.ics</a></div><div class='col-xs-3'><button type=\"button\" class=\"copy-url btn btn-primary btn-xs\"><i class=\"icon-copy\"></i> Copy</button></div></div>" +
+                "<h4 class=\"header smaller green\"><i class=\"icon-book\"></i> Class Schedules</h4><div class='row left-buffer-15'><div class='well col-xs-9 overflow-hidden' style='padding: 2px'><a href=\"" + base_url + "/courseschedules.ics\">" + base_url
+                + "/courseschedules.ics</a></div><div class='col-xs-3'><button type=\"button\" class=\"copy-url btn btn-primary btn-xs\"><i class=\"icon-copy\"></i> Copy</button></div></div>"
+                + "<h4 class=\"header smaller\" style='color: " + helium.USER_PREFS.settings.events_color + "'><i class=\"icon-calendar\"></i> Events</h4><div class='row left-buffer-15'><div class='well col-xs-9 overflow-hidden' style='padding: 2px'><a href=\"" + base_url + "/events.ics\">" + base_url
+                + "/events.ics</a></div><div class='col-xs-3'><button type=\"button\" class=\"copy-url btn btn-primary btn-xs\"><i class=\"icon-copy\"></i> Copy</button></div></div>")
+                .find(".copy-url").on("click", function () {
+                    const textToCopy = $(this).parent().prev().text();
+                    navigator.clipboard.writeText(textToCopy);
+            });
         }
     };
 

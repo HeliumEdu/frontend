@@ -5,7 +5,13 @@
         Feeds
         <small>
             <i class="icon-double-angle-right"></i>
-            &nbsp;take Helium's calendars elsewhere
+            &nbsp;take Helium's calendars elsewhere <span class="privatefeeds-help help-button cursor-hover"
+                                                          data-rel="popover"
+                                                          data-trigger="hover"
+                                                          data-container="body"
+                                                          data-placement="bottom"
+                                                          data-content="Feed URLs make your calendars publicly accessible through a private URL to any application (like Google or Apple calendar) that supports iCal URLs. Click for more details on how to use this."
+                                                          title="Feeds out of Helium">?</span>
         </small>
     </h4>
 
@@ -14,24 +20,17 @@
     <div class="space-8"></div>
 
     <form class="form-horizontal" id="feed-form" role="form">
-        <div class="form-group">
-            <label class="block clearfix bottom-buffer-10">
-                <h4>Feed URLs <span class="privatefeeds-help help-button cursor-hover"
-                                    data-rel="popover"
-                                    data-trigger="hover"
-                                    data-container="body"
-                                    data-placement="right"
-                                    data-content="Feed URLs make your calendars publicly accessible through a private URL to any application (like Google or Apple calendar) that supports iCal URLs. Click for more details on how to use this."
-                                    title="Feeds out of Helium">?</span></h4>
-                <span id="private-feed-urls"></span>
-            </label>
-        </div>
-
         <div class="helper-container">
             <div class="well">
                 Keep private feed URLs secret. If a feed is compromised, disabling and re-enabling feeds
                 will regenerate URLs.
             </div>
+        </div>
+
+        <div class="form-group">
+            <label class="block clearfix bottom-buffer-10">
+                <span id="private-feed-urls"></span>
+            </label>
         </div>
 
         <hr/>
