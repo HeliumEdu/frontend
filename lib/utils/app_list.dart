@@ -18,21 +18,6 @@ const List<String> listOfDays = [
 ];
 
 const List<String> mobileViews = ["Month", "Week", "Day", "Todos"];
-final List<String> timeZones = [
-  'Asia/Karachi',
-  'Asia/Dubai',
-  'Asia/Kolkata',
-  'Asia/Shanghai',
-  'Asia/Tokyo',
-  'Europe/London',
-  'Europe/Paris',
-  'Europe/Berlin',
-  'America/New_York',
-  'America/Los_Angeles',
-  'America/Chicago',
-  'Australia/Sydney',
-  'Australia/Melbourne',
-];
 const List<String> reminderTypes = ["Popup", "Email"];
 const List<String> reminderOffsetUnits = ["Minutes", "Hours", "Days", "Weeks"];
 

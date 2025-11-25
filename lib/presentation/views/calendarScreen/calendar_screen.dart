@@ -859,7 +859,7 @@ class _HomeScreenState extends State<HomeScreen> {
         }
 
         for (var course in filteredCourses) {
-          weekItems.add(_buildCourseCard(course, courses.indexOf(course)));
+          weekItems.add(_buildCourseCard(course, courses.indexOf(course), date));
         }
 
         for (var externalEvent in filteredExternalEvents) {
@@ -873,10 +873,10 @@ class _HomeScreenState extends State<HomeScreen> {
     return weekItems;
   }
 
-  String _getCourseTimeForSelectedDate(CourseModel course) {
+  String _getCourseTimeForDate(CourseModel course, DateTime dateTime) {
     if (course.schedules.isEmpty) return '';
 
-    final selectedDayOfWeek = _selectedDate.weekday % 7;
+    final selectedDayOfWeek = dateTime.weekday % 7;
 
     for (var schedule in course.schedules) {
       if (schedule.daysOfWeek.length > selectedDayOfWeek &&
@@ -3156,7 +3156,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ) {
                                           final course = coursesToShow[i];
                                           itemWidgets.add(
-                                            _buildCourseCard(course, i),
+                                            _buildCourseCard(course, i, _selectedDate),
                                           );
                                         }
                                       }
@@ -3295,7 +3295,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildCourseCard(CourseModel course, int index) {
+  Widget _buildCourseCard(CourseModel course, int index, DateTime dateTime) {
     // Parse course color
     Color courseColor = primaryColor;
     try {
@@ -3359,7 +3359,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 SizedBox(height: 4.v),
                 // Show schedule time for selected day
                 if (course.schedules.isNotEmpty &&
-                    _getCourseTimeForSelectedDate(course).isNotEmpty)
+                    _getCourseTimeForDate(course, dateTime).isNotEmpty)
                   Row(
                     children: [
                       Icon(
@@ -3369,7 +3369,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       SizedBox(width: 4.h),
                       Text(
-                        _getCourseTimeForSelectedDate(course),
+                        _getCourseTimeForDate(course, dateTime),
                         style: AppTextStyle.fTextStyle.copyWith(
                           color: courseColor.withOpacity(0.6),
                           fontSize: 11,

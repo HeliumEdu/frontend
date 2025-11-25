@@ -19,6 +19,8 @@ import 'package:helium_mobile/utils/app_list.dart';
 import 'package:helium_mobile/utils/app_size.dart';
 import 'package:helium_mobile/utils/app_text_style.dart';
 import 'package:helium_mobile/utils/custom_color_picker.dart';
+import 'package:timezone/data/latest.dart' as tzdata;
+import 'package:timezone/standalone.dart' as tz;
 
 class PreferenceScreen extends StatelessWidget {
   const PreferenceScreen({super.key});
@@ -53,15 +55,18 @@ Color selectedEventColor = const Color(0xffe74674);
 Color selectedMaterialColor = const Color(0xffdc7d50);
 Color selectedGradeColor = const Color(0xff9d629d);
 String? selectedDefaultView;
-String? selectedTimeZone;
+String? selectedTimezone;
 String? selectedReminderOffsetUnit;
 
 class _PreferenceViewState extends State<PreferenceView> {
   late TextEditingController _offsetController;
+  // Populated from tz database
+  List<String> timeZones = [];
 
   @override
   void initState() {
     super.initState();
+    initializeTimezones();
     _offsetController = TextEditingController(text: '0');
     // Fetch current preferences on open
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -75,6 +80,16 @@ class _PreferenceViewState extends State<PreferenceView> {
   void dispose() {
     _offsetController.dispose();
     super.dispose();
+  }
+
+  // Initialize tz database and load timezone IDs
+  void initializeTimezones() {
+    // Safe to call multiple times; it no-ops after first
+    tzdata.initializeTimeZones();
+    final allLocations = tz.timeZoneDatabase.locations.keys;
+    // Keep only region/zone style IDs and sort alphabetically
+    timeZones = allLocations.where((id) => id.contains('/')).toList()
+      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
   }
 
   void _showEventColorPicker() {
@@ -145,7 +160,11 @@ class _PreferenceViewState extends State<PreferenceView> {
                 selectedDefaultView = state.defaultView;
               }
               if (state.timeZone != null) {
-                selectedTimeZone = state.timeZone;
+                selectedTimezone = state.timeZone;
+              }
+              if (!timeZones.contains(selectedTimezone)) {
+                // Fallback to UTC if default isn't present
+                selectedTimezone = 'UTC';
               }
               if (state.reminderOffsetUnit != null) {
                 selectedReminderOffsetUnit =
@@ -274,8 +293,8 @@ class _PreferenceViewState extends State<PreferenceView> {
                             dropdownColor: whiteColor,
                             isExpanded: true,
                             underline: SizedBox(),
-                            value: selectedTimeZone,
-                            items: timeZones.toSet().map((timeZone) {
+                            value: selectedTimezone,
+                            items: timeZones.map((timeZone) {
                               return DropdownMenuItem(
                                 value: timeZone,
                                 child: Text(
@@ -288,7 +307,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                             }).toList(),
                             onChanged: (value) {
                               setState(() {
-                                selectedTimeZone = value!;
+                                selectedTimezone = value!;
                               });
                             },
                           ),
@@ -549,7 +568,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                               buttonText: 'Save',
                               isLoading: isSubmitting,
                               onPressed: () {
-                                final tz = selectedTimeZone ?? 'UTC';
+                                final tz = selectedTimezone ?? 'UTC';
                                 final viewIndex =
                                     selectedDefaultView == null
                                     ? 0
