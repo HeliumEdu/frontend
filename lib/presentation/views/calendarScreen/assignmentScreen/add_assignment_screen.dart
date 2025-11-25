@@ -59,6 +59,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
   final TextEditingController _urlController = TextEditingController();
   final TextEditingController _detailsController = TextEditingController();
   final TextEditingController _gradeController = TextEditingController();
+  late FocusNode _gradeFocusNode;
   late TabController _tabController;
 
   // Edit mode data
@@ -85,8 +86,6 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
   List<MaterialModel> _materials = [];
   List<MaterialGroupResponseModel> _materialGroups = [];
 
-  int? _selectedCourseGroupId;
-
   bool _isInitialized = false;
 
   @override
@@ -94,6 +93,8 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
     super.initState();
     _loadTimeZone();
     _loadMaterialsColor();
+    _gradeFocusNode = FocusNode();
+    _gradeFocusNode.addListener(_handleGradeFocusChange);
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) return;
@@ -101,6 +102,35 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
         Navigator.pushReplacementNamed(context, AppRoutes.addEventScreen);
       }
     });
+  }
+
+  void _handleGradeFocusChange() {
+    if (!_gradeFocusNode.hasFocus) {
+      var value = _gradeController.text.trim();
+      if (value != '') {
+        if (value.contains('/') && value.endsWith('%')) {
+          // If a ratio and a percentage exist, drop the percentage
+          value = value.substring(0, value.length - 1);
+        } else if (!value.contains('/')) {
+          // If the value ends with a percentage, drop it
+          if (value.endsWith('%')) {
+            value = value.substring(0, value.length - 1);
+          }
+          // Similarly, if the value didn't end with a percentage, clarify it's out of 100
+          value += '/100';
+        }
+
+        final split = value.split('/');
+        // Ensure there is no division by 0
+        if (double.tryParse(split[0]) == 0 && double.tryParse(split[1]) == 0) {
+          value = "0/100";
+        } else if (double.tryParse(split[1]) == 0) {
+          value = '';
+        }
+
+        _gradeController.text = value;
+      }
+    }
   }
 
   Future<void> _loadTimeZone() async {
@@ -1134,8 +1164,6 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                     if (value != null) {
                                       final selectedCourse = _courses
                                           .firstWhere((c) => c.id == value);
-                                      _selectedCourseGroupId =
-                                          selectedCourse.courseGroup;
 
                                       BlocProvider.of<CourseBloc>(context).add(
                                         FetchCategoriesEvent(
@@ -1755,6 +1783,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                           CustomClassTextField(
                             text: 'Enter Grade',
                             controller: _gradeController,
+                            focusNode: _gradeFocusNode
                           ),
                         ],
                         SizedBox(height: 24.v),

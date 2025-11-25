@@ -105,17 +105,9 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
     List<int> activeDays = [];
 
     // Check which days are active
-    // API format: Sun(0), Mon(1), Tue(2), Wed(3), Thu(4), Fri(5), Sat(6)
-    // Our format: Mon(0), Tue(1), Wed(2), Thu(3), Fri(4), Sat(5), Sun(6)
     for (int i = 0; i < daysOfWeek.length; i++) {
       if (daysOfWeek[i] == '1') {
-        if (i == 0) {
-          // Sunday in API → index 6 in our list
-          activeDays.add(6);
-        } else {
-          // Mon-Sat in API (1-6) → index 0-5 in our list
-          activeDays.add(i - 1);
-        }
+        activeDays.add(i);
       }
     }
 
@@ -218,6 +210,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
     }
 
     setState(() {
+      selectedDays = activeDays;
       if (allSameTime && commonStartTime != null && commonEndTime != null) {
         // Use "Same Time" mode
         scheduleVariesByDay = false;
@@ -225,36 +218,35 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
         singleEndTime = commonEndTime;
       } else {
         scheduleVariesByDay = true;
-        selectedDays = activeDays;
 
         // Set individual times for each day
-        if (activeDays.contains(6) && sunStart != null && sunEnd != null) {
-          startTimes[6] = sunStart;
-          endTimes[6] = sunEnd;
+        if (activeDays.contains(0) && sunStart != null && sunEnd != null) {
+          startTimes[0] = sunStart;
+          endTimes[0] = sunEnd;
         }
-        if (activeDays.contains(0) && monStart != null && monEnd != null) {
-          startTimes[0] = monStart;
-          endTimes[0] = monEnd;
+        if (activeDays.contains(1) && monStart != null && monEnd != null) {
+          startTimes[1] = monStart;
+          endTimes[1] = monEnd;
         }
-        if (activeDays.contains(1) && tueStart != null && tueEnd != null) {
-          startTimes[1] = tueStart;
-          endTimes[1] = tueEnd;
+        if (activeDays.contains(2) && tueStart != null && tueEnd != null) {
+          startTimes[2] = tueStart;
+          endTimes[2] = tueEnd;
         }
-        if (activeDays.contains(2) && wedStart != null && wedEnd != null) {
-          startTimes[2] = wedStart;
-          endTimes[2] = wedEnd;
+        if (activeDays.contains(3) && wedStart != null && wedEnd != null) {
+          startTimes[3] = wedStart;
+          endTimes[3] = wedEnd;
         }
-        if (activeDays.contains(3) && thuStart != null && thuEnd != null) {
-          startTimes[3] = thuStart;
-          endTimes[3] = thuEnd;
+        if (activeDays.contains(4) && thuStart != null && thuEnd != null) {
+          startTimes[4] = thuStart;
+          endTimes[4] = thuEnd;
         }
-        if (activeDays.contains(4) && friStart != null && friEnd != null) {
-          startTimes[4] = friStart;
-          endTimes[4] = friEnd;
+        if (activeDays.contains(5) && friStart != null && friEnd != null) {
+          startTimes[5] = friStart;
+          endTimes[5] = friEnd;
         }
-        if (activeDays.contains(5) && satStart != null && satEnd != null) {
-          startTimes[5] = satStart;
-          endTimes[5] = satEnd;
+        if (activeDays.contains(6) && satStart != null && satEnd != null) {
+          startTimes[6] = satStart;
+          endTimes[6] = satEnd;
         }
       }
     });
@@ -314,49 +306,32 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
     return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}:00';
   }
 
-  // Generate days_of_week string (7 digits: Sun-Sat, 1 = active, 0 = inactive)
   String _generateDaysOfWeek() {
-    if (!scheduleVariesByDay || selectedDays.isEmpty) {
-      // No specific days selected, all days are active
-      return '1111111';
-    }
-
-    // Days in API: Sun(0), Mon(1), Tue(2), Wed(3), Thu(4), Fri(5), Sat(6)
-    // selectedDays uses: Mon(0), Tue(1), Wed(2), Thu(3), Fri(4), Sat(5), Sun(6)
     List<String> daysString = ['0', '0', '0', '0', '0', '0', '0'];
 
     for (int dayIndex in selectedDays) {
-      // Convert from Mon-first to Sun-first
-      if (dayIndex == 6) {
-        // Sunday in our list → index 0 in API
-        daysString[0] = '1';
-      } else {
-        // Mon-Sat in our list → index 1-6 in API
-        daysString[dayIndex + 1] = '1';
-      }
+      daysString[dayIndex] = '1';
     }
 
     return daysString.join('');
   }
 
   void _validateAndCreateSchedule() {
-    // Validation
-    if (scheduleVariesByDay) {
-      // Varies by day - need at least one day selected
-      if (selectedDays.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Please select at least one day',
-              style: AppTextStyle.cTextStyle.copyWith(color: whiteColor),
-            ),
-            backgroundColor: redColor,
+    if (selectedDays.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Please select at least one day',
+            style: AppTextStyle.cTextStyle.copyWith(color: whiteColor),
           ),
-        );
-        return;
-      }
+          backgroundColor: redColor,
+        ),
+      );
+      return;
+    }
 
-      // Check if all selected days have start and end times
+    // Check if all selected days have start and end times
+    if (scheduleVariesByDay) {
       for (int dayIndex in selectedDays) {
         if (startTimes[dayIndex] == null || endTimes[dayIndex] == null) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -371,20 +346,20 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
           return;
         }
       }
-    } else {
-      // Same time for all days
-      if (singleStartTime == null || singleEndTime == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Please set start and end times',
-              style: AppTextStyle.cTextStyle.copyWith(color: whiteColor),
-            ),
-            backgroundColor: redColor,
+    }
+
+    // Same time for all days
+    if (singleStartTime == null || singleEndTime == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Please set start and end times',
+            style: AppTextStyle.cTextStyle.copyWith(color: whiteColor),
           ),
-        );
-        return;
-      }
+          backgroundColor: redColor,
+        ),
+      );
+      return;
     }
 
     // Build request
@@ -403,54 +378,53 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
 
     if (scheduleVariesByDay) {
       // Varies by day - set times based on selectedDays
-      // Map selectedDays indices to API day indices
-      sunStart = selectedDays.contains(6) && startTimes[6] != null
-          ? _formatTimeForAPI(startTimes[6]!)
-          : defaultTime;
-      sunEnd = selectedDays.contains(6) && endTimes[6] != null
-          ? _formatTimeForAPI(endTimes[6]!)
-          : defaultTime;
-
-      monStart = selectedDays.contains(0) && startTimes[0] != null
+      sunStart = selectedDays.contains(0) && startTimes[0] != null
           ? _formatTimeForAPI(startTimes[0]!)
           : defaultTime;
-      monEnd = selectedDays.contains(0) && endTimes[0] != null
+      sunEnd = selectedDays.contains(0) && endTimes[0] != null
           ? _formatTimeForAPI(endTimes[0]!)
           : defaultTime;
 
-      tueStart = selectedDays.contains(1) && startTimes[1] != null
+      monStart = selectedDays.contains(1) && startTimes[1] != null
           ? _formatTimeForAPI(startTimes[1]!)
           : defaultTime;
-      tueEnd = selectedDays.contains(1) && endTimes[1] != null
+      monEnd = selectedDays.contains(1) && endTimes[1] != null
           ? _formatTimeForAPI(endTimes[1]!)
           : defaultTime;
 
-      wedStart = selectedDays.contains(2) && startTimes[2] != null
+      tueStart = selectedDays.contains(2) && startTimes[2] != null
           ? _formatTimeForAPI(startTimes[2]!)
           : defaultTime;
-      wedEnd = selectedDays.contains(2) && endTimes[2] != null
+      tueEnd = selectedDays.contains(2) && endTimes[2] != null
           ? _formatTimeForAPI(endTimes[2]!)
           : defaultTime;
 
-      thuStart = selectedDays.contains(3) && startTimes[3] != null
+      wedStart = selectedDays.contains(3) && startTimes[3] != null
           ? _formatTimeForAPI(startTimes[3]!)
           : defaultTime;
-      thuEnd = selectedDays.contains(3) && endTimes[3] != null
+      wedEnd = selectedDays.contains(3) && endTimes[3] != null
           ? _formatTimeForAPI(endTimes[3]!)
           : defaultTime;
 
-      friStart = selectedDays.contains(4) && startTimes[4] != null
+      thuStart = selectedDays.contains(4) && startTimes[4] != null
           ? _formatTimeForAPI(startTimes[4]!)
           : defaultTime;
-      friEnd = selectedDays.contains(4) && endTimes[4] != null
+      thuEnd = selectedDays.contains(4) && endTimes[4] != null
           ? _formatTimeForAPI(endTimes[4]!)
           : defaultTime;
 
-      satStart = selectedDays.contains(5) && startTimes[5] != null
+      friStart = selectedDays.contains(5) && startTimes[5] != null
           ? _formatTimeForAPI(startTimes[5]!)
           : defaultTime;
-      satEnd = selectedDays.contains(5) && endTimes[5] != null
+      friEnd = selectedDays.contains(5) && endTimes[5] != null
           ? _formatTimeForAPI(endTimes[5]!)
+          : defaultTime;
+
+      satStart = selectedDays.contains(6) && startTimes[6] != null
+          ? _formatTimeForAPI(startTimes[6]!)
+          : defaultTime;
+      satEnd = selectedDays.contains(6) && endTimes[6] != null
+          ? _formatTimeForAPI(endTimes[6]!)
           : defaultTime;
     } else {
       // Same time for all days
@@ -945,9 +919,9 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                                         value: scheduleVariesByDay,
                                         onChanged: (bool? newValue) {
                                           setState(() {
-                                            scheduleVariesByDay = newValue ?? false;
+                                            scheduleVariesByDay =
+                                                newValue ?? false;
                                             if (!scheduleVariesByDay) {
-                                              selectedDays.clear();
                                               startTimes.clear();
                                               endTimes.clear();
                                             }
@@ -1030,8 +1004,9 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                                                   width: 1.5,
                                                 )
                                               : Border.all(
-                                                  color: greyColor
-                                                      .withOpacity(0.3),
+                                                  color: greyColor.withOpacity(
+                                                    0.3,
+                                                  ),
                                                   width: 1,
                                                 ),
                                           boxShadow: isSelected

@@ -11,10 +11,11 @@ import 'package:helium_mobile/utils/app_size.dart';
 import 'package:helium_mobile/utils/app_text_style.dart';
 
 class CustomClassTextField extends StatelessWidget {
-  const CustomClassTextField({super.key, required this.text, this.controller});
+  const CustomClassTextField({super.key, required this.text, this.controller, this.focusNode});
 
   final String text;
   final TextEditingController? controller;
+  final FocusNode? focusNode;
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +27,7 @@ class CustomClassTextField extends StatelessWidget {
       ),
       child: TextFormField(
         controller: controller,
+        focusNode: focusNode,
         style: AppTextStyle.eTextStyle.copyWith(color: blackColor),
         decoration: InputDecoration(
           hintText: text,

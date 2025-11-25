@@ -322,7 +322,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
       endDateStr = '';
     }
 
-    final request = CourseRequestModel(
+    final courseRequest = CourseRequestModel(
       title: _titleController.text.trim().isEmpty
           ? 'Untitled'
           : _titleController.text.trim(),
@@ -340,7 +340,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
       courseGroup: widget.courseGroupId,
     );
 
-    _courseBloc.add(CreateCourseEvent(request: request));
+    _courseBloc.add(CreateCourseEvent(request: courseRequest));
   }
 
   @override

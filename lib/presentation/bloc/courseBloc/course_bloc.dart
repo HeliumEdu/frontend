@@ -11,6 +11,8 @@ import 'package:helium_mobile/domain/repositories/course_repository.dart';
 import 'package:helium_mobile/presentation/bloc/courseBloc/course_event.dart';
 import 'package:helium_mobile/presentation/bloc/courseBloc/course_state.dart';
 
+import '../../../data/models/planner/course_schedule_request_model.dart';
+
 class CourseBloc extends Bloc<CourseEvent, CourseState> {
   final CourseRepository courseRepository;
 
@@ -112,7 +114,30 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
     emit(CourseCreating());
 
     try {
+      final createEmptyCourseSchedule = CourseScheduleRequestModel(
+        daysOfWeek: '0000000',
+        sunStartTime: '00:00:00',
+        sunEndTime: '00:00:00',
+        monStartTime: '00:00:00',
+        monEndTime: '00:00:00',
+        tueStartTime: '00:00:00',
+        tueEndTime: '00:00:00',
+        wedStartTime: '00:00:00',
+        wedEndTime: '00:00:00',
+        thuStartTime: '00:00:00',
+        thuEndTime: '00:00:00',
+        friStartTime: '00:00:00',
+        friEndTime: '00:00:00',
+        satStartTime: '00:00:00',
+        satEndTime: '00:00:00',
+      );
+
       final course = await courseRepository.createCourse(event.request);
+      await courseRepository.createCourseSchedule(
+        course.courseGroup,
+        course.id,
+        createEmptyCourseSchedule,
+      );
       emit(CourseCreated(course: course));
     } on ValidationException catch (e) {
       emit(CourseCreateError(message: e.message));
