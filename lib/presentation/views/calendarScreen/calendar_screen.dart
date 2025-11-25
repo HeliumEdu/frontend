@@ -3494,7 +3494,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 print('   - Course ID: ${homework.course}');
                 print('   - Homework ID: ${homework.id}');
 
-                // Use the captured bloc instead of context.read
                 homeworkBloc.add(
                   DeleteHomeworkEvent(
                     groupId: course.courseGroup,
