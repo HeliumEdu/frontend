@@ -5,7 +5,7 @@
 
 # Helium Frontend
 
-The `frontend` for [Helium Edu](https://www.heliumedu.com/).
+The `frontend` for [Helium](https://www.heliumedu.com/).
 
 Released container images are published to [Helium's AWS ECR](https://gallery.ecr.aws/heliumedu/).
 

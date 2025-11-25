@@ -1,5 +1,5 @@
 {
-    "PROJECT_NAME": "Helium Edu",
+    "PROJECT_NAME": "Helium",
     "PROJECT_TAGLINE": "Student Planner & Academic Calendar App",
     "PROJECT_EMAIL": "contact@heliumedu.com",
     "PROJECT_VERSION": "${DIST_VERSION}",
