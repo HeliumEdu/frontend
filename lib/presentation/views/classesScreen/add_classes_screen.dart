@@ -22,7 +22,6 @@ import 'package:helium_mobile/presentation/widgets/custom_text_button.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_size.dart';
 import 'package:helium_mobile/utils/app_text_style.dart';
-import 'package:helium_mobile/utils/custom_calendar_textfield.dart';
 import 'package:helium_mobile/utils/custom_color_picker.dart';
 
 class AddClassesScreen extends StatefulWidget {
@@ -704,15 +703,42 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                             ),
                           ),
                           SizedBox(height: 9.v),
-                          CustomCalendarTextfield(
-                            text: _startDate != null
-                                ? _formatDateForDisplay(_startDate!)
-                                : '',
-                            onDateSelected: (selectedDate) {
-                              setState(() {
-                                _startDate = selectedDate;
-                              });
-                            },
+                          GestureDetector(
+                            onTap: () => _selectDate(context, true),
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 12.h,
+                                vertical: 12.v,
+                              ),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: blackColor.withOpacity(0.15),
+                                ),
+                                color: whiteColor,
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    _startDate != null
+                                        ? _formatDateForDisplay(_startDate!)
+                                        : '',
+                                    style: AppTextStyle.eTextStyle.copyWith(
+                                      color: _startDate != null
+                                          ? blackColor
+                                          : blackColor.withOpacity(0.5),
+                                    ),
+                                  ),
+                                  Icon(
+                                    Icons.calendar_today,
+                                    color: primaryColor,
+                                    size: 18,
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                           SizedBox(height: 14.v),
                           Text(
@@ -722,15 +748,42 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                             ),
                           ),
                           SizedBox(height: 9.v),
-                          CustomCalendarTextfield(
-                            text: _endDate != null
-                                ? _formatDateForDisplay(_endDate!)
-                                : '',
-                            onDateSelected: (selectedDate) {
-                              setState(() {
-                                _endDate = selectedDate;
-                              });
-                            },
+                          GestureDetector(
+                            onTap: () => _selectDate(context, false),
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 12.h,
+                                vertical: 12.v,
+                              ),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: blackColor.withOpacity(0.15),
+                                ),
+                                color: whiteColor,
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    _endDate != null
+                                        ? _formatDateForDisplay(_endDate!)
+                                        : '',
+                                    style: AppTextStyle.eTextStyle.copyWith(
+                                      color: _endDate != null
+                                          ? blackColor
+                                          : blackColor.withOpacity(0.5),
+                                    ),
+                                  ),
+                                  Icon(
+                                    Icons.calendar_today,
+                                    color: primaryColor,
+                                    size: 18,
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                           SizedBox(height: 14.v),
 
@@ -870,5 +923,38 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _selectDate(BuildContext context, bool isStartDate) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: isStartDate
+          ? (_startDate ?? DateTime.now())
+          : (_endDate ?? DateTime.now()),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: primaryColor,
+              onPrimary: whiteColor,
+              onSurface: blackColor,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() {
+        if (isStartDate) {
+          _startDate = picked;
+        } else {
+          _endDate = picked;
+        }
+      });
+    }
   }
 }

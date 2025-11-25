@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:helium_mobile/config/app_routes.dart';
 import 'package:helium_mobile/core/dio_client.dart';
+import 'package:helium_mobile/data/datasources/auth_remote_data_source.dart';
 import 'package:helium_mobile/data/datasources/course_remote_data_source.dart';
 import 'package:helium_mobile/data/datasources/homework_remote_data_source.dart';
 import 'package:helium_mobile/data/datasources/material_remote_data_source.dart';
@@ -19,6 +20,7 @@ import 'package:helium_mobile/data/models/planner/homework_request_model.dart';
 import 'package:helium_mobile/data/models/planner/homework_response_model.dart';
 import 'package:helium_mobile/data/models/planner/material_group_response_model.dart';
 import 'package:helium_mobile/data/models/planner/material_model.dart';
+import 'package:helium_mobile/data/repositories/auth_repository_impl.dart';
 import 'package:helium_mobile/data/repositories/course_repository_impl.dart';
 import 'package:helium_mobile/data/repositories/homework_repository_impl.dart';
 import 'package:helium_mobile/data/repositories/material_repository_impl.dart';
@@ -42,9 +44,6 @@ import 'package:helium_mobile/utils/app_text_style.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;
-
-import 'package:helium_mobile/data/datasources/auth_remote_data_source.dart';
-import 'package:helium_mobile/data/repositories/auth_repository_impl.dart';
 
 class AddAssignmentScreen extends StatefulWidget {
   const AddAssignmentScreen({super.key});
@@ -80,6 +79,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
   TimeOfDay? _startTime;
   TimeOfDay? _endTime;
   double _priorityValue = 50.0;
+  Color _materialsColor = whiteColor;
   List<CourseModel> _courses = [];
   List<CategoryModel> _categories = [];
   List<MaterialModel> _materials = [];
@@ -93,6 +93,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
   void initState() {
     super.initState();
     _loadTimeZone();
+    _loadMaterialsColor();
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) return;
@@ -129,6 +130,60 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
         });
       }
     }
+  }
+
+  Future<void> _loadMaterialsColor() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? storedHex = prefs.getString('user_materials_color');
+
+    if (storedHex == null || storedHex.isEmpty) {
+      try {
+        final dioClient = DioClient();
+        final authRepository = AuthRepositoryImpl(
+          remoteDataSource: AuthRemoteDataSourceImpl(dioClient: dioClient),
+        );
+        final profile = await authRepository.getProfile();
+        final profileHex = profile.settings?.eventsColor;
+        if (profileHex != null && profileHex
+            .trim()
+            .isNotEmpty) {
+          final parsed = _colorFromHex(profileHex);
+          storedHex = _colorToHex(parsed);
+          await prefs.setString('user_materials_color', storedHex);
+        }
+      } catch (e) {
+        print('⚠️ Failed to load materials color from profile: $e');
+      }
+    }
+
+    if (storedHex == null || storedHex.isEmpty) return;
+
+    final parsedColor = _colorFromHex(storedHex);
+    if (mounted && parsedColor != _materialsColor) {
+      setState(() {
+        _materialsColor = parsedColor;
+      });
+    }
+  }
+
+  String _colorToHex(Color color) {
+    final value = color.value.toRadixString(16).padLeft(8, '0');
+    return '#${value.substring(2)}';
+  }
+
+  Color _colorFromHex(String hex) {
+    var cleaned = hex.trim().toLowerCase();
+    if (cleaned.startsWith('#')) {
+      cleaned = cleaned.substring(1);
+    }
+    if (cleaned.length == 3) {
+      cleaned = cleaned.split('').map((c) => '$c$c').join();
+    }
+    if (cleaned.length == 8) {
+      // strip alpha channel if provided
+      cleaned = cleaned.substring(2);
+    }
+    return Color(int.parse('ff$cleaned', radix: 16));
   }
 
   @override
@@ -242,7 +297,10 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
       // Parse start date/time
       final timeZone = tz.getLocation(_timeZone);
       try {
-        final startDateTime = tz.TZDateTime.from(DateTime.parse(homework.start), timeZone);
+        final startDateTime = tz.TZDateTime.from(
+          DateTime.parse(homework.start),
+          timeZone,
+        );
         _startDate = startDateTime;
         if (!isAllDay) {
           _startTime = TimeOfDay.fromDateTime(startDateTime);
@@ -253,7 +311,10 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
 
       if (homework.end != null) {
         try {
-          final endDateTime = tz.TZDateTime.from(DateTime.parse(homework.end!), timeZone);
+          final endDateTime = tz.TZDateTime.from(
+            DateTime.parse(homework.end!),
+            timeZone,
+          );
           _endDate = endDateTime;
           if (!isAllDay) {
             _endTime = TimeOfDay.fromDateTime(endDateTime);
@@ -349,7 +410,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
     if (matches.isNotEmpty) {
       return matches.first.title;
     }
-    return 'Unknown';
+    return 'Loading...';
   }
 
   Future<void> _openMaterialPicker() async {
@@ -362,8 +423,9 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
       barrierDismissible: true,
       builder: (dialogCtx) {
         return AlertDialog(
+          backgroundColor: whiteColor,
           title: Text(
-            'Select Materials',
+            '',
             style: AppTextStyle.cTextStyle.copyWith(
               color: blackColor,
               fontWeight: FontWeight.w600,
@@ -408,7 +470,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
               onPressed: () => Navigator.pop(dialogCtx),
               child: Text(
                 'Cancel',
-                style: AppTextStyle.eTextStyle.copyWith(color: greyColor),
+                style: AppTextStyle.eTextStyle.copyWith(color: textColor),
               ),
             ),
             TextButton(
@@ -1038,9 +1100,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                             isExpanded: true,
                             underline: SizedBox(),
                             hint: Text(
-                              _courses.isEmpty
-                                  ? 'Loading classes ...'
-                                  : '',
+                              _courses.isEmpty ? 'Loading classes ...' : '',
                               style: AppTextStyle.eTextStyle.copyWith(
                                 color: blackColor.withOpacity(0.5),
                               ),
@@ -1181,7 +1241,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                       ? ''
                                       : _materials.isEmpty
                                       ? 'No materials available'
-                                      : 'No materials selected',
+                                      : '',
                                   style: AppTextStyle.eTextStyle.copyWith(
                                     color: blackColor.withOpacity(0.5),
                                   ),
@@ -1192,10 +1252,12 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                   runSpacing: -8,
                                   children: selectedMaterialIds.map((id) {
                                     return Chip(
+                                      backgroundColor: _materialsColor,
+                                      deleteIconColor: whiteColor,
                                       label: Text(
                                         _materialTitleById(id),
                                         style: AppTextStyle.eTextStyle.copyWith(
-                                          color: blackColor,
+                                          color: whiteColor,
                                         ),
                                       ),
                                       onDeleted: () {
@@ -1226,7 +1288,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                         color: primaryColor,
                                       ),
                                       label: Text(
-                                        'Add materials',
+                                        'Select materials',
                                         style: AppTextStyle.eTextStyle.copyWith(
                                           color: primaryColor,
                                           fontWeight: FontWeight.w600,
@@ -1395,7 +1457,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                                   ? _formatDateForDisplay(
                                                       _endDate!,
                                                     )
-                                                  : 'Select End Date',
+                                                  : '',
                                               style: AppTextStyle.eTextStyle
                                                   .copyWith(
                                                     color: _endDate != null
@@ -1474,7 +1536,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      '',
+                                      'Start Time',
                                       style: AppTextStyle.eTextStyle.copyWith(
                                         color: blackColor.withOpacity(0.8),
                                         fontWeight: FontWeight.w500,
@@ -1566,7 +1628,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                               Text(
                                                 _endTime != null
                                                     ? _formatTime(_endTime!)
-                                                    : 'End Time',
+                                                    : '',
                                                 style: AppTextStyle.eTextStyle
                                                     .copyWith(
                                                       color: _endTime != null
@@ -1593,7 +1655,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                             ],
                           ),
                         ],
-                        SizedBox(height: 12.v),
+                        SizedBox(height: 16.v),
                         // Priority Slider
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1605,31 +1667,19 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 12.h,
-                                vertical: 6.v,
-                              ),
-                              child: Text(
-                                '${(_priorityValue / 10).round()}',
-                                style: AppTextStyle.eTextStyle.copyWith(
-                                  color: _getColorForPriority(_priorityValue),
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ),
                           ],
                         ),
-                        SizedBox(height: 12.v),
+                        SizedBox(height: 8.v),
                         SliderTheme(
                           data: SliderTheme.of(context).copyWith(
-                            activeTrackColor: _getColorForPriority(_priorityValue),
+                            activeTrackColor: _getColorForPriority(
+                              _priorityValue,
+                            ),
                             inactiveTrackColor: greyColor.withOpacity(0.3),
                             thumbColor: _getColorForPriority(_priorityValue),
-                            overlayColor:
-                                (_getColorForPriority(_priorityValue))
-                                    .withOpacity(0.2),
+                            overlayColor: (_getColorForPriority(
+                              _priorityValue,
+                            )).withOpacity(0.2),
                             showValueIndicator: ShowValueIndicator.never,
                             thumbShape: RoundSliderThumbShape(
                               enabledThumbRadius: 12.0,

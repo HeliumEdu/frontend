@@ -72,7 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int selectedIndex = 2; // Default to day view
   String _currentViewMode = 'Day';
   int _selectedWeekIndex = 0; // For week view selection
-  Color _eventColor = greenColor;
+  Color _eventsColor = greenColor;
   String _timeZone = 'America/Chicago';
   List<ExternalCalendarModel> _externalCalendars = [];
   Map<int, List<ExternalCalendarEventModel>> _externalEventsByCalendar = {};
@@ -178,9 +178,9 @@ class _HomeScreenState extends State<HomeScreen> {
     if (storedHex == null || storedHex.isEmpty) return;
 
     final parsedColor = _colorFromHex(storedHex);
-    if (mounted && parsedColor != _eventColor) {
+    if (mounted && parsedColor != _eventsColor) {
       setState(() {
-        _eventColor = parsedColor;
+        _eventsColor = parsedColor;
       });
     }
   }
@@ -686,7 +686,7 @@ class _HomeScreenState extends State<HomeScreen> {
       dots.add(darkBlueColor);
     }
     if (showEvents && _hasEventsOnDate(date, events)) {
-      dots.add(_eventColor);
+      dots.add(_eventsColor);
     }
     if (showClassSchedule && _hasCoursesOnDate(date, courses)) {
       dots.add(greenColor);
@@ -1211,7 +1211,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 width: 12.h,
                                 height: 12.h,
                                 decoration: BoxDecoration(
-                                  color: _eventColor,
+                                  color: _eventsColor,
                                   shape: BoxShape.circle,
                                 ),
                               ),
@@ -3494,7 +3494,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 print('   - Course ID: ${homework.course}');
                 print('   - Homework ID: ${homework.id}');
 
-                // Use the captured bloc instead of context.read
                 homeworkBloc.add(
                   DeleteHomeworkEvent(
                     groupId: course.courseGroup,
@@ -3769,7 +3768,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildEventCard(BuildContext context, EventResponseModel event) {
-    Color eventColor = _eventColor;
+    Color eventColor = _eventsColor;
     String timeDisplay = '';
     try {
       if (event.allDay) {
@@ -3912,7 +3911,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () => Navigator.of(dialogContext).pop(),
               child: Text(
                 'Cancel',
-                style: AppTextStyle.eTextStyle.copyWith(color: greyColor),
+                style: AppTextStyle.eTextStyle.copyWith(color: textColor),
               ),
             ),
             TextButton(

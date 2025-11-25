@@ -5,7 +5,6 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:helium_mobile/data/models/auth/update_settings_request_model.dart';
 import 'package:helium_mobile/data/models/auth/user_profile_model.dart';
@@ -49,11 +48,19 @@ class PreferenceBloc extends Bloc<PreferenceEvent, PreferenceState> {
       final defaultView = settings.defaultView;
       final timeZone = settings.timeZone;
       final eventsColor = settings.eventsColor.toLowerCase();
+      final materialsColor = settings.materialsColor.toLowerCase();
+      final gradesColor = settings.gradesColor.toLowerCase();
       final defaultReminderOffset = settings.defaultReminderOffset;
       final defaultReminderOffsetType = settings.defaultReminderOffsetType;
 
-      final normalized = _normalizeHex(eventsColor);
-      await _cacheEventColor(normalized);
+      final normalizedEventsColor = _normalizeHex(eventsColor);
+      final normalizedMaterialsColor = _normalizeHex(materialsColor);
+      final normalizedGradesColor = _normalizeHex(gradesColor);
+
+
+      await _cacheEventColor(normalizedEventsColor);
+      await _cacheMaterialsColor(normalizedMaterialsColor);
+      await _cacheGradesColor(normalizedGradesColor);
       await _cacheTimeZone(timeZone);
 
       emit(
@@ -62,7 +69,9 @@ class PreferenceBloc extends Bloc<PreferenceEvent, PreferenceState> {
           selectedTimeZone: timeZone,
           selectedReminderOffsetUnit:
               reminderOffsetUnits[defaultReminderOffsetType],
-          selectedEventsColor: parseColor(normalized),
+          selectedEventsColor: parseColor(normalizedEventsColor),
+          selectedMaterialsColor: parseColor(normalizedMaterialsColor),
+          selectedGradesColor: parseColor(normalizedGradesColor),
           offsetValue: defaultReminderOffset,
         ),
       );
@@ -184,11 +193,23 @@ class PreferenceBloc extends Bloc<PreferenceEvent, PreferenceState> {
     await prefs.setString(_eventColorPrefsKey, _normalizeHex(hex));
   }
 
-  Future<void> _cacheTimeZone(String timeZone) async {
+  Future<void> _cacheMaterialsColor(String hex) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_userTimeZonePrefsKey, timeZone);
+    await prefs.setString(_userMaterialsColorPrefsKey, _normalizeHex(hex));
+  }
+
+  Future<void> _cacheGradesColor(String hex) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_userGradesColorPrefsKey, _normalizeHex(hex));
+  }
+
+  Future<void> _cacheTimeZone(String hex) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_userTimeZonePrefsKey, _normalizeHex(hex));
   }
 
   static const String _eventColorPrefsKey = 'user_events_color';
+  static const String _userMaterialsColorPrefsKey = 'user_materials_color';
+  static const String _userGradesColorPrefsKey = 'user_grades_color';
   static const String _userTimeZonePrefsKey = 'user_time_zone';
 }

@@ -5,7 +5,7 @@
 
 # Helium Mobile
 
-The `mobile` app for [Helium Edu](https://www.heliumedu.com/). This project is still in development, and we hope to
+The `mobile` app for [Helium](https://www.heliumedu.com/). This project is still in development, and we hope to
 release it for Android and iOS near the beginning of 2026.
 
 ## Prerequisites
