@@ -22,7 +22,8 @@ import 'package:helium_mobile/presentation/widgets/custom_text_button.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_size.dart';
 import 'package:helium_mobile/utils/app_text_style.dart';
-import 'package:helium_mobile/utils/custom_color_picker.dart';
+import 'package:helium_mobile/presentation/widgets/custom_color_picker.dart';
+import 'package:helium_mobile/utils/formatting.dart';
 
 class AddClassesScreen extends StatefulWidget {
   final int courseGroupId;
@@ -170,34 +171,6 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
     super.dispose();
   }
 
-  // Helper to format date to API format (YYYY-MM-DD)
-  String _formatDateForApi(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-  }
-
-  // Helper to format date for display
-  String _formatDateForDisplay(DateTime date) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return '${months[date.month - 1]} ${date.day}, ${date.year}';
-  }
-
-  String _colorToHex(Color color) {
-    return '#${color.value.toRadixString(16).substring(2, 8).toLowerCase()}';
-  }
-
   void _showColorPicker() {
     showDialog(
       context: context,
@@ -218,12 +191,23 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
   }
 
   void _validateAndCreateCourse() {
+    // Validation
+    if (_titleController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please enter course title'),
+          backgroundColor: redColor,
+        ),
+      );
+      return;
+    }
+
     // Use user dates if set, otherwise fallback to course group dates
     String startDateStr;
     String endDateStr;
 
     if (_startDate != null) {
-      startDateStr = _formatDateForApi(_startDate!);
+      startDateStr = formatDateForApi(_startDate!);
     } else if (_groupStartDate != null && _groupStartDate!.isNotEmpty) {
       startDateStr = _groupStartDate!;
     } else {
@@ -231,7 +215,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
     }
 
     if (_endDate != null) {
-      endDateStr = _formatDateForApi(_endDate!);
+      endDateStr = formatDateForApi(_endDate!);
     } else if (_groupEndDate != null && _groupEndDate!.isNotEmpty) {
       endDateStr = _groupEndDate!;
     } else {
@@ -240,14 +224,12 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
 
     // Create request model
     final request = CourseRequestModel(
-      title: _titleController.text.trim().isEmpty
-          ? 'Untitled'
-          : _titleController.text.trim(),
+      title: _titleController.text.trim(),
       room: _roomController.text.trim(),
       credits: _creditsController.text.trim().isEmpty
           ? '0'
           : _creditsController.text.trim(),
-      color: _colorToHex(selectedColor),
+      color: colorToHex(selectedColor),
       website: _websiteController.text.trim(),
       isOnline: isOnline,
       teacherName: _teacherNameController.text.trim(),
@@ -302,45 +284,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
 
     _stepperTargetIndex = index;
 
-    // Use user dates if set, otherwise fallback to course group dates
-    String startDateStr;
-    String endDateStr;
-
-    if (_startDate != null) {
-      startDateStr = _formatDateForApi(_startDate!);
-    } else if (_groupStartDate != null && _groupStartDate!.isNotEmpty) {
-      startDateStr = _groupStartDate!;
-    } else {
-      startDateStr = '';
-    }
-
-    if (_endDate != null) {
-      endDateStr = _formatDateForApi(_endDate!);
-    } else if (_groupEndDate != null && _groupEndDate!.isNotEmpty) {
-      endDateStr = _groupEndDate!;
-    } else {
-      endDateStr = '';
-    }
-
-    final courseRequest = CourseRequestModel(
-      title: _titleController.text.trim().isEmpty
-          ? 'Untitled'
-          : _titleController.text.trim(),
-      room: _roomController.text.trim(),
-      credits: _creditsController.text.trim().isEmpty
-          ? '0'
-          : _creditsController.text.trim(),
-      color: _colorToHex(selectedColor),
-      website: _websiteController.text.trim(),
-      isOnline: isOnline,
-      teacherName: _teacherNameController.text.trim(),
-      teacherEmail: _teacherEmailController.text.trim(),
-      startDate: startDateStr,
-      endDate: endDateStr,
-      courseGroup: widget.courseGroupId,
-    );
-
-    _courseBloc.add(CreateCourseEvent(request: courseRequest));
+    _validateAndCreateCourse();
   }
 
   @override
@@ -528,7 +472,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                       borderRadius: BorderRadius.circular(16.adaptSize),
                       boxShadow: [
                         BoxShadow(
-                          color: blackColor.withOpacity(0.06),
+                          color: blackColor.withValues(alpha: 0.06),
                           blurRadius: 12,
                           offset: Offset(0, 4),
                           spreadRadius: 0,
@@ -542,7 +486,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                         lineThickness: 3,
                         lineSpace: 4,
                         lineType: LineType.normal,
-                        defaultLineColor: greyColor.withOpacity(0.3),
+                        defaultLineColor: greyColor.withValues(alpha: 0.3),
                         finishedLineColor: primaryColor,
                         activeLineColor: primaryColor,
                       ),
@@ -551,15 +495,15 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                       activeStepBackgroundColor: primaryColor,
                       activeStepTextColor: primaryColor,
                       finishedStepBorderColor: primaryColor,
-                      finishedStepBackgroundColor: primaryColor.withOpacity(
+                      finishedStepBackgroundColor: primaryColor.withValues(alpha: 
                         0.1,
                       ),
                       finishedStepIconColor: primaryColor,
                       finishedStepTextColor: blackColor,
-                      unreachedStepBorderColor: greyColor.withOpacity(0.3),
+                      unreachedStepBorderColor: greyColor.withValues(alpha: 0.3),
                       unreachedStepBackgroundColor: softGrey,
                       unreachedStepIconColor: greyColor,
-                      unreachedStepTextColor: textColor.withOpacity(0.5),
+                      unreachedStepTextColor: textColor.withValues(alpha: 0.5),
                       borderThickness: 2,
                       internalPadding: 12,
                       showLoadingAnimation: false,
@@ -585,7 +529,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                               border: Border.all(color: primaryColor, width: 2),
                               boxShadow: [
                                 BoxShadow(
-                                  color: primaryColor.withOpacity(0.3),
+                                  color: primaryColor.withValues(alpha: 0.3),
                                   blurRadius: 8,
                                   offset: Offset(0, 3),
                                   spreadRadius: 0,
@@ -612,13 +556,13 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                               textAlign: TextAlign.center,
                             ),
                           ),
-                          topTitle: false,
+                          placeTitleAtStart: false,
                         ),
                         EasyStep(
                           customStep: Container(
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: primaryColor.withOpacity(0.1),
+                              color: primaryColor.withValues(alpha: 0.1),
                               border: Border.all(color: primaryColor, width: 2),
                             ),
                             child: Center(
@@ -641,13 +585,13 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                               textAlign: TextAlign.center,
                             ),
                           ),
-                          topTitle: false,
+                          placeTitleAtStart: false,
                         ),
                         EasyStep(
                           customStep: Container(
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: primaryColor.withOpacity(0.1),
+                              color: primaryColor.withValues(alpha: 0.1),
                               border: Border.all(color: primaryColor, width: 2),
                             ),
                             child: Center(
@@ -670,7 +614,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                               textAlign: TextAlign.center,
                             ),
                           ),
-                          topTitle: false,
+                          placeTitleAtStart: false,
                         ),
                       ],
                     ),
@@ -687,7 +631,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                           Text(
                             'Title',
                             style: AppTextStyle.cTextStyle.copyWith(
-                              color: blackColor.withOpacity(0.8),
+                              color: blackColor.withValues(alpha: 0.8),
                             ),
                           ),
                           SizedBox(height: 9.v),
@@ -699,7 +643,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                           Text(
                             'From',
                             style: AppTextStyle.cTextStyle.copyWith(
-                              color: blackColor.withOpacity(0.8),
+                              color: blackColor.withValues(alpha: 0.8),
                             ),
                           ),
                           SizedBox(height: 9.v),
@@ -713,7 +657,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(6),
                                 border: Border.all(
-                                  color: blackColor.withOpacity(0.15),
+                                  color: blackColor.withValues(alpha: 0.15),
                                 ),
                                 color: whiteColor,
                               ),
@@ -723,12 +667,12 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                                 children: [
                                   Text(
                                     _startDate != null
-                                        ? _formatDateForDisplay(_startDate!)
+                                        ? formatDateForDisplay(_startDate!)
                                         : '',
                                     style: AppTextStyle.eTextStyle.copyWith(
                                       color: _startDate != null
                                           ? blackColor
-                                          : blackColor.withOpacity(0.5),
+                                          : blackColor.withValues(alpha: 0.5),
                                     ),
                                   ),
                                   Icon(
@@ -744,7 +688,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                           Text(
                             'To',
                             style: AppTextStyle.cTextStyle.copyWith(
-                              color: blackColor.withOpacity(0.8),
+                              color: blackColor.withValues(alpha: 0.8),
                             ),
                           ),
                           SizedBox(height: 9.v),
@@ -758,7 +702,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(6),
                                 border: Border.all(
-                                  color: blackColor.withOpacity(0.15),
+                                  color: blackColor.withValues(alpha: 0.15),
                                 ),
                                 color: whiteColor,
                               ),
@@ -768,12 +712,12 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                                 children: [
                                   Text(
                                     _endDate != null
-                                        ? _formatDateForDisplay(_endDate!)
+                                        ? formatDateForDisplay(_endDate!)
                                         : '',
                                     style: AppTextStyle.eTextStyle.copyWith(
                                       color: _endDate != null
                                           ? blackColor
-                                          : blackColor.withOpacity(0.5),
+                                          : blackColor.withValues(alpha: 0.5),
                                     ),
                                   ),
                                   Icon(
@@ -791,7 +735,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                             Text(
                               'Room',
                               style: AppTextStyle.cTextStyle.copyWith(
-                                color: blackColor.withOpacity(0.8),
+                                color: blackColor.withValues(alpha: 0.8),
                               ),
                             ),
                             SizedBox(height: 9.v),
@@ -805,7 +749,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                           Text(
                             'Website',
                             style: AppTextStyle.cTextStyle.copyWith(
-                              color: blackColor.withOpacity(0.8),
+                              color: blackColor.withValues(alpha: 0.8),
                             ),
                           ),
                           SizedBox(height: 9.v),
@@ -817,7 +761,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                           Text(
                             'Teacher',
                             style: AppTextStyle.cTextStyle.copyWith(
-                              color: blackColor.withOpacity(0.8),
+                              color: blackColor.withValues(alpha: 0.8),
                             ),
                           ),
                           SizedBox(height: 9.v),
@@ -829,7 +773,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                           Text(
                             'Teacher Email',
                             style: AppTextStyle.cTextStyle.copyWith(
-                              color: blackColor.withOpacity(0.8),
+                              color: blackColor.withValues(alpha: 0.8),
                             ),
                           ),
                           SizedBox(height: 9.v),
@@ -841,7 +785,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                           Text(
                             'Credits',
                             style: AppTextStyle.cTextStyle.copyWith(
-                              color: blackColor.withOpacity(0.8),
+                              color: blackColor.withValues(alpha: 0.8),
                             ),
                           ),
                           SizedBox(height: 9.v),
@@ -872,7 +816,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                               Text(
                                 'Color',
                                 style: AppTextStyle.cTextStyle.copyWith(
-                                  color: blackColor.withOpacity(0.8),
+                                  color: blackColor.withValues(alpha: 0.8),
                                 ),
                               ),
                               SizedBox(width: 12.h),

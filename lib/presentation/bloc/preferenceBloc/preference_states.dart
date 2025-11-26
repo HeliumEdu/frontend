@@ -47,15 +47,15 @@ class PreferenceState {
   }) {
     return PreferenceState(
       defaultView:
-          selectedDefaultView ?? this.defaultView,
+          selectedDefaultView ?? defaultView,
       timeZone:
-          selectedTimeZone ?? this.timeZone,
+          selectedTimeZone ?? timeZone,
       reminderOffsetUnit:
-          selectedReminderOffsetUnit ?? this.reminderOffsetUnit,
-      reminderOffset: offsetValue ?? this.reminderOffset,
-      eventsColor: selectedEventsColor ?? this.eventsColor,
-      materialsColor: selectedMaterialsColor ?? this.materialsColor,
-      gradesColor: selectedGradesColor ?? this.gradesColor,
+          selectedReminderOffsetUnit ?? reminderOffsetUnit,
+      reminderOffset: offsetValue ?? reminderOffset,
+      eventsColor: selectedEventsColor ?? eventsColor,
+      materialsColor: selectedMaterialsColor ?? materialsColor,
+      gradesColor: selectedGradesColor ?? gradesColor,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       submitError: submitError,
       submitSuccess: submitSuccess ?? this.submitSuccess,

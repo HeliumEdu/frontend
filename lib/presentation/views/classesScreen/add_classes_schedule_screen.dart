@@ -21,6 +21,7 @@ import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_list.dart';
 import 'package:helium_mobile/utils/app_size.dart';
 import 'package:helium_mobile/utils/app_text_style.dart';
+import 'package:helium_mobile/utils/formatting.dart';
 
 class AddClassesScheduleScreen extends StatefulWidget {
   final int courseId;
@@ -73,20 +74,6 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
     }
   }
 
-  // Helper to parse time string (HH:MM:SS) to TimeOfDay
-  TimeOfDay? _parseTime(String timeString) {
-    try {
-      if (timeString == '00:00:00' || timeString.isEmpty) {
-        return null;
-      }
-      final parts = timeString.split(':');
-      return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
-    } catch (e) {
-      print('Error parsing time: $e');
-      return null;
-    }
-  }
-
   // Helper to pre-fill schedule form with course data
   void _prefillSchedule(CourseModel course) {
     if (course.schedules.isEmpty) {
@@ -112,110 +99,28 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
     }
 
     // Parse times
-    final sunStart = _parseTime(schedule.sunStartTime);
-    final sunEnd = _parseTime(schedule.sunEndTime);
-    final monStart = _parseTime(schedule.monStartTime);
-    final monEnd = _parseTime(schedule.monEndTime);
-    final tueStart = _parseTime(schedule.tueStartTime);
-    final tueEnd = _parseTime(schedule.tueEndTime);
-    final wedStart = _parseTime(schedule.wedStartTime);
-    final wedEnd = _parseTime(schedule.wedEndTime);
-    final thuStart = _parseTime(schedule.thuStartTime);
-    final thuEnd = _parseTime(schedule.thuEndTime);
-    final friStart = _parseTime(schedule.friStartTime);
-    final friEnd = _parseTime(schedule.friEndTime);
-    final satStart = _parseTime(schedule.satStartTime);
-    final satEnd = _parseTime(schedule.satEndTime);
-
-    // Check if all active days have the same time (Same Time mode)
-    bool allSameTime = true;
-    TimeOfDay? commonStartTime;
-    TimeOfDay? commonEndTime;
-
-    if (activeDays.isNotEmpty) {
-      // Get first active day's time
-      if (activeDays.contains(6)) {
-        // Sunday
-        commonStartTime = sunStart;
-        commonEndTime = sunEnd;
-      } else if (activeDays.contains(0)) {
-        // Monday
-        commonStartTime = monStart;
-        commonEndTime = monEnd;
-      } else if (activeDays.contains(1)) {
-        // Tuesday
-        commonStartTime = tueStart;
-        commonEndTime = tueEnd;
-      } else if (activeDays.contains(2)) {
-        // Wednesday
-        commonStartTime = wedStart;
-        commonEndTime = wedEnd;
-      } else if (activeDays.contains(3)) {
-        // Thursday
-        commonStartTime = thuStart;
-        commonEndTime = thuEnd;
-      } else if (activeDays.contains(4)) {
-        // Friday
-        commonStartTime = friStart;
-        commonEndTime = friEnd;
-      } else if (activeDays.contains(5)) {
-        // Saturday
-        commonStartTime = satStart;
-        commonEndTime = satEnd;
-      }
-
-      // Check if all active days have the same time
-      for (int dayIndex in activeDays) {
-        TimeOfDay? dayStart;
-        TimeOfDay? dayEnd;
-
-        if (dayIndex == 6) {
-          // Sunday
-          dayStart = sunStart;
-          dayEnd = sunEnd;
-        } else if (dayIndex == 0) {
-          // Monday
-          dayStart = monStart;
-          dayEnd = monEnd;
-        } else if (dayIndex == 1) {
-          // Tuesday
-          dayStart = tueStart;
-          dayEnd = tueEnd;
-        } else if (dayIndex == 2) {
-          // Wednesday
-          dayStart = wedStart;
-          dayEnd = wedEnd;
-        } else if (dayIndex == 3) {
-          // Thursday
-          dayStart = thuStart;
-          dayEnd = thuEnd;
-        } else if (dayIndex == 4) {
-          // Friday
-          dayStart = friStart;
-          dayEnd = friEnd;
-        } else if (dayIndex == 5) {
-          // Saturday
-          dayStart = satStart;
-          dayEnd = satEnd;
-        }
-
-        if (dayStart?.hour != commonStartTime?.hour ||
-            dayStart?.minute != commonStartTime?.minute ||
-            dayEnd?.hour != commonEndTime?.hour ||
-            dayEnd?.minute != commonEndTime?.minute) {
-          allSameTime = false;
-          break;
-        }
-      }
-    }
+    final sunStart = parseTime(schedule.sunStartTime);
+    final sunEnd = parseTime(schedule.sunEndTime);
+    final monStart = parseTime(schedule.monStartTime);
+    final monEnd = parseTime(schedule.monEndTime);
+    final tueStart = parseTime(schedule.tueStartTime);
+    final tueEnd = parseTime(schedule.tueEndTime);
+    final wedStart = parseTime(schedule.wedStartTime);
+    final wedEnd = parseTime(schedule.wedEndTime);
+    final thuStart = parseTime(schedule.thuStartTime);
+    final thuEnd = parseTime(schedule.thuEndTime);
+    final friStart = parseTime(schedule.friStartTime);
+    final friEnd = parseTime(schedule.friEndTime);
+    final satStart = parseTime(schedule.satStartTime);
+    final satEnd = parseTime(schedule.satEndTime);
 
     setState(() {
       selectedDays = activeDays;
-      if (allSameTime && commonStartTime != null && commonEndTime != null) {
+      if (schedule.allDaysSameTime()) {
         // Use "Same Time" mode
         scheduleVariesByDay = false;
-        singleStartTime = commonStartTime;
-        singleEndTime = commonEndTime;
+        singleStartTime = sunStart;
+        singleEndTime = sunEnd;
       } else {
         scheduleVariesByDay = true;
 
@@ -258,13 +163,6 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
     super.dispose();
   }
 
-  String _formatTime(TimeOfDay time) {
-    final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
-    final minute = time.minute.toString().padLeft(2, '0');
-    final period = time.period == DayPeriod.am ? 'AM' : 'PM';
-    return '$hour:$minute $period';
-  }
-
   Future<void> _selectTime(int dayIndex, bool isStartTime) async {
     final pickedTime = await showTimePicker(
       context: context,
@@ -299,11 +197,6 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
         }
       });
     }
-  }
-
-  // Format TimeOfDay to HH:MM:SS format for API
-  String _formatTimeForAPI(TimeOfDay time) {
-    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}:00';
   }
 
   String _generateDaysOfWeek() {
@@ -379,57 +272,57 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
     if (scheduleVariesByDay) {
       // Varies by day - set times based on selectedDays
       sunStart = selectedDays.contains(0) && startTimes[0] != null
-          ? _formatTimeForAPI(startTimes[0]!)
+          ? formatTimeForApi(startTimes[0]!)
           : defaultTime;
       sunEnd = selectedDays.contains(0) && endTimes[0] != null
-          ? _formatTimeForAPI(endTimes[0]!)
+          ? formatTimeForApi(endTimes[0]!)
           : defaultTime;
 
       monStart = selectedDays.contains(1) && startTimes[1] != null
-          ? _formatTimeForAPI(startTimes[1]!)
+          ? formatTimeForApi(startTimes[1]!)
           : defaultTime;
       monEnd = selectedDays.contains(1) && endTimes[1] != null
-          ? _formatTimeForAPI(endTimes[1]!)
+          ? formatTimeForApi(endTimes[1]!)
           : defaultTime;
 
       tueStart = selectedDays.contains(2) && startTimes[2] != null
-          ? _formatTimeForAPI(startTimes[2]!)
+          ? formatTimeForApi(startTimes[2]!)
           : defaultTime;
       tueEnd = selectedDays.contains(2) && endTimes[2] != null
-          ? _formatTimeForAPI(endTimes[2]!)
+          ? formatTimeForApi(endTimes[2]!)
           : defaultTime;
 
       wedStart = selectedDays.contains(3) && startTimes[3] != null
-          ? _formatTimeForAPI(startTimes[3]!)
+          ? formatTimeForApi(startTimes[3]!)
           : defaultTime;
       wedEnd = selectedDays.contains(3) && endTimes[3] != null
-          ? _formatTimeForAPI(endTimes[3]!)
+          ? formatTimeForApi(endTimes[3]!)
           : defaultTime;
 
       thuStart = selectedDays.contains(4) && startTimes[4] != null
-          ? _formatTimeForAPI(startTimes[4]!)
+          ? formatTimeForApi(startTimes[4]!)
           : defaultTime;
       thuEnd = selectedDays.contains(4) && endTimes[4] != null
-          ? _formatTimeForAPI(endTimes[4]!)
+          ? formatTimeForApi(endTimes[4]!)
           : defaultTime;
 
       friStart = selectedDays.contains(5) && startTimes[5] != null
-          ? _formatTimeForAPI(startTimes[5]!)
+          ? formatTimeForApi(startTimes[5]!)
           : defaultTime;
       friEnd = selectedDays.contains(5) && endTimes[5] != null
-          ? _formatTimeForAPI(endTimes[5]!)
+          ? formatTimeForApi(endTimes[5]!)
           : defaultTime;
 
       satStart = selectedDays.contains(6) && startTimes[6] != null
-          ? _formatTimeForAPI(startTimes[6]!)
+          ? formatTimeForApi(startTimes[6]!)
           : defaultTime;
       satEnd = selectedDays.contains(6) && endTimes[6] != null
-          ? _formatTimeForAPI(endTimes[6]!)
+          ? formatTimeForApi(endTimes[6]!)
           : defaultTime;
     } else {
       // Same time for all days
-      final startTimeStr = _formatTimeForAPI(singleStartTime!);
-      final endTimeStr = _formatTimeForAPI(singleEndTime!);
+      final startTimeStr = formatTimeForApi(singleStartTime!);
+      final endTimeStr = formatTimeForApi(singleEndTime!);
 
       sunStart = startTimeStr;
       sunEnd = endTimeStr;
@@ -674,7 +567,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                         borderRadius: BorderRadius.circular(16.adaptSize),
                         boxShadow: [
                           BoxShadow(
-                            color: blackColor.withOpacity(0.06),
+                            color: blackColor.withValues(alpha: 0.06),
                             blurRadius: 12,
                             offset: Offset(0, 4),
                             spreadRadius: 0,
@@ -688,7 +581,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                           lineThickness: 3,
                           lineSpace: 4,
                           lineType: LineType.normal,
-                          defaultLineColor: greyColor.withOpacity(0.3),
+                          defaultLineColor: greyColor.withValues(alpha: 0.3),
                           finishedLineColor: primaryColor,
                           activeLineColor: primaryColor,
                         ),
@@ -697,15 +590,15 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                         activeStepBackgroundColor: primaryColor,
                         activeStepTextColor: primaryColor,
                         finishedStepBorderColor: primaryColor,
-                        finishedStepBackgroundColor: primaryColor.withOpacity(
+                        finishedStepBackgroundColor: primaryColor.withValues(alpha: 
                           0.1,
                         ),
                         finishedStepIconColor: primaryColor,
                         finishedStepTextColor: blackColor,
-                        unreachedStepBorderColor: greyColor.withOpacity(0.3),
+                        unreachedStepBorderColor: greyColor.withValues(alpha: 0.3),
                         unreachedStepBackgroundColor: softGrey,
                         unreachedStepIconColor: greyColor,
-                        unreachedStepTextColor: textColor.withOpacity(0.5),
+                        unreachedStepTextColor: textColor.withValues(alpha: 0.5),
                         borderThickness: 2,
                         internalPadding: 12,
                         showLoadingAnimation: false,
@@ -763,7 +656,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                             customStep: Container(
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: primaryColor.withOpacity(0.1),
+                                color: primaryColor.withValues(alpha: 0.1),
                                 border: Border.all(
                                   color: primaryColor,
                                   width: 2,
@@ -789,7 +682,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                                 textAlign: TextAlign.center,
                               ),
                             ),
-                            topTitle: false,
+                            placeTitleAtStart: false,
                           ),
                           EasyStep(
                             customStep: Container(
@@ -802,7 +695,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: primaryColor.withOpacity(0.3),
+                                    color: primaryColor.withValues(alpha: 0.3),
                                     blurRadius: 8,
                                     offset: Offset(0, 3),
                                     spreadRadius: 0,
@@ -829,13 +722,13 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                                 textAlign: TextAlign.center,
                               ),
                             ),
-                            topTitle: false,
+                            placeTitleAtStart: false,
                           ),
                           EasyStep(
                             customStep: Container(
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: primaryColor.withOpacity(0.1),
+                                color: primaryColor.withValues(alpha: 0.1),
                                 border: Border.all(
                                   color: primaryColor,
                                   width: 2,
@@ -861,7 +754,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                                 textAlign: TextAlign.center,
                               ),
                             ),
-                            topTitle: false,
+                            placeTitleAtStart: false,
                           ),
                         ],
                       ),
@@ -885,7 +778,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                                 Text(
                                   'Loading schedule details...',
                                   style: AppTextStyle.cTextStyle.copyWith(
-                                    color: textColor.withOpacity(0.6),
+                                    color: textColor.withValues(alpha: 0.6),
                                   ),
                                 ),
                               ],
@@ -905,7 +798,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                                   border: Border.all(color: softGrey, width: 1),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: blackColor.withOpacity(0.05),
+                                      color: blackColor.withValues(alpha: 0.05),
                                       blurRadius: 8,
                                       offset: Offset(0, 2),
                                     ),
@@ -969,7 +862,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                                 child: ListView.separated(
                                   shrinkWrap: true,
                                   scrollDirection: Axis.horizontal,
-                                  itemCount: listOfDays.length,
+                                  itemCount: dayNamesAbbrev.length,
                                   itemBuilder: (context, index) {
                                     bool isSelected = selectedDays.contains(
                                       index,
@@ -1004,7 +897,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                                                   width: 1.5,
                                                 )
                                               : Border.all(
-                                                  color: greyColor.withOpacity(
+                                                  color: greyColor.withValues(alpha: 
                                                     0.3,
                                                   ),
                                                   width: 1,
@@ -1013,7 +906,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                                               ? [
                                                   BoxShadow(
                                                     color: primaryColor
-                                                        .withOpacity(0.2),
+                                                        .withValues(alpha: 0.2),
                                                     blurRadius: 6,
                                                     offset: Offset(0, 2),
                                                   ),
@@ -1022,7 +915,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                                         ),
                                         child: Center(
                                           child: Text(
-                                            listOfDays[index],
+                                            dayNamesAbbrev[index],
                                             style: AppTextStyle.cTextStyle
                                                 .copyWith(
                                                   color: isSelected
@@ -1065,7 +958,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                                       ),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: blackColor.withOpacity(0.04),
+                                          color: blackColor.withValues(alpha: 0.04),
                                           blurRadius: 6,
                                           offset: Offset(0, 1),
                                         ),
@@ -1076,7 +969,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          _getDayName(dayIndex),
+                                          dayNames[dayIndex],
                                           style: AppTextStyle.cTextStyle
                                               .copyWith(
                                                 color: primaryColor,
@@ -1104,7 +997,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                                                         ),
                                                     border: Border.all(
                                                       color: greyColor
-                                                          .withOpacity(0.3),
+                                                          .withValues(alpha: 0.3),
                                                       width: 1,
                                                     ),
                                                   ),
@@ -1116,7 +1009,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                                                       Text(
                                                         startTimes[dayIndex] !=
                                                                 null
-                                                            ? _formatTime(
+                                                            ? formatTimeForDisplay(
                                                                 startTimes[dayIndex]!,
                                                               )
                                                             : 'Start Time',
@@ -1128,7 +1021,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                                                                       null
                                                                   ? blackColor
                                                                   : textColor
-                                                                        .withOpacity(
+                                                                        .withValues(alpha: 
                                                                           0.5,
                                                                         ),
                                                               fontWeight:
@@ -1167,7 +1060,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                                                         ),
                                                     border: Border.all(
                                                       color: greyColor
-                                                          .withOpacity(0.3),
+                                                          .withValues(alpha: 0.3),
                                                       width: 1,
                                                     ),
                                                   ),
@@ -1179,7 +1072,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                                                       Text(
                                                         endTimes[dayIndex] !=
                                                                 null
-                                                            ? _formatTime(
+                                                            ? formatTimeForDisplay(
                                                                 endTimes[dayIndex]!,
                                                               )
                                                             : 'End Time',
@@ -1191,7 +1084,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                                                                       null
                                                                   ? blackColor
                                                                   : textColor
-                                                                        .withOpacity(
+                                                                        .withValues(alpha: 
                                                                           0.5,
                                                                         ),
                                                               fontWeight:
@@ -1238,7 +1131,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: blackColor.withOpacity(0.04),
+                                        color: blackColor.withValues(alpha: 0.04),
                                         blurRadius: 6,
                                         offset: Offset(0, 1),
                                       ),
@@ -1262,7 +1155,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                                                     8.adaptSize,
                                                   ),
                                               border: Border.all(
-                                                color: greyColor.withOpacity(
+                                                color: greyColor.withValues(alpha: 
                                                   0.3,
                                                 ),
                                                 width: 1,
@@ -1275,7 +1168,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                                               children: [
                                                 Text(
                                                   singleStartTime != null
-                                                      ? _formatTime(
+                                                      ? formatTimeForDisplay(
                                                           singleStartTime!,
                                                         )
                                                       : 'Start Time',
@@ -1286,7 +1179,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                                                                 null
                                                             ? blackColor
                                                             : textColor
-                                                                  .withOpacity(
+                                                                  .withValues(alpha: 
                                                                     0.5,
                                                                   ),
                                                         fontWeight:
@@ -1320,7 +1213,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                                                     8.adaptSize,
                                                   ),
                                               border: Border.all(
-                                                color: greyColor.withOpacity(
+                                                color: greyColor.withValues(alpha: 
                                                   0.3,
                                                 ),
                                                 width: 1,
@@ -1333,7 +1226,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                                               children: [
                                                 Text(
                                                   singleEndTime != null
-                                                      ? _formatTime(
+                                                      ? formatTimeForDisplay(
                                                           singleEndTime!,
                                                         )
                                                       : 'End Time',
@@ -1344,7 +1237,7 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
                                                                 null
                                                             ? blackColor
                                                             : textColor
-                                                                  .withOpacity(
+                                                                  .withValues(alpha: 
                                                                     0.5,
                                                                   ),
                                                         fontWeight:
@@ -1420,17 +1313,4 @@ class _AddClassesScheduleScreenState extends State<AddClassesScheduleScreen> {
       ),
     );
   }
-}
-
-String _getDayName(int index) {
-  const days = [
-    'Sunday',
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday',
-    'Saturday',
-  ];
-  return days[index];
 }

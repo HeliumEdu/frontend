@@ -7,8 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-
-import 'app_colors.dart';
+import 'package:helium_mobile/utils/app_colors.dart';
 
 class CustomColorPickerWidget extends StatefulWidget {
   final Color? initialColor;
@@ -43,7 +42,7 @@ class _CustomColorPickerWidgetState extends State<CustomColorPickerWidget> {
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: blackColor.withOpacity(0.1),
+            color: blackColor.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),

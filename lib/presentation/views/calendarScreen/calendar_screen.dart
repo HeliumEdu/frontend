@@ -153,20 +153,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadEventColor() async {
     final prefs = await SharedPreferences.getInstance();
-    String? storedHex = prefs.getString('user_events_color');
+    String? eventsColor = prefs.getString('user_events_color');
 
-    if (storedHex == null || storedHex.isEmpty) {
+    if (eventsColor == null || eventsColor.isEmpty) {
       try {
         final dioClient = DioClient();
         final authRepository = AuthRepositoryImpl(
           remoteDataSource: AuthRemoteDataSourceImpl(dioClient: dioClient),
         );
         final profile = await authRepository.getProfile();
-        final profileHex = profile.settings?.eventsColor;
-        if (profileHex != null && profileHex.trim().isNotEmpty) {
-          final parsed = _colorFromHex(profileHex);
-          storedHex = _colorToHex(parsed);
-          await prefs.setString('user_events_color', storedHex);
+        final eventsColor = profile.settings?.eventsColor;
+        if (eventsColor != null && eventsColor.trim().isNotEmpty) {
+          await prefs.setString('user_events_color', eventsColor);
         }
       } catch (e) {
         if (kDebugMode) {
@@ -175,9 +173,9 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
 
-    if (storedHex == null || storedHex.isEmpty) return;
+    if (eventsColor == null || eventsColor.isEmpty) return;
 
-    final parsedColor = _colorFromHex(storedHex);
+    final parsedColor = parseColor(eventsColor);
     if (mounted && parsedColor != _eventsColor) {
       setState(() {
         _eventsColor = parsedColor;
@@ -216,26 +214,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Color _colorFromHex(String hex) {
-    var cleaned = hex.trim().toLowerCase();
-    if (cleaned.startsWith('#')) {
-      cleaned = cleaned.substring(1);
-    }
-    if (cleaned.length == 3) {
-      cleaned = cleaned.split('').map((c) => '$c$c').join();
-    }
-    if (cleaned.length == 8) {
-      // strip alpha channel if provided
-      cleaned = cleaned.substring(2);
-    }
-    return Color(int.parse('ff$cleaned', radix: 16));
-  }
-
-  String _colorToHex(Color color) {
-    final value = color.value.toRadixString(16).padLeft(8, '0');
-    return '#${value.substring(2)}';
-  }
-
   void _applyExternalCalendarData(
     List<ExternalCalendarModel> externalCalendars,
     Map<int, List<ExternalCalendarEventModel>> eventsByCalendar,
@@ -250,12 +228,12 @@ class _HomeScreenState extends State<HomeScreen> {
         (sum, list) => sum + list.length,
       );
       print('   - Total events: $totalEvents');
-      for (var external_calendar in externalCalendars) {
+      for (var externalCalendar in externalCalendars) {
         print(
-          '   - Calendar: ${external_calendar.title} (ID: ${external_calendar.id}, shown: ${external_calendar.shownOnCalendar})',
+          '   - Calendar: ${externalCalendar.title} (ID: ${externalCalendar.id}, shown: ${externalCalendar.shownOnCalendar})',
         );
         print(
-          '     Events: ${eventsByCalendar[external_calendar.id]?.length ?? 0}',
+          '     Events: ${eventsByCalendar[externalCalendar.id]?.length ?? 0}',
         );
       }
     }
@@ -417,7 +395,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Color _externalCalendarColor(int calendarId) {
     for (final calendar in _externalCalendars) {
       if (calendar.id == calendarId) {
-        return _colorFromHex(calendar.color);
+        return parseColor(calendar.color);
       }
     }
     return blackColor;
@@ -882,36 +860,28 @@ class _HomeScreenState extends State<HomeScreen> {
       if (schedule.daysOfWeek.length > selectedDayOfWeek &&
           schedule.daysOfWeek[selectedDayOfWeek] == '1') {
         String startTime = '';
-        String endTime = '';
 
         switch (selectedDayOfWeek) {
           case 0:
             startTime = schedule.sunStartTime;
-            endTime = schedule.sunEndTime;
             break;
           case 1:
             startTime = schedule.monStartTime;
-            endTime = schedule.monEndTime;
             break;
           case 2:
             startTime = schedule.tueStartTime;
-            endTime = schedule.tueEndTime;
             break;
           case 3:
             startTime = schedule.wedStartTime;
-            endTime = schedule.wedEndTime;
             break;
           case 4:
             startTime = schedule.thuStartTime;
-            endTime = schedule.thuEndTime;
             break;
           case 5:
             startTime = schedule.friStartTime;
-            endTime = schedule.friEndTime;
             break;
           case 6:
             startTime = schedule.satStartTime;
-            endTime = schedule.satEndTime;
             break;
         }
 
@@ -1429,14 +1399,6 @@ class _HomeScreenState extends State<HomeScreen> {
       uniqueCourseMap.putIfAbsent(normalized, () => course);
     }
     final List<CourseModel> displayCourses = uniqueCourseMap.values.toList();
-    final Set<String> displayCourseTitles = displayCourses
-        .map((course) => course.title)
-        .toSet();
-    final selectedCount = selectedClasses.entries
-        .where(
-          (entry) => entry.value && displayCourseTitles.contains(entry.key),
-        )
-        .length;
 
     showMenu(
       context: context,
@@ -1485,13 +1447,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 Divider(height: 20.v),
 
                 if (displayCourses.isEmpty)
-                  Container(
+                  SizedBox(
                     height: 60,
                     child: Center(
                       child: Text(
                         'No classes available',
                         style: AppTextStyle.eTextStyle.copyWith(
-                          color: textColor.withOpacity(0.6),
+                          color: textColor.withValues(alpha: 0.6),
                           fontSize: 12,
                         ),
                       ),
@@ -1569,7 +1531,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           course.room,
                                           style: AppTextStyle.eTextStyle
                                               .copyWith(
-                                                color: textColor.withOpacity(
+                                                color: textColor.withValues(alpha: 
                                                   0.6,
                                                 ),
                                                 fontSize: 11,
@@ -1582,7 +1544,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           course.teacherName,
                                           style: AppTextStyle.eTextStyle
                                               .copyWith(
-                                                color: textColor.withOpacity(
+                                                color: textColor.withValues(alpha: 
                                                   0.6,
                                                 ),
                                                 fontSize: 10,
@@ -1637,7 +1599,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       children: [
         // Week selector
-        Container(
+        SizedBox(
           height: 50.v,
           child: Row(
             children: [
@@ -1721,7 +1683,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           border: Border.all(
                             color: isSelected
                                 ? primaryColor
-                                : greyColor.withOpacity(0.5),
+                                : greyColor.withValues(alpha: 0.5),
                           ),
                         ),
                         child: Row(
@@ -1746,8 +1708,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 decoration: BoxDecoration(
                                   color: isSelected
-                                      ? whiteColor.withOpacity(0.2)
-                                      : primaryColor.withOpacity(0.1),
+                                      ? whiteColor.withValues(alpha: 0.2)
+                                      : primaryColor.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Text(
@@ -1792,7 +1754,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: greyColor.withOpacity(0.1),
+                    color: greyColor.withValues(alpha: 0.1),
                     blurRadius: 10,
                     offset: const Offset(0, 2),
                   ),
@@ -1804,7 +1766,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Container(
                     padding: EdgeInsets.all(16.h),
                     decoration: BoxDecoration(
-                      color: primaryColor.withOpacity(0.1),
+                      color: primaryColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(12),
                         topRight: Radius.circular(12),
@@ -1839,7 +1801,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: Text(
                               'No week selected',
                               style: AppTextStyle.cTextStyle.copyWith(
-                                color: textColor.withOpacity(0.6),
+                                color: textColor.withValues(alpha: 0.6),
                               ),
                             ),
                           ),
@@ -1876,13 +1838,13 @@ class _HomeScreenState extends State<HomeScreen> {
             Icon(
               Icons.calendar_today_outlined,
               size: 48,
-              color: textColor.withOpacity(0.3),
+              color: textColor.withValues(alpha: 0.3),
             ),
             SizedBox(height: 16),
             Text(
               'No items for this week',
               style: AppTextStyle.bTextStyle.copyWith(
-                color: textColor.withOpacity(0.6),
+                color: textColor.withValues(alpha: 0.6),
               ),
             ),
           ],
@@ -1929,20 +1891,20 @@ class _HomeScreenState extends State<HomeScreen> {
             Icon(
               Icons.list_outlined,
               size: 48,
-              color: textColor.withOpacity(0.3),
+              color: textColor.withValues(alpha: 0.3),
             ),
             SizedBox(height: 16),
             Text(
               'No items found',
               style: AppTextStyle.bTextStyle.copyWith(
-                color: textColor.withOpacity(0.6),
+                color: textColor.withValues(alpha: 0.6),
               ),
             ),
             SizedBox(height: 8),
             Text(
               'Try adjusting your filters',
               style: AppTextStyle.cTextStyle.copyWith(
-                color: textColor.withOpacity(0.5),
+                color: textColor.withValues(alpha: 0.5),
               ),
             ),
           ],
@@ -2019,14 +1981,14 @@ class _HomeScreenState extends State<HomeScreen> {
             SizedBox(height: 8.v),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: listOfDays
+              children: dayNamesAbbrev
                   .map(
                     (day) => Expanded(
                       child: Center(
                         child: Text(
                           day,
                           style: AppTextStyle.cTextStyle.copyWith(
-                            color: textColor.withOpacity(0.6),
+                            color: textColor.withValues(alpha: 0.6),
                             fontWeight: FontWeight.w600,
                             fontSize: 12,
                           ),
@@ -2185,7 +2147,7 @@ class _HomeScreenState extends State<HomeScreen> {
           color: isSelected
               ? primaryColor
               : isToday
-              ? primaryColor.withOpacity(0.2)
+              ? primaryColor.withValues(alpha: 0.2)
               : transparentColor,
           borderRadius: BorderRadius.circular(6),
           border: isToday && !isSelected
@@ -2202,7 +2164,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ? whiteColor
                     : isCurrentMonth
                     ? textColor
-                    : textColor.withOpacity(0.3),
+                    : textColor.withValues(alpha: 0.3),
                 fontWeight: isSelected || isToday
                     ? FontWeight.w600
                     : FontWeight.w400,
@@ -2440,7 +2402,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: whiteColor,
                     boxShadow: [
                       BoxShadow(
-                        color: blackColor.withOpacity(0.05),
+                        color: blackColor.withValues(alpha: 0.05),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -2502,7 +2464,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: greyColor.withOpacity(0.1),
+                                color: greyColor.withValues(alpha: 0.1),
                                 blurRadius: 10,
                                 offset: const Offset(0, 2),
                               ),
@@ -2608,7 +2570,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 ),
                                                 decoration: BoxDecoration(
                                                   color: primaryColor
-                                                      .withOpacity(0.1),
+                                                      .withValues(alpha: 0.1),
                                                   borderRadius:
                                                       BorderRadius.circular(6),
                                                   border: Border.all(
@@ -2639,14 +2601,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                             vertical: 6.v,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: primaryColor.withOpacity(
+                                            color: primaryColor.withValues(alpha: 
                                               0.1,
                                             ),
                                             borderRadius: BorderRadius.circular(
                                               6,
                                             ),
                                             border: Border.all(
-                                              color: primaryColor.withOpacity(
+                                              color: primaryColor.withValues(alpha: 
                                                 0.5,
                                               ),
                                             ),
@@ -2691,7 +2653,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 border: Border.all(
                                                   color: isSelected
                                                       ? primaryColor
-                                                      : greyColor.withOpacity(
+                                                      : greyColor.withValues(alpha: 
                                                           0.5,
                                                         ),
                                                 ),
@@ -3205,7 +3167,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                               Icon(
                                                 Icons.calendar_today_outlined,
                                                 size: 48,
-                                                color: textColor.withOpacity(
+                                                color: textColor.withValues(alpha: 
                                                   0.3,
                                                 ),
                                               ),
@@ -3215,7 +3177,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 style: AppTextStyle.bTextStyle
                                                     .copyWith(
                                                       color: textColor
-                                                          .withOpacity(0.6),
+                                                          .withValues(alpha: 0.6),
                                                     ),
                                               ),
                                               SizedBox(height: 8),
@@ -3224,7 +3186,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 style: AppTextStyle.cTextStyle
                                                     .copyWith(
                                                       color: textColor
-                                                          .withOpacity(0.5),
+                                                          .withValues(alpha: 0.5),
                                                     ),
                                               ),
                                             ],
@@ -3250,14 +3212,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                           Icon(
                                             Icons.school_outlined,
                                             size: 48,
-                                            color: textColor.withOpacity(0.3),
+                                            color: textColor.withValues(alpha: 0.3),
                                           ),
                                           SizedBox(height: 16),
                                           Text(
                                             'Loading...',
                                             style: AppTextStyle.bTextStyle
                                                 .copyWith(
-                                                  color: textColor.withOpacity(
+                                                  color: textColor.withValues(alpha: 
                                                     0.6,
                                                   ),
                                                 ),
@@ -3311,7 +3273,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 14.h, horizontal: 12.h),
       decoration: BoxDecoration(
-        color: courseColor.withOpacity(0.1),
+        color: courseColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(9.adaptSize),
       ),
       child: Row(
@@ -3343,13 +3305,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       Icon(
                         Icons.room_outlined,
                         size: 14,
-                        color: courseColor.withOpacity(0.7),
+                        color: courseColor.withValues(alpha: 0.7),
                       ),
                       SizedBox(width: 4.h),
                       Text(
                         course.room,
                         style: AppTextStyle.fTextStyle.copyWith(
-                          color: courseColor.withOpacity(0.7),
+                          color: courseColor.withValues(alpha: 0.7),
                         ),
                       ),
                       SizedBox(width: 12.h),
@@ -3358,20 +3320,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 SizedBox(height: 4.v),
                 // Show schedule time for selected day
-                if (course.schedules.isNotEmpty &&
+                if (course.schedules.isNotEmpty && course.schedules[0].daysOfWeek != '0000000' &&
                     _getCourseTimeForDate(course, dateTime).isNotEmpty)
                   Row(
                     children: [
                       Icon(
                         Icons.access_time,
                         size: 14,
-                        color: courseColor.withOpacity(0.6),
+                        color: courseColor.withValues(alpha: 0.6),
                       ),
                       SizedBox(width: 4.h),
                       Text(
                         _getCourseTimeForDate(course, dateTime),
                         style: AppTextStyle.fTextStyle.copyWith(
-                          color: courseColor.withOpacity(0.6),
+                          color: courseColor.withValues(alpha: 0.6),
                           fontSize: 11,
                         ),
                       ),
@@ -3441,9 +3403,9 @@ class _HomeScreenState extends State<HomeScreen> {
               Container(
                 padding: EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: redColor.withOpacity(0.1),
+                  color: redColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: redColor.withOpacity(0.3)),
+                  border: Border.all(color: redColor.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [
@@ -3467,7 +3429,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 'This action cannot be undone.',
                 style: AppTextStyle.eTextStyle.copyWith(
-                  color: textColor.withOpacity(0.6),
+                  color: textColor.withValues(alpha: 0.6),
                   fontSize: 12,
                   fontStyle: FontStyle.italic,
                 ),
@@ -3615,7 +3577,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 14.h, horizontal: 12.h),
       decoration: BoxDecoration(
-        color: assignmentColor.withOpacity(0.1),
+        color: assignmentColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(9.adaptSize),
       ),
       child: Row(
@@ -3674,15 +3636,15 @@ class _HomeScreenState extends State<HomeScreen> {
                           Icon(
                             Icons.label_outline,
                             size: 14,
-                            color: assignmentColor.withOpacity(0.7),
+                            color: assignmentColor.withValues(alpha: 0.7),
                           ),
                         );
                         info.add(SizedBox(width: 4.h));
                         info.add(
                           Text(
-                            '${_categoriesById[homework.category]!.title}',
+                            _categoriesById[homework.category]!.title,
                             style: AppTextStyle.fTextStyle.copyWith(
-                              color: assignmentColor.withOpacity(0.7),
+                              color: assignmentColor.withValues(alpha: 0.7),
                             ),
                           ),
                         );
@@ -3695,7 +3657,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Icon(
                             Icons.grade_outlined,
                             size: 14,
-                            color: assignmentColor.withOpacity(0.7),
+                            color: assignmentColor.withValues(alpha: 0.7),
                           ),
                         );
                         info.add(SizedBox(width: 4.h));
@@ -3703,7 +3665,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Text(
                             homework.getFormattedGrade(),
                             style: AppTextStyle.fTextStyle.copyWith(
-                              color: assignmentColor.withOpacity(0.7),
+                              color: assignmentColor.withValues(alpha: 0.7),
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -3719,13 +3681,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       Icon(
                         Icons.access_time,
                         size: 14,
-                        color: assignmentColor.withOpacity(0.7),
+                        color: assignmentColor.withValues(alpha: 0.7),
                       ),
                       SizedBox(width: 4.h),
                       Text(
                         timeDisplay,
                         style: AppTextStyle.fTextStyle.copyWith(
-                          color: assignmentColor.withOpacity(0.7),
+                          color: assignmentColor.withValues(alpha: 0.7),
                         ),
                       ),
                     ],
@@ -3800,7 +3762,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 14.h, horizontal: 12.h),
       decoration: BoxDecoration(
-        color: eventColor.withOpacity(0.1),
+        color: eventColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(9.adaptSize),
       ),
       child: Row(
@@ -3840,13 +3802,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       Icon(
                         Icons.access_time,
                         size: 14,
-                        color: eventColor.withOpacity(0.7),
+                        color: eventColor.withValues(alpha: 0.7),
                       ),
                       SizedBox(width: 4.h),
                       Text(
                         timeDisplay,
                         style: AppTextStyle.fTextStyle.copyWith(
-                          color: eventColor.withOpacity(0.7),
+                          color: eventColor.withValues(alpha: 0.7),
                         ),
                       ),
                     ],
@@ -3866,7 +3828,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Icon(
               Icons.edit_outlined,
               size: 22,
-              color: eventColor.withOpacity(0.7),
+              color: eventColor.withValues(alpha: 0.7),
             ),
           ),
           SizedBox(width: 12.h),
@@ -3877,7 +3839,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Icon(
               Icons.delete_outline,
               size: 22,
-              color: redColor.withOpacity(0.7),
+              color: redColor.withValues(alpha: 0.7),
             ),
           ),
         ],
@@ -3970,7 +3932,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 14.h, horizontal: 12.h),
       decoration: BoxDecoration(
-        color: eventColor.withOpacity(0.1),
+        color: eventColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(9.adaptSize),
       ),
       child: Row(
@@ -4012,7 +3974,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         vertical: 2.v,
                       ),
                       decoration: BoxDecoration(
-                        color: eventColor.withOpacity(0.2),
+                        color: eventColor.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
@@ -4032,13 +3994,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     Icon(
                       Icons.access_time,
                       size: 14,
-                      color: eventColor.withOpacity(0.7),
+                      color: eventColor.withValues(alpha: 0.7),
                     ),
                     SizedBox(width: 4.h),
                     Text(
                       timeDisplay,
                       style: AppTextStyle.fTextStyle.copyWith(
-                        color: eventColor.withOpacity(0.7),
+                        color: eventColor.withValues(alpha: 0.7),
                       ),
                     ),
                   ],

@@ -9,12 +9,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:helium_mobile/data/models/auth/update_settings_request_model.dart';
 import 'package:helium_mobile/data/models/auth/user_profile_model.dart';
 import 'package:helium_mobile/data/repositories/auth_repository_impl.dart';
+import 'package:helium_mobile/presentation/bloc/preferenceBloc/preference_event.dart';
 import 'package:helium_mobile/presentation/bloc/preferenceBloc/preference_states.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_list.dart';
-import 'preference_event.dart';
 
 class PreferenceBloc extends Bloc<PreferenceEvent, PreferenceState> {
   final AuthRepositoryImpl authRepository;
@@ -77,32 +77,6 @@ class PreferenceBloc extends Bloc<PreferenceEvent, PreferenceState> {
       );
     } catch (_) {
       // Ignore fetch errors for now; screen can show defaults
-    }
-  }
-
-  String _mapDefaultViewIndexToName(int index) {
-    switch (index) {
-      case 0:
-        return 'Month';
-      case 1:
-        return 'Week';
-      case 2:
-        return 'Day';
-      default:
-        return 'Todos';
-    }
-  }
-
-  String _mapReminderOffsetTypeIndexToName(int index) {
-    switch (index) {
-      case 0:
-        return 'Minutes';
-      case 1:
-        return 'Hours';
-      case 2:
-        return 'Days';
-      default:
-        return 'Weeks';
     }
   }
 

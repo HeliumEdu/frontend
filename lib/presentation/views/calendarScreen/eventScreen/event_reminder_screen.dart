@@ -6,25 +6,26 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'dart:io';
-import 'package:flutter/material.dart';
+
+import 'package:easy_stepper/easy_stepper.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart';
 import 'package:helium_mobile/core/dio_client.dart';
+import 'package:helium_mobile/data/datasources/attachment_remote_data_source.dart';
 import 'package:helium_mobile/data/datasources/event_remote_data_source.dart';
 import 'package:helium_mobile/data/datasources/reminder_remote_data_source.dart';
-import 'package:helium_mobile/data/datasources/attachment_remote_data_source.dart';
 import 'package:helium_mobile/data/models/planner/attachment_model.dart';
 import 'package:helium_mobile/data/models/planner/event_request_model.dart';
 import 'package:helium_mobile/data/models/planner/reminder_request_model.dart';
 import 'package:helium_mobile/data/models/planner/reminder_response_model.dart';
+import 'package:helium_mobile/data/repositories/attachment_repository_impl.dart';
 import 'package:helium_mobile/data/repositories/event_repository_impl.dart';
 import 'package:helium_mobile/data/repositories/reminder_repository_impl.dart';
-import 'package:helium_mobile/data/repositories/attachment_repository_impl.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_list.dart';
 import 'package:helium_mobile/utils/app_size.dart';
 import 'package:helium_mobile/utils/app_text_style.dart';
-import 'package:helium_mobile/core/fcm_service.dart';
-import 'package:easy_stepper/easy_stepper.dart';
+import 'package:helium_mobile/utils/formatting.dart';
 
 class EventReminderScreen extends StatefulWidget {
   final EventRequestModel? eventRequest;
@@ -39,8 +40,6 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
   final TextEditingController _messageController = TextEditingController();
   final TextEditingController _timeValueController = TextEditingController();
 
-  String? selectedReminderMethod;
-  String? selectedTimeUnit;
   String? uploadedFileName;
   File? _selectedFile;
   bool _isSubmitting = false;
@@ -51,34 +50,13 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
   int? eventId;
   List<ReminderResponseModel>? existingReminders;
   List<AttachmentModel>? existingAttachments;
-  int? existingReminderId;
   bool _hasLoadedData = false;
 
   // Server reminders for this event
   List<ReminderResponseModel> _serverReminders = [];
+
   // Server attachments for this event
   List<AttachmentModel> _serverAttachments = [];
-
-  int _mapMethodToType(String? method) {
-    method = (method ?? '').toLowerCase();
-    if (method == 'email') {
-      return 1;
-    } else if (method == 'text') {
-      return 2;
-    } else {
-      return 0;
-    }
-  }
-
-  String _mapTypeToMethod(int type) {
-    if (type == 0) {
-      return 'Popup';
-    } else if (type == 1) {
-      return 'Text';
-    } else {
-      return 'Email';
-    }
-  }
 
   @override
   void didChangeDependencies() {
@@ -97,55 +75,12 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
             args['existingAttachments'] as List<AttachmentModel>?;
 
         if (eventId != null) {
-          // We already have an event, just load current server data
-          _populateReminderData();
           _refreshEventReminders();
           _refreshEventAttachments();
         }
 
         _hasLoadedData = true;
       }
-    }
-
-    selectedReminderMethod ??= 'Popup';
-  }
-
-  void _populateReminderData() {
-    if (existingReminders != null && existingReminders!.isNotEmpty) {
-      setState(() {
-        // Get the first reminder (assuming one reminder per event)
-        final reminder = existingReminders!.first;
-        selectedReminderMethod = _mapTypeToMethod(reminder.type);
-        existingReminderId = reminder.id;
-
-        // Set message
-        _messageController.text = reminder.message;
-
-        // Calculate and set time based on offset
-        final offsetMinutes = reminder.offset;
-        if (offsetMinutes % 1440 == 0) {
-          _timeValueController.text = (offsetMinutes ~/ 1440).toString();
-          selectedTimeUnit = 'Days';
-        } else if (offsetMinutes % 60 == 0) {
-          _timeValueController.text = (offsetMinutes ~/ 60).toString();
-          selectedTimeUnit = 'Hours';
-        } else {
-          _timeValueController.text = offsetMinutes.toString();
-          selectedTimeUnit = 'Minutes';
-        }
-
-        print('✅ Pre-populated reminder data: ${reminder.message}');
-        print('⏰ Reminder offset: $offsetMinutes minutes');
-      });
-    }
-
-    // Pre-populate attachment data if exists
-    if (existingAttachments != null && existingAttachments!.isNotEmpty) {
-      setState(() {
-        final attachment = existingAttachments!.first;
-        uploadedFileName = attachment.title;
-        print('📎 Existing attachment: ${attachment.title}');
-      });
     }
   }
 
@@ -163,7 +98,9 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
       );
       final reminders = await reminderRepo.getReminders();
       setState(() {
-        _serverReminders = reminders.where((r) => r.event != null && r.event!['id'] == eventId).toList();
+        _serverReminders = reminders
+            .where((r) => r.event != null && r.event!['id'] == eventId)
+            .toList();
       });
     } catch (e) {
       if (mounted) {
@@ -188,24 +125,13 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
       text: existing?.message ?? '',
     );
     final TextEditingController customValueCtrl = TextEditingController();
-    String? unitSelection;
-    String? methodSelection = existing != null
-        ? _mapTypeToMethod(existing.type)
+    customValueCtrl.text = existing != null ? existing.offset.toString() : '';
+    String reminderOffsetUnit = existing != null
+        ? reminderOffsetUnits[existing.offsetType]
+        : 'Minutes';
+    String reminderType = existing != null
+        ? reminderTypes[existing.type]
         : 'Popup';
-
-    if (existing != null) {
-      final off = existing.offset;
-      if (off % (24 * 60) == 0) {
-        unitSelection = 'Days';
-        customValueCtrl.text = (off / (24 * 60)).round().toString();
-      } else if (off % 60 == 0) {
-        unitSelection = 'Hours';
-        customValueCtrl.text = (off / 60).round().toString();
-      } else {
-        unitSelection = 'Minutes';
-        customValueCtrl.text = off.toString();
-      }
-    }
 
     showDialog(
       context: context,
@@ -220,7 +146,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
               borderRadius: BorderRadius.circular(16.adaptSize),
               boxShadow: [
                 BoxShadow(
-                  color: blackColor.withOpacity(0.1),
+                  color: blackColor.withValues(alpha: 0.1),
                   blurRadius: 10,
                   offset: Offset(0, 4),
                 ),
@@ -252,7 +178,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: blackColor.withOpacity(0.15)),
+                      border: Border.all(color: blackColor.withValues(alpha: 0.15)),
                       color: whiteColor,
                     ),
                     child: TextField(
@@ -264,7 +190,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                       decoration: InputDecoration(
                         hintText: '',
                         hintStyle: AppTextStyle.eTextStyle.copyWith(
-                          color: blackColor.withOpacity(0.5),
+                          color: blackColor.withValues(alpha: 0.5),
                         ),
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.symmetric(
@@ -279,13 +205,13 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                     padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: blackColor.withOpacity(0.15)),
+                      border: Border.all(color: blackColor.withValues(alpha: 0.15)),
                       color: whiteColor,
                     ),
                     child: DropdownButton<String>(
                       icon: Icon(
                         Icons.keyboard_arrow_down,
-                        color: blackColor.withOpacity(0.6),
+                        color: blackColor.withValues(alpha: 0.6),
                       ),
                       dropdownColor: whiteColor,
                       isExpanded: true,
@@ -293,25 +219,30 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                       hint: Text(
                         '',
                         style: AppTextStyle.eTextStyle.copyWith(
-                          color: blackColor.withOpacity(0.5),
+                          color: blackColor.withValues(alpha: 0.5),
                         ),
                       ),
-                      value: methodSelection,
-                      items: reminderTypes.map((method) {
+                      value: reminderType,
+                      items: reminderTypes
+                          .where((type) => (existing != null && existing.type == 2) || type != 'Text')
+                          .map((type) {
                         return DropdownMenuItem<String>(
-                          value: method,
+                          value: type,
                           child: Row(
                             children: [
                               Icon(
-                                method == 'Email'
+                                type == 'Email'
                                     ? Icons.mail_outline
+                                    :
+                                type == 'Text'
+                                    ? Icons.phone_android
                                     : Icons.notifications_active_outlined,
                                 size: 18,
                                 color: primaryColor,
                               ),
                               SizedBox(width: 10),
                               Text(
-                                method,
+                                type,
                                 style: AppTextStyle.eTextStyle.copyWith(
                                   color: blackColor,
                                 ),
@@ -322,7 +253,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                       }).toList(),
                       onChanged: (value) {
                         setDialogState(() {
-                          methodSelection = value;
+                          reminderType = value!;
                         });
                       },
                     ),
@@ -344,7 +275,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: blackColor.withOpacity(0.15),
+                              color: blackColor.withValues(alpha: 0.15),
                             ),
                             color: whiteColor,
                           ),
@@ -357,7 +288,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                             decoration: InputDecoration(
                               hintText: '',
                               hintStyle: AppTextStyle.eTextStyle.copyWith(
-                                color: blackColor.withOpacity(0.5),
+                                color: blackColor.withValues(alpha: 0.5),
                               ),
                               border: InputBorder.none,
                               contentPadding: EdgeInsets.symmetric(
@@ -379,14 +310,14 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: blackColor.withOpacity(0.15),
+                              color: blackColor.withValues(alpha: 0.15),
                             ),
                             color: whiteColor,
                           ),
                           child: DropdownButton<String>(
                             icon: Icon(
                               Icons.keyboard_arrow_down,
-                              color: blackColor.withOpacity(0.6),
+                              color: blackColor.withValues(alpha: 0.6),
                             ),
                             dropdownColor: whiteColor,
                             isExpanded: true,
@@ -394,10 +325,10 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                             hint: Text(
                               '',
                               style: AppTextStyle.eTextStyle.copyWith(
-                                color: blackColor.withOpacity(0.5),
+                                color: blackColor.withValues(alpha: 0.5),
                               ),
                             ),
-                            value: unitSelection,
+                            value: reminderOffsetUnit,
                             items: reminderOffsetUnits.map((unit) {
                               return DropdownMenuItem<String>(
                                 value: unit,
@@ -411,7 +342,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                             }).toList(),
                             onChanged: (value) {
                               setDialogState(() {
-                                unitSelection = value;
+                                reminderOffsetUnit = value!;
                               });
                             },
                           ),
@@ -457,21 +388,9 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                               return;
                             }
 
-                            if (methodSelection == null) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'Please select a notification method',
-                                  ),
-                                  backgroundColor: redColor,
-                                ),
-                              );
-                              return;
-                            }
-
                             final customVal =
                                 int.tryParse(customValueCtrl.text.trim()) ?? 0;
-                            if (customVal <= 0 || unitSelection == null) {
+                            if (customVal <= 0) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
@@ -483,13 +402,6 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                               return;
                             }
 
-                            int computedOffset = customVal;
-                            if (unitSelection == 'Hours') {
-                              computedOffset = customVal * 60;
-                            } else if (unitSelection == 'Days') {
-                              computedOffset = customVal * 24 * 60;
-                            }
-
                             try {
                               final reminderDataSource =
                                   ReminderRemoteDataSourceImpl(
@@ -498,7 +410,6 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                               final reminderRepo = ReminderRepositoryImpl(
                                 remoteDataSource: reminderDataSource,
                               );
-                              final method = methodSelection ?? 'Popup';
                               if (eventId == null) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
@@ -515,9 +426,11 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                                 final req = ReminderRequestModel(
                                   title: messageCtrl.text.trim(),
                                   message: messageCtrl.text.trim(),
-                                  offset: computedOffset,
-                                  offsetType: 0,
-                                  type: _mapMethodToType(method),
+                                  offset: customVal,
+                                  offsetType: reminderOffsetUnits.indexOf(
+                                    reminderOffsetUnit,
+                                  ),
+                                  type: reminderTypes.indexOf(reminderType),
                                   sent: false,
                                   event: eventId!,
                                 );
@@ -529,9 +442,11 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                                 final req = ReminderRequestModel(
                                   title: messageCtrl.text.trim(),
                                   message: messageCtrl.text.trim(),
-                                  offset: computedOffset,
-                                  offsetType: 0,
-                                  type: _mapMethodToType(method),
+                                  offset: customVal,
+                                  offsetType: reminderOffsetUnits.indexOf(
+                                    reminderOffsetUnit,
+                                  ),
+                                  type: reminderTypes.indexOf(reminderType),
                                   sent: false,
                                   event: eventId!,
                                 );
@@ -592,7 +507,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
   }
 
   Future<void> _confirmDeleteReminder(ReminderResponseModel reminder) async {
-    showDialog(
+    await showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(
@@ -663,7 +578,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
   }
 
   Future<void> _confirmDeleteAttachment(AttachmentModel attachment) async {
-    showDialog(
+    await showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(
@@ -730,7 +645,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
   Future<void> _pickFile() async {
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
-          type: FileType.any
+        type: FileType.any,
       );
 
       if (result != null) {
@@ -765,31 +680,6 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
         );
       }
     }
-  }
-
-  // Helper to convert time unit and value to offset in minutes
-  int _calculateOffset() {
-    final timeValue = int.tryParse(_timeValueController.text) ?? 0;
-
-    if (selectedTimeUnit == 'Minutes') {
-      return timeValue;
-    } else if (selectedTimeUnit == 'Hours') {
-      return timeValue * 60;
-    } else if (selectedTimeUnit == 'Days') {
-      return timeValue * 24 * 60;
-    }
-    return timeValue;
-  }
-
-  String _formatOffset(int offset) {
-    if (offset >= 10080) return '1 week before';
-    if (offset >= 2880) return '2 days before';
-    if (offset >= 1440) return '1 day before';
-    if (offset >= 60 && offset % 60 == 0) {
-      final hours = (offset / 60).round();
-      return '$hours hour${hours == 1 ? '' : 's'} before';
-    }
-    return '$offset minute${offset == 1 ? '' : 's'} before';
   }
 
   Future<void> _handleSubmit() async {
@@ -841,84 +731,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
         return;
       }
 
-      // Step 2: Create or Update Reminder (if message and time are provided)
-      if (_messageController.text.trim().isNotEmpty &&
-          _timeValueController.text.trim().isNotEmpty) {
-        // Validate custom time has unit selected
-        if (selectedTimeUnit == null) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Please select time unit for custom reminder'),
-                backgroundColor: redColor,
-              ),
-            );
-          }
-          setState(() {
-            _isSubmitting = false;
-          });
-          return;
-        }
-
-        // Calculate offset
-        final offset = _calculateOffset();
-        final type = _mapMethodToType(selectedReminderMethod ?? 'Popup');
-
-        final reminderRequest = ReminderRequestModel(
-          title: widget.eventRequest!.title,
-          message: _messageController.text.trim(),
-          offset: offset,
-          offsetType: 0, // 0 = minutes before
-          type: type, // channel based on selection
-          sent: false,
-          event: finalEventId,
-        );
-
-        final reminderDataSource = ReminderRemoteDataSourceImpl(
-          dioClient: DioClient(),
-        );
-        final reminderRepo = ReminderRepositoryImpl(
-          remoteDataSource: reminderDataSource,
-        );
-
-        if (isEditMode && existingReminderId != null) {
-          // Update existing reminder
-          print('📝 Updating reminder with ID: $existingReminderId...');
-          await reminderRepo.updateReminder(
-            existingReminderId!,
-            reminderRequest,
-          );
-          print('✅ Reminder updated successfully');
-        } else {
-          // Create new reminder
-          print('📝 Creating new reminder...');
-          await reminderRepo.createReminder(reminderRequest);
-          print('✅ Reminder created successfully');
-
-          // Register FCM token with HeliumEdu API
-          await _registerFCMToken();
-        }
-      } else if (isEditMode &&
-          existingReminderId != null &&
-          _messageController.text.trim().isEmpty) {
-        // If in edit mode and reminder was deleted (message cleared), delete the reminder
-        print('🗑️ Deleting reminder with ID: $existingReminderId...');
-        final reminderDataSource = ReminderRemoteDataSourceImpl(
-          dioClient: DioClient(),
-        );
-        final reminderRepo = ReminderRepositoryImpl(
-          remoteDataSource: reminderDataSource,
-        );
-
-        try {
-          await reminderRepo.deleteReminder(existingReminderId!);
-          print('✅ Reminder deleted successfully');
-        } catch (e) {
-          print('⚠️ Could not delete reminder: $e');
-        }
-      }
-
-      // Step 3: Upload Attachment (if file is selected)
+      // Upload Attachment (if file is selected)
       if (_selectedFile != null) {
         print('📎 Uploading attachment...');
         final attachmentDataSource = AttachmentRemoteDataSourceImpl(
@@ -991,7 +804,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                 color: whiteColor,
                 boxShadow: [
                   BoxShadow(
-                    color: blackColor.withOpacity(0.08),
+                    color: blackColor.withValues(alpha: 0.08),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -1022,21 +835,15 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
             SizedBox(height: 16.v),
             // Add Event Reminder button (top-right)
             Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: 12.h,
-                vertical: 12.v,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: 12.h, vertical: 12.v),
               child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 16.h,
-                  vertical: 20.v,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 20.v),
                 decoration: BoxDecoration(
                   color: whiteColor,
                   borderRadius: BorderRadius.circular(16.adaptSize),
                   boxShadow: [
                     BoxShadow(
-                      color: blackColor.withOpacity(0.06),
+                      color: blackColor.withValues(alpha: 0.06),
                       blurRadius: 12,
                       offset: Offset(0, 4),
                       spreadRadius: 0,
@@ -1050,7 +857,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                     lineThickness: 3,
                     lineSpace: 4,
                     lineType: LineType.normal,
-                    defaultLineColor: greyColor.withOpacity(0.3),
+                    defaultLineColor: greyColor.withValues(alpha: 0.3),
                     finishedLineColor: primaryColor,
                     activeLineColor: primaryColor,
                   ),
@@ -1059,22 +866,19 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                   activeStepBackgroundColor: primaryColor,
                   activeStepTextColor: primaryColor,
                   finishedStepBorderColor: primaryColor,
-                  finishedStepBackgroundColor: primaryColor.withOpacity(0.1),
+                  finishedStepBackgroundColor: primaryColor.withValues(alpha: 0.1),
                   finishedStepIconColor: primaryColor,
                   finishedStepTextColor: blackColor,
-                  unreachedStepBorderColor: greyColor.withOpacity(0.3),
+                  unreachedStepBorderColor: greyColor.withValues(alpha: 0.3),
                   unreachedStepBackgroundColor: softGrey,
                   unreachedStepIconColor: greyColor,
-                  unreachedStepTextColor: textColor.withOpacity(0.5),
+                  unreachedStepTextColor: textColor.withValues(alpha: 0.5),
                   borderThickness: 2,
                   internalPadding: 12,
                   showLoadingAnimation: false,
                   stepRadius: 28.adaptSize,
                   showStepBorder: true,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 8.h,
-                    vertical: 8.v,
-                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 8.h, vertical: 8.v),
                   stepShape: StepShape.circle,
                   stepBorderRadius: 15,
                   steppingEnabled: true,
@@ -1089,7 +893,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                       customStep: Container(
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: primaryColor.withOpacity(0.1),
+                          color: primaryColor.withValues(alpha: 0.1),
                           border: Border.all(color: primaryColor, width: 2),
                         ),
                         child: Center(
@@ -1112,7 +916,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                           textAlign: TextAlign.center,
                         ),
                       ),
-                      topTitle: false,
+                      placeTitleAtStart: false,
                     ),
                     EasyStep(
                       customStep: Container(
@@ -1122,7 +926,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                           border: Border.all(color: primaryColor, width: 2),
                           boxShadow: [
                             BoxShadow(
-                              color: primaryColor.withOpacity(0.3),
+                              color: primaryColor.withValues(alpha: 0.3),
                               blurRadius: 8,
                               offset: Offset(0, 3),
                               spreadRadius: 0,
@@ -1149,7 +953,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                           textAlign: TextAlign.center,
                         ),
                       ),
-                      topTitle: false,
+                      placeTitleAtStart: false,
                     ),
                   ],
                 ),
@@ -1171,7 +975,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                     borderRadius: BorderRadius.circular(8.adaptSize),
                     boxShadow: [
                       BoxShadow(
-                        color: primaryColor.withOpacity(0.2),
+                        color: primaryColor.withValues(alpha: 0.2),
                         blurRadius: 6,
                         offset: Offset(0, 2),
                       ),
@@ -1236,7 +1040,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                               border: Border.all(color: softGrey, width: 1),
                               boxShadow: [
                                 BoxShadow(
-                                  color: blackColor.withOpacity(0.04),
+                                  color: blackColor.withValues(alpha: 0.04),
                                   blurRadius: 6,
                                   offset: Offset(0, 1),
                                 ),
@@ -1265,17 +1069,17 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                                       ),
                                       SizedBox(height: 4.v),
                                       Text(
-                                        _formatOffset(rem.offset),
+                                        formatReminderOffset(rem),
                                         style: AppTextStyle.iTextStyle.copyWith(
-                                          color: textColor.withOpacity(0.7),
+                                          color: textColor.withValues(alpha: 0.7),
                                           fontSize: 12,
                                         ),
                                       ),
                                       SizedBox(height: 4.v),
                                       Text(
-                                        _mapTypeToMethod(rem.type),
+                                        reminderTypes[rem.type],
                                         style: AppTextStyle.iTextStyle.copyWith(
-                                          color: textColor.withOpacity(0.7),
+                                          color: textColor.withValues(alpha: 0.7),
                                           fontSize: 12,
                                         ),
                                       ),
@@ -1308,7 +1112,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                         }),
                         SizedBox(height: 8.v),
                         Divider(
-                          color: greyColor.withOpacity(0.2),
+                          color: greyColor.withValues(alpha: 0.2),
                           thickness: 1,
                         ),
                         SizedBox(height: 16.v),
@@ -1381,12 +1185,12 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                             border: Border.all(
                               color: uploadedFileName != null
                                   ? primaryColor
-                                  : primaryColor.withOpacity(0.3),
+                                  : primaryColor.withValues(alpha: 0.3),
                               width: 1.5,
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: blackColor.withOpacity(0.03),
+                                color: blackColor.withValues(alpha: 0.03),
                                 blurRadius: 4,
                                 offset: const Offset(0, 2),
                               ),
@@ -1398,7 +1202,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                                     Container(
                                       padding: EdgeInsets.all(8),
                                       decoration: BoxDecoration(
-                                        color: primaryColor.withOpacity(0.1),
+                                        color: primaryColor.withValues(alpha: 0.1),
                                         borderRadius: BorderRadius.circular(6),
                                       ),
                                       child: Icon(
@@ -1428,7 +1232,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                                             'Tap to change file',
                                             style: AppTextStyle.eTextStyle
                                                 .copyWith(
-                                                  color: blackColor.withOpacity(
+                                                  color: blackColor.withValues(alpha: 
                                                     0.5,
                                                   ),
                                                   fontSize: 12,
@@ -1519,19 +1323,5 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
         ),
       ),
     );
-  }
-
-  // Register FCM token with HeliumEdu API
-  Future<void> _registerFCMToken() async {
-    try {
-      final fcmService = FCMService();
-      await fcmService.registerTokenWithHeliumEdu();
-      print(
-        '✅ FCM token registered with HeliumEdu API after event reminder creation',
-      );
-    } catch (e) {
-      print('❌ Failed to register FCM token: $e');
-      // Don't show error to user as this is background operation
-    }
   }
 }

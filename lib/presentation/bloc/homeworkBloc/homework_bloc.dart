@@ -30,7 +30,7 @@ class HomeworkBloc extends Bloc<HomeworkEvent, HomeworkState> {
     emit(HomeworkLoading());
     try {
       final filterSummary = (event.categoryTitles?.isNotEmpty ?? false)
-          ? " with categories: ${event.categoryTitles}"
+          ? ' with categories: ${event.categoryTitles}'
           : '';
       print('🎯 Fetching all homework from repository$filterSummary');
       final homeworks = await homeworkRepository.getAllHomework(

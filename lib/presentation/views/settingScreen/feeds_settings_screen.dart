@@ -13,12 +13,11 @@ import 'package:helium_mobile/data/datasources/private_feed_remote_data_source.d
 import 'package:helium_mobile/data/repositories/private_feed_repository_impl.dart';
 import 'package:helium_mobile/presentation/bloc/privateFeedBloc/private_feed_bloc.dart';
 import 'package:helium_mobile/presentation/bloc/privateFeedBloc/private_feed_event.dart';
+import 'package:helium_mobile/presentation/bloc/privateFeedBloc/private_feed_state.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_size.dart';
 import 'package:helium_mobile/utils/app_text_style.dart';
 import 'package:share_plus/share_plus.dart';
-
-import '../../bloc/privateFeedBloc/private_feed_state.dart';
 
 class FeedsSettingsScreen extends StatelessWidget {
   const FeedsSettingsScreen({super.key});
@@ -135,7 +134,7 @@ class _FeedsSettingsViewState extends State<FeedsSettingsView> {
                   color: whiteColor,
                   boxShadow: [
                     BoxShadow(
-                      color: blackColor.withOpacity(0.05),
+                      color: blackColor.withValues(alpha: 0.05),
                       blurRadius: 8,
                       offset: Offset(0, 2),
                     ),
@@ -188,7 +187,7 @@ class _FeedsSettingsViewState extends State<FeedsSettingsView> {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: blackColor.withOpacity(0.04),
+            color: blackColor.withValues(alpha: 0.04),
             blurRadius: 12,
             offset: const Offset(0, 2),
           ),
@@ -204,7 +203,7 @@ class _FeedsSettingsViewState extends State<FeedsSettingsView> {
                 Container(
                   padding: EdgeInsets.all(12.h),
                   decoration: BoxDecoration(
-                    color: iconBgColor.withOpacity(0.12),
+                    color: iconBgColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(icon, color: iconColor, size: 24),
@@ -228,7 +227,7 @@ class _FeedsSettingsViewState extends State<FeedsSettingsView> {
               ],
             ),
           ),
-          Divider(height: 0, color: greyColor.withOpacity(0.08)),
+          Divider(height: 0, color: greyColor.withValues(alpha: 0.08)),
           Padding(
             padding: EdgeInsets.all(16.h),
             child: Column(
@@ -242,12 +241,12 @@ class _FeedsSettingsViewState extends State<FeedsSettingsView> {
                   decoration: BoxDecoration(
                     color: const Color(0xfff5f6f9),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: greyColor.withOpacity(0.1)),
+                    border: Border.all(color: greyColor.withValues(alpha: 0.1)),
                   ),
                   child: SelectableText(
                     url,
                     style: AppTextStyle.fTextStyle.copyWith(
-                      color: textColor.withOpacity(0.7),
+                      color: textColor.withValues(alpha: 0.7),
                       fontSize: 11,
                       height: 1.5,
                     ),
@@ -288,7 +287,7 @@ class _FeedsSettingsViewState extends State<FeedsSettingsView> {
                           size: 18,
                         ),
                         style: IconButton.styleFrom(
-                          backgroundColor: buttonColor.withOpacity(0.12),
+                          backgroundColor: buttonColor.withValues(alpha: 0.12),
                         ),
                       ),
                     ),

@@ -192,7 +192,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                 Text(
                   'Enter your password to confirm:',
                   style: AppTextStyle.cTextStyle.copyWith(
-                    color: textColor.withOpacity(0.8),
+                    color: textColor.withValues(alpha: 0.8),
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
                   ),
@@ -203,7 +203,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                     color: softGrey,
                     borderRadius: BorderRadius.circular(12.adaptSize),
                     border: Border.all(
-                      color: greyColor.withOpacity(0.3),
+                      color: greyColor.withValues(alpha: 0.3),
                       width: 1,
                     ),
                   ),
@@ -213,7 +213,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                         padding: EdgeInsets.symmetric(horizontal: 12.h),
                         child: Icon(
                           Icons.lock_outline,
-                          color: textColor.withOpacity(0.4),
+                          color: textColor.withValues(alpha: 0.4),
                           size: 20.adaptSize,
                         ),
                       ),
@@ -228,7 +228,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                           decoration: InputDecoration(
                             hintText: '',
                             hintStyle: AppTextStyle.eTextStyle.copyWith(
-                              color: textColor.withOpacity(0.4),
+                              color: textColor.withValues(alpha: 0.4),
                             ),
                             border: InputBorder.none,
                             contentPadding: EdgeInsets.symmetric(
@@ -243,7 +243,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                           obscurePassword
                               ? Icons.visibility_outlined
                               : Icons.visibility_off_outlined,
-                          color: textColor.withOpacity(0.4),
+                          color: textColor.withValues(alpha: 0.4),
                           size: 20.adaptSize,
                         ),
                         onPressed: () {
@@ -366,7 +366,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                   color: whiteColor,
                   boxShadow: [
                     BoxShadow(
-                      color: blackColor.withOpacity(0.05),
+                      color: blackColor.withValues(alpha: 0.05),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -419,7 +419,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: blackColor.withOpacity(0.04),
+                                    color: blackColor.withValues(alpha: 0.04),
                                     blurRadius: 10,
                                     offset: Offset(0, 2),
                                   ),
@@ -454,7 +454,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                               borderRadius: BorderRadius.circular(16.adaptSize),
                               boxShadow: [
                                 BoxShadow(
-                                  color: blackColor.withOpacity(0.04),
+                                  color: blackColor.withValues(alpha: 0.04),
                                   blurRadius: 10,
                                   offset: Offset(0, 2),
                                 ),
@@ -469,7 +469,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                     Text(
                                       'Username',
                                       style: AppTextStyle.cTextStyle.copyWith(
-                                        color: textColor.withOpacity(0.7),
+                                        color: textColor.withValues(alpha: 0.7),
                                         fontWeight: FontWeight.w500,
                                         fontSize: 13,
                                       ),
@@ -482,7 +482,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                           12.adaptSize,
                                         ),
                                         border: Border.all(
-                                          color: greyColor.withOpacity(0.2),
+                                          color: greyColor.withValues(alpha: 0.2),
                                           width: 1,
                                         ),
                                       ),
@@ -494,7 +494,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                             ),
                                             child: Icon(
                                               Icons.person_outline,
-                                              color: textColor.withOpacity(0.4),
+                                              color: textColor.withValues(alpha: 0.4),
                                               size: 20.adaptSize,
                                             ),
                                           ),
@@ -513,7 +513,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                                     .eTextStyle
                                                     .copyWith(
                                                       color: textColor
-                                                          .withOpacity(0.4),
+                                                          .withValues(alpha: 0.4),
                                                     ),
                                                 border: InputBorder.none,
                                                 contentPadding:
@@ -538,7 +538,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                     Text(
                                       'Email Address',
                                       style: AppTextStyle.cTextStyle.copyWith(
-                                        color: textColor.withOpacity(0.7),
+                                        color: textColor.withValues(alpha: 0.7),
                                         fontWeight: FontWeight.w500,
                                         fontSize: 13,
                                       ),
@@ -551,7 +551,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                           12.adaptSize,
                                         ),
                                         border: Border.all(
-                                          color: greyColor.withOpacity(0.2),
+                                          color: greyColor.withValues(alpha: 0.2),
                                           width: 1,
                                         ),
                                       ),
@@ -563,7 +563,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                             ),
                                             child: Icon(
                                               Icons.email_outlined,
-                                              color: textColor.withOpacity(0.4),
+                                              color: textColor.withValues(alpha: 0.4),
                                               size: 20.adaptSize,
                                             ),
                                           ),
@@ -584,7 +584,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                                     .eTextStyle
                                                     .copyWith(
                                                       color: textColor
-                                                          .withOpacity(0.4),
+                                                          .withValues(alpha: 0.4),
                                                     ),
                                                 border: InputBorder.none,
                                                 contentPadding:
@@ -625,7 +625,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                           borderRadius: BorderRadius.circular(16.adaptSize),
                           boxShadow: [
                             BoxShadow(
-                              color: blackColor.withOpacity(0.04),
+                              color: blackColor.withValues(alpha: 0.04),
                               blurRadius: 10,
                               offset: Offset(0, 2),
                             ),
@@ -655,7 +655,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                       Container(
                                         padding: EdgeInsets.all(10.adaptSize),
                                         decoration: BoxDecoration(
-                                          color: primaryColor.withOpacity(0.1),
+                                          color: primaryColor.withValues(alpha: 0.1),
                                           borderRadius: BorderRadius.circular(
                                             12.adaptSize,
                                           ),
@@ -686,7 +686,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                               style: AppTextStyle.cTextStyle
                                                   .copyWith(
                                                     color: textColor
-                                                        .withOpacity(0.6),
+                                                        .withValues(alpha: 0.6),
                                                     fontSize: 12,
                                                   ),
                                             ),
@@ -695,7 +695,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                       ),
                                       Icon(
                                         Icons.arrow_forward_ios,
-                                        color: textColor.withOpacity(0.3),
+                                        color: textColor.withValues(alpha: 0.3),
                                         size: 16.adaptSize,
                                       ),
                                     ],
@@ -727,7 +727,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                       Container(
                                         padding: EdgeInsets.all(10.adaptSize),
                                         decoration: BoxDecoration(
-                                          color: Colors.blue.withOpacity(0.1),
+                                          color: Colors.blue.withValues(alpha: 0.1),
                                           borderRadius: BorderRadius.circular(
                                             12.adaptSize,
                                           ),
@@ -766,7 +766,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                                 style: AppTextStyle.cTextStyle
                                                     .copyWith(
                                                       color: textColor
-                                                          .withOpacity(0.6),
+                                                          .withValues(alpha: 0.6),
                                                       fontSize: 12,
                                                     ),
                                               ),
@@ -776,7 +776,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                       ),
                                       Icon(
                                         Icons.arrow_forward_ios,
-                                        color: textColor.withOpacity(0.3),
+                                        color: textColor.withValues(alpha: 0.3),
                                         size: 16.adaptSize,
                                       ),
                                     ],
@@ -808,7 +808,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                       Container(
                                         padding: EdgeInsets.all(10.adaptSize),
                                         decoration: BoxDecoration(
-                                          color: primaryColor.withOpacity(0.1),
+                                          color: primaryColor.withValues(alpha: 0.1),
                                           borderRadius: BorderRadius.circular(
                                             12.adaptSize,
                                           ),
@@ -839,7 +839,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                               style: AppTextStyle.cTextStyle
                                                   .copyWith(
                                                 color: textColor
-                                                    .withOpacity(0.6),
+                                                    .withValues(alpha: 0.6),
                                                 fontSize: 12,
                                               ),
                                             ),
@@ -848,7 +848,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                       ),
                                       Icon(
                                         Icons.arrow_forward_ios,
-                                        color: textColor.withOpacity(0.3),
+                                        color: textColor.withValues(alpha: 0.3),
                                         size: 16.adaptSize,
                                       ),
                                     ],
@@ -880,7 +880,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                       Container(
                                         padding: EdgeInsets.all(10.adaptSize),
                                         decoration: BoxDecoration(
-                                          color: primaryColor.withOpacity(0.1),
+                                          color: primaryColor.withValues(alpha: 0.1),
                                           borderRadius: BorderRadius.circular(
                                             12.adaptSize,
                                           ),
@@ -911,7 +911,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                               style: AppTextStyle.cTextStyle
                                                   .copyWith(
                                                     color: textColor
-                                                        .withOpacity(0.6),
+                                                        .withValues(alpha: 0.6),
                                                     fontSize: 12,
                                                   ),
                                             ),
@@ -920,7 +920,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                       ),
                                       Icon(
                                         Icons.arrow_forward_ios,
-                                        color: textColor.withOpacity(0.3),
+                                        color: textColor.withValues(alpha: 0.3),
                                         size: 16.adaptSize,
                                       ),
                                     ],
@@ -939,12 +939,12 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                           color: whiteColor,
                           borderRadius: BorderRadius.circular(16.adaptSize),
                           border: Border.all(
-                            color: redColor.withOpacity(0.2),
+                            color: redColor.withValues(alpha: 0.2),
                             width: 1,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: blackColor.withOpacity(0.04),
+                              color: blackColor.withValues(alpha: 0.04),
                               blurRadius: 10,
                               offset: Offset(0, 2),
                             ),
@@ -965,7 +965,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                   Container(
                                     padding: EdgeInsets.all(10.adaptSize),
                                     decoration: BoxDecoration(
-                                      color: redColor.withOpacity(0.1),
+                                      color: redColor.withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(
                                         12.adaptSize,
                                       ),
@@ -995,7 +995,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                           'Permanently delete your account',
                                           style: AppTextStyle.cTextStyle
                                               .copyWith(
-                                                color: textColor.withOpacity(
+                                                color: textColor.withValues(alpha: 
                                                   0.6,
                                                 ),
                                                 fontSize: 12,
@@ -1006,7 +1006,7 @@ class _SettingScreenViewState extends State<SettingScreenView> {
                                   ),
                                   Icon(
                                     Icons.arrow_forward_ios,
-                                    color: textColor.withOpacity(0.3),
+                                    color: textColor.withValues(alpha: 0.3),
                                     size: 16.adaptSize,
                                   ),
                                 ],

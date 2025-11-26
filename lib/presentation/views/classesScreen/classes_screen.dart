@@ -13,6 +13,7 @@ import 'package:helium_mobile/data/datasources/course_remote_data_source.dart';
 import 'package:helium_mobile/data/models/planner/course_group_request_model.dart';
 import 'package:helium_mobile/data/models/planner/course_group_response_model.dart';
 import 'package:helium_mobile/data/models/planner/course_model.dart';
+import 'package:helium_mobile/data/models/planner/course_schedule_model.dart';
 import 'package:helium_mobile/data/repositories/course_repository_impl.dart';
 import 'package:helium_mobile/presentation/bloc/courseBloc/course_bloc.dart';
 import 'package:helium_mobile/presentation/bloc/courseBloc/course_event.dart';
@@ -21,6 +22,7 @@ import 'package:helium_mobile/presentation/widgets/custom_class_textfield.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_size.dart';
 import 'package:helium_mobile/utils/app_text_style.dart';
+import 'package:helium_mobile/utils/formatting.dart';
 
 class ClassesScreen extends StatefulWidget {
   const ClassesScreen({super.key});
@@ -48,39 +50,6 @@ class _ClassesScreenState extends State<ClassesScreen> {
   void dispose() {
     _titleController.dispose();
     super.dispose();
-  }
-
-  String _formatDateForApi(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-  }
-
-  String _formatDateForDisplay(DateTime date) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return '${months[date.month - 1]} ${date.day}, ${date.year}';
-  }
-
-  Color _hexToColor(String hexString) {
-    try {
-      final buffer = StringBuffer();
-      if (hexString.length == 6 || hexString.length == 7) buffer.write('ff');
-      buffer.write(hexString.replaceFirst('#', ''));
-      return Color(int.parse(buffer.toString(), radix: 16));
-    } catch (e) {
-      return primaryColor;
-    }
   }
 
   void _showCourseGroupDialog(
@@ -177,12 +146,12 @@ class _ClassesScreenState extends State<ClassesScreen> {
                                 vertical: 10.v,
                               ),
                               decoration: BoxDecoration(
-                                color: redColor.withOpacity(0.1),
+                                color: redColor.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(
                                   8.adaptSize,
                                 ),
                                 border: Border.all(
-                                  color: redColor.withOpacity(0.3),
+                                  color: redColor.withValues(alpha: 0.3),
                                   width: 1,
                                 ),
                               ),
@@ -223,7 +192,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                           Text(
                             'Title',
                             style: AppTextStyle.cTextStyle.copyWith(
-                              color: blackColor.withOpacity(0.8),
+                              color: blackColor.withValues(alpha: 0.8),
                             ),
                           ),
                           SizedBox(height: 9.v),
@@ -235,7 +204,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                           Text(
                             'From',
                             style: AppTextStyle.cTextStyle.copyWith(
-                              color: blackColor.withOpacity(0.8),
+                              color: blackColor.withValues(alpha: 0.8),
                             ),
                           ),
                           SizedBox(height: 9.v),
@@ -249,7 +218,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(6),
                                 border: Border.all(
-                                  color: blackColor.withOpacity(0.15),
+                                  color: blackColor.withValues(alpha: 0.15),
                                 ),
                                 color: whiteColor,
                               ),
@@ -259,12 +228,12 @@ class _ClassesScreenState extends State<ClassesScreen> {
                                 children: [
                                   Text(
                                     _startDate != null
-                                        ? _formatDateForDisplay(_startDate!)
+                                        ? formatDateForDisplay(_startDate!)
                                         : '',
                                     style: AppTextStyle.eTextStyle.copyWith(
                                       color: _startDate != null
                                           ? blackColor
-                                          : blackColor.withOpacity(0.5),
+                                          : blackColor.withValues(alpha: 0.5),
                                     ),
                                   ),
                                   Icon(
@@ -280,7 +249,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                           Text(
                             'To',
                             style: AppTextStyle.cTextStyle.copyWith(
-                              color: blackColor.withOpacity(0.8),
+                              color: blackColor.withValues(alpha: 0.8),
                             ),
                           ),
                           SizedBox(height: 9.v),
@@ -294,7 +263,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(6),
                                 border: Border.all(
-                                  color: blackColor.withOpacity(0.15),
+                                  color: blackColor.withValues(alpha: 0.15),
                                 ),
                                 color: whiteColor,
                               ),
@@ -304,12 +273,12 @@ class _ClassesScreenState extends State<ClassesScreen> {
                                 children: [
                                   Text(
                                     _startDate != null
-                                        ? _formatDateForDisplay(_startDate!)
+                                        ? formatDateForDisplay(_startDate!)
                                         : '',
                                     style: AppTextStyle.eTextStyle.copyWith(
                                       color: _startDate != null
                                           ? blackColor
-                                          : blackColor.withOpacity(0.5),
+                                          : blackColor.withValues(alpha: 0.5),
                                     ),
                                   ),
                                   Icon(
@@ -422,10 +391,10 @@ class _ClassesScreenState extends State<ClassesScreen> {
                                                 CourseGroupRequestModel(
                                                   title: _titleController.text
                                                       .trim(),
-                                                  startDate: _formatDateForApi(
+                                                  startDate: formatDateForApi(
                                                     _startDate!,
                                                   ),
-                                                  endDate: _formatDateForApi(
+                                                  endDate: formatDateForApi(
                                                     _endDate!,
                                                   ),
                                                   shownOnCalendar: !isHide,
@@ -447,7 +416,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                                           },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: isLoading
-                                          ? primaryColor.withOpacity(0.6)
+                                          ? primaryColor.withValues(alpha: 0.6)
                                           : primaryColor,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(
@@ -488,7 +457,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
   }
 
   Widget _buildCourseCard(BuildContext context, CourseModel course) {
-    final courseColor = _hexToColor(course.color);
+    final courseColor = parseColor(course.color);
 
     return Container(
       margin: EdgeInsets.only(bottom: 16.v),
@@ -496,10 +465,10 @@ class _ClassesScreenState extends State<ClassesScreen> {
       decoration: BoxDecoration(
         color: whiteColor,
         borderRadius: BorderRadius.circular(12.adaptSize),
-        border: Border.all(color: blackColor.withOpacity(0.08), width: 1),
+        border: Border.all(color: blackColor.withValues(alpha: 0.08), width: 1),
         boxShadow: [
           BoxShadow(
-            color: blackColor.withOpacity(0.04),
+            color: blackColor.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -517,10 +486,10 @@ class _ClassesScreenState extends State<ClassesScreen> {
                     vertical: 6.v,
                   ),
                   decoration: BoxDecoration(
-                    color: courseColor.withOpacity(0.1),
+                    color: courseColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20.adaptSize),
                     border: Border.all(
-                      color: courseColor.withOpacity(0.2),
+                      color: courseColor.withValues(alpha: 0.2),
                       width: 1,
                     ),
                   ),
@@ -571,7 +540,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                 child: Container(
                   padding: EdgeInsets.all(6.adaptSize),
                   decoration: BoxDecoration(
-                    color: primaryColor.withOpacity(0.1),
+                    color: primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(6.adaptSize),
                   ),
                   child: Icon(
@@ -602,7 +571,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                         content: Text(
                           'Are you sure you want to delete "${course.title}"? This action cannot be undone.',
                           style: AppTextStyle.cTextStyle.copyWith(
-                            color: textColor.withOpacity(0.7),
+                            color: textColor.withValues(alpha: 0.7),
                           ),
                         ),
                         actions: [
@@ -650,7 +619,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                 child: Container(
                   padding: EdgeInsets.all(6.adaptSize),
                   decoration: BoxDecoration(
-                    color: redColor.withOpacity(0.1),
+                    color: redColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(6.adaptSize),
                   ),
                   child: Icon(
@@ -687,13 +656,13 @@ class _ClassesScreenState extends State<ClassesScreen> {
                 Icon(
                   Icons.room_outlined,
                   size: 16.adaptSize,
-                  color: textColor.withOpacity(0.4),
+                  color: textColor.withValues(alpha: 0.4),
                 ),
                 SizedBox(width: 4.h),
                 Text(
                   course.room,
                   style: AppTextStyle.cTextStyle.copyWith(
-                    color: textColor.withOpacity(0.5),
+                    color: textColor.withValues(alpha: 0.5),
                     fontSize: 13,
                   ),
                 ),
@@ -703,7 +672,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
           SizedBox(height: 12.v),
 
           // Divider
-          Container(height: 1, color: blackColor.withOpacity(0.08)),
+          Container(height: 1, color: blackColor.withValues(alpha: 0.08)),
 
           SizedBox(height: 12.v),
 
@@ -713,13 +682,13 @@ class _ClassesScreenState extends State<ClassesScreen> {
               Icon(
                 Icons.date_range_outlined,
                 size: 16.adaptSize,
-                color: textColor.withOpacity(0.4),
+                color: textColor.withValues(alpha: 0.4),
               ),
               SizedBox(width: 4.h),
               Text(
                 course.getFormattedDateRange(),
                 style: AppTextStyle.cTextStyle.copyWith(
-                  color: textColor.withOpacity(0.5),
+                  color: textColor.withValues(alpha: 0.5),
                   fontSize: 13,
                 ),
               ),
@@ -727,7 +696,8 @@ class _ClassesScreenState extends State<ClassesScreen> {
           ),
 
           // Schedules Section
-          if (course.schedules.isNotEmpty) ...[
+          if (course.schedules.isNotEmpty &&
+              course.schedules[0].daysOfWeek != '0000000') ...[
             SizedBox(height: 16.v),
 
             // Schedules Header
@@ -743,75 +713,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
             SizedBox(height: 8.v),
 
             // Schedules Container
-            ...course.schedules.map((schedule) {
-              final activeDays = schedule.getActiveDays();
-
-              return Container(
-                margin: EdgeInsets.only(bottom: 8.v),
-                padding: EdgeInsets.all(12.h),
-                decoration: BoxDecoration(
-                  color: courseColor.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(8.adaptSize),
-                  border: Border.all(
-                    color: courseColor.withOpacity(0.15),
-                    width: 1,
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Days of week
-                    if (activeDays.isNotEmpty)
-                      Wrap(
-                        spacing: 6.h,
-                        runSpacing: 6.v,
-                        children: activeDays.map((day) {
-                          return Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 8.h,
-                              vertical: 4.v,
-                            ),
-                            decoration: BoxDecoration(
-                              color: courseColor.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(4.adaptSize),
-                            ),
-                            child: Text(
-                              day,
-                              style: AppTextStyle.cTextStyle.copyWith(
-                                color: courseColor,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-
-                    if (activeDays.isNotEmpty) SizedBox(height: 8.v),
-
-                    // Time display for first active day
-                    if (activeDays.isNotEmpty)
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.access_time,
-                            size: 14.adaptSize,
-                            color: textColor.withOpacity(0.4),
-                          ),
-                          SizedBox(width: 4.h),
-                          Text(
-                            schedule.getTimeForDay(activeDays.first),
-                            style: AppTextStyle.cTextStyle.copyWith(
-                              color: textColor.withOpacity(0.6),
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                  ],
-                ),
-              );
-            }),
+            Column(children: buildCourseScheduleContainers(course)),
           ],
         ],
       ),
@@ -1114,7 +1016,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                         color: whiteColor,
                         boxShadow: [
                           BoxShadow(
-                            color: blackColor.withOpacity(0.05),
+                            color: blackColor.withValues(alpha: 0.05),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),
@@ -1204,27 +1106,27 @@ class _ClassesScreenState extends State<ClassesScreen> {
                                                 ),
                                                 SizedBox(width: 8.h),
                                                 Text(
-                                                  "Loading groups...",
+                                                  'Loading groups...',
                                                   style: AppTextStyle.eTextStyle
                                                       .copyWith(
                                                         color: blackColor
-                                                            .withOpacity(0.5),
+                                                            .withValues(alpha: 0.5),
                                                       ),
                                                 ),
                                               ],
                                             )
                                           : Text(
-                                              "Select Group",
+                                              'Select Group',
                                               style: AppTextStyle.eTextStyle
                                                   .copyWith(
                                                     color: blackColor
-                                                        .withOpacity(0.5),
+                                                        .withValues(alpha: 0.5),
                                                   ),
                                             ),
                                       if (!_isLoadingGroups)
                                         Icon(
                                           Icons.keyboard_arrow_down,
-                                          color: blackColor.withOpacity(0.5),
+                                          color: blackColor.withValues(alpha: 0.5),
                                         ),
                                     ],
                                   ),
@@ -1236,9 +1138,9 @@ class _ClassesScreenState extends State<ClassesScreen> {
                                 isExpanded: true,
                                 underline: SizedBox(),
                                 hint: Text(
-                                  "Group Name",
+                                  'Group Name',
                                   style: AppTextStyle.eTextStyle.copyWith(
-                                    color: blackColor.withOpacity(0.5),
+                                    color: blackColor.withValues(alpha: 0.5),
                                   ),
                                 ),
                                 value: _selectedCourseGroup,
@@ -1254,7 +1156,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                                                 style: AppTextStyle.eTextStyle
                                                     .copyWith(
                                                       color: blackColor
-                                                          .withOpacity(0.8),
+                                                          .withValues(alpha: 0.8),
                                                     ),
                                                 overflow: TextOverflow.ellipsis,
                                               ),
@@ -1302,7 +1204,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                                                             .cTextStyle
                                                             .copyWith(
                                                               color: textColor
-                                                                  .withOpacity(
+                                                                  .withValues(alpha: 
                                                                     0.7,
                                                                   ),
                                                             ),
@@ -1391,7 +1293,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                                               vertical: 8.v,
                                             ),
                                             decoration: BoxDecoration(
-                                              color: primaryColor.withOpacity(
+                                              color: primaryColor.withValues(alpha: 
                                                 0.1,
                                               ),
                                               borderRadius:
@@ -1399,7 +1301,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                                                     6.adaptSize,
                                                   ),
                                               border: Border.all(
-                                                color: primaryColor.withOpacity(
+                                                color: primaryColor.withValues(alpha: 
                                                   0.3,
                                                 ),
                                                 width: 1,
@@ -1522,20 +1424,20 @@ class _ClassesScreenState extends State<ClassesScreen> {
                                     Icon(
                                       Icons.school_outlined,
                                       size: 60.adaptSize,
-                                      color: textColor.withOpacity(0.3),
+                                      color: textColor.withValues(alpha: 0.3),
                                     ),
                                     SizedBox(height: 16.v),
                                     Text(
                                       'No classes found',
                                       style: AppTextStyle.bTextStyle.copyWith(
-                                        color: textColor.withOpacity(0.6),
+                                        color: textColor.withValues(alpha: 0.6),
                                       ),
                                     ),
                                     SizedBox(height: 8.v),
                                     Text(
                                       'Add your first class to get started',
                                       style: AppTextStyle.cTextStyle.copyWith(
-                                        color: textColor.withOpacity(0.4),
+                                        color: textColor.withValues(alpha: 0.4),
                                       ),
                                     ),
                                   ],
@@ -1565,7 +1467,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                             child: Text(
                               'Loading classes ...',
                               style: AppTextStyle.cTextStyle.copyWith(
-                                color: textColor.withOpacity(0.6),
+                                color: textColor.withValues(alpha: 0.6),
                               ),
                             ),
                           );
@@ -1581,7 +1483,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: primaryColor.withOpacity(0.4),
+                      color: primaryColor.withValues(alpha: 0.4),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -1655,5 +1557,123 @@ class _ClassesScreenState extends State<ClassesScreen> {
         }
       });
     }
+  }
+
+  Container buildCourseScheduleContainerForDay(
+    CourseScheduleModel schedule,
+    List<String> days,
+    Color color,
+  ) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 8.v),
+      padding: EdgeInsets.all(12.h),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(8.adaptSize),
+        border: Border.all(color: color.withValues(alpha: 0.15), width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Days of week
+          Wrap(
+            spacing: 6.h,
+            runSpacing: 6.v,
+            children: days.map((day) {
+              return Container(
+                padding: EdgeInsets.symmetric(horizontal: 8.h, vertical: 4.v),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(4.adaptSize),
+                ),
+                child: Text(
+                  day,
+                  style: AppTextStyle.cTextStyle.copyWith(
+                    color: color,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+
+          SizedBox(height: 8.v),
+
+          // Time display for first active day
+          Row(
+            children: [
+              Icon(
+                Icons.access_time,
+                size: 14.adaptSize,
+                color: textColor.withValues(alpha: 0.4),
+              ),
+              SizedBox(width: 4.h),
+              if (schedule.allDaysSameTime())
+                Text(
+                  schedule.getTimeForDay('Sun'),
+                  style: AppTextStyle.cTextStyle.copyWith(
+                    color: textColor.withValues(alpha: 0.6),
+                    fontSize: 12,
+                  ),
+                )
+              else
+                Text(
+                  schedule.getTimeForDay(days[0]),
+                  style: AppTextStyle.cTextStyle.copyWith(
+                    color: textColor.withValues(alpha: 0.6),
+                    fontSize: 12,
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Container> buildCourseScheduleContainers(CourseModel course) {
+    final courseColor = parseColor(course.color);
+
+    List<Container> containers = [];
+
+    for (final schedule in course.schedules) {
+      List<Container> dayContainers = [];
+      if (schedule.allDaysSameTime()) {
+        dayContainers.add(
+          buildCourseScheduleContainerForDay(
+            schedule,
+            schedule.getActiveDays(),
+            courseColor,
+          ),
+        );
+      } else {
+        dayContainers.addAll(
+          schedule.getActiveDays().map((day) {
+            return buildCourseScheduleContainerForDay(schedule, [
+              day,
+            ], courseColor);
+          }).toList(),
+        );
+      }
+
+      containers.add(
+        Container(
+          margin: EdgeInsets.only(bottom: 8.v),
+          padding: EdgeInsets.all(12.h),
+          decoration: BoxDecoration(
+            color: courseColor.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(8.adaptSize),
+            border: Border.all(color: courseColor.withValues(alpha: 0.15), width: 1),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: dayContainers,
+          ),
+        ),
+      );
+    }
+
+    return containers;
   }
 }

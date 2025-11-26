@@ -8,6 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:helium_mobile/data/models/planner/external_calendar_model.dart';
 import 'package:helium_mobile/data/models/planner/external_calendar_request_model.dart';
+import 'package:helium_mobile/utils/app_colors.dart';
 
 class OffsetController extends ChangeNotifier {
   int _offsetValue = 0;
@@ -71,7 +72,7 @@ class ExternalCalendarFormController extends ChangeNotifier {
   void populateFromModel(ExternalCalendarModel model) {
     titleController.text = model.title;
     urlController.text = model.url;
-    selectedColor = _hexToColor(model.color);
+    selectedColor = parseColor(model.color);
     shownOnCalendar = model.shownOnCalendar;
     notifyListeners();
   }
@@ -98,32 +99,9 @@ class ExternalCalendarFormController extends ChangeNotifier {
     return ExternalCalendarRequestModel(
       title: titleController.text.trim(),
       url: urlController.text.trim(),
-      color: _colorToHex(selectedColor),
+      color: colorToHex(selectedColor),
       shownOnCalendar: shownOnCalendar,
     );
-  }
-
-  Color _hexToColor(String hex) {
-    try {
-      String value = hex.trim().toLowerCase();
-      if (!value.startsWith('#')) {
-        value = '#$value';
-      }
-      if (value.length == 4) {
-        final r = value[1], g = value[2], b = value[3];
-        value = '#$r$r$g$g$b$b';
-      } else if (value.length == 9) {
-        value = '#${value.substring(3)}';
-      }
-      return Color(int.parse(value.substring(1), radix: 16) + 0xff000000);
-    } catch (_) {
-      return const Color(0xff16a765);
-    }
-  }
-
-  String _colorToHex(Color color) {
-    final hex = color.value.toRadixString(16).padLeft(8, '0');
-    return '#${hex.substring(2)}';
   }
 
   @override

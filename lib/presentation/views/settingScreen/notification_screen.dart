@@ -18,9 +18,9 @@ import 'package:helium_mobile/data/repositories/reminder_repository_impl.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_size.dart';
 import 'package:helium_mobile/utils/app_text_style.dart';
+import 'package:helium_mobile/utils/formatting.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:timezone/timezone.dart' as tz;
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
@@ -40,19 +40,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   String _typeKey(int type) => type == 0 ? 'popup' : 'email';
 
-  DateTime? _parseReminderDate(String? isoString) {
-    final timeZone = tz.getLocation(_timeZone);
-
-    if (isoString == null) return null;
-    try {
-      return tz.TZDateTime.from(DateTime.parse(isoString), timeZone);
-    } catch (_) {
-      return null;
-    }
-  }
-
   NotificationModel _mapReminderToNotification(ReminderResponseModel reminder) {
-    final scheduledAt = _parseReminderDate(reminder.startOfRange);
+    final scheduledAt = parseDateTime(reminder.startOfRange, _timeZone);
 
     final String title;
     final Color? color;
@@ -146,8 +135,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
       }
 
       reminders.sort((a, b) {
-        final aDate = _parseReminderDate(a.startOfRange);
-        final bDate = _parseReminderDate(b.startOfRange);
+        final aDate = parseDateTime(a.startOfRange, _timeZone);
+        final bDate = parseDateTime(b.startOfRange, _timeZone);
         if (aDate == null && bDate == null) {
           return b.id.compareTo(a.id);
         }
@@ -323,7 +312,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 color: whiteColor,
                 boxShadow: [
                   BoxShadow(
-                    color: blackColor.withOpacity(0.05),
+                    color: blackColor.withValues(alpha: 0.05),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -388,13 +377,13 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           Icon(
                             Icons.notifications_off,
                             size: 64.adaptSize,
-                            color: textColor.withOpacity(0.3),
+                            color: textColor.withValues(alpha: 0.3),
                           ),
                           SizedBox(height: 16.v),
                           Text(
                             'No notifications yet',
                             style: AppTextStyle.eTextStyle.copyWith(
-                              color: textColor.withOpacity(0.6),
+                              color: textColor.withValues(alpha: 0.6),
                               fontSize: 16.fSize,
                             ),
                           ),
@@ -402,7 +391,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           Text(
                             'Create a reminder to see notifications here',
                             style: AppTextStyle.fTextStyle.copyWith(
-                              color: textColor.withOpacity(0.4),
+                              color: textColor.withValues(alpha: 0.4),
                               fontSize: 12.fSize,
                             ),
                             textAlign: TextAlign.center,
@@ -453,7 +442,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
               decoration: BoxDecoration(
                 color: _getNotificationColor(
                   notification.type,
-                ).withOpacity(0.1),
+                ).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8.adaptSize),
               ),
               child: Icon(
@@ -509,7 +498,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       Text(
                         notification.body ?? '',
                         style: AppTextStyle.fTextStyle.copyWith(
-                          color: textColor.withOpacity(0.7),
+                          color: textColor.withValues(alpha: 0.7),
                           fontSize: 12.fSize,
                         ),
                         maxLines: 2,
@@ -523,7 +512,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       Icon(
                         Icons.access_time,
                         size: 12.adaptSize,
-                        color: textColor.withOpacity(0.5),
+                        color: textColor.withValues(alpha: 0.5),
                       ),
                       SizedBox(width: 4.h),
                       Text(
@@ -531,7 +520,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           notification.timestamp ?? DateTime.now(),
                         ),
                         style: AppTextStyle.fTextStyle.copyWith(
-                          color: textColor.withOpacity(0.5),
+                          color: textColor.withValues(alpha: 0.5),
                           fontSize: 10.fSize,
                         ),
                       ),
@@ -560,12 +549,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         child: Container(
                           padding: EdgeInsets.all(4.adaptSize),
                           decoration: BoxDecoration(
-                            color: greyColor.withOpacity(0.1),
+                            color: greyColor.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(4.adaptSize),
                           ),
                           child: Icon(
                             Icons.more_vert,
-                            color: textColor.withOpacity(0.6),
+                            color: textColor.withValues(alpha: 0.6),
                             size: 16.adaptSize,
                           ),
                         ),
@@ -600,23 +589,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
         return Icons.mail_outline;
       default:
         return Icons.notifications;
-    }
-  }
-
-  String _formatTimestamp(DateTime timestamp) {
-    final now = DateTime.now();
-    final difference = now.difference(timestamp);
-
-    if (difference.inMinutes < 1) {
-      return 'Just now';
-    } else if (difference.inMinutes < 60) {
-      return '${difference.inMinutes}m ago';
-    } else if (difference.inHours < 24) {
-      return '${difference.inHours}h ago';
-    } else if (difference.inDays < 7) {
-      return '${difference.inDays}d ago';
-    } else {
-      return '${timestamp.day}/${timestamp.month}/${timestamp.year}';
     }
   }
 }

@@ -23,7 +23,7 @@ class CustomClassTextField extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 12.h),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(6.adaptSize),
-        border: Border.all(color: blackColor.withOpacity(0.3)),
+        border: Border.all(color: blackColor.withValues(alpha: 0.3)),
       ),
       child: TextFormField(
         controller: controller,
@@ -32,7 +32,7 @@ class CustomClassTextField extends StatelessWidget {
         decoration: InputDecoration(
           hintText: text,
           hintStyle: AppTextStyle.eTextStyle.copyWith(
-            color: blackColor.withOpacity(0.5),
+            color: blackColor.withValues(alpha: 0.5),
           ),
           border: InputBorder.none,
         ),

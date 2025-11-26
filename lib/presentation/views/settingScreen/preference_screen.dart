@@ -13,14 +13,12 @@ import 'package:helium_mobile/data/repositories/auth_repository_impl.dart';
 import 'package:helium_mobile/presentation/bloc/preferenceBloc/preference_bloc.dart';
 import 'package:helium_mobile/presentation/bloc/preferenceBloc/preference_event.dart';
 import 'package:helium_mobile/presentation/bloc/preferenceBloc/preference_states.dart';
+import 'package:helium_mobile/presentation/widgets/custom_color_picker.dart';
 import 'package:helium_mobile/presentation/widgets/custom_text_button.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_list.dart';
 import 'package:helium_mobile/utils/app_size.dart';
 import 'package:helium_mobile/utils/app_text_style.dart';
-import 'package:helium_mobile/utils/custom_color_picker.dart';
-import 'package:timezone/data/latest.dart' as tzdata;
-import 'package:timezone/standalone.dart' as tz;
 
 class PreferenceScreen extends StatelessWidget {
   const PreferenceScreen({super.key});
@@ -60,13 +58,14 @@ String? selectedReminderOffsetUnit;
 
 class _PreferenceViewState extends State<PreferenceView> {
   late TextEditingController _offsetController;
+
   // Populated from tz database
   List<String> timeZones = [];
 
   @override
   void initState() {
     super.initState();
-    initializeTimezones();
+    timeZones = populateTimeZones();
     _offsetController = TextEditingController(text: '0');
     // Fetch current preferences on open
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -80,16 +79,6 @@ class _PreferenceViewState extends State<PreferenceView> {
   void dispose() {
     _offsetController.dispose();
     super.dispose();
-  }
-
-  // Initialize tz database and load timezone IDs
-  void initializeTimezones() {
-    // Safe to call multiple times; it no-ops after first
-    tzdata.initializeTimeZones();
-    final allLocations = tz.timeZoneDatabase.locations.keys;
-    // Keep only region/zone style IDs and sort alphabetically
-    timeZones = allLocations.where((id) => id.contains('/')).toList()
-      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
   }
 
   void _showEventColorPicker() {
@@ -167,8 +156,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                 selectedTimezone = 'UTC';
               }
               if (state.reminderOffsetUnit != null) {
-                selectedReminderOffsetUnit =
-                    state.reminderOffsetUnit;
+                selectedReminderOffsetUnit = state.reminderOffsetUnit;
               }
               selectedEventColor = state.eventsColor;
               if (_offsetController.text != state.reminderOffset.toString()) {
@@ -190,7 +178,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                   color: whiteColor,
                   boxShadow: [
                     BoxShadow(
-                      color: blackColor.withOpacity(0.05),
+                      color: blackColor.withValues(alpha: 0.05),
                       blurRadius: 8,
                       offset: Offset(0, 2),
                     ),
@@ -230,7 +218,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                         Text(
                           'Default view',
                           style: AppTextStyle.cTextStyle.copyWith(
-                            color: blackColor.withOpacity(0.8),
+                            color: blackColor.withValues(alpha: 0.8),
                           ),
                         ),
                         SizedBox(height: 9.v),
@@ -242,7 +230,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(
-                              color: blackColor.withOpacity(0.3),
+                              color: blackColor.withValues(alpha: 0.3),
                             ),
                           ),
                           child: DropdownButton<String>(
@@ -257,7 +245,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                                 child: Text(
                                   course,
                                   style: AppTextStyle.eTextStyle.copyWith(
-                                    color: blackColor.withOpacity(0.5),
+                                    color: blackColor.withValues(alpha: 0.5),
                                   ),
                                 ),
                               );
@@ -273,7 +261,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                         Text(
                           'Time zone',
                           style: AppTextStyle.cTextStyle.copyWith(
-                            color: blackColor.withOpacity(0.8),
+                            color: blackColor.withValues(alpha: 0.8),
                           ),
                         ),
                         SizedBox(height: 9.v),
@@ -285,7 +273,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(
-                              color: blackColor.withOpacity(0.3),
+                              color: blackColor.withValues(alpha: 0.3),
                             ),
                           ),
                           child: DropdownButton<String>(
@@ -300,7 +288,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                                 child: Text(
                                   timeZone,
                                   style: AppTextStyle.eTextStyle.copyWith(
-                                    color: blackColor.withOpacity(0.5),
+                                    color: blackColor.withValues(alpha: 0.5),
                                   ),
                                 ),
                               );
@@ -318,7 +306,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                             Text(
                               'Color for Events',
                               style: AppTextStyle.cTextStyle.copyWith(
-                                color: blackColor.withOpacity(0.8),
+                                color: blackColor.withValues(alpha: 0.8),
                               ),
                             ),
                             SizedBox(width: 12.h),
@@ -346,7 +334,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                             Text(
                               'Color for grades badges',
                               style: AppTextStyle.cTextStyle.copyWith(
-                                color: blackColor.withOpacity(0.8),
+                                color: blackColor.withValues(alpha: 0.8),
                               ),
                             ),
                             SizedBox(width: 12.h),
@@ -374,7 +362,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                             Text(
                               'Color for material badges',
                               style: AppTextStyle.cTextStyle.copyWith(
-                                color: blackColor.withOpacity(0.8),
+                                color: blackColor.withValues(alpha: 0.8),
                               ),
                             ),
                             SizedBox(width: 12.h),
@@ -401,7 +389,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                         Text(
                           'Default reminder offset',
                           style: AppTextStyle.cTextStyle.copyWith(
-                            color: blackColor.withOpacity(0.8),
+                            color: blackColor.withValues(alpha: 0.8),
                           ),
                         ),
                         SizedBox(height: 9.v),
@@ -423,7 +411,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(6),
                                 border: Border.all(
-                                  color: blackColor.withOpacity(0.3),
+                                  color: blackColor.withValues(alpha: 0.3),
                                 ),
                               ),
                               child: Row(
@@ -433,7 +421,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                                       controller: _offsetController,
                                       keyboardType: TextInputType.number,
                                       style: AppTextStyle.eTextStyle.copyWith(
-                                        color: blackColor.withOpacity(0.6),
+                                        color: blackColor.withValues(alpha: 0.6),
                                         fontWeight: FontWeight.w400,
                                       ),
                                       decoration: InputDecoration(
@@ -467,7 +455,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                                         child: Icon(
                                           Icons.arrow_drop_up,
                                           size: 20,
-                                          color: blackColor.withOpacity(0.6),
+                                          color: blackColor.withValues(alpha: 0.6),
                                         ),
                                       ),
                                       InkWell(
@@ -479,7 +467,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                                         child: Icon(
                                           Icons.arrow_drop_down,
                                           size: 20,
-                                          color: blackColor.withOpacity(0.6),
+                                          color: blackColor.withValues(alpha: 0.6),
                                         ),
                                       ),
                                     ],
@@ -494,7 +482,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                         Text(
                           'Default reminder offset type',
                           style: AppTextStyle.cTextStyle.copyWith(
-                            color: blackColor.withOpacity(0.8),
+                            color: blackColor.withValues(alpha: 0.8),
                           ),
                         ),
                         SizedBox(height: 9.v),
@@ -506,7 +494,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(
-                              color: blackColor.withOpacity(0.3),
+                              color: blackColor.withValues(alpha: 0.3),
                             ),
                           ),
                           child: DropdownButton<String>(
@@ -517,7 +505,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                             hint: Text(
                               '',
                               style: AppTextStyle.eTextStyle.copyWith(
-                                color: blackColor.withOpacity(0.5),
+                                color: blackColor.withValues(alpha: 0.5),
                               ),
                             ),
                             value: selectedReminderOffsetUnit,
@@ -527,7 +515,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                                 child: Text(
                                   course,
                                   style: AppTextStyle.eTextStyle.copyWith(
-                                    color: blackColor.withOpacity(0.5),
+                                    color: blackColor.withValues(alpha: 0.5),
                                   ),
                                 ),
                               );
@@ -569,29 +557,30 @@ class _PreferenceViewState extends State<PreferenceView> {
                               isLoading: isSubmitting,
                               onPressed: () {
                                 final tz = selectedTimezone ?? 'UTC';
-                                final viewIndex =
-                                    selectedDefaultView == null
+                                final viewIndex = selectedDefaultView == null
                                     ? 0
-                                    : mobileViews.indexOf(
-                                        selectedDefaultView!,
-                                      );
+                                    : mobileViews.indexOf(selectedDefaultView!);
                                 // Normalize to #rrggbb (strip alpha and ensure #)
                                 String eventColorHex =
                                     '#${selectedEventColor.value.toRadixString(16).substring(2)}';
                                 if (eventColorHex.length == 9) {
-                                  eventColorHex = '#${eventColorHex.substring(3)}';
+                                  eventColorHex =
+                                      '#${eventColorHex.substring(3)}';
                                 }
                                 eventColorHex = eventColorHex.toLowerCase();
                                 String materialsColorHex =
                                     '#${selectedMaterialColor.value.toRadixString(16).substring(2)}';
                                 if (materialsColorHex.length == 9) {
-                                  materialsColorHex = '#${materialsColorHex.substring(3)}';
+                                  materialsColorHex =
+                                      '#${materialsColorHex.substring(3)}';
                                 }
-                                materialsColorHex = materialsColorHex.toLowerCase();
+                                materialsColorHex = materialsColorHex
+                                    .toLowerCase();
                                 String gradesColorHex =
                                     '#${selectedGradeColor.value.toRadixString(16).substring(2)}';
                                 if (gradesColorHex.length == 9) {
-                                  gradesColorHex = '#${gradesColorHex.substring(3)}';
+                                  gradesColorHex =
+                                      '#${gradesColorHex.substring(3)}';
                                 }
                                 gradesColorHex = gradesColorHex.toLowerCase();
                                 final reminderTypeIndex = () {

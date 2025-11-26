@@ -89,36 +89,13 @@ class _ExternalCalendarsSettingsViewState
     _externalShownOnCalendar = false;
   }
 
-  Color _externalHexToColor(String hex) {
-    try {
-      String value = hex.trim().toLowerCase();
-      if (!value.startsWith('#')) {
-        value = '#$value';
-      }
-      if (value.length == 4) {
-        final r = value[1], g = value[2], b = value[3];
-        value = '#$r$r$g$g$b$b';
-      } else if (value.length == 9) {
-        value = '#${value.substring(3)}';
-      }
-      return Color(int.parse(value.substring(1), radix: 16) + 0xff000000);
-    } catch (_) {
-      return const Color(0xff16a765);
-    }
-  }
-
-  String _externalColorToHex(Color color) {
-    final hex = color.value.toRadixString(16).padLeft(8, '0');
-    return '#${hex.substring(2)}';
-  }
-
   void _showExternalCalendarDialog({ExternalCalendarModel? existingCalendar}) {
     final bool isEdit = existingCalendar != null;
 
     if (isEdit) {
-      _calendarTitleController.text = existingCalendar!.title;
+      _calendarTitleController.text = existingCalendar.title;
       _calendarUrlController.text = existingCalendar.url;
-      _externalDialogSelectedColor = _externalHexToColor(
+      _externalDialogSelectedColor = parseColor(
         existingCalendar.color,
       );
       _externalShownOnCalendar = existingCalendar.shownOnCalendar;
@@ -232,7 +209,7 @@ class _ExternalCalendarsSettingsViewState
                       borderRadius: BorderRadius.circular(16.adaptSize),
                       boxShadow: [
                         BoxShadow(
-                          color: blackColor.withOpacity(0.1),
+                          color: blackColor.withValues(alpha: 0.1),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -268,7 +245,7 @@ class _ExternalCalendarsSettingsViewState
                             decoration: InputDecoration(
                               hintText: 'Enter calendar name',
                               hintStyle: AppTextStyle.iTextStyle.copyWith(
-                                color: textColor.withOpacity(0.5),
+                                color: textColor.withValues(alpha: 0.5),
                               ),
                               filled: true,
                               fillColor: softGrey,
@@ -277,7 +254,7 @@ class _ExternalCalendarsSettingsViewState
                                   8.adaptSize,
                                 ),
                                 borderSide: BorderSide(
-                                  color: greyColor.withOpacity(0.3),
+                                  color: greyColor.withValues(alpha: 0.3),
                                 ),
                               ),
                               enabledBorder: OutlineInputBorder(
@@ -285,7 +262,7 @@ class _ExternalCalendarsSettingsViewState
                                   8.adaptSize,
                                 ),
                                 borderSide: BorderSide(
-                                  color: greyColor.withOpacity(0.3),
+                                  color: greyColor.withValues(alpha: 0.3),
                                 ),
                               ),
                               focusedBorder: OutlineInputBorder(
@@ -318,7 +295,7 @@ class _ExternalCalendarsSettingsViewState
                             decoration: InputDecoration(
                               hintText: 'https://...',
                               hintStyle: AppTextStyle.iTextStyle.copyWith(
-                                color: textColor.withOpacity(0.5),
+                                color: textColor.withValues(alpha: 0.5),
                               ),
                               filled: true,
                               fillColor: softGrey,
@@ -327,7 +304,7 @@ class _ExternalCalendarsSettingsViewState
                                   8.adaptSize,
                                 ),
                                 borderSide: BorderSide(
-                                  color: greyColor.withOpacity(0.3),
+                                  color: greyColor.withValues(alpha: 0.3),
                                 ),
                               ),
                               enabledBorder: OutlineInputBorder(
@@ -335,7 +312,7 @@ class _ExternalCalendarsSettingsViewState
                                   8.adaptSize,
                                 ),
                                 borderSide: BorderSide(
-                                  color: greyColor.withOpacity(0.3),
+                                  color: greyColor.withValues(alpha: 0.3),
                                 ),
                               ),
                               focusedBorder: OutlineInputBorder(
@@ -359,7 +336,7 @@ class _ExternalCalendarsSettingsViewState
                               Text(
                                 'Color',
                                 style: AppTextStyle.cTextStyle.copyWith(
-                                  color: blackColor.withOpacity(0.8),
+                                  color: blackColor.withValues(alpha: 0.8),
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -396,7 +373,7 @@ class _ExternalCalendarsSettingsViewState
                               ),
                               Switch.adaptive(
                                 value: _externalShownOnCalendar,
-                                activeColor: primaryColor,
+                                activeTrackColor: primaryColor,
                                 onChanged: isSubmitting
                                     ? null
                                     : (value) {
@@ -413,12 +390,12 @@ class _ExternalCalendarsSettingsViewState
                               width: double.infinity,
                               padding: EdgeInsets.all(12.h),
                               decoration: BoxDecoration(
-                                color: redColor.withOpacity(0.08),
+                                color: redColor.withValues(alpha: 0.08),
                                 borderRadius: BorderRadius.circular(
                                   10.adaptSize,
                                 ),
                                 border: Border.all(
-                                  color: redColor.withOpacity(0.3),
+                                  color: redColor.withValues(alpha: 0.3),
                                   width: 1,
                                 ),
                               ),
@@ -498,7 +475,7 @@ class _ExternalCalendarsSettingsViewState
                                               ExternalCalendarRequestModel(
                                                 title: name,
                                                 url: url,
-                                                color: _externalColorToHex(
+                                                color: colorToHex(
                                                   _externalDialogSelectedColor,
                                                 ),
                                                 shownOnCalendar:
@@ -528,7 +505,7 @@ class _ExternalCalendarsSettingsViewState
                                         },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: isSubmitting
-                                        ? primaryColor.withOpacity(0.6)
+                                        ? primaryColor.withValues(alpha: 0.6)
                                         : primaryColor,
                                     padding: EdgeInsets.symmetric(
                                       vertical: 12.v,
@@ -599,7 +576,7 @@ class _ExternalCalendarsSettingsViewState
     ExternalCalendarModel calendar,
     bool isActionInProgress,
   ) {
-    final Color calendarColor = _externalHexToColor(calendar.color);
+    final Color calendarColor = parseColor(calendar.color);
     return Container(
       margin: EdgeInsets.only(bottom: 12.v),
       padding: EdgeInsets.all(16.h),
@@ -609,7 +586,7 @@ class _ExternalCalendarsSettingsViewState
         border: Border.all(color: softGrey, width: 1),
         boxShadow: [
           BoxShadow(
-            color: blackColor.withOpacity(0.04),
+            color: blackColor.withValues(alpha: 0.04),
             blurRadius: 6,
             offset: const Offset(0, 1),
           ),
@@ -641,7 +618,7 @@ class _ExternalCalendarsSettingsViewState
                 Text(
                   calendar.url,
                   style: AppTextStyle.iTextStyle.copyWith(
-                    color: textColor.withOpacity(0.6),
+                    color: textColor.withValues(alpha: 0.6),
                     fontSize: 12.fSize,
                   ),
                   maxLines: 2,
@@ -653,7 +630,7 @@ class _ExternalCalendarsSettingsViewState
           SizedBox(width: 12.h),
           Switch.adaptive(
             value: calendar.shownOnCalendar,
-            activeColor: primaryColor,
+            activeTrackColor: primaryColor,
             onChanged: isActionInProgress
                 ? null
                 : (value) => _handleExternalCalendarToggle(calendar, value),
@@ -690,7 +667,7 @@ class _ExternalCalendarsSettingsViewState
                           content: Text(
                             'Are you sure you want to delete "${calendar.title}"? This action cannot be undone.',
                             style: AppTextStyle.cTextStyle.copyWith(
-                              color: textColor.withOpacity(0.7),
+                              color: textColor.withValues(alpha: 0.7),
                             ),
                           ),
                           actions: [
@@ -802,7 +779,7 @@ class _ExternalCalendarsSettingsViewState
                   color: whiteColor,
                   boxShadow: [
                     BoxShadow(
-                      color: blackColor.withOpacity(0.05),
+                      color: blackColor.withValues(alpha: 0.05),
                       blurRadius: 8,
                       offset: Offset(0, 2),
                     ),

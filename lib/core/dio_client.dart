@@ -312,7 +312,7 @@ class DioClient {
           ),
         );
         // Navigate to login, clearing the stack
-        Navigator.of(
+        await Navigator.of(
           context,
         ).pushNamedAndRemoveUntil(AppRoutes.signInScreen, (route) => false);
       }

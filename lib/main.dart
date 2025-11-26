@@ -28,7 +28,7 @@ void main() async {
   final fcmService = FCMService();
   await fcmService.initialize();
 
-  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]).then((
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]).then((
     _,
   ) {
     runApp(MyApp(fcmService: fcmService));

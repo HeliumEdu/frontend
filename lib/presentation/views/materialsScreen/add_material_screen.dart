@@ -25,6 +25,7 @@ import 'package:helium_mobile/presentation/bloc/materialBloc/material_state.dart
 import 'package:helium_mobile/presentation/widgets/custom_class_textfield.dart';
 import 'package:helium_mobile/presentation/widgets/custom_text_button.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
+import 'package:helium_mobile/utils/app_list.dart';
 import 'package:helium_mobile/utils/app_size.dart';
 import 'package:helium_mobile/utils/app_text_style.dart';
 
@@ -56,31 +57,6 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
 
   // Courses fetched from API
   List<CourseModel> _courses = [];
-
-  // Status mapping
-  final Map<String, int> statusMap = {
-    'Owned': 0,
-    'Rented': 1,
-    'Ordered': 2,
-    'Shipped': 3,
-    'Needed': 4,
-    'Returned': 5,
-    'To Sell': 6,
-    'Digital': 7,
-  };
-
-  // Condition mapping
-  final Map<String, int> conditionMap = {
-    'Brand New': 0,
-    'Refurbished': 1,
-    'Used - Like New': 2,
-    'Used - Very Good': 3,
-    'Used - Good': 4,
-    'Used - Acceptable': 5,
-    'Used - Poor': 6,
-    'Broken': 7,
-    'Digital': 8,
-  };
 
   @override
   void initState() {
@@ -386,7 +362,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                     Text(
                       'Title',
                       style: AppTextStyle.cTextStyle.copyWith(
-                        color: blackColor.withOpacity(0.8),
+                        color: blackColor.withValues(alpha: 0.8),
                       ),
                     ),
                     SizedBox(height: 9.v),
@@ -398,7 +374,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                     Text(
                       'Classes',
                       style: AppTextStyle.cTextStyle.copyWith(
-                        color: blackColor.withOpacity(0.8),
+                        color: blackColor.withValues(alpha: 0.8),
                       ),
                     ),
                     SizedBox(height: 9.v),
@@ -410,7 +386,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(6),
                         border: Border.all(
-                          color: blackColor.withOpacity(0.3),
+                          color: blackColor.withValues(alpha: 0.3),
                         ),
                         color: whiteColor,
                       ),
@@ -423,7 +399,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                                   ? 'No classes available'
                                   : '',
                               style: AppTextStyle.eTextStyle.copyWith(
-                                color: blackColor.withOpacity(0.5),
+                                color: blackColor.withValues(alpha: 0.5),
                               ),
                             )
                           else
@@ -476,7 +452,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                     Text(
                       'Status',
                       style: AppTextStyle.cTextStyle.copyWith(
-                        color: blackColor.withOpacity(0.8),
+                        color: blackColor.withValues(alpha: 0.8),
                       ),
                     ),
                     SizedBox(height: 9.v),
@@ -488,7 +464,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(6),
                         border: Border.all(
-                          color: blackColor.withOpacity(0.3),
+                          color: blackColor.withValues(alpha: 0.3),
                         ),
                       ),
                       child: DropdownButton<int>(
@@ -497,19 +473,19 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                         isExpanded: true,
                         underline: SizedBox(),
                         hint: Text(
-                          "",
+                          '',
                           style: AppTextStyle.eTextStyle.copyWith(
-                            color: blackColor.withOpacity(0.5),
+                            color: blackColor.withValues(alpha: 0.5),
                           ),
                         ),
                         value: selectedStatus,
-                        items: statusMap.entries.map((entry) {
+                        items: materialStatus.asMap().entries.map((entry) {
                           return DropdownMenuItem<int>(
-                            value: entry.value,
+                            value: entry.key,
                             child: Text(
-                              entry.key,
+                              entry.value,
                               style: AppTextStyle.eTextStyle.copyWith(
-                                color: blackColor.withOpacity(0.5),
+                                color: blackColor.withValues(alpha: 0.5),
                               ),
                             ),
                           );
@@ -525,7 +501,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                     Text(
                       'Condition',
                       style: AppTextStyle.cTextStyle.copyWith(
-                        color: blackColor.withOpacity(0.8),
+                        color: blackColor.withValues(alpha: 0.8),
                       ),
                     ),
                     SizedBox(height: 9.v),
@@ -537,7 +513,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(6),
                         border: Border.all(
-                          color: blackColor.withOpacity(0.3),
+                          color: blackColor.withValues(alpha: 0.3),
                         ),
                       ),
                       child: DropdownButton<int>(
@@ -546,19 +522,19 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                         isExpanded: true,
                         underline: SizedBox(),
                         hint: Text(
-                          "",
+                          '',
                           style: AppTextStyle.eTextStyle.copyWith(
-                            color: blackColor.withOpacity(0.5),
+                            color: blackColor.withValues(alpha: 0.5),
                           ),
                         ),
                         value: selectedCondition,
-                        items: conditionMap.entries.map((entry) {
+                        items: materialCondition.asMap().entries.map((entry) {
                           return DropdownMenuItem<int>(
-                            value: entry.value,
+                            value: entry.key,
                             child: Text(
-                              entry.key,
+                              entry.value,
                               style: AppTextStyle.eTextStyle.copyWith(
-                                color: blackColor.withOpacity(0.5),
+                                color: blackColor.withValues(alpha: 0.5),
                               ),
                             ),
                           );
@@ -574,7 +550,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                     Text(
                       'Website',
                       style: AppTextStyle.cTextStyle.copyWith(
-                        color: blackColor.withOpacity(0.8),
+                        color: blackColor.withValues(alpha: 0.8),
                       ),
                     ),
                     SizedBox(height: 9.v),
@@ -586,7 +562,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                     Text(
                       'Price',
                       style: AppTextStyle.cTextStyle.copyWith(
-                        color: blackColor.withOpacity(0.8),
+                        color: blackColor.withValues(alpha: 0.8),
                       ),
                     ),
                     SizedBox(height: 9.v),
@@ -598,7 +574,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                     Text(
                       'Details',
                       style: AppTextStyle.cTextStyle.copyWith(
-                        color: blackColor.withOpacity(0.8),
+                        color: blackColor.withValues(alpha: 0.8),
                       ),
                     ),
                     SizedBox(height: 9.v),
@@ -606,7 +582,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                       padding: EdgeInsets.symmetric(horizontal: 12.h),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(6.adaptSize),
-                        border: Border.all(color: blackColor.withOpacity(0.3)),
+                        border: Border.all(color: blackColor.withValues(alpha: 0.3)),
                       ),
                       child: TextFormField(
                         controller: _detailsController,
@@ -617,7 +593,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                         decoration: InputDecoration(
                           hintText: '',
                           hintStyle: AppTextStyle.eTextStyle.copyWith(
-                            color: blackColor.withOpacity(0.5),
+                            color: blackColor.withValues(alpha: 0.5),
                           ),
                           border: InputBorder.none,
                         ),

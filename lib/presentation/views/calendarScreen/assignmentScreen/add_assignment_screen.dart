@@ -41,7 +41,7 @@ import 'package:helium_mobile/presentation/widgets/custom_text_button.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_size.dart';
 import 'package:helium_mobile/utils/app_text_style.dart';
-import 'package:intl/intl.dart';
+import 'package:helium_mobile/utils/formatting.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;
 
@@ -123,7 +123,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
         final split = value.split('/');
         // Ensure there is no division by 0
         if (double.tryParse(split[0]) == 0 && double.tryParse(split[1]) == 0) {
-          value = "0/100";
+          value = '0/100';
         } else if (double.tryParse(split[1]) == 0) {
           value = '';
         }
@@ -164,56 +164,32 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
 
   Future<void> _loadMaterialsColor() async {
     final prefs = await SharedPreferences.getInstance();
-    String? storedHex = prefs.getString('user_materials_color');
+    String? materialsColor = prefs.getString('user_materials_color');
 
-    if (storedHex == null || storedHex.isEmpty) {
+    if (materialsColor == null || materialsColor.isEmpty) {
       try {
         final dioClient = DioClient();
         final authRepository = AuthRepositoryImpl(
           remoteDataSource: AuthRemoteDataSourceImpl(dioClient: dioClient),
         );
         final profile = await authRepository.getProfile();
-        final profileHex = profile.settings?.eventsColor;
-        if (profileHex != null && profileHex
-            .trim()
-            .isNotEmpty) {
-          final parsed = _colorFromHex(profileHex);
-          storedHex = _colorToHex(parsed);
-          await prefs.setString('user_materials_color', storedHex);
+        final materialsColor = profile.settings?.materialsColor;
+        if (materialsColor != null && materialsColor.trim().isNotEmpty) {
+          await prefs.setString('user_materials_color', materialsColor);
         }
       } catch (e) {
         print('⚠️ Failed to load materials color from profile: $e');
       }
     }
 
-    if (storedHex == null || storedHex.isEmpty) return;
+    if (materialsColor == null || materialsColor.isEmpty) return;
 
-    final parsedColor = _colorFromHex(storedHex);
+    final parsedColor = parseColor(materialsColor);
     if (mounted && parsedColor != _materialsColor) {
       setState(() {
         _materialsColor = parsedColor;
       });
     }
-  }
-
-  String _colorToHex(Color color) {
-    final value = color.value.toRadixString(16).padLeft(8, '0');
-    return '#${value.substring(2)}';
-  }
-
-  Color _colorFromHex(String hex) {
-    var cleaned = hex.trim().toLowerCase();
-    if (cleaned.startsWith('#')) {
-      cleaned = cleaned.substring(1);
-    }
-    if (cleaned.length == 3) {
-      cleaned = cleaned.split('').map((c) => '$c$c').join();
-    }
-    if (cleaned.length == 8) {
-      // strip alpha channel if provided
-      cleaned = cleaned.substring(2);
-    }
-    return Color(int.parse('ff$cleaned', radix: 16));
   }
 
   @override
@@ -366,14 +342,6 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
     super.dispose();
   }
 
-  String _formatDateForDisplay(DateTime date) {
-    return DateFormat('MMM dd, yyyy').format(date);
-  }
-
-  String _formatTime(TimeOfDay time) {
-    return time.format(context);
-  }
-
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -427,7 +395,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
     }
   }
 
-  void _fetchMaterialsForCourse(BuildContext context, int courseId) async {
+  Future<void> _fetchMaterialsForCourse(BuildContext context, int courseId) async {
     for (var group in _materialGroups) {
       BlocProvider.of<MaterialBloc>(
         context,
@@ -528,22 +496,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
     return _priorityValue.round();
   }
 
-  String _formatDateTimeToISO(DateTime date, TimeOfDay? time) {
-    if (time != null) {
-      final dateTime = DateTime(
-        date.year,
-        date.month,
-        date.day,
-        time.hour,
-        time.minute,
-      );
-      final timeZone = tz.getLocation(_timeZone);
-      return tz.TZDateTime.from(dateTime, timeZone).toIso8601String();
-    }
-    return date.toIso8601String();
-  }
-
-  void _goToReminderScreen(BuildContext context) async {
+  Future<void> _goToReminderScreen(BuildContext context) async {
     if (_titleController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -593,17 +546,17 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
       print('🔧 Setting missing IDs - GroupId: $groupId, CourseId: $courseId');
     }
 
-    final startDateTime = _formatDateTimeToISO(
+    final startDateTime = formatDateTimeToApi(
       _startDate!,
       isAllDay ? null : _startTime,
+      _timeZone
     );
 
     // Ensure backend always receives an end value to avoid validation errors.
     // If End is hidden or not set, default end to start.
-    // TODO: the website has logic here that picks a time 30 mins in the future (unless close to midnight, then subtract)
     String endDateTime;
     if (isShowEndDateTime && _endDate != null) {
-      endDateTime = _formatDateTimeToISO(_endDate!, isAllDay ? null : _endTime);
+      endDateTime = formatDateTimeToApi(_endDate!, isAllDay ? null : _endTime, _timeZone);
     } else {
       endDateTime = startDateTime;
     }
@@ -643,7 +596,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
     );
 
     try {
-      showDialog(
+      await showDialog(
         context: context,
         barrierDismissible: false,
         builder: (context) => Center(
@@ -716,7 +669,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
 
       Navigator.of(context).pop();
 
-      Navigator.pushNamed(
+      await Navigator.pushNamed(
         context,
         '/assignmentReminderScreen',
         arguments: {
@@ -964,7 +917,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                     borderRadius: BorderRadius.circular(16.adaptSize),
                     boxShadow: [
                       BoxShadow(
-                        color: blackColor.withOpacity(0.06),
+                        color: blackColor.withValues(alpha: 0.06),
                         blurRadius: 12,
                         offset: Offset(0, 4),
                         spreadRadius: 0,
@@ -978,7 +931,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                       lineThickness: 3,
                       lineSpace: 4,
                       lineType: LineType.normal,
-                      defaultLineColor: greyColor.withOpacity(0.3),
+                      defaultLineColor: greyColor.withValues(alpha: 0.3),
                       finishedLineColor: primaryColor,
                       activeLineColor: primaryColor,
                     ),
@@ -987,13 +940,13 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                     activeStepBackgroundColor: primaryColor,
                     activeStepTextColor: primaryColor,
                     finishedStepBorderColor: primaryColor,
-                    finishedStepBackgroundColor: primaryColor.withOpacity(0.1),
+                    finishedStepBackgroundColor: primaryColor.withValues(alpha: 0.1),
                     finishedStepIconColor: primaryColor,
                     finishedStepTextColor: blackColor,
-                    unreachedStepBorderColor: greyColor.withOpacity(0.3),
+                    unreachedStepBorderColor: greyColor.withValues(alpha: 0.3),
                     unreachedStepBackgroundColor: softGrey,
                     unreachedStepIconColor: greyColor,
-                    unreachedStepTextColor: textColor.withOpacity(0.5),
+                    unreachedStepTextColor: textColor.withValues(alpha: 0.5),
                     borderThickness: 2,
                     internalPadding: 12,
                     showLoadingAnimation: false,
@@ -1017,7 +970,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                         customStep: Container(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: primaryColor.withOpacity(0.1),
+                            color: primaryColor.withValues(alpha: 0.1),
                             border: Border.all(color: primaryColor, width: 2),
                           ),
                           child: Center(
@@ -1040,13 +993,13 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                             textAlign: TextAlign.center,
                           ),
                         ),
-                        topTitle: false,
+                        placeTitleAtStart: false,
                       ),
                       EasyStep(
                         customStep: Container(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: primaryColor.withOpacity(0.1),
+                            color: primaryColor.withValues(alpha: 0.1),
                             border: Border.all(color: primaryColor, width: 2),
                           ),
                           child: Center(
@@ -1069,7 +1022,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                             textAlign: TextAlign.center,
                           ),
                         ),
-                        topTitle: false,
+                        placeTitleAtStart: false,
                       ),
                     ],
                   ),
@@ -1088,7 +1041,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                         Text(
                           'Title',
                           style: AppTextStyle.eTextStyle.copyWith(
-                            color: blackColor.withOpacity(0.8),
+                            color: blackColor.withValues(alpha: 0.8),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -1102,7 +1055,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                         Text(
                           'Class',
                           style: AppTextStyle.eTextStyle.copyWith(
-                            color: blackColor.withOpacity(0.8),
+                            color: blackColor.withValues(alpha: 0.8),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -1115,16 +1068,16 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(
-                              color: blackColor.withOpacity(0.15),
+                              color: blackColor.withValues(alpha: 0.15),
                             ),
                             color: isEditMode
-                                ? greyColor.withOpacity(0.1)
+                                ? greyColor.withValues(alpha: 0.1)
                                 : whiteColor,
                           ),
                           child: DropdownButton<int>(
                             icon: Icon(
                               Icons.keyboard_arrow_down,
-                              color: blackColor.withOpacity(0.6),
+                              color: blackColor.withValues(alpha: 0.6),
                             ),
                             dropdownColor: whiteColor,
                             isExpanded: true,
@@ -1132,7 +1085,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                             hint: Text(
                               _courses.isEmpty ? 'Loading classes ...' : '',
                               style: AppTextStyle.eTextStyle.copyWith(
-                                color: blackColor.withOpacity(0.5),
+                                color: blackColor.withValues(alpha: 0.5),
                               ),
                             ),
                             value: selectedCourseId,
@@ -1182,7 +1135,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                         Text(
                           'Category',
                           style: AppTextStyle.eTextStyle.copyWith(
-                            color: blackColor.withOpacity(0.8),
+                            color: blackColor.withValues(alpha: 0.8),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -1195,14 +1148,14 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(
-                              color: blackColor.withOpacity(0.15),
+                              color: blackColor.withValues(alpha: 0.15),
                             ),
                             color: whiteColor,
                           ),
                           child: DropdownButton<int>(
                             icon: Icon(
                               Icons.keyboard_arrow_down,
-                              color: blackColor.withOpacity(0.6),
+                              color: blackColor.withValues(alpha: 0.6),
                             ),
                             dropdownColor: whiteColor,
                             isExpanded: true,
@@ -1214,7 +1167,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                   ? 'No categories available'
                                   : '',
                               style: AppTextStyle.eTextStyle.copyWith(
-                                color: blackColor.withOpacity(0.5),
+                                color: blackColor.withValues(alpha: 0.5),
                               ),
                             ),
                             value: selectedCategoryId,
@@ -1243,7 +1196,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                         Text(
                           'Materials',
                           style: AppTextStyle.eTextStyle.copyWith(
-                            color: blackColor.withOpacity(0.8),
+                            color: blackColor.withValues(alpha: 0.8),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -1256,7 +1209,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(
-                              color: blackColor.withOpacity(0.15),
+                              color: blackColor.withValues(alpha: 0.15),
                             ),
                             color: whiteColor,
                           ),
@@ -1271,7 +1224,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                       ? 'No materials available'
                                       : '',
                                   style: AppTextStyle.eTextStyle.copyWith(
-                                    color: blackColor.withOpacity(0.5),
+                                    color: blackColor.withValues(alpha: 0.5),
                                   ),
                                 )
                               else
@@ -1346,7 +1299,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                           decoration: BoxDecoration(
                             border: Border(
                               bottom: BorderSide(
-                                color: greyColor.withOpacity(0.3),
+                                color: greyColor.withValues(alpha: 0.3),
                               ),
                             ),
                           ),
@@ -1396,7 +1349,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                     Text(
                                       'Start Date',
                                       style: AppTextStyle.eTextStyle.copyWith(
-                                        color: blackColor.withOpacity(0.8),
+                                        color: blackColor.withValues(alpha: 0.8),
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
@@ -1413,7 +1366,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                             6,
                                           ),
                                           border: Border.all(
-                                            color: blackColor.withOpacity(0.15),
+                                            color: blackColor.withValues(alpha: 0.15),
                                           ),
                                           color: whiteColor,
                                         ),
@@ -1423,7 +1376,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                           children: [
                                             Text(
                                               _startDate != null
-                                                  ? _formatDateForDisplay(
+                                                  ? formatDateForDisplay(
                                                       _startDate!,
                                                     )
                                                   : '',
@@ -1432,7 +1385,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                                     color: _startDate != null
                                                         ? blackColor
                                                         : blackColor
-                                                              .withOpacity(0.5),
+                                                              .withValues(alpha: 0.5),
                                                   ),
                                             ),
                                             Icon(
@@ -1455,7 +1408,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                     Text(
                                       'End Date',
                                       style: AppTextStyle.eTextStyle.copyWith(
-                                        color: blackColor.withOpacity(0.8),
+                                        color: blackColor.withValues(alpha: 0.8),
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
@@ -1472,7 +1425,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                             6,
                                           ),
                                           border: Border.all(
-                                            color: blackColor.withOpacity(0.15),
+                                            color: blackColor.withValues(alpha: 0.15),
                                           ),
                                           color: whiteColor,
                                         ),
@@ -1482,7 +1435,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                           children: [
                                             Text(
                                               _endDate != null
-                                                  ? _formatDateForDisplay(
+                                                  ? formatDateForDisplay(
                                                       _endDate!,
                                                     )
                                                   : '',
@@ -1491,7 +1444,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                                     color: _endDate != null
                                                         ? blackColor
                                                         : blackColor
-                                                              .withOpacity(0.5),
+                                                              .withValues(alpha: 0.5),
                                                   ),
                                             ),
                                             Icon(
@@ -1512,7 +1465,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                           Text(
                             'Start Date',
                             style: AppTextStyle.eTextStyle.copyWith(
-                              color: blackColor.withOpacity(0.8),
+                              color: blackColor.withValues(alpha: 0.8),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -1527,7 +1480,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(6),
                                 border: Border.all(
-                                  color: blackColor.withOpacity(0.15),
+                                  color: blackColor.withValues(alpha: 0.15),
                                 ),
                                 color: whiteColor,
                               ),
@@ -1537,12 +1490,12 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                 children: [
                                   Text(
                                     _startDate != null
-                                        ? _formatDateForDisplay(_startDate!)
+                                        ? formatDateForDisplay(_startDate!)
                                         : '',
                                     style: AppTextStyle.eTextStyle.copyWith(
                                       color: _startDate != null
                                           ? blackColor
-                                          : blackColor.withOpacity(0.5),
+                                          : blackColor.withValues(alpha: 0.5),
                                     ),
                                   ),
                                   Icon(
@@ -1566,7 +1519,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                     Text(
                                       'Start Time',
                                       style: AppTextStyle.eTextStyle.copyWith(
-                                        color: blackColor.withOpacity(0.8),
+                                        color: blackColor.withValues(alpha: 0.8),
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
@@ -1583,7 +1536,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                             6,
                                           ),
                                           border: Border.all(
-                                            color: blackColor.withOpacity(0.15),
+                                            color: blackColor.withValues(alpha: 0.15),
                                           ),
                                           color: whiteColor,
                                         ),
@@ -1593,14 +1546,14 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                           children: [
                                             Text(
                                               _startTime != null
-                                                  ? _formatTime(_startTime!)
+                                                  ? formatTimeForDisplay(_startTime!)
                                                   : '',
                                               style: AppTextStyle.eTextStyle
                                                   .copyWith(
                                                     color: _startTime != null
                                                         ? blackColor
                                                         : blackColor
-                                                              .withOpacity(0.5),
+                                                              .withValues(alpha: 0.5),
                                                   ),
                                             ),
                                             Icon(
@@ -1625,7 +1578,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                       Text(
                                         'End Time',
                                         style: AppTextStyle.eTextStyle.copyWith(
-                                          color: blackColor.withOpacity(0.8),
+                                          color: blackColor.withValues(alpha: 0.8),
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
@@ -1643,7 +1596,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                               6,
                                             ),
                                             border: Border.all(
-                                              color: blackColor.withOpacity(
+                                              color: blackColor.withValues(alpha: 
                                                 0.15,
                                               ),
                                             ),
@@ -1655,14 +1608,14 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                             children: [
                                               Text(
                                                 _endTime != null
-                                                    ? _formatTime(_endTime!)
+                                                    ? formatTimeForDisplay(_endTime!)
                                                     : '',
                                                 style: AppTextStyle.eTextStyle
                                                     .copyWith(
                                                       color: _endTime != null
                                                           ? blackColor
                                                           : blackColor
-                                                                .withOpacity(
+                                                                .withValues(alpha: 
                                                                   0.5,
                                                                 ),
                                                     ),
@@ -1691,7 +1644,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                             Text(
                               'Priority',
                               style: AppTextStyle.eTextStyle.copyWith(
-                                color: blackColor.withOpacity(0.8),
+                                color: blackColor.withValues(alpha: 0.8),
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -1703,11 +1656,11 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                             activeTrackColor: _getColorForPriority(
                               _priorityValue,
                             ),
-                            inactiveTrackColor: greyColor.withOpacity(0.3),
+                            inactiveTrackColor: greyColor.withValues(alpha: 0.3),
                             thumbColor: _getColorForPriority(_priorityValue),
                             overlayColor: (_getColorForPriority(
                               _priorityValue,
-                            )).withOpacity(0.2),
+                            )).withValues(alpha: 0.2),
                             showValueIndicator: ShowValueIndicator.never,
                             thumbShape: RoundSliderThumbShape(
                               enabledThumbRadius: 12.0,
@@ -1737,7 +1690,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                           decoration: BoxDecoration(
                             border: Border(
                               bottom: BorderSide(
-                                color: greyColor.withOpacity(0.3),
+                                color: greyColor.withValues(alpha: 0.3),
                               ),
                             ),
                           ),
@@ -1775,7 +1728,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                           Text(
                             'Grade',
                             style: AppTextStyle.eTextStyle.copyWith(
-                              color: blackColor.withOpacity(0.8),
+                              color: blackColor.withValues(alpha: 0.8),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -1802,7 +1755,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(
-                              color: blackColor.withOpacity(0.15),
+                              color: blackColor.withValues(alpha: 0.15),
                             ),
                             color: whiteColor,
                           ),
@@ -1815,7 +1768,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                             decoration: InputDecoration(
                               hintText: '',
                               hintStyle: AppTextStyle.eTextStyle.copyWith(
-                                color: blackColor.withOpacity(0.5),
+                                color: blackColor.withValues(alpha: 0.5),
                               ),
                               border: InputBorder.none,
                               contentPadding: EdgeInsets.symmetric(
@@ -1865,7 +1818,7 @@ class _AssignmentEventToggle extends StatelessWidget {
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: accent.withOpacity(0.2)),
+        border: Border.all(color: accent.withValues(alpha: 0.2)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

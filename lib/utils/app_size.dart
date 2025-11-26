@@ -7,9 +7,9 @@
 
 import 'package:flutter/material.dart';
 
-const num FIGMA_DESIGN_WIDTH = 450;
-const num FIGMA_DESIGN_HEIGHT = 926;
-const num FIGMA_DESIGN_STATUS_BAR = 0;
+const num figmaDesignWidth = 450;
+const num figmaDesignHeight = 926;
+const num figmaStatusBar = 0;
 
 typedef ResponsiveBuild =
     Widget Function(
@@ -68,12 +68,12 @@ class SizeUtils {
     // Sets screen width and height
     if (orientation == Orientation.portrait) {
       width = boxConstraints.maxWidth.isNonZero(
-        defaultValue: FIGMA_DESIGN_WIDTH,
+        defaultValue: figmaDesignWidth,
       );
       height = boxConstraints.maxHeight.isNonZero();
     } else {
       width = boxConstraints.maxHeight.isNonZero(
-        defaultValue: FIGMA_DESIGN_WIDTH,
+        defaultValue: figmaDesignWidth,
       );
       height = boxConstraints.maxWidth.isNonZero();
     }
@@ -92,12 +92,12 @@ extension ResponsiveExtension on num {
 
   /// This method is used to set padding/margin (for the left and Right side) &
   /// width of the screen or widget according to the Viewport width.
-  double get h => ((this * _width) / FIGMA_DESIGN_WIDTH);
+  double get h => ((this * _width) / figmaDesignWidth);
 
   /// This method is used to set padding/margin (for the top and bottom side) &
   /// height of the screen or widget according to the Viewport height.
   double get v =>
-      (this * _height) / (FIGMA_DESIGN_HEIGHT - FIGMA_DESIGN_STATUS_BAR);
+      (this * _height) / (figmaDesignHeight - figmaStatusBar);
 
   /// This method is used to set smallest px in image height and width
   double get adaptSize {
@@ -113,7 +113,7 @@ extension ResponsiveExtension on num {
 extension FormatExtension on double {
   /// Return a [double] value with formatted according to provided fractionDigits
   double toDoubleValue({int fractionDigits = 2}) {
-    return double.parse(this.toStringAsFixed(fractionDigits));
+    return double.parse(toStringAsFixed(fractionDigits));
   }
 
   double isNonZero({num defaultValue = 0.0}) {

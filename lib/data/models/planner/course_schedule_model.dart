@@ -92,13 +92,28 @@ class CourseScheduleModel {
     };
   }
 
+  bool allDaysSameTime() {
+    return (sunStartTime == monStartTime &&
+            sunStartTime == tueStartTime &&
+            sunStartTime == wedStartTime &&
+            sunStartTime == thuStartTime &&
+            sunStartTime == friStartTime &&
+            sunStartTime == satStartTime) &&
+        (sunEndTime == monEndTime &&
+            sunEndTime == tueEndTime &&
+            sunEndTime == wedEndTime &&
+            sunEndTime == thuEndTime &&
+            sunEndTime == friEndTime &&
+            sunEndTime == satEndTime);
+  }
+
   // Helper method to get active days
   List<String> getActiveDays() {
     List<String> activeDays = [];
 
-    for (int i = 0; i < daysOfWeek.length && i < listOfDays.length; i++) {
+    for (int i = 0; i < daysOfWeek.length && i < dayNamesAbbrev.length; i++) {
       if (daysOfWeek[i] == '1') {
-        activeDays.add(listOfDays[i]);
+        activeDays.add(dayNamesAbbrev[i]);
       }
     }
 

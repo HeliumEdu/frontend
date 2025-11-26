@@ -110,7 +110,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             width: 120.h,
                             height: 120.v,
                             decoration: BoxDecoration(
-                              color: primaryColor.withOpacity(0.1),
+                              color: primaryColor.withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
@@ -141,7 +141,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               ? 'We have sent a password reset link to ${_controller.emailController.text}. Please check your inbox and spam folder.'
                               : 'Enter the email associated with your account. We\'ll reset your password and send a temporary password to your email address.',
                           style: AppTextStyle.eTextStyle.copyWith(
-                            color: textColor.withOpacity(0.7),
+                            color: textColor.withValues(alpha: 0.7),
                             height: 1.5,
                           ),
                         ),
@@ -173,7 +173,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: primaryColor,
                                 disabledBackgroundColor: primaryColor
-                                    .withOpacity(0.6),
+                                    .withValues(alpha: 0.6),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12.h),
                                 ),

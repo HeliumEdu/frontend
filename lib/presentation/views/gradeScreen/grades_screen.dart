@@ -141,13 +141,13 @@ class _GradesScreenState extends State<GradesScreen> {
                           Icon(
                             Icons.grade_outlined,
                             size: 60,
-                            color: textColor.withOpacity(0.3),
+                            color: textColor.withValues(alpha: 0.3),
                           ),
                           SizedBox(height: 16),
                           Text(
                             'No grades available',
                             style: AppTextStyle.bTextStyle.copyWith(
-                              color: textColor.withOpacity(0.6),
+                              color: textColor.withValues(alpha: 0.6),
                             ),
                           ),
                         ],
@@ -185,7 +185,7 @@ class _GradesScreenState extends State<GradesScreen> {
                           color: whiteColor,
                           boxShadow: [
                             BoxShadow(
-                              color: blackColor.withOpacity(0.05),
+                              color: blackColor.withValues(alpha: 0.05),
                               blurRadius: 4,
                               offset: const Offset(0, 2),
                             ),
@@ -252,9 +252,9 @@ class _GradesScreenState extends State<GradesScreen> {
                                   isExpanded: true,
                                   underline: SizedBox(),
                                   hint: Text(
-                                    "Group Name",
+                                    'Group Name',
                                     style: AppTextStyle.eTextStyle.copyWith(
-                                      color: blackColor.withOpacity(0.5),
+                                      color: blackColor.withValues(alpha: 0.5),
                                     ),
                                   ),
                                   value: courseGroups.isEmpty
@@ -268,7 +268,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                             group.title,
                                             style: AppTextStyle.eTextStyle
                                                 .copyWith(
-                                                  color: blackColor.withOpacity(
+                                                  color: blackColor.withValues(alpha: 
                                                     0.8,
                                                   ),
                                                 ),
@@ -296,8 +296,8 @@ class _GradesScreenState extends State<GradesScreen> {
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
                                     colors: [
-                                      primaryColor.withOpacity(0.7),
-                                      primaryColor.withOpacity(0.8),
+                                      primaryColor.withValues(alpha: 0.7),
+                                      primaryColor.withValues(alpha: 0.8),
                                     ],
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
@@ -307,7 +307,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: primaryColor.withOpacity(0.3),
+                                      color: primaryColor.withValues(alpha: 0.3),
                                       blurRadius: 12,
                                       offset: Offset(0, 4),
                                     ),
@@ -382,7 +382,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                                   decoration: BoxDecoration(
                                                     shape: BoxShape.circle,
                                                     color: whiteColor
-                                                        .withOpacity(0.2),
+                                                        .withValues(alpha: 0.2),
                                                   ),
                                                   child: Stack(
                                                     children: [
@@ -410,21 +410,19 @@ class _GradesScreenState extends State<GradesScreen> {
                                                   style: AppTextStyle.cTextStyle
                                                       .copyWith(
                                                         color: whiteColor
-                                                            .withOpacity(0.9),
+                                                            .withValues(alpha: 0.9),
                                                         fontSize: 11,
                                                       ),
                                                 ),
                                                 Text(
-                                                  '$remainingAssignments ' +
-                                                      remainingAssignments
+                                                  '$remainingAssignments ${remainingAssignments
                                                           .plural(
                                                             'assignment',
-                                                          ) +
-                                                      ' left',
+                                                          )} left',
                                                   style: AppTextStyle.cTextStyle
                                                       .copyWith(
                                                         color: whiteColor
-                                                            .withOpacity(0.9),
+                                                            .withValues(alpha: 0.9),
                                                         fontSize: 11,
                                                       ),
                                                 ),
@@ -469,7 +467,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                                   decoration: BoxDecoration(
                                                     shape: BoxShape.circle,
                                                     color: whiteColor
-                                                        .withOpacity(0.2),
+                                                        .withValues(alpha: 0.2),
                                                   ),
                                                   child: Stack(
                                                     children: [
@@ -497,18 +495,16 @@ class _GradesScreenState extends State<GradesScreen> {
                                                   style: AppTextStyle.cTextStyle
                                                       .copyWith(
                                                         color: whiteColor
-                                                            .withOpacity(0.9),
+                                                            .withValues(alpha: 0.9),
                                                         fontSize: 11,
                                                       ),
                                                 ),
                                                 Text(
-                                                  '$daysLeft ' +
-                                                      daysLeft.plural('day') +
-                                                      ' left',
+                                                  '$daysLeft ${daysLeft.plural('day')} left',
                                                   style: AppTextStyle.cTextStyle
                                                       .copyWith(
                                                         color: whiteColor
-                                                            .withOpacity(0.9),
+                                                            .withValues(alpha: 0.9),
                                                         fontSize: 11,
                                                       ),
                                                 ),
@@ -541,16 +537,15 @@ class _GradesScreenState extends State<GradesScreen> {
                                                           ),
                                                     ),
                                                     Text(
-                                                      'total ' +
-                                                          totalAssignments
+                                                      'total ${totalAssignments
                                                               .plural(
                                                                 'assignment',
-                                                              ),
+                                                              )}',
                                                       style: AppTextStyle
                                                           .cTextStyle
                                                           .copyWith(
                                                             color: whiteColor
-                                                                .withOpacity(
+                                                                .withValues(alpha: 
                                                                   0.8,
                                                                 ),
                                                             fontSize: 11,
@@ -594,7 +589,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                                           .cTextStyle
                                                           .copyWith(
                                                             color: whiteColor
-                                                                .withOpacity(
+                                                                .withValues(alpha: 
                                                                   0.8,
                                                                 ),
                                                             fontSize: 11,
@@ -613,12 +608,12 @@ class _GradesScreenState extends State<GradesScreen> {
                                         return Container(
                                           padding: EdgeInsets.all(12.adaptSize),
                                           decoration: BoxDecoration(
-                                            color: whiteColor.withOpacity(0.15),
+                                            color: whiteColor.withValues(alpha: 0.15),
                                             borderRadius: BorderRadius.circular(
                                               16.adaptSize,
                                             ),
                                             border: Border.all(
-                                              color: whiteColor.withOpacity(
+                                              color: whiteColor.withValues(alpha: 
                                                 0.2,
                                               ),
                                               width: 1,
@@ -684,7 +679,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                               boxShadow: [
                                                 BoxShadow(
                                                   color: blackColor
-                                                      .withOpacity(0.04),
+                                                      .withValues(alpha: 0.04),
                                                   blurRadius: 10,
                                                   offset: Offset(0, 2),
                                                 ),
@@ -699,7 +694,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                                   decoration: BoxDecoration(
                                                     shape: BoxShape.circle,
                                                     color: courseColor
-                                                        .withOpacity(0.15),
+                                                        .withValues(alpha: 0.15),
                                                   ),
                                                   child: Icon(
                                                     Icons.book_outlined,
@@ -737,7 +732,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                                                 ),
                                                             decoration: BoxDecoration(
                                                               color: courseColor
-                                                                  .withOpacity(
+                                                                  .withValues(alpha: 
                                                                     0.1,
                                                                   ),
                                                               borderRadius:
@@ -784,7 +779,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                                                         0
                                                                   ? redColor
                                                                   : textColor
-                                                                        .withOpacity(
+                                                                        .withValues(alpha: 
                                                                           0.5,
                                                                         ),
                                                             ),
@@ -794,7 +789,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                                             Icons.circle,
                                                             size: 6.adaptSize,
                                                             color: textColor
-                                                                .withOpacity(
+                                                                .withValues(alpha: 
                                                                   0.3,
                                                                 ),
                                                           ),
@@ -805,7 +800,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                                                 .cTextStyle
                                                                 .copyWith(
                                                                   color: textColor
-                                                                      .withOpacity(
+                                                                      .withValues(alpha: 
                                                                         0.6,
                                                                       ),
                                                                   fontSize: 12,
@@ -866,7 +861,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                                       ),
                                                   border: Border.all(
                                                     color: courseColor
-                                                        .withOpacity(0.1),
+                                                        .withValues(alpha: 0.1),
                                                     width: 1,
                                                   ),
                                                 ),
@@ -881,7 +876,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                                           ),
                                                       decoration: BoxDecoration(
                                                         color: courseColor
-                                                            .withOpacity(0.05),
+                                                            .withValues(alpha: 0.05),
                                                         borderRadius:
                                                             BorderRadius.circular(
                                                               10.adaptSize,
@@ -1042,7 +1037,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                                                       .cTextStyle
                                                                       .copyWith(
                                                                         color: textColor
-                                                                            .withOpacity(
+                                                                            .withValues(alpha: 
                                                                               0.7,
                                                                             ),
                                                                       ),
@@ -1060,7 +1055,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                                                       .cTextStyle
                                                                       .copyWith(
                                                                         color: textColor
-                                                                            .withOpacity(
+                                                                            .withValues(alpha: 
                                                                               0.7,
                                                                             ),
                                                                       ),
@@ -1077,7 +1072,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                                               indent: 12.h,
                                                               endIndent: 12.h,
                                                               color: greyColor
-                                                                  .withOpacity(
+                                                                  .withValues(alpha: 
                                                                     0.2,
                                                                   ),
                                                             );

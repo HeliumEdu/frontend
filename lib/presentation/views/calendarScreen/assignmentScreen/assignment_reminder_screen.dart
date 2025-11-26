@@ -23,32 +23,20 @@ import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_list.dart';
 import 'package:helium_mobile/utils/app_size.dart';
 import 'package:helium_mobile/utils/app_text_style.dart';
-
-// Local model to stage multiple reminders before submitting
-class _PendingReminder {
-  final String message;
-  final int offset;
-  final int type;
-
-  _PendingReminder({
-    required this.message,
-    required this.offset,
-    required this.type,
-  });
-}
+import 'package:helium_mobile/utils/formatting.dart';
 
 class AssignmentReminderScreen extends StatefulWidget {
   final int? groupId;
   final int? courseId;
-  final bool? isEditMode;
   final int? homeworkId;
+  final bool? isEditMode;
 
   const AssignmentReminderScreen({
     super.key,
     this.groupId,
     this.courseId,
-    this.isEditMode,
     this.homeworkId,
+    this.isEditMode
   });
 
   @override
@@ -60,49 +48,21 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
   final TextEditingController _messageController = TextEditingController();
   final TextEditingController _timeValueController = TextEditingController();
 
-  String? _singleReminderMethod;
   String? selectedTimeUnit;
   String? uploadedFileName;
   File? _selectedFile;
   bool _isSubmitting = false;
   bool _isLoadingReminder = false;
+  bool isEditMode = false;
 
   final _formKey = GlobalKey<FormState>();
-
-  // Edit mode data
-  ReminderResponseModel? existingReminder;
-  int? reminderId;
-
-  // Multiple reminders support
-  final List<_PendingReminder> _pendingReminders = [];
 
   // Server reminders (fetched via API)
   List<ReminderResponseModel> _serverReminders = [];
   List<AttachmentModel> _serverAttachments = [];
 
-  int _mapMethodToType(String? method) {
-    method = (method ?? '').toLowerCase();
-    if (method == 'email') {
-      return 1;
-    } else if (method == 'text') {
-      return 2;
-    } else {
-      return 0;
-    }
-  }
-
-  String _mapTypeToMethod(int type) {
-    if (type == 0) {
-      return 'Popup';
-    } else if (type == 1) {
-      return 'Text';
-    } else {
-      return 'Email';
-    }
-  }
-
   Future<void> _confirmDeleteReminder(ReminderResponseModel reminder) async {
-    showDialog(
+    await showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(
@@ -165,9 +125,9 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
   @override
   void initState() {
     super.initState();
-    _singleReminderMethod = 'Popup';
     // Fetch reminder if in edit mode
     if (widget.homeworkId != null) {
+      isEditMode = true;
       _refreshServerReminders();
       _refreshAttachments();
     }
@@ -189,7 +149,9 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
 
       final reminders = await reminderRepo.getReminders();
       final filtered = reminders
-          .where((r) => r.homework != null && r.homework!['id'] == widget.homeworkId)
+          .where(
+            (r) => r.homework != null && r.homework!['id'] == widget.homeworkId,
+          )
           .toList();
 
       setState(() {
@@ -232,7 +194,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
   }
 
   Future<void> _confirmDeleteAttachment(AttachmentModel attachment) async {
-    showDialog(
+    await showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(
@@ -292,7 +254,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
   Future<void> _pickFile() async {
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
-          type: FileType.any
+        type: FileType.any,
       );
 
       if (result != null && result.files.single.path != null) {
@@ -336,29 +298,6 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
     super.dispose();
   }
 
-  int _calculateOffset() {
-    final timeValue = int.tryParse(_timeValueController.text) ?? 0;
-
-    if (selectedTimeUnit == 'Minutes') {
-      return timeValue;
-    } else if (selectedTimeUnit == 'Hours') {
-      return timeValue * 60;
-    } else if (selectedTimeUnit == 'Days') {
-      return timeValue * 24 * 60;
-    }
-    return timeValue;
-  }
-
-  String _formatOffsetForDisplay(int offset) {
-    if (offset >= 10080) return '1 week before';
-    if (offset >= 2880) return '2 days before';
-    if (offset >= 1440) return '1 day before';
-    if (offset >= 60 && offset % 60 == 0) {
-      return '${(offset / 60).round()} hour${(offset / 60).round() == 1 ? '' : 's'} before';
-    }
-    return '$offset minute${offset == 1 ? '' : 's'} before';
-  }
-
   void _showAddOrEditReminderDialog({
     ReminderResponseModel? existing,
     int? index,
@@ -367,25 +306,13 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
       text: existing?.message ?? '',
     );
     final TextEditingController customValueCtrl = TextEditingController();
-    String? unitSelection;
-    String? methodSelection = existing != null
-        ? _mapTypeToMethod(existing.type)
+    customValueCtrl.text = existing != null ? existing.offset.toString() : '';
+    String reminderOffsetUnit = existing != null
+        ? reminderOffsetUnits[existing.offsetType]
+        : 'Minutes';
+    String reminderType = existing != null
+        ? reminderTypes[existing.type]
         : 'Popup';
-
-    // If editing and existing offset does not match presets, prefill custom
-    if (existing != null) {
-      final off = existing.offset;
-      if (off % (24 * 60) == 0) {
-        unitSelection = 'Days';
-        customValueCtrl.text = (off / (24 * 60)).round().toString();
-      } else if (off % 60 == 0) {
-        unitSelection = 'Hours';
-        customValueCtrl.text = (off / 60).round().toString();
-      } else {
-        unitSelection = 'Minutes';
-        customValueCtrl.text = off.toString();
-      }
-    }
 
     showDialog(
       context: context,
@@ -400,7 +327,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
               borderRadius: BorderRadius.circular(16.adaptSize),
               boxShadow: [
                 BoxShadow(
-                  color: blackColor.withOpacity(0.1),
+                  color: blackColor.withValues(alpha: 0.1),
                   blurRadius: 10,
                   offset: Offset(0, 4),
                 ),
@@ -432,7 +359,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: blackColor.withOpacity(0.15)),
+                      border: Border.all(color: blackColor.withValues(alpha: 0.15)),
                       color: whiteColor,
                     ),
                     child: TextField(
@@ -444,7 +371,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                       decoration: InputDecoration(
                         hintText: '',
                         hintStyle: AppTextStyle.eTextStyle.copyWith(
-                          color: blackColor.withOpacity(0.5),
+                          color: blackColor.withValues(alpha: 0.5),
                         ),
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.symmetric(
@@ -459,13 +386,13 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                     padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: blackColor.withOpacity(0.15)),
+                      border: Border.all(color: blackColor.withValues(alpha: 0.15)),
                       color: whiteColor,
                     ),
                     child: DropdownButton<String>(
                       icon: Icon(
                         Icons.keyboard_arrow_down,
-                        color: blackColor.withOpacity(0.6),
+                        color: blackColor.withValues(alpha: 0.6),
                       ),
                       dropdownColor: whiteColor,
                       isExpanded: true,
@@ -473,25 +400,30 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                       hint: Text(
                         '',
                         style: AppTextStyle.eTextStyle.copyWith(
-                          color: blackColor.withOpacity(0.5),
+                          color: blackColor.withValues(alpha: 0.5),
                         ),
                       ),
-                      value: methodSelection,
-                      items: reminderTypes.map((method) {
+                      value: reminderType,
+                      items: reminderTypes
+                          .where((type) => (existing != null && existing.type == 2) || type != 'Text')
+                          .map((type) {
                         return DropdownMenuItem<String>(
-                          value: method,
+                          value: type,
                           child: Row(
                             children: [
                               Icon(
-                                method == 'Email'
+                                type == 'Email'
                                     ? Icons.mail_outline
+                                    :
+                                type == 'Text'
+                                    ? Icons.phone_android
                                     : Icons.notifications_active_outlined,
                                 size: 18,
                                 color: primaryColor,
                               ),
                               SizedBox(width: 10),
                               Text(
-                                method,
+                                type,
                                 style: AppTextStyle.eTextStyle.copyWith(
                                   color: blackColor,
                                 ),
@@ -502,7 +434,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                       }).toList(),
                       onChanged: (value) {
                         setDialogState(() {
-                          methodSelection = value;
+                          reminderType = value!;
                         });
                       },
                     ),
@@ -524,7 +456,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: blackColor.withOpacity(0.15),
+                              color: blackColor.withValues(alpha: 0.15),
                             ),
                             color: whiteColor,
                           ),
@@ -537,7 +469,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                             decoration: InputDecoration(
                               hintText: '',
                               hintStyle: AppTextStyle.eTextStyle.copyWith(
-                                color: blackColor.withOpacity(0.5),
+                                color: blackColor.withValues(alpha: 0.5),
                               ),
                               border: InputBorder.none,
                               contentPadding: EdgeInsets.symmetric(
@@ -559,14 +491,14 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: blackColor.withOpacity(0.15),
+                              color: blackColor.withValues(alpha: 0.15),
                             ),
                             color: whiteColor,
                           ),
                           child: DropdownButton<String>(
                             icon: Icon(
                               Icons.keyboard_arrow_down,
-                              color: blackColor.withOpacity(0.6),
+                              color: blackColor.withValues(alpha: 0.6),
                             ),
                             dropdownColor: whiteColor,
                             isExpanded: true,
@@ -574,10 +506,10 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                             hint: Text(
                               '',
                               style: AppTextStyle.eTextStyle.copyWith(
-                                color: blackColor.withOpacity(0.5),
+                                color: blackColor.withValues(alpha: 0.5),
                               ),
                             ),
-                            value: unitSelection,
+                            value: reminderOffsetUnit,
                             items: reminderOffsetUnits.map((unit) {
                               return DropdownMenuItem<String>(
                                 value: unit,
@@ -591,7 +523,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                             }).toList(),
                             onChanged: (value) {
                               setDialogState(() {
-                                unitSelection = value;
+                                reminderOffsetUnit = value!;
                               });
                             },
                           ),
@@ -638,21 +570,9 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                               return;
                             }
 
-                            if (methodSelection == null) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'Please select a notification method',
-                                  ),
-                                  backgroundColor: redColor,
-                                ),
-                              );
-                              return;
-                            }
-
                             final customVal =
                                 int.tryParse(customValueCtrl.text.trim()) ?? 0;
-                            if (customVal <= 0 || unitSelection == null) {
+                            if (customVal <= 0) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
@@ -664,14 +584,6 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                               return;
                             }
 
-                            int computedOffset = customVal;
-                            if (unitSelection == 'Hours') {
-                              computedOffset = customVal * 60;
-                            } else if (unitSelection == 'Days') {
-                              computedOffset = customVal * 24 * 60;
-                            }
-
-                            final method = methodSelection ?? 'Popup';
                             try {
                               final reminderDataSource =
                                   ReminderRemoteDataSourceImpl(
@@ -698,9 +610,11 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                                 final req = ReminderRequestModel(
                                   title: messageCtrl.text.trim(),
                                   message: messageCtrl.text.trim(),
-                                  offset: computedOffset,
-                                  offsetType: 0,
-                                  type: _mapMethodToType(method),
+                                  offset: customVal,
+                                  offsetType: reminderOffsetUnits.indexOf(
+                                    reminderOffsetUnit,
+                                  ),
+                                  type: reminderTypes.indexOf(reminderType),
                                   sent: false,
                                   homework: widget.homeworkId!,
                                 );
@@ -713,9 +627,11 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                                 final req = ReminderRequestModel(
                                   title: messageCtrl.text.trim(),
                                   message: messageCtrl.text.trim(),
-                                  offset: computedOffset,
-                                  offsetType: 0,
-                                  type: _mapMethodToType(method),
+                                  offset: customVal,
+                                  offsetType: reminderOffsetUnits.indexOf(
+                                    reminderOffsetUnit,
+                                  ),
+                                  type: reminderTypes.indexOf(reminderType),
                                   sent: false,
                                   homework: widget.homeworkId!,
                                 );
@@ -776,370 +692,6 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
     );
   }
 
-  // Dialog for creating/editing pending (local) reminders
-  void _showAddOrEditPendingReminderDialog({
-    _PendingReminder? existing,
-    int? index,
-  }) {
-    final TextEditingController messageCtrl = TextEditingController(
-      text: existing?.message ?? '',
-    );
-    final TextEditingController customValueCtrl = TextEditingController();
-    String? unitSelection;
-    String? methodSelection = existing != null
-        ? _mapTypeToMethod(existing.type)
-        : 'Popup';
-
-    if (existing != null) {
-      final off = existing.offset;
-      if (off % (24 * 60) == 0) {
-        unitSelection = 'Days';
-        customValueCtrl.text = (off / (24 * 60)).round().toString();
-      } else if (off % 60 == 0) {
-        unitSelection = 'Hours';
-        customValueCtrl.text = (off / 60).round().toString();
-      } else {
-        unitSelection = 'Minutes';
-        customValueCtrl.text = off.toString();
-      }
-    }
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (dialogContext, setDialogState) => Dialog(
-          backgroundColor: transparentColor,
-          child: Container(
-            padding: EdgeInsets.all(24.h),
-            decoration: BoxDecoration(
-              color: whiteColor,
-              borderRadius: BorderRadius.circular(16.adaptSize),
-              boxShadow: [
-                BoxShadow(
-                  color: blackColor.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: Offset(0, 4),
-                ),
-              ],
-            ),
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Center(
-                    child: Text(
-                      existing == null ? 'Add Reminder' : 'Edit Reminder',
-                      style: AppTextStyle.aTextStyle.copyWith(
-                        color: blackColor,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 20.v),
-                  Text(
-                    'Message',
-                    style: AppTextStyle.cTextStyle.copyWith(
-                      color: blackColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  SizedBox(height: 8.v),
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: blackColor.withOpacity(0.15)),
-                      color: whiteColor,
-                    ),
-                    child: TextField(
-                      controller: messageCtrl,
-                      maxLines: 3,
-                      style: AppTextStyle.eTextStyle.copyWith(
-                        color: blackColor,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'Enter reminder message',
-                        hintStyle: AppTextStyle.eTextStyle.copyWith(
-                          color: blackColor.withOpacity(0.5),
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 14.h,
-                          vertical: 12.v,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 16.v),
-                  Text(
-                    'Notification method',
-                    style: AppTextStyle.cTextStyle.copyWith(
-                      color: blackColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  SizedBox(height: 8.v),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: blackColor.withOpacity(0.15)),
-                      color: whiteColor,
-                    ),
-                    child: DropdownButton<String>(
-                      icon: Icon(
-                        Icons.keyboard_arrow_down,
-                        color: blackColor.withOpacity(0.6),
-                      ),
-                      dropdownColor: whiteColor,
-                      isExpanded: true,
-                      underline: SizedBox(),
-                      hint: Text(
-                        'Select method',
-                        style: AppTextStyle.eTextStyle.copyWith(
-                          color: blackColor.withOpacity(0.5),
-                        ),
-                      ),
-                      value: methodSelection,
-                      items: reminderTypes.map((method) {
-                        return DropdownMenuItem<String>(
-                          value: method,
-                          child: Row(
-                            children: [
-                              Icon(
-                                method == 'Email'
-                                    ? Icons.mail_outline
-                                    : Icons.notifications_active_outlined,
-                                size: 18,
-                                color: primaryColor,
-                              ),
-                              SizedBox(width: 10),
-                              Text(
-                                method,
-                                style: AppTextStyle.eTextStyle.copyWith(
-                                  color: blackColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setDialogState(() {
-                          methodSelection = value;
-                        });
-                      },
-                    ),
-                  ),
-                  SizedBox(height: 12.v),
-                  Text(
-                    'When',
-                    style: AppTextStyle.cTextStyle.copyWith(
-                      color: blackColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  SizedBox(height: 8.v),
-                  Row(
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: blackColor.withOpacity(0.15),
-                            ),
-                            color: whiteColor,
-                          ),
-                          child: TextField(
-                            controller: customValueCtrl,
-                            keyboardType: TextInputType.number,
-                            style: AppTextStyle.eTextStyle.copyWith(
-                              color: blackColor,
-                            ),
-                            decoration: InputDecoration(
-                              hintText: 'Enter time',
-                              hintStyle: AppTextStyle.eTextStyle.copyWith(
-                                color: blackColor.withOpacity(0.5),
-                              ),
-                              border: InputBorder.none,
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: 14.h,
-                                vertical: 12.v,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 12.h),
-                      Expanded(
-                        flex: 3,
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: blackColor.withOpacity(0.15),
-                            ),
-                            color: whiteColor,
-                          ),
-                          child: DropdownButton<String>(
-                            icon: Icon(
-                              Icons.keyboard_arrow_down,
-                              color: blackColor.withOpacity(0.6),
-                            ),
-                            dropdownColor: whiteColor,
-                            isExpanded: true,
-                            underline: SizedBox(),
-                            hint: Text(
-                              'Select unit',
-                              style: AppTextStyle.eTextStyle.copyWith(
-                                color: blackColor.withOpacity(0.5),
-                              ),
-                            ),
-                            value: unitSelection,
-                            items: reminderOffsetUnits.map((unit) {
-                              return DropdownMenuItem<String>(
-                                value: unit,
-                                child: Text(
-                                  unit,
-                                  style: AppTextStyle.eTextStyle.copyWith(
-                                    color: blackColor,
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                            onChanged: (value) {
-                              setDialogState(() {
-                                unitSelection = value;
-                              });
-                            },
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 20.v),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => Navigator.pop(dialogContext),
-                          style: OutlinedButton.styleFrom(
-                            padding: EdgeInsets.symmetric(vertical: 12.v),
-                            side: BorderSide(color: primaryColor, width: 1.5),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8.adaptSize),
-                            ),
-                          ),
-                          child: Text(
-                            'Cancel',
-                            style: AppTextStyle.cTextStyle.copyWith(
-                              color: primaryColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 12.h),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            if (messageCtrl.text.trim().isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'Please enter a reminder message',
-                                  ),
-                                  backgroundColor: redColor,
-                                ),
-                              );
-                              return;
-                            }
-
-                            if (methodSelection == null) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'Please select a notification method',
-                                  ),
-                                  backgroundColor: redColor,
-                                ),
-                              );
-                              return;
-                            }
-
-                            final customVal =
-                                int.tryParse(customValueCtrl.text.trim()) ?? 0;
-                            if (customVal <= 0 || unitSelection == null) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'Please enter a valid custom time and unit',
-                                  ),
-                                  backgroundColor: redColor,
-                                ),
-                              );
-                              return;
-                            }
-
-                            int computedOffset = customVal;
-                            if (unitSelection == 'Hours') {
-                              computedOffset = customVal * 60;
-                            } else if (unitSelection == 'Days') {
-                              computedOffset = customVal * 24 * 60;
-                            }
-
-                            final method = methodSelection ?? 'Popup';
-                            final item = _PendingReminder(
-                              message: messageCtrl.text.trim(),
-                              offset: computedOffset,
-                              type: _mapMethodToType(method),
-                            );
-
-                            setState(() {
-                              if (existing != null && index != null) {
-                                _pendingReminders[index] = item;
-                              } else {
-                                _pendingReminders.add(item);
-                              }
-                            });
-
-                            Navigator.pop(dialogContext);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: primaryColor,
-                            padding: EdgeInsets.symmetric(vertical: 12.v),
-                            elevation: 2,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8.adaptSize),
-                            ),
-                          ),
-                          child: Text(
-                            'Save',
-                            style: AppTextStyle.cTextStyle.copyWith(
-                              color: whiteColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Future<void> _handleSubmit() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -1152,61 +704,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
     try {
       final homeworkId = widget.homeworkId!;
 
-      final reminderDataSource = ReminderRemoteDataSourceImpl(
-        dioClient: DioClient(),
-      );
-      final reminderRepo = ReminderRepositoryImpl(
-        remoteDataSource: reminderDataSource,
-      );
-
-      // Step 1: Create or Update Reminders
-      if (_pendingReminders.isNotEmpty) {
-        for (final pr in _pendingReminders) {
-          final req = ReminderRequestModel(
-            title: 'Assignment Reminder',
-            message: pr.message,
-            offset: pr.offset,
-            offsetType: 0,
-            type: pr.type,
-            sent: false,
-            homework: homeworkId,
-          );
-          print('📝 Creating reminder (offset=${pr.offset})...');
-          await reminderRepo.createReminder(req);
-        }
-        print('✅ ${_pendingReminders.length} reminder(s) created');
-
-        // Removed token registration here to avoid duplicate/burst notifications
-      } else if (_messageController.text.trim().isNotEmpty) {
-        // Backward-compatible single reminder path
-        final offset = _calculateOffset();
-        final int type = _singleReminderMethod != null
-            ? _mapMethodToType(_singleReminderMethod!)
-            : 3;
-
-        final reminderRequest = ReminderRequestModel(
-          title: 'Assignment Reminder',
-          message: _messageController.text.trim(),
-          offset: offset,
-          offsetType: 0,
-          type: type,
-          sent: false,
-          homework: homeworkId,
-        );
-
-        if (widget.isEditMode == true && reminderId != null) {
-          print('🔄 Updating reminder ID: $reminderId...');
-          await reminderRepo.updateReminder(reminderId!, reminderRequest);
-          print('✅ Reminder updated successfully');
-        } else {
-          print('📝 Creating reminder...');
-          await reminderRepo.createReminder(reminderRequest);
-          print('✅ Reminder created successfully');
-          // Removed token registration here to avoid duplicate/burst notifications
-        }
-      }
-
-      // Step 2: Upload Attachment (if file is selected)
+      // Upload Attachment (if file is selected)
       if (_selectedFile != null) {
         print('📎 Uploading attachment...');
         final attachmentDataSource = AttachmentRemoteDataSourceImpl(
@@ -1227,14 +725,17 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              _pendingReminders.isNotEmpty
-                  ? '${_pendingReminders.length} reminder(s) created successfully!'
-                  : (widget.isEditMode == true
-                        ? 'Reminder updated successfully!'
-                        : 'Reminder created successfully!'),
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: whiteColor),
+                SizedBox(width: 8),
+                Text(
+                  isEditMode
+                      ? 'Assignment updated successfully!'
+                      : 'Assignment created successfully!',
+                ),
+              ],
             ),
-            backgroundColor: greenColor,
           ),
         );
         // Pop both screens to go back to home and refresh
@@ -1278,7 +779,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                 color: whiteColor,
                 boxShadow: [
                   BoxShadow(
-                    color: blackColor.withOpacity(0.08),
+                    color: blackColor.withValues(alpha: 0.08),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -1296,7 +797,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                     ),
                   ),
                   Text(
-                    widget.isEditMode == true
+                    isEditMode == true
                         ? 'Edit Reminder'
                         : 'Add Reminder',
                     style: AppTextStyle.aTextStyle.copyWith(
@@ -1320,7 +821,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                   borderRadius: BorderRadius.circular(16.adaptSize),
                   boxShadow: [
                     BoxShadow(
-                      color: blackColor.withOpacity(0.06),
+                      color: blackColor.withValues(alpha: 0.06),
                       blurRadius: 12,
                       offset: Offset(0, 4),
                       spreadRadius: 0,
@@ -1334,7 +835,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                     lineThickness: 3,
                     lineSpace: 4,
                     lineType: LineType.normal,
-                    defaultLineColor: greyColor.withOpacity(0.3),
+                    defaultLineColor: greyColor.withValues(alpha: 0.3),
                     finishedLineColor: primaryColor,
                     activeLineColor: primaryColor,
                   ),
@@ -1343,13 +844,13 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                   activeStepBackgroundColor: primaryColor,
                   activeStepTextColor: primaryColor,
                   finishedStepBorderColor: primaryColor,
-                  finishedStepBackgroundColor: primaryColor.withOpacity(0.1),
+                  finishedStepBackgroundColor: primaryColor.withValues(alpha: 0.1),
                   finishedStepIconColor: primaryColor,
                   finishedStepTextColor: blackColor,
-                  unreachedStepBorderColor: greyColor.withOpacity(0.3),
+                  unreachedStepBorderColor: greyColor.withValues(alpha: 0.3),
                   unreachedStepBackgroundColor: softGrey,
                   unreachedStepIconColor: greyColor,
-                  unreachedStepTextColor: textColor.withOpacity(0.5),
+                  unreachedStepTextColor: textColor.withValues(alpha: 0.5),
                   borderThickness: 2,
                   internalPadding: 12,
                   showLoadingAnimation: false,
@@ -1370,7 +871,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                       customStep: Container(
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: primaryColor.withOpacity(0.1),
+                          color: primaryColor.withValues(alpha: 0.1),
                           border: Border.all(color: primaryColor, width: 2),
                         ),
                         child: Center(
@@ -1393,7 +894,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                           textAlign: TextAlign.center,
                         ),
                       ),
-                      topTitle: false,
+                      placeTitleAtStart: false,
                     ),
                     EasyStep(
                       customStep: Container(
@@ -1403,7 +904,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                           border: Border.all(color: primaryColor, width: 2),
                           boxShadow: [
                             BoxShadow(
-                              color: primaryColor.withOpacity(0.3),
+                              color: primaryColor.withValues(alpha: 0.3),
                               blurRadius: 8,
                               offset: Offset(0, 3),
                               spreadRadius: 0,
@@ -1430,7 +931,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                           textAlign: TextAlign.center,
                         ),
                       ),
-                      topTitle: false,
+                      placeTitleAtStart: false,
                     ),
                   ],
                 ),
@@ -1452,7 +953,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                     borderRadius: BorderRadius.circular(8.adaptSize),
                     boxShadow: [
                       BoxShadow(
-                        color: primaryColor.withOpacity(0.2),
+                        color: primaryColor.withValues(alpha: 0.2),
                         blurRadius: 6,
                         offset: Offset(0, 2),
                       ),
@@ -1489,7 +990,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                           Text(
                             'Loading reminder data...',
                             style: AppTextStyle.cTextStyle.copyWith(
-                              color: blackColor.withOpacity(0.6),
+                              color: blackColor.withValues(alpha: 0.6),
                             ),
                           ),
                         ],
@@ -1535,7 +1036,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                                       ),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: blackColor.withOpacity(0.04),
+                                          color: blackColor.withValues(alpha: 0.04),
                                           blurRadius: 6,
                                           offset: Offset(0, 1),
                                         ),
@@ -1567,23 +1068,21 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                                               ),
                                               SizedBox(height: 4.v),
                                               Text(
-                                                _formatOffsetForDisplay(
-                                                  rem.offset,
-                                                ),
+                                                formatReminderOffset(rem),
                                                 style: AppTextStyle.iTextStyle
                                                     .copyWith(
                                                       color: textColor
-                                                          .withOpacity(0.7),
+                                                          .withValues(alpha: 0.7),
                                                       fontSize: 12,
                                                     ),
                                               ),
                                               SizedBox(height: 4.v),
                                               Text(
-                                                _mapTypeToMethod(rem.type),
+                                                reminderTypes[rem.type],
                                                 style: AppTextStyle.iTextStyle
                                                     .copyWith(
                                                       color: textColor
-                                                          .withOpacity(0.7),
+                                                          .withValues(alpha: 0.7),
                                                       fontSize: 12,
                                                     ),
                                               ),
@@ -1619,130 +1118,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                                 }),
                                 SizedBox(height: 8.v),
                                 Divider(
-                                  color: greyColor.withOpacity(0.2),
-                                  thickness: 1,
-                                ),
-                                SizedBox(height: 16.v),
-                              ],
-
-                              // Pending reminders list (if any)
-                              if (_pendingReminders.isNotEmpty) ...[
-                                Text(
-                                  'Reminders',
-                                  style: AppTextStyle.cTextStyle.copyWith(
-                                    color: blackColor,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                SizedBox(height: 12.v),
-                                ..._pendingReminders.asMap().entries.map((
-                                  entry,
-                                ) {
-                                  final idx = entry.key;
-                                  final pr = entry.value;
-                                  return Container(
-                                    margin: EdgeInsets.only(bottom: 12.v),
-                                    padding: EdgeInsets.all(16.h),
-                                    decoration: BoxDecoration(
-                                      color: whiteColor,
-                                      borderRadius: BorderRadius.circular(
-                                        10.adaptSize,
-                                      ),
-                                      border: Border.all(
-                                        color: softGrey,
-                                        width: 1,
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: blackColor.withOpacity(0.04),
-                                          blurRadius: 6,
-                                          offset: Offset(0, 1),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Icon(
-                                          Icons.notifications_active_outlined,
-                                          color: primaryColor,
-                                          size: 20,
-                                        ),
-                                        SizedBox(width: 10.h),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                pr.message,
-                                                style: AppTextStyle.cTextStyle
-                                                    .copyWith(
-                                                      color: blackColor,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                    ),
-                                              ),
-                                              SizedBox(height: 4.v),
-                                              Text(
-                                                _formatOffsetForDisplay(
-                                                  pr.offset,
-                                                ),
-                                                style: AppTextStyle.iTextStyle
-                                                    .copyWith(
-                                                      color: textColor
-                                                          .withOpacity(0.7),
-                                                      fontSize: 12,
-                                                    ),
-                                              ),
-                                              SizedBox(height: 4.v),
-                                              Text(
-                                                _mapTypeToMethod(pr.type),
-                                                style: AppTextStyle.iTextStyle
-                                                    .copyWith(
-                                                      color: textColor
-                                                          .withOpacity(0.7),
-                                                      fontSize: 12,
-                                                    ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        SizedBox(width: 12.h),
-                                        GestureDetector(
-                                          onTap: () =>
-                                              _showAddOrEditPendingReminderDialog(
-                                                existing: pr,
-                                                index: idx,
-                                              ),
-                                          child: Icon(
-                                            Icons.edit_outlined,
-                                            color: primaryColor,
-                                            size: 20.adaptSize,
-                                          ),
-                                        ),
-                                        SizedBox(width: 12.h),
-                                        GestureDetector(
-                                          onTap: () {
-                                            setState(() {
-                                              _pendingReminders.removeAt(idx);
-                                            });
-                                          },
-                                          child: Icon(
-                                            Icons.delete_outline,
-                                            color: redColor,
-                                            size: 20.adaptSize,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }),
-                                SizedBox(height: 8.v),
-                                Divider(
-                                  color: greyColor.withOpacity(0.2),
+                                  color: greyColor.withValues(alpha: 0.2),
                                   thickness: 1,
                                 ),
                                 SizedBox(height: 16.v),
@@ -1822,12 +1198,12 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                                     border: Border.all(
                                       color: uploadedFileName != null
                                           ? primaryColor
-                                          : primaryColor.withOpacity(0.3),
+                                          : primaryColor.withValues(alpha: 0.3),
                                       width: 1.5,
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: blackColor.withOpacity(0.03),
+                                        color: blackColor.withValues(alpha: 0.03),
                                         blurRadius: 4,
                                         offset: const Offset(0, 2),
                                       ),
@@ -1839,7 +1215,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                                             Container(
                                               padding: EdgeInsets.all(8),
                                               decoration: BoxDecoration(
-                                                color: primaryColor.withOpacity(
+                                                color: primaryColor.withValues(alpha: 
                                                   0.1,
                                                 ),
                                                 borderRadius:
@@ -1877,7 +1253,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                                                         .eTextStyle
                                                         .copyWith(
                                                           color: blackColor
-                                                              .withOpacity(0.5),
+                                                              .withValues(alpha: 0.5),
                                                           fontSize: 12,
                                                         ),
                                                   ),

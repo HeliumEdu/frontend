@@ -27,7 +27,8 @@ import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_size.dart';
 import 'package:helium_mobile/utils/app_text_style.dart';
 
-import 'package:helium_mobile/utils/custom_color_picker.dart';
+import 'package:helium_mobile/presentation/widgets/custom_color_picker.dart';
+import 'package:helium_mobile/utils/formatting.dart';
 
 class AddClassesCategoriesScreen extends StatefulWidget {
   final int courseId;
@@ -77,7 +78,6 @@ class _AddClassesCategoriesScreenState
   }
 
   Future<void> _refreshAttachments() async {
-    if (widget.courseId == null) return;
     try {
       final attachmentDataSource = AttachmentRemoteDataSourceImpl(
         dioClient: DioClient(),
@@ -95,7 +95,7 @@ class _AddClassesCategoriesScreenState
   }
 
   Future<void> _confirmDeleteAttachment(AttachmentModel attachment) async {
-    showDialog(
+    await showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(
@@ -200,35 +200,6 @@ class _AddClassesCategoriesScreenState
     super.dispose();
   }
 
-  String _colorToHex(Color color) {
-    return '#${color.value.toRadixString(16).substring(2, 8).toLowerCase()}';
-  }
-
-  Color _hexToColor(String hexString) {
-    try {
-      final buffer = StringBuffer();
-      if (hexString.length == 6 || hexString.length == 7) buffer.write('ff');
-      buffer.write(hexString.replaceFirst('#', ''));
-      return Color(int.parse(buffer.toString(), radix: 16));
-    } catch (e) {
-      return const Color(0xff16A765); // Default color if parsing fails
-    }
-  }
-
-  // Helper to format weight for display (converts decimal to percentage)
-  String _formatWeight(String weight) {
-    try {
-      final percentage = double.parse(weight);
-      if (percentage == percentage.roundToDouble()) {
-        return '${percentage.toInt()}%';
-      } else {
-        return '${percentage.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '')}%';
-      }
-    } catch (e) {
-      return '$weight%';
-    }
-  }
-
   Future<void> _handleSubmit() async {
     setState(() {
       _isSubmitting = true;
@@ -304,7 +275,7 @@ class _AddClassesCategoriesScreenState
       } catch (e) {
         _categoryWeightController.text = '';
       }
-      selectedColor = _hexToColor(existingCategory.color);
+      selectedColor = parseColor(existingCategory.color);
     } else {
       _categoryNameController.clear();
       _categoryWeightController.clear();
@@ -326,7 +297,7 @@ class _AddClassesCategoriesScreenState
               borderRadius: BorderRadius.circular(16.adaptSize),
               boxShadow: [
                 BoxShadow(
-                  color: blackColor.withOpacity(0.1),
+                  color: blackColor.withValues(alpha: 0.1),
                   blurRadius: 10,
                   offset: Offset(0, 4),
                 ),
@@ -360,20 +331,20 @@ class _AddClassesCategoriesScreenState
                     decoration: InputDecoration(
                       hintText: '',
                       hintStyle: AppTextStyle.iTextStyle.copyWith(
-                        color: textColor.withOpacity(0.5),
+                        color: textColor.withValues(alpha: 0.5),
                       ),
                       filled: true,
                       fillColor: softGrey,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.adaptSize),
                         borderSide: BorderSide(
-                          color: greyColor.withOpacity(0.3),
+                          color: greyColor.withValues(alpha: 0.3),
                         ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.adaptSize),
                         borderSide: BorderSide(
-                          color: greyColor.withOpacity(0.3),
+                          color: greyColor.withValues(alpha: 0.3),
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
@@ -401,20 +372,20 @@ class _AddClassesCategoriesScreenState
                     decoration: InputDecoration(
                       hintText: '',
                       hintStyle: AppTextStyle.iTextStyle.copyWith(
-                        color: textColor.withOpacity(0.5),
+                        color: textColor.withValues(alpha: 0.5),
                       ),
                       filled: true,
                       fillColor: softGrey,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.adaptSize),
                         borderSide: BorderSide(
-                          color: greyColor.withOpacity(0.3),
+                          color: greyColor.withValues(alpha: 0.3),
                         ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.adaptSize),
                         borderSide: BorderSide(
-                          color: greyColor.withOpacity(0.3),
+                          color: greyColor.withValues(alpha: 0.3),
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
@@ -505,7 +476,7 @@ class _AddClassesCategoriesScreenState
                                     isCreatingCategory = true;
                                   });
 
-                                  String weightValue = "0";
+                                  String weightValue = '0';
                                   if (_categoryWeightController.text
                                       .trim()
                                       .isNotEmpty) {
@@ -516,7 +487,7 @@ class _AddClassesCategoriesScreenState
                                   final request = CategoryRequestModel(
                                     title: _categoryNameController.text.trim(),
                                     weight: weightValue,
-                                    color: _colorToHex(selectedColor),
+                                    color: colorToHex(selectedColor),
                                   );
 
                                   // Create or Update based on mode
@@ -541,7 +512,7 @@ class _AddClassesCategoriesScreenState
                                 },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: isCreatingCategory
-                                ? primaryColor.withOpacity(0.6)
+                                ? primaryColor.withValues(alpha: 0.6)
                                 : primaryColor,
                             padding: EdgeInsets.symmetric(vertical: 12.v),
                             elevation: 2,
@@ -769,7 +740,7 @@ class _AddClassesCategoriesScreenState
                         borderRadius: BorderRadius.circular(16.adaptSize),
                         boxShadow: [
                           BoxShadow(
-                            color: blackColor.withOpacity(0.06),
+                            color: blackColor.withValues(alpha: 0.06),
                             blurRadius: 12,
                             offset: Offset(0, 4),
                             spreadRadius: 0,
@@ -783,7 +754,7 @@ class _AddClassesCategoriesScreenState
                           lineThickness: 3,
                           lineSpace: 4,
                           lineType: LineType.normal,
-                          defaultLineColor: greyColor.withOpacity(0.3),
+                          defaultLineColor: greyColor.withValues(alpha: 0.3),
                           finishedLineColor: primaryColor,
                           activeLineColor: primaryColor,
                         ),
@@ -792,15 +763,15 @@ class _AddClassesCategoriesScreenState
                         activeStepBackgroundColor: primaryColor,
                         activeStepTextColor: primaryColor,
                         finishedStepBorderColor: primaryColor,
-                        finishedStepBackgroundColor: primaryColor.withOpacity(
+                        finishedStepBackgroundColor: primaryColor.withValues(alpha: 
                           0.1,
                         ),
                         finishedStepIconColor: primaryColor,
                         finishedStepTextColor: blackColor,
-                        unreachedStepBorderColor: greyColor.withOpacity(0.3),
+                        unreachedStepBorderColor: greyColor.withValues(alpha: 0.3),
                         unreachedStepBackgroundColor: softGrey,
                         unreachedStepIconColor: greyColor,
-                        unreachedStepTextColor: textColor.withOpacity(0.5),
+                        unreachedStepTextColor: textColor.withValues(alpha: 0.5),
                         borderThickness: 2,
                         internalPadding: 12,
                         showLoadingAnimation: false,
@@ -847,7 +818,7 @@ class _AddClassesCategoriesScreenState
                             customStep: Container(
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: primaryColor.withOpacity(0.1),
+                                color: primaryColor.withValues(alpha: 0.1),
                                 border: Border.all(
                                   color: primaryColor,
                                   width: 2,
@@ -873,13 +844,13 @@ class _AddClassesCategoriesScreenState
                                 textAlign: TextAlign.center,
                               ),
                             ),
-                            topTitle: false,
+                            placeTitleAtStart: false,
                           ),
                           EasyStep(
                             customStep: Container(
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: primaryColor.withOpacity(0.1),
+                                color: primaryColor.withValues(alpha: 0.1),
                                 border: Border.all(
                                   color: primaryColor,
                                   width: 2,
@@ -905,7 +876,7 @@ class _AddClassesCategoriesScreenState
                                 textAlign: TextAlign.center,
                               ),
                             ),
-                            topTitle: false,
+                            placeTitleAtStart: false,
                           ),
                           EasyStep(
                             customStep: Container(
@@ -918,7 +889,7 @@ class _AddClassesCategoriesScreenState
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: primaryColor.withOpacity(0.3),
+                                    color: primaryColor.withValues(alpha: 0.3),
                                     blurRadius: 8,
                                     offset: Offset(0, 3),
                                     spreadRadius: 0,
@@ -945,7 +916,7 @@ class _AddClassesCategoriesScreenState
                                 textAlign: TextAlign.center,
                               ),
                             ),
-                            topTitle: false,
+                            placeTitleAtStart: false,
                           ),
                         ],
                       ),
@@ -980,7 +951,7 @@ class _AddClassesCategoriesScreenState
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: primaryColor.withOpacity(0.2),
+                                      color: primaryColor.withValues(alpha: 0.2),
                                       blurRadius: 6,
                                       offset: Offset(0, 2),
                                     ),
@@ -1050,7 +1021,7 @@ class _AddClassesCategoriesScreenState
                                     child: Text(
                                       'No categories added yet',
                                       style: AppTextStyle.cTextStyle.copyWith(
-                                        color: textColor.withOpacity(0.5),
+                                        color: textColor.withValues(alpha: 0.5),
                                       ),
                                     ),
                                   ),
@@ -1059,7 +1030,7 @@ class _AddClassesCategoriesScreenState
 
                               return Column(
                                 children: state.categories.map((category) {
-                                  final categoryColor = _hexToColor(
+                                  final categoryColor = parseColor(
                                     category.color,
                                   );
 
@@ -1077,7 +1048,7 @@ class _AddClassesCategoriesScreenState
                                       ),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: blackColor.withOpacity(0.04),
+                                          color: blackColor.withValues(alpha: 0.04),
                                           blurRadius: 6,
                                           offset: Offset(0, 1),
                                         ),
@@ -1114,12 +1085,12 @@ class _AddClassesCategoriesScreenState
                                               Row(
                                                 children: [
                                                   Text(
-                                                    'Weight: ${_formatWeight(category.weight?.toString() ?? '0')}',
+                                                    'Weight: ${formatPercent(category.weight.toString(), true)}',
                                                     style: AppTextStyle
                                                         .iTextStyle
                                                         .copyWith(
                                                           color: textColor
-                                                              .withOpacity(0.6),
+                                                              .withValues(alpha: 0.6),
                                                           fontSize: 12.fSize,
                                                         ),
                                                   ),
@@ -1168,7 +1139,7 @@ class _AddClassesCategoriesScreenState
                                                         .cTextStyle
                                                         .copyWith(
                                                           color: textColor
-                                                              .withOpacity(0.7),
+                                                              .withValues(alpha: 0.7),
                                                         ),
                                                   ),
                                                   actions: [
@@ -1248,7 +1219,7 @@ class _AddClassesCategoriesScreenState
                                 child: Text(
                                   'Loading categories...',
                                   style: AppTextStyle.cTextStyle.copyWith(
-                                    color: textColor.withOpacity(0.5),
+                                    color: textColor.withValues(alpha: 0.5),
                                   ),
                                 ),
                               ),
@@ -1257,7 +1228,7 @@ class _AddClassesCategoriesScreenState
                         ),
                         SizedBox(height: 32.v),
                         Divider(
-                          color: greyColor.withOpacity(0.2),
+                          color: greyColor.withValues(alpha: 0.2),
                           thickness: 1,
                         ),
                         SizedBox(height: 32.v),
@@ -1333,12 +1304,12 @@ class _AddClassesCategoriesScreenState
                               border: Border.all(
                                 color: uploadedFileName != null
                                     ? primaryColor
-                                    : primaryColor.withOpacity(0.3),
+                                    : primaryColor.withValues(alpha: 0.3),
                                 width: 1.5,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: blackColor.withOpacity(0.03),
+                                  color: blackColor.withValues(alpha: 0.03),
                                   blurRadius: 4,
                                   offset: const Offset(0, 2),
                                 ),
@@ -1350,7 +1321,7 @@ class _AddClassesCategoriesScreenState
                                       Container(
                                         padding: EdgeInsets.all(8),
                                         decoration: BoxDecoration(
-                                          color: primaryColor.withOpacity(0.1),
+                                          color: primaryColor.withValues(alpha: 0.1),
                                           borderRadius: BorderRadius.circular(
                                             6,
                                           ),
@@ -1383,7 +1354,7 @@ class _AddClassesCategoriesScreenState
                                               style: AppTextStyle.eTextStyle
                                                   .copyWith(
                                                     color: blackColor
-                                                        .withOpacity(0.5),
+                                                        .withValues(alpha: 0.5),
                                                     fontSize: 12,
                                                   ),
                                             ),

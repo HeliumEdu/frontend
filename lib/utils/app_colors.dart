@@ -71,3 +71,8 @@ Color parseColor(String hex) {
   }
   return Color(int.parse('ff$h', radix: 16));
 }
+
+String colorToHex(Color color) {
+  final value = color.value.toRadixString(16).padLeft(8, '0');
+  return '#${value.substring(2)}';
+}

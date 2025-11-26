@@ -27,6 +27,7 @@ import 'package:helium_mobile/presentation/bloc/materialBloc/material_state.dart
     as material_state;
 import 'package:helium_mobile/presentation/widgets/custom_class_textfield.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
+import 'package:helium_mobile/utils/app_list.dart';
 import 'package:helium_mobile/utils/app_size.dart';
 import 'package:helium_mobile/utils/app_text_style.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -270,7 +271,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                 color: whiteColor,
                 boxShadow: [
                   BoxShadow(
-                    color: blackColor.withOpacity(0.05),
+                    color: blackColor.withValues(alpha: 0.05),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -322,15 +323,15 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                       child: DropdownButton<int>(
                         icon: Icon(
                           Icons.keyboard_arrow_down,
-                          color: blackColor.withOpacity(0.6),
+                          color: blackColor.withValues(alpha: 0.6),
                         ),
                         dropdownColor: whiteColor,
                         isExpanded: true,
                         underline: SizedBox(),
                         hint: Text(
-                          "Loading groups ...",
+                          'Loading groups ...',
                           style: AppTextStyle.eTextStyle.copyWith(
-                            color: blackColor.withOpacity(0.5),
+                            color: blackColor.withValues(alpha: 0.5),
                           ),
                         ),
                         value: _selectedGroup?.id,
@@ -346,7 +347,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                       child: Text(
                                         group.title,
                                         style: AppTextStyle.eTextStyle.copyWith(
-                                          color: blackColor.withOpacity(0.8),
+                                          color: blackColor.withValues(alpha: 0.8),
                                         ),
                                       ),
                                     ),
@@ -397,12 +398,12 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                       vertical: 8.v,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: primaryColor.withOpacity(0.1),
+                                      color: primaryColor.withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(
                                         6.adaptSize,
                                       ),
                                       border: Border.all(
-                                        color: primaryColor.withOpacity(0.3),
+                                        color: primaryColor.withValues(alpha: 0.3),
                                         width: 1,
                                       ),
                                     ),
@@ -487,7 +488,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                     ? 'No materials found'
                                     : 'No materials found in this group',
                                 style: AppTextStyle.bTextStyle.copyWith(
-                                  color: textColor.withOpacity(0.5),
+                                  color: textColor.withValues(alpha: 0.5),
                                 ),
                               ),
                             ),
@@ -508,12 +509,12 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                   12.adaptSize,
                                 ),
                                 border: Border.all(
-                                  color: blackColor.withOpacity(0.08),
+                                  color: blackColor.withValues(alpha: 0.08),
                                   width: 1,
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: blackColor.withOpacity(0.04),
+                                    color: blackColor.withValues(alpha: 0.04),
                                     blurRadius: 8,
                                     offset: const Offset(0, 2),
                                   ),
@@ -566,7 +567,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                         child: Container(
                                           padding: EdgeInsets.all(6.adaptSize),
                                           decoration: BoxDecoration(
-                                            color: primaryColor.withOpacity(
+                                            color: primaryColor.withValues(alpha: 
                                               0.1,
                                             ),
                                             borderRadius: BorderRadius.circular(
@@ -591,7 +592,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                         child: Container(
                                           padding: EdgeInsets.all(6.adaptSize),
                                           decoration: BoxDecoration(
-                                            color: redColor.withOpacity(0.1),
+                                            color: redColor.withValues(alpha: 0.1),
                                             borderRadius: BorderRadius.circular(
                                               6.adaptSize,
                                             ),
@@ -611,66 +612,65 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                   // Status and Price Row
                                   Row(
                                     children: [
-                                      if (material.status != null) ...[
-                                        Container(
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 10.h,
-                                            vertical: 4.v,
+                                      ...[
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 10.h,
+                                          vertical: 4.v,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: greenColor.withValues(alpha: 0.1),
+                                          borderRadius: BorderRadius.circular(
+                                            6.adaptSize,
                                           ),
-                                          decoration: BoxDecoration(
-                                            color: greenColor.withOpacity(0.1),
-                                            borderRadius: BorderRadius.circular(
-                                              6.adaptSize,
+                                          border: Border.all(
+                                            color: greenColor.withValues(alpha:
+                                              0.2,
                                             ),
-                                            border: Border.all(
-                                              color: greenColor.withOpacity(
-                                                0.2,
-                                              ),
-                                              width: 1,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            material.statusDisplay,
-                                            style: AppTextStyle.cTextStyle
-                                                .copyWith(
-                                                  color: greenColor,
-                                                  fontWeight: FontWeight.w600,
-                                                  fontSize: 11,
-                                                ),
+                                            width: 1,
                                           ),
                                         ),
-                                        SizedBox(width: 8.h),
-                                      ],
-                                      if (material.condition != null)
-                                        Container(
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 10.h,
-                                            vertical: 4.v,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: primaryColor.withOpacity(
-                                              0.1,
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                              6.adaptSize,
-                                            ),
-                                            border: Border.all(
-                                              color: primaryColor.withOpacity(
-                                                0.2,
+                                        child: Text(
+                                          materialStatus[material.status],
+                                          style: AppTextStyle.cTextStyle
+                                              .copyWith(
+                                                color: greenColor,
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 11,
                                               ),
-                                              width: 1,
-                                            ),
+                                        ),
+                                      ),
+                                      SizedBox(width: 8.h),
+                                    ],
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 10.h,
+                                          vertical: 4.v,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: primaryColor.withValues(alpha:
+                                            0.1,
                                           ),
-                                          child: Text(
-                                            material.conditionDisplay,
-                                            style: AppTextStyle.cTextStyle
-                                                .copyWith(
-                                                  color: primaryColor,
-                                                  fontWeight: FontWeight.w600,
-                                                  fontSize: 11,
-                                                ),
+                                          borderRadius: BorderRadius.circular(
+                                            6.adaptSize,
+                                          ),
+                                          border: Border.all(
+                                            color: primaryColor.withValues(alpha:
+                                              0.2,
+                                            ),
+                                            width: 1,
                                           ),
                                         ),
+                                        child: Text(
+                                          materialCondition[material.condition],
+                                          style: AppTextStyle.cTextStyle
+                                              .copyWith(
+                                                color: primaryColor,
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 11,
+                                              ),
+                                        ),
+                                      ),
                                       Spacer(),
                                       if (material.price != null &&
                                           material.price!.isNotEmpty) ...[
@@ -715,7 +715,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
 
                                         return Container(
                                           decoration: BoxDecoration(
-                                            color: courseColor.withOpacity(0.1),
+                                            color: courseColor.withValues(alpha: 0.1),
                                             borderRadius: BorderRadius.circular(
                                               4.adaptSize,
                                             ),
@@ -744,7 +744,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                           .replaceAll(RegExp(r'<[^>]*>'), '')
                                           .trim(),
                                       style: AppTextStyle.cTextStyle.copyWith(
-                                        color: textColor.withOpacity(0.6),
+                                        color: textColor.withValues(alpha: 0.6),
                                         fontSize: 12,
                                       ),
                                       maxLines: 2,
@@ -795,7 +795,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: primaryColor.withOpacity(0.4),
+              color: primaryColor.withValues(alpha: 0.4),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -921,10 +921,10 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                               vertical: 10.v,
                             ),
                             decoration: BoxDecoration(
-                              color: redColor.withOpacity(0.1),
+                              color: redColor.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8.adaptSize),
                               border: Border.all(
-                                color: redColor.withOpacity(0.3),
+                                color: redColor.withValues(alpha: 0.3),
                                 width: 1,
                               ),
                             ),
@@ -965,7 +965,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                         Text(
                           'Title',
                           style: AppTextStyle.cTextStyle.copyWith(
-                            color: blackColor.withOpacity(0.8),
+                            color: blackColor.withValues(alpha: 0.8),
                           ),
                         ),
                         SizedBox(height: 9.v),

@@ -93,7 +93,7 @@ class HomeworkResponseModel {
       return '';
     }
     try {
-      final split = currentGrade!.split("/");
+      final split = currentGrade!.split('/');
       final grade = (double.parse(split[0]) / double.parse(split[1])) * 100;
       return '${grade.toStringAsFixed(2)}%';
     } catch (e) {

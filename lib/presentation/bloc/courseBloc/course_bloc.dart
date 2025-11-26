@@ -7,11 +7,10 @@
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:helium_mobile/core/app_exception.dart';
+import 'package:helium_mobile/data/models/planner/course_schedule_request_model.dart';
 import 'package:helium_mobile/domain/repositories/course_repository.dart';
 import 'package:helium_mobile/presentation/bloc/courseBloc/course_event.dart';
 import 'package:helium_mobile/presentation/bloc/courseBloc/course_state.dart';
-
-import '../../../data/models/planner/course_schedule_request_model.dart';
 
 class CourseBloc extends Bloc<CourseEvent, CourseState> {
   final CourseRepository courseRepository;
