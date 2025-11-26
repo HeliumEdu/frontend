@@ -6,6 +6,8 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:helium_mobile/utils/app_list.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -23,24 +25,16 @@ class SignUpController {
   bool isConfirmPasswordVisible = false;
   bool isLoading = false;
   bool agreeToTerms = false;
-  String selectedTimezone = 'America/Chicago';
+  String selectedTimezone = 'Etc/UTC';
 
   // Populated from tz database
   List<String> timezones = [];
 
   // Initialize tz database and load timezone IDs
-  void initializeTimezones() {
-    // Safe to call multiple times; it no-ops after first
-    tzdata.initializeTimeZones();
-    final allLocations = tz.timeZoneDatabase.locations.keys;
-    // Keep only region/zone style IDs and sort alphabetically
-    timezones = allLocations.where((id) => id.contains('/')).toList()
-      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+  Future<void> initializeTimezones() async {
+    timezones = populateTimeZones();
 
-    if (!timezones.contains(selectedTimezone)) {
-      // Fallback to UTC if default isn't present
-      selectedTimezone = 'UTC';
-    }
+    selectedTimezone = (await FlutterTimezone.getLocalTimezone()).identifier;
   }
 
   // Validation methods
@@ -168,7 +162,7 @@ class SignUpController {
     passwordController.clear();
     confirmPasswordController.clear();
     agreeToTerms = false;
-    selectedTimezone = 'America/Chicago';
+    selectedTimezone = 'Etc/UTC';
   }
 
   // Dispose controllers

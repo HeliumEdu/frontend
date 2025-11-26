@@ -73,7 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String _currentViewMode = 'Day';
   int _selectedWeekIndex = 0; // For week view selection
   Color _eventsColor = greenColor;
-  String _timeZone = 'America/Chicago';
+  String _timeZone = 'Etc/UTC';
   List<ExternalCalendarModel> _externalCalendars = [];
   Map<int, List<ExternalCalendarEventModel>> _externalEventsByCalendar = {};
 

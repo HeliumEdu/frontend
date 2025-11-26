@@ -64,6 +64,8 @@ extension PluralExtension on int {
 
 List<String> populateTimeZones() {
   final allLocations = tz.timeZoneDatabase.locations.keys;
-  return allLocations.where((id) => id.contains('/')).toList()
+  final allTimeZones = allLocations.where((id) => id.contains('/')).toList();
+  allTimeZones.add('Etc/UTC');
+  return allTimeZones
     ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
 }

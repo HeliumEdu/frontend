@@ -153,7 +153,7 @@ class _PreferenceViewState extends State<PreferenceView> {
               }
               if (!timeZones.contains(selectedTimezone)) {
                 // Fallback to UTC if default isn't present
-                selectedTimezone = 'UTC';
+                selectedTimezone = 'Etc/UTC';
               }
               if (state.reminderOffsetUnit != null) {
                 selectedReminderOffsetUnit = state.reminderOffsetUnit;
@@ -556,7 +556,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                               buttonText: 'Save',
                               isLoading: isSubmitting,
                               onPressed: () {
-                                final tz = selectedTimezone ?? 'UTC';
+                                final tz = selectedTimezone ?? 'Etc/UTC';
                                 final viewIndex = selectedDefaultView == null
                                     ? 0
                                     : mobileViews.indexOf(selectedDefaultView!);

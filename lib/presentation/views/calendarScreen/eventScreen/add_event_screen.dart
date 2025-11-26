@@ -39,7 +39,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
   final TextEditingController _detailsController = TextEditingController();
   bool isAllDay = false;
   bool isShowEndDateTime = false;
-  String _timeZone = 'America/Chicago';
+  String _timeZone = 'Etc/UTC';
   DateTime? _startDate;
   DateTime? _endDate;
   TimeOfDay? _startTime;

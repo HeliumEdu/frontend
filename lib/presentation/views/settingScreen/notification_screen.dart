@@ -36,7 +36,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
   bool _isLoading = false;
   Set<String> _readNotificationIds = <String>{};
   bool _isDeleting = false;
-  String _timeZone = 'America/Chicago';
+  String _timeZone = 'Etc/UTC';
 
   String _typeKey(int type) => type == 0 ? 'popup' : 'email';
 

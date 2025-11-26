@@ -116,7 +116,7 @@ class UserSettings {
 
   factory UserSettings.fromJson(Map<String, dynamic> json) {
     return UserSettings(
-      timeZone: json['time_zone'] ?? 'UTC',
+      timeZone: json['time_zone'] ?? 'Etc/UTC',
       defaultView: json['default_view'] ?? 0,
       weekStartsOn: json['week_starts_on'] ?? 0,
       allDayOffset: json['all_day_offset'] ?? 0,

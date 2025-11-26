@@ -70,7 +70,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
   int? courseId;
   int? selectedCourseId;
   int? selectedCategoryId;
-  String _timeZone = 'America/Chicago';
+  String _timeZone = 'Etc/UTC';
   List<int> selectedMaterialIds = [];
   bool isAllDay = false;
   bool isCompleted = false;
