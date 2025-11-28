@@ -464,8 +464,15 @@ function Helium() {
 
         $($($("#reminder-bell-count").parent()).parent()).append(list_item);
 
-        if (show_alert) {
+        if (!reminder.sent && show_alert) {
             alert(msg_body.text() + " on" + msg_time.text());
+        }
+        if (!reminder.sent) {
+            const put_data = {
+                'sent': true
+            };
+            helium.planner_api.edit_reminder(function () {
+            }, reminder.id, put_data, true, true);
         }
     };
 

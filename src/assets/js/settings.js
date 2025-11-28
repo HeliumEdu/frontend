@@ -707,7 +707,7 @@ function HeliumSettings() {
                    success: function () {
                        helium.planner_api.process_reminders(false);
                        
-                       helium.planner_api.update_user_details(function () {
+                       helium.planner_api.update_user_details(function (data) {
                            $("#status_importexport").html("\"Example Schedule\" imported successfully.").addClass("alert-success")
                                .removeClass("hidden alert-danger");
 
