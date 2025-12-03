@@ -246,7 +246,7 @@ class _SignInScreenViewState extends State<SignInScreenView> {
                               decorationColor: primaryColor,
                               color: primaryColor,
                             ),
-                          )
+                          ),
                         ],
                       ),
                     ),

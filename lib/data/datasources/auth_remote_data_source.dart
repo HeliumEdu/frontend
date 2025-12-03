@@ -9,7 +9,6 @@ import 'package:dio/dio.dart';
 import 'package:helium_mobile/core/app_exception.dart';
 import 'package:helium_mobile/core/dio_client.dart';
 import 'package:helium_mobile/core/fcm_service.dart';
-import 'package:helium_mobile/core/jwt_utils.dart';
 import 'package:helium_mobile/core/network_urls.dart';
 import 'package:helium_mobile/data/models/auth/change_password_request_model.dart';
 import 'package:helium_mobile/data/models/auth/change_password_response_model.dart';
@@ -39,7 +38,7 @@ abstract class AuthRemoteDataSource {
 
   Future<void> logout();
 
-  Future<void> blacklistToken(String refreshToken);
+  Future<void> blacklistRefreshToken(String refreshToken);
 
   Future<UserProfileModel> getProfile();
 
@@ -96,43 +95,26 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         data: request.toJson(),
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
+      if (response.statusCode == 200) {
+        print('📦 Login Response: ${response.data}');
+
+        await dioClient.saveTokens(
+          response.data['access'],
+          response.data['refresh'],
+        );
+
+        final userProfile = await getProfile();
+        await dioClient.saveSettings(userProfile.settings!);
+
         final loginResponse = LoginResponseModel.fromJson(response.data);
 
-        print('📦 Login Response: ${response.data}');
-        print('🔑 Access Token extracted: ${loginResponse.token}');
-
-        if (loginResponse.token.isNotEmpty) {
-          await dioClient.saveToken(loginResponse.token);
-
-          // Save refresh token if available
-          if (loginResponse.refreshToken != null &&
-              loginResponse.refreshToken!.isNotEmpty) {
-            await dioClient.saveRefreshToken(loginResponse.refreshToken!);
-            print('🔄 Refresh Token saved');
-          } else {
-            print('⚠️ No refresh token found in response');
-          }
-
-          // Extract and save user ID from JWT token for push notifications
-          final userId = JWTUtils.getUserId(loginResponse.token);
-          if (userId != null) {
-            await dioClient.saveUserId(userId);
-            print('👤 User ID extracted and saved: $userId');
-
-            // Register FCM token with HeliumEdu API after successful login
-            try {
-              final fcmService = FCMService();
-              await fcmService.registerTokenWithHeliumEdu(force: true);
-              print('✅ FCM token registered after login');
-            } catch (e) {
-              print('❌ Failed to register FCM token after login: $e');
-            }
-          } else {
-            print('⚠️ Could not extract user ID from JWT token during login');
-          }
-        } else {
-          print(' Token is empty!');
+        // Register FCM token with HeliumEdu API after successful login
+        try {
+          final fcmService = FCMService();
+          await fcmService.registerTokenWithHeliumEdu(force: true);
+          print('✅ FCM token registered after login');
+        } catch (e) {
+          print('❌ Failed to register FCM token after login: $e');
         }
 
         return loginResponse;
@@ -170,30 +152,28 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         );
 
         if (refreshResponse.access.isNotEmpty) {
-          // Save BOTH new access token AND new refresh token
           await dioClient.saveTokens(
             refreshResponse.access,
             refreshResponse.refresh,
           );
-          print('🔄 Refresh token also saved');
 
           // Extract and save user ID from JWT token
-          final userId = JWTUtils.getUserId(refreshResponse.access);
-          if (userId != null) {
-            await dioClient.saveUserId(userId);
-            print('👤 User ID extracted and saved: $userId');
-
-            // Register FCM token with HeliumEdu API after token refresh
-            try {
-              final fcmService = FCMService();
-              await fcmService.registerTokenWithHeliumEdu(force: true);
-              print('✅ FCM token registered after token refresh');
-            } catch (e) {
-              print('❌ Failed to register FCM token after token refresh: $e');
-            }
-          } else {
-            print('⚠️ Could not extract user ID from JWT token');
-          }
+          // final userId = JWTUtils.getUserId(refreshResponse.access);
+          // if (userId != null) {
+          //   await dioClient.saveUserData(userId);
+          //   print('👤 User ID extracted and saved: $userId');
+          //
+          //   // Register FCM token with HeliumEdu API after token refresh
+          //   try {
+          //     final fcmService = FCMService();
+          //     await fcmService.registerTokenWithHeliumEdu(force: true);
+          //     print('✅ FCM token registered after token refresh');
+          //   } catch (e) {
+          //     print('❌ Failed to register FCM token after token refresh: $e');
+          //   }
+          // } else {
+          //   print('⚠️ Could not extract user ID from JWT token');
+          // }
         } else {
           print('❌ New access token is empty!');
         }
@@ -219,12 +199,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final refreshToken = await dioClient.getRefreshToken();
 
       // Clear tokens locally first
-      await dioClient.clearToken();
+      await dioClient.clearTokens();
 
       // If we have a refresh token, blacklist it on the server
       if (refreshToken != null && refreshToken.isNotEmpty) {
         try {
-          await blacklistToken(refreshToken);
+          await blacklistRefreshToken(refreshToken);
         } catch (e) {
           // If blacklisting fails, we still want to logout locally
           print('⚠️ Failed to blacklist token on server: $e');
@@ -232,13 +212,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
     } catch (e) {
       // Even if something fails, always clear the token
-      await dioClient.clearToken();
+      await dioClient.clearTokens();
       throw AppException(message: 'Logout error: $e');
     }
   }
 
   @override
-  Future<void> blacklistToken(String refreshToken) async {
+  Future<void> blacklistRefreshToken(String refreshToken) async {
     try {
       final response = await dioClient.dio.post(
         NetworkUrl.blacklistTokenUrl,
@@ -263,7 +243,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<UserProfileModel> getProfile() async {
     try {
-      final response = await dioClient.dio.get(NetworkUrl.getProfileUrl);
+      final response = await dioClient.dio.get(NetworkUrl.getUserUrl);
 
       if (response.statusCode == 200) {
         return UserProfileModel.fromJson(response.data);
@@ -292,7 +272,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       if (response.statusCode == 200 || response.statusCode == 204) {
         // After successful deletion, clear the token
-        await dioClient.clearToken();
+        await dioClient.clearTokens();
 
         // Handle both response with body and no content (204)
         if (response.statusCode == 204 || response.data == null) {
@@ -351,7 +331,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       );
 
       if (response.statusCode == 200) {
-        return UpdateSettingsResponseModel.fromJson(response.data);
+        final responseModel = UpdateSettingsResponseModel.fromJson(
+          response.data,
+        );
+
+        await dioClient.saveSettings(responseModel.settings);
+
+        return responseModel;
       } else {
         throw ServerException(
           message: 'Failed to update user settings',

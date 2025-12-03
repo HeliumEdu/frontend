@@ -4,7 +4,7 @@ class NetworkUrl {
   static const signInUrl = '/auth/token/';
   static const refreshTokenUrl = '/auth/token/refresh/';
   static const blacklistTokenUrl = '/auth/token/blacklist/';
-  static const getProfileUrl = '/auth/user/';
+  static const getUserUrl = '/auth/user/';
   static const deleteAccountUrl = '/auth/user/delete/';
   static const pushTokenUrl = '/auth/user/pushtoken/';
   static const allCategoriesUrl = '/planner/categories/';
@@ -55,8 +55,8 @@ class NetworkUrl {
   static const externalCalendarsUrl = '/feed/externalcalendars/';
   static String externalCalendarDetailUrl(int calendarId) =>
       '/feed/externalcalendars/$calendarId/';
-  static String externalCalendarEventsUrl(int calendarId) =>
-      '/feed/externalcalendars/$calendarId/events/';
+  static String allExternalCalendarEventsUrl =
+      '/feed/externalcalendars/events/';
   // Private Feed URLs
   static const enablePrivateFeedsUrl = '/feed/private/enable/';
   static const disablePrivateFeedsUrl = '/feed/private/disable/';

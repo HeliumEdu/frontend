@@ -10,11 +10,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:helium_mobile/config/app_routes.dart';
 import 'package:helium_mobile/core/dio_client.dart';
-import 'package:helium_mobile/data/datasources/auth_remote_data_source.dart';
 import 'package:helium_mobile/data/datasources/event_remote_data_source.dart';
+import 'package:helium_mobile/data/models/auth/user_profile_model.dart';
 import 'package:helium_mobile/data/models/planner/event_request_model.dart';
 import 'package:helium_mobile/data/models/planner/event_response_model.dart';
-import 'package:helium_mobile/data/repositories/auth_repository_impl.dart';
 import 'package:helium_mobile/data/repositories/event_repository_impl.dart';
 import 'package:helium_mobile/presentation/bloc/eventBloc/event_bloc.dart';
 import 'package:helium_mobile/presentation/widgets/custom_class_textfield.dart';
@@ -23,8 +22,6 @@ import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_size.dart';
 import 'package:helium_mobile/utils/app_text_style.dart';
 import 'package:helium_mobile/utils/formatting.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:timezone/timezone.dart' as tz;
 
 class AddEventScreen extends StatefulWidget {
   const AddEventScreen({super.key});
@@ -34,12 +31,14 @@ class AddEventScreen extends StatefulWidget {
 }
 
 class _AddEventScreenState extends State<AddEventScreen> {
+  final DioClient _dioClient = DioClient();
+  late UserSettings _userSettings;
+
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _urlController = TextEditingController();
   final TextEditingController _detailsController = TextEditingController();
   bool isAllDay = false;
   bool isShowEndDateTime = false;
-  String _timeZone = 'Etc/UTC';
   DateTime? _startDate;
   DateTime? _endDate;
   TimeOfDay? _startTime;
@@ -48,41 +47,19 @@ class _AddEventScreenState extends State<AddEventScreen> {
 
   bool isEditMode = false;
   int? eventId;
-  bool isLoadingEvent = false;
+  bool isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _loadTimeZone();
+    loadSettings();
   }
 
-  Future<void> _loadTimeZone() async {
-    final prefs = await SharedPreferences.getInstance();
-    String? timeZone = prefs.getString('user_time_zone');
-
-    if (timeZone == null || timeZone.isEmpty) {
-      try {
-        final dioClient = DioClient();
-        final authRepository = AuthRepositoryImpl(
-          remoteDataSource: AuthRemoteDataSourceImpl(dioClient: dioClient),
-        );
-        final profile = await authRepository.getProfile();
-        final timeZone = profile.settings?.timeZone;
-        if (timeZone != null && timeZone.trim().isNotEmpty) {
-          await prefs.setString('user_time_zone', timeZone);
-        }
-      } catch (e) {
-        print('⚠️ Failed to load time zone from profile: $e');
-      }
-
-      if (timeZone == null || timeZone.isEmpty) return;
-
-      if (mounted && timeZone != _timeZone) {
-        setState(() {
-          _timeZone = timeZone;
-        });
-      }
-    }
+  Future<void> loadSettings() async {
+    final awaitedSettings = await _dioClient.getSettings();
+    setState(() {
+      _userSettings = awaitedSettings;
+    });
   }
 
   @override
@@ -92,11 +69,9 @@ class _AddEventScreenState extends State<AddEventScreen> {
     final args =
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     if (args != null && args['isEditMode'] == true && args['eventId'] != null) {
-      if (!isEditMode) {
-        isEditMode = true;
-        eventId = args['eventId'];
-        _fetchEventData();
-      }
+      isEditMode = true;
+      eventId = args['eventId'];
+      _fetchEventData();
     }
   }
 
@@ -106,7 +81,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
     if (eventId == null) return;
 
     setState(() {
-      isLoadingEvent = true;
+      isLoading = true;
     });
 
     try {
@@ -138,7 +113,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
     } finally {
       if (mounted) {
         setState(() {
-          isLoadingEvent = false;
+          isLoading = false;
         });
       }
     }
@@ -159,12 +134,8 @@ class _AddEventScreenState extends State<AddEventScreen> {
       _priorityValue = event.priority.toDouble();
 
       // Parse and set start date/time
-      final timeZone = tz.getLocation(_timeZone);
       try {
-        final startDateTime = tz.TZDateTime.from(
-          DateTime.parse(event.start),
-          timeZone,
-        );
+        final startDateTime = parseDateTime(event.start, _userSettings.timeZone);
         _startDate = startDateTime;
         if (!event.allDay) {
           _startTime = TimeOfDay.fromDateTime(startDateTime);
@@ -176,10 +147,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
       // Parse and set end date/time
       if (event.end != null && event.end!.isNotEmpty) {
         try {
-          final endDateTime = tz.TZDateTime.from(
-            DateTime.parse(event.end!),
-            timeZone,
-          );
+          final endDateTime = parseDateTime(event.end!, _userSettings.timeZone);
           _endDate = endDateTime;
           if (!event.allDay) {
             _endTime = TimeOfDay.fromDateTime(endDateTime);
@@ -292,7 +260,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
     final startDateTime = formatDateTimeToApi(
       _startDate!,
       isAllDay ? null : _startTime,
-      _timeZone,
+      _userSettings.timeZone,
     );
 
     // Build end date/time: API requires non-null; default to start when not provided
@@ -301,7 +269,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
       endDateTime = formatDateTimeToApi(
         _endDate!,
         isAllDay ? null : _endTime,
-        _timeZone,
+        _userSettings.timeZone,
       );
     } else {
       endDateTime = startDateTime;
@@ -398,7 +366,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
     final startDateTime = formatDateTimeToApi(
       _startDate!,
       isAllDay ? null : _startTime,
-      _timeZone,
+      _userSettings.timeZone,
     );
 
     // Build end date/time: API requires non-null; default to start when not provided
@@ -407,7 +375,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
       endDateTime = formatDateTimeToApi(
         _endDate!,
         isAllDay ? null : _endTime,
-        _timeZone,
+        _userSettings.timeZone,
       );
     } else {
       endDateTime = startDateTime;
@@ -548,7 +516,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
                 ),
               ),
               Expanded(
-                child: isLoadingEvent
+                child: isLoading
                     ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -591,7 +559,9 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: blackColor.withValues(alpha: 0.06),
+                                        color: blackColor.withValues(
+                                          alpha: 0.06,
+                                        ),
                                         blurRadius: 12,
                                         offset: Offset(0, 4),
                                         spreadRadius: 0,
@@ -605,8 +575,8 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                       lineThickness: 3,
                                       lineSpace: 4,
                                       lineType: LineType.normal,
-                                      defaultLineColor: greyColor.withValues(alpha: 
-                                        0.3,
+                                      defaultLineColor: greyColor.withValues(
+                                        alpha: 0.3,
                                       ),
                                       finishedLineColor: accentColor,
                                       activeLineColor: accentColor,
@@ -651,7 +621,9 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                         customStep: Container(
                                           decoration: BoxDecoration(
                                             shape: BoxShape.circle,
-                                            color: accentColor.withValues(alpha: 0.1),
+                                            color: accentColor.withValues(
+                                              alpha: 0.1,
+                                            ),
                                             border: Border.all(
                                               color: accentColor,
                                               width: 2,
@@ -684,7 +656,9 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                         customStep: Container(
                                           decoration: BoxDecoration(
                                             shape: BoxShape.circle,
-                                            color: accentColor.withValues(alpha: 0.1),
+                                            color: accentColor.withValues(
+                                              alpha: 0.1,
+                                            ),
                                             border: Border.all(
                                               color: accentColor,
                                               width: 2,
@@ -818,8 +792,8 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                             'Start Date',
                                             style: AppTextStyle.eTextStyle
                                                 .copyWith(
-                                                  color: blackColor.withValues(alpha: 
-                                                    0.8,
+                                                  color: blackColor.withValues(
+                                                    alpha: 0.8,
                                                   ),
                                                   fontWeight: FontWeight.w500,
                                                 ),
@@ -837,8 +811,8 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                                 borderRadius:
                                                     BorderRadius.circular(6),
                                                 border: Border.all(
-                                                  color: blackColor.withValues(alpha: 
-                                                    0.15,
+                                                  color: blackColor.withValues(
+                                                    alpha: 0.15,
                                                   ),
                                                 ),
                                                 color: whiteColor,
@@ -861,8 +835,9 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                                               _startDate != null
                                                               ? blackColor
                                                               : blackColor
-                                                                    .withValues(alpha: 
-                                                                      0.5,
+                                                                    .withValues(
+                                                                      alpha:
+                                                                          0.5,
                                                                     ),
                                                         ),
                                                   ),
@@ -888,8 +863,8 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                             'End Date',
                                             style: AppTextStyle.eTextStyle
                                                 .copyWith(
-                                                  color: blackColor.withValues(alpha: 
-                                                    0.8,
+                                                  color: blackColor.withValues(
+                                                    alpha: 0.8,
                                                   ),
                                                   fontWeight: FontWeight.w500,
                                                 ),
@@ -907,8 +882,8 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                                 borderRadius:
                                                     BorderRadius.circular(6),
                                                 border: Border.all(
-                                                  color: blackColor.withValues(alpha: 
-                                                    0.15,
+                                                  color: blackColor.withValues(
+                                                    alpha: 0.15,
                                                   ),
                                                 ),
                                                 color: whiteColor,
@@ -931,8 +906,9 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                                               _endDate != null
                                                               ? blackColor
                                                               : blackColor
-                                                                    .withValues(alpha: 
-                                                                      0.5,
+                                                                    .withValues(
+                                                                      alpha:
+                                                                          0.5,
                                                                     ),
                                                         ),
                                                   ),
@@ -969,7 +945,9 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(6),
                                       border: Border.all(
-                                        color: blackColor.withValues(alpha: 0.15),
+                                        color: blackColor.withValues(
+                                          alpha: 0.15,
+                                        ),
                                       ),
                                       color: whiteColor,
                                     ),
@@ -987,8 +965,8 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                               .copyWith(
                                                 color: _startDate != null
                                                     ? blackColor
-                                                    : blackColor.withValues(alpha: 
-                                                        0.5,
+                                                    : blackColor.withValues(
+                                                        alpha: 0.5,
                                                       ),
                                               ),
                                         ),
@@ -1016,8 +994,8 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                             '',
                                             style: AppTextStyle.eTextStyle
                                                 .copyWith(
-                                                  color: blackColor.withValues(alpha: 
-                                                    0.8,
+                                                  color: blackColor.withValues(
+                                                    alpha: 0.8,
                                                   ),
                                                   fontWeight: FontWeight.w500,
                                                 ),
@@ -1035,8 +1013,8 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                                 borderRadius:
                                                     BorderRadius.circular(6),
                                                 border: Border.all(
-                                                  color: blackColor.withValues(alpha: 
-                                                    0.15,
+                                                  color: blackColor.withValues(
+                                                    alpha: 0.15,
                                                   ),
                                                 ),
                                                 color: whiteColor,
@@ -1059,8 +1037,9 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                                               _startTime != null
                                                               ? blackColor
                                                               : blackColor
-                                                                    .withValues(alpha: 
-                                                                      0.5,
+                                                                    .withValues(
+                                                                      alpha:
+                                                                          0.5,
                                                                     ),
                                                         ),
                                                   ),
@@ -1106,7 +1085,9 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                                       BorderRadius.circular(6),
                                                   border: Border.all(
                                                     color: blackColor
-                                                        .withValues(alpha: 0.15),
+                                                        .withValues(
+                                                          alpha: 0.15,
+                                                        ),
                                                   ),
                                                   color: whiteColor,
                                                 ),
@@ -1117,7 +1098,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                                   children: [
                                                     Text(
                                                       _endTime != null
-                                                          ? formatTimeForApi(
+                                                          ? formatTimeForDisplay(
                                                               _endTime!,
                                                             )
                                                           : 'End Time',
@@ -1128,8 +1109,9 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                                                 _endTime != null
                                                                 ? blackColor
                                                                 : blackColor
-                                                                      .withValues(alpha: 
-                                                                        0.5,
+                                                                      .withValues(
+                                                                        alpha:
+                                                                            0.5,
                                                                       ),
                                                           ),
                                                     ),
@@ -1187,8 +1169,8 @@ class _AddEventScreenState extends State<AddEventScreen> {
                                   activeTrackColor: _getColorForPriority(
                                     _priorityValue,
                                   ),
-                                  inactiveTrackColor: greyColor.withValues(alpha: 
-                                    0.3,
+                                  inactiveTrackColor: greyColor.withValues(
+                                    alpha: 0.3,
                                   ),
                                   thumbColor: _getColorForPriority(
                                     _priorityValue,

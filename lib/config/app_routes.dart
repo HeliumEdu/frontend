@@ -8,18 +8,14 @@ import 'package:helium_mobile/presentation/views/authScreen/forgotPassword/forgo
 import 'package:helium_mobile/presentation/views/authScreen/signInScreen/sign_in_screen.dart';
 import 'package:helium_mobile/presentation/views/authScreen/signupScreen/sign_up_screen.dart';
 import 'package:helium_mobile/presentation/views/bottomNavBar/bottom_nav_bar_screen.dart';
-import 'package:helium_mobile/presentation/views/classesScreen/add_classes_screen.dart';
-import 'package:helium_mobile/presentation/views/classesScreen/add_classes_categories_screen.dart';
-import 'package:helium_mobile/presentation/views/classesScreen/classes_screen.dart';
-import 'package:helium_mobile/presentation/views/classesScreen/add_classes_schedule_screen.dart';
-import 'package:helium_mobile/presentation/views/gradeScreen/grades_screen.dart';
 import 'package:helium_mobile/presentation/views/calendarScreen/assignmentScreen/add_assignment_screen.dart';
 import 'package:helium_mobile/presentation/views/calendarScreen/assignmentScreen/assignment_reminder_screen.dart';
 import 'package:helium_mobile/presentation/views/calendarScreen/eventScreen/add_event_screen.dart';
 import 'package:helium_mobile/presentation/views/calendarScreen/eventScreen/event_reminder_screen.dart';
-import 'package:helium_mobile/presentation/views/calendarScreen/calendar_screen.dart';
+import 'package:helium_mobile/presentation/views/classesScreen/add_classes_categories_screen.dart';
+import 'package:helium_mobile/presentation/views/classesScreen/add_classes_schedule_screen.dart';
+import 'package:helium_mobile/presentation/views/classesScreen/add_classes_screen.dart';
 import 'package:helium_mobile/presentation/views/materialsScreen/add_material_screen.dart';
-import 'package:helium_mobile/presentation/views/materialsScreen/materials_screen.dart';
 import 'package:helium_mobile/presentation/views/settingScreen/change_password_screen.dart';
 import 'package:helium_mobile/presentation/views/settingScreen/external_calendars_settings_screen.dart';
 import 'package:helium_mobile/presentation/views/settingScreen/feeds_settings_screen.dart';
@@ -51,19 +47,18 @@ class AppRoutes {
   static const String assignmentReminderScreen = '/assignmentReminderScreen';
   static const String eventReminderScreen = '/eventReminderScreen';
   static const String feedSettingsScreen = '/feedSettingsScreen';
-  static const String externalCalendarsSettingsScreen = '/externalCalendarsSettingsScreen';
+  static const String externalCalendarsSettingsScreen =
+      '/externalCalendarsSettingsScreen';
   static const String addAssignmentEvent = '/addAssignmentEvent';
 
   static Map<String, WidgetBuilder> getRoutes() {
     return {
+      // Unauthenticated routes
       splashScreen: (context) => const SplashScreen(),
-      calendarScreen: (context) => const HomeScreen(),
-      classesScreen: (context) => const ClassesScreen(),
-      materialsScreen: (context) => MaterialsScreen(),
-      gradesScreen: (context) => const GradesScreen(),
       signInScreen: (context) => const SignInScreen(),
       signUpScreen: (context) => const SignUpScreen(),
-      bottomNavBarScreen: (context) => const BottomNavBarScreen(),
+      // Authenticated routes
+      bottomNavBarScreen: (context) => BottomNavBarScreen(),
       addClassesScreen: (context) {
         final args = ModalRoute.of(context)?.settings.arguments;
 
@@ -155,9 +150,9 @@ class AppRoutes {
 
         return EventReminderScreen(eventRequest: args?['eventRequest']);
       },
-      externalCalendarsSettingsScreen: (context) => const ExternalCalendarsSettingsScreen(),
+      externalCalendarsSettingsScreen: (context) =>
+          const ExternalCalendarsSettingsScreen(),
       feedSettingsScreen: (context) => const FeedsSettingsScreen(),
-      // notificationTestScreen: (context) => const NotificationTestScreen(),
     };
   }
 }

@@ -6,6 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:equatable/equatable.dart';
+import 'package:helium_mobile/data/models/auth/user_profile_model.dart';
 
 abstract class AuthState extends Equatable {
   const AuthState();
@@ -32,18 +33,14 @@ class AuthRegistrationSuccess extends AuthState {
 }
 
 class AuthLoginSuccess extends AuthState {
-  final String token;
-  final String? username;
-  final String message;
+  final String accessToken;
 
   const AuthLoginSuccess({
-    required this.token,
-    this.username,
-    this.message = 'Login successful',
+    required this.accessToken
   });
 
   @override
-  List<Object?> get props => [token, username, message];
+  List<Object?> get props => [accessToken];
 }
 
 class AuthLogoutSuccess extends AuthState {
@@ -119,16 +116,16 @@ class AuthPasswordChangeSuccess extends AuthState {
 }
 
 class AuthTokenRefreshed extends AuthState {
-  final String token;
+  final String accessToken;
   final String message;
 
   const AuthTokenRefreshed({
-    required this.token,
-    this.message = 'Token refreshed successfully',
+    required this.accessToken,
+    this.message = 'Access token refreshed successfully',
   });
 
   @override
-  List<Object?> get props => [token, message];
+  List<Object?> get props => [accessToken, message];
 }
 
 class AuthAuthenticated extends AuthState {

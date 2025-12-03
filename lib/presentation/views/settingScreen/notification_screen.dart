@@ -9,11 +9,10 @@ import 'package:flutter/material.dart';
 import 'package:helium_mobile/core/app_exception.dart';
 import 'package:helium_mobile/core/dio_client.dart';
 import 'package:helium_mobile/core/fcm_service.dart';
-import 'package:helium_mobile/data/datasources/auth_remote_data_source.dart';
 import 'package:helium_mobile/data/datasources/reminder_remote_data_source.dart';
+import 'package:helium_mobile/data/models/auth/user_profile_model.dart';
 import 'package:helium_mobile/data/models/notification/notification_model.dart';
 import 'package:helium_mobile/data/models/planner/reminder_response_model.dart';
-import 'package:helium_mobile/data/repositories/auth_repository_impl.dart';
 import 'package:helium_mobile/data/repositories/reminder_repository_impl.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_size.dart';
@@ -30,18 +29,20 @@ class NotificationScreen extends StatefulWidget {
 }
 
 class _NotificationScreenState extends State<NotificationScreen> {
+  final DioClient _dioClient = DioClient();
+  late UserSettings _userSettings;
+
   final FCMService _fcmService = FCMService();
   List<NotificationModel> _notifications = [];
   final DateFormat _dateFormatter = DateFormat('EEE, MMM d • h:mm a');
   bool _isLoading = false;
   Set<String> _readNotificationIds = <String>{};
   bool _isDeleting = false;
-  String _timeZone = 'Etc/UTC';
 
   String _typeKey(int type) => type == 0 ? 'popup' : 'email';
 
   NotificationModel _mapReminderToNotification(ReminderResponseModel reminder) {
-    final scheduledAt = parseDateTime(reminder.startOfRange, _timeZone);
+    final scheduledAt = parseDateTime(reminder.startOfRange, _userSettings.timeZone);
 
     final String title;
     final Color? color;
@@ -75,37 +76,15 @@ class _NotificationScreenState extends State<NotificationScreen> {
   @override
   void initState() {
     super.initState();
+    loadSettings();
     _loadNotifications();
-    _loadTimeZone();
   }
 
-  Future<void> _loadTimeZone() async {
-    final prefs = await SharedPreferences.getInstance();
-    String? timeZone = prefs.getString('user_time_zone');
-
-    if (timeZone == null || timeZone.isEmpty) {
-      try {
-        final dioClient = DioClient();
-        final authRepository = AuthRepositoryImpl(
-          remoteDataSource: AuthRemoteDataSourceImpl(dioClient: dioClient),
-        );
-        final profile = await authRepository.getProfile();
-        final timeZone = profile.settings?.timeZone;
-        if (timeZone != null && timeZone.trim().isNotEmpty) {
-          await prefs.setString('user_time_zone', timeZone);
-        }
-      } catch (e) {
-        print('⚠️ Failed to load time zone from profile: $e');
-      }
-
-      if (timeZone == null || timeZone.isEmpty) return;
-
-      if (mounted && timeZone != _timeZone) {
-        setState(() {
-          _timeZone = timeZone;
-        });
-      }
-    }
+  Future<void> loadSettings() async {
+    final awaitedSettings = await _dioClient.getSettings();
+    setState(() {
+      _userSettings = awaitedSettings;
+    });
   }
 
   Future<void> _loadNotifications() async {
@@ -115,7 +94,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
         _isLoading = true;
       });
       // Get user ID from SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
+      final prefs = await SharedPreferencesWithCache.create(
+        cacheOptions: const SharedPreferencesWithCacheOptions(),
+      );
       // Load persisted read IDs
       final storedRead = prefs.getStringList('read_notification_ids') ?? [];
       _readNotificationIds = storedRead.toSet();
@@ -135,8 +116,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
       }
 
       reminders.sort((a, b) {
-        final aDate = parseDateTime(a.startOfRange, _timeZone);
-        final bDate = parseDateTime(b.startOfRange, _timeZone);
+        final aDate = parseDateTime(a.startOfRange, _userSettings.timeZone);
+        final bDate = parseDateTime(b.startOfRange, _userSettings.timeZone);
         if (aDate == null && bDate == null) {
           return b.id.compareTo(a.id);
         }
@@ -186,7 +167,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   void _markAsRead(String notificationId) {
     _readNotificationIds.add(notificationId);
-    SharedPreferences.getInstance().then((prefs) {
+    SharedPreferencesWithCache.create(
+      cacheOptions: const SharedPreferencesWithCacheOptions(),
+    ).then((prefs) {
       prefs.setStringList(
         'read_notification_ids',
         _readNotificationIds.toList(),
@@ -246,7 +229,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
       // Also remove its read state
       if (notification.notificationId != null) {
         _readNotificationIds.remove(notification.notificationId);
-        final prefs = await SharedPreferences.getInstance();
+        final prefs = await SharedPreferencesWithCache.create(
+          cacheOptions: const SharedPreferencesWithCacheOptions(),
+        );
         await prefs.setStringList(
           'read_notification_ids',
           _readNotificationIds.toList(),

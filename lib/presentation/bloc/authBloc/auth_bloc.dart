@@ -131,7 +131,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final response = await authRepository.login(request);
 
       emit(
-        AuthLoginSuccess(token: response.token, username: response.username),
+        AuthLoginSuccess(
+          accessToken: response.access
+        ),
       );
     } on ValidationException catch (e) {
       emit(AuthError(message: e.message, code: e.code));
@@ -248,13 +250,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final request = RefreshTokenRequestModel(refresh: refreshToken);
       final response = await authRepository.refreshToken(request);
 
-      emit(AuthTokenRefreshed(token: response.access));
+      emit(AuthTokenRefreshed(accessToken: response.access));
     } on NetworkException catch (e) {
       emit(AuthError(message: e.message, code: e.code));
     } on ServerException catch (e) {
       emit(AuthError(message: e.message, code: e.code));
     } on UnauthorizedException {
-      await dioClient.clearToken();
+      await dioClient.clearTokens();
       emit(
         const AuthUnauthenticated(
           message: 'Session expired. Please login again.',
@@ -272,13 +274,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     try {
-      final token = await dioClient.getToken();
+      final accessToken = await dioClient.getAccessToken();
       final refreshToken = await dioClient.getRefreshToken();
 
-      if (token != null && token.isNotEmpty) {
+      if (accessToken != null && accessToken.isNotEmpty) {
         try {
-          await authRepository.getProfile();
-          emit(const AuthAuthenticated());
+          emit(AuthAuthenticated());
         } catch (e) {
           if (refreshToken != null && refreshToken.isNotEmpty) {
             print(' Token seems expired, attempting to refresh...');

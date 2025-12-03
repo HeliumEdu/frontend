@@ -15,6 +15,11 @@ import 'package:helium_mobile/data/models/planner/homework_response_model.dart';
 abstract class HomeworkRemoteDataSource {
   Future<List<HomeworkResponseModel>> getAllHomework({
     List<String>? categoryTitles,
+    String? from,
+    String? to,
+    String? ordering,
+    String? search,
+    String? title,
   });
 
   Future<HomeworkResponseModel> createHomework({
@@ -92,6 +97,11 @@ class HomeworkRemoteDataSourceImpl implements HomeworkRemoteDataSource {
   @override
   Future<List<HomeworkResponseModel>> getAllHomework({
     List<String>? categoryTitles,
+    String? from,
+    String? to,
+    String? ordering,
+    String? search,
+    String? title,
   }) async {
     try {
       final queryParameters = <String, dynamic>{};
@@ -105,11 +115,16 @@ class HomeworkRemoteDataSourceImpl implements HomeworkRemoteDataSource {
           queryParameters['category__title_in'] = sanitizedTitles.join(',');
         }
       }
+      if (from != null) queryParameters['from'] = from;
+      if (to != null) queryParameters['to'] = to;
+      if (ordering != null) queryParameters['ordering'] = ordering;
+      if (search != null) queryParameters['search'] = search;
+      if (title != null) queryParameters['title'] = title;
 
       final filterSummary = queryParameters.containsKey('category__title_in')
           ? " with categories: ${queryParameters['category__title_in']}"
           : '';
-      print('📚 Fetching all homework$filterSummary...');
+      print('📚 Fetching all homework $filterSummary...');
       final response = await dioClient.dio.get(
         NetworkUrl.allHomeworkUrl,
         queryParameters: queryParameters.isEmpty ? null : queryParameters,

@@ -18,9 +18,19 @@ class HomeworkRepositoryImpl implements HomeworkRepository {
   @override
   Future<List<HomeworkResponseModel>> getAllHomework({
     List<String>? categoryTitles,
+    String? from,
+    String? to,
+    String? ordering,
+    String? search,
+    String? title,
   }) async {
     return await remoteDataSource.getAllHomework(
       categoryTitles: categoryTitles,
+      from: from,
+      to: to,
+      ordering: ordering,
+      search: search,
+      title: title,
     );
   }
 

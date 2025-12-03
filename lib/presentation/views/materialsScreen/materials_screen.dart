@@ -11,6 +11,7 @@ import 'package:helium_mobile/config/app_routes.dart';
 import 'package:helium_mobile/core/dio_client.dart';
 import 'package:helium_mobile/data/datasources/course_remote_data_source.dart';
 import 'package:helium_mobile/data/datasources/material_remote_data_source.dart';
+import 'package:helium_mobile/data/models/auth/user_profile_model.dart';
 import 'package:helium_mobile/data/models/planner/course_model.dart';
 import 'package:helium_mobile/data/models/planner/material_group_request_model.dart';
 import 'package:helium_mobile/data/models/planner/material_group_response_model.dart';

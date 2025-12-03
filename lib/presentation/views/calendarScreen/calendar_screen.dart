@@ -10,19 +10,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:helium_mobile/config/app_routes.dart';
 import 'package:helium_mobile/core/dio_client.dart';
-import 'package:helium_mobile/data/datasources/auth_remote_data_source.dart';
 import 'package:helium_mobile/data/datasources/category_remote_data_source.dart';
 import 'package:helium_mobile/data/datasources/course_remote_data_source.dart';
 import 'package:helium_mobile/data/datasources/event_remote_data_source.dart';
 import 'package:helium_mobile/data/datasources/external_calendar_remote_data_source.dart';
 import 'package:helium_mobile/data/datasources/homework_remote_data_source.dart';
+import 'package:helium_mobile/data/models/auth/user_profile_model.dart';
 import 'package:helium_mobile/data/models/planner/category_model.dart';
 import 'package:helium_mobile/data/models/planner/course_model.dart';
 import 'package:helium_mobile/data/models/planner/event_response_model.dart';
 import 'package:helium_mobile/data/models/planner/external_calendar_event_model.dart';
 import 'package:helium_mobile/data/models/planner/external_calendar_model.dart';
 import 'package:helium_mobile/data/models/planner/homework_response_model.dart';
-import 'package:helium_mobile/data/repositories/auth_repository_impl.dart';
 import 'package:helium_mobile/data/repositories/category_repository_impl.dart';
 import 'package:helium_mobile/data/repositories/course_repository_impl.dart';
 import 'package:helium_mobile/data/repositories/event_repository_impl.dart';
@@ -48,22 +47,24 @@ import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_list.dart';
 import 'package:helium_mobile/utils/app_size.dart';
 import 'package:helium_mobile/utils/app_text_style.dart';
+import 'package:helium_mobile/utils/formatting.dart';
 import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:timezone/timezone.dart' as tz;
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class CalendarScreen extends StatefulWidget {
+  const CalendarScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<CalendarScreen> createState() => _CalendarScreenState();
 
   static void triggerRefresh() {
-    _HomeScreenState.triggerRefresh();
+    _CalendarScreenState.triggerRefresh();
   }
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _CalendarScreenState extends State<CalendarScreen> {
+  final DioClient _dioClient = DioClient();
+  late UserSettings _userSettings;
+
   DateTime _selectedDate = DateTime.now();
   DateTime _focusedWeek = DateTime.now();
   DateTime _calendarFocusedMonth = DateTime.now();
@@ -72,8 +73,6 @@ class _HomeScreenState extends State<HomeScreen> {
   int selectedIndex = 2; // Default to day view
   String _currentViewMode = 'Day';
   int _selectedWeekIndex = 0; // For week view selection
-  Color _eventsColor = greenColor;
-  String _timeZone = 'Etc/UTC';
   List<ExternalCalendarModel> _externalCalendars = [];
   Map<int, List<ExternalCalendarEventModel>> _externalEventsByCalendar = {};
 
@@ -100,15 +99,19 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadEventColor();
-    _loadTimeZone();
+    loadSettings();
+  }
+
+  Future<void> loadSettings() async {
+    final awaitedSettings = await _dioClient.getSettings();
+    setState(() {
+      _userSettings = awaitedSettings;
+    });
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _loadEventColor();
-    _loadTimeZone();
     if (_needsRefresh) {
       _needsRefresh = false;
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -148,69 +151,6 @@ class _HomeScreenState extends State<HomeScreen> {
           }
         }
       });
-    }
-  }
-
-  Future<void> _loadEventColor() async {
-    final prefs = await SharedPreferences.getInstance();
-    String? eventsColor = prefs.getString('user_events_color');
-
-    if (eventsColor == null || eventsColor.isEmpty) {
-      try {
-        final dioClient = DioClient();
-        final authRepository = AuthRepositoryImpl(
-          remoteDataSource: AuthRemoteDataSourceImpl(dioClient: dioClient),
-        );
-        final profile = await authRepository.getProfile();
-        final eventsColor = profile.settings?.eventsColor;
-        if (eventsColor != null && eventsColor.trim().isNotEmpty) {
-          await prefs.setString('user_events_color', eventsColor);
-        }
-      } catch (e) {
-        if (kDebugMode) {
-          print('⚠️ Failed to load event color from profile: $e');
-        }
-      }
-    }
-
-    if (eventsColor == null || eventsColor.isEmpty) return;
-
-    final parsedColor = parseColor(eventsColor);
-    if (mounted && parsedColor != _eventsColor) {
-      setState(() {
-        _eventsColor = parsedColor;
-      });
-    }
-  }
-
-  Future<void> _loadTimeZone() async {
-    final prefs = await SharedPreferences.getInstance();
-    String? timeZone = prefs.getString('user_time_zone');
-
-    if (timeZone == null || timeZone.isEmpty) {
-      try {
-        final dioClient = DioClient();
-        final authRepository = AuthRepositoryImpl(
-          remoteDataSource: AuthRemoteDataSourceImpl(dioClient: dioClient),
-        );
-        final profile = await authRepository.getProfile();
-        final timeZone = profile.settings?.timeZone;
-        if (timeZone != null && timeZone.trim().isNotEmpty) {
-          await prefs.setString('user_time_zone', timeZone);
-        }
-      } catch (e) {
-        if (kDebugMode) {
-          print('⚠️ Failed to load time zone from profile: $e');
-        }
-      }
-
-      if (timeZone == null || timeZone.isEmpty) return;
-
-      if (mounted && timeZone != _timeZone) {
-        setState(() {
-          _timeZone = timeZone;
-        });
-      }
     }
   }
 
@@ -581,10 +521,10 @@ class _HomeScreenState extends State<HomeScreen> {
   ) {
     return homeworks.any((homework) {
       try {
-        final startDate = DateTime.parse(homework.start);
+        final startDate = parseDateTime(homework.start, _userSettings.timeZone);
         DateTime? endDate;
         if (homework.end != null && homework.end!.isNotEmpty) {
-          endDate = DateTime.parse(homework.end!);
+          endDate = parseDateTime(homework.end!, _userSettings.timeZone);
         }
         return _isDateInRange(date, startDate, endDate);
       } catch (e) {
@@ -596,10 +536,10 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _hasEventsOnDate(DateTime date, List<EventResponseModel> events) {
     return events.any((event) {
       try {
-        final startDate = DateTime.parse(event.start);
+        final startDate = parseDateTime(event.start, _userSettings.timeZone);
         DateTime? endDate;
         if (event.end != null && event.end!.isNotEmpty) {
-          endDate = DateTime.parse(event.end!);
+          endDate = parseDateTime(event.end!, _userSettings.timeZone);
         }
         return _isDateInRange(date, startDate, endDate);
       } catch (e) {
@@ -623,10 +563,10 @@ class _HomeScreenState extends State<HomeScreen> {
   ) {
     return externalEvents.any((event) {
       try {
-        final startDate = DateTime.parse(event.start);
+        final startDate = parseDateTime(event.start, _userSettings.timeZone);
         DateTime? endDate;
         if (event.end != null && event.end!.isNotEmpty) {
-          endDate = DateTime.parse(event.end!);
+          endDate = parseDateTime(event.end!, _userSettings.timeZone);
         }
         return _isDateInRange(date, startDate, endDate);
       } catch (e) {
@@ -664,7 +604,7 @@ class _HomeScreenState extends State<HomeScreen> {
       dots.add(darkBlueColor);
     }
     if (showEvents && _hasEventsOnDate(date, events)) {
-      dots.add(_eventsColor);
+      dots.add(parseColor(_userSettings.eventsColor));
     }
     if (showClassSchedule && _hasCoursesOnDate(date, courses)) {
       dots.add(greenColor);
@@ -696,13 +636,9 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     if (selectedStatuses.contains('Overdue')) {
       try {
-        final String basis = homework.end?.isNotEmpty == true
-            ? homework.end!
-            : homework.start;
-        final DateTime due = DateTime.parse(basis);
         final bool isOverdue =
             (_isHomeworkCompleted(homework) == false) &&
-            due.isBefore(DateTime.now());
+            DateTime.parse(homework.start).isBefore(DateTime.now());
         matches = matches || isOverdue;
       } catch (_) {
         // ignore parsing errors for overdue
@@ -755,10 +691,13 @@ class _HomeScreenState extends State<HomeScreen> {
     for (DateTime date in weekDates) {
       List<HomeworkResponseModel> dayAssignments = homeworks.where((homework) {
         try {
-          final startDate = DateTime.parse(homework.start);
+          final startDate = parseDateTime(
+            homework.start,
+            _userSettings.timeZone,
+          );
           DateTime? endDate;
           if (homework.end != null && homework.end!.isNotEmpty) {
-            endDate = DateTime.parse(homework.end!);
+            endDate = parseDateTime(homework.end!, _userSettings.timeZone);
           }
           if (!_isDateInRange(date, startDate, endDate)) return false;
           return _matchesAssignmentStatus(homework);
@@ -769,10 +708,10 @@ class _HomeScreenState extends State<HomeScreen> {
       dayAssignments = _applyCategoryFilterToHomeworks(dayAssignments);
       List<EventResponseModel> dayEvents = events.where((event) {
         try {
-          final startDate = DateTime.parse(event.start);
+          final startDate = parseDateTime(event.start, _userSettings.timeZone);
           DateTime? endDate;
           if (event.end != null && event.end!.isNotEmpty) {
-            endDate = DateTime.parse(event.end!);
+            endDate = parseDateTime(event.end!, _userSettings.timeZone);
           }
           return _isDateInRange(date, startDate, endDate);
         } catch (e) {
@@ -790,10 +729,13 @@ class _HomeScreenState extends State<HomeScreen> {
       List<ExternalCalendarEventModel> dayExternalEvents =
           filteredExternalEventsForSelection.where((event) {
             try {
-              final startDate = DateTime.parse(event.start);
+              final startDate = parseDateTime(
+                event.start,
+                _userSettings.timeZone,
+              );
               DateTime? endDate;
               if (event.end != null && event.end!.isNotEmpty) {
-                endDate = DateTime.parse(event.end!);
+                endDate = parseDateTime(event.end!, _userSettings.timeZone);
               }
               return _isDateInRange(date, startDate, endDate);
             } catch (e) {
@@ -837,7 +779,9 @@ class _HomeScreenState extends State<HomeScreen> {
         }
 
         for (var course in filteredCourses) {
-          weekItems.add(_buildCourseCard(course, courses.indexOf(course), date));
+          weekItems.add(
+            _buildCourseCard(course, courses.indexOf(course), date),
+          );
         }
 
         for (var externalEvent in filteredExternalEvents) {
@@ -1181,7 +1125,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 width: 12.h,
                                 height: 12.h,
                                 decoration: BoxDecoration(
-                                  color: _eventsColor,
+                                  color: parseColor(_userSettings.eventsColor),
                                   shape: BoxShape.circle,
                                 ),
                               ),
@@ -1531,8 +1475,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                           course.room,
                                           style: AppTextStyle.eTextStyle
                                               .copyWith(
-                                                color: textColor.withValues(alpha: 
-                                                  0.6,
+                                                color: textColor.withValues(
+                                                  alpha: 0.6,
                                                 ),
                                                 fontSize: 11,
                                               ),
@@ -1544,8 +1488,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                           course.teacherName,
                                           style: AppTextStyle.eTextStyle
                                               .copyWith(
-                                                color: textColor.withValues(alpha: 
-                                                  0.6,
+                                                color: textColor.withValues(
+                                                  alpha: 0.6,
                                                 ),
                                                 fontSize: 10,
                                               ),
@@ -2246,7 +2190,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 dioClient: DioClient(),
               ),
             ),
-          )..add(FetchAllExternalCalendarEventsEvent()),
+          )..add(FetchExternalCalendarEventsEvent()),
         ),
         BlocProvider(
           create: (context) => CategoryBloc(
@@ -2416,11 +2360,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           await Navigator.pushNamed(
                             context,
                             AppRoutes.settingScreen,
-                          );
-                          if (mounted) {
-                            await _loadEventColor();
-                            await _loadTimeZone();
-                          }
+                          ).then((value) async {
+                            await loadSettings();
+                          });
                         },
                         child: Icon(
                           Icons.settings_outlined,
@@ -2601,15 +2543,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                             vertical: 6.v,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: primaryColor.withValues(alpha: 
-                                              0.1,
+                                            color: primaryColor.withValues(
+                                              alpha: 0.1,
                                             ),
                                             borderRadius: BorderRadius.circular(
                                               6,
                                             ),
                                             border: Border.all(
-                                              color: primaryColor.withValues(alpha: 
-                                                0.5,
+                                              color: primaryColor.withValues(
+                                                alpha: 0.5,
                                               ),
                                             ),
                                           ),
@@ -2653,8 +2595,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 border: Border.all(
                                                   color: isSelected
                                                       ? primaryColor
-                                                      : greyColor.withValues(alpha: 
-                                                          0.5,
+                                                      : greyColor.withValues(
+                                                          alpha: 0.5,
                                                         ),
                                                 ),
                                               ),
@@ -3010,21 +2952,22 @@ class _HomeScreenState extends State<HomeScreen> {
                                               homework,
                                             ) {
                                               try {
-                                                final homeworkStart =
-                                                    DateTime.parse(
-                                                      homework.start,
-                                                    );
-                                                DateTime? homeworkEnd;
+                                                final start = parseDateTime(
+                                                  homework.start,
+                                                  _userSettings.timeZone,
+                                                );
+                                                DateTime? end;
                                                 if (homework.end != null &&
                                                     homework.end!.isNotEmpty) {
-                                                  homeworkEnd = DateTime.parse(
+                                                  end = parseDateTime(
                                                     homework.end!,
+                                                    _userSettings.timeZone,
                                                   );
                                                 }
                                                 if (!_isDateInRange(
                                                   _selectedDate,
-                                                  homeworkStart,
-                                                  homeworkEnd,
+                                                  start,
+                                                  end,
                                                 )) {
                                                   return false;
                                                 }
@@ -3054,12 +2997,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                             ) {
                                               try {
                                                 final eventStart =
-                                                    DateTime.parse(event.start);
+                                                    parseDateTime(
+                                                      event.start,
+                                                      _userSettings.timeZone,
+                                                    );
                                                 DateTime? eventEnd;
                                                 if (event.end != null &&
                                                     event.end!.isNotEmpty) {
-                                                  eventEnd = DateTime.parse(
+                                                  eventEnd = parseDateTime(
                                                     event.end!,
+                                                    _userSettings.timeZone,
                                                   );
                                                 }
                                                 return _isDateInRange(
@@ -3085,14 +3032,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                             allExternalEvents,
                                           ).where((event) {
                                             try {
-                                              final eventStart = DateTime.parse(
+                                              final eventStart = parseDateTime(
                                                 event.start,
+                                                _userSettings.timeZone,
                                               );
                                               DateTime? eventEnd;
                                               if (event.end != null &&
                                                   event.end!.isNotEmpty) {
-                                                eventEnd = DateTime.parse(
+                                                eventEnd = parseDateTime(
                                                   event.end!,
+                                                  _userSettings.timeZone,
                                                 );
                                               }
                                               return _isDateInRange(
@@ -3118,7 +3067,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ) {
                                           final course = coursesToShow[i];
                                           itemWidgets.add(
-                                            _buildCourseCard(course, i, _selectedDate),
+                                            _buildCourseCard(
+                                              course,
+                                              i,
+                                              _selectedDate,
+                                            ),
                                           );
                                         }
                                       }
@@ -3167,8 +3120,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                               Icon(
                                                 Icons.calendar_today_outlined,
                                                 size: 48,
-                                                color: textColor.withValues(alpha: 
-                                                  0.3,
+                                                color: textColor.withValues(
+                                                  alpha: 0.3,
                                                 ),
                                               ),
                                               SizedBox(height: 16),
@@ -3177,7 +3130,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 style: AppTextStyle.bTextStyle
                                                     .copyWith(
                                                       color: textColor
-                                                          .withValues(alpha: 0.6),
+                                                          .withValues(
+                                                            alpha: 0.6,
+                                                          ),
                                                     ),
                                               ),
                                               SizedBox(height: 8),
@@ -3186,7 +3141,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 style: AppTextStyle.cTextStyle
                                                     .copyWith(
                                                       color: textColor
-                                                          .withValues(alpha: 0.5),
+                                                          .withValues(
+                                                            alpha: 0.5,
+                                                          ),
                                                     ),
                                               ),
                                             ],
@@ -3212,15 +3169,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                           Icon(
                                             Icons.school_outlined,
                                             size: 48,
-                                            color: textColor.withValues(alpha: 0.3),
+                                            color: textColor.withValues(
+                                              alpha: 0.3,
+                                            ),
                                           ),
                                           SizedBox(height: 16),
                                           Text(
                                             'Loading...',
                                             style: AppTextStyle.bTextStyle
                                                 .copyWith(
-                                                  color: textColor.withValues(alpha: 
-                                                    0.6,
+                                                  color: textColor.withValues(
+                                                    alpha: 0.6,
                                                   ),
                                                 ),
                                           ),
@@ -3320,7 +3279,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 SizedBox(height: 4.v),
                 // Show schedule time for selected day
-                if (course.schedules.isNotEmpty && course.schedules[0].daysOfWeek != '0000000' &&
+                if (course.schedules.isNotEmpty &&
+                    course.schedules[0].daysOfWeek != '0000000' &&
                     _getCourseTimeForDate(course, dateTime).isNotEmpty)
                   Row(
                     children: [
@@ -3528,32 +3488,25 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Parse homework time
     String timeDisplay = '';
-    final timeZone = tz.getLocation(_timeZone);
     try {
       if (homework.allDay) {
         if (_currentViewMode == 'Todos') {
-          final startTime = tz.TZDateTime.from(
-            DateTime.parse(homework.start),
-            timeZone,
+          final startTime = parseDateTime(
+            homework.start,
+            _userSettings.timeZone,
           );
           timeDisplay = DateFormat('MMM dd, yyyy').format(startTime);
         } else {
           timeDisplay = '';
         }
       } else {
-        final startTime = tz.TZDateTime.from(
-          DateTime.parse(homework.start),
-          timeZone,
-        );
+        final startTime = parseDateTime(homework.start, _userSettings.timeZone);
         final formattedTime = DateFormat('h:mm a').format(startTime);
         final formattedDate = DateFormat('MMM dd, yyyy').format(startTime);
         if (homework.end != null &&
             homework.end!.isNotEmpty &&
             homework.start != homework.end) {
-          final endTime = tz.TZDateTime.from(
-            DateTime.parse(homework.end!),
-            timeZone,
-          );
+          final endTime = parseDateTime(homework.end!, _userSettings.timeZone);
           final formattedEndTime = DateFormat('h:mm a').format(endTime);
           timeDisplay = '$formattedTime - $formattedEndTime';
           if (_currentViewMode == 'Todos') {
@@ -3730,25 +3683,18 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildEventCard(BuildContext context, EventResponseModel event) {
-    Color eventColor = _eventsColor;
+    Color eventColor = parseColor(_userSettings.eventsColor);
     String timeDisplay = '';
     try {
       if (event.allDay) {
         timeDisplay = 'All day';
       } else {
-        final timeZone = tz.getLocation(_timeZone);
-        final startTime = tz.TZDateTime.from(
-          DateTime.parse(event.start),
-          timeZone,
-        );
+        final startTime = parseDateTime(event.start, _userSettings.timeZone);
         final formattedTime = DateFormat('h:mm a').format(startTime);
         if (event.end != null &&
             event.end!.isNotEmpty &&
             event.start != event.end) {
-          final endTime = tz.TZDateTime.from(
-            DateTime.parse(event.end!),
-            timeZone,
-          );
+          final endTime = parseDateTime(event.end!, _userSettings.timeZone);
           final formattedEndTime = DateFormat('h:mm a').format(endTime);
           timeDisplay = '$formattedTime - $formattedEndTime';
         } else {
@@ -3906,18 +3852,17 @@ class _HomeScreenState extends State<HomeScreen> {
       if (externalEvent.allDay) {
         timeDisplay = 'All day';
       } else {
-        final timeZone = tz.getLocation(_timeZone);
-        final startTime = tz.TZDateTime.from(
-          DateTime.parse(externalEvent.start),
-          timeZone,
+        final startTime = parseDateTime(
+          externalEvent.start,
+          _userSettings.timeZone,
         );
         final formattedTime = DateFormat('h:mm a').format(startTime);
         if (externalEvent.end != null &&
             externalEvent.end!.isNotEmpty &&
             externalEvent.start != externalEvent.end) {
-          final endTime = tz.TZDateTime.from(
-            DateTime.parse(externalEvent.end!),
-            timeZone,
+          final endTime = parseDateTime(
+            externalEvent.end!,
+            _userSettings.timeZone,
           );
           final formattedEndTime = DateFormat('h:mm a').format(endTime);
           timeDisplay = '$formattedTime - $formattedEndTime';

@@ -10,19 +10,15 @@ import 'package:helium_mobile/data/models/planner/event_request_model.dart';
 abstract class EventEvent {}
 
 class FetchAllEventsEvent extends EventEvent {
-  final String? start;
-  final String? end;
-  final String? startGte;
-  final String? endLt;
+  final String? from;
+  final String? to;
   final String? ordering;
   final String? search;
   final String? title;
 
   FetchAllEventsEvent({
-    this.start,
-    this.end,
-    this.startGte,
-    this.endLt,
+    this.from,
+    this.to,
     this.ordering,
     this.search,
     this.title,

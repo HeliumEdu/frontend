@@ -35,6 +35,11 @@ class HomeworkBloc extends Bloc<HomeworkEvent, HomeworkState> {
       print('🎯 Fetching all homework from repository$filterSummary');
       final homeworks = await homeworkRepository.getAllHomework(
         categoryTitles: event.categoryTitles,
+        from: event.from,
+        to: event.to,
+        ordering: event.ordering,
+        search: event.search,
+        title: event.title,
       );
       print('✅ Homework fetched successfully: ${homeworks.length} homework(s)');
       emit(HomeworkLoaded(homeworks: homeworks));

@@ -16,14 +16,14 @@ import 'package:helium_mobile/presentation/views/materialsScreen/materials_scree
 
 class BottomNavigationBloc
     extends Bloc<BottomNavigationEvent, BottomNavigationState> {
-  final List<Widget> widgetList = [
-    HomeScreen(),
+  final List<Widget> screensList = [
+    CalendarScreen(),
     ClassesScreen(),
     MaterialsScreen(),
     GradesScreen(),
   ];
 
-  BottomNavigationBloc() : super(const BottomNavigationState()) {
+  BottomNavigationBloc() : super(BottomNavigationState()) {
     on<NavigationTabChanged>(_onNavigationTabChanged);
   }
 
@@ -31,7 +31,7 @@ class BottomNavigationBloc
     NavigationTabChanged event,
     Emitter<BottomNavigationState> emit,
   ) {
-    if (event.tabIndex >= 0 && event.tabIndex < widgetList.length) {
+    if (event.tabIndex >= 0 && event.tabIndex < screensList.length) {
       emit(state.copyWith(selectedIndex: event.tabIndex));
     }
   }

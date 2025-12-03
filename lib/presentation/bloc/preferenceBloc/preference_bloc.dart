@@ -11,8 +11,7 @@ import 'package:helium_mobile/data/models/auth/user_profile_model.dart';
 import 'package:helium_mobile/data/repositories/auth_repository_impl.dart';
 import 'package:helium_mobile/presentation/bloc/preferenceBloc/preference_event.dart';
 import 'package:helium_mobile/presentation/bloc/preferenceBloc/preference_states.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:helium_mobile/presentation/views/calendarScreen/calendar_screen.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_list.dart';
 
@@ -56,12 +55,6 @@ class PreferenceBloc extends Bloc<PreferenceEvent, PreferenceState> {
       final normalizedEventsColor = _normalizeHex(eventsColor);
       final normalizedMaterialsColor = _normalizeHex(materialsColor);
       final normalizedGradesColor = _normalizeHex(gradesColor);
-
-
-      await _cacheEventColor(normalizedEventsColor);
-      await _cacheMaterialsColor(normalizedMaterialsColor);
-      await _cacheGradesColor(normalizedGradesColor);
-      await _cacheTimeZone(timeZone);
 
       emit(
         state.copyWith(
@@ -125,8 +118,6 @@ class PreferenceBloc extends Bloc<PreferenceEvent, PreferenceState> {
       );
 
       await authRepository.updateUserSettings(request);
-      await _cacheEventColor(event.eventsColor);
-      await _cacheTimeZone(request.timeZone);
 
       emit(
         state.copyWith(
@@ -137,6 +128,8 @@ class PreferenceBloc extends Bloc<PreferenceEvent, PreferenceState> {
           selectedReminderOffsetUnit:
               reminderOffsetUnits[event.defaultReminderOffsetType],
           selectedEventsColor: parseColor(event.eventsColor),
+          selectedMaterialsColor: parseColor(event.materialsColor),
+          selectedGradesColor: parseColor(event.gradesColor),
           offsetValue: event.defaultReminderOffset,
         ),
       );
@@ -161,29 +154,4 @@ class PreferenceBloc extends Bloc<PreferenceEvent, PreferenceState> {
     }
     return h;
   }
-
-  Future<void> _cacheEventColor(String hex) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_eventColorPrefsKey, _normalizeHex(hex));
-  }
-
-  Future<void> _cacheMaterialsColor(String hex) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_userMaterialsColorPrefsKey, _normalizeHex(hex));
-  }
-
-  Future<void> _cacheGradesColor(String hex) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_userGradesColorPrefsKey, _normalizeHex(hex));
-  }
-
-  Future<void> _cacheTimeZone(String hex) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_userTimeZonePrefsKey, _normalizeHex(hex));
-  }
-
-  static const String _eventColorPrefsKey = 'user_events_color';
-  static const String _userMaterialsColorPrefsKey = 'user_materials_color';
-  static const String _userGradesColorPrefsKey = 'user_grades_color';
-  static const String _userTimeZonePrefsKey = 'user_time_zone';
 }

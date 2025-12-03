@@ -20,7 +20,6 @@ class ExternalCalendarBloc
     : super(ExternalCalendarInitial()) {
     on<FetchAllExternalCalendarsEvent>(_onFetchAllExternalCalendars);
     on<FetchExternalCalendarEventsEvent>(_onFetchExternalCalendarEvents);
-    on<FetchAllExternalCalendarEventsEvent>(_onFetchAllExternalCalendarEvents);
     on<CreateExternalCalendarEvent>(_onCreateExternalCalendar);
     on<UpdateExternalCalendarEvent>(_onUpdateExternalCalendar);
     on<DeleteExternalCalendarEvent>(_onDeleteExternalCalendar);
@@ -54,14 +53,14 @@ class ExternalCalendarBloc
   ) async {
     emit(ExternalCalendarEventsLoading());
     try {
-      print('🎯 Fetching events for external calendar ${event.calendarId}...');
-      final now = DateTime.now().toUtc();
-      final startRange = now.subtract(const Duration(days: 365));
-      final endRange = now.add(const Duration(days: 730));
+      print('🎯 Fetching all events for external calendars ...');
+      final now = DateTime.now();
+      final from = now.subtract(const Duration(days: 365));
+      final to = now.add(const Duration(days: 730));
       final events = await externalCalendarRepository.getExternalCalendarEvents(
-        calendarId: event.calendarId,
-        start: startRange,
-        end: endRange,
+        from: from,
+        to: to,
+        search: null,
       );
       print(
         '✅ External calendar events fetched successfully: ${events.length} event(s)',
@@ -74,94 +73,6 @@ class ExternalCalendarBloc
       print('❌ Unexpected error: $e');
       emit(
         ExternalCalendarEventsError(
-          message: 'An unexpected error occurred: $e',
-        ),
-      );
-    }
-  }
-
-  Future<void> _onFetchAllExternalCalendarEvents(
-    FetchAllExternalCalendarEventsEvent event,
-    Emitter<ExternalCalendarState> emit,
-  ) async {
-    emit(AllExternalCalendarEventsLoading());
-    try {
-      print('🎯 Fetching all external calendar events...');
-
-      // First, fetch all external calendars
-      final calendars = await externalCalendarRepository
-          .getAllExternalCalendars();
-      print('📅 Found ${calendars.length} external calendars');
-
-      final Map<int, List<ExternalCalendarEventModel>> eventsByCalendar = {
-        for (final calendar in calendars)
-          calendar.id: <ExternalCalendarEventModel>[],
-      };
-
-      final now = DateTime.now().toUtc();
-      final startRange = now.subtract(const Duration(days: 365));
-      final endRange = now.add(const Duration(days: 730));
-      print(
-        '🗓️ Fetching events between ${startRange.toIso8601String()} and ${endRange.toIso8601String()}',
-      );
-
-      // Fetch events from all enabled calendars
-      List<ExternalCalendarEventModel> allEvents = [];
-      for (var calendar in calendars) {
-        try {
-          final events = await externalCalendarRepository
-              .getExternalCalendarEvents(
-                calendarId: calendar.id,
-                start: startRange,
-                end: endRange,
-              );
-          allEvents.addAll(events);
-          eventsByCalendar[calendar.id] = events;
-          print(
-            '✅ Fetched ${events.length} events from calendar "${calendar.title}"',
-          );
-        } catch (e) {
-          print(
-            '⚠️ Failed to fetch events from calendar "${calendar.title}": $e',
-          );
-          // Continue with other calendars even if one fails
-        }
-      }
-
-      print(
-        '✅ Total external calendar events fetched: ${allEvents.length} event(s)',
-      );
-      allEvents.sort((a, b) {
-        DateTime? parseSafe(String value) {
-          try {
-            return DateTime.parse(value);
-          } catch (_) {
-            return null;
-          }
-        }
-
-        final aStart = parseSafe(a.start);
-        final bStart = parseSafe(b.start);
-        if (aStart == null && bStart == null) return 0;
-        if (aStart == null) return 1;
-        if (bStart == null) return -1;
-        return aStart.compareTo(bStart);
-      });
-
-      emit(
-        AllExternalCalendarEventsLoaded(
-          events: allEvents,
-          calendars: calendars,
-          eventsByCalendar: eventsByCalendar,
-        ),
-      );
-    } on AppException catch (e) {
-      print('❌ App error: ${e.message}');
-      emit(AllExternalCalendarEventsError(message: e.message));
-    } catch (e) {
-      print('❌ Unexpected error: $e');
-      emit(
-        AllExternalCalendarEventsError(
           message: 'An unexpected error occurred: $e',
         ),
       );
@@ -190,7 +101,7 @@ class ExternalCalendarBloc
 
       emit(ExternalCalendarsLoaded(calendars: calendars));
       print('✅ External calendar created: ${created.title}');
-      add(FetchAllExternalCalendarEventsEvent());
+      add(FetchExternalCalendarEventsEvent());
     } on AppException catch (e) {
       print('❌ App error while creating external calendar: ${e.message}');
       emit(ExternalCalendarActionError(message: e.message));
@@ -227,7 +138,7 @@ class ExternalCalendarBloc
 
       emit(ExternalCalendarsLoaded(calendars: calendars));
       print('✅ External calendar updated: ${updated.title}');
-      add(FetchAllExternalCalendarEventsEvent());
+      add(FetchExternalCalendarEventsEvent());
     } on AppException catch (e) {
       print('❌ App error while updating external calendar: ${e.message}');
       emit(ExternalCalendarActionError(message: e.message));
@@ -263,7 +174,7 @@ class ExternalCalendarBloc
 
       emit(ExternalCalendarsLoaded(calendars: calendars));
       print('✅ External calendar deleted: ${event.calendarId}');
-      add(FetchAllExternalCalendarEventsEvent());
+      add(FetchExternalCalendarEventsEvent());
     } on AppException catch (e) {
       print('❌ App error while deleting external calendar: ${e.message}');
       emit(ExternalCalendarActionError(message: e.message));

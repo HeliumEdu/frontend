@@ -30,7 +30,7 @@ class PrivateFeedRemoteDataSourceImpl implements PrivateFeedRemoteDataSource {
       print(' Fetching Private Feed URLs...');
 
       print(' Fetching user profile to get private slug...');
-      final response = await dioClient.dio.get(NetworkUrl.getProfileUrl);
+      final response = await dioClient.dio.get(NetworkUrl.getUserUrl);
 
       if (response.statusCode != 200) {
         throw ServerException(message: 'Failed to fetch user profile');

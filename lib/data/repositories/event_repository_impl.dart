@@ -17,19 +17,15 @@ class EventRepositoryImpl implements EventRepository {
 
   @override
   Future<List<EventResponseModel>> getAllEvents({
-    String? start,
-    String? end,
-    String? startGte,
-    String? endLt,
+    String? from,
+    String? to,
     String? ordering,
     String? search,
     String? title,
   }) async {
     return await remoteDataSource.getAllEvents(
-      start: start,
-      end: end,
-      startGte: startGte,
-      endLt: endLt,
+      from: from,
+      to: to,
       ordering: ordering,
       search: search,
       title: title,

@@ -13,9 +13,9 @@ abstract class ExternalCalendarRepository {
   Future<List<ExternalCalendarModel>> getAllExternalCalendars();
 
   Future<List<ExternalCalendarEventModel>> getExternalCalendarEvents({
-    required int calendarId,
-    DateTime? start,
-    DateTime? end,
+    DateTime? from,
+    DateTime? to,
+    String? search,
   });
 
   Future<ExternalCalendarModel> addExternalCalendar({

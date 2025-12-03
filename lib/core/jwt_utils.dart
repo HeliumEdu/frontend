@@ -41,9 +41,9 @@ class JWTUtils {
     return null;
   }
 
-  /// Check if token is expired
-  static bool isTokenExpired(String token) {
-    final payload = decodePayload(token);
+  /// Check if access token is expired
+  static bool isAccessTokenExpired(String accessToken) {
+    final payload = decodePayload(accessToken);
     if (payload != null && payload.containsKey('exp')) {
       final exp = payload['exp'] as int;
       final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;

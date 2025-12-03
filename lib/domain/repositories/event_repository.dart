@@ -10,10 +10,8 @@ import 'package:helium_mobile/data/models/planner/event_response_model.dart';
 
 abstract class EventRepository {
   Future<List<EventResponseModel>> getAllEvents({
-    String? start,
-    String? end,
-    String? startGte,
-    String? endLt,
+    String? from,
+    String? to,
     String? ordering,
     String? search,
     String? title,

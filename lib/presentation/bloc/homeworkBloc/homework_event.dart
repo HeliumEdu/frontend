@@ -11,8 +11,20 @@ abstract class HomeworkEvent {}
 
 class FetchAllHomeworkEvent extends HomeworkEvent {
   final List<String>? categoryTitles;
+  final String? from;
+  final String? to;
+  final String? ordering;
+  final String? search;
+  final String? title;
 
-  FetchAllHomeworkEvent({this.categoryTitles});
+  FetchAllHomeworkEvent({
+    this.categoryTitles,
+    this.from,
+    this.to,
+    this.ordering,
+    this.search,
+    this.title,
+  });
 }
 
 class CreateHomeworkEvent extends HomeworkEvent {

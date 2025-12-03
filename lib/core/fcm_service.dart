@@ -1,21 +1,25 @@
 import 'dart:io';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:helium_mobile/config/app_routes.dart';
-import 'package:helium_mobile/data/models/notification/notification_model.dart';
+import 'package:helium_mobile/core/dio_client.dart';
+import 'package:helium_mobile/core/jwt_utils.dart';
+import 'package:helium_mobile/data/datasources/push_notification_remote_data_source.dart';
 import 'package:helium_mobile/data/models/notification/fcm_token_model.dart';
+import 'package:helium_mobile/data/models/notification/notification_model.dart';
 import 'package:helium_mobile/data/models/notification/push_token_request_model.dart';
 import 'package:helium_mobile/data/repositories/push_notification_repository_impl.dart';
-import 'package:helium_mobile/data/datasources/push_notification_remote_data_source.dart';
-import 'package:helium_mobile/core/dio_client.dart';
 import 'package:helium_mobile/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FCMService {
   static final FCMService _instance = FCMService._internal();
+
   factory FCMService() => _instance;
+
   FCMService._internal();
 
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
@@ -33,6 +37,7 @@ class FCMService {
 
   // Getters
   String? get fcmToken => _fcmToken;
+
   bool get isInitialized => _isInitialized;
 
   // Initialize FCM
@@ -149,7 +154,9 @@ class FCMService {
 
     try {
       // Load persisted identifiers
-      final prefs = await SharedPreferences.getInstance();
+      final prefs = await SharedPreferencesWithCache.create(
+        cacheOptions: const SharedPreferencesWithCacheOptions(),
+      );
       final storedDeviceId = prefs.getString('helium_device_id');
       final storedToken = prefs.getString('helium_last_fcm_token');
 
@@ -165,18 +172,16 @@ class FCMService {
       final bool tokenUnchanged =
           storedToken != null && storedToken == _fcmToken;
 
-      // Get user ID from SharedPreferences
-      final userId = prefs.getInt('user_id');
-
-      if (userId == null) {
-        print('⚠️ No user ID found, skipping token registration');
-        return;
-      }
+      // Get user ID from token
+      final accessToken = prefs.getString('access_token');
+      final userId = JWTUtils.getUserId(accessToken!);
 
       Future<bool> cleanExistingTokens() async {
         bool hasCurrent = false;
         try {
-          final existingTokens = await pushTokenRepo.retrievePushTokens(userId);
+          final existingTokens = await pushTokenRepo.retrievePushTokens(
+            userId!,
+          );
           for (final token in existingTokens) {
             final bool isCurrentToken = token.token == _fcmToken;
             final bool isCurrentDevice = token.deviceId == _deviceId;
@@ -225,7 +230,7 @@ class FCMService {
       final request = PushTokenRequestModel(
         deviceId: _deviceId!,
         token: _fcmToken!,
-        user: userId,
+        user: userId!,
         type: Platform.isIOS ? 'ios' : 'android',
       );
 
@@ -393,6 +398,7 @@ class FCMService {
   }
 
   String? get deviceId => _deviceId;
+
   Future<void> clearNotification(int notificationId) async {
     await _localNotifications.cancel(notificationId);
     print(' Notification $notificationId cleared');

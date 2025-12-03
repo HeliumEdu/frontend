@@ -37,7 +37,7 @@ class BottomNavBarView extends StatelessWidget {
         builder: (context, state) {
           return context
               .read<BottomNavigationBloc>()
-              .widgetList[state.selectedIndex];
+              .screensList[state.selectedIndex];
         },
       ),
       bottomNavigationBar:
@@ -58,7 +58,7 @@ class BottomNavBarView extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      // Home Nav Item
+                      // Calendar Nav Item
                       GestureDetector(
                         onTap: () => context.read<BottomNavigationBloc>().add(
                           NavigationTabChanged(0),

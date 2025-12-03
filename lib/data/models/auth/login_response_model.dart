@@ -6,42 +6,16 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 class LoginResponseModel {
-  final String token;
-  final String? refreshToken;
-  final int? userId;
-  final String? username;
-  final String? email;
+  final String access;
+  final String refresh;
 
-  LoginResponseModel({
-    required this.token,
-    this.refreshToken,
-    this.userId,
-    this.username,
-    this.email,
-  });
+  LoginResponseModel({required this.access, required this.refresh});
 
   factory LoginResponseModel.fromJson(Map<String, dynamic> json) {
-    return LoginResponseModel(
-      token:
-          json['access'] ??
-          json['token'] ??
-          json['auth_token'] ??
-          json['access_token'] ??
-          '',
-      refreshToken: json['refresh'],
-      userId: json['user_id'] ?? json['id'],
-      username: json['username'],
-      email: json['email'],
-    );
+    return LoginResponseModel(access: json['access'], refresh: json['refresh']);
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'token': token,
-      'refresh': refreshToken,
-      'user_id': userId,
-      'username': username,
-      'email': email,
-    };
+    return {'access': access, 'refresh': refresh};
   }
 }

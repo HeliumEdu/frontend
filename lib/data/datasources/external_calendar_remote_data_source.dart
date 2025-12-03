@@ -18,9 +18,9 @@ abstract class ExternalCalendarRemoteDataSource {
   Future<List<ExternalCalendarModel>> getAllExternalCalendars();
 
   Future<List<ExternalCalendarEventModel>> getExternalCalendarEvents({
-    required int calendarId,
-    DateTime? start,
-    DateTime? end,
+    DateTime? from,
+    DateTime? to,
+    String? search,
   });
 
   Future<ExternalCalendarModel> addExternalCalendar({
@@ -122,76 +122,43 @@ class ExternalCalendarRemoteDataSourceImpl
 
   @override
   Future<List<ExternalCalendarEventModel>> getExternalCalendarEvents({
-    required int calendarId,
-    DateTime? start,
-    DateTime? end,
+    DateTime? from,
+    DateTime? to,
+    String? search,
   }) async {
     try {
-      print('📅 Fetching events for external calendar $calendarId...');
-
-      final events = <ExternalCalendarEventModel>[];
-      String? nextUrl;
+      print('📅 Fetching events for external calendars ...');
 
       String formatDate(DateTime value) =>
           DateFormat('MMM dd, yyyy').format(value.toUtc());
 
-      Map<String, dynamic>? buildQueryParams() {
-        final params = <String, dynamic>{'limit': 500};
-        if (start != null) params['start__gte'] = formatDate(start);
-        if (end != null) params['end__lt'] = formatDate(end);
-        return params;
-      }
+      final queryParameters = <String, dynamic>{};
+      if (from != null) queryParameters['from'] = formatDate(from);
+      if (to != null) queryParameters['to'] = formatDate(to);
+      if (search != null) queryParameters['search'] = search;
 
-      do {
-        final response = nextUrl == null
-            ? await dioClient.dio.get(
-                NetworkUrl.externalCalendarEventsUrl(calendarId),
-                queryParameters: buildQueryParams(),
-              )
-            : await dioClient.dio.getUri(Uri.parse(nextUrl));
+      final response = await dioClient.dio.get(
+        NetworkUrl.allExternalCalendarEventsUrl,
+        queryParameters: queryParameters.isEmpty ? null : queryParameters,
+      );
 
-        if (response.statusCode == 200) {
-          final dynamic data = response.data;
-          final List<dynamic> results;
-
-          if (data is List) {
-            results = data;
-            nextUrl = null;
-          } else if (data is Map<String, dynamic>) {
-            final rawResults = data['results'];
-            if (rawResults is List) {
-              results = rawResults;
-            } else {
-              results = const [];
-            }
-            final next = data['next'];
-            nextUrl = next is String && next.isNotEmpty ? next : null;
-          } else {
-            results = const [];
-            nextUrl = null;
-          }
-
-          // Inject the calendar ID into each event JSON before parsing
-          events.addAll(
-            results.map((json) {
-              // Add the external_calendar field to the JSON
-              if (json is Map<String, dynamic>) {
-                json['external_calendar'] = calendarId;
-              }
-              return ExternalCalendarEventModel.fromJson(json);
-            }).toList(),
-          );
+      if (response.statusCode == 200) {
+        if (response.data is List) {
+          final List<dynamic> data = response.data;
+          print('✅ Fetched ${data.length} external calendar event(s)');
+          return data
+                  .map((json) => ExternalCalendarEventModel.fromJson(json)).toList();
         } else {
           throw ServerException(
-            message: 'Failed to fetch external calendar events',
+            message: 'Invalid response format',
+            code: '200',
           );
         }
-      } while (nextUrl != null);
-
-      print(
-        '✅ Fetched ${events.length} events for external calendar $calendarId',
-      );
-      return events;
+      } else {
+        throw ServerException(
+          message: 'Failed to fetch external calendar events',
+        );
+      }
     } on DioException catch (e) {
       print('❌ DioException in getExternalCalendarEvents: ${e.message}');
       throw _handleDioError(e);

@@ -13,7 +13,6 @@ class ChangePasswordResponseModel extends UserProfileModel {
     required super.username,
     required super.email,
     super.emailChanging,
-    super.profile,
     super.settings,
   });
 
@@ -24,7 +23,6 @@ class ChangePasswordResponseModel extends UserProfileModel {
       username: base.username,
       email: base.email,
       emailChanging: base.emailChanging,
-      profile: base.profile,
       settings: base.settings,
     );
   }

@@ -14,10 +14,8 @@ import 'package:helium_mobile/data/models/planner/event_response_model.dart';
 
 abstract class EventRemoteDataSource {
   Future<List<EventResponseModel>> getAllEvents({
-    String? start,
-    String? end,
-    String? startGte,
-    String? endLt,
+    String? from,
+    String? to,
     String? ordering,
     String? search,
     String? title,
@@ -78,10 +76,8 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
 
   @override
   Future<List<EventResponseModel>> getAllEvents({
-    String? start,
-    String? end,
-    String? startGte,
-    String? endLt,
+    String? from,
+    String? to,
     String? ordering,
     String? search,
     String? title,
@@ -91,10 +87,8 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
 
       // Build query parameters
       final Map<String, dynamic> queryParameters = {};
-      if (start != null) queryParameters['start'] = start;
-      if (end != null) queryParameters['end'] = end;
-      if (startGte != null) queryParameters['start__gte'] = startGte;
-      if (endLt != null) queryParameters['end__lt'] = endLt;
+      if (from != null) queryParameters['from'] = from;
+      if (to != null) queryParameters['to'] = to;
       if (ordering != null) queryParameters['ordering'] = ordering;
       if (search != null) queryParameters['search'] = search;
       if (title != null) queryParameters['title'] = title;

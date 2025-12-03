@@ -11,6 +11,11 @@ import 'package:helium_mobile/data/models/planner/homework_response_model.dart';
 abstract class HomeworkRepository {
   Future<List<HomeworkResponseModel>> getAllHomework({
     List<String>? categoryTitles,
+    String? from,
+    String? to,
+    String? ordering,
+    String? search,
+    String? title,
   });
 
   Future<HomeworkResponseModel> createHomework({

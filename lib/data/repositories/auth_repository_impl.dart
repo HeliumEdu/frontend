@@ -52,7 +52,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> blacklistToken(String refreshToken) async {
-    return await remoteDataSource.blacklistToken(refreshToken);
+    return await remoteDataSource.blacklistRefreshToken(refreshToken);
   }
 
   @override

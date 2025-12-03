@@ -37,7 +37,7 @@ class PreferenceScreen extends StatelessWidget {
           ),
         ),
       ],
-      child: const PreferenceView(),
+      child: PreferenceView(),
     );
   }
 }
@@ -148,9 +148,7 @@ class _PreferenceViewState extends State<PreferenceView> {
               if (state.defaultView != null) {
                 selectedDefaultView = state.defaultView;
               }
-              if (state.timeZone != null) {
-                selectedTimezone = state.timeZone;
-              }
+              selectedTimezone = state.timeZone;
               if (!timeZones.contains(selectedTimezone)) {
                 // Fallback to UTC if default isn't present
                 selectedTimezone = 'Etc/UTC';
@@ -421,7 +419,9 @@ class _PreferenceViewState extends State<PreferenceView> {
                                       controller: _offsetController,
                                       keyboardType: TextInputType.number,
                                       style: AppTextStyle.eTextStyle.copyWith(
-                                        color: blackColor.withValues(alpha: 0.6),
+                                        color: blackColor.withValues(
+                                          alpha: 0.6,
+                                        ),
                                         fontWeight: FontWeight.w400,
                                       ),
                                       decoration: InputDecoration(
@@ -455,7 +455,9 @@ class _PreferenceViewState extends State<PreferenceView> {
                                         child: Icon(
                                           Icons.arrow_drop_up,
                                           size: 20,
-                                          color: blackColor.withValues(alpha: 0.6),
+                                          color: blackColor.withValues(
+                                            alpha: 0.6,
+                                          ),
                                         ),
                                       ),
                                       InkWell(
@@ -467,7 +469,9 @@ class _PreferenceViewState extends State<PreferenceView> {
                                         child: Icon(
                                           Icons.arrow_drop_down,
                                           size: 20,
-                                          color: blackColor.withValues(alpha: 0.6),
+                                          color: blackColor.withValues(
+                                            alpha: 0.6,
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -535,7 +539,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                             if (state.submitSuccess) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  backgroundColor: redColor,
+                                  backgroundColor: greenColor,
                                   content: Text(
                                     'Preferences updated successfully',
                                   ),

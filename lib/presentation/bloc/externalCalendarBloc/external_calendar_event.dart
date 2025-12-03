@@ -12,12 +12,12 @@ abstract class ExternalCalendarEvent {}
 class FetchAllExternalCalendarsEvent extends ExternalCalendarEvent {}
 
 class FetchExternalCalendarEventsEvent extends ExternalCalendarEvent {
-  final int calendarId;
+  final String? from;
+  final String? to;
+  final String? search;
 
-  FetchExternalCalendarEventsEvent({required this.calendarId});
+  FetchExternalCalendarEventsEvent({this.from, this.to, this.search});
 }
-
-class FetchAllExternalCalendarEventsEvent extends ExternalCalendarEvent {}
 
 class CreateExternalCalendarEvent extends ExternalCalendarEvent {
   final ExternalCalendarRequestModel payload;

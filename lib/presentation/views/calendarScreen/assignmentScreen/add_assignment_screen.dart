@@ -10,17 +10,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:helium_mobile/config/app_routes.dart';
 import 'package:helium_mobile/core/dio_client.dart';
-import 'package:helium_mobile/data/datasources/auth_remote_data_source.dart';
 import 'package:helium_mobile/data/datasources/course_remote_data_source.dart';
 import 'package:helium_mobile/data/datasources/homework_remote_data_source.dart';
 import 'package:helium_mobile/data/datasources/material_remote_data_source.dart';
+import 'package:helium_mobile/data/models/auth/user_profile_model.dart';
 import 'package:helium_mobile/data/models/planner/category_model.dart';
 import 'package:helium_mobile/data/models/planner/course_model.dart';
 import 'package:helium_mobile/data/models/planner/homework_request_model.dart';
 import 'package:helium_mobile/data/models/planner/homework_response_model.dart';
 import 'package:helium_mobile/data/models/planner/material_group_response_model.dart';
 import 'package:helium_mobile/data/models/planner/material_model.dart';
-import 'package:helium_mobile/data/repositories/auth_repository_impl.dart';
 import 'package:helium_mobile/data/repositories/course_repository_impl.dart';
 import 'package:helium_mobile/data/repositories/homework_repository_impl.dart';
 import 'package:helium_mobile/data/repositories/material_repository_impl.dart';
@@ -42,8 +41,6 @@ import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_size.dart';
 import 'package:helium_mobile/utils/app_text_style.dart';
 import 'package:helium_mobile/utils/formatting.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:timezone/timezone.dart' as tz;
 
 class AddAssignmentScreen extends StatefulWidget {
   const AddAssignmentScreen({super.key});
@@ -54,6 +51,9 @@ class AddAssignmentScreen extends StatefulWidget {
 
 class _AddAssignmentScreenState extends State<AddAssignmentScreen>
     with SingleTickerProviderStateMixin {
+  final DioClient _dioClient = DioClient();
+  late UserSettings _userSettings;
+
   // Form Controllers
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _urlController = TextEditingController();
@@ -70,7 +70,6 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
   int? courseId;
   int? selectedCourseId;
   int? selectedCategoryId;
-  String _timeZone = 'Etc/UTC';
   List<int> selectedMaterialIds = [];
   bool isAllDay = false;
   bool isCompleted = false;
@@ -80,7 +79,6 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
   TimeOfDay? _startTime;
   TimeOfDay? _endTime;
   double _priorityValue = 50.0;
-  Color _materialsColor = whiteColor;
   List<CourseModel> _courses = [];
   List<CategoryModel> _categories = [];
   List<MaterialModel> _materials = [];
@@ -91,8 +89,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
   @override
   void initState() {
     super.initState();
-    _loadTimeZone();
-    _loadMaterialsColor();
+    loadSettings();
     _gradeFocusNode = FocusNode();
     _gradeFocusNode.addListener(_handleGradeFocusChange);
     _tabController = TabController(length: 2, vsync: this);
@@ -101,6 +98,13 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
       if (_tabController.index == 1) {
         Navigator.pushReplacementNamed(context, AppRoutes.addEventScreen);
       }
+    });
+  }
+
+  Future<void> loadSettings() async {
+    final awaitedSettings = await _dioClient.getSettings();
+    setState(() {
+      _userSettings = awaitedSettings;
     });
   }
 
@@ -130,65 +134,6 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
 
         _gradeController.text = value;
       }
-    }
-  }
-
-  Future<void> _loadTimeZone() async {
-    final prefs = await SharedPreferences.getInstance();
-    String? timeZone = prefs.getString('user_time_zone');
-
-    if (timeZone == null || timeZone.isEmpty) {
-      try {
-        final dioClient = DioClient();
-        final authRepository = AuthRepositoryImpl(
-          remoteDataSource: AuthRemoteDataSourceImpl(dioClient: dioClient),
-        );
-        final profile = await authRepository.getProfile();
-        final timeZone = profile.settings?.timeZone;
-        if (timeZone != null && timeZone.trim().isNotEmpty) {
-          await prefs.setString('user_time_zone', timeZone);
-        }
-      } catch (e) {
-        print('⚠️ Failed to load time zone from profile: $e');
-      }
-
-      if (timeZone == null || timeZone.isEmpty) return;
-
-      if (mounted && timeZone != _timeZone) {
-        setState(() {
-          _timeZone = timeZone;
-        });
-      }
-    }
-  }
-
-  Future<void> _loadMaterialsColor() async {
-    final prefs = await SharedPreferences.getInstance();
-    String? materialsColor = prefs.getString('user_materials_color');
-
-    if (materialsColor == null || materialsColor.isEmpty) {
-      try {
-        final dioClient = DioClient();
-        final authRepository = AuthRepositoryImpl(
-          remoteDataSource: AuthRemoteDataSourceImpl(dioClient: dioClient),
-        );
-        final profile = await authRepository.getProfile();
-        final materialsColor = profile.settings?.materialsColor;
-        if (materialsColor != null && materialsColor.trim().isNotEmpty) {
-          await prefs.setString('user_materials_color', materialsColor);
-        }
-      } catch (e) {
-        print('⚠️ Failed to load materials color from profile: $e');
-      }
-    }
-
-    if (materialsColor == null || materialsColor.isEmpty) return;
-
-    final parsedColor = parseColor(materialsColor);
-    if (mounted && parsedColor != _materialsColor) {
-      setState(() {
-        _materialsColor = parsedColor;
-      });
     }
   }
 
@@ -301,12 +246,8 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
       }
 
       // Parse start date/time
-      final timeZone = tz.getLocation(_timeZone);
       try {
-        final startDateTime = tz.TZDateTime.from(
-          DateTime.parse(homework.start),
-          timeZone,
-        );
+        final startDateTime = parseDateTime(homework.start, _userSettings.timeZone);
         _startDate = startDateTime;
         if (!isAllDay) {
           _startTime = TimeOfDay.fromDateTime(startDateTime);
@@ -317,10 +258,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
 
       if (homework.end != null) {
         try {
-          final endDateTime = tz.TZDateTime.from(
-            DateTime.parse(homework.end!),
-            timeZone,
-          );
+          final endDateTime = parseDateTime(homework.end!, _userSettings.timeZone);
           _endDate = endDateTime;
           if (!isAllDay) {
             _endTime = TimeOfDay.fromDateTime(endDateTime);
@@ -395,7 +333,10 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
     }
   }
 
-  Future<void> _fetchMaterialsForCourse(BuildContext context, int courseId) async {
+  Future<void> _fetchMaterialsForCourse(
+    BuildContext context,
+    int courseId,
+  ) async {
     for (var group in _materialGroups) {
       BlocProvider.of<MaterialBloc>(
         context,
@@ -549,14 +490,18 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
     final startDateTime = formatDateTimeToApi(
       _startDate!,
       isAllDay ? null : _startTime,
-      _timeZone
+      _userSettings.timeZone,
     );
 
     // Ensure backend always receives an end value to avoid validation errors.
     // If End is hidden or not set, default end to start.
     String endDateTime;
     if (isShowEndDateTime && _endDate != null) {
-      endDateTime = formatDateTimeToApi(_endDate!, isAllDay ? null : _endTime, _timeZone);
+      endDateTime = formatDateTimeToApi(
+        _endDate!,
+        isAllDay ? null : _endTime,
+        _userSettings.timeZone,
+      );
     } else {
       endDateTime = startDateTime;
     }
@@ -940,7 +885,9 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                     activeStepBackgroundColor: primaryColor,
                     activeStepTextColor: primaryColor,
                     finishedStepBorderColor: primaryColor,
-                    finishedStepBackgroundColor: primaryColor.withValues(alpha: 0.1),
+                    finishedStepBackgroundColor: primaryColor.withValues(
+                      alpha: 0.1,
+                    ),
                     finishedStepIconColor: primaryColor,
                     finishedStepTextColor: blackColor,
                     unreachedStepBorderColor: greyColor.withValues(alpha: 0.3),
@@ -1233,7 +1180,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                   runSpacing: -8,
                                   children: selectedMaterialIds.map((id) {
                                     return Chip(
-                                      backgroundColor: _materialsColor,
+                                      backgroundColor: parseColor(_userSettings.materialsColor),
                                       deleteIconColor: whiteColor,
                                       label: Text(
                                         _materialTitleById(id),
@@ -1349,7 +1296,9 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                     Text(
                                       'Start Date',
                                       style: AppTextStyle.eTextStyle.copyWith(
-                                        color: blackColor.withValues(alpha: 0.8),
+                                        color: blackColor.withValues(
+                                          alpha: 0.8,
+                                        ),
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
@@ -1366,7 +1315,9 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                             6,
                                           ),
                                           border: Border.all(
-                                            color: blackColor.withValues(alpha: 0.15),
+                                            color: blackColor.withValues(
+                                              alpha: 0.15,
+                                            ),
                                           ),
                                           color: whiteColor,
                                         ),
@@ -1384,8 +1335,9 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                                   .copyWith(
                                                     color: _startDate != null
                                                         ? blackColor
-                                                        : blackColor
-                                                              .withValues(alpha: 0.5),
+                                                        : blackColor.withValues(
+                                                            alpha: 0.5,
+                                                          ),
                                                   ),
                                             ),
                                             Icon(
@@ -1408,7 +1360,9 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                     Text(
                                       'End Date',
                                       style: AppTextStyle.eTextStyle.copyWith(
-                                        color: blackColor.withValues(alpha: 0.8),
+                                        color: blackColor.withValues(
+                                          alpha: 0.8,
+                                        ),
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
@@ -1425,7 +1379,9 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                             6,
                                           ),
                                           border: Border.all(
-                                            color: blackColor.withValues(alpha: 0.15),
+                                            color: blackColor.withValues(
+                                              alpha: 0.15,
+                                            ),
                                           ),
                                           color: whiteColor,
                                         ),
@@ -1443,8 +1399,9 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                                   .copyWith(
                                                     color: _endDate != null
                                                         ? blackColor
-                                                        : blackColor
-                                                              .withValues(alpha: 0.5),
+                                                        : blackColor.withValues(
+                                                            alpha: 0.5,
+                                                          ),
                                                   ),
                                             ),
                                             Icon(
@@ -1519,7 +1476,9 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                     Text(
                                       'Start Time',
                                       style: AppTextStyle.eTextStyle.copyWith(
-                                        color: blackColor.withValues(alpha: 0.8),
+                                        color: blackColor.withValues(
+                                          alpha: 0.8,
+                                        ),
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
@@ -1536,7 +1495,9 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                             6,
                                           ),
                                           border: Border.all(
-                                            color: blackColor.withValues(alpha: 0.15),
+                                            color: blackColor.withValues(
+                                              alpha: 0.15,
+                                            ),
                                           ),
                                           color: whiteColor,
                                         ),
@@ -1546,14 +1507,17 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                           children: [
                                             Text(
                                               _startTime != null
-                                                  ? formatTimeForDisplay(_startTime!)
+                                                  ? formatTimeForDisplay(
+                                                      _startTime!,
+                                                    )
                                                   : '',
                                               style: AppTextStyle.eTextStyle
                                                   .copyWith(
                                                     color: _startTime != null
                                                         ? blackColor
-                                                        : blackColor
-                                                              .withValues(alpha: 0.5),
+                                                        : blackColor.withValues(
+                                                            alpha: 0.5,
+                                                          ),
                                                   ),
                                             ),
                                             Icon(
@@ -1578,7 +1542,9 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                       Text(
                                         'End Time',
                                         style: AppTextStyle.eTextStyle.copyWith(
-                                          color: blackColor.withValues(alpha: 0.8),
+                                          color: blackColor.withValues(
+                                            alpha: 0.8,
+                                          ),
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
@@ -1596,8 +1562,8 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                               6,
                                             ),
                                             border: Border.all(
-                                              color: blackColor.withValues(alpha: 
-                                                0.15,
+                                              color: blackColor.withValues(
+                                                alpha: 0.15,
                                               ),
                                             ),
                                             color: whiteColor,
@@ -1608,15 +1574,17 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                             children: [
                                               Text(
                                                 _endTime != null
-                                                    ? formatTimeForDisplay(_endTime!)
+                                                    ? formatTimeForDisplay(
+                                                        _endTime!,
+                                                      )
                                                     : '',
                                                 style: AppTextStyle.eTextStyle
                                                     .copyWith(
                                                       color: _endTime != null
                                                           ? blackColor
                                                           : blackColor
-                                                                .withValues(alpha: 
-                                                                  0.5,
+                                                                .withValues(
+                                                                  alpha: 0.5,
                                                                 ),
                                                     ),
                                               ),
@@ -1656,7 +1624,9 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                             activeTrackColor: _getColorForPriority(
                               _priorityValue,
                             ),
-                            inactiveTrackColor: greyColor.withValues(alpha: 0.3),
+                            inactiveTrackColor: greyColor.withValues(
+                              alpha: 0.3,
+                            ),
                             thumbColor: _getColorForPriority(_priorityValue),
                             overlayColor: (_getColorForPriority(
                               _priorityValue,
@@ -1736,7 +1706,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                           CustomClassTextField(
                             text: 'Enter Grade',
                             controller: _gradeController,
-                            focusNode: _gradeFocusNode
+                            focusNode: _gradeFocusNode,
                           ),
                         ],
                         SizedBox(height: 24.v),

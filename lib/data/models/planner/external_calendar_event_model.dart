@@ -48,17 +48,10 @@ class ExternalCalendarEventModel {
     }
 
     int _extractExternalCalendarId(Map<String, dynamic> source) {
-      if (source.containsKey('external_calendar')) {
+      if (source.containsKey('id')) {
+        return _extractId(source['id']);
+      } else if (source.containsKey('external_calendar')) {
         return _extractId(source['external_calendar']);
-      }
-      if (source.containsKey('calendar')) {
-        return _extractId(source['calendar']);
-      }
-      if (source.containsKey('externalCalendar')) {
-        return _extractId(source['externalCalendar']);
-      }
-      if (source.containsKey('calendar_id')) {
-        return _extractId(source['calendar_id']);
       }
       return 0;
     }

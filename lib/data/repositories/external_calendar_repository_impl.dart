@@ -23,14 +23,14 @@ class ExternalCalendarRepositoryImpl implements ExternalCalendarRepository {
 
   @override
   Future<List<ExternalCalendarEventModel>> getExternalCalendarEvents({
-    required int calendarId,
-    DateTime? start,
-    DateTime? end,
+    DateTime? from,
+    DateTime? to,
+    String? search
   }) async {
     return await remoteDataSource.getExternalCalendarEvents(
-      calendarId: calendarId,
-      start: start,
-      end: end,
+      from: from,
+      to: to,
+      search: search
     );
   }
 

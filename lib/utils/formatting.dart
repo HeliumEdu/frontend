@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:helium_mobile/data/models/planner/reminder_response_model.dart';
 import 'package:helium_mobile/utils/app_list.dart';
 import 'package:intl/intl.dart';
-import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/standalone.dart' as tz;
 
 TimeOfDay? parseTime(String timeString) {
   try {
@@ -35,16 +35,11 @@ String formatTimeForApi(TimeOfDay time) {
   return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}:00';
 }
 
-DateTime? parseDateTime(String? isoString, String timeZone) {
-  if (isoString == null) return null;
-  try {
-    return tz.TZDateTime.from(
-      DateTime.parse(isoString),
-      tz.getLocation(timeZone),
-    );
-  } catch (_) {
-    return null;
-  }
+DateTime parseDateTime(String isoString, String timeZone) {
+  return tz.TZDateTime.from(
+    DateTime.parse(isoString),
+    tz.getLocation(timeZone),
+  );
 }
 
 String formatDateForDisplay(DateTime date) {

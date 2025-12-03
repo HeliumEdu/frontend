@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:helium_mobile/core/dio_client.dart';
 import 'package:helium_mobile/data/datasources/attachment_remote_data_source.dart';
 import 'package:helium_mobile/data/datasources/reminder_remote_data_source.dart';
+import 'package:helium_mobile/data/models/auth/user_profile_model.dart';
 import 'package:helium_mobile/data/models/planner/attachment_model.dart';
 import 'package:helium_mobile/data/models/planner/reminder_request_model.dart';
 import 'package:helium_mobile/data/models/planner/reminder_response_model.dart';
@@ -45,6 +46,9 @@ class AssignmentReminderScreen extends StatefulWidget {
 }
 
 class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
+  final DioClient _dioClient = DioClient();
+  late UserSettings _userSettings;
+
   final TextEditingController _messageController = TextEditingController();
   final TextEditingController _timeValueController = TextEditingController();
 
@@ -125,12 +129,20 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
   @override
   void initState() {
     super.initState();
+    loadSettings();
     // Fetch reminder if in edit mode
     if (widget.homeworkId != null) {
       isEditMode = true;
       _refreshServerReminders();
       _refreshAttachments();
     }
+  }
+
+  Future<void> loadSettings() async {
+    final awaitedSettings = await _dioClient.getSettings();
+    setState(() {
+      _userSettings = awaitedSettings;
+    });
   }
 
   Future<void> _refreshServerReminders() async {
@@ -1354,7 +1366,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
 
   void _triggerHomeScreenRefresh() {
     Future.delayed(Duration(milliseconds: 500), () {
-      HomeScreen.triggerRefresh();
+      CalendarScreen.triggerRefresh();
       print('🔄 Home screen refresh triggered from reminder screen');
     });
   }

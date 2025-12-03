@@ -9,7 +9,7 @@ class ReminderResponseModel {
   final int id;
   final String title;
   final String message;
-  final String? startOfRange;
+  final String startOfRange;
   final int offset;
   final int offsetType;
   final int type;
@@ -23,7 +23,7 @@ class ReminderResponseModel {
     required this.id,
     required this.title,
     required this.message,
-    this.startOfRange,
+    required this.startOfRange,
     required this.offset,
     required this.offsetType,
     required this.type,

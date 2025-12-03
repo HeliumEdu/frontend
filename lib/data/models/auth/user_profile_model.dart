@@ -10,7 +10,6 @@ class UserProfileModel {
   final String username;
   final String email;
   final String? emailChanging;
-  final UserProfile? profile;
   final UserSettings? settings;
 
   UserProfileModel({
@@ -18,7 +17,6 @@ class UserProfileModel {
     required this.username,
     required this.email,
     this.emailChanging,
-    this.profile,
     this.settings,
   });
 
@@ -28,9 +26,6 @@ class UserProfileModel {
       username: json['username'] ?? '',
       email: json['email'] ?? '',
       emailChanging: json['email_changing'],
-      profile: json['profile'] != null
-          ? UserProfile.fromJson(json['profile'])
-          : null,
       settings: json['settings'] != null
           ? UserSettings.fromJson(json['settings'])
           : null,
@@ -43,53 +38,20 @@ class UserProfileModel {
       'username': username,
       'email': email,
       'email_changing': emailChanging,
-      'profile': profile?.toJson(),
       'settings': settings?.toJson(),
     };
   }
 }
 
-class UserProfile {
-  final String? phone;
-  final String? phoneChanging;
-  final bool phoneVerified;
-  final int userId;
-
-  UserProfile({
-    this.phone,
-    this.phoneChanging,
-    required this.phoneVerified,
-    required this.userId,
-  });
-
-  factory UserProfile.fromJson(Map<String, dynamic> json) {
-    return UserProfile(
-      phone: json['phone'],
-      phoneChanging: json['phone_changing'],
-      phoneVerified: json['phone_verified'] ?? false,
-      userId: json['user'] ?? 0,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'phone': phone,
-      'phone_changing': phoneChanging,
-      'phone_verified': phoneVerified,
-      'user': userId,
-    };
-  }
-}
-
 class UserSettings {
-  final String timeZone;
+  String timeZone;
   final int defaultView;
   final int weekStartsOn;
   final int allDayOffset;
   final bool showGettingStarted;
-  final String eventsColor;
-  final String materialsColor;
-  final String gradesColor;
+  String eventsColor;
+  String materialsColor;
+  String gradesColor;
   final int defaultReminderOffset;
   final bool calendarEventLimit;
   final int defaultReminderOffsetType;

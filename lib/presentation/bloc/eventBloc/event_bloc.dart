@@ -30,10 +30,8 @@ class EventBloc extends Bloc<EventEvent, EventState> {
     try {
       print('🎯 Fetching all events from repository...');
       final events = await eventRepository.getAllEvents(
-        start: event.start,
-        end: event.end,
-        startGte: event.startGte,
-        endLt: event.endLt,
+        from: event.from,
+        to: event.to,
         ordering: event.ordering,
         search: event.search,
         title: event.title,

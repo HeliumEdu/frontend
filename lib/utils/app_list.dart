@@ -5,7 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/standalone.dart' as tz;
 
 const List<String> dayNames = [
   'Sunday',
