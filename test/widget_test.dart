@@ -7,37 +7,27 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:helium_mobile/config/pref_service.dart';
 import 'package:helium_mobile/core/fcm_service.dart';
 import 'package:helium_mobile/main.dart';
-import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
-import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 
 import 'mock_firebase_setup.dart';
 
 void main() async {
-  setUpAll(() {
-    SharedPreferencesAsyncPlatform.instance =
-        InMemorySharedPreferencesAsync.withData({});
-  });
-
   await mockFirebaseInitialiseApp();
 
-  group('HeliumEdu App Tests', () {
+  group('Helium App Tests', () {
     testWidgets('App initializes with splash screen', (
       WidgetTester tester,
     ) async {
-      final mockFCMService = FCMService();
-
-      await tester.pumpWidget(MyApp(fcmService: mockFCMService));
+      await tester.pumpWidget(HeliumApp());
       await tester.pumpAndSettle();
 
       expect(find.byType(MaterialApp), findsOneWidget);
     });
 
     testWidgets('FCM Test screen loads correctly', (WidgetTester tester) async {
-      final mockFCMService = FCMService();
-
-      await tester.pumpWidget(MyApp(fcmService: mockFCMService));
+      await tester.pumpWidget(HeliumApp());
       await tester.pumpAndSettle();
 
       await tester.pumpWidget(
@@ -53,9 +43,7 @@ void main() async {
     testWidgets('App has proper theme configuration', (
       WidgetTester tester,
     ) async {
-      final mockFCMService = FCMService();
-
-      await tester.pumpWidget(MyApp(fcmService: mockFCMService));
+      await tester.pumpWidget(HeliumApp());
       await tester.pumpAndSettle();
 
       final MaterialApp app = tester.widget(find.byType(MaterialApp));
@@ -64,9 +52,15 @@ void main() async {
     });
 
     testWidgets('FCM Service can be initialized', (WidgetTester tester) async {
-      final mockFCMService = FCMService();
-      expect(mockFCMService, isNotNull);
-      expect(mockFCMService.isInitialized, false);
+      final fcmService = FCMService();
+      expect(fcmService, isNotNull);
+      expect(fcmService.isInitialized, false);
+    });
+
+    testWidgets('Preferences can be initialized', (WidgetTester tester) async {
+      final prefService = PrefService();
+      expect(prefService, isNotNull);
+      expect(prefService.isInitialized, false);
     });
   });
 
@@ -74,9 +68,7 @@ void main() async {
     testWidgets('FCM service provides token model', (
       WidgetTester tester,
     ) async {
-      final mockFCMService = FCMService();
-
-      final tokenModel = mockFCMService.getFCMTokenModel();
+      final tokenModel = FCMService().getFCMTokenModel();
       expect(tokenModel, isNotNull);
       expect(tokenModel.token, isA<String>());
     });
@@ -113,9 +105,7 @@ void main() async {
     testWidgets('App routes are properly configured', (
       WidgetTester tester,
     ) async {
-      final mockFCMService = FCMService();
-
-      await tester.pumpWidget(MyApp(fcmService: mockFCMService));
+      await tester.pumpWidget(HeliumApp());
       await tester.pumpAndSettle();
 
       final MaterialApp app = tester.widget(find.byType(MaterialApp));

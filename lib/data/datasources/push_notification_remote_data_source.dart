@@ -221,7 +221,7 @@ class PushNotificationRemoteDataSourceImpl
   Future<List<PushTokenResponseModel>> retrievePushTokens(int userId) async {
     try {
       print('📥 Retrieving push tokens for user: $userId');
-      print('📚 Using official HeliumEdu API documentation format');
+      print('📚 Using official Helium API documentation format');
 
       // According to official docs: GET /auth/user/pushtoken/ (no query parameters)
       // The API will return tokens for the authenticated user automatically

@@ -256,7 +256,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } on ServerException catch (e) {
       emit(AuthError(message: e.message, code: e.code));
     } on UnauthorizedException {
-      await dioClient.clearTokens();
+      await dioClient.clearStorage();
       emit(
         const AuthUnauthenticated(
           message: 'Session expired. Please login again.',

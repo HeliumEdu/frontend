@@ -6,6 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:helium_mobile/config/pref_service.dart';
 import 'package:helium_mobile/core/app_exception.dart';
 import 'package:helium_mobile/core/dio_client.dart';
 import 'package:helium_mobile/core/fcm_service.dart';
@@ -19,7 +20,6 @@ import 'package:helium_mobile/utils/app_size.dart';
 import 'package:helium_mobile/utils/app_text_style.dart';
 import 'package:helium_mobile/utils/formatting.dart';
 import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
@@ -30,6 +30,7 @@ class NotificationScreen extends StatefulWidget {
 
 class _NotificationScreenState extends State<NotificationScreen> {
   final DioClient _dioClient = DioClient();
+  final PrefService sharedPreferencesService = PrefService();
   late UserSettings _userSettings;
 
   final FCMService _fcmService = FCMService();
@@ -93,12 +94,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
       setState(() {
         _isLoading = true;
       });
-      // Get user ID from SharedPreferences
-      final prefs = await SharedPreferencesWithCache.create(
-        cacheOptions: const SharedPreferencesWithCacheOptions(),
-      );
       // Load persisted read IDs
-      final storedRead = prefs.getStringList('read_notification_ids') ?? [];
+      final storedRead = sharedPreferencesService.getStringList('read_notification_ids') ?? [];
       _readNotificationIds = storedRead.toSet();
 
       final reminderRepo = ReminderRepositoryImpl(
@@ -167,30 +164,27 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   void _markAsRead(String notificationId) {
     _readNotificationIds.add(notificationId);
-    SharedPreferencesWithCache.create(
-      cacheOptions: const SharedPreferencesWithCacheOptions(),
-    ).then((prefs) {
-      prefs.setStringList(
-        'read_notification_ids',
-        _readNotificationIds.toList(),
-      );
-    });
-    setState(() {
-      _notifications = _notifications.map((notification) {
-        if (notification.notificationId == notificationId) {
-          return NotificationModel(
-            notificationId: notification.notificationId,
-            title: notification.title,
-            body: notification.body,
-            timestamp: notification.timestamp,
-            isRead: true,
-            type: notification.type,
-            action: notification.action,
-            data: notification.data,
-          );
-        }
-        return notification;
-      }).toList();
+    sharedPreferencesService.setStringList(
+      'read_notification_ids',
+      _readNotificationIds.toList(),
+    )!.then((_) {
+      setState(() {
+        _notifications = _notifications.map((notification) {
+          if (notification.notificationId == notificationId) {
+            return NotificationModel(
+              notificationId: notification.notificationId,
+              title: notification.title,
+              body: notification.body,
+              timestamp: notification.timestamp,
+              isRead: true,
+              type: notification.type,
+              action: notification.action,
+              data: notification.data,
+            );
+          }
+          return notification;
+        }).toList();
+      });
     });
   }
 
@@ -229,10 +223,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       // Also remove its read state
       if (notification.notificationId != null) {
         _readNotificationIds.remove(notification.notificationId);
-        final prefs = await SharedPreferencesWithCache.create(
-          cacheOptions: const SharedPreferencesWithCacheOptions(),
-        );
-        await prefs.setStringList(
+        await sharedPreferencesService.setStringList(
           'read_notification_ids',
           _readNotificationIds.toList(),
         );

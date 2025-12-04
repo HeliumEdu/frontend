@@ -13,9 +13,9 @@ import 'package:helium_mobile/presentation/bloc/notificationBloc/notification_ev
 import 'package:helium_mobile/presentation/bloc/notificationBloc/notification_state.dart';
 
 class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
-  final FCMService fcmService;
+  final FCMService fcmService = FCMService();
 
-  NotificationBloc({required this.fcmService})
+  NotificationBloc()
     : super(const NotificationInitial()) {
     on<InitializeNotificationEvent>(_onInitializeNotification);
     on<GetFCMTokenEvent>(_onGetFCMToken);
@@ -33,7 +33,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     emit(const NotificationLoading());
 
     try {
-      await fcmService.initialize();
+      await fcmService.init();
 
       final fcmToken = fcmService.getFCMTokenModel();
 
@@ -102,7 +102,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
       // Create a test notification
       final testNotification = NotificationModel(
         title: 'Test Notification',
-        body: 'This is a test notification from HeliumEdu!',
+        body: 'This is a test notification from Helium!',
         notificationId: 'test_${DateTime.now().millisecondsSinceEpoch}',
         timestamp: DateTime.now(),
         isRead: false,

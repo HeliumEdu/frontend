@@ -1,9 +1,17 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
 import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:helium_mobile/config/app_routes.dart';
 import 'package:helium_mobile/core/dio_client.dart';
 import 'package:helium_mobile/core/jwt_utils.dart';
@@ -13,7 +21,6 @@ import 'package:helium_mobile/data/models/notification/notification_model.dart';
 import 'package:helium_mobile/data/models/notification/push_token_request_model.dart';
 import 'package:helium_mobile/data/repositories/push_notification_repository_impl.dart';
 import 'package:helium_mobile/main.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class FCMService {
   static final FCMService _instance = FCMService._internal();
@@ -35,13 +42,15 @@ class FCMService {
   final Map<String, DateTime> _recentMessageIds = {};
   final Duration _dedupeWindow = Duration(seconds: 30);
 
+  final FlutterSecureStorage secureStorage = FlutterSecureStorage();
+
   // Getters
   String? get fcmToken => _fcmToken;
 
   bool get isInitialized => _isInitialized;
 
   // Initialize FCM
-  Future<void> initialize() async {
+  Future<void> init() async {
     if (_isInitialized) return;
 
     try {
@@ -58,7 +67,7 @@ class FCMService {
       _configureMessageHandlers();
 
       // Try to register FCM token if user is already logged in
-      await _registerTokenWithHeliumEdu();
+      await _registerToken();
 
       _isInitialized = true;
       print(
@@ -104,7 +113,7 @@ class FCMService {
     const AndroidNotificationChannel channel = AndroidNotificationChannel(
       'helium_notifications',
       'Helium Notifications',
-      description: 'Notifications for HeliumEdu app',
+      description: 'Notifications for Helium app',
       importance: Importance.high,
       playSound: true,
     );
@@ -135,16 +144,12 @@ class FCMService {
   Future<void> _getFCMToken() async {
     try {
       _fcmToken = await _firebaseMessaging.getToken();
-      print(
-        '🔑 FCM Token:*************************************************** $_fcmToken...',
-      );
     } catch (e) {
       print('❌ Failed to get FCM token: $e');
     }
   }
 
-  // Register FCM token with HeliumEdu API
-  Future<void> _registerTokenWithHeliumEdu({bool force = false}) async {
+  Future<void> _registerToken({bool force = false}) async {
     if (_fcmToken == null || _fcmToken!.isEmpty) {
       print(
         '⚠️ No FCM token available for registration*********************************',
@@ -154,11 +159,10 @@ class FCMService {
 
     try {
       // Load persisted identifiers
-      final prefs = await SharedPreferencesWithCache.create(
-        cacheOptions: const SharedPreferencesWithCacheOptions(),
+      final storedDeviceId = await secureStorage.read(key: 'helium_device_id');
+      final storedToken = await secureStorage.read(
+        key: 'helium_last_fcm_token',
       );
-      final storedDeviceId = prefs.getString('helium_device_id');
-      final storedToken = prefs.getString('helium_last_fcm_token');
 
       // Reuse a stable deviceId across runs; generate once if missing
       _deviceId = storedDeviceId ?? _fcmToken!.substring(0, 30);
@@ -173,7 +177,7 @@ class FCMService {
           storedToken != null && storedToken == _fcmToken;
 
       // Get user ID from token
-      final accessToken = prefs.getString('access_token');
+      final accessToken = await secureStorage.read(key: 'access_token');
       final userId = JWTUtils.getUserId(accessToken!);
 
       Future<bool> cleanExistingTokens() async {
@@ -219,7 +223,7 @@ class FCMService {
         }
       }
 
-      print('📱 Registering FCM token with HeliumEdu API...');
+      print('📱 Registering FCM token with Helium API...');
       print('👤 User ID: $userId');
       print('📱 Device ID: $_deviceId');
       print('📱 Device ID length: ${_deviceId!.length}');
@@ -235,13 +239,16 @@ class FCMService {
       );
 
       await pushTokenRepo.registerPushToken(request);
-      print('✅ FCM token registered with HeliumEdu API successfully');
+      print('✅ FCM token registered with Helium API successfully');
 
       // Persist identifiers
-      await prefs.setString('helium_device_id', _deviceId!);
-      await prefs.setString('helium_last_fcm_token', _fcmToken!);
+      await secureStorage.write(key: 'helium_device_id', value: _deviceId!);
+      await secureStorage.write(
+        key: 'helium_last_fcm_token',
+        value: _fcmToken!,
+      );
     } catch (e) {
-      print(' Failed to register FCM token with HeliumEdu API: $e');
+      print(' Failed to register FCM token with Helium API: $e');
       // Don't throw error here as FCM should still work locally
     }
   }
@@ -265,7 +272,7 @@ class FCMService {
 
   // Handle foreground messages
   Future<void> _handleForegroundMessage(RemoteMessage message) async {
-    print(' HeliumEdu Foreground message received: ${message.messageId}');
+    print(' Helium Foreground message received: ${message.messageId}');
     print(' Message data: ${message.data}');
     print(' Notification: ${message.notification}');
 
@@ -297,7 +304,7 @@ class FCMService {
     final notification = NotificationModel(
       notificationId:
           message.messageId ?? DateTime.now().millisecondsSinceEpoch.toString(),
-      title: message.notification?.title ?? 'HeliumEdu Reminder',
+      title: message.notification?.title ?? 'Helium Reminder',
       body: message.notification?.body ?? 'You have a new reminder.',
       data: message.data,
       timestamp: message.sentTime ?? DateTime.now(),
@@ -307,12 +314,12 @@ class FCMService {
     );
 
     await showLocalNotification(notification);
-    print(' HeliumEdu foreground notification displayed');
+    print(' Helium foreground notification displayed');
   }
 
   // Handle notification tap
   Future<void> _handleNotificationTap(RemoteMessage message) async {
-    print(' HeliumEdu Notification tapped: ${message.messageId}');
+    print(' Helium Notification tapped: ${message.messageId}');
     print(' Notification data: ${message.data}');
     _handleNotificationNavigation(message.data);
   }
@@ -328,7 +335,7 @@ class FCMService {
   }
 
   void _handleNotificationNavigation(Map<String, dynamic> data) {
-    print(' HeliumEdu Navigation data: $data');
+    print(' Helium Navigation data: $data');
     final context = navigatorKey.currentContext;
     if (context == null) return;
 
@@ -347,7 +354,7 @@ class FCMService {
         AndroidNotificationDetails(
           'helium_notifications',
           'Helium Notifications',
-          channelDescription: 'Notifications for HeliumEdu app',
+          channelDescription: 'Notifications for Helium app',
           importance: Importance.high,
           priority: Priority.high,
           showWhen: true,
@@ -393,8 +400,8 @@ class FCMService {
     print(' All notifications cleared');
   }
 
-  Future<void> registerTokenWithHeliumEdu({bool force = false}) async {
-    await _registerTokenWithHeliumEdu(force: force);
+  Future<void> registerToken({bool force = false}) async {
+    await _registerToken(force: force);
   }
 
   String? get deviceId => _deviceId;
@@ -408,14 +415,14 @@ class FCMService {
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
-  print(' HeliumEdu Background message received: ${message.messageId}');
+  print(' Helium Background message received: ${message.messageId}');
   print(' Message data: ${message.data}');
   print(' Notification: ${message.notification}');
   if (message.notification == null) {
     final notification = NotificationModel(
       notificationId:
           message.messageId ?? DateTime.now().millisecondsSinceEpoch.toString(),
-      title: 'HeliumEdu Reminder',
+      title: 'Helium Reminder',
       body: 'You have a new reminder.',
       data: message.data,
       timestamp: message.sentTime ?? DateTime.now(),
@@ -425,7 +432,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     );
     final fcmService = FCMService();
     await fcmService.showLocalNotification(notification);
-    print('✅ HeliumEdu background notification displayed (local only)');
+    print('✅ Helium background notification displayed (local only)');
   } else {
     print('ℹ️ System notification already handled by FCM (skipping local)');
   }

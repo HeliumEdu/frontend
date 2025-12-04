@@ -53,7 +53,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
   // Form State
   Color selectedColor = const Color(
     0xFF16a765,
-  ); // Valid HeliumEdu color - Green
+  );
   bool isOnline = false;
   DateTime? _startDate;
   DateTime? _endDate;

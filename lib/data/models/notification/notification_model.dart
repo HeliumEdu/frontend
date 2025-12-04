@@ -17,7 +17,7 @@ class NotificationModel {
   final bool? isRead;
   final String? type;
   final String? action;
-  final int? apiId; // HeliumEdu API ID for deletion
+  final int? apiId;
 
   NotificationModel({
     this.title,

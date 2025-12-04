@@ -108,10 +108,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
         final loginResponse = LoginResponseModel.fromJson(response.data);
 
-        // Register FCM token with HeliumEdu API after successful login
         try {
           final fcmService = FCMService();
-          await fcmService.registerTokenWithHeliumEdu(force: true);
+          await fcmService.registerToken(force: true);
           print('✅ FCM token registered after login');
         } catch (e) {
           print('❌ Failed to register FCM token after login: $e');
@@ -156,24 +155,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
             refreshResponse.access,
             refreshResponse.refresh,
           );
-
-          // Extract and save user ID from JWT token
-          // final userId = JWTUtils.getUserId(refreshResponse.access);
-          // if (userId != null) {
-          //   await dioClient.saveUserData(userId);
-          //   print('👤 User ID extracted and saved: $userId');
-          //
-          //   // Register FCM token with HeliumEdu API after token refresh
-          //   try {
-          //     final fcmService = FCMService();
-          //     await fcmService.registerTokenWithHeliumEdu(force: true);
-          //     print('✅ FCM token registered after token refresh');
-          //   } catch (e) {
-          //     print('❌ Failed to register FCM token after token refresh: $e');
-          //   }
-          // } else {
-          //   print('⚠️ Could not extract user ID from JWT token');
-          // }
         } else {
           print('❌ New access token is empty!');
         }
@@ -198,8 +179,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       // Get the refresh token before clearing
       final refreshToken = await dioClient.getRefreshToken();
 
-      // Clear tokens locally first
-      await dioClient.clearTokens();
+      await dioClient.clearStorage();
 
       // If we have a refresh token, blacklist it on the server
       if (refreshToken != null && refreshToken.isNotEmpty) {
@@ -211,8 +191,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         }
       }
     } catch (e) {
-      // Even if something fails, always clear the token
-      await dioClient.clearTokens();
+      // Even if something fails, always clear storage
+      await dioClient.clearStorage();
       throw AppException(message: 'Logout error: $e');
     }
   }
@@ -271,8 +251,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       );
 
       if (response.statusCode == 200 || response.statusCode == 204) {
-        // After successful deletion, clear the token
-        await dioClient.clearTokens();
+        // After successful deletion, clear storage
+        await dioClient.clearStorage();
 
         // Handle both response with body and no content (204)
         if (response.statusCode == 204 || response.data == null) {
