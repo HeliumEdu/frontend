@@ -7,7 +7,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
-import 'package:helium_mobile/utils/app_list.dart';
 
 class SignUpController {
   // Controllers
@@ -25,13 +24,8 @@ class SignUpController {
   bool agreeToTerms = false;
   String selectedTimezone = 'Etc/UTC';
 
-  // Populated from tz database
-  List<String> timezones = [];
-
   // Initialize tz database and load timezone IDs
   Future<void> initializeTimezones() async {
-    timezones = populateTimeZones();
-
     selectedTimezone = (await FlutterTimezone.getLocalTimezone()).identifier;
   }
 

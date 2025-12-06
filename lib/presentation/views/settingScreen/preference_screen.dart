@@ -59,13 +59,9 @@ String? selectedReminderOffsetUnit;
 class _PreferenceViewState extends State<PreferenceView> {
   late TextEditingController _offsetController;
 
-  // Populated from tz database
-  List<String> timeZones = [];
-
   @override
   void initState() {
     super.initState();
-    timeZones = populateTimeZones();
     _offsetController = TextEditingController(text: '0');
     // Fetch current preferences on open
     WidgetsBinding.instance.addPostFrameCallback((_) {

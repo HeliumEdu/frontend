@@ -16,9 +16,14 @@ import 'package:helium_mobile/core/fcm_service.dart';
 import 'package:helium_mobile/presentation/bloc/notificationBloc/notification_bloc.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_size.dart';
+import 'package:logging/logging.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 
 void main() async {
+  Logger.root.onRecord.listen((record) {
+    print('${record.level.name}: ${record.time}: ${record.message}');
+  });
+
   WidgetsFlutterBinding.ensureInitialized();
 
   tz.initializeTimeZones();

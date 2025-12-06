@@ -20,6 +20,7 @@ import 'package:helium_mobile/presentation/widgets/custom_text_button.dart';
 import 'package:helium_mobile/presentation/widgets/custom_text_field.dart';
 import 'package:helium_mobile/utils/app_assets.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
+import 'package:helium_mobile/utils/app_list.dart';
 import 'package:helium_mobile/utils/app_size.dart';
 import 'package:helium_mobile/utils/app_text_style.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -327,7 +328,7 @@ class _SignUpScreenViewState extends State<SignUpScreenView> {
                       hintText: 'Select Timezone',
                       prefixIcon: Icons.access_time_outlined,
                       value: _controller.selectedTimezone,
-                      items: _controller.timezones,
+                      items: timeZones,
                       onChanged: (value) {
                         setState(() {
                           _controller.updateTimezone(value);
