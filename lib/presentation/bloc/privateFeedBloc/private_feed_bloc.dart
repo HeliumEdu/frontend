@@ -10,6 +10,9 @@ import 'package:helium_mobile/core/app_exception.dart';
 import 'package:helium_mobile/domain/repositories/private_feed_repository.dart';
 import 'package:helium_mobile/presentation/bloc/privateFeedBloc/private_feed_event.dart';
 import 'package:helium_mobile/presentation/bloc/privateFeedBloc/private_feed_state.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
 
 class PrivateFeedBloc extends Bloc<PrivateFeedEvent, PrivateFeedState> {
   final PrivateFeedRepository privateFeedRepository;
@@ -27,15 +30,15 @@ class PrivateFeedBloc extends Bloc<PrivateFeedEvent, PrivateFeedState> {
   ) async {
     emit(PrivateFeedLoading());
     try {
-      print('🎯 Fetching Private Feed URLs from repository...');
+      log.info('🎯 Fetching Private Feed URLs from repository...');
       final privateFeed = await privateFeedRepository.getPrivateFeedUrls();
-      print('✅ Private Feed URLs fetched successfully');
+      log.info('✅ Private Feed URLs fetched successfully');
       emit(PrivateFeedLoaded(privateFeed: privateFeed));
     } on AppException catch (e) {
-      print('❌ App error: ${e.message}');
+      log.info('❌ App error: ${e.message}');
       emit(PrivateFeedError(message: e.message));
     } catch (e) {
-      print('❌ Unexpected error: $e');
+      log.info('❌ Unexpected error: $e');
       emit(PrivateFeedError(message: 'An unexpected error occurred: $e'));
     }
   }
@@ -46,16 +49,16 @@ class PrivateFeedBloc extends Bloc<PrivateFeedEvent, PrivateFeedState> {
   ) async {
     emit(PrivateFeedLoading());
     try {
-      print('🔧 Enabling private feeds...');
+      log.info('🔧 Enabling private feeds...');
       await privateFeedRepository.enablePrivateFeeds();
       final privateFeed = await privateFeedRepository.getPrivateFeedUrls();
-      print('✅ Private feeds enabled successfully');
+      log.info('✅ Private feeds enabled successfully');
       emit(PrivateFeedLoaded(privateFeed: privateFeed));
     } on AppException catch (e) {
-      print('❌ App error: ${e.message}');
+      log.info('❌ App error: ${e.message}');
       emit(PrivateFeedError(message: e.message));
     } catch (e) {
-      print('❌ Unexpected error: $e');
+      log.info('❌ Unexpected error: $e');
       emit(PrivateFeedError(message: 'An unexpected error occurred: $e'));
     }
   }
@@ -66,17 +69,17 @@ class PrivateFeedBloc extends Bloc<PrivateFeedEvent, PrivateFeedState> {
   ) async {
     emit(PrivateFeedLoading());
     try {
-      print('🛑 Disabling private feeds...');
+      log.info('🛑 Disabling private feeds...');
       await privateFeedRepository.disablePrivateFeeds();
-      print('✅ Private feeds disabled successfully');
+      log.info('✅ Private feeds disabled successfully');
       emit(
         PrivateFeedDisabled(message: 'Private feeds disabled successfully!'),
       );
     } on AppException catch (e) {
-      print('❌ App error: ${e.message}');
+      log.info('❌ App error: ${e.message}');
       emit(PrivateFeedError(message: e.message));
     } catch (e) {
-      print('❌ Unexpected error: $e');
+      log.info('❌ Unexpected error: $e');
       emit(PrivateFeedError(message: 'An unexpected error occurred: $e'));
     }
   }

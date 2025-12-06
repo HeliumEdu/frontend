@@ -21,6 +21,9 @@ import 'package:helium_mobile/data/models/notification/notification_model.dart';
 import 'package:helium_mobile/data/models/notification/push_token_request_model.dart';
 import 'package:helium_mobile/data/repositories/push_notification_repository_impl.dart';
 import 'package:helium_mobile/main.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
 
 class FCMService {
   static final FCMService _instance = FCMService._internal();
@@ -70,11 +73,11 @@ class FCMService {
       await _registerToken();
 
       _isInitialized = true;
-      print(
+      log.info(
         '✅ FCM Service initialized successfully*************************************',
       );
     } catch (e) {
-      print('❌ FCM Service initialization failed: $e');
+      log.info('❌ FCM Service initialization failed: $e');
       rethrow;
     }
   }
@@ -137,7 +140,9 @@ class FCMService {
       sound: true,
     );
 
-    print('📱 Notification permission status: ${settings.authorizationStatus}');
+    log.info(
+      '📱 Notification permission status: ${settings.authorizationStatus}',
+    );
   }
 
   // Get FCM token
@@ -145,13 +150,13 @@ class FCMService {
     try {
       _fcmToken = await _firebaseMessaging.getToken();
     } catch (e) {
-      print('❌ Failed to get FCM token: $e');
+      log.info('❌ Failed to get FCM token: $e');
     }
   }
 
   Future<void> _registerToken({bool force = false}) async {
     if (_fcmToken == null || _fcmToken!.isEmpty) {
-      print(
+      log.info(
         '⚠️ No FCM token available for registration*********************************',
       );
       return;
@@ -199,13 +204,13 @@ class FCMService {
 
             try {
               await pushTokenRepo.deletePushTokenById(token.id);
-              print('🧹 Removed stale push token ID: ${token.id}');
+              log.info('🧹 Removed stale push token ID: ${token.id}');
             } catch (e) {
-              print('⚠️ Failed to delete stale push token ${token.id}: $e');
+              log.info('⚠️ Failed to delete stale push token ${token.id}: $e');
             }
           }
         } catch (e) {
-          print('⚠️ Failed to sweep existing push tokens: $e');
+          log.info('⚠️ Failed to sweep existing push tokens: $e');
         }
         return hasCurrent;
       }
@@ -213,21 +218,21 @@ class FCMService {
       if (tokenUnchanged) {
         final hasCurrentToken = await cleanExistingTokens();
         if (hasCurrentToken && !force) {
-          print('ℹ️ FCM token unchanged; skipping push token registration');
+          log.info('ℹ️ FCM token unchanged; skipping push token registration');
           return;
         }
         if (hasCurrentToken && force) {
-          print(
+          log.info(
             'ℹ️ FCM token unchanged; forced re-registration will refresh token',
           );
         }
       }
 
-      print('📱 Registering FCM token with Helium API...');
-      print('👤 User ID: $userId');
-      print('📱 Device ID: $_deviceId');
-      print('📱 Device ID length: ${_deviceId!.length}');
-      print('🔑 FCM Token length: ${_fcmToken!.length}');
+      log.info('📱 Registering FCM token with Helium API...');
+      log.info('👤 User ID: $userId');
+      log.info('📱 Device ID: $_deviceId');
+      log.info('📱 Device ID length: ${_deviceId!.length}');
+      log.info('🔑 FCM Token length: ${_fcmToken!.length}');
 
       await cleanExistingTokens();
 
@@ -239,7 +244,7 @@ class FCMService {
       );
 
       await pushTokenRepo.registerPushToken(request);
-      print('✅ FCM token registered with Helium API successfully');
+      log.info('✅ FCM token registered with Helium API successfully');
 
       // Persist identifiers
       await secureStorage.write(key: 'helium_device_id', value: _deviceId!);
@@ -248,7 +253,7 @@ class FCMService {
         value: _fcmToken!,
       );
     } catch (e) {
-      print(' Failed to register FCM token with Helium API: $e');
+      log.info(' Failed to register FCM token with Helium API: $e');
       // Don't throw error here as FCM should still work locally
     }
   }
@@ -272,9 +277,9 @@ class FCMService {
 
   // Handle foreground messages
   Future<void> _handleForegroundMessage(RemoteMessage message) async {
-    print(' Helium Foreground message received: ${message.messageId}');
-    print(' Message data: ${message.data}');
-    print(' Notification: ${message.notification}');
+    log.info(' Helium Foreground message received: ${message.messageId}');
+    log.info(' Message data: ${message.data}');
+    log.info(' Notification: ${message.notification}');
 
     final String contentFingerprint = [
       message.data['id'] ?? '',
@@ -294,7 +299,7 @@ class FCMService {
     );
 
     if (_recentMessageIds.containsKey(key)) {
-      print(
+      log.info(
         '⏱️ Skipping duplicate foreground notification within dedupe window',
       );
       return;
@@ -314,13 +319,13 @@ class FCMService {
     );
 
     await showLocalNotification(notification);
-    print(' Helium foreground notification displayed');
+    log.info(' Helium foreground notification displayed');
   }
 
   // Handle notification tap
   Future<void> _handleNotificationTap(RemoteMessage message) async {
-    print(' Helium Notification tapped: ${message.messageId}');
-    print(' Notification data: ${message.data}');
+    log.info(' Helium Notification tapped: ${message.messageId}');
+    log.info(' Notification data: ${message.data}');
     _handleNotificationNavigation(message.data);
   }
 
@@ -329,20 +334,20 @@ class FCMService {
         .getInitialMessage();
 
     if (initialMessage != null) {
-      print(' App opened from terminated state via notification');
+      log.info(' App opened from terminated state via notification');
       _handleNotificationNavigation(initialMessage.data);
     }
   }
 
   void _handleNotificationNavigation(Map<String, dynamic> data) {
-    print(' Helium Navigation data: $data');
+    log.info(' Helium Navigation data: $data');
     final context = navigatorKey.currentContext;
     if (context == null) return;
 
     final dynamic rawType = data['type'];
     final typeString = rawType?.toString() ?? '';
     if (typeString.isEmpty) {
-      print(' Unknown notification type: $rawType');
+      log.info(' Unknown notification type: $rawType');
     }
 
     Navigator.of(context).pushNamed(AppRoutes.notificationScreen);
@@ -382,7 +387,7 @@ class FCMService {
   }
 
   void _onNotificationTapped(NotificationResponse response) {
-    print(' Local notification tapped: ${response.payload}');
+    log.info(' Local notification tapped: ${response.payload}');
     _handleNotificationNavigation({});
   }
 
@@ -397,7 +402,7 @@ class FCMService {
 
   Future<void> clearAllNotifications() async {
     await _localNotifications.cancelAll();
-    print(' All notifications cleared');
+    log.info(' All notifications cleared');
   }
 
   Future<void> registerToken({bool force = false}) async {
@@ -408,16 +413,16 @@ class FCMService {
 
   Future<void> clearNotification(int notificationId) async {
     await _localNotifications.cancel(notificationId);
-    print(' Notification $notificationId cleared');
+    log.info(' Notification $notificationId cleared');
   }
 }
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
-  print(' Helium Background message received: ${message.messageId}');
-  print(' Message data: ${message.data}');
-  print(' Notification: ${message.notification}');
+  log.info(' Helium Background message received: ${message.messageId}');
+  log.info(' Message data: ${message.data}');
+  log.info(' Notification: ${message.notification}');
   if (message.notification == null) {
     final notification = NotificationModel(
       notificationId:
@@ -432,8 +437,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     );
     final fcmService = FCMService();
     await fcmService.showLocalNotification(notification);
-    print('✅ Helium background notification displayed (local only)');
+    log.info('✅ Helium background notification displayed (local only)');
   } else {
-    print('ℹ️ System notification already handled by FCM (skipping local)');
+    log.info('ℹ️ System notification already handled by FCM (skipping local)');
   }
 }

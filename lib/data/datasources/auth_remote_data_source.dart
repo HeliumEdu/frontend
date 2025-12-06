@@ -26,6 +26,9 @@ import 'package:helium_mobile/data/models/auth/register_response_model.dart';
 import 'package:helium_mobile/data/models/auth/update_settings_request_model.dart';
 import 'package:helium_mobile/data/models/auth/update_settings_response_model.dart';
 import 'package:helium_mobile/data/models/auth/user_profile_model.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
 
 abstract class AuthRemoteDataSource {
   Future<RegisterResponseModel> register(RegisterRequestModel request);
@@ -96,7 +99,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       );
 
       if (response.statusCode == 200) {
-        print('📦 Login Response: ${response.data}');
+        log.info('📦 Login Response: ${response.data}');
 
         await dioClient.saveTokens(
           response.data['access'],
@@ -111,9 +114,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         try {
           final fcmService = FCMService();
           await fcmService.registerToken(force: true);
-          print('✅ FCM token registered after login');
+          log.info('✅ FCM token registered after login');
         } catch (e) {
-          print('❌ Failed to register FCM token after login: $e');
+          log.info('❌ Failed to register FCM token after login: $e');
         }
 
         return loginResponse;
@@ -145,8 +148,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           response.data,
         );
 
-        print('🔄 Token refreshed successfully');
-        print(
+        log.info('🔄 Token refreshed successfully');
+        log.info(
           '🔑 New Access Token: ${refreshResponse.access.substring(0, 10)}...',
         );
 
@@ -156,7 +159,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
             refreshResponse.refresh,
           );
         } else {
-          print('❌ New access token is empty!');
+          log.info('❌ New access token is empty!');
         }
 
         return refreshResponse;
@@ -187,7 +190,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           await blacklistRefreshToken(refreshToken);
         } catch (e) {
           // If blacklisting fails, we still want to logout locally
-          print('⚠️ Failed to blacklist token on server: $e');
+          log.info('⚠️ Failed to blacklist token on server: $e');
         }
       }
     } catch (e) {
@@ -206,7 +209,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        print('✅ Token blacklisted successfully');
+        log.info('✅ Token blacklisted successfully');
       } else {
         throw ServerException(
           message: 'Failed to blacklist token',

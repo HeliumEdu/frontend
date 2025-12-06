@@ -10,6 +10,9 @@ import 'package:helium_mobile/core/dio_client.dart';
 import 'package:helium_mobile/core/network_urls.dart';
 import 'package:helium_mobile/data/models/auth/user_profile_model.dart';
 import 'package:helium_mobile/data/models/planner/private_feed_model.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
 
 abstract class PrivateFeedRemoteDataSource {
   Future<PrivateFeedModel> getPrivateFeedUrls();
@@ -27,9 +30,9 @@ class PrivateFeedRemoteDataSourceImpl implements PrivateFeedRemoteDataSource {
   @override
   Future<PrivateFeedModel> getPrivateFeedUrls() async {
     try {
-      print(' Fetching Private Feed URLs...');
+      log.info(' Fetching Private Feed URLs...');
 
-      print(' Fetching user profile to get private slug...');
+      log.info(' Fetching user profile to get private slug...');
       final response = await dioClient.dio.get(NetworkUrl.getUserUrl);
 
       if (response.statusCode != 200) {
@@ -53,21 +56,21 @@ class PrivateFeedRemoteDataSourceImpl implements PrivateFeedRemoteDataSource {
         );
       }
 
-      print(' Private slug retrieved: $privateSlug');
+      log.info(' Private slug retrieved: $privateSlug');
 
       final privateFeed = PrivateFeedModel.fromPrivateSlug(
         baseUrl: NetworkUrl.baseUrl,
         privateSlug: privateSlug,
       );
 
-      print(' Private Feed URLs generated successfully');
-      print('   - All Calendar: ${privateFeed.classSchedulesUrl}');
-      print('   - Homework: ${privateFeed.homeworkUrl}');
-      print('   - Events: ${privateFeed.eventsUrl}');
+      log.info(' Private Feed URLs generated successfully');
+      log.info('   - All Calendar: ${privateFeed.classSchedulesUrl}');
+      log.info('   - Homework: ${privateFeed.homeworkUrl}');
+      log.info('   - Events: ${privateFeed.eventsUrl}');
 
       return privateFeed;
     } catch (e) {
-      print(' Exception in getPrivateFeedUrls: $e');
+      log.info(' Exception in getPrivateFeedUrls: $e');
       if (e is AppException) {
         rethrow;
       }
@@ -80,7 +83,7 @@ class PrivateFeedRemoteDataSourceImpl implements PrivateFeedRemoteDataSource {
   @override
   Future<void> enablePrivateFeeds() async {
     try {
-      print('🔧 Enabling private feeds...');
+      log.info('🔧 Enabling private feeds...');
 
       final response = await dioClient.dio.put(
         NetworkUrl.enablePrivateFeedsUrl,
@@ -92,9 +95,9 @@ class PrivateFeedRemoteDataSourceImpl implements PrivateFeedRemoteDataSource {
         );
       }
 
-      print('✅ Private feeds enabled successfully');
+      log.info('✅ Private feeds enabled successfully');
     } catch (e) {
-      print('❌ Exception in enablePrivateFeeds: $e');
+      log.info('❌ Exception in enablePrivateFeeds: $e');
       if (e is AppException) {
         rethrow;
       }
@@ -107,7 +110,7 @@ class PrivateFeedRemoteDataSourceImpl implements PrivateFeedRemoteDataSource {
   @override
   Future<void> disablePrivateFeeds() async {
     try {
-      print('🛑 Disabling private feeds...');
+      log.info('🛑 Disabling private feeds...');
 
       final response = await dioClient.dio.put(
         NetworkUrl.disablePrivateFeedsUrl,
@@ -119,9 +122,9 @@ class PrivateFeedRemoteDataSourceImpl implements PrivateFeedRemoteDataSource {
         );
       }
 
-      print('✅ Private feeds disabled successfully');
+      log.info('✅ Private feeds disabled successfully');
     } catch (e) {
-      print('❌ Exception in disablePrivateFeeds: $e');
+      log.info('❌ Exception in disablePrivateFeeds: $e');
       if (e is AppException) {
         rethrow;
       }

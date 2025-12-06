@@ -23,12 +23,14 @@ import 'package:helium_mobile/data/repositories/course_repository_impl.dart';
 import 'package:helium_mobile/presentation/bloc/courseBloc/course_bloc.dart';
 import 'package:helium_mobile/presentation/bloc/courseBloc/course_event.dart';
 import 'package:helium_mobile/presentation/bloc/courseBloc/course_state.dart';
+import 'package:helium_mobile/presentation/widgets/custom_color_picker.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_size.dart';
 import 'package:helium_mobile/utils/app_text_style.dart';
-
-import 'package:helium_mobile/presentation/widgets/custom_color_picker.dart';
 import 'package:helium_mobile/utils/formatting.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
 
 class AddClassesCategoriesScreen extends StatefulWidget {
   final int courseId;
@@ -90,7 +92,7 @@ class _AddClassesCategoriesScreenState
       });
     } catch (e) {
       // Non-blocking
-      debugPrint('Failed to load attachments: $e');
+      log.info('Failed to load attachments: $e');
     }
   }
 
@@ -210,7 +212,7 @@ class _AddClassesCategoriesScreenState
 
       // Step 2: Upload Attachment (if file is selected)
       if (_selectedFile != null) {
-        print('📎 Uploading attachment...');
+        log.info('📎 Uploading attachment...');
         final attachmentDataSource = AttachmentRemoteDataSourceImpl(
           dioClient: DioClient(),
         );
@@ -222,7 +224,7 @@ class _AddClassesCategoriesScreenState
           file: _selectedFile!,
           course: courseId,
         );
-        print('✅ Attachment uploaded successfully');
+        log.info('✅ Attachment uploaded successfully');
       }
     } catch (e) {
       if (mounted) {
@@ -417,10 +419,7 @@ class _AddClassesCategoriesScreenState
                           decoration: BoxDecoration(
                             color: selectedColor,
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: greyColor,
-                              width: 1,
-                            ),
+                            border: Border.all(color: greyColor, width: 1),
                           ),
                         ),
                       ),
@@ -763,15 +762,19 @@ class _AddClassesCategoriesScreenState
                         activeStepBackgroundColor: primaryColor,
                         activeStepTextColor: primaryColor,
                         finishedStepBorderColor: primaryColor,
-                        finishedStepBackgroundColor: primaryColor.withValues(alpha: 
-                          0.1,
+                        finishedStepBackgroundColor: primaryColor.withValues(
+                          alpha: 0.1,
                         ),
                         finishedStepIconColor: primaryColor,
                         finishedStepTextColor: blackColor,
-                        unreachedStepBorderColor: greyColor.withValues(alpha: 0.3),
+                        unreachedStepBorderColor: greyColor.withValues(
+                          alpha: 0.3,
+                        ),
                         unreachedStepBackgroundColor: softGrey,
                         unreachedStepIconColor: greyColor,
-                        unreachedStepTextColor: textColor.withValues(alpha: 0.5),
+                        unreachedStepTextColor: textColor.withValues(
+                          alpha: 0.5,
+                        ),
                         borderThickness: 2,
                         internalPadding: 12,
                         showLoadingAnimation: false,
@@ -951,7 +954,9 @@ class _AddClassesCategoriesScreenState
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: primaryColor.withValues(alpha: 0.2),
+                                      color: primaryColor.withValues(
+                                        alpha: 0.2,
+                                      ),
                                       blurRadius: 6,
                                       offset: Offset(0, 2),
                                     ),
@@ -1048,7 +1053,9 @@ class _AddClassesCategoriesScreenState
                                       ),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: blackColor.withValues(alpha: 0.04),
+                                          color: blackColor.withValues(
+                                            alpha: 0.04,
+                                          ),
                                           blurRadius: 6,
                                           offset: Offset(0, 1),
                                         ),
@@ -1090,7 +1097,9 @@ class _AddClassesCategoriesScreenState
                                                         .iTextStyle
                                                         .copyWith(
                                                           color: textColor
-                                                              .withValues(alpha: 0.6),
+                                                              .withValues(
+                                                                alpha: 0.6,
+                                                              ),
                                                           fontSize: 12.fSize,
                                                         ),
                                                   ),
@@ -1139,7 +1148,9 @@ class _AddClassesCategoriesScreenState
                                                         .cTextStyle
                                                         .copyWith(
                                                           color: textColor
-                                                              .withValues(alpha: 0.7),
+                                                              .withValues(
+                                                                alpha: 0.7,
+                                                              ),
                                                         ),
                                                   ),
                                                   actions: [
@@ -1321,7 +1332,9 @@ class _AddClassesCategoriesScreenState
                                       Container(
                                         padding: EdgeInsets.all(8),
                                         decoration: BoxDecoration(
-                                          color: primaryColor.withValues(alpha: 0.1),
+                                          color: primaryColor.withValues(
+                                            alpha: 0.1,
+                                          ),
                                           borderRadius: BorderRadius.circular(
                                             6,
                                           ),

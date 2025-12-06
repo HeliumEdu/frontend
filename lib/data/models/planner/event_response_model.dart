@@ -7,6 +7,9 @@
 
 import 'package:helium_mobile/data/models/planner/attachment_model.dart';
 import 'package:helium_mobile/data/models/planner/reminder_response_model.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
 
 class EventResponseModel {
   final int id;
@@ -60,7 +63,7 @@ class EventResponseModel {
           attachmentsList.add(AttachmentModel.fromJson(item));
         } else if (item is int) {
           // API returned just IDs, skip parsing or create placeholder
-          print('⚠️ Attachment returned as ID: $item (not full object)');
+          log.info('⚠️ Attachment returned as ID: $item (not full object)');
         }
       }
     }
@@ -75,7 +78,7 @@ class EventResponseModel {
           remindersList.add(ReminderResponseModel.fromJson(item));
         } else if (item is int) {
           // API returned just IDs, skip parsing or create placeholder
-          print('⚠️ Reminder returned as ID: $item (not full object)');
+          log.info('⚠️ Reminder returned as ID: $item (not full object)');
         }
       }
     }

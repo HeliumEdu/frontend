@@ -35,7 +35,7 @@ class ReminderResponseModel {
   });
 
   factory ReminderResponseModel.fromJson(Map<String, dynamic> json) {
-    int? _parseId(dynamic value) {
+    int? parseId(dynamic value) {
       if (value == null) return null;
       if (value is int) return value;
       if (value is Map<String, dynamic>) {
@@ -61,7 +61,7 @@ class ReminderResponseModel {
       dismissed: json['dismissed'] ?? false,
       homework: parseCalendarItem(json['homework']),
       event: parseCalendarItem(json['event']),
-      userId: _parseId(json['user']) ?? 0,
+      userId: parseId(json['user']) ?? 0,
     );
   }
 

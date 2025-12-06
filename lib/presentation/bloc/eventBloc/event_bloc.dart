@@ -10,6 +10,9 @@ import 'package:helium_mobile/core/app_exception.dart';
 import 'package:helium_mobile/domain/repositories/event_repository.dart';
 import 'package:helium_mobile/presentation/bloc/eventBloc/event_event.dart';
 import 'package:helium_mobile/presentation/bloc/eventBloc/event_state.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
 
 class EventBloc extends Bloc<EventEvent, EventState> {
   final EventRepository eventRepository;
@@ -28,7 +31,7 @@ class EventBloc extends Bloc<EventEvent, EventState> {
   ) async {
     emit(EventLoading());
     try {
-      print('🎯 Fetching all events from repository...');
+      log.info('🎯 Fetching all events from repository...');
       final events = await eventRepository.getAllEvents(
         from: event.from,
         to: event.to,
@@ -36,13 +39,13 @@ class EventBloc extends Bloc<EventEvent, EventState> {
         search: event.search,
         title: event.title,
       );
-      print('✅ Events fetched successfully: ${events.length} event(s)');
+      log.info('✅ Events fetched successfully: ${events.length} event(s)');
       emit(EventLoaded(events: events));
     } on AppException catch (e) {
-      print('❌ App error: ${e.message}');
+      log.info('❌ App error: ${e.message}');
       emit(EventError(message: e.message));
     } catch (e) {
-      print('❌ Unexpected error: $e');
+      log.info('❌ Unexpected error: $e');
       emit(EventError(message: 'An unexpected error occurred: $e'));
     }
   }
@@ -53,20 +56,20 @@ class EventBloc extends Bloc<EventEvent, EventState> {
   ) async {
     emit(EventCreating());
     try {
-      print('🎯 Creating event...');
+      log.info('🎯 Creating event...');
       final createdEvent = await eventRepository.createEvent(
         request: event.request,
       );
-      print('✅ Event created successfully');
+      log.info('✅ Event created successfully');
       emit(EventCreated(event: createdEvent));
 
       // Refresh events list after creation
       add(FetchAllEventsEvent());
     } on AppException catch (e) {
-      print('❌ App error: ${e.message}');
+      log.info('❌ App error: ${e.message}');
       emit(EventCreateError(message: e.message));
     } catch (e) {
-      print('❌ Unexpected error: $e');
+      log.info('❌ Unexpected error: $e');
       emit(EventCreateError(message: 'An unexpected error occurred: $e'));
     }
   }
@@ -77,17 +80,17 @@ class EventBloc extends Bloc<EventEvent, EventState> {
   ) async {
     emit(EventByIdLoading());
     try {
-      print('🎯 Fetching event by ID: ${event.eventId}');
+      log.info('🎯 Fetching event by ID: ${event.eventId}');
       final fetchedEvent = await eventRepository.getEventById(
         eventId: event.eventId,
       );
-      print('✅ Event fetched successfully');
+      log.info('✅ Event fetched successfully');
       emit(EventByIdLoaded(event: fetchedEvent));
     } on AppException catch (e) {
-      print('❌ App error: ${e.message}');
+      log.info('❌ App error: ${e.message}');
       emit(EventByIdError(message: e.message));
     } catch (e) {
-      print('❌ Unexpected error: $e');
+      log.info('❌ Unexpected error: $e');
       emit(EventByIdError(message: 'An unexpected error occurred: $e'));
     }
   }
@@ -98,21 +101,21 @@ class EventBloc extends Bloc<EventEvent, EventState> {
   ) async {
     emit(EventUpdating());
     try {
-      print('🎯 Updating event: ${event.eventId}');
+      log.info('🎯 Updating event: ${event.eventId}');
       final updatedEvent = await eventRepository.updateEvent(
         eventId: event.eventId,
         request: event.request,
       );
-      print('✅ Event updated successfully');
+      log.info('✅ Event updated successfully');
       emit(EventUpdated(event: updatedEvent));
 
       // Refresh events list after update
       add(FetchAllEventsEvent());
     } on AppException catch (e) {
-      print('❌ App error: ${e.message}');
+      log.info('❌ App error: ${e.message}');
       emit(EventUpdateError(message: e.message));
     } catch (e) {
-      print('❌ Unexpected error: $e');
+      log.info('❌ Unexpected error: $e');
       emit(EventUpdateError(message: 'An unexpected error occurred: $e'));
     }
   }
@@ -123,18 +126,18 @@ class EventBloc extends Bloc<EventEvent, EventState> {
   ) async {
     emit(EventDeleting());
     try {
-      print('🎯 Deleting event: ${event.eventId}');
+      log.info('🎯 Deleting event: ${event.eventId}');
       await eventRepository.deleteEvent(eventId: event.eventId);
-      print('✅ Event deleted successfully');
+      log.info('✅ Event deleted successfully');
       emit(EventDeleted());
 
       // Refresh events list after deletion
       add(FetchAllEventsEvent());
     } on AppException catch (e) {
-      print('❌ App error: ${e.message}');
+      log.info('❌ App error: ${e.message}');
       emit(EventDeleteError(message: e.message));
     } catch (e) {
-      print('❌ Unexpected error: $e');
+      log.info('❌ Unexpected error: $e');
       emit(EventDeleteError(message: 'An unexpected error occurred: $e'));
     }
   }

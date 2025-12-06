@@ -11,6 +11,9 @@ import 'package:helium_mobile/core/dio_client.dart';
 import 'package:helium_mobile/core/network_urls.dart';
 import 'package:helium_mobile/data/models/notification/push_token_request_model.dart';
 import 'package:helium_mobile/data/models/notification/push_token_response_model.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
 
 abstract class PushNotificationRemoteDataSource {
   Future<PushTokenResponseModel> registerPushToken(
@@ -35,9 +38,11 @@ class PushNotificationRemoteDataSourceImpl
     PushTokenRequestModel request,
   ) async {
     try {
-      print('📱 Registering push token for user:........... ${request.user}');
-      print('🔑 Device ID: ${request.deviceId}');
-      print('🎯 Token: ${request.token.substring(0, 20)}...');
+      log.info(
+        '📱 Registering push token for user:........... ${request.user}',
+      );
+      log.info('🔑 Device ID: ${request.deviceId}');
+      log.info('🎯 Token: ${request.token.substring(0, 20)}...');
 
       final response = await dioClient.dio.post(
         NetworkUrl.pushTokenUrl,
@@ -45,7 +50,7 @@ class PushNotificationRemoteDataSourceImpl
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        print(
+        log.info(
           '________________________________✅ Push token registered successfully  ____________________________?',
         );
         return PushTokenResponseModel.fromJson(response.data);
@@ -66,14 +71,14 @@ class PushNotificationRemoteDataSourceImpl
   @override
   Future<void> deletePushToken(int userId) async {
     try {
-      print('🗑️ Deleting push token for user: $userId');
+      log.info('🗑️ Deleting push token for user: $userId');
 
       final response = await dioClient.dio.delete(
         '${NetworkUrl.pushTokenUrl}$userId/',
       );
 
       if (response.statusCode == 200 || response.statusCode == 204) {
-        print('✅ Push token deleted successfully');
+        log.info('✅ Push token deleted successfully');
       } else {
         // Get real error message from API response
         String errorMessage = 'Failed to delete push token';
@@ -89,7 +94,7 @@ class PushNotificationRemoteDataSourceImpl
             errorMessage = response.data as String;
           }
         }
-        print('❌ API Error: $errorMessage');
+        log.info('❌ API Error: $errorMessage');
         throw ServerException(
           message: errorMessage,
           code: response.statusCode.toString(),
@@ -113,10 +118,10 @@ class PushNotificationRemoteDataSourceImpl
       } else {
         errorMessage = e.message ?? errorMessage;
       }
-      print('❌ DioException Error: $errorMessage');
+      log.info('❌ DioException Error: $errorMessage');
       throw AppException(message: errorMessage);
     } catch (e) {
-      print('❌ Unexpected Error: $e');
+      log.info('❌ Unexpected Error: $e');
       throw AppException(message: 'Unexpected error occurred: $e');
     }
   }
@@ -124,13 +129,13 @@ class PushNotificationRemoteDataSourceImpl
   @override
   Future<void> deletePushTokenById(int tokenId) async {
     try {
-      print('🗑️ Deleting push token by ID: $tokenId');
+      log.info('🗑️ Deleting push token by ID: $tokenId');
       final response = await dioClient.dio.delete(
         '${NetworkUrl.pushTokenUrl}$tokenId/',
       );
 
       if (response.statusCode == 200 || response.statusCode == 204) {
-        print('✅ Push token $tokenId deleted successfully');
+        log.info('✅ Push token $tokenId deleted successfully');
       } else {
         final message = response.data is Map<String, dynamic>
             ? (response.data['detail'] ?? 'Failed to delete push token')
@@ -220,8 +225,8 @@ class PushNotificationRemoteDataSourceImpl
   @override
   Future<List<PushTokenResponseModel>> retrievePushTokens(int userId) async {
     try {
-      print('📥 Retrieving push tokens for user: $userId');
-      print('📚 Using official Helium API documentation format');
+      log.info('📥 Retrieving push tokens for user: $userId');
+      log.info('📚 Using official Helium API documentation format');
 
       // According to official docs: GET /auth/user/pushtoken/ (no query parameters)
       // The API will return tokens for the authenticated user automatically
@@ -230,17 +235,17 @@ class PushNotificationRemoteDataSourceImpl
       );
 
       if (response.statusCode == 200) {
-        print('✅ Push tokens retrieved successfully');
-        print('📱 API Response: ${response.data}');
+        log.info('✅ Push tokens retrieved successfully');
+        log.info('📱 API Response: ${response.data}');
 
         // Handle both single object and array responses
         if (response.data is List) {
           final tokens = (response.data as List)
               .map((json) => PushTokenResponseModel.fromJson(json))
               .toList();
-          print('📱 Found ${tokens.length} push tokens');
+          log.info('📱 Found ${tokens.length} push tokens');
           for (var token in tokens) {
-            print(
+            log.info(
               '📱 Token ID: ${token.id}, Device: ${token.deviceId}, User: ${token.user}, Type: ${token.type ?? 'Unknown'}, Registration ID: ${token.registrationId ?? 'N/A'}',
             );
           }
@@ -248,12 +253,12 @@ class PushNotificationRemoteDataSourceImpl
         } else if (response.data != null) {
           // Single object response
           final token = PushTokenResponseModel.fromJson(response.data);
-          print(
+          log.info(
             '📱 Found 1 push token - ID: ${token.id}, Device: ${token.deviceId}, Type: ${token.type ?? 'Unknown'}, Registration ID: ${token.registrationId ?? 'N/A'}',
           );
           return [token];
         } else {
-          print('📱 No push tokens found');
+          log.info('📱 No push tokens found');
           return [];
         }
       } else {
@@ -264,7 +269,7 @@ class PushNotificationRemoteDataSourceImpl
       }
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
-        print('📱 No push tokens found for user $userId (404)');
+        log.info('📱 No push tokens found for user $userId (404)');
         return []; // Return empty list instead of throwing error
       }
       throw _handleDioError(e);

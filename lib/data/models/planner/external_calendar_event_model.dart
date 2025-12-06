@@ -29,56 +29,56 @@ class ExternalCalendarEventModel {
   });
 
   factory ExternalCalendarEventModel.fromJson(Map<String, dynamic> json) {
-    int _parseInt(dynamic value) {
+    int parseInt(dynamic value) {
       if (value is int) return value;
       if (value is String) return int.tryParse(value) ?? 0;
       return 0;
     }
 
-    int _extractId(dynamic value) {
+    int extractId(dynamic value) {
       if (value is Map<String, dynamic>) {
         if (value.containsKey('id')) {
-          return _parseInt(value['id']);
+          return parseInt(value['id']);
         }
         if (value.containsKey('pk')) {
-          return _parseInt(value['pk']);
+          return parseInt(value['pk']);
         }
       }
-      return _parseInt(value);
+      return parseInt(value);
     }
 
-    int _extractExternalCalendarId(Map<String, dynamic> source) {
+    int extractExternalCalendarId(Map<String, dynamic> source) {
       if (source.containsKey('id')) {
-        return _extractId(source['id']);
+        return extractId(source['id']);
       } else if (source.containsKey('external_calendar')) {
-        return _extractId(source['external_calendar']);
+        return extractId(source['external_calendar']);
       }
       return 0;
     }
 
-    int _extractUserId(Map<String, dynamic> source) {
+    int extractUserId(Map<String, dynamic> source) {
       if (source.containsKey('user')) {
-        return _extractId(source['user']);
+        return extractId(source['user']);
       }
       if (source.containsKey('user_id')) {
-        return _extractId(source['user_id']);
+        return extractId(source['user_id']);
       }
       if (source.containsKey('owner')) {
-        return _extractId(source['owner']);
+        return extractId(source['owner']);
       }
       return 0;
     }
 
     return ExternalCalendarEventModel(
-      id: _parseInt(json['id']),
+      id: parseInt(json['id']),
       title: json['title'] ?? '',
       allDay: json['all_day'] ?? json['allDay'] ?? false,
       start: json['start'] ?? '',
       end: json['end'],
       url: json['url'],
       comments: json['comments'],
-      externalCalendar: _extractExternalCalendarId(json),
-      userId: _extractUserId(json),
+      externalCalendar: extractExternalCalendarId(json),
+      userId: extractUserId(json),
     );
   }
 

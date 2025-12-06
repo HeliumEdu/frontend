@@ -10,6 +10,9 @@ import 'package:helium_mobile/core/app_exception.dart';
 import 'package:helium_mobile/domain/repositories/grade_repository.dart';
 import 'package:helium_mobile/presentation/bloc/gradeBloc/grade_event.dart';
 import 'package:helium_mobile/presentation/bloc/gradeBloc/grade_state.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
 
 class GradeBloc extends Bloc<GradeEvent, GradeState> {
   final GradeRepository gradeRepository;
@@ -25,30 +28,32 @@ class GradeBloc extends Bloc<GradeEvent, GradeState> {
     emit(GradeLoading());
 
     try {
-      print('🎯 Fetching grades from repository...');
+      log.info('🎯 Fetching grades from repository...');
 
       final grades = await gradeRepository.getGrades();
 
-      print('✅ Grades fetched successfully: ${grades.length} course group(s)');
+      log.info(
+        '✅ Grades fetched successfully: ${grades.length} course group(s)',
+      );
 
       emit(GradeLoaded(courseGroups: grades));
     } on NetworkException catch (e) {
-      print('❌ Network error: ${e.message}');
+      log.info('❌ Network error: ${e.message}');
       emit(GradeError(message: e.message));
     } on ServerException catch (e) {
-      print('❌ Server error: ${e.message}');
+      log.info('❌ Server error: ${e.message}');
       emit(GradeError(message: e.message));
     } on UnauthorizedException catch (e) {
-      print('❌ Unauthorized: ${e.message}');
+      log.info('❌ Unauthorized: ${e.message}');
       emit(GradeError(message: e.message));
     } on ValidationException catch (e) {
-      print('❌ Validation error: ${e.message}');
+      log.info('❌ Validation error: ${e.message}');
       emit(GradeError(message: e.message));
     } on AppException catch (e) {
-      print('❌ App error: ${e.message}');
+      log.info('❌ App error: ${e.message}');
       emit(GradeError(message: e.message));
     } catch (e) {
-      print('❌ Unexpected error: $e');
+      log.info('❌ Unexpected error: $e');
       emit(GradeError(message: 'An unexpected error occurred: $e'));
     }
   }

@@ -7,10 +7,12 @@
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:helium_mobile/core/app_exception.dart';
-import 'package:helium_mobile/data/models/planner/external_calendar_event_model.dart';
 import 'package:helium_mobile/domain/repositories/external_calendar_repository.dart';
 import 'package:helium_mobile/presentation/bloc/externalCalendarBloc/external_calendar_event.dart';
 import 'package:helium_mobile/presentation/bloc/externalCalendarBloc/external_calendar_state.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
 
 class ExternalCalendarBloc
     extends Bloc<ExternalCalendarEvent, ExternalCalendarState> {
@@ -31,18 +33,18 @@ class ExternalCalendarBloc
   ) async {
     emit(ExternalCalendarsLoading());
     try {
-      print('🎯 Fetching all external calendars from repository...');
+      log.info('🎯 Fetching all external calendars from repository...');
       final calendars = await externalCalendarRepository
           .getAllExternalCalendars();
-      print(
+      log.info(
         '✅ External calendars fetched successfully: ${calendars.length} calendar(s)',
       );
       emit(ExternalCalendarsLoaded(calendars: calendars));
     } on AppException catch (e) {
-      print('❌ App error: ${e.message}');
+      log.info('❌ App error: ${e.message}');
       emit(ExternalCalendarsError(message: e.message));
     } catch (e) {
-      print('❌ Unexpected error: $e');
+      log.info('❌ Unexpected error: $e');
       emit(ExternalCalendarsError(message: 'An unexpected error occurred: $e'));
     }
   }
@@ -53,7 +55,7 @@ class ExternalCalendarBloc
   ) async {
     emit(ExternalCalendarEventsLoading());
     try {
-      print('🎯 Fetching all events for external calendars ...');
+      log.info('🎯 Fetching all events for external calendars ...');
       final now = DateTime.now();
       final from = now.subtract(const Duration(days: 365));
       final to = now.add(const Duration(days: 730));
@@ -62,15 +64,15 @@ class ExternalCalendarBloc
         to: to,
         search: null,
       );
-      print(
+      log.info(
         '✅ External calendar events fetched successfully: ${events.length} event(s)',
       );
       emit(ExternalCalendarEventsLoaded(events: events));
     } on AppException catch (e) {
-      print('❌ App error: ${e.message}');
+      log.info('❌ App error: ${e.message}');
       emit(ExternalCalendarEventsError(message: e.message));
     } catch (e) {
-      print('❌ Unexpected error: $e');
+      log.info('❌ Unexpected error: $e');
       emit(
         ExternalCalendarEventsError(
           message: 'An unexpected error occurred: $e',
@@ -100,13 +102,13 @@ class ExternalCalendarBloc
       );
 
       emit(ExternalCalendarsLoaded(calendars: calendars));
-      print('✅ External calendar created: ${created.title}');
+      log.info('✅ External calendar created: ${created.title}');
       add(FetchExternalCalendarEventsEvent());
     } on AppException catch (e) {
-      print('❌ App error while creating external calendar: ${e.message}');
+      log.info('❌ App error while creating external calendar: ${e.message}');
       emit(ExternalCalendarActionError(message: e.message));
     } catch (e) {
-      print('❌ Unexpected error while creating external calendar: $e');
+      log.info('❌ Unexpected error while creating external calendar: $e');
       emit(
         ExternalCalendarActionError(
           message: 'An unexpected error occurred: $e',
@@ -137,13 +139,13 @@ class ExternalCalendarBloc
       );
 
       emit(ExternalCalendarsLoaded(calendars: calendars));
-      print('✅ External calendar updated: ${updated.title}');
+      log.info('✅ External calendar updated: ${updated.title}');
       add(FetchExternalCalendarEventsEvent());
     } on AppException catch (e) {
-      print('❌ App error while updating external calendar: ${e.message}');
+      log.info('❌ App error while updating external calendar: ${e.message}');
       emit(ExternalCalendarActionError(message: e.message));
     } catch (e) {
-      print('❌ Unexpected error while updating external calendar: $e');
+      log.info('❌ Unexpected error while updating external calendar: $e');
       emit(
         ExternalCalendarActionError(
           message: 'An unexpected error occurred: $e',
@@ -173,13 +175,13 @@ class ExternalCalendarBloc
       );
 
       emit(ExternalCalendarsLoaded(calendars: calendars));
-      print('✅ External calendar deleted: ${event.calendarId}');
+      log.info('✅ External calendar deleted: ${event.calendarId}');
       add(FetchExternalCalendarEventsEvent());
     } on AppException catch (e) {
-      print('❌ App error while deleting external calendar: ${e.message}');
+      log.info('❌ App error while deleting external calendar: ${e.message}');
       emit(ExternalCalendarActionError(message: e.message));
     } catch (e) {
-      print('❌ Unexpected error while deleting external calendar: $e');
+      log.info('❌ Unexpected error while deleting external calendar: $e');
       emit(
         ExternalCalendarActionError(
           message: 'An unexpected error occurred: $e',

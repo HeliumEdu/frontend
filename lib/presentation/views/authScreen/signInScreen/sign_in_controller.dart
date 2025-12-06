@@ -6,6 +6,9 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
 
 class SignInController {
   final TextEditingController usernameController = TextEditingController();
@@ -82,14 +85,14 @@ class SignInController {
         await Future.delayed(Duration(seconds: 2)); // Simulate API call
 
         // Handle successful sign in
-        print('Username: ${usernameController.text}');
-        print('Password: ${passwordController.text}');
+        log.info('Username: ${usernameController.text}');
+        log.info('Password: ${passwordController.text}');
 
         // Navigate to next screen or show success message
         // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomeScreen()));
       } catch (error) {
         // Handle sign in error
-        print('Sign in failed: $error');
+        log.info('Sign in failed: $error');
         // Show error message to user
       } finally {
         isLoading = false;

@@ -11,6 +11,9 @@ import 'package:helium_mobile/core/dio_client.dart';
 import 'package:helium_mobile/core/network_urls.dart';
 import 'package:helium_mobile/data/models/planner/event_request_model.dart';
 import 'package:helium_mobile/data/models/planner/event_response_model.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
 
 abstract class EventRemoteDataSource {
   Future<List<EventResponseModel>> getAllEvents({
@@ -83,7 +86,7 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
     String? title,
   }) async {
     try {
-      print('📅 Fetching all events...');
+      log.info('📅 Fetching all events...');
 
       // Build query parameters
       final Map<String, dynamic> queryParameters = {};
@@ -101,7 +104,7 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
       if (response.statusCode == 200) {
         if (response.data is List) {
           final List<dynamic> data = response.data;
-          print('✅ Fetched ${data.length} event(s)');
+          log.info('✅ Fetched ${data.length} event(s)');
           return data.map((json) => EventResponseModel.fromJson(json)).toList();
         } else {
           throw ServerException(
@@ -116,10 +119,10 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
         );
       }
     } on DioException catch (e) {
-      print('❌ Error fetching all events: ${e.message}');
+      log.info('❌ Error fetching all events: ${e.message}');
       throw _handleDioError(e);
     } catch (e) {
-      print('❌ Unexpected error: $e');
+      log.info('❌ Unexpected error: $e');
       throw AppException(message: 'Unexpected error occurred: $e');
     }
   }
@@ -129,14 +132,14 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
     required EventRequestModel request,
   }) async {
     try {
-      print('📝 Creating event...');
+      log.info('📝 Creating event...');
       final response = await dioClient.dio.post(
         NetworkUrl.eventsUrl,
         data: request.toJson(),
       );
 
       if (response.statusCode == 201 || response.statusCode == 200) {
-        print('✅ Event created successfully');
+        log.info('✅ Event created successfully');
         return EventResponseModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -144,10 +147,10 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
         );
       }
     } on DioException catch (e) {
-      print('❌ Error creating event: ${e.message}');
+      log.info('❌ Error creating event: ${e.message}');
       throw _handleDioError(e);
     } catch (e) {
-      print('❌ Unexpected error: $e');
+      log.info('❌ Unexpected error: $e');
       throw AppException(message: 'Unexpected error occurred: $e');
     }
   }
@@ -155,13 +158,13 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
   @override
   Future<EventResponseModel> getEventById({required int eventId}) async {
     try {
-      print('📅 Fetching event by ID: $eventId');
+      log.info('📅 Fetching event by ID: $eventId');
       final response = await dioClient.dio.get(
         NetworkUrl.eventByIdUrl(eventId),
       );
 
       if (response.statusCode == 200) {
-        print('✅ Event fetched successfully');
+        log.info('✅ Event fetched successfully');
         return EventResponseModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -169,10 +172,10 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
         );
       }
     } on DioException catch (e) {
-      print('❌ Error fetching event: ${e.message}');
+      log.info('❌ Error fetching event: ${e.message}');
       throw _handleDioError(e);
     } catch (e) {
-      print('❌ Unexpected error: $e');
+      log.info('❌ Unexpected error: $e');
       throw AppException(message: 'Unexpected error occurred: $e');
     }
   }
@@ -183,14 +186,14 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
     required EventRequestModel request,
   }) async {
     try {
-      print('📝 Updating event: $eventId');
+      log.info('📝 Updating event: $eventId');
       final response = await dioClient.dio.put(
         NetworkUrl.eventByIdUrl(eventId),
         data: request.toJson(),
       );
 
       if (response.statusCode == 200) {
-        print('✅ Event updated successfully');
+        log.info('✅ Event updated successfully');
         return EventResponseModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -198,10 +201,10 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
         );
       }
     } on DioException catch (e) {
-      print('❌ Error updating event: ${e.message}');
+      log.info('❌ Error updating event: ${e.message}');
       throw _handleDioError(e);
     } catch (e) {
-      print('❌ Unexpected error: $e');
+      log.info('❌ Unexpected error: $e');
       throw AppException(message: 'Unexpected error occurred: $e');
     }
   }
@@ -209,23 +212,23 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
   @override
   Future<void> deleteEvent({required int eventId}) async {
     try {
-      print('🗑️ Deleting event: $eventId');
+      log.info('🗑️ Deleting event: $eventId');
       final response = await dioClient.dio.delete(
         NetworkUrl.eventByIdUrl(eventId),
       );
 
       if (response.statusCode == 204 || response.statusCode == 200) {
-        print('✅ Event deleted successfully');
+        log.info('✅ Event deleted successfully');
       } else {
         throw ServerException(
           message: 'Failed to delete event: ${response.statusCode}',
         );
       }
     } on DioException catch (e) {
-      print('❌ Error deleting event: ${e.message}');
+      log.info('❌ Error deleting event: ${e.message}');
       throw _handleDioError(e);
     } catch (e) {
-      print('❌ Unexpected error: $e');
+      log.info('❌ Unexpected error: $e');
       throw AppException(message: 'Unexpected error occurred: $e');
     }
   }

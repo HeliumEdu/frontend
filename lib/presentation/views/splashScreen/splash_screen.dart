@@ -11,7 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:helium_mobile/config/app_routes.dart';
 import 'package:helium_mobile/core/dio_client.dart';
 import 'package:helium_mobile/data/datasources/auth_remote_data_source.dart';
-import 'package:helium_mobile/data/models/auth/user_profile_model.dart';
 import 'package:helium_mobile/data/repositories/auth_repository_impl.dart';
 import 'package:helium_mobile/presentation/bloc/authBloc/auth_bloc.dart';
 import 'package:helium_mobile/presentation/bloc/authBloc/auth_event.dart';
@@ -19,6 +18,9 @@ import 'package:helium_mobile/presentation/bloc/authBloc/auth_state.dart';
 import 'package:helium_mobile/utils/app_assets.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_size.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -49,22 +51,22 @@ class _SplashScreenState extends State<SplashScreen> {
     final accessToken = await _dioClient.getAccessToken();
 
     if (accessToken != null && accessToken.isNotEmpty) {
-      print(' Token found, checking authentication...');
+      log.info(' Token found, checking authentication...');
 
-      print('⚠️ Checking access token validity...');
+      log.info('⚠️ Checking access token validity...');
       _authBloc.add(const CheckAuthEvent());
 
       _authBloc.stream.listen((state) {
         if (state is AuthAuthenticated) {
-          print('✅ Access token is valid, navigating to home');
+          log.info('✅ Access token is valid, navigating to home');
           _navigateToHome();
         } else {
-          print('⚠️ Access token invalid, navigating to login');
+          log.info('⚠️ Access token invalid, navigating to login');
           _navigateToLogin();
         }
       });
     } else {
-      print('⚠️ No token found, navigate to login');
+      log.info('⚠️ No token found, navigate to login');
       _navigateToLogin();
     }
   }
@@ -73,10 +75,7 @@ class _SplashScreenState extends State<SplashScreen> {
     _timer?.cancel();
     _timer = Timer(const Duration(seconds: 1), () {
       if (mounted) {
-        Navigator.pushReplacementNamed(
-          context,
-          AppRoutes.bottomNavBarScreen,
-        );
+        Navigator.pushReplacementNamed(context, AppRoutes.bottomNavBarScreen);
       }
     });
   }

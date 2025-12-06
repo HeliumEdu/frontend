@@ -11,6 +11,9 @@ import 'package:helium_mobile/core/dio_client.dart';
 import 'package:helium_mobile/core/network_urls.dart';
 import 'package:helium_mobile/data/models/planner/homework_request_model.dart';
 import 'package:helium_mobile/data/models/planner/homework_response_model.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
 
 abstract class HomeworkRemoteDataSource {
   Future<List<HomeworkResponseModel>> getAllHomework({
@@ -124,7 +127,7 @@ class HomeworkRemoteDataSourceImpl implements HomeworkRemoteDataSource {
       final filterSummary = queryParameters.containsKey('category__title_in')
           ? " with categories: ${queryParameters['category__title_in']}"
           : '';
-      print('📚 Fetching all homework $filterSummary...');
+      log.info('📚 Fetching all homework $filterSummary...');
       final response = await dioClient.dio.get(
         NetworkUrl.allHomeworkUrl,
         queryParameters: queryParameters.isEmpty ? null : queryParameters,
@@ -133,7 +136,7 @@ class HomeworkRemoteDataSourceImpl implements HomeworkRemoteDataSource {
       if (response.statusCode == 200) {
         if (response.data is List) {
           final List<dynamic> data = response.data;
-          print('✅ Fetched ${data.length} homework(s)');
+          log.info('✅ Fetched ${data.length} homework(s)');
           return data
               .map((json) => HomeworkResponseModel.fromJson(json))
               .toList();
@@ -150,10 +153,10 @@ class HomeworkRemoteDataSourceImpl implements HomeworkRemoteDataSource {
         );
       }
     } on DioException catch (e) {
-      print('❌ Error fetching all homework: ${e.message}');
+      log.info('❌ Error fetching all homework: ${e.message}');
       throw _handleDioError(e);
     } catch (e) {
-      print('❌ Unexpected error: $e');
+      log.info('❌ Unexpected error: $e');
       throw AppException(message: 'Unexpected error occurred: $e');
     }
   }
@@ -165,14 +168,14 @@ class HomeworkRemoteDataSourceImpl implements HomeworkRemoteDataSource {
     required HomeworkRequestModel request,
   }) async {
     try {
-      print('📝 Creating homework for course: $courseId in group: $groupId');
+      log.info('📝 Creating homework for course: $courseId in group: $groupId');
       final response = await dioClient.dio.post(
         NetworkUrl.homeworkUrl(groupId, courseId),
         data: request.toJson(),
       );
 
       if (response.statusCode == 201 || response.statusCode == 200) {
-        print('✅ Homework created successfully');
+        log.info('✅ Homework created successfully');
         return HomeworkResponseModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -180,10 +183,10 @@ class HomeworkRemoteDataSourceImpl implements HomeworkRemoteDataSource {
         );
       }
     } on DioException catch (e) {
-      print('❌ Error creating homework: ${e.message}');
+      log.info('❌ Error creating homework: ${e.message}');
       throw _handleDioError(e);
     } catch (e) {
-      print('❌ Unexpected error: $e');
+      log.info('❌ Unexpected error: $e');
       throw AppException(message: 'Unexpected error occurred: $e');
     }
   }
@@ -194,14 +197,14 @@ class HomeworkRemoteDataSourceImpl implements HomeworkRemoteDataSource {
     required int courseId,
   }) async {
     try {
-      print('📚 Fetching homework for course: $courseId');
+      log.info('📚 Fetching homework for course: $courseId');
       final response = await dioClient.dio.get(
         NetworkUrl.homeworkUrl(groupId, courseId),
       );
 
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data;
-        print('✅ Fetched ${data.length} homework(s)');
+        log.info('✅ Fetched ${data.length} homework(s)');
         return data
             .map((json) => HomeworkResponseModel.fromJson(json))
             .toList();
@@ -256,7 +259,7 @@ class HomeworkRemoteDataSourceImpl implements HomeworkRemoteDataSource {
       );
 
       if (response.statusCode == 200) {
-        print('✅ Homework updated successfully');
+        log.info('✅ Homework updated successfully');
         return HomeworkResponseModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -282,7 +285,7 @@ class HomeworkRemoteDataSourceImpl implements HomeworkRemoteDataSource {
       );
 
       if (response.statusCode == 204 || response.statusCode == 200) {
-        print('✅ Homework deleted successfully');
+        log.info('✅ Homework deleted successfully');
       } else {
         throw ServerException(
           message: 'Failed to delete homework: ${response.statusCode}',

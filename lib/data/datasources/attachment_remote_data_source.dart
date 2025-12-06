@@ -12,6 +12,9 @@ import 'package:helium_mobile/core/app_exception.dart';
 import 'package:helium_mobile/core/dio_client.dart';
 import 'package:helium_mobile/core/network_urls.dart';
 import 'package:helium_mobile/data/models/planner/attachment_model.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
 
 abstract class AttachmentRemoteDataSource {
   Future<List<AttachmentModel>> createAttachment({
@@ -76,7 +79,7 @@ class AttachmentRemoteDataSourceImpl implements AttachmentRemoteDataSource {
     int? homework,
   }) async {
     try {
-      print('📎 Creating attachment: ${file.path}');
+      log.info('📎 Creating attachment: ${file.path}');
 
       // Validate that at least one of course, event, or homework is provided
       if (course == null && event == null && homework == null) {
@@ -112,7 +115,7 @@ class AttachmentRemoteDataSourceImpl implements AttachmentRemoteDataSource {
       );
 
       if (response.statusCode == 201 || response.statusCode == 200) {
-        print('✅ Attachment created successfully');
+        log.info('✅ Attachment created successfully');
         // API returns a list even for single file upload
         final List<dynamic> data = response.data is List
             ? response.data
@@ -124,13 +127,13 @@ class AttachmentRemoteDataSourceImpl implements AttachmentRemoteDataSource {
         );
       }
     } on DioException catch (e) {
-      print('❌ Error creating attachment: ${e.message}');
+      log.info('❌ Error creating attachment: ${e.message}');
       throw _handleDioError(e);
     } catch (e) {
       if (e is AppException) {
         rethrow;
       }
-      print('❌ Unexpected error: $e');
+      log.info('❌ Unexpected error: $e');
       throw AppException(message: 'Unexpected error occurred: $e');
     }
   }
@@ -163,7 +166,7 @@ class AttachmentRemoteDataSourceImpl implements AttachmentRemoteDataSource {
       );
 
       if (response.statusCode == 204 || response.statusCode == 200) {
-        print('✅ Attachment deleted successfully');
+        log.info('✅ Attachment deleted successfully');
       } else {
         throw ServerException(
           message: 'Failed to delete attachment: ${response.statusCode}',

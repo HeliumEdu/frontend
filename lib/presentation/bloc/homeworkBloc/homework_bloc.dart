@@ -10,6 +10,9 @@ import 'package:helium_mobile/core/app_exception.dart';
 import 'package:helium_mobile/domain/repositories/homework_repository.dart';
 import 'package:helium_mobile/presentation/bloc/homeworkBloc/homework_event.dart';
 import 'package:helium_mobile/presentation/bloc/homeworkBloc/homework_state.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
 
 class HomeworkBloc extends Bloc<HomeworkEvent, HomeworkState> {
   final HomeworkRepository homeworkRepository;
@@ -32,7 +35,7 @@ class HomeworkBloc extends Bloc<HomeworkEvent, HomeworkState> {
       final filterSummary = (event.categoryTitles?.isNotEmpty ?? false)
           ? ' with categories: ${event.categoryTitles}'
           : '';
-      print('🎯 Fetching all homework from repository$filterSummary');
+      log.info('🎯 Fetching all homework from repository$filterSummary');
       final homeworks = await homeworkRepository.getAllHomework(
         categoryTitles: event.categoryTitles,
         from: event.from,
@@ -41,13 +44,15 @@ class HomeworkBloc extends Bloc<HomeworkEvent, HomeworkState> {
         search: event.search,
         title: event.title,
       );
-      print('✅ Homework fetched successfully: ${homeworks.length} homework(s)');
+      log.info(
+        '✅ Homework fetched successfully: ${homeworks.length} homework(s)',
+      );
       emit(HomeworkLoaded(homeworks: homeworks));
     } on AppException catch (e) {
-      print('❌ App error: ${e.message}');
+      log.info('❌ App error: ${e.message}');
       emit(HomeworkError(message: e.message));
     } catch (e) {
-      print('❌ Unexpected error: $e');
+      log.info('❌ Unexpected error: $e');
       emit(HomeworkError(message: 'An unexpected error occurred: $e'));
     }
   }

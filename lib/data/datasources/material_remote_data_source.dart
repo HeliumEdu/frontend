@@ -13,6 +13,9 @@ import 'package:helium_mobile/data/models/planner/material_group_request_model.d
 import 'package:helium_mobile/data/models/planner/material_group_response_model.dart';
 import 'package:helium_mobile/data/models/planner/material_model.dart';
 import 'package:helium_mobile/data/models/planner/material_request_model.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
 
 abstract class MaterialRemoteDataSource {
   Future<List<MaterialGroupResponseModel>> getMaterialGroups();
@@ -56,7 +59,7 @@ class MaterialRemoteDataSourceImpl implements MaterialRemoteDataSource {
   @override
   Future<List<MaterialGroupResponseModel>> getMaterialGroups() async {
     try {
-      print('📚 Fetching material groups...');
+      log.info('📚 Fetching material groups...');
       final response = await dioClient.dio.get(NetworkUrl.materialGroupsUrl);
 
       if (response.statusCode == 200) {
@@ -64,7 +67,7 @@ class MaterialRemoteDataSourceImpl implements MaterialRemoteDataSource {
           final groups = (response.data as List)
               .map((group) => MaterialGroupResponseModel.fromJson(group))
               .toList();
-          print('✅ Fetched ${groups.length} material group(s)');
+          log.info('✅ Fetched ${groups.length} material group(s)');
           return groups;
         } else {
           throw ServerException(
@@ -88,13 +91,13 @@ class MaterialRemoteDataSourceImpl implements MaterialRemoteDataSource {
   @override
   Future<MaterialGroupResponseModel> getMaterialGroupById(int groupId) async {
     try {
-      print('📖 Fetching material group: $groupId');
+      log.info('📖 Fetching material group: $groupId');
       final response = await dioClient.dio.get(
         NetworkUrl.materialGroupByIdUrl(groupId),
       );
 
       if (response.statusCode == 200) {
-        print('✅ Material group fetched successfully!');
+        log.info('✅ Material group fetched successfully!');
         return MaterialGroupResponseModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -114,9 +117,9 @@ class MaterialRemoteDataSourceImpl implements MaterialRemoteDataSource {
     MaterialGroupRequestModel request,
   ) async {
     try {
-      print('➕ Creating material group...');
-      print('  Title: ${request.title}');
-      print('  Show on calendar: ${request.shownOnCalendar}');
+      log.info('➕ Creating material group...');
+      log.info('  Title: ${request.title}');
+      log.info('  Show on calendar: ${request.shownOnCalendar}');
 
       final response = await dioClient.dio.post(
         NetworkUrl.materialGroupsUrl,
@@ -124,7 +127,7 @@ class MaterialRemoteDataSourceImpl implements MaterialRemoteDataSource {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        print('✅ Material group created successfully!');
+        log.info('✅ Material group created successfully!');
         return MaterialGroupResponseModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -145,9 +148,9 @@ class MaterialRemoteDataSourceImpl implements MaterialRemoteDataSource {
     MaterialGroupRequestModel request,
   ) async {
     try {
-      print('🔄 Updating material group: $groupId');
-      print('  Title: ${request.title}');
-      print('  Show on calendar: ${request.shownOnCalendar}');
+      log.info('🔄 Updating material group: $groupId');
+      log.info('  Title: ${request.title}');
+      log.info('  Show on calendar: ${request.shownOnCalendar}');
 
       final response = await dioClient.dio.put(
         NetworkUrl.materialGroupByIdUrl(groupId),
@@ -155,7 +158,7 @@ class MaterialRemoteDataSourceImpl implements MaterialRemoteDataSource {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        print('✅ Material group updated successfully!');
+        log.info('✅ Material group updated successfully!');
         return MaterialGroupResponseModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -173,7 +176,7 @@ class MaterialRemoteDataSourceImpl implements MaterialRemoteDataSource {
   @override
   Future<void> deleteMaterialGroup(int groupId) async {
     try {
-      print('🗑️ Deleting material group: $groupId');
+      log.info('🗑️ Deleting material group: $groupId');
       final response = await dioClient.dio.delete(
         NetworkUrl.materialGroupByIdUrl(groupId),
       );
@@ -181,7 +184,7 @@ class MaterialRemoteDataSourceImpl implements MaterialRemoteDataSource {
       if (response.statusCode == 200 ||
           response.statusCode == 204 ||
           response.statusCode == 202) {
-        print('✅ Material group deleted successfully!');
+        log.info('✅ Material group deleted successfully!');
         return;
       } else {
         throw ServerException(
@@ -200,7 +203,7 @@ class MaterialRemoteDataSourceImpl implements MaterialRemoteDataSource {
   @override
   Future<List<MaterialModel>> getMaterials(int groupId) async {
     try {
-      print('📚 Fetching materials for group: $groupId');
+      log.info('📚 Fetching materials for group: $groupId');
       final response = await dioClient.dio.get(
         NetworkUrl.materialsUrl(groupId),
       );
@@ -210,7 +213,7 @@ class MaterialRemoteDataSourceImpl implements MaterialRemoteDataSource {
           final materials = (response.data as List)
               .map((material) => MaterialModel.fromJson(material))
               .toList();
-          print('✅ Fetched ${materials.length} material(s)');
+          log.info('✅ Fetched ${materials.length} material(s)');
           return materials;
         } else {
           throw ServerException(
@@ -234,7 +237,7 @@ class MaterialRemoteDataSourceImpl implements MaterialRemoteDataSource {
   @override
   Future<List<MaterialModel>> getAllMaterials() async {
     try {
-      print('📚 Fetching all materials...');
+      log.info('📚 Fetching all materials...');
       final response = await dioClient.dio.get(NetworkUrl.allMaterialsUrl);
 
       if (response.statusCode == 200) {
@@ -242,7 +245,7 @@ class MaterialRemoteDataSourceImpl implements MaterialRemoteDataSource {
           final materials = (response.data as List)
               .map((material) => MaterialModel.fromJson(material))
               .toList();
-          print('✅ Fetched ${materials.length} material(s)');
+          log.info('✅ Fetched ${materials.length} material(s)');
           return materials;
         } else {
           throw ServerException(
@@ -266,13 +269,13 @@ class MaterialRemoteDataSourceImpl implements MaterialRemoteDataSource {
   @override
   Future<MaterialModel> getMaterialById(int groupId, int materialId) async {
     try {
-      print('📖 Fetching material: $materialId from group: $groupId');
+      log.info('📖 Fetching material: $materialId from group: $groupId');
       final response = await dioClient.dio.get(
         NetworkUrl.materialByIdUrl(groupId, materialId),
       );
 
       if (response.statusCode == 200) {
-        print('✅ Material fetched successfully!');
+        log.info('✅ Material fetched successfully!');
         return MaterialModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -290,9 +293,9 @@ class MaterialRemoteDataSourceImpl implements MaterialRemoteDataSource {
   @override
   Future<MaterialModel> createMaterial(MaterialRequestModel request) async {
     try {
-      print('➕ Creating material...');
-      print('  Title: ${request.title}');
-      print('  Group ID: ${request.materialGroup}');
+      log.info('➕ Creating material...');
+      log.info('  Title: ${request.title}');
+      log.info('  Group ID: ${request.materialGroup}');
 
       final response = await dioClient.dio.post(
         NetworkUrl.materialsUrl(request.materialGroup),
@@ -300,7 +303,7 @@ class MaterialRemoteDataSourceImpl implements MaterialRemoteDataSource {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        print('✅ Material created successfully!');
+        log.info('✅ Material created successfully!');
         return MaterialModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -322,14 +325,14 @@ class MaterialRemoteDataSourceImpl implements MaterialRemoteDataSource {
     MaterialRequestModel request,
   ) async {
     try {
-      print('🔄 Updating material: $materialId');
+      log.info('🔄 Updating material: $materialId');
       final response = await dioClient.dio.put(
         NetworkUrl.materialByIdUrl(groupId, materialId),
         data: request.toJson(),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        print('✅ Material updated successfully!');
+        log.info('✅ Material updated successfully!');
         return MaterialModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -347,7 +350,7 @@ class MaterialRemoteDataSourceImpl implements MaterialRemoteDataSource {
   @override
   Future<void> deleteMaterial(int groupId, int materialId) async {
     try {
-      print('🗑️ Deleting material: $materialId');
+      log.info('🗑️ Deleting material: $materialId');
       final response = await dioClient.dio.delete(
         NetworkUrl.materialByIdUrl(groupId, materialId),
       );
@@ -355,7 +358,7 @@ class MaterialRemoteDataSourceImpl implements MaterialRemoteDataSource {
       if (response.statusCode == 200 ||
           response.statusCode == 204 ||
           response.statusCode == 202) {
-        print('✅ Material deleted successfully!');
+        log.info('✅ Material deleted successfully!');
         return;
       } else {
         throw ServerException(

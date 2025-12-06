@@ -7,6 +7,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
 
 class SignUpController {
   // Controllers
@@ -118,7 +121,7 @@ class SignUpController {
     if (formKey.currentState!.validate()) {
       if (!agreeToTerms) {
         // You can show a snackbar or toast here
-        print('Please agree to Terms of Service and Privacy Policy');
+        log.info('Please agree to Terms of Service and Privacy Policy');
         return;
       }
 
@@ -130,16 +133,16 @@ class SignUpController {
         await Future.delayed(Duration(seconds: 2)); // Simulate API call
 
         // Handle successful sign up
-        print('Username: ${usernameController.text}');
-        print('Email: ${emailController.text}');
-        print('Password: ${passwordController.text}');
-        print('Timezone: $selectedTimezone');
+        log.info('Username: ${usernameController.text}');
+        log.info('Email: ${emailController.text}');
+        log.info('Password: ${passwordController.text}');
+        log.info('Timezone: $selectedTimezone');
 
         // Navigate to next screen or show success message
         // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomeScreen()));
       } catch (error) {
         // Handle sign up error
-        print('Sign up failed: $error');
+        log.info('Sign up failed: $error');
         // Show error message to user
       } finally {
         isLoading = false;

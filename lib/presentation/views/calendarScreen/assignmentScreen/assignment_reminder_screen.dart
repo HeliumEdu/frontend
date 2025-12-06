@@ -25,6 +25,9 @@ import 'package:helium_mobile/utils/app_list.dart';
 import 'package:helium_mobile/utils/app_size.dart';
 import 'package:helium_mobile/utils/app_text_style.dart';
 import 'package:helium_mobile/utils/formatting.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
 
 class AssignmentReminderScreen extends StatefulWidget {
   final int? groupId;
@@ -37,7 +40,7 @@ class AssignmentReminderScreen extends StatefulWidget {
     this.groupId,
     this.courseId,
     this.homeworkId,
-    this.isEditMode
+    this.isEditMode,
   });
 
   @override
@@ -201,7 +204,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
       });
     } catch (e) {
       // Non-blocking
-      debugPrint('Failed to load attachments: $e');
+      log.info('Failed to load attachments: $e');
     }
   }
 
@@ -371,7 +374,9 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: blackColor.withValues(alpha: 0.15)),
+                      border: Border.all(
+                        color: blackColor.withValues(alpha: 0.15),
+                      ),
                       color: whiteColor,
                     ),
                     child: TextField(
@@ -398,7 +403,9 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                     padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: blackColor.withValues(alpha: 0.15)),
+                      border: Border.all(
+                        color: blackColor.withValues(alpha: 0.15),
+                      ),
                       color: whiteColor,
                     ),
                     child: DropdownButton<String>(
@@ -417,33 +424,37 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                       ),
                       value: reminderType,
                       items: reminderTypes
-                          .where((type) => (existing != null && existing.type == 2) || type != 'Text')
+                          .where(
+                            (type) =>
+                                (existing != null && existing.type == 2) ||
+                                type != 'Text',
+                          )
                           .map((type) {
-                        return DropdownMenuItem<String>(
-                          value: type,
-                          child: Row(
-                            children: [
-                              Icon(
-                                type == 'Email'
-                                    ? Icons.mail_outline
-                                    :
-                                type == 'Text'
-                                    ? Icons.phone_android
-                                    : Icons.notifications_active_outlined,
-                                size: 18,
-                                color: primaryColor,
+                            return DropdownMenuItem<String>(
+                              value: type,
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    type == 'Email'
+                                        ? Icons.mail_outline
+                                        : type == 'Text'
+                                        ? Icons.phone_android
+                                        : Icons.notifications_active_outlined,
+                                    size: 18,
+                                    color: primaryColor,
+                                  ),
+                                  SizedBox(width: 10),
+                                  Text(
+                                    type,
+                                    style: AppTextStyle.eTextStyle.copyWith(
+                                      color: blackColor,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              SizedBox(width: 10),
-                              Text(
-                                type,
-                                style: AppTextStyle.eTextStyle.copyWith(
-                                  color: blackColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
+                            );
+                          })
+                          .toList(),
                       onChanged: (value) {
                         setDialogState(() {
                           reminderType = value!;
@@ -718,7 +729,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
 
       // Upload Attachment (if file is selected)
       if (_selectedFile != null) {
-        print('📎 Uploading attachment...');
+        log.info('📎 Uploading attachment...');
         final attachmentDataSource = AttachmentRemoteDataSourceImpl(
           dioClient: DioClient(),
         );
@@ -730,7 +741,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
           file: _selectedFile!,
           homework: homeworkId,
         );
-        print('✅ Attachment uploaded successfully');
+        log.info('✅ Attachment uploaded successfully');
       }
 
       // Success!
@@ -809,9 +820,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                     ),
                   ),
                   Text(
-                    isEditMode == true
-                        ? 'Edit Reminder'
-                        : 'Add Reminder',
+                    isEditMode == true ? 'Edit Reminder' : 'Add Reminder',
                     style: AppTextStyle.aTextStyle.copyWith(
                       color: blackColor,
                       fontWeight: FontWeight.w600,
@@ -856,7 +865,9 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                   activeStepBackgroundColor: primaryColor,
                   activeStepTextColor: primaryColor,
                   finishedStepBorderColor: primaryColor,
-                  finishedStepBackgroundColor: primaryColor.withValues(alpha: 0.1),
+                  finishedStepBackgroundColor: primaryColor.withValues(
+                    alpha: 0.1,
+                  ),
                   finishedStepIconColor: primaryColor,
                   finishedStepTextColor: blackColor,
                   unreachedStepBorderColor: greyColor.withValues(alpha: 0.3),
@@ -1048,7 +1059,9 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                                       ),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: blackColor.withValues(alpha: 0.04),
+                                          color: blackColor.withValues(
+                                            alpha: 0.04,
+                                          ),
                                           blurRadius: 6,
                                           offset: Offset(0, 1),
                                         ),
@@ -1084,7 +1097,9 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                                                 style: AppTextStyle.iTextStyle
                                                     .copyWith(
                                                       color: textColor
-                                                          .withValues(alpha: 0.7),
+                                                          .withValues(
+                                                            alpha: 0.7,
+                                                          ),
                                                       fontSize: 12,
                                                     ),
                                               ),
@@ -1094,7 +1109,9 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                                                 style: AppTextStyle.iTextStyle
                                                     .copyWith(
                                                       color: textColor
-                                                          .withValues(alpha: 0.7),
+                                                          .withValues(
+                                                            alpha: 0.7,
+                                                          ),
                                                       fontSize: 12,
                                                     ),
                                               ),
@@ -1215,7 +1232,9 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: blackColor.withValues(alpha: 0.03),
+                                        color: blackColor.withValues(
+                                          alpha: 0.03,
+                                        ),
                                         blurRadius: 4,
                                         offset: const Offset(0, 2),
                                       ),
@@ -1227,8 +1246,8 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                                             Container(
                                               padding: EdgeInsets.all(8),
                                               decoration: BoxDecoration(
-                                                color: primaryColor.withValues(alpha: 
-                                                  0.1,
+                                                color: primaryColor.withValues(
+                                                  alpha: 0.1,
                                                 ),
                                                 borderRadius:
                                                     BorderRadius.circular(6),
@@ -1265,7 +1284,9 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
                                                         .eTextStyle
                                                         .copyWith(
                                                           color: blackColor
-                                                              .withValues(alpha: 0.5),
+                                                              .withValues(
+                                                                alpha: 0.5,
+                                                              ),
                                                           fontSize: 12,
                                                         ),
                                                   ),
@@ -1367,7 +1388,7 @@ class _AssignmentReminderScreenState extends State<AssignmentReminderScreen> {
   void _triggerHomeScreenRefresh() {
     Future.delayed(Duration(milliseconds: 500), () {
       CalendarScreen.triggerRefresh();
-      print('🔄 Home screen refresh triggered from reminder screen');
+      log.info('🔄 Home screen refresh triggered from reminder screen');
     });
   }
 }

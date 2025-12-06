@@ -98,7 +98,7 @@ class _FeedsSettingsViewState extends State<FeedsSettingsView> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
-                    "hello world",
+                    'hello world',
                     style: AppTextStyle.cTextStyle.copyWith(color: whiteColor),
                   ),
                   backgroundColor: greenColor,

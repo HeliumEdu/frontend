@@ -18,12 +18,15 @@ import 'package:helium_mobile/presentation/bloc/courseBloc/course_bloc.dart';
 import 'package:helium_mobile/presentation/bloc/courseBloc/course_event.dart';
 import 'package:helium_mobile/presentation/bloc/courseBloc/course_state.dart';
 import 'package:helium_mobile/presentation/widgets/custom_class_textfield.dart';
+import 'package:helium_mobile/presentation/widgets/custom_color_picker.dart';
 import 'package:helium_mobile/presentation/widgets/custom_text_button.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_size.dart';
 import 'package:helium_mobile/utils/app_text_style.dart';
-import 'package:helium_mobile/presentation/widgets/custom_color_picker.dart';
 import 'package:helium_mobile/utils/formatting.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
 
 class AddClassesScreen extends StatefulWidget {
   final int courseGroupId;
@@ -51,9 +54,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
   final TextEditingController _creditsController = TextEditingController();
 
   // Form State
-  Color selectedColor = const Color(
-    0xFF16a765,
-  );
+  Color selectedColor = const Color(0xFF16a765);
   bool isOnline = false;
   DateTime? _startDate;
   DateTime? _endDate;
@@ -111,7 +112,7 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
           try {
             _startDate = DateTime.parse(_groupStartDate!);
           } catch (e) {
-            print('Error parsing group start date: $e');
+            log.info('Error parsing group start date: $e');
           }
         }
 
@@ -121,12 +122,12 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
           try {
             _endDate = DateTime.parse(_groupEndDate!);
           } catch (e) {
-            print('Error parsing group end date: $e');
+            log.info('Error parsing group end date: $e');
           }
         }
       });
     } catch (e) {
-      print('Error fetching course group: $e');
+      log.info('Error fetching course group: $e');
     }
   }
 
@@ -147,14 +148,14 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
         _startDate = DateTime.parse(course.startDate);
         _endDate = DateTime.parse(course.endDate);
       } catch (e) {
-        print('Error parsing dates: $e');
+        log.info('Error parsing dates: $e');
       }
 
       // Parse color
       try {
         selectedColor = Color(int.parse('0xff${course.color.substring(1)}'));
       } catch (e) {
-        print('Error parsing color: $e');
+        log.info('Error parsing color: $e');
       }
     });
   }
@@ -495,12 +496,14 @@ class _AddClassesScreenState extends State<AddClassesScreen> {
                       activeStepBackgroundColor: primaryColor,
                       activeStepTextColor: primaryColor,
                       finishedStepBorderColor: primaryColor,
-                      finishedStepBackgroundColor: primaryColor.withValues(alpha: 
-                        0.1,
+                      finishedStepBackgroundColor: primaryColor.withValues(
+                        alpha: 0.1,
                       ),
                       finishedStepIconColor: primaryColor,
                       finishedStepTextColor: blackColor,
-                      unreachedStepBorderColor: greyColor.withValues(alpha: 0.3),
+                      unreachedStepBorderColor: greyColor.withValues(
+                        alpha: 0.3,
+                      ),
                       unreachedStepBackgroundColor: softGrey,
                       unreachedStepIconColor: greyColor,
                       unreachedStepTextColor: textColor.withValues(alpha: 0.5),

@@ -10,6 +10,9 @@ import 'package:helium_mobile/core/app_exception.dart';
 import 'package:helium_mobile/core/dio_client.dart';
 import 'package:helium_mobile/core/network_urls.dart';
 import 'package:helium_mobile/data/models/planner/grade_course_group_model.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
 
 abstract class GradeRemoteDataSource {
   Future<List<GradeCourseGroupModel>> getGrades();
@@ -23,12 +26,12 @@ class GradeRemoteDataSourceImpl implements GradeRemoteDataSource {
   @override
   Future<List<GradeCourseGroupModel>> getGrades() async {
     try {
-      print(' Fetching grades...');
+      log.info(' Fetching grades...');
 
       final response = await dioClient.dio.get(NetworkUrl.gradesUrl);
 
       if (response.statusCode == 200) {
-        print(' Grades fetched successfully!');
+        log.info(' Grades fetched successfully!');
 
         // API returns: { "course_groups": [...] }
         if (response.data is Map<String, dynamic>) {
@@ -44,7 +47,7 @@ class GradeRemoteDataSourceImpl implements GradeRemoteDataSource {
                 )
                 .toList();
 
-            print(' Found ${grades.length} course group(s)');
+            log.info(' Found ${grades.length} course group(s)');
             return grades;
           } else {
             throw ServerException(

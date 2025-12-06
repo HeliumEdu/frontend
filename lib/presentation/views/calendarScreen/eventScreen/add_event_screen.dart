@@ -22,6 +22,9 @@ import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_size.dart';
 import 'package:helium_mobile/utils/app_text_style.dart';
 import 'package:helium_mobile/utils/formatting.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
 
 class AddEventScreen extends StatefulWidget {
   const AddEventScreen({super.key});
@@ -85,7 +88,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
     });
 
     try {
-      print('📅 Fetching event data for ID: $eventId');
+      log.info('📅 Fetching event data for ID: $eventId');
       final eventDataSource = EventRemoteDataSourceImpl(dioClient: DioClient());
       final eventRepo = EventRepositoryImpl(remoteDataSource: eventDataSource);
 
@@ -97,11 +100,11 @@ class _AddEventScreenState extends State<AddEventScreen> {
       // Pre-populate form fields
       _populateFormFields(event);
 
-      print('✅ Event data loaded successfully');
-      print('📋 Event has ${event.reminders.length} reminder(s)');
-      print('📎 Event has ${event.attachments.length} attachment(s)');
+      log.info('✅ Event data loaded successfully');
+      log.info('📋 Event has ${event.reminders.length} reminder(s)');
+      log.info('📎 Event has ${event.attachments.length} attachment(s)');
     } catch (e) {
-      print('❌ Error fetching event: $e');
+      log.info('❌ Error fetching event: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -135,13 +138,16 @@ class _AddEventScreenState extends State<AddEventScreen> {
 
       // Parse and set start date/time
       try {
-        final startDateTime = parseDateTime(event.start, _userSettings.timeZone);
+        final startDateTime = parseDateTime(
+          event.start,
+          _userSettings.timeZone,
+        );
         _startDate = startDateTime;
         if (!event.allDay) {
           _startTime = TimeOfDay.fromDateTime(startDateTime);
         }
       } catch (e) {
-        print('Error parsing start date: $e');
+        log.info('Error parsing start date: $e');
       }
 
       // Parse and set end date/time
@@ -153,7 +159,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
             _endTime = TimeOfDay.fromDateTime(endDateTime);
           }
         } catch (e) {
-          print('Error parsing end date: $e');
+          log.info('Error parsing end date: $e');
         }
       }
     });

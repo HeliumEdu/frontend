@@ -20,6 +20,9 @@ import 'package:helium_mobile/utils/app_size.dart';
 import 'package:helium_mobile/utils/app_text_style.dart';
 import 'package:helium_mobile/utils/formatting.dart';
 import 'package:intl/intl.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
@@ -43,7 +46,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
   String _typeKey(int type) => type == 0 ? 'popup' : 'email';
 
   NotificationModel _mapReminderToNotification(ReminderResponseModel reminder) {
-    final scheduledAt = parseDateTime(reminder.startOfRange, _userSettings.timeZone);
+    final scheduledAt = parseDateTime(
+      reminder.startOfRange,
+      _userSettings.timeZone,
+    );
 
     final String title;
     final Color? color;
@@ -95,7 +101,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
         _isLoading = true;
       });
       // Load persisted read IDs
-      final storedRead = sharedPreferencesService.getStringList('read_notification_ids') ?? [];
+      final storedRead =
+          sharedPreferencesService.getStringList('read_notification_ids') ?? [];
       _readNotificationIds = storedRead.toSet();
 
       final reminderRepo = ReminderRepositoryImpl(
@@ -105,7 +112,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       final reminders = await reminderRepo.getReminders();
 
       if (reminders.isEmpty) {
-        print('📅 No reminders available, showing placeholder content');
+        log.info('📅 No reminders available, showing placeholder content');
         setState(() {
           _notifications = [];
         });
@@ -150,9 +157,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
         _notifications = reminderNotifications;
       });
 
-      print('✅ Loaded ${_notifications.length} reminder notifications');
+      log.info('✅ Loaded ${_notifications.length} reminder notifications');
     } catch (e) {
-      print('❌ Failed to load notifications from API: $e');
+      log.info('❌ Failed to load notifications from API: $e');
     } finally {
       if (mounted) {
         setState(() {
@@ -164,28 +171,27 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   void _markAsRead(String notificationId) {
     _readNotificationIds.add(notificationId);
-    sharedPreferencesService.setStringList(
-      'read_notification_ids',
-      _readNotificationIds.toList(),
-    )!.then((_) {
-      setState(() {
-        _notifications = _notifications.map((notification) {
-          if (notification.notificationId == notificationId) {
-            return NotificationModel(
-              notificationId: notification.notificationId,
-              title: notification.title,
-              body: notification.body,
-              timestamp: notification.timestamp,
-              isRead: true,
-              type: notification.type,
-              action: notification.action,
-              data: notification.data,
-            );
-          }
-          return notification;
-        }).toList();
-      });
-    });
+    sharedPreferencesService
+        .setStringList('read_notification_ids', _readNotificationIds.toList())!
+        .then((_) {
+          setState(() {
+            _notifications = _notifications.map((notification) {
+              if (notification.notificationId == notificationId) {
+                return NotificationModel(
+                  notificationId: notification.notificationId,
+                  title: notification.title,
+                  body: notification.body,
+                  timestamp: notification.timestamp,
+                  isRead: true,
+                  type: notification.type,
+                  action: notification.action,
+                  data: notification.data,
+                );
+              }
+              return notification;
+            }).toList();
+          });
+        });
   }
 
   void _clearAllNotifications() {

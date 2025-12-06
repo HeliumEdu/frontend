@@ -49,6 +49,9 @@ import 'package:helium_mobile/utils/app_size.dart';
 import 'package:helium_mobile/utils/app_text_style.dart';
 import 'package:helium_mobile/utils/formatting.dart';
 import 'package:intl/intl.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -86,12 +89,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   static void triggerRefresh() {
     _needsRefresh = true;
-    print(' Home screen refresh triggered');
+    log.info(' Home screen refresh triggered');
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_needsRefresh) {
         _needsRefresh = false;
-        print(' Refresh will be handled by didChangeDependencies');
+        log.info(' Refresh will be handled by didChangeDependencies');
       }
     });
   }
@@ -123,9 +126,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 categoryTitles: _activeCategoryFiltersOrNull(),
               ),
             );
-            print(' Home screen refreshed after assignment creation/update');
+            log.info(' Home screen refreshed after assignment creation/update');
           } catch (e) {
-            print(' HomeworkBloc not available yet, skipping refresh: $e');
+            log.info(' HomeworkBloc not available yet, skipping refresh: $e');
             _needsRefresh = true;
           }
         }
@@ -145,9 +148,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 categoryTitles: _activeCategoryFiltersOrNull(),
               ),
             );
-            print(' Home screen refreshed after assignment creation/update');
+            log.info(' Home screen refreshed after assignment creation/update');
           } catch (e) {
-            print(' HomeworkBloc not available yet: $e');
+            log.info(' HomeworkBloc not available yet: $e');
           }
         }
       });
@@ -161,18 +164,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
     if (!mounted) return;
 
     if (kDebugMode) {
-      print('📅 Applying external calendar data:');
-      print('   - Calendars count: ${externalCalendars.length}');
+      log.info('📅 Applying external calendar data:');
+      log.info('   - Calendars count: ${externalCalendars.length}');
       int totalEvents = eventsByCalendar.values.fold(
         0,
         (sum, list) => sum + list.length,
       );
-      print('   - Total events: $totalEvents');
+      log.info('   - Total events: $totalEvents');
       for (var externalCalendar in externalCalendars) {
-        print(
+        log.info(
           '   - Calendar: ${externalCalendar.title} (ID: ${externalCalendar.id}, shown: ${externalCalendar.shownOnCalendar})',
         );
-        print(
+        log.info(
           '     Events: ${eventsByCalendar[externalCalendar.id]?.length ?? 0}',
         );
       }
@@ -188,8 +191,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
       (externalCalendar) => externalCalendar.shownOnCalendar,
     );
     if (kDebugMode) {
-      print('   - Has shown calendars: $hasAnyShownCalendars');
-      print('   - Selected categories: $selectedCategories');
+      log.info('   - Has shown calendars: $hasAnyShownCalendars');
+      log.info('   - Selected categories: $selectedCategories');
     }
 
     if (hasAnyShownCalendars && mounted) {
@@ -200,7 +203,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       if (shouldAddCategory) {
         selectedCategories = [...selectedCategories, 'External Calendars'];
         if (kDebugMode) {
-          print('   ✅ Added External Calendar to selected categories');
+          log.info('   ✅ Added External Calendar to selected categories');
         }
       }
     }
@@ -214,8 +217,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
         .toSet();
 
     if (kDebugMode) {
-      print('🎯 _getActiveExternalCalendarIds:');
-      print('   - Showing calendars with shownOnCalendar=true: $activeIds');
+      log.info('🎯 _getActiveExternalCalendarIds:');
+      log.info('   - Showing calendars with shownOnCalendar=true: $activeIds');
     }
 
     return activeIds;
@@ -225,29 +228,29 @@ class _CalendarScreenState extends State<CalendarScreen> {
     List<ExternalCalendarEventModel> externalEvents,
   ) {
     if (kDebugMode) {
-      print('🔍 Filtering external events:');
-      print('   - Total events: ${externalEvents.length}');
-      print(
+      log.info('🔍 Filtering external events:');
+      log.info('   - Total events: ${externalEvents.length}');
+      log.info(
         '   - Category enabled: ${_isCategoryEnabled('External Calendars')}',
       );
-      print('   - Selected categories: $selectedCategories');
+      log.info('   - Selected categories: $selectedCategories');
     }
 
     if (!_isCategoryEnabled('External Calendars')) {
       if (kDebugMode) {
-        print('   ❌ External calendar filtering disabled');
+        log.info('   ❌ External calendar filtering disabled');
       }
       return [];
     }
 
     final activeIds = _getActiveExternalCalendarIds();
     if (kDebugMode) {
-      print('   - Active calendar IDs: $activeIds');
+      log.info('   - Active calendar IDs: $activeIds');
     }
 
     if (activeIds.isEmpty) {
       if (kDebugMode) {
-        print('    No active calendar IDs');
+        log.info('    No active calendar IDs');
       }
       return [];
     }
@@ -257,7 +260,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         .toList();
 
     if (kDebugMode) {
-      print('   ✅ Filtered to ${filtered.length} events');
+      log.info('   ✅ Filtered to ${filtered.length} events');
     }
 
     return filtered;
@@ -589,9 +592,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
 
     if (kDebugMode && date.day == 11 && date.month == 11) {
-      print('🎯 Getting dots for Nov 11:');
-      print('   - Incoming external events: ${externalEvents.length}');
-      print('   - Filtered external events: ${filteredExternalEvents.length}');
+      log.info('🎯 Getting dots for Nov 11:');
+      log.info('   - Incoming external events: ${externalEvents.length}');
+      log.info(
+        '   - Filtered external events: ${filteredExternalEvents.length}',
+      );
     }
 
     final showAssignments = _isCategoryEnabled('Assignments');
@@ -3411,10 +3416,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
               onPressed: () {
                 Navigator.pop(dialogContext);
                 // Trigger delete event
-                print('🗑️ Deleting homework: ${homework.id}');
-                print('   - Group ID: ${course.courseGroup}');
-                print('   - Course ID: ${homework.course}');
-                print('   - Homework ID: ${homework.id}');
+                log.info('🗑️ Deleting homework: ${homework.id}');
+                log.info('   - Group ID: ${course.courseGroup}');
+                log.info('   - Course ID: ${homework.course}');
+                log.info('   - Homework ID: ${homework.id}');
 
                 homeworkBloc.add(
                   DeleteHomeworkEvent(

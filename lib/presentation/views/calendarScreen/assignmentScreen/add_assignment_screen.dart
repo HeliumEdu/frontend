@@ -41,6 +41,9 @@ import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_size.dart';
 import 'package:helium_mobile/utils/app_text_style.dart';
 import 'package:helium_mobile/utils/formatting.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
 
 class AddAssignmentScreen extends StatefulWidget {
   const AddAssignmentScreen({super.key});
@@ -159,7 +162,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
           );
           groupId = course.courseGroup;
           courseId = existingHomework!.course;
-          print('🔄 Fetching homework details for ID: $homeworkId');
+          log.info('🔄 Fetching homework details for ID: $homeworkId');
           if (groupId != null && courseId != null && homeworkId != null) {
             BlocProvider.of<HomeworkBloc>(context).add(
               FetchHomeworkByIdEvent(
@@ -178,10 +181,10 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
   }
 
   void _populateFieldsFromHomework(HomeworkResponseModel homework) {
-    print('📝 Populating form with homework data:');
-    print('   - Course ID: ${homework.course}');
-    print('   - Category ID: ${homework.category}');
-    print('   - Materials: ${homework.materials}');
+    log.info('📝 Populating form with homework data:');
+    log.info('   - Course ID: ${homework.course}');
+    log.info('   - Category ID: ${homework.category}');
+    log.info('   - Materials: ${homework.materials}');
 
     setState(() {
       homeworkId = homework.id;
@@ -204,10 +207,10 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
       // Set category ID only if it's not 0 or null
       if (homework.category != null && homework.category! > 0) {
         selectedCategoryId = homework.category;
-        print('   ✅ Category ID set: $selectedCategoryId');
+        log.info('   ✅ Category ID set: $selectedCategoryId');
       } else {
         selectedCategoryId = null;
-        print('   ⚠️ No category set (category was ${homework.category})');
+        log.info('   ⚠️ No category set (category was ${homework.category})');
       }
 
       // Set material IDs from the materials list
@@ -216,10 +219,10 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
             .where((id) => id > 0)
             .toList();
         selectedMaterialIds = validMaterials;
-        print('    Material IDs set: $selectedMaterialIds');
+        log.info('    Material IDs set: $selectedMaterialIds');
       } else {
         selectedMaterialIds = [];
-        print('    No materials in homework data');
+        log.info('    No materials in homework data');
       }
 
       _priorityValue = homework.priority.toDouble();
@@ -233,7 +236,9 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
         groupId = course.courseGroup;
         courseId = selectedCourseId;
 
-        print('    Fetching categories for course: $courseId, group: $groupId');
+        log.info(
+          '    Fetching categories for course: $courseId, group: $groupId',
+        );
         // Fetch categories for the course
         if (groupId != null && courseId != null) {
           BlocProvider.of<CourseBloc>(
@@ -247,24 +252,30 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
 
       // Parse start date/time
       try {
-        final startDateTime = parseDateTime(homework.start, _userSettings.timeZone);
+        final startDateTime = parseDateTime(
+          homework.start,
+          _userSettings.timeZone,
+        );
         _startDate = startDateTime;
         if (!isAllDay) {
           _startTime = TimeOfDay.fromDateTime(startDateTime);
         }
       } catch (e) {
-        print(' Error parsing start date: $e');
+        log.info(' Error parsing start date: $e');
       }
 
       if (homework.end != null) {
         try {
-          final endDateTime = parseDateTime(homework.end!, _userSettings.timeZone);
+          final endDateTime = parseDateTime(
+            homework.end!,
+            _userSettings.timeZone,
+          );
           _endDate = endDateTime;
           if (!isAllDay) {
             _endTime = TimeOfDay.fromDateTime(endDateTime);
           }
         } catch (e) {
-          print(' Error parsing end date: $e');
+          log.info(' Error parsing end date: $e');
         }
       }
     });
@@ -484,7 +495,9 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
     if (isEditMode && (groupId == null || courseId == null)) {
       groupId = selectedCourse.courseGroup;
       courseId = selectedCourseId;
-      print('🔧 Setting missing IDs - GroupId: $groupId, CourseId: $courseId');
+      log.info(
+        '🔧 Setting missing IDs - GroupId: $groupId, CourseId: $courseId',
+      );
     }
 
     final startDateTime = formatDateTimeToApi(
@@ -506,10 +519,10 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
       endDateTime = startDateTime;
     }
 
-    print('📤 Creating homework request with:');
-    print('   - Course: $selectedCourseId');
-    print('   - Category: $selectedCategoryId');
-    print('   - Materials: $selectedMaterialIds');
+    log.info('📤 Creating homework request with:');
+    log.info('   - Course: $selectedCourseId');
+    log.info('   - Category: $selectedCategoryId');
+    log.info('   - Materials: $selectedMaterialIds');
 
     // Determine grade value: -1/100 when not completed, user input when completed
     String gradeValue;
@@ -592,7 +605,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
           return;
         }
 
-        print('🔄 Updating homework ID: ${this.homeworkId}...');
+        log.info('🔄 Updating homework ID: ${this.homeworkId}...');
         final homework = await homeworkRepo.updateHomework(
           groupId: groupId!,
           courseId: courseId!,
@@ -600,16 +613,16 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
           request: request,
         );
         homeworkId = homework.id;
-        print('✅ Homework updated with ID: $homeworkId');
+        log.info('✅ Homework updated with ID: $homeworkId');
       } else {
-        print('📝 Creating homework...');
+        log.info('📝 Creating homework...');
         final homework = await homeworkRepo.createHomework(
           groupId: groupId ?? selectedCourse.courseGroup,
           courseId: selectedCourseId!,
           request: request,
         );
         homeworkId = homework.id;
-        print('✅ Homework created with ID: $homeworkId');
+        log.info('✅ Homework created with ID: $homeworkId');
       }
 
       Navigator.of(context).pop();
@@ -742,7 +755,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                   if (previousCategoryId != null &&
                       _categories.any((cat) => cat.id == previousCategoryId)) {
                     selectedCategoryId = previousCategoryId;
-                    print('✅ Category restored: $selectedCategoryId');
+                    log.info('✅ Category restored: $selectedCategoryId');
                   } else if (!isEditMode) {
                     selectedCategoryId = null;
                   }
@@ -785,7 +798,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                   _materials = byId.values.toList();
 
                   // Do not clear previously selected IDs during incremental loads
-                  print(' Materials merged: ${_materials.length}');
+                  log.info(' Materials merged: ${_materials.length}');
                 });
               } else if (state is material_state.MaterialsError) {
                 setState(() {
@@ -1180,7 +1193,9 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen>
                                   runSpacing: -8,
                                   children: selectedMaterialIds.map((id) {
                                     return Chip(
-                                      backgroundColor: parseColor(_userSettings.materialsColor),
+                                      backgroundColor: parseColor(
+                                        _userSettings.materialsColor,
+                                      ),
                                       deleteIconColor: whiteColor,
                                       label: Text(
                                         _materialTitleById(id),

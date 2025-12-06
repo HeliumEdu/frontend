@@ -10,6 +10,9 @@ import 'package:helium_mobile/core/app_exception.dart';
 import 'package:helium_mobile/core/dio_client.dart';
 import 'package:helium_mobile/core/network_urls.dart';
 import 'package:helium_mobile/data/models/planner/category_model.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
 
 abstract class CategoryRemoteDataSource {
   Future<List<CategoryModel>> getCategories({int? course, String? title});
@@ -26,7 +29,7 @@ class CategoryRemoteDataSourceImpl implements CategoryRemoteDataSource {
     String? title,
   }) async {
     try {
-      print('🎯 Fetching categories...');
+      log.info('🎯 Fetching categories...');
 
       // Build query parameters
       Map<String, dynamic> queryParams = {};
@@ -48,7 +51,7 @@ class CategoryRemoteDataSourceImpl implements CategoryRemoteDataSource {
             .map((json) => CategoryModel.fromJson(json))
             .toList();
 
-        print('✅ Fetched ${categories.length} categories');
+        log.info('✅ Fetched ${categories.length} categories');
         return categories;
       } else {
         throw ServerException(

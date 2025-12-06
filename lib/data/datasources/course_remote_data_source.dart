@@ -20,6 +20,9 @@ import 'package:helium_mobile/data/models/planner/course_model.dart';
 import 'package:helium_mobile/data/models/planner/course_request_model.dart';
 import 'package:helium_mobile/data/models/planner/course_schedule_model.dart';
 import 'package:helium_mobile/data/models/planner/course_schedule_request_model.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
 
 abstract class CourseRemoteDataSource {
   Future<List<CourseModel>> getCourses();
@@ -171,16 +174,16 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
   @override
   Future<CourseModel> getCourseById(int groupId, int courseId) async {
     try {
-      print(' Fetching course details...');
-      print('  Group ID: $groupId');
-      print('  Course ID: $courseId');
+      log.info(' Fetching course details...');
+      log.info('  Group ID: $groupId');
+      log.info('  Course ID: $courseId');
 
       final response = await dioClient.dio.get(
         NetworkUrl.deleteCourseUrl(groupId, courseId),
       );
 
       if (response.statusCode == 200) {
-        print(' Course details fetched successfully!');
+        log.info(' Course details fetched successfully!');
         return CourseModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -225,9 +228,9 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
     CourseRequestModel request,
   ) async {
     try {
-      print('🔄 Updating course...');
-      print('  Group ID: $groupId');
-      print('  Course ID: $courseId');
+      log.info('🔄 Updating course...');
+      log.info('  Group ID: $groupId');
+      log.info('  Course ID: $courseId');
 
       final response = await dioClient.dio.put(
         NetworkUrl.deleteCourseUrl(groupId, courseId),
@@ -235,7 +238,7 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        print('✅ Course updated successfully!');
+        log.info('✅ Course updated successfully!');
         return CourseModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -310,10 +313,10 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
     CourseScheduleRequestModel request,
   ) async {
     try {
-      print('🔄 Updating course schedule...');
-      print('  Group ID: $groupId');
-      print('  Course ID: $courseId');
-      print('  Schedule ID: $scheduleId');
+      log.info('🔄 Updating course schedule...');
+      log.info('  Group ID: $groupId');
+      log.info('  Course ID: $courseId');
+      log.info('  Schedule ID: $scheduleId');
 
       final response = await dioClient.dio.put(
         NetworkUrl.getCourseScheduleUrl(groupId, courseId, scheduleId),
@@ -321,7 +324,7 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        print('✅ Course schedule updated successfully!');
+        log.info('✅ Course schedule updated successfully!');
         return CourseScheduleModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -343,17 +346,17 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
     int scheduleId,
   ) async {
     try {
-      print('📅 Fetching schedule details...');
-      print('  Group ID: $groupId');
-      print('  Course ID: $courseId');
-      print('  Schedule ID: $scheduleId');
+      log.info('📅 Fetching schedule details...');
+      log.info('  Group ID: $groupId');
+      log.info('  Course ID: $courseId');
+      log.info('  Schedule ID: $scheduleId');
 
       final response = await dioClient.dio.get(
         NetworkUrl.getCourseScheduleUrl(groupId, courseId, scheduleId),
       );
 
       if (response.statusCode == 200) {
-        print('✅ Schedule details fetched successfully!');
+        log.info('✅ Schedule details fetched successfully!');
         return CourseScheduleModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -437,10 +440,10 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
     CategoryRequestModel request,
   ) async {
     try {
-      print(' Updating category...');
-      print('  Group ID: $groupId');
-      print('  Course ID: $courseId');
-      print('  Category ID: $categoryId');
+      log.info(' Updating category...');
+      log.info('  Group ID: $groupId');
+      log.info('  Course ID: $courseId');
+      log.info('  Category ID: $categoryId');
 
       final response = await dioClient.dio.put(
         NetworkUrl.deleteCategoryUrl(groupId, courseId, categoryId),
@@ -448,7 +451,7 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        print(' Category updated successfully!');
+        log.info(' Category updated successfully!');
         return CategoryModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -495,15 +498,15 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
     int? homeworkId,
   }) async {
     try {
-      print(' Starting file upload...');
-      print(' Files to upload: ${files.length}');
+      log.info(' Starting file upload...');
+      log.info(' Files to upload: ${files.length}');
 
       // Prepare multipart files
       List<MultipartFile> multipartFiles = [];
       for (var file in files) {
         final fileName = file.path.split('/').last;
         final fileSize = file.lengthSync();
-        print('  - $fileName ($fileSize bytes)');
+        log.info('  - $fileName ($fileSize bytes)');
 
         multipartFiles.add(
           await MultipartFile.fromFile(file.path, filename: fileName),
@@ -522,18 +525,18 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
       // Add at least one of: course, event, or homework
       if (courseId != null) {
         formData.fields.add(MapEntry('course', courseId.toString()));
-        print('🔗 Attached to course: $courseId');
+        log.info('🔗 Attached to course: $courseId');
       }
       if (eventId != null) {
         formData.fields.add(MapEntry('event', eventId.toString()));
-        print('🔗 Attached to event: $eventId');
+        log.info('🔗 Attached to event: $eventId');
       }
       if (homeworkId != null) {
         formData.fields.add(MapEntry('homework', homeworkId.toString()));
-        print('🔗 Attached to homework: $homeworkId');
+        log.info('🔗 Attached to homework: $homeworkId');
       }
 
-      print('🚀 Sending multipart/form-data request...');
+      log.info('🚀 Sending multipart/form-data request...');
       final response = await dioClient.dio.post(
         NetworkUrl.attachmentsUrl,
         data: formData,
@@ -543,7 +546,7 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
         ),
       );
 
-      print('✅ Upload successful! Status: ${response.statusCode}');
+      log.info('✅ Upload successful! Status: ${response.statusCode}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         // Response is always a list, even for single file
@@ -577,21 +580,21 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
     int? homeworkId,
   }) async {
     try {
-      print('📥 Fetching attachments...');
+      log.info('📥 Fetching attachments...');
 
       // Build query parameters
       Map<String, dynamic> queryParams = {};
       if (courseId != null) {
         queryParams['course'] = courseId;
-        print('🔗 Fetching attachments for course: $courseId');
+        log.info('🔗 Fetching attachments for course: $courseId');
       }
       if (eventId != null) {
         queryParams['event'] = eventId;
-        print('🔗 Fetching attachments for event: $eventId');
+        log.info('🔗 Fetching attachments for event: $eventId');
       }
       if (homeworkId != null) {
         queryParams['homework'] = homeworkId;
-        print('🔗 Fetching attachments for homework: $homeworkId');
+        log.info('🔗 Fetching attachments for homework: $homeworkId');
       }
 
       final response = await dioClient.dio.get(
@@ -599,14 +602,14 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
         queryParameters: queryParams,
       );
 
-      print('✅ Attachments fetched! Status: ${response.statusCode}');
+      log.info('✅ Attachments fetched! Status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         if (response.data is List) {
           final attachments = (response.data as List)
               .map((attachment) => AttachmentModel.fromJson(attachment))
               .toList();
-          print('📎 Found ${attachments.length} attachment(s)');
+          log.info('📎 Found ${attachments.length} attachment(s)');
           return attachments;
         } else {
           throw ServerException(
@@ -630,14 +633,14 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
   @override
   Future<void> deleteAttachment(int attachmentId) async {
     try {
-      print('🗑️ Deleting attachment: $attachmentId');
+      log.info('🗑️ Deleting attachment: $attachmentId');
 
       final response = await dioClient.dio.delete(
         NetworkUrl.deleteAttachmentUrl(attachmentId),
       );
 
       if (response.statusCode == 204 || response.statusCode == 200) {
-        print('✅ Attachment deleted successfully!');
+        log.info('✅ Attachment deleted successfully!');
       } else {
         throw ServerException(
           message: 'Failed to delete attachment',

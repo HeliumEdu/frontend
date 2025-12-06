@@ -17,6 +17,9 @@ import 'package:helium_mobile/data/models/auth/register_request_model.dart';
 import 'package:helium_mobile/domain/repositories/auth_repository.dart';
 import 'package:helium_mobile/presentation/bloc/authBloc/auth_event.dart';
 import 'package:helium_mobile/presentation/bloc/authBloc/auth_state.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository authRepository;
@@ -130,11 +133,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       final response = await authRepository.login(request);
 
-      emit(
-        AuthLoginSuccess(
-          accessToken: response.access
-        ),
-      );
+      emit(AuthLoginSuccess(accessToken: response.access));
     } on ValidationException catch (e) {
       emit(AuthError(message: e.message, code: e.code));
     } on NetworkException catch (e) {
@@ -282,7 +281,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           emit(AuthAuthenticated());
         } catch (e) {
           if (refreshToken != null && refreshToken.isNotEmpty) {
-            print(' Token seems expired, attempting to refresh...');
+            log.info(' Token seems expired, attempting to refresh...');
             add(const RefreshTokenEvent());
           } else {
             emit(

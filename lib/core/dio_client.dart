@@ -17,6 +17,9 @@ import 'package:helium_mobile/data/models/auth/refresh_token_response_model.dart
 import 'package:helium_mobile/data/models/auth/user_profile_model.dart';
 import 'package:helium_mobile/main.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
 
 class DioClient {
   static final DioClient _instance = DioClient._internal();
@@ -50,9 +53,9 @@ class DioClient {
           final token = await prefs.getSecure('access_token');
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
-            print('🔑 Token added to request: ${token.substring(0, 10)}...');
+            log.info('🔑 Token added to request: ${token.substring(0, 10)}...');
           } else {
-            print('⚠️ No token found in SharedPreferences');
+            log.info('⚠️ No token found in SharedPreferences');
           }
           return handler.next(options);
         },
@@ -72,7 +75,9 @@ class DioClient {
 
             // If refresh is already in progress, wait for it to complete
             if (_isRefreshing && _refreshCompleter != null) {
-              print('⏳ Token refresh in progress, waiting for completion...');
+              log.info(
+                '⏳ Token refresh in progress, waiting for completion...',
+              );
               try {
                 await _refreshCompleter!.future;
                 // After refresh completes, retry the original request
@@ -99,7 +104,7 @@ class DioClient {
             }
 
             // Start token refresh process
-            print('🔄 Got 401 error, attempting to refresh token...');
+            log.info('🔄 Got 401 error, attempting to refresh token...');
             _isRefreshing = true;
             _refreshCompleter = Completer<void>();
 
@@ -107,7 +112,7 @@ class DioClient {
               final refreshToken = await getRefreshToken();
 
               if (refreshToken == null || refreshToken.isEmpty) {
-                print('❌ No refresh token available');
+                log.info('❌ No refresh token available');
                 _isRefreshing = false;
                 _refreshCompleter!.completeError('No refresh token');
                 _refreshCompleter = null;
@@ -144,7 +149,7 @@ class DioClient {
                   refreshResponse.access,
                   refreshResponse.refresh,
                 );
-                print('✅ Tokens refreshed successfully (access + refresh)');
+                log.info('✅ Tokens refreshed successfully (access + refresh)');
 
                 // Complete the refresh completer to unblock queued requests
                 _isRefreshing = false;
@@ -158,7 +163,7 @@ class DioClient {
                 final retryResponse = await _dio.fetch(error.requestOptions);
                 return handler.resolve(retryResponse);
               } else {
-                print(
+                log.info(
                   '❌ Token refresh failed with status: ${response.statusCode}',
                 );
                 _isRefreshing = false;
@@ -172,7 +177,7 @@ class DioClient {
                   if (detail == 'Token is blacklisted' ||
                       detail.toString().toLowerCase().contains('invalid') ||
                       detail.toString().toLowerCase().contains('expired')) {
-                    print(
+                    log.info(
                       '🚫 Refresh token is invalid/expired, clearing tokens',
                     );
                     await _handleForceLogout(
@@ -183,13 +188,13 @@ class DioClient {
                 }
 
                 // If it's not a token issue, don't logout - just retry might work
-                print(
+                log.info(
                   '⚠️ Token refresh failed but not due to invalid token, retrying request',
                 );
                 return handler.next(error);
               }
             } catch (e) {
-              print('❌ Error during token refresh: $e');
+              log.info('❌ Error during token refresh: $e');
               _isRefreshing = false;
               if (_refreshCompleter != null) {
                 _refreshCompleter!.completeError(e);
@@ -205,7 +210,7 @@ class DioClient {
                   if (detail == 'Token is blacklisted' ||
                       detail.toString().toLowerCase().contains('invalid') ||
                       detail.toString().toLowerCase().contains('expired')) {
-                    print('🚫 Refresh token is invalid/expired');
+                    log.info('🚫 Refresh token is invalid/expired');
                     shouldLogout = true;
                   }
                 }
@@ -218,7 +223,7 @@ class DioClient {
                   'Session expired. Please login again.',
                 );
               } else {
-                print(
+                log.info(
                   '⚠️ Refresh failed due to network/transient error, not logging out',
                 );
               }
@@ -300,25 +305,20 @@ class DioClient {
   }
 
   Future<List<void>> saveSettings(UserSettings settings) async {
-    return Future.wait(
-      [
-            ?prefs.setString('time_zone', settings.timeZone),
-            ?prefs.setInt('default_view', settings.defaultView),
-            ?prefs.setInt('week_starts_on', settings.weekStartsOn),
-            ?prefs.setInt('all_day_offset', settings.allDayOffset),
-            ?prefs.setString('events_color', settings.eventsColor),
-            ?prefs.setString('materials_color', settings.materialsColor),
-            ?prefs.setString('grades_color', settings.gradesColor),
-            ?prefs.setInt(
-              'default_reminder_offset',
-              settings.defaultReminderOffset,
-            ),
-            ?prefs.setInt(
-              'default_reminder_offset_type',
-              settings.defaultReminderOffsetType,
-            ),
-     ],
-    );
+    return Future.wait([
+      ?prefs.setString('time_zone', settings.timeZone),
+      ?prefs.setInt('default_view', settings.defaultView),
+      ?prefs.setInt('week_starts_on', settings.weekStartsOn),
+      ?prefs.setInt('all_day_offset', settings.allDayOffset),
+      ?prefs.setString('events_color', settings.eventsColor),
+      ?prefs.setString('materials_color', settings.materialsColor),
+      ?prefs.setString('grades_color', settings.gradesColor),
+      ?prefs.setInt('default_reminder_offset', settings.defaultReminderOffset),
+      ?prefs.setInt(
+        'default_reminder_offset_type',
+        settings.defaultReminderOffsetType,
+      ),
+    ]);
   }
 
   Future<void> _handleForceLogout(String message) async {

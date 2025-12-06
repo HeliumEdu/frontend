@@ -26,6 +26,9 @@ import 'package:helium_mobile/utils/app_list.dart';
 import 'package:helium_mobile/utils/app_size.dart';
 import 'package:helium_mobile/utils/app_text_style.dart';
 import 'package:helium_mobile/utils/formatting.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
 
 class EventReminderScreen extends StatefulWidget {
   final EventRequestModel? eventRequest;
@@ -178,7 +181,9 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: blackColor.withValues(alpha: 0.15)),
+                      border: Border.all(
+                        color: blackColor.withValues(alpha: 0.15),
+                      ),
                       color: whiteColor,
                     ),
                     child: TextField(
@@ -205,7 +210,9 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                     padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: blackColor.withValues(alpha: 0.15)),
+                      border: Border.all(
+                        color: blackColor.withValues(alpha: 0.15),
+                      ),
                       color: whiteColor,
                     ),
                     child: DropdownButton<String>(
@@ -224,33 +231,37 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                       ),
                       value: reminderType,
                       items: reminderTypes
-                          .where((type) => (existing != null && existing.type == 2) || type != 'Text')
+                          .where(
+                            (type) =>
+                                (existing != null && existing.type == 2) ||
+                                type != 'Text',
+                          )
                           .map((type) {
-                        return DropdownMenuItem<String>(
-                          value: type,
-                          child: Row(
-                            children: [
-                              Icon(
-                                type == 'Email'
-                                    ? Icons.mail_outline
-                                    :
-                                type == 'Text'
-                                    ? Icons.phone_android
-                                    : Icons.notifications_active_outlined,
-                                size: 18,
-                                color: primaryColor,
+                            return DropdownMenuItem<String>(
+                              value: type,
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    type == 'Email'
+                                        ? Icons.mail_outline
+                                        : type == 'Text'
+                                        ? Icons.phone_android
+                                        : Icons.notifications_active_outlined,
+                                    size: 18,
+                                    color: primaryColor,
+                                  ),
+                                  SizedBox(width: 10),
+                                  Text(
+                                    type,
+                                    style: AppTextStyle.eTextStyle.copyWith(
+                                      color: blackColor,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              SizedBox(width: 10),
-                              Text(
-                                type,
-                                style: AppTextStyle.eTextStyle.copyWith(
-                                  color: blackColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
+                            );
+                          })
+                          .toList(),
                       onChanged: (value) {
                         setDialogState(() {
                           reminderType = value!;
@@ -573,7 +584,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
       });
     } catch (e) {
       // non-blocking
-      debugPrint('Failed to load event attachments: $e');
+      log.info('Failed to load event attachments: $e');
     }
   }
 
@@ -699,20 +710,20 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
         );
 
         if (isEditMode && eventId != null) {
-          print('📝 Updating event with ID: $eventId...');
+          log.info('📝 Updating event with ID: $eventId...');
           final event = await eventRepo.updateEvent(
             eventId: eventId!,
             request: widget.eventRequest!,
           );
           finalEventId = event.id;
-          print('✅ Event updated successfully with ID: $finalEventId');
+          log.info('✅ Event updated successfully with ID: $finalEventId');
         } else {
-          print('📝 Creating new event...');
+          log.info('📝 Creating new event...');
           final event = await eventRepo.createEvent(
             request: widget.eventRequest!,
           );
           finalEventId = event.id;
-          print('✅ Event created with ID: $finalEventId');
+          log.info('✅ Event created with ID: $finalEventId');
         }
       }
 
@@ -733,7 +744,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
 
       // Upload Attachment (if file is selected)
       if (_selectedFile != null) {
-        print('📎 Uploading attachment...');
+        log.info('📎 Uploading attachment...');
         final attachmentDataSource = AttachmentRemoteDataSourceImpl(
           dioClient: DioClient(),
         );
@@ -745,7 +756,7 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
           file: _selectedFile!,
           event: finalEventId,
         );
-        print('✅ Attachment uploaded successfully');
+        log.info('✅ Attachment uploaded successfully');
       }
 
       // Success!
@@ -866,7 +877,9 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                   activeStepBackgroundColor: primaryColor,
                   activeStepTextColor: primaryColor,
                   finishedStepBorderColor: primaryColor,
-                  finishedStepBackgroundColor: primaryColor.withValues(alpha: 0.1),
+                  finishedStepBackgroundColor: primaryColor.withValues(
+                    alpha: 0.1,
+                  ),
                   finishedStepIconColor: primaryColor,
                   finishedStepTextColor: blackColor,
                   unreachedStepBorderColor: greyColor.withValues(alpha: 0.3),
@@ -1071,7 +1084,9 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                                       Text(
                                         formatReminderOffset(rem),
                                         style: AppTextStyle.iTextStyle.copyWith(
-                                          color: textColor.withValues(alpha: 0.7),
+                                          color: textColor.withValues(
+                                            alpha: 0.7,
+                                          ),
                                           fontSize: 12,
                                         ),
                                       ),
@@ -1079,7 +1094,9 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                                       Text(
                                         reminderTypes[rem.type],
                                         style: AppTextStyle.iTextStyle.copyWith(
-                                          color: textColor.withValues(alpha: 0.7),
+                                          color: textColor.withValues(
+                                            alpha: 0.7,
+                                          ),
                                           fontSize: 12,
                                         ),
                                       ),
@@ -1202,7 +1219,9 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                                     Container(
                                       padding: EdgeInsets.all(8),
                                       decoration: BoxDecoration(
-                                        color: primaryColor.withValues(alpha: 0.1),
+                                        color: primaryColor.withValues(
+                                          alpha: 0.1,
+                                        ),
                                         borderRadius: BorderRadius.circular(6),
                                       ),
                                       child: Icon(
@@ -1232,8 +1251,8 @@ class _EventReminderScreenState extends State<EventReminderScreen> {
                                             'Tap to change file',
                                             style: AppTextStyle.eTextStyle
                                                 .copyWith(
-                                                  color: blackColor.withValues(alpha: 
-                                                    0.5,
+                                                  color: blackColor.withValues(
+                                                    alpha: 0.5,
                                                   ),
                                                   fontSize: 12,
                                                 ),

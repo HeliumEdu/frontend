@@ -6,7 +6,6 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:equatable/equatable.dart';
-import 'package:helium_mobile/data/models/auth/user_profile_model.dart';
 
 abstract class AuthState extends Equatable {
   const AuthState();

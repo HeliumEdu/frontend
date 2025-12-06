@@ -11,7 +11,6 @@ import 'package:helium_mobile/data/models/auth/user_profile_model.dart';
 import 'package:helium_mobile/data/repositories/auth_repository_impl.dart';
 import 'package:helium_mobile/presentation/bloc/preferenceBloc/preference_event.dart';
 import 'package:helium_mobile/presentation/bloc/preferenceBloc/preference_states.dart';
-import 'package:helium_mobile/presentation/views/calendarScreen/calendar_screen.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_list.dart';
 

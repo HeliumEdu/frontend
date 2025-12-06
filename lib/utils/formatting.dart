@@ -9,7 +9,10 @@ import 'package:flutter/material.dart';
 import 'package:helium_mobile/data/models/planner/reminder_response_model.dart';
 import 'package:helium_mobile/utils/app_list.dart';
 import 'package:intl/intl.dart';
+import 'package:logging/logging.dart';
 import 'package:timezone/standalone.dart' as tz;
+
+final log = Logger('HeliumLogger');
 
 TimeOfDay? parseTime(String timeString) {
   try {
@@ -19,7 +22,7 @@ TimeOfDay? parseTime(String timeString) {
     final parts = timeString.split(':');
     return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
   } catch (e) {
-    print('Error parsing time: $e');
+    log.info('Error parsing time: $e');
     return null;
   }
 }

@@ -11,6 +11,9 @@ import 'package:helium_mobile/core/dio_client.dart';
 import 'package:helium_mobile/core/network_urls.dart';
 import 'package:helium_mobile/data/models/planner/reminder_request_model.dart';
 import 'package:helium_mobile/data/models/planner/reminder_response_model.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
 
 abstract class ReminderRemoteDataSource {
   Future<ReminderResponseModel> createReminder(ReminderRequestModel request);
@@ -72,14 +75,14 @@ class ReminderRemoteDataSourceImpl implements ReminderRemoteDataSource {
     ReminderRequestModel request,
   ) async {
     try {
-      print('📝 Creating reminder...');
+      log.info('📝 Creating reminder...');
       final response = await dioClient.dio.post(
         NetworkUrl.remindersUrl,
         data: request.toJson(),
       );
 
       if (response.statusCode == 201 || response.statusCode == 200) {
-        print('✅ Reminder created successfully');
+        log.info('✅ Reminder created successfully');
         return ReminderResponseModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -87,10 +90,10 @@ class ReminderRemoteDataSourceImpl implements ReminderRemoteDataSource {
         );
       }
     } on DioException catch (e) {
-      print('❌ Error creating reminder: ${e.message}');
+      log.info('❌ Error creating reminder: ${e.message}');
       throw _handleDioError(e);
     } catch (e) {
-      print('❌ Unexpected error: $e');
+      log.info('❌ Unexpected error: $e');
       throw AppException(message: 'Unexpected error occurred: $e');
     }
   }
@@ -144,15 +147,15 @@ class ReminderRemoteDataSourceImpl implements ReminderRemoteDataSource {
     ReminderRequestModel request,
   ) async {
     try {
-      print('📝 Updating reminder with ID: $reminderId');
-      print('📋 PUT ${NetworkUrl.reminderByIdUrl(reminderId)}');
+      log.info('📝 Updating reminder with ID: $reminderId');
+      log.info('📋 PUT ${NetworkUrl.reminderByIdUrl(reminderId)}');
       final response = await dioClient.dio.put(
         NetworkUrl.reminderByIdUrl(reminderId),
         data: request.toJson(),
       );
 
       if (response.statusCode == 200) {
-        print('✅ Reminder updated successfully via PUT API');
+        log.info('✅ Reminder updated successfully via PUT API');
         return ReminderResponseModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -160,10 +163,10 @@ class ReminderRemoteDataSourceImpl implements ReminderRemoteDataSource {
         );
       }
     } on DioException catch (e) {
-      print('❌ Error updating reminder: ${e.message}');
+      log.info('❌ Error updating reminder: ${e.message}');
       throw _handleDioError(e);
     } catch (e) {
-      print('❌ Unexpected error: $e');
+      log.info('❌ Unexpected error: $e');
       throw AppException(message: 'Unexpected error occurred: $e');
     }
   }
@@ -176,7 +179,7 @@ class ReminderRemoteDataSourceImpl implements ReminderRemoteDataSource {
       );
 
       if (response.statusCode == 204 || response.statusCode == 200) {
-        print('✅ Reminder deleted successfully');
+        log.info('✅ Reminder deleted successfully');
       } else {
         throw ServerException(
           message: 'Failed to delete reminder: ${response.statusCode}',

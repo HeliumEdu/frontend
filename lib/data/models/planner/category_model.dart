@@ -31,14 +31,14 @@ class CategoryModel {
   });
 
   factory CategoryModel.fromJson(Map<String, dynamic> json) {
-    double? _toDouble(dynamic value) {
+    double? toDouble(dynamic value) {
       if (value == null) return null;
       if (value is num) return value.toDouble();
       if (value is String) return double.tryParse(value);
       return null;
     }
 
-    int _toInt(dynamic value) {
+    int toInt(dynamic value) {
       if (value == null) return 0;
       if (value is int) return value;
       if (value is num) return value.toInt();
@@ -47,15 +47,15 @@ class CategoryModel {
     }
 
     return CategoryModel(
-      id: _toInt(json['id']),
+      id: toInt(json['id']),
       title: json['title'] ?? '',
       color: json['color'] ?? '#3f51b5',
-      course: _toInt(json['course']),
-      weight: _toDouble(json['weight']),
-      overallGrade: _toDouble(json['overall_grade']),
-      gradeByWeight: _toDouble(json['grade_by_weight']),
-      trend: _toDouble(json['trend']),
-      numHomeworkGraded: _toInt(json['num_homework_graded']),
+      course: toInt(json['course']),
+      weight: toDouble(json['weight']),
+      overallGrade: toDouble(json['overall_grade']),
+      gradeByWeight: toDouble(json['grade_by_weight']),
+      trend: toDouble(json['trend']),
+      numHomeworkGraded: toInt(json['num_homework_graded']),
     );
   }
 

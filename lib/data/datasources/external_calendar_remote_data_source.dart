@@ -13,6 +13,9 @@ import 'package:helium_mobile/data/models/planner/external_calendar_event_model.
 import 'package:helium_mobile/data/models/planner/external_calendar_model.dart';
 import 'package:helium_mobile/data/models/planner/external_calendar_request_model.dart';
 import 'package:intl/intl.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
 
 abstract class ExternalCalendarRemoteDataSource {
   Future<List<ExternalCalendarModel>> getAllExternalCalendars();
@@ -79,7 +82,7 @@ class ExternalCalendarRemoteDataSourceImpl
   @override
   Future<List<ExternalCalendarModel>> getAllExternalCalendars() async {
     try {
-      print('📅 Fetching all external calendars...');
+      log.info('📅 Fetching all external calendars...');
 
       final response = await dioClient.dio.get(NetworkUrl.externalCalendarsUrl);
 
@@ -104,16 +107,16 @@ class ExternalCalendarRemoteDataSourceImpl
             .map((json) => ExternalCalendarModel.fromJson(json))
             .toList();
 
-        print('✅ Fetched ${calendars.length} external calendars');
+        log.info('✅ Fetched ${calendars.length} external calendars');
         return calendars;
       } else {
         throw ServerException(message: 'Failed to fetch external calendars');
       }
     } on DioException catch (e) {
-      print('❌ DioException in getAllExternalCalendars: ${e.message}');
+      log.info('❌ DioException in getAllExternalCalendars: ${e.message}');
       throw _handleDioError(e);
     } catch (e) {
-      print('❌ Exception in getAllExternalCalendars: $e');
+      log.info('❌ Exception in getAllExternalCalendars: $e');
       throw ServerException(
         message: 'An unexpected error occurred: ${e.toString()}',
       );
@@ -127,7 +130,7 @@ class ExternalCalendarRemoteDataSourceImpl
     String? search,
   }) async {
     try {
-      print('📅 Fetching events for external calendars ...');
+      log.info('📅 Fetching events for external calendars ...');
 
       String formatDate(DateTime value) =>
           DateFormat('MMM dd, yyyy').format(value.toUtc());
@@ -145,9 +148,10 @@ class ExternalCalendarRemoteDataSourceImpl
       if (response.statusCode == 200) {
         if (response.data is List) {
           final List<dynamic> data = response.data;
-          print('✅ Fetched ${data.length} external calendar event(s)');
+          log.info('✅ Fetched ${data.length} external calendar event(s)');
           return data
-                  .map((json) => ExternalCalendarEventModel.fromJson(json)).toList();
+              .map((json) => ExternalCalendarEventModel.fromJson(json))
+              .toList();
         } else {
           throw ServerException(
             message: 'Invalid response format',
@@ -160,10 +164,10 @@ class ExternalCalendarRemoteDataSourceImpl
         );
       }
     } on DioException catch (e) {
-      print('❌ DioException in getExternalCalendarEvents: ${e.message}');
+      log.info('❌ DioException in getExternalCalendarEvents: ${e.message}');
       throw _handleDioError(e);
     } catch (e) {
-      print('❌ Exception in getExternalCalendarEvents: $e');
+      log.info('❌ Exception in getExternalCalendarEvents: $e');
       throw ServerException(
         message: 'An unexpected error occurred: ${e.toString()}',
       );
@@ -175,8 +179,8 @@ class ExternalCalendarRemoteDataSourceImpl
     required ExternalCalendarRequestModel payload,
   }) async {
     try {
-      print('📅 Adding external calendar: ${payload.title}');
-      print('🔗 URL: ${payload.url}');
+      log.info('📅 Adding external calendar: ${payload.title}');
+      log.info('🔗 URL: ${payload.url}');
 
       final response = await dioClient.dio.post(
         NetworkUrl.externalCalendarsUrl,
@@ -185,16 +189,16 @@ class ExternalCalendarRemoteDataSourceImpl
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final calendar = ExternalCalendarModel.fromJson(response.data);
-        print('✅ External calendar added successfully: ${calendar.title}');
+        log.info('✅ External calendar added successfully: ${calendar.title}');
         return calendar;
       } else {
         throw ServerException(message: 'Failed to add external calendar');
       }
     } on DioException catch (e) {
-      print('❌ DioException in addExternalCalendar: ${e.message}');
+      log.info('❌ DioException in addExternalCalendar: ${e.message}');
       throw _handleDioError(e);
     } catch (e) {
-      print('❌ Exception in addExternalCalendar: $e');
+      log.info('❌ Exception in addExternalCalendar: $e');
       throw ServerException(
         message: 'An unexpected error occurred: ${e.toString()}',
       );
@@ -207,7 +211,7 @@ class ExternalCalendarRemoteDataSourceImpl
     required ExternalCalendarRequestModel payload,
   }) async {
     try {
-      print(
+      log.info(
         '📅 Updating external calendar: ${payload.title} (ID: $calendarId)',
       );
 
@@ -218,16 +222,16 @@ class ExternalCalendarRemoteDataSourceImpl
 
       if (response.statusCode == 200) {
         final calendar = ExternalCalendarModel.fromJson(response.data);
-        print('✅ External calendar updated successfully: ${calendar.title}');
+        log.info('✅ External calendar updated successfully: ${calendar.title}');
         return calendar;
       } else {
         throw ServerException(message: 'Failed to update external calendar');
       }
     } on DioException catch (e) {
-      print('❌ DioException in updateExternalCalendar: ${e.message}');
+      log.info('❌ DioException in updateExternalCalendar: ${e.message}');
       throw _handleDioError(e);
     } catch (e) {
-      print('❌ Exception in updateExternalCalendar: $e');
+      log.info('❌ Exception in updateExternalCalendar: $e');
       throw ServerException(
         message: 'An unexpected error occurred: ${e.toString()}',
       );
@@ -237,23 +241,23 @@ class ExternalCalendarRemoteDataSourceImpl
   @override
   Future<void> deleteExternalCalendar({required int calendarId}) async {
     try {
-      print('🗑️ Deleting external calendar ID: $calendarId');
+      log.info('🗑️ Deleting external calendar ID: $calendarId');
 
       final response = await dioClient.dio.delete(
         NetworkUrl.externalCalendarDetailUrl(calendarId),
       );
 
       if (response.statusCode == 204 || response.statusCode == 200) {
-        print('✅ External calendar deleted successfully: $calendarId');
+        log.info('✅ External calendar deleted successfully: $calendarId');
         return;
       } else {
         throw ServerException(message: 'Failed to delete external calendar');
       }
     } on DioException catch (e) {
-      print('❌ DioException in deleteExternalCalendar: ${e.message}');
+      log.info('❌ DioException in deleteExternalCalendar: ${e.message}');
       throw _handleDioError(e);
     } catch (e) {
-      print('❌ Exception in deleteExternalCalendar: $e');
+      log.info('❌ Exception in deleteExternalCalendar: $e');
       throw ServerException(
         message: 'An unexpected error occurred: ${e.toString()}',
       );

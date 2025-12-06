@@ -66,7 +66,7 @@ class ErrorResponseModel {
         if (value is List && value.isNotEmpty) {
           // For single error messages, just show the message without field name
           if (fieldErrors!.length == 1) {
-            messages.add(value.join(", "));
+            messages.add(value.join(', '));
           } else {
             // For multiple fields, include the field name
             final fieldName = _formatFieldName(key);
