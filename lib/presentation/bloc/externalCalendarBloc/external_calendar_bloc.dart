@@ -40,7 +40,7 @@ class ExternalCalendarBloc
         '✅ External calendars fetched successfully: ${calendars.length} calendar(s)',
       );
       emit(ExternalCalendarsLoaded(calendars: calendars));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       log.info('❌ App error: ${e.message}');
       emit(ExternalCalendarsError(message: e.message));
     } catch (e) {
@@ -68,7 +68,7 @@ class ExternalCalendarBloc
         '✅ External calendar events fetched successfully: ${events.length} event(s)',
       );
       emit(ExternalCalendarEventsLoaded(events: events));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       log.info('❌ App error: ${e.message}');
       emit(ExternalCalendarEventsError(message: e.message));
     } catch (e) {
@@ -104,7 +104,7 @@ class ExternalCalendarBloc
       emit(ExternalCalendarsLoaded(calendars: calendars));
       log.info('✅ External calendar created: ${created.title}');
       add(FetchExternalCalendarEventsEvent());
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       log.info('❌ App error while creating external calendar: ${e.message}');
       emit(ExternalCalendarActionError(message: e.message));
     } catch (e) {
@@ -141,7 +141,7 @@ class ExternalCalendarBloc
       emit(ExternalCalendarsLoaded(calendars: calendars));
       log.info('✅ External calendar updated: ${updated.title}');
       add(FetchExternalCalendarEventsEvent());
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       log.info('❌ App error while updating external calendar: ${e.message}');
       emit(ExternalCalendarActionError(message: e.message));
     } catch (e) {
@@ -177,7 +177,7 @@ class ExternalCalendarBloc
       emit(ExternalCalendarsLoaded(calendars: calendars));
       log.info('✅ External calendar deleted: ${event.calendarId}');
       add(FetchExternalCalendarEventsEvent());
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       log.info('❌ App error while deleting external calendar: ${e.message}');
       emit(ExternalCalendarActionError(message: e.message));
     } catch (e) {

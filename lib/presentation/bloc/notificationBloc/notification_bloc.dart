@@ -38,7 +38,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
       final fcmToken = fcmService.getFCMTokenModel();
 
       emit(NotificationInitialized(fcmToken: fcmToken, isSubscribed: false));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(NotificationError(message: e.message, code: e.code));
     } catch (e) {
       emit(
@@ -57,7 +57,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
       final fcmToken = fcmService.getFCMTokenModel();
 
       emit(NotificationTokenLoaded(fcmToken: fcmToken));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(NotificationError(message: e.message, code: e.code));
     } catch (e) {
       emit(NotificationError(message: 'Failed to get FCM token: $e'));
@@ -72,7 +72,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
       await fcmService.clearAllNotifications();
 
       emit(const NotificationCleared());
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(NotificationError(message: e.message, code: e.code));
     } catch (e) {
       emit(NotificationError(message: 'Failed to clear notifications: $e'));
@@ -87,7 +87,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
       await fcmService.clearNotification(event.notificationId);
 
       emit(const NotificationCleared());
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(NotificationError(message: e.message, code: e.code));
     } catch (e) {
       emit(NotificationError(message: 'Failed to clear notification: $e'));
@@ -118,7 +118,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
           message: 'Test notification sent successfully!',
         ),
       );
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(NotificationError(message: e.message, code: e.code));
     } catch (e) {
       emit(NotificationError(message: 'Failed to send test notification: $e'));

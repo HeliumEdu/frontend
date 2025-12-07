@@ -8,7 +8,7 @@
 import 'package:dio/dio.dart';
 import 'package:helium_mobile/core/app_exception.dart';
 import 'package:helium_mobile/core/dio_client.dart';
-import 'package:helium_mobile/core/network_urls.dart';
+import 'package:helium_mobile/core/api_url.dart';
 import 'package:helium_mobile/data/models/planner/homework_request_model.dart';
 import 'package:helium_mobile/data/models/planner/homework_response_model.dart';
 import 'package:logging/logging.dart';
@@ -61,7 +61,7 @@ class HomeworkRemoteDataSourceImpl implements HomeworkRemoteDataSource {
 
   HomeworkRemoteDataSourceImpl({required this.dioClient});
 
-  AppException _handleDioError(DioException e) {
+  HeliumException _handleDioError(DioException e) {
     if (e.response != null) {
       final statusCode = e.response?.statusCode;
       final data = e.response?.data;
@@ -157,7 +157,7 @@ class HomeworkRemoteDataSourceImpl implements HomeworkRemoteDataSource {
       throw _handleDioError(e);
     } catch (e) {
       log.info('❌ Unexpected error: $e');
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -187,7 +187,7 @@ class HomeworkRemoteDataSourceImpl implements HomeworkRemoteDataSource {
       throw _handleDioError(e);
     } catch (e) {
       log.info('❌ Unexpected error: $e');
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -216,7 +216,7 @@ class HomeworkRemoteDataSourceImpl implements HomeworkRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -241,7 +241,7 @@ class HomeworkRemoteDataSourceImpl implements HomeworkRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -269,7 +269,7 @@ class HomeworkRemoteDataSourceImpl implements HomeworkRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -294,7 +294,7 @@ class HomeworkRemoteDataSourceImpl implements HomeworkRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 }

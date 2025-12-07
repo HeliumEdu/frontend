@@ -60,7 +60,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthError(message: e.message, code: e.code));
     } on ServerException catch (e) {
       emit(AuthError(message: e.message, code: e.code));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(AuthError(message: e.message, code: e.code));
     } catch (e) {
       emit(AuthError(message: 'An unexpected error occurred: $e'));
@@ -92,7 +92,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthError(message: e.message, code: e.code));
     } on UnauthorizedException catch (e) {
       emit(AuthError(message: e.message, code: e.code));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(AuthError(message: e.message, code: e.code));
     } catch (e) {
       emit(AuthError(message: 'An unexpected error occurred: $e'));
@@ -115,7 +115,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthError(message: e.message, code: e.code));
     } on ServerException catch (e) {
       emit(AuthError(message: e.message, code: e.code));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(AuthError(message: e.message, code: e.code));
     } catch (e) {
       emit(AuthError(message: 'An unexpected error occurred: $e'));
@@ -142,7 +142,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthError(message: e.message, code: e.code));
     } on UnauthorizedException catch (e) {
       emit(AuthError(message: e.message, code: e.code));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(AuthError(message: e.message, code: e.code));
     } catch (e) {
       emit(AuthError(message: 'An unexpected error occurred: $e'));
@@ -159,7 +159,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthError(message: e.message, code: e.code));
     } on ServerException catch (e) {
       emit(AuthError(message: e.message, code: e.code));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(AuthError(message: e.message, code: e.code));
     } catch (e) {
       emit(AuthError(message: 'An unexpected error occurred: $e'));
@@ -179,7 +179,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthError(message: e.message, code: e.code));
     } on ServerException catch (e) {
       emit(AuthError(message: e.message, code: e.code));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(AuthError(message: e.message, code: e.code));
     } catch (e) {
       emit(AuthError(message: 'An unexpected error occurred: $e'));
@@ -199,7 +199,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthError(message: e.message, code: e.code));
     } on ServerException catch (e) {
       emit(AuthError(message: e.message, code: e.code));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(AuthError(message: e.message, code: e.code));
     } catch (e) {
       emit(AuthError(message: 'An unexpected error occurred: $e'));
@@ -225,7 +225,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthError(message: e.message, code: e.code));
     } on UnauthorizedException catch (e) {
       emit(AuthError(message: e.message, code: e.code));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(AuthError(message: e.message, code: e.code));
     } catch (e) {
       emit(AuthError(message: 'An unexpected error occurred: $e'));
@@ -261,7 +261,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           message: 'Session expired. Please login again.',
         ),
       );
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(AuthError(message: e.message, code: e.code));
     } catch (e) {
       emit(AuthError(message: 'An unexpected error occurred: $e'));

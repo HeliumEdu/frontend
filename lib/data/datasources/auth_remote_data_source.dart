@@ -9,7 +9,7 @@ import 'package:dio/dio.dart';
 import 'package:helium_mobile/core/app_exception.dart';
 import 'package:helium_mobile/core/dio_client.dart';
 import 'package:helium_mobile/core/fcm_service.dart';
-import 'package:helium_mobile/core/network_urls.dart';
+import 'package:helium_mobile/core/api_url.dart';
 import 'package:helium_mobile/data/models/auth/change_password_request_model.dart';
 import 'package:helium_mobile/data/models/auth/change_password_response_model.dart';
 import 'package:helium_mobile/data/models/auth/delete_account_request_model.dart';
@@ -86,7 +86,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -129,7 +129,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -172,7 +172,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -196,7 +196,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } catch (e) {
       // Even if something fails, always clear storage
       await dioClient.clearStorage();
-      throw AppException(message: 'Logout error: $e');
+      throw HeliumException(message: 'Logout error: $e');
     }
   }
 
@@ -219,7 +219,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -239,7 +239,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -274,7 +274,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -299,7 +299,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -330,7 +330,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -364,11 +364,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
-  AppException _handleDioError(DioException error) {
+  HeliumException _handleDioError(DioException error) {
     switch (error.type) {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:

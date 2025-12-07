@@ -10,12 +10,12 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:helium_mobile/config/app_routes.dart';
-import 'package:helium_mobile/config/pref_service.dart';
-import 'package:helium_mobile/core/network_urls.dart';
+import 'package:helium_mobile/config/app_prefs.dart';
+import 'package:helium_mobile/core/api_url.dart';
 import 'package:helium_mobile/data/models/auth/refresh_token_request_model.dart';
 import 'package:helium_mobile/data/models/auth/refresh_token_response_model.dart';
 import 'package:helium_mobile/data/models/auth/user_profile_model.dart';
-import 'package:helium_mobile/main.dart';
+import 'package:helium_mobile/helium_mobile.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:logging/logging.dart';
 
@@ -338,7 +338,7 @@ class DioClient {
         // Navigate to login, clearing the stack
         await Navigator.of(
           context,
-        ).pushNamedAndRemoveUntil(AppRoutes.signInScreen, (route) => false);
+        ).pushNamedAndRemoveUntil(AppRoutes.loginScreen, (route) => false);
       }
     } catch (_) {
       // Ignore navigation errors

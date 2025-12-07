@@ -49,7 +49,7 @@ class GradeBloc extends Bloc<GradeEvent, GradeState> {
     } on ValidationException catch (e) {
       log.info('❌ Validation error: ${e.message}');
       emit(GradeError(message: e.message));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       log.info('❌ App error: ${e.message}');
       emit(GradeError(message: e.message));
     } catch (e) {

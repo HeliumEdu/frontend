@@ -52,7 +52,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(CourseError(message: e.message));
     } on UnauthorizedException catch (e) {
       emit(CourseError(message: e.message));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(CourseError(message: e.message));
     } catch (e) {
       emit(CourseError(message: 'An unexpected error occurred: $e'));
@@ -74,7 +74,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(CourseError(message: e.message));
     } on UnauthorizedException catch (e) {
       emit(CourseError(message: e.message));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(CourseError(message: e.message));
     } catch (e) {
       emit(CourseError(message: 'An unexpected error occurred: $e'));
@@ -99,7 +99,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(CourseDetailError(message: e.message));
     } on UnauthorizedException catch (e) {
       emit(CourseDetailError(message: e.message));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(CourseDetailError(message: e.message));
     } catch (e) {
       emit(CourseDetailError(message: 'An unexpected error occurred: $e'));
@@ -146,7 +146,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(CourseCreateError(message: e.message));
     } on UnauthorizedException catch (e) {
       emit(CourseCreateError(message: e.message));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(CourseCreateError(message: e.message));
     } catch (e) {
       emit(CourseCreateError(message: 'An unexpected error occurred: $e'));
@@ -174,7 +174,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(CourseUpdateError(message: e.message));
     } on UnauthorizedException catch (e) {
       emit(CourseUpdateError(message: e.message));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(CourseUpdateError(message: e.message));
     } catch (e) {
       emit(CourseUpdateError(message: 'An unexpected error occurred: $e'));
@@ -196,7 +196,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(CourseDeleteError(message: e.message));
     } on UnauthorizedException catch (e) {
       emit(CourseDeleteError(message: e.message));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(CourseDeleteError(message: e.message));
     } catch (e) {
       emit(CourseDeleteError(message: 'An unexpected error occurred: $e'));
@@ -224,7 +224,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(CourseScheduleCreateError(message: e.message));
     } on UnauthorizedException catch (e) {
       emit(CourseScheduleCreateError(message: e.message));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(CourseScheduleCreateError(message: e.message));
     } catch (e) {
       emit(
@@ -255,7 +255,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(CourseScheduleUpdateError(message: e.message));
     } on UnauthorizedException catch (e) {
       emit(CourseScheduleUpdateError(message: e.message));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(CourseScheduleUpdateError(message: e.message));
     } catch (e) {
       emit(
@@ -282,7 +282,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(CategoriesError(message: e.message));
     } on UnauthorizedException catch (e) {
       emit(CategoriesError(message: e.message));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(CategoriesError(message: e.message));
     } catch (e) {
       emit(CategoriesError(message: 'An unexpected error occurred: $e'));
@@ -310,7 +310,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(CategoryCreateError(message: e.message));
     } on UnauthorizedException catch (e) {
       emit(CategoryCreateError(message: e.message));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(CategoryCreateError(message: e.message));
     } catch (e) {
       emit(CategoryCreateError(message: 'An unexpected error occurred: $e'));
@@ -339,7 +339,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(CategoryUpdateError(message: e.message));
     } on UnauthorizedException catch (e) {
       emit(CategoryUpdateError(message: e.message));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(CategoryUpdateError(message: e.message));
     } catch (e) {
       emit(CategoryUpdateError(message: 'An unexpected error occurred: $e'));
@@ -365,7 +365,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(CategoryDeleteError(message: e.message));
     } on UnauthorizedException catch (e) {
       emit(CategoryDeleteError(message: e.message));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(CategoryDeleteError(message: e.message));
     } catch (e) {
       emit(CategoryDeleteError(message: 'An unexpected error occurred: $e'));
@@ -403,7 +403,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(AttachmentsUploadError(message: e.message));
     } on UnauthorizedException catch (e) {
       emit(AttachmentsUploadError(message: e.message));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(AttachmentsUploadError(message: e.message));
     } catch (e) {
       emit(AttachmentsUploadError(message: 'An unexpected error occurred: $e'));
@@ -429,7 +429,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(AttachmentsError(message: e.message));
     } on UnauthorizedException catch (e) {
       emit(AttachmentsError(message: e.message));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(AttachmentsError(message: e.message));
     } catch (e) {
       emit(AttachmentsError(message: 'An unexpected error occurred: $e'));
@@ -451,7 +451,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(AttachmentDeleteError(message: e.message));
     } on UnauthorizedException catch (e) {
       emit(AttachmentDeleteError(message: e.message));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(AttachmentDeleteError(message: e.message));
     } catch (e) {
       emit(AttachmentDeleteError(message: 'An unexpected error occurred: $e'));
@@ -473,7 +473,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(CourseGroupsError(message: e.message));
     } on UnauthorizedException catch (e) {
       emit(CourseGroupsError(message: e.message));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(CourseGroupsError(message: e.message));
     } catch (e) {
       emit(CourseGroupsError(message: 'An unexpected error occurred: $e'));
@@ -499,7 +499,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(CourseGroupCreateError(message: e.message));
     } on UnauthorizedException catch (e) {
       emit(CourseGroupCreateError(message: e.message));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(CourseGroupCreateError(message: e.message));
     } catch (e) {
       emit(CourseGroupCreateError(message: 'An unexpected error occurred: $e'));
@@ -526,7 +526,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(CourseGroupUpdateError(message: e.message));
     } on UnauthorizedException catch (e) {
       emit(CourseGroupUpdateError(message: e.message));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(CourseGroupUpdateError(message: e.message));
     } catch (e) {
       emit(CourseGroupUpdateError(message: 'An unexpected error occurred: $e'));
@@ -548,7 +548,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(CourseGroupDeleteError(message: e.message));
     } on UnauthorizedException catch (e) {
       emit(CourseGroupDeleteError(message: e.message));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(CourseGroupDeleteError(message: e.message));
     } catch (e) {
       emit(CourseGroupDeleteError(message: 'An unexpected error occurred: $e'));

@@ -11,78 +11,113 @@ import 'package:helium_mobile/core/dio_client.dart';
 import 'package:helium_mobile/data/datasources/material_remote_data_source.dart';
 import 'package:helium_mobile/data/repositories/material_repository_impl.dart';
 import 'package:helium_mobile/presentation/bloc/materialBloc/material_bloc.dart';
-import 'package:helium_mobile/presentation/views/authScreen/forgotPassword/forgot_password_screen.dart';
-import 'package:helium_mobile/presentation/views/authScreen/signInScreen/sign_in_screen.dart';
-import 'package:helium_mobile/presentation/views/authScreen/signupScreen/sign_up_screen.dart';
-import 'package:helium_mobile/presentation/views/bottomNavBar/bottom_nav_bar_screen.dart';
-import 'package:helium_mobile/presentation/views/calendarScreen/assignmentScreen/add_assignment_screen.dart';
-import 'package:helium_mobile/presentation/views/calendarScreen/assignmentScreen/assignment_reminder_screen.dart';
-import 'package:helium_mobile/presentation/views/calendarScreen/eventScreen/add_event_screen.dart';
-import 'package:helium_mobile/presentation/views/calendarScreen/eventScreen/event_reminder_screen.dart';
-import 'package:helium_mobile/presentation/views/classesScreen/add_classes_categories_screen.dart';
-import 'package:helium_mobile/presentation/views/classesScreen/add_classes_schedule_screen.dart';
-import 'package:helium_mobile/presentation/views/classesScreen/add_classes_screen.dart';
-import 'package:helium_mobile/presentation/views/materialsScreen/add_material_screen.dart';
-import 'package:helium_mobile/presentation/views/settingScreen/change_password_screen.dart';
-import 'package:helium_mobile/presentation/views/settingScreen/external_calendars_settings_screen.dart';
-import 'package:helium_mobile/presentation/views/settingScreen/feeds_settings_screen.dart';
-import 'package:helium_mobile/presentation/views/settingScreen/notification_screen.dart';
-import 'package:helium_mobile/presentation/views/settingScreen/preference_screen.dart';
-import 'package:helium_mobile/presentation/views/settingScreen/setting_screen.dart';
-import 'package:helium_mobile/presentation/views/splashScreen/splash_screen.dart';
+import 'package:helium_mobile/presentation/views/auth/forgot_password_screen.dart';
+import 'package:helium_mobile/presentation/views/auth/login_screen.dart';
+import 'package:helium_mobile/presentation/views/auth/register_screen.dart';
+import 'package:helium_mobile/presentation/views/calendar/assignment_add_reminder_screen.dart';
+import 'package:helium_mobile/presentation/views/calendar/assignment_add_screen.dart';
+import 'package:helium_mobile/presentation/views/calendar/event_add_reminder_screen.dart';
+import 'package:helium_mobile/presentation/views/calendar/event_add_screen.dart';
+import 'package:helium_mobile/presentation/views/classes/class_add_category_screen.dart';
+import 'package:helium_mobile/presentation/views/classes/class_add_schedule_screen.dart';
+import 'package:helium_mobile/presentation/views/classes/class_add_screen.dart';
+import 'package:helium_mobile/presentation/views/core/bottom_nav_bar_screen.dart';
+import 'package:helium_mobile/presentation/views/core/notification_screen.dart';
+import 'package:helium_mobile/presentation/views/core/splash_screen.dart';
+import 'package:helium_mobile/presentation/views/materials/material_add_screen.dart';
+import 'package:helium_mobile/presentation/views/settings/change_password_screen.dart';
+import 'package:helium_mobile/presentation/views/settings/external_calendars_screen.dart';
+import 'package:helium_mobile/presentation/views/settings/feeds_screen.dart';
+import 'package:helium_mobile/presentation/views/settings/preferences_screen.dart';
+import 'package:helium_mobile/presentation/views/settings/settings_screen.dart';
 
 class AppRoutes {
-  static const String splashScreen = '/splashScreen';
-  static const String calendarScreen = '/calendarScreen';
-  static const String classesScreen = '/classesScreen';
-  static const String materialsScreen = '/materialsScreen';
-  static const String gradesScreen = '/gradesScreen';
-  static const String signInScreen = '/signInScreen';
-  static const String signUpScreen = '/signUpScreen';
-  static const String bottomNavBarScreen = '/bottomNavBarScreen';
-  static const String addClassesScreen = '/addClassesScreen';
-  static const String addMaterialScreen = '/addMaterialScreen';
-  static const String settingScreen = '/settingScreen';
-  static const String changePasswordScreen = '/changePasswordScreen';
-  static const String preferenceScreen = '/preferenceScreen';
-  static const String notificationScreen = '/notificationScreen';
-  static const String forgotPasswordScreen = '/forgotPasswordScreen';
-  static const String scheduleAddClass = '/scheduleAddClass';
-  static const String categoriesAddClass = '/categoriesAddClass';
-  static const String addAssignmentScreen = '/addAssignmentScreen';
-  static const String addEventScreen = '/addEventScreen';
-  static const String assignmentReminderScreen = '/assignmentReminderScreen';
-  static const String eventReminderScreen = '/eventReminderScreen';
-  static const String feedSettingsScreen = '/feedSettingsScreen';
-  static const String externalCalendarsSettingsScreen =
-      '/externalCalendarsSettingsScreen';
-  static const String addAssignmentEvent = '/addAssignmentEvent';
+  static const String splashScreen = '/splash';
+  static const String loginScreen = '/login';
+  static const String registerScreen = '/register';
+  static const String forgotPasswordScreen = '/forgot-password';
+  static const String bottomNavBarScreen = '/nav-bar';
+  static const String notificationScreen = '/notifications';
+  static const String calendarAddAssignmentScreen = '/calendar/add-assignment';
+  static const String calendarAddEventScreen = '/calendar/add-event';
+  static const String calendarAddAssignmentReminderScreen =
+      '/calendar/add-assignment/reminder';
+  static const String calendarAddEventReminderScreen =
+      '/calendar/add-event/reminder';
+  static const String classesAddScreen = '/classes/add';
+  static const String classesAddScheduleScreen = '/classes/add/schedule';
+  static const String classesAddCategoryScreen = '/classes/add/category';
+  static const String materialsAddScreen = '/materials/add';
+  static const String settingScreen = '/settings';
+  static const String preferencesScreen = '/settings/preference';
+  static const String feedsScreen = '/settings/feeds';
+  static const String externalCalendarsScreen = '/settings/external-calendars';
+  static const String changePasswordScreen = '/settings/change-password';
 
   static Map<String, WidgetBuilder> getRoutes() {
     return {
       // Unauthenticated routes
       splashScreen: (context) => const SplashScreen(),
-      signInScreen: (context) => const SignInScreen(),
-      signUpScreen: (context) => const SignUpScreen(),
+      loginScreen: (context) => const LoginScreen(),
+      registerScreen: (context) => const RegisterScreen(),
+      forgotPasswordScreen: (context) => ForgotPasswordScreen(),
       // Authenticated routes
       bottomNavBarScreen: (context) => BottomNavBarScreen(),
-      addClassesScreen: (context) {
+      notificationScreen: (context) => NotificationScreen(),
+      calendarAddAssignmentScreen: (context) => const AssignmentAddScreen(),
+      calendarAddEventScreen: (context) => const EventAddScreen(),
+      calendarAddAssignmentReminderScreen: (context) {
+        final args =
+            ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
+        return AssignmentAddReminderScreen(
+          homeworkId: args?['homeworkId'],
+          groupId: args?['groupId'],
+          courseId: args?['courseId'],
+          isEditMode: args?['isEditMode'],
+        );
+      },
+      calendarAddEventReminderScreen: (context) {
+        final args =
+            ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
+        return EventAddReminderScreen(eventRequest: args?['eventRequest']);
+      },
+      classesAddScreen: (context) {
         final args = ModalRoute.of(context)?.settings.arguments;
 
         // Handle both int (create) and Map (edit) arguments
         if (args is int) {
-          return AddClassesScreen(courseGroupId: args);
+          return ClassAddScreen(courseGroupId: args);
         } else if (args is Map<String, dynamic>) {
-          return AddClassesScreen(
+          return ClassAddScreen(
             courseGroupId: args['courseGroupId'] as int,
             courseId: args['courseId'] as int?,
             isEdit: args['isEdit'] as bool? ?? false,
           );
         } else {
-          return AddClassesScreen(courseGroupId: 0);
+          return ClassAddScreen(courseGroupId: 0);
         }
       },
-      addMaterialScreen: (context) {
+      classesAddScheduleScreen: (context) {
+        final args =
+            ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+        return ClassAddScheduleScreen(
+          courseId: args?['courseId'] ?? 0,
+          courseGroupId: args?['courseGroupId'] ?? 0,
+          isEdit: args?['isEdit'] as bool? ?? false,
+        );
+      },
+      classesAddCategoryScreen: (context) {
+        final args =
+            ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+        return ClassAddCategoryScreen(
+          courseId: args?['courseId'] ?? 0,
+          courseGroupId: args?['courseGroupId'] ?? 0,
+          isEdit: args?['isEdit'] as bool? ?? false,
+        );
+      },
+      materialsAddScreen: (context) {
         final args =
             ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
         if (args == null || args['materialGroup'] == null) {
@@ -107,59 +142,19 @@ class AppRoutes {
               ),
             ),
           ),
-          child: AddMaterialScreen(
+          child: MaterialsAddScreen(
             materialGroup: args['materialGroup'],
             courses: typedCourses,
             existingMaterial: existingMaterial,
           ),
         );
       },
-      settingScreen: (context) => SettingScreen(),
-      changePasswordScreen: (context) => ChangePasswordScreen(),
-      preferenceScreen: (context) => PreferenceScreen(),
-      notificationScreen: (context) => NotificationScreen(),
-      forgotPasswordScreen: (context) => ForgotPasswordScreen(),
-      scheduleAddClass: (context) {
-        final args =
-            ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-        return AddClassesScheduleScreen(
-          courseId: args?['courseId'] ?? 0,
-          courseGroupId: args?['courseGroupId'] ?? 0,
-          isEdit: args?['isEdit'] as bool? ?? false,
-        );
-      },
-      categoriesAddClass: (context) {
-        final args =
-            ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-        return AddClassesCategoriesScreen(
-          courseId: args?['courseId'] ?? 0,
-          courseGroupId: args?['courseGroupId'] ?? 0,
-          isEdit: args?['isEdit'] as bool? ?? false,
-        );
-      },
-
-      addAssignmentScreen: (context) => const AddAssignmentScreen(),
-      addEventScreen: (context) => const AddEventScreen(),
-      assignmentReminderScreen: (context) {
-        final args =
-            ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-
-        return AssignmentReminderScreen(
-          homeworkId: args?['homeworkId'],
-          groupId: args?['groupId'],
-          courseId: args?['courseId'],
-          isEditMode: args?['isEditMode'],
-        );
-      },
-      eventReminderScreen: (context) {
-        final args =
-            ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-
-        return EventReminderScreen(eventRequest: args?['eventRequest']);
-      },
-      externalCalendarsSettingsScreen: (context) =>
+      settingScreen: (context) => SettingsScreen(),
+      preferencesScreen: (context) => PreferencesScreen(),
+      feedsScreen: (context) => const FeedsSettingsScreen(),
+      externalCalendarsScreen: (context) =>
           const ExternalCalendarsSettingsScreen(),
-      feedSettingsScreen: (context) => const FeedsSettingsScreen(),
+      changePasswordScreen: (context) => ChangePasswordScreen(),
     };
   }
 }

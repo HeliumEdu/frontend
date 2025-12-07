@@ -41,7 +41,7 @@ class EventBloc extends Bloc<EventEvent, EventState> {
       );
       log.info('✅ Events fetched successfully: ${events.length} event(s)');
       emit(EventLoaded(events: events));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       log.info('❌ App error: ${e.message}');
       emit(EventError(message: e.message));
     } catch (e) {
@@ -65,7 +65,7 @@ class EventBloc extends Bloc<EventEvent, EventState> {
 
       // Refresh events list after creation
       add(FetchAllEventsEvent());
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       log.info('❌ App error: ${e.message}');
       emit(EventCreateError(message: e.message));
     } catch (e) {
@@ -86,7 +86,7 @@ class EventBloc extends Bloc<EventEvent, EventState> {
       );
       log.info('✅ Event fetched successfully');
       emit(EventByIdLoaded(event: fetchedEvent));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       log.info('❌ App error: ${e.message}');
       emit(EventByIdError(message: e.message));
     } catch (e) {
@@ -111,7 +111,7 @@ class EventBloc extends Bloc<EventEvent, EventState> {
 
       // Refresh events list after update
       add(FetchAllEventsEvent());
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       log.info('❌ App error: ${e.message}');
       emit(EventUpdateError(message: e.message));
     } catch (e) {
@@ -133,7 +133,7 @@ class EventBloc extends Bloc<EventEvent, EventState> {
 
       // Refresh events list after deletion
       add(FetchAllEventsEvent());
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       log.info('❌ App error: ${e.message}');
       emit(EventDeleteError(message: e.message));
     } catch (e) {

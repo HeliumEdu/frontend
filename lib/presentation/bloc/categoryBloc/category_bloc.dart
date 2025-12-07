@@ -49,7 +49,7 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
     } on UnauthorizedException catch (e) {
       log.info('❌ Unauthorized error: ${e.message}');
       emit(CategoryError(message: e.message));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       log.info('❌ App error: ${e.message}');
       emit(CategoryError(message: e.message));
     } catch (e) {

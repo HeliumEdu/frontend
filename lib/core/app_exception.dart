@@ -5,29 +5,29 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-class AppException implements Exception {
+class HeliumException implements Exception {
   final String message;
   final String? code;
   final dynamic details;
 
-  AppException({required this.message, this.code, this.details});
+  HeliumException({required this.message, this.code, this.details});
 
   @override
   String toString() => message;
 }
 
-class NetworkException extends AppException {
+class NetworkException extends HeliumException {
   NetworkException({required super.message, super.code, super.details});
 }
 
-class ServerException extends AppException {
+class ServerException extends HeliumException {
   ServerException({required super.message, super.code, super.details});
 }
 
-class ValidationException extends AppException {
+class ValidationException extends HeliumException {
   ValidationException({required super.message, super.code, super.details});
 }
 
-class UnauthorizedException extends AppException {
+class UnauthorizedException extends HeliumException {
   UnauthorizedException({required super.message, super.code, super.details});
 }

@@ -64,7 +64,7 @@ const List<Color> preferredColors = [
   Color(0xff553555),
 ];
 
-Color parseColor(String hex) {
+Color hexToColor(String hex) {
   String h = hex.startsWith('#') ? hex.substring(1) : hex;
   if (h.length == 3) {
     h = h.split('').map((c) => '$c$c').join();

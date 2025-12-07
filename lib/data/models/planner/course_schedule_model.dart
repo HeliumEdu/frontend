@@ -5,7 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:helium_mobile/utils/app_list.dart';
+import 'package:helium_mobile/utils/app_enums.dart';
 import 'package:intl/intl.dart';
 
 class CourseScheduleModel {

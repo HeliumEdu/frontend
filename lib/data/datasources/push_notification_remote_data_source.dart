@@ -8,7 +8,7 @@
 import 'package:dio/dio.dart';
 import 'package:helium_mobile/core/app_exception.dart';
 import 'package:helium_mobile/core/dio_client.dart';
-import 'package:helium_mobile/core/network_urls.dart';
+import 'package:helium_mobile/core/api_url.dart';
 import 'package:helium_mobile/data/models/notification/push_token_request_model.dart';
 import 'package:helium_mobile/data/models/notification/push_token_response_model.dart';
 import 'package:logging/logging.dart';
@@ -64,7 +64,7 @@ class PushNotificationRemoteDataSourceImpl
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -119,10 +119,10 @@ class PushNotificationRemoteDataSourceImpl
         errorMessage = e.message ?? errorMessage;
       }
       log.info('❌ DioException Error: $errorMessage');
-      throw AppException(message: errorMessage);
+      throw HeliumException(message: errorMessage);
     } catch (e) {
       log.info('❌ Unexpected Error: $e');
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -148,11 +148,11 @@ class PushNotificationRemoteDataSourceImpl
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
-  AppException _handleDioError(DioException error) {
+  HeliumException _handleDioError(DioException error) {
     switch (error.type) {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
@@ -274,7 +274,7 @@ class PushNotificationRemoteDataSourceImpl
       }
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'An unexpected error occurred: $e');
+      throw HeliumException(message: 'An unexpected error occurred: $e');
     }
   }
 }

@@ -34,7 +34,7 @@ class PrivateFeedBloc extends Bloc<PrivateFeedEvent, PrivateFeedState> {
       final privateFeed = await privateFeedRepository.getPrivateFeedUrls();
       log.info('✅ Private Feed URLs fetched successfully');
       emit(PrivateFeedLoaded(privateFeed: privateFeed));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       log.info('❌ App error: ${e.message}');
       emit(PrivateFeedError(message: e.message));
     } catch (e) {
@@ -54,7 +54,7 @@ class PrivateFeedBloc extends Bloc<PrivateFeedEvent, PrivateFeedState> {
       final privateFeed = await privateFeedRepository.getPrivateFeedUrls();
       log.info('✅ Private feeds enabled successfully');
       emit(PrivateFeedLoaded(privateFeed: privateFeed));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       log.info('❌ App error: ${e.message}');
       emit(PrivateFeedError(message: e.message));
     } catch (e) {
@@ -75,7 +75,7 @@ class PrivateFeedBloc extends Bloc<PrivateFeedEvent, PrivateFeedState> {
       emit(
         PrivateFeedDisabled(message: 'Private feeds disabled successfully!'),
       );
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       log.info('❌ App error: ${e.message}');
       emit(PrivateFeedError(message: e.message));
     } catch (e) {

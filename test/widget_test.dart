@@ -7,9 +7,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:helium_mobile/config/pref_service.dart';
+import 'package:helium_mobile/config/app_prefs.dart';
 import 'package:helium_mobile/core/fcm_service.dart';
-import 'package:helium_mobile/main.dart';
+import 'package:helium_mobile/helium_mobile.dart';
 
 import 'mock_firebase_setup.dart';
 

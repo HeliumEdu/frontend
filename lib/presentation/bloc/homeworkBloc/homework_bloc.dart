@@ -48,7 +48,7 @@ class HomeworkBloc extends Bloc<HomeworkEvent, HomeworkState> {
         '✅ Homework fetched successfully: ${homeworks.length} homework(s)',
       );
       emit(HomeworkLoaded(homeworks: homeworks));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       log.info('❌ App error: ${e.message}');
       emit(HomeworkError(message: e.message));
     } catch (e) {
@@ -72,7 +72,7 @@ class HomeworkBloc extends Bloc<HomeworkEvent, HomeworkState> {
 
       // Refresh homework list after creation
       add(FetchHomeworkEvent(groupId: event.groupId, courseId: event.courseId));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(HomeworkCreateError(message: e.message));
     } catch (e) {
       emit(HomeworkCreateError(message: 'An unexpected error occurred: $e'));
@@ -90,7 +90,7 @@ class HomeworkBloc extends Bloc<HomeworkEvent, HomeworkState> {
         courseId: event.courseId,
       );
       emit(HomeworkLoaded(homeworks: homeworks));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(HomeworkError(message: e.message));
     } catch (e) {
       emit(HomeworkError(message: 'An unexpected error occurred: $e'));
@@ -109,7 +109,7 @@ class HomeworkBloc extends Bloc<HomeworkEvent, HomeworkState> {
         homeworkId: event.homeworkId,
       );
       emit(HomeworkByIdLoaded(homework: homework));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(HomeworkByIdError(message: e.message));
     } catch (e) {
       emit(HomeworkByIdError(message: 'An unexpected error occurred: $e'));
@@ -132,7 +132,7 @@ class HomeworkBloc extends Bloc<HomeworkEvent, HomeworkState> {
 
       // Refresh homework list after update
       add(FetchHomeworkEvent(groupId: event.groupId, courseId: event.courseId));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(HomeworkUpdateError(message: e.message));
     } catch (e) {
       emit(HomeworkUpdateError(message: 'An unexpected error occurred: $e'));
@@ -154,7 +154,7 @@ class HomeworkBloc extends Bloc<HomeworkEvent, HomeworkState> {
 
       // Refresh homework list after deletion
       add(FetchHomeworkEvent(groupId: event.groupId, courseId: event.courseId));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(HomeworkDeleteError(message: e.message));
     } catch (e) {
       emit(HomeworkDeleteError(message: 'An unexpected error occurred: $e'));

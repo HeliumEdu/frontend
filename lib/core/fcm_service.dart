@@ -20,7 +20,7 @@ import 'package:helium_mobile/data/models/notification/fcm_token_model.dart';
 import 'package:helium_mobile/data/models/notification/notification_model.dart';
 import 'package:helium_mobile/data/models/notification/push_token_request_model.dart';
 import 'package:helium_mobile/data/repositories/push_notification_repository_impl.dart';
-import 'package:helium_mobile/main.dart';
+import 'package:helium_mobile/helium_mobile.dart';
 import 'package:logging/logging.dart';
 
 final log = Logger('HeliumLogger');

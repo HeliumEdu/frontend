@@ -8,7 +8,7 @@
 import 'package:dio/dio.dart';
 import 'package:helium_mobile/core/app_exception.dart';
 import 'package:helium_mobile/core/dio_client.dart';
-import 'package:helium_mobile/core/network_urls.dart';
+import 'package:helium_mobile/core/api_url.dart';
 import 'package:helium_mobile/data/models/planner/external_calendar_event_model.dart';
 import 'package:helium_mobile/data/models/planner/external_calendar_model.dart';
 import 'package:helium_mobile/data/models/planner/external_calendar_request_model.dart';
@@ -44,7 +44,7 @@ class ExternalCalendarRemoteDataSourceImpl
 
   ExternalCalendarRemoteDataSourceImpl({required this.dioClient});
 
-  AppException _handleDioError(DioException e) {
+  HeliumException _handleDioError(DioException e) {
     if (e.response != null) {
       final statusCode = e.response?.statusCode;
       final data = e.response?.data;

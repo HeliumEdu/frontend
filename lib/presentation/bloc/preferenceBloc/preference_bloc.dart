@@ -12,7 +12,7 @@ import 'package:helium_mobile/data/repositories/auth_repository_impl.dart';
 import 'package:helium_mobile/presentation/bloc/preferenceBloc/preference_event.dart';
 import 'package:helium_mobile/presentation/bloc/preferenceBloc/preference_states.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
-import 'package:helium_mobile/utils/app_list.dart';
+import 'package:helium_mobile/utils/app_enums.dart';
 
 class PreferenceBloc extends Bloc<PreferenceEvent, PreferenceState> {
   final AuthRepositoryImpl authRepository;
@@ -61,9 +61,9 @@ class PreferenceBloc extends Bloc<PreferenceEvent, PreferenceState> {
           selectedTimeZone: timeZone,
           selectedReminderOffsetUnit:
               reminderOffsetUnits[defaultReminderOffsetType],
-          selectedEventsColor: parseColor(normalizedEventsColor),
-          selectedMaterialsColor: parseColor(normalizedMaterialsColor),
-          selectedGradesColor: parseColor(normalizedGradesColor),
+          selectedEventsColor: hexToColor(normalizedEventsColor),
+          selectedMaterialsColor: hexToColor(normalizedMaterialsColor),
+          selectedGradesColor: hexToColor(normalizedGradesColor),
           offsetValue: defaultReminderOffset,
         ),
       );
@@ -126,9 +126,9 @@ class PreferenceBloc extends Bloc<PreferenceEvent, PreferenceState> {
           selectedTimeZone: event.timeZone,
           selectedReminderOffsetUnit:
               reminderOffsetUnits[event.defaultReminderOffsetType],
-          selectedEventsColor: parseColor(event.eventsColor),
-          selectedMaterialsColor: parseColor(event.materialsColor),
-          selectedGradesColor: parseColor(event.gradesColor),
+          selectedEventsColor: hexToColor(event.eventsColor),
+          selectedMaterialsColor: hexToColor(event.materialsColor),
+          selectedGradesColor: hexToColor(event.gradesColor),
           offsetValue: event.defaultReminderOffset,
         ),
       );

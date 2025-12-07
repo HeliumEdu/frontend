@@ -7,7 +7,7 @@
 
 import 'package:helium_mobile/core/app_exception.dart';
 import 'package:helium_mobile/core/dio_client.dart';
-import 'package:helium_mobile/core/network_urls.dart';
+import 'package:helium_mobile/core/api_url.dart';
 import 'package:helium_mobile/data/models/auth/user_profile_model.dart';
 import 'package:helium_mobile/data/models/planner/private_feed_model.dart';
 import 'package:logging/logging.dart';
@@ -71,7 +71,7 @@ class PrivateFeedRemoteDataSourceImpl implements PrivateFeedRemoteDataSource {
       return privateFeed;
     } catch (e) {
       log.info(' Exception in getPrivateFeedUrls: $e');
-      if (e is AppException) {
+      if (e is HeliumException) {
         rethrow;
       }
       throw ServerException(
@@ -98,7 +98,7 @@ class PrivateFeedRemoteDataSourceImpl implements PrivateFeedRemoteDataSource {
       log.info('✅ Private feeds enabled successfully');
     } catch (e) {
       log.info('❌ Exception in enablePrivateFeeds: $e');
-      if (e is AppException) {
+      if (e is HeliumException) {
         rethrow;
       }
       throw ServerException(
@@ -125,7 +125,7 @@ class PrivateFeedRemoteDataSourceImpl implements PrivateFeedRemoteDataSource {
       log.info('✅ Private feeds disabled successfully');
     } catch (e) {
       log.info('❌ Exception in disablePrivateFeeds: $e');
-      if (e is AppException) {
+      if (e is HeliumException) {
         rethrow;
       }
       throw ServerException(

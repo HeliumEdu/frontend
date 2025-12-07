@@ -22,10 +22,10 @@ class PushNotificationRepositoryImpl implements PushNotificationRepository {
   ) async {
     try {
       return await remoteDataSource.registerPushToken(request);
-    } on AppException {
+    } on HeliumException {
       rethrow;
     } catch (e) {
-      throw AppException(message: 'Failed to register push token: $e');
+      throw HeliumException(message: 'Failed to register push token: $e');
     }
   }
 
@@ -33,10 +33,10 @@ class PushNotificationRepositoryImpl implements PushNotificationRepository {
   Future<void> deletePushToken(int userId) async {
     try {
       await remoteDataSource.deletePushToken(userId);
-    } on AppException {
+    } on HeliumException {
       rethrow;
     } catch (e) {
-      throw AppException(message: 'Failed to delete push token: $e');
+      throw HeliumException(message: 'Failed to delete push token: $e');
     }
   }
 
@@ -44,10 +44,10 @@ class PushNotificationRepositoryImpl implements PushNotificationRepository {
   Future<void> deletePushTokenById(int tokenId) async {
     try {
       await remoteDataSource.deletePushTokenById(tokenId);
-    } on AppException {
+    } on HeliumException {
       rethrow;
     } catch (e) {
-      throw AppException(message: 'Failed to delete push token: $e');
+      throw HeliumException(message: 'Failed to delete push token: $e');
     }
   }
 
@@ -55,10 +55,10 @@ class PushNotificationRepositoryImpl implements PushNotificationRepository {
   Future<List<PushTokenResponseModel>> retrievePushTokens(int userId) async {
     try {
       return await remoteDataSource.retrievePushTokens(userId);
-    } on AppException {
+    } on HeliumException {
       rethrow;
     } catch (e) {
-      throw AppException(message: 'Failed to retrieve push tokens: $e');
+      throw HeliumException(message: 'Failed to retrieve push tokens: $e');
     }
   }
 }

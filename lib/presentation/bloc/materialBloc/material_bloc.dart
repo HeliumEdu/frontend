@@ -36,7 +36,7 @@ class MaterialBloc extends Bloc<MaterialEvent, MaterialState> {
     try {
       final materialGroups = await materialRepository.getMaterialGroups();
       emit(MaterialGroupsLoaded(materialGroups: materialGroups));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(MaterialGroupsError(message: e.message));
     } catch (e) {
       emit(MaterialGroupsError(message: 'An unexpected error occurred: $e'));
@@ -54,7 +54,7 @@ class MaterialBloc extends Bloc<MaterialEvent, MaterialState> {
         event.groupId,
       );
       emit(MaterialGroupDetailLoaded(materialGroup: materialGroup));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(MaterialGroupDetailError(message: e.message));
     } catch (e) {
       emit(
@@ -77,7 +77,7 @@ class MaterialBloc extends Bloc<MaterialEvent, MaterialState> {
 
       // Refresh the list after creation
       add(FetchMaterialGroupsEvent());
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(MaterialGroupCreateError(message: e.message));
     } catch (e) {
       emit(
@@ -101,7 +101,7 @@ class MaterialBloc extends Bloc<MaterialEvent, MaterialState> {
 
       // Refresh the list after update
       add(FetchMaterialGroupsEvent());
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(MaterialGroupUpdateError(message: e.message));
     } catch (e) {
       emit(
@@ -122,7 +122,7 @@ class MaterialBloc extends Bloc<MaterialEvent, MaterialState> {
 
       // Refresh the list after deletion
       add(FetchMaterialGroupsEvent());
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(MaterialGroupDeleteError(message: e.message));
     } catch (e) {
       emit(
@@ -140,7 +140,7 @@ class MaterialBloc extends Bloc<MaterialEvent, MaterialState> {
     try {
       final materials = await materialRepository.getAllMaterials();
       emit(MaterialsLoaded(materials: materials));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(MaterialsError(message: e.message));
     } catch (e) {
       emit(MaterialsError(message: 'An unexpected error occurred: $e'));
@@ -156,7 +156,7 @@ class MaterialBloc extends Bloc<MaterialEvent, MaterialState> {
     try {
       final materials = await materialRepository.getMaterials(event.groupId);
       emit(MaterialsLoaded(materials: materials));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(MaterialsError(message: e.message));
     } catch (e) {
       emit(MaterialsError(message: 'An unexpected error occurred: $e'));
@@ -175,7 +175,7 @@ class MaterialBloc extends Bloc<MaterialEvent, MaterialState> {
 
       // Refresh the list after creation
       add(FetchMaterialsEvent(groupId: event.request.materialGroup));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(MaterialCreateError(message: e.message));
     } catch (e) {
       emit(MaterialCreateError(message: 'An unexpected error occurred: $e'));
@@ -198,7 +198,7 @@ class MaterialBloc extends Bloc<MaterialEvent, MaterialState> {
 
       // Refresh the list after update
       add(FetchMaterialsEvent(groupId: event.groupId));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(MaterialUpdateError(message: e.message));
     } catch (e) {
       emit(MaterialUpdateError(message: 'An unexpected error occurred: $e'));
@@ -217,7 +217,7 @@ class MaterialBloc extends Bloc<MaterialEvent, MaterialState> {
 
       // Refresh the list after deletion
       add(FetchMaterialsEvent(groupId: event.groupId));
-    } on AppException catch (e) {
+    } on HeliumException catch (e) {
       emit(MaterialDeleteError(message: e.message));
     } catch (e) {
       emit(MaterialDeleteError(message: 'An unexpected error occurred: $e'));

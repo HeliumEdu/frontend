@@ -8,7 +8,7 @@
 import 'package:dio/dio.dart';
 import 'package:helium_mobile/core/app_exception.dart';
 import 'package:helium_mobile/core/dio_client.dart';
-import 'package:helium_mobile/core/network_urls.dart';
+import 'package:helium_mobile/core/api_url.dart';
 import 'package:helium_mobile/data/models/planner/event_request_model.dart';
 import 'package:helium_mobile/data/models/planner/event_response_model.dart';
 import 'package:logging/logging.dart';
@@ -41,7 +41,7 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
 
   EventRemoteDataSourceImpl({required this.dioClient});
 
-  AppException _handleDioError(DioException e) {
+  HeliumException _handleDioError(DioException e) {
     if (e.response != null) {
       final statusCode = e.response?.statusCode;
       final data = e.response?.data;
@@ -123,7 +123,7 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
       throw _handleDioError(e);
     } catch (e) {
       log.info('❌ Unexpected error: $e');
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -151,7 +151,7 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
       throw _handleDioError(e);
     } catch (e) {
       log.info('❌ Unexpected error: $e');
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -176,7 +176,7 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
       throw _handleDioError(e);
     } catch (e) {
       log.info('❌ Unexpected error: $e');
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -205,7 +205,7 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
       throw _handleDioError(e);
     } catch (e) {
       log.info('❌ Unexpected error: $e');
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -229,7 +229,7 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
       throw _handleDioError(e);
     } catch (e) {
       log.info('❌ Unexpected error: $e');
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 }

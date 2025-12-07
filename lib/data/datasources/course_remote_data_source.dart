@@ -10,7 +10,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:helium_mobile/core/app_exception.dart';
 import 'package:helium_mobile/core/dio_client.dart';
-import 'package:helium_mobile/core/network_urls.dart';
+import 'package:helium_mobile/core/api_url.dart';
 import 'package:helium_mobile/data/models/planner/attachment_model.dart';
 import 'package:helium_mobile/data/models/planner/category_model.dart';
 import 'package:helium_mobile/data/models/planner/category_request_model.dart';
@@ -136,7 +136,7 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -167,7 +167,7 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -194,7 +194,7 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -217,7 +217,7 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -249,7 +249,7 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -274,7 +274,7 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -301,7 +301,7 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -335,7 +335,7 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -367,7 +367,7 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -401,7 +401,7 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -428,7 +428,7 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -462,7 +462,7 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -486,7 +486,7 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -569,7 +569,7 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -626,7 +626,7 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -650,7 +650,7 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -679,7 +679,7 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -704,7 +704,7 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -730,7 +730,7 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
@@ -754,11 +754,11 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: 'Unexpected error occurred: $e');
+      throw HeliumException(message: 'Unexpected error occurred: $e');
     }
   }
 
-  AppException _handleDioError(DioException error) {
+  HeliumException _handleDioError(DioException error) {
     switch (error.type) {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
