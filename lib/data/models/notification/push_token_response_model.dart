@@ -10,8 +10,8 @@ class PushTokenResponseModel {
   final String deviceId;
   final String token;
   final int user;
-  final String? registrationId; // From documentation
-  final String? type; // From documentation (ios/android)
+  final String? registrationId;
+  final String? type;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 

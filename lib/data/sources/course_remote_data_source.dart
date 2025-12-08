@@ -144,7 +144,7 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
   Future<List<CourseModel>> getCoursesByGroupId(int groupId) async {
     try {
       final response = await dioClient.dio.get(
-        '${ApiUrl.plannerCourseGroupsListUrl}$groupId/courses/',
+        ApiUrl.plannerCourseGroupsCoursesListUrl(groupId),
       );
 
       if (response.statusCode == 200) {
@@ -738,7 +738,7 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
   Future<void> deleteCourseGroup(int groupId) async {
     try {
       final response = await dioClient.dio.delete(
-        '${ApiUrl.plannerCourseGroupsListUrl}$groupId/',
+        ApiUrl.plannerCourseGroupsCoursesListUrl(groupId)
       );
 
       if (response.statusCode == 200 ||
