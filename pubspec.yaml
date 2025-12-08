@@ -12,7 +12,7 @@ dependencies:
   flutter:
     sdk: flutter
   logging: ^1.3.0
-  google_fonts: ^6.3.2
+  google_fonts: ^6.3.3
   dio: ^5.4.0
   shared_preferences: ^2.2.2
   flutter_secure_storage: ^9.2.4
