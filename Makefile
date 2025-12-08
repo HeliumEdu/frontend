@@ -34,10 +34,10 @@ clean:
 	flutter clean
 
 build-android: install
-	flutter build apk --release
+	flutter build apk --release -t lib/helium_mobile.dart
 
 build-ios: install install-ios
-	flutter build ipa --release --no-codesign
+	flutter build ipa --release --no-codesign -t lib/helium_mobile.dart
 
 test: install
 	flutter analyze --no-fatal-infos --no-fatal-warnings
