@@ -5,8 +5,8 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:helium_mobile/data/models/planner/attachment_model.dart';
-import 'package:helium_mobile/data/models/planner/reminder_response_model.dart';
+import 'package:heliumapp/data/models/planner/attachment_model.dart';
+import 'package:heliumapp/data/models/planner/reminder_response_model.dart';
 import 'package:logging/logging.dart';
 
 final log = Logger('HeliumLogger');

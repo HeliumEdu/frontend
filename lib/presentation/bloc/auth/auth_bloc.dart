@@ -6,17 +6,17 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:bloc/bloc.dart';
-import 'package:helium_mobile/core/helium_exception.dart';
-import 'package:helium_mobile/core/dio_client.dart';
-import 'package:helium_mobile/data/models/auth/change_password_request_model.dart';
-import 'package:helium_mobile/data/models/auth/delete_account_request_model.dart';
-import 'package:helium_mobile/data/models/auth/forgot_password_request_model.dart';
-import 'package:helium_mobile/data/models/auth/login_request_model.dart';
-import 'package:helium_mobile/data/models/auth/refresh_token_request_model.dart';
-import 'package:helium_mobile/data/models/auth/register_request_model.dart';
-import 'package:helium_mobile/domain/repositories/auth_repository.dart';
-import 'package:helium_mobile/presentation/bloc/auth/auth_event.dart';
-import 'package:helium_mobile/presentation/bloc/auth/auth_state.dart';
+import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/data/models/auth/change_password_request_model.dart';
+import 'package:heliumapp/data/models/auth/delete_account_request_model.dart';
+import 'package:heliumapp/data/models/auth/forgot_password_request_model.dart';
+import 'package:heliumapp/data/models/auth/login_request_model.dart';
+import 'package:heliumapp/data/models/auth/refresh_token_request_model.dart';
+import 'package:heliumapp/data/models/auth/register_request_model.dart';
+import 'package:heliumapp/domain/repositories/auth_repository.dart';
+import 'package:heliumapp/presentation/bloc/auth/auth_event.dart';
+import 'package:heliumapp/presentation/bloc/auth/auth_state.dart';
 import 'package:logging/logging.dart';
 
 final log = Logger('HeliumLogger');

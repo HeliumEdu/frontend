@@ -5,10 +5,10 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:helium_mobile/data/sources/reminder_remote_data_source.dart';
-import 'package:helium_mobile/data/models/planner/reminder_request_model.dart';
-import 'package:helium_mobile/data/models/planner/reminder_response_model.dart';
-import 'package:helium_mobile/domain/repositories/reminder_repository.dart';
+import 'package:heliumapp/data/sources/reminder_remote_data_source.dart';
+import 'package:heliumapp/data/models/planner/reminder_request_model.dart';
+import 'package:heliumapp/data/models/planner/reminder_response_model.dart';
+import 'package:heliumapp/domain/repositories/reminder_repository.dart';
 
 class ReminderRepositoryImpl implements ReminderRepository {
   final ReminderRemoteDataSource remoteDataSource;

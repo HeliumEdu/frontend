@@ -7,7 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:helium_mobile/utils/app_colors.dart';
+import 'package:heliumapp/utils/app_colors.dart';
 
 class HeliumColorPickerWidget extends StatefulWidget {
   final Color? initialColor;

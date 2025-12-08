@@ -5,8 +5,8 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:helium_mobile/data/models/planner/material_group_request_model.dart';
-import 'package:helium_mobile/data/models/planner/material_request_model.dart';
+import 'package:heliumapp/data/models/planner/material_group_request_model.dart';
+import 'package:heliumapp/data/models/planner/material_request_model.dart';
 
 abstract class MaterialEvent {}
 

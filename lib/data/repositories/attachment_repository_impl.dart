@@ -7,9 +7,9 @@
 
 import 'dart:io';
 
-import 'package:helium_mobile/data/sources/attachment_remote_data_source.dart';
-import 'package:helium_mobile/data/models/planner/attachment_model.dart';
-import 'package:helium_mobile/domain/repositories/attachment_repository.dart';
+import 'package:heliumapp/data/sources/attachment_remote_data_source.dart';
+import 'package:heliumapp/data/models/planner/attachment_model.dart';
+import 'package:heliumapp/domain/repositories/attachment_repository.dart';
 
 class AttachmentRepositoryImpl implements AttachmentRepository {
   final AttachmentRemoteDataSource remoteDataSource;

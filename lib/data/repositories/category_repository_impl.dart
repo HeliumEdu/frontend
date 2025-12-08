@@ -5,9 +5,9 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:helium_mobile/data/sources/category_remote_data_source.dart';
-import 'package:helium_mobile/data/models/planner/category_model.dart';
-import 'package:helium_mobile/domain/repositories/category_repository.dart';
+import 'package:heliumapp/data/sources/category_remote_data_source.dart';
+import 'package:heliumapp/data/models/planner/category_model.dart';
+import 'package:heliumapp/domain/repositories/category_repository.dart';
 
 class CategoryRepositoryImpl implements CategoryRepository {
   final CategoryRemoteDataSource remoteDataSource;

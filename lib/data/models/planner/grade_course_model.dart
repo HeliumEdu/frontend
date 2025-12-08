@@ -5,7 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:helium_mobile/data/models/planner/grade_category_model.dart';
+import 'package:heliumapp/data/models/planner/grade_category_model.dart';
 
 class GradeCourseModel {
   final int id;

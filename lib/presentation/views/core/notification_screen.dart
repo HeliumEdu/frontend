@@ -6,19 +6,19 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:helium_mobile/config/app_prefs.dart';
-import 'package:helium_mobile/core/helium_exception.dart';
-import 'package:helium_mobile/core/dio_client.dart';
-import 'package:helium_mobile/core/fcm_service.dart';
-import 'package:helium_mobile/data/sources/reminder_remote_data_source.dart';
-import 'package:helium_mobile/data/models/auth/user_profile_model.dart';
-import 'package:helium_mobile/data/models/notification/notification_model.dart';
-import 'package:helium_mobile/data/models/planner/reminder_response_model.dart';
-import 'package:helium_mobile/data/repositories/reminder_repository_impl.dart';
-import 'package:helium_mobile/utils/app_colors.dart';
-import 'package:helium_mobile/utils/app_size.dart';
-import 'package:helium_mobile/utils/app_style.dart';
-import 'package:helium_mobile/utils/app_helpers.dart';
+import 'package:heliumapp/config/app_prefs.dart';
+import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/core/fcm_service.dart';
+import 'package:heliumapp/data/sources/reminder_remote_data_source.dart';
+import 'package:heliumapp/data/models/auth/user_profile_model.dart';
+import 'package:heliumapp/data/models/notification/notification_model.dart';
+import 'package:heliumapp/data/models/planner/reminder_response_model.dart';
+import 'package:heliumapp/data/repositories/reminder_repository_impl.dart';
+import 'package:heliumapp/utils/app_colors.dart';
+import 'package:heliumapp/utils/app_size.dart';
+import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/app_helpers.dart';
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
 

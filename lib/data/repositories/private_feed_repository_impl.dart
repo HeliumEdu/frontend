@@ -5,9 +5,9 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:helium_mobile/data/sources/private_feed_remote_data_source.dart';
-import 'package:helium_mobile/data/models/planner/private_feed_model.dart';
-import 'package:helium_mobile/domain/repositories/private_feed_repository.dart';
+import 'package:heliumapp/data/sources/private_feed_remote_data_source.dart';
+import 'package:heliumapp/data/models/planner/private_feed_model.dart';
+import 'package:heliumapp/domain/repositories/private_feed_repository.dart';
 
 class PrivateFeedRepositoryImpl implements PrivateFeedRepository {
   final PrivateFeedRemoteDataSource remoteDataSource;

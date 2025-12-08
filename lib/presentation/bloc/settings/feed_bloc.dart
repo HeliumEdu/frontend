@@ -6,10 +6,10 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:helium_mobile/core/helium_exception.dart';
-import 'package:helium_mobile/domain/repositories/private_feed_repository.dart';
-import 'package:helium_mobile/presentation/bloc/settings/feed_event.dart';
-import 'package:helium_mobile/presentation/bloc/settings/feed_state.dart';
+import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/domain/repositories/private_feed_repository.dart';
+import 'package:heliumapp/presentation/bloc/settings/feed_event.dart';
+import 'package:heliumapp/presentation/bloc/settings/feed_state.dart';
 import 'package:logging/logging.dart';
 
 final log = Logger('HeliumLogger');

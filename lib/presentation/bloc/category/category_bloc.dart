@@ -6,10 +6,10 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:bloc/bloc.dart';
-import 'package:helium_mobile/core/helium_exception.dart';
-import 'package:helium_mobile/domain/repositories/category_repository.dart';
-import 'package:helium_mobile/presentation/bloc/category/category_event.dart';
-import 'package:helium_mobile/presentation/bloc/category/category_state.dart';
+import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/domain/repositories/category_repository.dart';
+import 'package:heliumapp/presentation/bloc/category/category_event.dart';
+import 'package:heliumapp/presentation/bloc/category/category_state.dart';
 import 'package:logging/logging.dart';
 
 final log = Logger('HeliumLogger');

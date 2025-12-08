@@ -386,6 +386,9 @@ final List<String> timeZones = [
   'Canada/Newfoundland',
   'Canada/Pacific',
 
+  // Etc
+  'Etc/UTC',
+
   // Europe
   'Europe/Amsterdam',
   'Europe/Andorra',
@@ -496,7 +499,4 @@ final List<String> timeZones = [
   'Pacific/Tongatapu',
   'Pacific/Wake',
   'Pacific/Wallis',
-
-  // Etc
-  'Etc/UTC',
 ];

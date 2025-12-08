@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.heliumedu.helium_mobile"
+    namespace = "com.heliumedu.heliumapp"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "27.0.12077973"
 
@@ -26,7 +26,7 @@ android {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         
         // FIX: This line was moved here from outside the defaultConfig block.
-        applicationId = "com.heliumedu.helium_mobile"
+        applicationId = "com.heliumedu.heliumapp"
         
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.

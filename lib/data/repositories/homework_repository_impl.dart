@@ -5,10 +5,10 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:helium_mobile/data/sources/homework_remote_data_source.dart';
-import 'package:helium_mobile/data/models/planner/homework_request_model.dart';
-import 'package:helium_mobile/data/models/planner/homework_response_model.dart';
-import 'package:helium_mobile/domain/repositories/homework_repository.dart';
+import 'package:heliumapp/data/sources/homework_remote_data_source.dart';
+import 'package:heliumapp/data/models/planner/homework_request_model.dart';
+import 'package:heliumapp/data/models/planner/homework_response_model.dart';
+import 'package:heliumapp/domain/repositories/homework_repository.dart';
 
 class HomeworkRepositoryImpl implements HomeworkRepository {
   final HomeworkRemoteDataSource remoteDataSource;

@@ -32,12 +32,14 @@ install-ios: env
 
 clean:
 	flutter clean
+	rm -f android/app/google-services.json
+	rm -f ios/Runner/GoogleService-Info.plist
 
 build-android: install
-	flutter build apk --release -t lib/helium_mobile.dart
+	flutter build apk --release -t lib/helium_app.dart
 
 build-ios: install install-ios
-	flutter build ipa --release --no-codesign -t lib/helium_mobile.dart
+	flutter build ipa --release --no-codesign -t lib/helium_app.dart
 
 test: install
 	flutter analyze --no-fatal-infos --no-fatal-warnings

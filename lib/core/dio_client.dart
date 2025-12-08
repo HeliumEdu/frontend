@@ -9,14 +9,14 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:helium_mobile/config/app_routes.dart';
-import 'package:helium_mobile/config/app_prefs.dart';
-import 'package:helium_mobile/core/api_url.dart';
-import 'package:helium_mobile/data/models/auth/refresh_token_request_model.dart';
-import 'package:helium_mobile/data/models/auth/refresh_token_response_model.dart';
-import 'package:helium_mobile/data/models/auth/user_profile_model.dart';
-import 'package:helium_mobile/helium_mobile.dart';
-import 'package:helium_mobile/utils/app_colors.dart';
+import 'package:heliumapp/config/app_routes.dart';
+import 'package:heliumapp/config/app_prefs.dart';
+import 'package:heliumapp/core/api_url.dart';
+import 'package:heliumapp/data/models/auth/refresh_token_request_model.dart';
+import 'package:heliumapp/data/models/auth/refresh_token_response_model.dart';
+import 'package:heliumapp/data/models/auth/user_profile_model.dart';
+import 'package:heliumapp/helium_app.dart';
+import 'package:heliumapp/utils/app_colors.dart';
 import 'package:logging/logging.dart';
 
 final log = Logger('HeliumLogger');

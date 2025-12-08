@@ -7,17 +7,17 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:helium_mobile/core/dio_client.dart';
-import 'package:helium_mobile/data/sources/external_calendar_remote_data_source.dart';
-import 'package:helium_mobile/data/models/planner/external_calendar_model.dart';
-import 'package:helium_mobile/data/models/planner/external_calendar_request_model.dart';
-import 'package:helium_mobile/data/repositories/external_calendar_repository_impl.dart';
-import 'package:helium_mobile/presentation/bloc/settings/external_calendar_bloc.dart';
-import 'package:helium_mobile/presentation/bloc/settings/external_calendar_event.dart';
-import 'package:helium_mobile/presentation/bloc/settings/external_calendar_state.dart';
-import 'package:helium_mobile/utils/app_colors.dart';
-import 'package:helium_mobile/utils/app_size.dart';
-import 'package:helium_mobile/utils/app_style.dart';
+import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/data/sources/external_calendar_remote_data_source.dart';
+import 'package:heliumapp/data/models/planner/external_calendar_model.dart';
+import 'package:heliumapp/data/models/planner/external_calendar_request_model.dart';
+import 'package:heliumapp/data/repositories/external_calendar_repository_impl.dart';
+import 'package:heliumapp/presentation/bloc/settings/external_calendar_bloc.dart';
+import 'package:heliumapp/presentation/bloc/settings/external_calendar_event.dart';
+import 'package:heliumapp/presentation/bloc/settings/external_calendar_state.dart';
+import 'package:heliumapp/utils/app_colors.dart';
+import 'package:heliumapp/utils/app_size.dart';
+import 'package:heliumapp/utils/app_style.dart';
 
 class ExternalCalendarsSettingsScreen extends StatelessWidget {
   const ExternalCalendarsSettingsScreen({super.key});

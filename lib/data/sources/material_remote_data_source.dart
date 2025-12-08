@@ -6,13 +6,13 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:dio/dio.dart';
-import 'package:helium_mobile/core/helium_exception.dart';
-import 'package:helium_mobile/core/dio_client.dart';
-import 'package:helium_mobile/core/api_url.dart';
-import 'package:helium_mobile/data/models/planner/material_group_request_model.dart';
-import 'package:helium_mobile/data/models/planner/material_group_response_model.dart';
-import 'package:helium_mobile/data/models/planner/material_model.dart';
-import 'package:helium_mobile/data/models/planner/material_request_model.dart';
+import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/core/api_url.dart';
+import 'package:heliumapp/data/models/planner/material_group_request_model.dart';
+import 'package:heliumapp/data/models/planner/material_group_response_model.dart';
+import 'package:heliumapp/data/models/planner/material_model.dart';
+import 'package:heliumapp/data/models/planner/material_request_model.dart';
 import 'package:logging/logging.dart';
 
 final log = Logger('HeliumLogger');

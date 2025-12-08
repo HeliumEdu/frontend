@@ -5,12 +5,12 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:helium_mobile/data/sources/material_remote_data_source.dart';
-import 'package:helium_mobile/data/models/planner/material_group_request_model.dart';
-import 'package:helium_mobile/data/models/planner/material_group_response_model.dart';
-import 'package:helium_mobile/data/models/planner/material_model.dart';
-import 'package:helium_mobile/data/models/planner/material_request_model.dart';
-import 'package:helium_mobile/domain/repositories/material_repository.dart';
+import 'package:heliumapp/data/sources/material_remote_data_source.dart';
+import 'package:heliumapp/data/models/planner/material_group_request_model.dart';
+import 'package:heliumapp/data/models/planner/material_group_response_model.dart';
+import 'package:heliumapp/data/models/planner/material_model.dart';
+import 'package:heliumapp/data/models/planner/material_request_model.dart';
+import 'package:heliumapp/domain/repositories/material_repository.dart';
 
 class MaterialRepositoryImpl implements MaterialRepository {
   final MaterialRemoteDataSource remoteDataSource;

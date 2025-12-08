@@ -7,18 +7,18 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:helium_mobile/core/dio_client.dart';
-import 'package:helium_mobile/data/sources/auth_remote_data_source.dart';
-import 'package:helium_mobile/data/repositories/auth_repository_impl.dart';
-import 'package:helium_mobile/presentation/bloc/settings/preferences_bloc.dart';
-import 'package:helium_mobile/presentation/bloc/settings/preferences_event.dart';
-import 'package:helium_mobile/presentation/bloc/settings/preferences_states.dart';
-import 'package:helium_mobile/presentation/widgets/helium_color_picker.dart';
-import 'package:helium_mobile/presentation/widgets/helium_text_button.dart';
-import 'package:helium_mobile/utils/app_colors.dart';
-import 'package:helium_mobile/utils/app_enums.dart';
-import 'package:helium_mobile/utils/app_size.dart';
-import 'package:helium_mobile/utils/app_style.dart';
+import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/data/sources/auth_remote_data_source.dart';
+import 'package:heliumapp/data/repositories/auth_repository_impl.dart';
+import 'package:heliumapp/presentation/bloc/settings/preferences_bloc.dart';
+import 'package:heliumapp/presentation/bloc/settings/preferences_event.dart';
+import 'package:heliumapp/presentation/bloc/settings/preferences_states.dart';
+import 'package:heliumapp/presentation/widgets/helium_color_picker.dart';
+import 'package:heliumapp/presentation/widgets/helium_text_button.dart';
+import 'package:heliumapp/utils/app_colors.dart';
+import 'package:heliumapp/utils/app_enums.dart';
+import 'package:heliumapp/utils/app_size.dart';
+import 'package:heliumapp/utils/app_style.dart';
 
 class PreferencesScreen extends StatelessWidget {
   const PreferencesScreen({super.key});

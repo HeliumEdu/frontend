@@ -6,8 +6,8 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:helium_mobile/data/models/planner/reminder_response_model.dart';
-import 'package:helium_mobile/utils/app_enums.dart';
+import 'package:heliumapp/data/models/planner/reminder_response_model.dart';
+import 'package:heliumapp/utils/app_enums.dart';
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
 import 'package:timezone/standalone.dart' as tz;

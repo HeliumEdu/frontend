@@ -5,11 +5,11 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:helium_mobile/data/sources/external_calendar_remote_data_source.dart';
-import 'package:helium_mobile/data/models/planner/external_calendar_event_model.dart';
-import 'package:helium_mobile/data/models/planner/external_calendar_model.dart';
-import 'package:helium_mobile/data/models/planner/external_calendar_request_model.dart';
-import 'package:helium_mobile/domain/repositories/external_calendar_repository.dart';
+import 'package:heliumapp/data/sources/external_calendar_remote_data_source.dart';
+import 'package:heliumapp/data/models/planner/external_calendar_event_model.dart';
+import 'package:heliumapp/data/models/planner/external_calendar_model.dart';
+import 'package:heliumapp/data/models/planner/external_calendar_request_model.dart';
+import 'package:heliumapp/domain/repositories/external_calendar_repository.dart';
 
 class ExternalCalendarRepositoryImpl implements ExternalCalendarRepository {
   final ExternalCalendarRemoteDataSource remoteDataSource;

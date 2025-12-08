@@ -6,11 +6,11 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:helium_mobile/core/helium_exception.dart';
-import 'package:helium_mobile/data/models/planner/course_schedule_request_model.dart';
-import 'package:helium_mobile/domain/repositories/course_repository.dart';
-import 'package:helium_mobile/presentation/bloc/course/course_event.dart';
-import 'package:helium_mobile/presentation/bloc/course/course_state.dart';
+import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/data/models/planner/course_schedule_request_model.dart';
+import 'package:heliumapp/domain/repositories/course_repository.dart';
+import 'package:heliumapp/presentation/bloc/course/course_event.dart';
+import 'package:heliumapp/presentation/bloc/course/course_state.dart';
 
 class CourseBloc extends Bloc<CourseEvent, CourseState> {
   final CourseRepository courseRepository;

@@ -6,11 +6,11 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:bloc/bloc.dart';
-import 'package:helium_mobile/core/helium_exception.dart';
-import 'package:helium_mobile/core/fcm_service.dart';
-import 'package:helium_mobile/data/models/notification/notification_model.dart';
-import 'package:helium_mobile/presentation/bloc/core/notification_event.dart';
-import 'package:helium_mobile/presentation/bloc/core/notification_state.dart';
+import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/core/fcm_service.dart';
+import 'package:heliumapp/data/models/notification/notification_model.dart';
+import 'package:heliumapp/presentation/bloc/core/notification_event.dart';
+import 'package:heliumapp/presentation/bloc/core/notification_state.dart';
 
 class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
   final FcmService fcmService = FcmService();

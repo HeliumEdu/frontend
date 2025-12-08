@@ -8,11 +8,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:helium_mobile/presentation/bloc/core/bottom_bar_bloc.dart';
-import 'package:helium_mobile/presentation/bloc/core/bottom_bar_event.dart';
-import 'package:helium_mobile/presentation/bloc/core/bottom_bar_state.dart';
-import 'package:helium_mobile/utils/app_colors.dart';
-import 'package:helium_mobile/utils/app_size.dart';
+import 'package:heliumapp/presentation/bloc/core/bottom_bar_bloc.dart';
+import 'package:heliumapp/presentation/bloc/core/bottom_bar_event.dart';
+import 'package:heliumapp/presentation/bloc/core/bottom_bar_state.dart';
+import 'package:heliumapp/utils/app_colors.dart';
+import 'package:heliumapp/utils/app_size.dart';
 
 class BottomNavBarScreen extends StatelessWidget {
   const BottomNavBarScreen({super.key});

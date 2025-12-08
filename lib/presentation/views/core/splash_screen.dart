@@ -8,16 +8,16 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:helium_mobile/config/app_routes.dart';
-import 'package:helium_mobile/utils/app_assets.dart';
-import 'package:helium_mobile/core/dio_client.dart';
-import 'package:helium_mobile/data/sources/auth_remote_data_source.dart';
-import 'package:helium_mobile/data/repositories/auth_repository_impl.dart';
-import 'package:helium_mobile/presentation/bloc/auth/auth_bloc.dart';
-import 'package:helium_mobile/presentation/bloc/auth/auth_event.dart';
-import 'package:helium_mobile/presentation/bloc/auth/auth_state.dart';
-import 'package:helium_mobile/utils/app_colors.dart';
-import 'package:helium_mobile/utils/app_size.dart';
+import 'package:heliumapp/config/app_routes.dart';
+import 'package:heliumapp/utils/app_assets.dart';
+import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/data/sources/auth_remote_data_source.dart';
+import 'package:heliumapp/data/repositories/auth_repository_impl.dart';
+import 'package:heliumapp/presentation/bloc/auth/auth_bloc.dart';
+import 'package:heliumapp/presentation/bloc/auth/auth_event.dart';
+import 'package:heliumapp/presentation/bloc/auth/auth_state.dart';
+import 'package:heliumapp/utils/app_colors.dart';
+import 'package:heliumapp/utils/app_size.dart';
 import 'package:logging/logging.dart';
 
 final log = Logger('HeliumLogger');

@@ -7,12 +7,12 @@
 
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:helium_mobile/presentation/bloc/core/bottom_bar_event.dart';
-import 'package:helium_mobile/presentation/bloc/core/bottom_bar_state.dart';
-import 'package:helium_mobile/presentation/views/calendar/calendar_screen.dart';
-import 'package:helium_mobile/presentation/views/courses/courses_screen.dart';
-import 'package:helium_mobile/presentation/views/grades/grades_screen.dart';
-import 'package:helium_mobile/presentation/views/materials/materials_screen.dart';
+import 'package:heliumapp/presentation/bloc/core/bottom_bar_event.dart';
+import 'package:heliumapp/presentation/bloc/core/bottom_bar_state.dart';
+import 'package:heliumapp/presentation/views/calendar/calendar_screen.dart';
+import 'package:heliumapp/presentation/views/courses/courses_screen.dart';
+import 'package:heliumapp/presentation/views/grades/grades_screen.dart';
+import 'package:heliumapp/presentation/views/materials/materials_screen.dart';
 
 class BottomNavigationBloc
     extends Bloc<BottomNavigationEvent, BottomNavigationState> {

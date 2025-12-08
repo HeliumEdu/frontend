@@ -6,13 +6,13 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:helium_mobile/data/models/auth/update_settings_request_model.dart';
-import 'package:helium_mobile/data/models/auth/user_profile_model.dart';
-import 'package:helium_mobile/data/repositories/auth_repository_impl.dart';
-import 'package:helium_mobile/presentation/bloc/settings/preferences_event.dart';
-import 'package:helium_mobile/presentation/bloc/settings/preferences_states.dart';
-import 'package:helium_mobile/utils/app_colors.dart';
-import 'package:helium_mobile/utils/app_enums.dart';
+import 'package:heliumapp/data/models/auth/update_settings_request_model.dart';
+import 'package:heliumapp/data/models/auth/user_profile_model.dart';
+import 'package:heliumapp/data/repositories/auth_repository_impl.dart';
+import 'package:heliumapp/presentation/bloc/settings/preferences_event.dart';
+import 'package:heliumapp/presentation/bloc/settings/preferences_states.dart';
+import 'package:heliumapp/utils/app_colors.dart';
+import 'package:heliumapp/utils/app_enums.dart';
 
 class PreferencesBloc extends Bloc<PreferencesEvent, PreferencesState> {
   final AuthRepositoryImpl authRepository;

@@ -6,7 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:helium_mobile/core/jwt_utils.dart';
+import 'package:heliumapp/core/jwt_utils.dart';
 
 void main() {
   test('should extract user ID from real Helium JWT token', () {
