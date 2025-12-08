@@ -11,8 +11,8 @@ import 'package:easy_stepper/easy_stepper.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:helium_mobile/core/dio_client.dart';
-import 'package:helium_mobile/data/datasources/attachment_remote_data_source.dart';
-import 'package:helium_mobile/data/datasources/reminder_remote_data_source.dart';
+import 'package:helium_mobile/data/sources/attachment_remote_data_source.dart';
+import 'package:helium_mobile/data/sources/reminder_remote_data_source.dart';
 import 'package:helium_mobile/data/models/auth/user_profile_model.dart';
 import 'package:helium_mobile/data/models/planner/attachment_model.dart';
 import 'package:helium_mobile/data/models/planner/reminder_request_model.dart';
@@ -24,7 +24,7 @@ import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_enums.dart';
 import 'package:helium_mobile/utils/app_helpers.dart';
 import 'package:helium_mobile/utils/app_size.dart';
-import 'package:helium_mobile/utils/app_text_style.dart';
+import 'package:helium_mobile/utils/app_style.dart';
 import 'package:logging/logging.dart';
 
 final log = Logger('HeliumLogger');
@@ -75,18 +75,18 @@ class _AssignmentAddReminderScreenState
       builder: (dialogContext) => AlertDialog(
         title: Text(
           'Delete Reminder',
-          style: AppTextStyle.cTextStyle.copyWith(fontWeight: FontWeight.w600),
+          style: AppStyle.cTextStyle.copyWith(fontWeight: FontWeight.w600),
         ),
         content: Text(
           'Are you sure you want to delete this reminder?',
-          style: AppTextStyle.eTextStyle,
+          style: AppStyle.eTextStyle,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
             child: Text(
               'Cancel',
-              style: AppTextStyle.eTextStyle.copyWith(color: textColor),
+              style: AppStyle.eTextStyle.copyWith(color: textColor),
             ),
           ),
           TextButton(
@@ -122,7 +122,7 @@ class _AssignmentAddReminderScreenState
             },
             child: Text(
               'Delete',
-              style: AppTextStyle.eTextStyle.copyWith(color: redColor),
+              style: AppStyle.eTextStyle.copyWith(color: redColor),
             ),
           ),
         ],
@@ -215,18 +215,18 @@ class _AssignmentAddReminderScreenState
       builder: (dialogContext) => AlertDialog(
         title: Text(
           'Delete Attachment',
-          style: AppTextStyle.cTextStyle.copyWith(fontWeight: FontWeight.w600),
+          style: AppStyle.cTextStyle.copyWith(fontWeight: FontWeight.w600),
         ),
         content: Text(
           'Are you sure you want to delete this attachment?',
-          style: AppTextStyle.eTextStyle,
+          style: AppStyle.eTextStyle,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
             child: Text(
               'Cancel',
-              style: AppTextStyle.eTextStyle.copyWith(color: textColor),
+              style: AppStyle.eTextStyle.copyWith(color: textColor),
             ),
           ),
           TextButton(
@@ -259,7 +259,7 @@ class _AssignmentAddReminderScreenState
             },
             child: Text(
               'Delete',
-              style: AppTextStyle.eTextStyle.copyWith(color: redColor),
+              style: AppStyle.eTextStyle.copyWith(color: redColor),
             ),
           ),
         ],
@@ -357,7 +357,7 @@ class _AssignmentAddReminderScreenState
                   Center(
                     child: Text(
                       existing == null ? 'Add Reminder' : 'Edit Reminder',
-                      style: AppTextStyle.aTextStyle.copyWith(
+                      style: AppStyle.aTextStyle.copyWith(
                         color: blackColor,
                         fontWeight: FontWeight.w600,
                       ),
@@ -366,7 +366,7 @@ class _AssignmentAddReminderScreenState
                   SizedBox(height: 20.v),
                   Text(
                     'Message',
-                    style: AppTextStyle.cTextStyle.copyWith(
+                    style: AppStyle.cTextStyle.copyWith(
                       color: blackColor,
                       fontWeight: FontWeight.w600,
                     ),
@@ -383,12 +383,12 @@ class _AssignmentAddReminderScreenState
                     child: TextField(
                       controller: messageCtrl,
                       maxLines: 3,
-                      style: AppTextStyle.eTextStyle.copyWith(
+                      style: AppStyle.eTextStyle.copyWith(
                         color: blackColor,
                       ),
                       decoration: InputDecoration(
                         hintText: '',
-                        hintStyle: AppTextStyle.eTextStyle.copyWith(
+                        hintStyle: AppStyle.eTextStyle.copyWith(
                           color: blackColor.withValues(alpha: 0.5),
                         ),
                         border: InputBorder.none,
@@ -419,7 +419,7 @@ class _AssignmentAddReminderScreenState
                       underline: SizedBox(),
                       hint: Text(
                         '',
-                        style: AppTextStyle.eTextStyle.copyWith(
+                        style: AppStyle.eTextStyle.copyWith(
                           color: blackColor.withValues(alpha: 0.5),
                         ),
                       ),
@@ -447,7 +447,7 @@ class _AssignmentAddReminderScreenState
                                   SizedBox(width: 10),
                                   Text(
                                     type,
-                                    style: AppTextStyle.eTextStyle.copyWith(
+                                    style: AppStyle.eTextStyle.copyWith(
                                       color: blackColor,
                                     ),
                                   ),
@@ -466,7 +466,7 @@ class _AssignmentAddReminderScreenState
                   SizedBox(height: 12.v),
                   Text(
                     'When',
-                    style: AppTextStyle.cTextStyle.copyWith(
+                    style: AppStyle.cTextStyle.copyWith(
                       color: blackColor,
                       fontWeight: FontWeight.w600,
                     ),
@@ -487,12 +487,12 @@ class _AssignmentAddReminderScreenState
                           child: TextField(
                             controller: customValueCtrl,
                             keyboardType: TextInputType.number,
-                            style: AppTextStyle.eTextStyle.copyWith(
+                            style: AppStyle.eTextStyle.copyWith(
                               color: blackColor,
                             ),
                             decoration: InputDecoration(
                               hintText: '',
-                              hintStyle: AppTextStyle.eTextStyle.copyWith(
+                              hintStyle: AppStyle.eTextStyle.copyWith(
                                 color: blackColor.withValues(alpha: 0.5),
                               ),
                               border: InputBorder.none,
@@ -529,7 +529,7 @@ class _AssignmentAddReminderScreenState
                             underline: SizedBox(),
                             hint: Text(
                               '',
-                              style: AppTextStyle.eTextStyle.copyWith(
+                              style: AppStyle.eTextStyle.copyWith(
                                 color: blackColor.withValues(alpha: 0.5),
                               ),
                             ),
@@ -539,7 +539,7 @@ class _AssignmentAddReminderScreenState
                                 value: unit,
                                 child: Text(
                                   unit,
-                                  style: AppTextStyle.eTextStyle.copyWith(
+                                  style: AppStyle.eTextStyle.copyWith(
                                     color: blackColor,
                                   ),
                                 ),
@@ -570,7 +570,7 @@ class _AssignmentAddReminderScreenState
                           ),
                           child: Text(
                             'Cancel',
-                            style: AppTextStyle.cTextStyle.copyWith(
+                            style: AppStyle.cTextStyle.copyWith(
                               color: primaryColor,
                               fontWeight: FontWeight.w600,
                             ),
@@ -698,7 +698,7 @@ class _AssignmentAddReminderScreenState
                           ),
                           child: Text(
                             'Save',
-                            style: AppTextStyle.cTextStyle.copyWith(
+                            style: AppStyle.cTextStyle.copyWith(
                               color: whiteColor,
                               fontWeight: FontWeight.w600,
                             ),
@@ -822,7 +822,7 @@ class _AssignmentAddReminderScreenState
                   ),
                   Text(
                     isEditMode == true ? 'Edit Reminder' : 'Add Reminder',
-                    style: AppTextStyle.aTextStyle.copyWith(
+                    style: AppStyle.aTextStyle.copyWith(
                       color: blackColor,
                       fontWeight: FontWeight.w600,
                     ),
@@ -910,7 +910,7 @@ class _AssignmentAddReminderScreenState
                         padding: EdgeInsets.only(top: 8.v),
                         child: Text(
                           'Assignment',
-                          style: AppTextStyle.iTextStyle.copyWith(
+                          style: AppStyle.iTextStyle.copyWith(
                             color: blackColor,
                             fontWeight: FontWeight.w600,
                             fontSize: 13.fSize,
@@ -947,7 +947,7 @@ class _AssignmentAddReminderScreenState
                         padding: EdgeInsets.only(top: 8.v),
                         child: Text(
                           'Reminder',
-                          style: AppTextStyle.iTextStyle.copyWith(
+                          style: AppStyle.iTextStyle.copyWith(
                             color: primaryColor,
                             fontWeight: FontWeight.w700,
                             fontSize: 13.fSize,
@@ -990,7 +990,7 @@ class _AssignmentAddReminderScreenState
                       SizedBox(width: 6.h),
                       Text(
                         'Reminder',
-                        style: AppTextStyle.cTextStyle.copyWith(
+                        style: AppStyle.cTextStyle.copyWith(
                           color: whiteColor,
                           fontWeight: FontWeight.w600,
                         ),
@@ -1013,7 +1013,7 @@ class _AssignmentAddReminderScreenState
                           SizedBox(height: 16),
                           Text(
                             'Loading reminder data...',
-                            style: AppTextStyle.cTextStyle.copyWith(
+                            style: AppStyle.cTextStyle.copyWith(
                               color: blackColor.withValues(alpha: 0.6),
                             ),
                           ),
@@ -1034,7 +1034,7 @@ class _AssignmentAddReminderScreenState
                               if (_serverReminders.isNotEmpty) ...[
                                 Text(
                                   'Reminders',
-                                  style: AppTextStyle.cTextStyle.copyWith(
+                                  style: AppStyle.cTextStyle.copyWith(
                                     color: blackColor,
                                     fontWeight: FontWeight.w600,
                                     fontSize: 16,
@@ -1085,7 +1085,7 @@ class _AssignmentAddReminderScreenState
                                             children: [
                                               Text(
                                                 rem.message,
-                                                style: AppTextStyle.cTextStyle
+                                                style: AppStyle.cTextStyle
                                                     .copyWith(
                                                       color: blackColor,
                                                       fontWeight:
@@ -1095,7 +1095,7 @@ class _AssignmentAddReminderScreenState
                                               SizedBox(height: 4.v),
                                               Text(
                                                 formatReminderOffset(rem),
-                                                style: AppTextStyle.iTextStyle
+                                                style: AppStyle.iTextStyle
                                                     .copyWith(
                                                       color: textColor
                                                           .withValues(
@@ -1107,7 +1107,7 @@ class _AssignmentAddReminderScreenState
                                               SizedBox(height: 4.v),
                                               Text(
                                                 reminderTypes[rem.type],
-                                                style: AppTextStyle.iTextStyle
+                                                style: AppStyle.iTextStyle
                                                     .copyWith(
                                                       color: textColor
                                                           .withValues(
@@ -1157,7 +1157,7 @@ class _AssignmentAddReminderScreenState
                               // Attachments Section
                               Text(
                                 'Attachments',
-                                style: AppTextStyle.cTextStyle.copyWith(
+                                style: AppStyle.cTextStyle.copyWith(
                                   color: blackColor,
                                   fontWeight: FontWeight.w600,
                                   fontSize: 16,
@@ -1193,7 +1193,7 @@ class _AssignmentAddReminderScreenState
                                             att.title,
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
-                                            style: AppTextStyle.eTextStyle
+                                            style: AppStyle.eTextStyle
                                                 .copyWith(color: blackColor),
                                           ),
                                         ),
@@ -1267,7 +1267,7 @@ class _AssignmentAddReminderScreenState
                                                 children: [
                                                   Text(
                                                     uploadedFileName!,
-                                                    style: AppTextStyle
+                                                    style: AppStyle
                                                         .eTextStyle
                                                         .copyWith(
                                                           color: blackColor,
@@ -1281,7 +1281,7 @@ class _AssignmentAddReminderScreenState
                                                   SizedBox(height: 2.v),
                                                   Text(
                                                     'Tap to change file',
-                                                    style: AppTextStyle
+                                                    style: AppStyle
                                                         .eTextStyle
                                                         .copyWith(
                                                           color: blackColor
@@ -1320,7 +1320,7 @@ class _AssignmentAddReminderScreenState
                                             SizedBox(width: 12.h),
                                             Text(
                                               'Choose File',
-                                              style: AppTextStyle.eTextStyle
+                                              style: AppStyle.eTextStyle
                                                   .copyWith(
                                                     color: primaryColor,
                                                     fontWeight: FontWeight.w600,
@@ -1364,7 +1364,7 @@ class _AssignmentAddReminderScreenState
                                         )
                                       : Text(
                                           'Save',
-                                          style: AppTextStyle.cTextStyle
+                                          style: AppStyle.cTextStyle
                                               .copyWith(
                                                 color: whiteColor,
                                                 fontWeight: FontWeight.w600,

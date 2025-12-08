@@ -7,17 +7,17 @@
 
 import 'package:flutter/material.dart';
 import 'package:helium_mobile/config/app_prefs.dart';
-import 'package:helium_mobile/core/app_exception.dart';
+import 'package:helium_mobile/core/helium_exception.dart';
 import 'package:helium_mobile/core/dio_client.dart';
 import 'package:helium_mobile/core/fcm_service.dart';
-import 'package:helium_mobile/data/datasources/reminder_remote_data_source.dart';
+import 'package:helium_mobile/data/sources/reminder_remote_data_source.dart';
 import 'package:helium_mobile/data/models/auth/user_profile_model.dart';
 import 'package:helium_mobile/data/models/notification/notification_model.dart';
 import 'package:helium_mobile/data/models/planner/reminder_response_model.dart';
 import 'package:helium_mobile/data/repositories/reminder_repository_impl.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_size.dart';
-import 'package:helium_mobile/utils/app_text_style.dart';
+import 'package:helium_mobile/utils/app_style.dart';
 import 'package:helium_mobile/utils/app_helpers.dart';
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
@@ -36,7 +36,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
   final PrefService sharedPreferencesService = PrefService();
   late UserSettings _userSettings;
 
-  final FCMService _fcmService = FCMService();
+  final FcmService _fcmService = FcmService();
   List<NotificationModel> _notifications = [];
   final DateFormat _dateFormatter = DateFormat('EEE, MMM d • h:mm a');
   bool _isLoading = false;
@@ -125,8 +125,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
         if (aDate == null && bDate == null) {
           return b.id.compareTo(a.id);
         }
-        if (aDate == null) return 1;
-        if (bDate == null) return -1;
         return bDate.compareTo(aDate);
       });
 
@@ -315,7 +313,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   ),
                   Text(
                     'Notifications',
-                    style: AppTextStyle.bTextStyle.copyWith(color: blackColor),
+                    style: AppStyle.bTextStyle.copyWith(color: blackColor),
                   ),
                   Row(
                     children: [
@@ -364,7 +362,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           SizedBox(height: 16.v),
                           Text(
                             'No notifications yet',
-                            style: AppTextStyle.eTextStyle.copyWith(
+                            style: AppStyle.eTextStyle.copyWith(
                               color: textColor.withValues(alpha: 0.6),
                               fontSize: 16.fSize,
                             ),
@@ -372,7 +370,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           SizedBox(height: 8.v),
                           Text(
                             'Create a reminder to see notifications here',
-                            style: AppTextStyle.fTextStyle.copyWith(
+                            style: AppStyle.fTextStyle.copyWith(
                               color: textColor.withValues(alpha: 0.4),
                               fontSize: 12.fSize,
                             ),
@@ -443,7 +441,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       Expanded(
                         child: Text(
                           notification.title ?? 'Notification',
-                          style: AppTextStyle.eTextStyle.copyWith(
+                          style: AppStyle.eTextStyle.copyWith(
                             color: blackColor,
                             fontWeight: (notification.isRead == true)
                                 ? FontWeight.w500
@@ -479,7 +477,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       SizedBox(width: 8.v),
                       Text(
                         notification.body ?? '',
-                        style: AppTextStyle.fTextStyle.copyWith(
+                        style: AppStyle.fTextStyle.copyWith(
                           color: textColor.withValues(alpha: 0.7),
                           fontSize: 12.fSize,
                         ),
@@ -501,7 +499,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         _dateFormatter.format(
                           notification.timestamp ?? DateTime.now(),
                         ),
-                        style: AppTextStyle.fTextStyle.copyWith(
+                        style: AppStyle.fTextStyle.copyWith(
                           color: textColor.withValues(alpha: 0.5),
                           fontSize: 10.fSize,
                         ),

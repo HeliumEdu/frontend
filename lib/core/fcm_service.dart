@@ -15,7 +15,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:helium_mobile/config/app_routes.dart';
 import 'package:helium_mobile/core/dio_client.dart';
 import 'package:helium_mobile/core/jwt_utils.dart';
-import 'package:helium_mobile/data/datasources/push_notification_remote_data_source.dart';
+import 'package:helium_mobile/data/sources/push_notification_remote_data_source.dart';
 import 'package:helium_mobile/data/models/notification/fcm_token_model.dart';
 import 'package:helium_mobile/data/models/notification/notification_model.dart';
 import 'package:helium_mobile/data/models/notification/push_token_request_model.dart';
@@ -25,12 +25,12 @@ import 'package:logging/logging.dart';
 
 final log = Logger('HeliumLogger');
 
-class FCMService {
-  static final FCMService _instance = FCMService._internal();
+class FcmService {
+  static final FcmService _instance = FcmService._internal();
 
-  factory FCMService() => _instance;
+  factory FcmService() => _instance;
 
-  FCMService._internal();
+  FcmService._internal();
 
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications =
@@ -183,7 +183,7 @@ class FCMService {
 
       // Get user ID from token
       final accessToken = await secureStorage.read(key: 'access_token');
-      final userId = JWTUtils.getUserId(accessToken!);
+      final userId = JwtUtils.getUserId(accessToken!);
 
       Future<bool> cleanExistingTokens() async {
         bool hasCurrent = false;
@@ -435,7 +435,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       type: message.data['type'] ?? 'reminder',
       action: message.data['action'] ?? 'view_reminder',
     );
-    final fcmService = FCMService();
+    final fcmService = FcmService();
     await fcmService.showLocalNotification(notification);
     log.info('✅ Helium background notification displayed (local only)');
   } else {

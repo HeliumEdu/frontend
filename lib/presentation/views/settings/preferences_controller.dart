@@ -10,6 +10,7 @@ import 'package:helium_mobile/data/models/planner/external_calendar_model.dart';
 import 'package:helium_mobile/data/models/planner/external_calendar_request_model.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
 
+// TODO: make this useful again
 class OffsetController extends ChangeNotifier {
   int _offsetValue = 0;
   final TextEditingController textController = TextEditingController(text: '0');

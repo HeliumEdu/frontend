@@ -10,17 +10,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:helium_mobile/config/app_routes.dart';
 import 'package:helium_mobile/core/dio_client.dart';
-import 'package:helium_mobile/data/datasources/event_remote_data_source.dart';
+import 'package:helium_mobile/data/sources/event_remote_data_source.dart';
 import 'package:helium_mobile/data/models/auth/user_profile_model.dart';
 import 'package:helium_mobile/data/models/planner/event_request_model.dart';
 import 'package:helium_mobile/data/models/planner/event_response_model.dart';
 import 'package:helium_mobile/data/repositories/event_repository_impl.dart';
-import 'package:helium_mobile/presentation/bloc/eventBloc/event_bloc.dart';
-import 'package:helium_mobile/presentation/widgets/custom_class_textfield.dart';
-import 'package:helium_mobile/presentation/widgets/custom_text_button.dart';
+import 'package:helium_mobile/presentation/bloc/event/event_bloc.dart';
+import 'package:helium_mobile/presentation/widgets/helium_course_textfield.dart';
+import 'package:helium_mobile/presentation/widgets/helium_text_button.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_size.dart';
-import 'package:helium_mobile/utils/app_text_style.dart';
+import 'package:helium_mobile/utils/app_style.dart';
 import 'package:helium_mobile/utils/app_helpers.dart';
 import 'package:logging/logging.dart';
 
@@ -497,7 +497,7 @@ class _EventAddScreenState extends State<EventAddScreen> {
                     ),
                     Text(
                       isEditMode ? 'Edit Event' : 'Add Events',
-                      style: AppTextStyle.aTextStyle.copyWith(
+                      style: AppStyle.aTextStyle.copyWith(
                         color: blackColor,
                         fontWeight: FontWeight.w600,
                       ),
@@ -534,7 +534,7 @@ class _EventAddScreenState extends State<EventAddScreen> {
                             SizedBox(height: 16.v),
                             Text(
                               'Loading event...',
-                              style: AppTextStyle.cTextStyle.copyWith(
+                              style: AppStyle.cTextStyle.copyWith(
                                 color: blackColor.withValues(alpha: 0.7),
                               ),
                             ),
@@ -647,7 +647,7 @@ class _EventAddScreenState extends State<EventAddScreen> {
                                           padding: EdgeInsets.only(top: 8.v),
                                           child: Text(
                                             'Event',
-                                            style: AppTextStyle.iTextStyle
+                                            style: AppStyle.iTextStyle
                                                 .copyWith(
                                                   color: blackColor,
                                                   fontWeight: FontWeight.w600,
@@ -683,7 +683,7 @@ class _EventAddScreenState extends State<EventAddScreen> {
                                           padding: EdgeInsets.only(top: 8.v),
                                           child: Text(
                                             'Reminder',
-                                            style: AppTextStyle.iTextStyle
+                                            style: AppStyle.iTextStyle
                                                 .copyWith(
                                                   color: blackColor,
                                                   fontWeight: FontWeight.w600,
@@ -701,13 +701,13 @@ class _EventAddScreenState extends State<EventAddScreen> {
                               // Title
                               Text(
                                 'Title',
-                                style: AppTextStyle.eTextStyle.copyWith(
+                                style: AppStyle.eTextStyle.copyWith(
                                   color: blackColor.withValues(alpha: 0.8),
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
                               SizedBox(height: 8.v),
-                              CustomClassTextField(
+                              HeliumCourseTextField(
                                 text: '',
                                 controller: _titleController,
                               ),
@@ -717,7 +717,7 @@ class _EventAddScreenState extends State<EventAddScreen> {
                               // Schedule Section
                               Text(
                                 'Schedule',
-                                style: AppTextStyle.cTextStyle.copyWith(
+                                style: AppStyle.cTextStyle.copyWith(
                                   color: blackColor,
                                   fontWeight: FontWeight.w600,
                                   fontSize: 16,
@@ -744,7 +744,7 @@ class _EventAddScreenState extends State<EventAddScreen> {
                                     ),
                                     Text(
                                       'All Day',
-                                      style: AppTextStyle.eTextStyle.copyWith(
+                                      style: AppStyle.eTextStyle.copyWith(
                                         color: blackColor,
                                       ),
                                     ),
@@ -776,7 +776,7 @@ class _EventAddScreenState extends State<EventAddScreen> {
                                     Expanded(
                                       child: Text(
                                         'Show End',
-                                        style: AppTextStyle.eTextStyle.copyWith(
+                                        style: AppStyle.eTextStyle.copyWith(
                                           color: blackColor,
                                         ),
                                       ),
@@ -796,7 +796,7 @@ class _EventAddScreenState extends State<EventAddScreen> {
                                         children: [
                                           Text(
                                             'Start Date',
-                                            style: AppTextStyle.eTextStyle
+                                            style: AppStyle.eTextStyle
                                                 .copyWith(
                                                   color: blackColor.withValues(
                                                     alpha: 0.8,
@@ -834,7 +834,7 @@ class _EventAddScreenState extends State<EventAddScreen> {
                                                             _startDate!,
                                                           )
                                                         : '',
-                                                    style: AppTextStyle
+                                                    style: AppStyle
                                                         .eTextStyle
                                                         .copyWith(
                                                           color:
@@ -867,7 +867,7 @@ class _EventAddScreenState extends State<EventAddScreen> {
                                         children: [
                                           Text(
                                             'End Date',
-                                            style: AppTextStyle.eTextStyle
+                                            style: AppStyle.eTextStyle
                                                 .copyWith(
                                                   color: blackColor.withValues(
                                                     alpha: 0.8,
@@ -905,7 +905,7 @@ class _EventAddScreenState extends State<EventAddScreen> {
                                                             _endDate!,
                                                           )
                                                         : 'Select End Date',
-                                                    style: AppTextStyle
+                                                    style: AppStyle
                                                         .eTextStyle
                                                         .copyWith(
                                                           color:
@@ -935,7 +935,7 @@ class _EventAddScreenState extends State<EventAddScreen> {
                               ] else ...[
                                 Text(
                                   'Start Date',
-                                  style: AppTextStyle.eTextStyle.copyWith(
+                                  style: AppStyle.eTextStyle.copyWith(
                                     color: blackColor.withValues(alpha: 0.8),
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -967,7 +967,7 @@ class _EventAddScreenState extends State<EventAddScreen> {
                                                   _startDate!,
                                                 )
                                               : '',
-                                          style: AppTextStyle.eTextStyle
+                                          style: AppStyle.eTextStyle
                                               .copyWith(
                                                 color: _startDate != null
                                                     ? blackColor
@@ -998,7 +998,7 @@ class _EventAddScreenState extends State<EventAddScreen> {
                                         children: [
                                           Text(
                                             '',
-                                            style: AppTextStyle.eTextStyle
+                                            style: AppStyle.eTextStyle
                                                 .copyWith(
                                                   color: blackColor.withValues(
                                                     alpha: 0.8,
@@ -1036,7 +1036,7 @@ class _EventAddScreenState extends State<EventAddScreen> {
                                                             _startTime!,
                                                           )
                                                         : '',
-                                                    style: AppTextStyle
+                                                    style: AppStyle
                                                         .eTextStyle
                                                         .copyWith(
                                                           color:
@@ -1070,7 +1070,7 @@ class _EventAddScreenState extends State<EventAddScreen> {
                                           children: [
                                             Text(
                                               'End Time',
-                                              style: AppTextStyle.eTextStyle
+                                              style: AppStyle.eTextStyle
                                                   .copyWith(
                                                     color: blackColor
                                                         .withValues(alpha: 0.8),
@@ -1108,7 +1108,7 @@ class _EventAddScreenState extends State<EventAddScreen> {
                                                               _endTime!,
                                                             )
                                                           : 'End Time',
-                                                      style: AppTextStyle
+                                                      style: AppStyle
                                                           .eTextStyle
                                                           .copyWith(
                                                             color:
@@ -1146,7 +1146,7 @@ class _EventAddScreenState extends State<EventAddScreen> {
                                 children: [
                                   Text(
                                     'Priority',
-                                    style: AppTextStyle.eTextStyle.copyWith(
+                                    style: AppStyle.eTextStyle.copyWith(
                                       color: blackColor.withValues(alpha: 0.8),
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -1158,7 +1158,7 @@ class _EventAddScreenState extends State<EventAddScreen> {
                                     ),
                                     child: Text(
                                       '${(_priorityValue / 10).round()}',
-                                      style: AppTextStyle.eTextStyle.copyWith(
+                                      style: AppStyle.eTextStyle.copyWith(
                                         color: _getColorForPriority(
                                           _priorityValue,
                                         ),
@@ -1211,7 +1211,7 @@ class _EventAddScreenState extends State<EventAddScreen> {
                               // Details Section
                               Text(
                                 'Details',
-                                style: AppTextStyle.cTextStyle.copyWith(
+                                style: AppStyle.cTextStyle.copyWith(
                                   color: blackColor,
                                   fontWeight: FontWeight.w600,
                                   fontSize: 16,
@@ -1230,12 +1230,12 @@ class _EventAddScreenState extends State<EventAddScreen> {
                                 child: TextFormField(
                                   controller: _detailsController,
                                   maxLines: 6,
-                                  style: AppTextStyle.eTextStyle.copyWith(
+                                  style: AppStyle.eTextStyle.copyWith(
                                     color: blackColor,
                                   ),
                                   decoration: InputDecoration(
                                     hintText: '',
-                                    hintStyle: AppTextStyle.eTextStyle.copyWith(
+                                    hintStyle: AppStyle.eTextStyle.copyWith(
                                       color: blackColor.withValues(alpha: 0.5),
                                     ),
                                     border: InputBorder.none,
@@ -1249,7 +1249,7 @@ class _EventAddScreenState extends State<EventAddScreen> {
                               // Action Button
                               SizedBox(
                                 width: double.infinity,
-                                child: CustomTextButton(
+                                child: HeliumTextButton(
                                   buttonText: 'Save',
                                   onPressed: () => isEditMode
                                       ? _handleUpdateEvent(context)
@@ -1331,7 +1331,7 @@ class _AssignmentEventToggle extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: AppTextStyle.eTextStyle.copyWith(
+          style: AppStyle.eTextStyle.copyWith(
             color: selected ? whiteColor : blackColor,
             fontWeight: FontWeight.w600,
           ),

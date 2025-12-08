@@ -7,7 +7,7 @@
 
 import 'dart:io';
 
-import 'package:helium_mobile/data/datasources/course_remote_data_source.dart';
+import 'package:helium_mobile/data/sources/course_remote_data_source.dart';
 import 'package:helium_mobile/data/models/planner/attachment_model.dart';
 import 'package:helium_mobile/data/models/planner/category_model.dart';
 import 'package:helium_mobile/data/models/planner/category_request_model.dart';

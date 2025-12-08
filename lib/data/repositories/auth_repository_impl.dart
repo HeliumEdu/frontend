@@ -5,7 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:helium_mobile/data/datasources/auth_remote_data_source.dart';
+import 'package:helium_mobile/data/sources/auth_remote_data_source.dart';
 import 'package:helium_mobile/data/models/auth/change_password_request_model.dart';
 import 'package:helium_mobile/data/models/auth/change_password_response_model.dart';
 import 'package:helium_mobile/data/models/auth/delete_account_request_model.dart';

@@ -5,7 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:helium_mobile/data/datasources/grade_remote_data_source.dart';
+import 'package:helium_mobile/data/sources/grade_remote_data_source.dart';
 import 'package:helium_mobile/data/models/planner/grade_course_group_model.dart';
 import 'package:helium_mobile/domain/repositories/grade_repository.dart';
 

@@ -36,7 +36,7 @@ class DioClient {
   DioClient._internal() {
     _dio = Dio(
       BaseOptions(
-        baseUrl: NetworkUrl.baseUrl,
+        baseUrl: ApiUrl.baseUrl,
         connectTimeout: const Duration(seconds: 30),
         receiveTimeout: const Duration(seconds: 30),
         headers: {
@@ -68,8 +68,8 @@ class DioClient {
             final requestPath = error.requestOptions.path;
 
             // Don't refresh on login or refresh token endpoints
-            if (requestPath == NetworkUrl.signInUrl ||
-                requestPath == NetworkUrl.refreshTokenUrl) {
+            if (requestPath == ApiUrl.authTokenUrl ||
+                requestPath == ApiUrl.authTokenRefreshUrl) {
               return handler.next(error);
             }
 
@@ -125,7 +125,7 @@ class DioClient {
               // Create a new Dio instance for refresh to avoid recursion
               final refreshDio = Dio(
                 BaseOptions(
-                  baseUrl: NetworkUrl.baseUrl,
+                  baseUrl: ApiUrl.baseUrl,
                   headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
@@ -135,7 +135,7 @@ class DioClient {
 
               final request = RefreshTokenRequestModel(refresh: refreshToken);
               final response = await refreshDio.post(
-                NetworkUrl.refreshTokenUrl,
+                ApiUrl.authTokenRefreshUrl,
                 data: request.toJson(),
               );
 

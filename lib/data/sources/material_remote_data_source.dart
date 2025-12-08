@@ -1,0 +1,489 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
+import 'package:dio/dio.dart';
+import 'package:helium_mobile/core/helium_exception.dart';
+import 'package:helium_mobile/core/dio_client.dart';
+import 'package:helium_mobile/core/api_url.dart';
+import 'package:helium_mobile/data/models/planner/material_group_request_model.dart';
+import 'package:helium_mobile/data/models/planner/material_group_response_model.dart';
+import 'package:helium_mobile/data/models/planner/material_model.dart';
+import 'package:helium_mobile/data/models/planner/material_request_model.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
+
+abstract class MaterialRemoteDataSource {
+  Future<List<MaterialGroupResponseModel>> getMaterialGroups();
+
+  Future<MaterialGroupResponseModel> getMaterialGroupById(int groupId);
+
+  Future<MaterialGroupResponseModel> createMaterialGroup(
+    MaterialGroupRequestModel request,
+  );
+
+  Future<MaterialGroupResponseModel> updateMaterialGroup(
+    int groupId,
+    MaterialGroupRequestModel request,
+  );
+
+  Future<void> deleteMaterialGroup(int groupId);
+
+  // Materials
+  Future<List<MaterialModel>> getAllMaterials();
+
+  Future<List<MaterialModel>> getMaterials(int groupId);
+
+  Future<MaterialModel> getMaterialById(int groupId, int materialId);
+
+  Future<MaterialModel> createMaterial(MaterialRequestModel request);
+
+  Future<MaterialModel> updateMaterial(
+    int groupId,
+    int materialId,
+    MaterialRequestModel request,
+  );
+
+  Future<void> deleteMaterial(int groupId, int materialId);
+}
+
+class MaterialRemoteDataSourceImpl implements MaterialRemoteDataSource {
+  final DioClient dioClient;
+
+  MaterialRemoteDataSourceImpl({required this.dioClient});
+
+  @override
+  Future<List<MaterialGroupResponseModel>> getMaterialGroups() async {
+    try {
+      log.info('📚 Fetching material groups...');
+      final response = await dioClient.dio.get(ApiUrl.plannerMaterialGroupsListUrl);
+
+      if (response.statusCode == 200) {
+        if (response.data is List) {
+          final groups = (response.data as List)
+              .map((group) => MaterialGroupResponseModel.fromJson(group))
+              .toList();
+          log.info('✅ Fetched ${groups.length} material group(s)');
+          return groups;
+        } else {
+          throw ServerException(
+            message: 'Invalid response format',
+            code: '200',
+          );
+        }
+      } else {
+        throw ServerException(
+          message: 'Failed to fetch material groups',
+          code: response.statusCode.toString(),
+        );
+      }
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    } catch (e) {
+      throw HeliumException(message: 'Unexpected error occurred: $e');
+    }
+  }
+
+  @override
+  Future<MaterialGroupResponseModel> getMaterialGroupById(int groupId) async {
+    try {
+      log.info('📖 Fetching material group: $groupId');
+      final response = await dioClient.dio.get(
+        ApiUrl.plannerMaterialGroupsDetailsUrl(groupId),
+      );
+
+      if (response.statusCode == 200) {
+        log.info('✅ Material group fetched successfully!');
+        return MaterialGroupResponseModel.fromJson(response.data);
+      } else {
+        throw ServerException(
+          message: 'Failed to fetch material group',
+          code: response.statusCode.toString(),
+        );
+      }
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    } catch (e) {
+      throw HeliumException(message: 'Unexpected error occurred: $e');
+    }
+  }
+
+  @override
+  Future<MaterialGroupResponseModel> createMaterialGroup(
+    MaterialGroupRequestModel request,
+  ) async {
+    try {
+      log.info('➕ Creating material group...');
+      log.info('  Title: ${request.title}');
+      log.info('  Show on calendar: ${request.shownOnCalendar}');
+
+      final response = await dioClient.dio.post(
+        ApiUrl.plannerMaterialGroupsListUrl,
+        data: request.toJson(),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        log.info('✅ Material group created successfully!');
+        return MaterialGroupResponseModel.fromJson(response.data);
+      } else {
+        throw ServerException(
+          message: 'Failed to create material group',
+          code: response.statusCode.toString(),
+        );
+      }
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    } catch (e) {
+      throw HeliumException(message: 'Unexpected error occurred: $e');
+    }
+  }
+
+  @override
+  Future<MaterialGroupResponseModel> updateMaterialGroup(
+    int groupId,
+    MaterialGroupRequestModel request,
+  ) async {
+    try {
+      log.info('🔄 Updating material group: $groupId');
+      log.info('  Title: ${request.title}');
+      log.info('  Show on calendar: ${request.shownOnCalendar}');
+
+      final response = await dioClient.dio.put(
+        ApiUrl.plannerMaterialGroupsDetailsUrl(groupId),
+        data: request.toJson(),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        log.info('✅ Material group updated successfully!');
+        return MaterialGroupResponseModel.fromJson(response.data);
+      } else {
+        throw ServerException(
+          message: 'Failed to update material group',
+          code: response.statusCode.toString(),
+        );
+      }
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    } catch (e) {
+      throw HeliumException(message: 'Unexpected error occurred: $e');
+    }
+  }
+
+  @override
+  Future<void> deleteMaterialGroup(int groupId) async {
+    try {
+      log.info('🗑️ Deleting material group: $groupId');
+      final response = await dioClient.dio.delete(
+        ApiUrl.plannerMaterialGroupsDetailsUrl(groupId),
+      );
+
+      if (response.statusCode == 200 ||
+          response.statusCode == 204 ||
+          response.statusCode == 202) {
+        log.info('✅ Material group deleted successfully!');
+        return;
+      } else {
+        throw ServerException(
+          message: 'Failed to delete material group',
+          code: response.statusCode.toString(),
+        );
+      }
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    } catch (e) {
+      throw HeliumException(message: 'Unexpected error occurred: $e');
+    }
+  }
+
+  // Materials Methods
+  @override
+  Future<List<MaterialModel>> getMaterials(int groupId) async {
+    try {
+      log.info('📚 Fetching materials for group: $groupId');
+      final response = await dioClient.dio.get(
+        ApiUrl.plannerMaterialGroupsMaterialsListUrl(groupId),
+      );
+
+      if (response.statusCode == 200) {
+        if (response.data is List) {
+          final materials = (response.data as List)
+              .map((material) => MaterialModel.fromJson(material))
+              .toList();
+          log.info('✅ Fetched ${materials.length} material(s)');
+          return materials;
+        } else {
+          throw ServerException(
+            message: 'Invalid response format',
+            code: '200',
+          );
+        }
+      } else {
+        throw ServerException(
+          message: 'Failed to fetch materials',
+          code: response.statusCode.toString(),
+        );
+      }
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    } catch (e) {
+      throw HeliumException(message: 'Unexpected error occurred: $e');
+    }
+  }
+
+  @override
+  Future<List<MaterialModel>> getAllMaterials() async {
+    try {
+      log.info('📚 Fetching all materials...');
+      final response = await dioClient.dio.get(ApiUrl.plannerMaterialsListUrl);
+
+      if (response.statusCode == 200) {
+        if (response.data is List) {
+          final materials = (response.data as List)
+              .map((material) => MaterialModel.fromJson(material))
+              .toList();
+          log.info('✅ Fetched ${materials.length} material(s)');
+          return materials;
+        } else {
+          throw ServerException(
+            message: 'Invalid response format',
+            code: '200',
+          );
+        }
+      } else {
+        throw ServerException(
+          message: 'Failed to fetch materials',
+          code: response.statusCode.toString(),
+        );
+      }
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    } catch (e) {
+      throw HeliumException(message: 'Unexpected error occurred: $e');
+    }
+  }
+
+  @override
+  Future<MaterialModel> getMaterialById(int groupId, int materialId) async {
+    try {
+      log.info('📖 Fetching material: $materialId from group: $groupId');
+      final response = await dioClient.dio.get(
+        ApiUrl.plannerMaterialGroupsMaterialDetailsUrl(groupId, materialId),
+      );
+
+      if (response.statusCode == 200) {
+        log.info('✅ Material fetched successfully!');
+        return MaterialModel.fromJson(response.data);
+      } else {
+        throw ServerException(
+          message: 'Failed to fetch material',
+          code: response.statusCode.toString(),
+        );
+      }
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    } catch (e) {
+      throw HeliumException(message: 'Unexpected error occurred: $e');
+    }
+  }
+
+  @override
+  Future<MaterialModel> createMaterial(MaterialRequestModel request) async {
+    try {
+      log.info('➕ Creating material...');
+      log.info('  Title: ${request.title}');
+      log.info('  Group ID: ${request.materialGroup}');
+
+      final response = await dioClient.dio.post(
+        ApiUrl.plannerMaterialGroupsMaterialsListUrl(request.materialGroup),
+        data: request.toJson(),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        log.info('✅ Material created successfully!');
+        return MaterialModel.fromJson(response.data);
+      } else {
+        throw ServerException(
+          message: 'Failed to create material',
+          code: response.statusCode.toString(),
+        );
+      }
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    } catch (e) {
+      throw HeliumException(message: 'Unexpected error occurred: $e');
+    }
+  }
+
+  @override
+  Future<MaterialModel> updateMaterial(
+    int groupId,
+    int materialId,
+    MaterialRequestModel request,
+  ) async {
+    try {
+      log.info('🔄 Updating material: $materialId');
+      final response = await dioClient.dio.put(
+        ApiUrl.plannerMaterialGroupsMaterialDetailsUrl(groupId, materialId),
+        data: request.toJson(),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        log.info('✅ Material updated successfully!');
+        return MaterialModel.fromJson(response.data);
+      } else {
+        throw ServerException(
+          message: 'Failed to update material',
+          code: response.statusCode.toString(),
+        );
+      }
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    } catch (e) {
+      throw HeliumException(message: 'Unexpected error occurred: $e');
+    }
+  }
+
+  @override
+  Future<void> deleteMaterial(int groupId, int materialId) async {
+    try {
+      log.info('🗑️ Deleting material: $materialId');
+      final response = await dioClient.dio.delete(
+        ApiUrl.plannerMaterialGroupsMaterialDetailsUrl(groupId, materialId),
+      );
+
+      if (response.statusCode == 200 ||
+          response.statusCode == 204 ||
+          response.statusCode == 202) {
+        log.info('✅ Material deleted successfully!');
+        return;
+      } else {
+        throw ServerException(
+          message: 'Failed to delete material',
+          code: response.statusCode.toString(),
+        );
+      }
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    } catch (e) {
+      throw HeliumException(message: 'Unexpected error occurred: $e');
+    }
+  }
+
+  HeliumException _handleDioError(DioException error) {
+    switch (error.type) {
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.sendTimeout:
+      case DioExceptionType.receiveTimeout:
+        return NetworkException(
+          message: 'Connection timeout. Please check your internet connection.',
+          code: 'TIMEOUT',
+        );
+
+      case DioExceptionType.badResponse:
+        final statusCode = error.response?.statusCode;
+        final responseData = error.response?.data;
+
+        if (statusCode == 401) {
+          return UnauthorizedException(
+            message: 'Unauthorized. Please login again.',
+            code: '401',
+          );
+        } else if (statusCode == 400) {
+          String errorMessage = 'Validation error occurred.';
+
+          if (responseData != null) {
+            try {
+              if (responseData is Map<String, dynamic>) {
+                final errors = <String>[];
+                responseData.forEach((key, value) {
+                  if (value is List) {
+                    for (var msg in value) {
+                      errors.add('$key: $msg');
+                    }
+                  } else {
+                    errors.add('$key: $value');
+                  }
+                });
+                if (errors.isNotEmpty) {
+                  errorMessage = errors.join('\n');
+                }
+              } else if (responseData is String) {
+                errorMessage = responseData;
+              }
+            } catch (e) {
+              errorMessage = 'Validation error: ${responseData.toString()}';
+            }
+          }
+
+          return ValidationException(
+            message: errorMessage,
+            code: '400',
+            details: responseData,
+          );
+        } else if (statusCode == 500) {
+          return ServerException(
+            message: 'Server error. Please try again later.',
+            code: '500',
+          );
+        } else {
+          String errorMessage =
+              error.response?.statusMessage ?? 'Unknown error';
+
+          if (responseData != null) {
+            try {
+              if (responseData is Map<String, dynamic>) {
+                if (responseData.containsKey('message')) {
+                  errorMessage = responseData['message'].toString();
+                } else if (responseData.containsKey('error')) {
+                  errorMessage = responseData['error'].toString();
+                } else if (responseData.containsKey('detail')) {
+                  errorMessage = responseData['detail'].toString();
+                } else {
+                  errorMessage = responseData.toString();
+                }
+              } else if (responseData is String) {
+                errorMessage = responseData;
+              }
+            } catch (e) {
+              errorMessage =
+                  'Server error: ${error.response?.statusMessage ?? "Unknown error"}';
+            }
+          }
+
+          return ServerException(
+            message: errorMessage,
+            code: statusCode.toString(),
+            details: responseData,
+          );
+        }
+
+      case DioExceptionType.cancel:
+        return NetworkException(
+          message: 'Request was cancelled',
+          code: 'CANCELLED',
+        );
+
+      case DioExceptionType.unknown:
+        if (error.message?.contains('SocketException') ?? false) {
+          return NetworkException(
+            message: 'No internet connection',
+            code: 'NO_INTERNET',
+          );
+        }
+        return NetworkException(
+          message: 'Network error occurred. Please check your connection.',
+          code: 'UNKNOWN',
+        );
+
+      default:
+        return NetworkException(
+          message: 'Network error: ${error.message}',
+          code: 'NETWORK_ERROR',
+        );
+    }
+  }
+}

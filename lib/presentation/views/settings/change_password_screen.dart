@@ -8,16 +8,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:helium_mobile/core/dio_client.dart';
-import 'package:helium_mobile/data/datasources/auth_remote_data_source.dart';
+import 'package:helium_mobile/data/sources/auth_remote_data_source.dart';
 import 'package:helium_mobile/data/repositories/auth_repository_impl.dart';
-import 'package:helium_mobile/presentation/bloc/authBloc/auth_bloc.dart';
-import 'package:helium_mobile/presentation/bloc/authBloc/auth_event.dart';
-import 'package:helium_mobile/presentation/bloc/authBloc/auth_state.dart';
+import 'package:helium_mobile/presentation/bloc/auth/auth_bloc.dart';
+import 'package:helium_mobile/presentation/bloc/auth/auth_event.dart';
+import 'package:helium_mobile/presentation/bloc/auth/auth_state.dart';
 import 'package:helium_mobile/presentation/views/settings/change_password_controller.dart';
-import 'package:helium_mobile/presentation/widgets/custom_text_field.dart';
+import 'package:helium_mobile/presentation/widgets/helium_text_field.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_size.dart';
-import 'package:helium_mobile/utils/app_text_style.dart';
+import 'package:helium_mobile/utils/app_style.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -76,7 +76,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       ),
                       Text(
                         'Change Password',
-                        style: AppTextStyle.bTextStyle.copyWith(
+                        style: AppStyle.bTextStyle.copyWith(
                           color: blackColor,
                         ),
                       ),
@@ -94,13 +94,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       children: [
                         Text(
                           'Current Password',
-                          style: AppTextStyle.cTextStyle.copyWith(
+                          style: AppStyle.cTextStyle.copyWith(
                             color: textColor,
                           ),
                         ),
                         SizedBox(height: 12.v),
 
-                        CustomTextField(
+                        HeliumTextField(
                           hintText: '',
                           prefixIcon: Icons.lock,
                           controller: _controller.changePasswordController,
@@ -123,13 +123,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                         SizedBox(height: 18.v),
                         Text(
                           'New Password',
-                          style: AppTextStyle.cTextStyle.copyWith(
+                          style: AppStyle.cTextStyle.copyWith(
                             color: textColor,
                           ),
                         ),
                         SizedBox(height: 12.v),
 
-                        CustomTextField(
+                        HeliumTextField(
                           hintText: '',
                           prefixIcon: Icons.lock,
                           controller: _controller.changeNewPasswordController,
@@ -152,13 +152,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
                         Text(
                           'Confirm Password',
-                          style: AppTextStyle.cTextStyle.copyWith(
+                          style: AppStyle.cTextStyle.copyWith(
                             color: textColor,
                           ),
                         ),
                         SizedBox(height: 12.v),
 
-                        CustomTextField(
+                        HeliumTextField(
                           hintText: '',
                           prefixIcon: Icons.lock,
                           controller:
@@ -276,7 +276,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                                       )
                                     : Text(
                                         'Save',
-                                        style: AppTextStyle.mTextStyle.copyWith(
+                                        style: AppStyle.mTextStyle.copyWith(
                                           color: whiteColor,
                                         ),
                                       ),

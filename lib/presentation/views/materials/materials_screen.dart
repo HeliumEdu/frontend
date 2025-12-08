@@ -9,27 +9,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:helium_mobile/config/app_routes.dart';
 import 'package:helium_mobile/core/dio_client.dart';
-import 'package:helium_mobile/data/datasources/course_remote_data_source.dart';
-import 'package:helium_mobile/data/datasources/material_remote_data_source.dart';
+import 'package:helium_mobile/data/sources/course_remote_data_source.dart';
+import 'package:helium_mobile/data/sources/material_remote_data_source.dart';
 import 'package:helium_mobile/data/models/planner/course_model.dart';
 import 'package:helium_mobile/data/models/planner/material_group_request_model.dart';
 import 'package:helium_mobile/data/models/planner/material_group_response_model.dart';
 import 'package:helium_mobile/data/models/planner/material_model.dart';
 import 'package:helium_mobile/data/repositories/course_repository_impl.dart';
 import 'package:helium_mobile/data/repositories/material_repository_impl.dart';
-import 'package:helium_mobile/presentation/bloc/courseBloc/course_bloc.dart';
-import 'package:helium_mobile/presentation/bloc/courseBloc/course_event.dart';
-import 'package:helium_mobile/presentation/bloc/courseBloc/course_state.dart'
+import 'package:helium_mobile/presentation/bloc/course/course_bloc.dart';
+import 'package:helium_mobile/presentation/bloc/course/course_event.dart';
+import 'package:helium_mobile/presentation/bloc/course/course_state.dart'
     as course_state;
-import 'package:helium_mobile/presentation/bloc/materialBloc/material_bloc.dart';
-import 'package:helium_mobile/presentation/bloc/materialBloc/material_event.dart';
-import 'package:helium_mobile/presentation/bloc/materialBloc/material_state.dart'
+import 'package:helium_mobile/presentation/bloc/material/material_bloc.dart';
+import 'package:helium_mobile/presentation/bloc/material/material_event.dart';
+import 'package:helium_mobile/presentation/bloc/material/material_state.dart'
     as material_state;
-import 'package:helium_mobile/presentation/widgets/custom_class_textfield.dart';
+import 'package:helium_mobile/presentation/widgets/helium_course_textfield.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_enums.dart';
 import 'package:helium_mobile/utils/app_size.dart';
-import 'package:helium_mobile/utils/app_text_style.dart';
+import 'package:helium_mobile/utils/app_style.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MaterialsScreen extends StatefulWidget {
@@ -292,7 +292,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                   ),
                   Text(
                     'Materials',
-                    style: AppTextStyle.bTextStyle.copyWith(color: textColor),
+                    style: AppStyle.bTextStyle.copyWith(color: textColor),
                   ),
                   GestureDetector(
                     onTap: () {
@@ -330,7 +330,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                         underline: SizedBox(),
                         hint: Text(
                           'Loading groups ...',
-                          style: AppTextStyle.eTextStyle.copyWith(
+                          style: AppStyle.eTextStyle.copyWith(
                             color: blackColor.withValues(alpha: 0.5),
                           ),
                         ),
@@ -346,7 +346,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                     Expanded(
                                       child: Text(
                                         group.title,
-                                        style: AppTextStyle.eTextStyle.copyWith(
+                                        style: AppStyle.eTextStyle.copyWith(
                                           color: blackColor.withValues(alpha: 0.8),
                                         ),
                                       ),
@@ -419,7 +419,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                         SizedBox(width: 6.h),
                                         Text(
                                           'Add New Group',
-                                          style: AppTextStyle.eTextStyle
+                                          style: AppStyle.eTextStyle
                                               .copyWith(
                                                 color: primaryColor,
                                                 fontWeight: FontWeight.w500,
@@ -487,7 +487,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                 _selectedGroup == null
                                     ? 'No materials found'
                                     : 'No materials found in this group',
-                                style: AppTextStyle.bTextStyle.copyWith(
+                                style: AppStyle.bTextStyle.copyWith(
                                   color: textColor.withValues(alpha: 0.5),
                                 ),
                               ),
@@ -533,7 +533,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                       Expanded(
                                         child: Text(
                                           material.title,
-                                          style: AppTextStyle.aTextStyle
+                                          style: AppStyle.aTextStyle
                                               .copyWith(
                                                 color: textColor,
                                                 fontWeight: FontWeight.w600,
@@ -632,7 +632,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                         ),
                                         child: Text(
                                           materialStatus[material.status],
-                                          style: AppTextStyle.cTextStyle
+                                          style: AppStyle.cTextStyle
                                               .copyWith(
                                                 color: greenColor,
                                                 fontWeight: FontWeight.w600,
@@ -663,7 +663,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                         ),
                                         child: Text(
                                           materialCondition[material.condition],
-                                          style: AppTextStyle.cTextStyle
+                                          style: AppStyle.cTextStyle
                                               .copyWith(
                                                 color: primaryColor,
                                                 fontWeight: FontWeight.w600,
@@ -677,7 +677,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                         SizedBox(width: 12.h),
                                         Text(
                                           material.price!,
-                                          style: AppTextStyle.aTextStyle
+                                          style: AppStyle.aTextStyle
                                               .copyWith(
                                                 color: primaryColor,
                                                 fontWeight: FontWeight.w700,
@@ -726,7 +726,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                           ),
                                           child: Text(
                                             course.title,
-                                            style: AppTextStyle.cTextStyle
+                                            style: AppStyle.cTextStyle
                                                 .copyWith(
                                                   color: courseColor,
                                                   fontWeight: FontWeight.w600,
@@ -743,7 +743,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                       material.details!
                                           .replaceAll(RegExp(r'<[^>]*>'), '')
                                           .trim(),
-                                      style: AppTextStyle.cTextStyle.copyWith(
+                                      style: AppStyle.cTextStyle.copyWith(
                                         color: textColor.withValues(alpha: 0.6),
                                         fontSize: 12,
                                       ),
@@ -760,7 +760,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                           _launchURL(material.website!),
                                       child: Text(
                                         'Website: ${material.website}',
-                                        style: AppTextStyle.cTextStyle.copyWith(
+                                        style: AppStyle.cTextStyle.copyWith(
                                           color: primaryColor,
                                           fontSize: 12,
                                           decoration: TextDecoration.underline,
@@ -825,7 +825,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                 SnackBar(
                   content: Text(
                     'Please select a material group first',
-                    style: AppTextStyle.cTextStyle.copyWith(color: whiteColor),
+                    style: AppStyle.cTextStyle.copyWith(color: whiteColor),
                   ),
                   backgroundColor: redColor,
                 ),
@@ -906,7 +906,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                         Center(
                           child: Text(
                             isEdit ? 'Edit Group' : 'Add Group',
-                            style: AppTextStyle.aTextStyle.copyWith(
+                            style: AppStyle.aTextStyle.copyWith(
                               color: blackColor,
                               fontWeight: FontWeight.w600,
                             ),
@@ -939,7 +939,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                 Expanded(
                                   child: Text(
                                     errorMessage!,
-                                    style: AppTextStyle.cTextStyle.copyWith(
+                                    style: AppStyle.cTextStyle.copyWith(
                                       color: redColor,
                                       fontSize: 13,
                                     ),
@@ -964,12 +964,12 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                         ],
                         Text(
                           'Title',
-                          style: AppTextStyle.cTextStyle.copyWith(
+                          style: AppStyle.cTextStyle.copyWith(
                             color: blackColor.withValues(alpha: 0.8),
                           ),
                         ),
                         SizedBox(height: 9.v),
-                        CustomClassTextField(
+                        HeliumCourseTextField(
                           text: '',
                           controller: _titleController,
                         ),
@@ -990,7 +990,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                             Expanded(
                               child: Text(
                                 "Hide this group's materials from Calendar",
-                                style: AppTextStyle.iTextStyle.copyWith(
+                                style: AppStyle.iTextStyle.copyWith(
                                   color: blackColor,
                                 ),
                               ),
@@ -1013,7 +1013,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                       : () => Navigator.pop(dialogContext),
                                   child: Text(
                                     'Cancel',
-                                    style: AppTextStyle.iTextStyle.copyWith(
+                                    style: AppStyle.iTextStyle.copyWith(
                                       color: textColor,
                                     ),
                                   ),
@@ -1090,7 +1090,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                         )
                                       : Text(
                                           'Save',
-                                          style: AppTextStyle.iTextStyle
+                                          style: AppStyle.iTextStyle
                                               .copyWith(color: whiteColor),
                                         ),
                                 ),
@@ -1127,18 +1127,18 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
             ),
             title: Text(
               'Delete Material Group',
-              style: AppTextStyle.aTextStyle.copyWith(color: blackColor),
+              style: AppStyle.aTextStyle.copyWith(color: blackColor),
             ),
             content: Text(
               'Are you sure you want to delete "${group.title}"?',
-              style: AppTextStyle.cTextStyle.copyWith(color: textColor),
+              style: AppStyle.cTextStyle.copyWith(color: textColor),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
                 child: Text(
                   'Cancel',
-                  style: AppTextStyle.iTextStyle.copyWith(color: textColor),
+                  style: AppStyle.iTextStyle.copyWith(color: textColor),
                 ),
               ),
               BlocBuilder<MaterialBloc, material_state.MaterialState>(
@@ -1174,7 +1174,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                           )
                         : Text(
                             'Delete',
-                            style: AppTextStyle.iTextStyle.copyWith(
+                            style: AppStyle.iTextStyle.copyWith(
                               color: whiteColor,
                             ),
                           ),
@@ -1202,18 +1202,18 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
             ),
             title: Text(
               'Delete Material',
-              style: AppTextStyle.aTextStyle.copyWith(color: blackColor),
+              style: AppStyle.aTextStyle.copyWith(color: blackColor),
             ),
             content: Text(
               'Are you sure you want to delete "${material.title}"?',
-              style: AppTextStyle.cTextStyle.copyWith(color: textColor),
+              style: AppStyle.cTextStyle.copyWith(color: textColor),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
                 child: Text(
                   'Cancel',
-                  style: AppTextStyle.iTextStyle.copyWith(color: textColor),
+                  style: AppStyle.iTextStyle.copyWith(color: textColor),
                 ),
               ),
               BlocBuilder<MaterialBloc, material_state.MaterialState>(
@@ -1255,7 +1255,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                           )
                         : Text(
                             'Delete',
-                            style: AppTextStyle.iTextStyle.copyWith(
+                            style: AppStyle.iTextStyle.copyWith(
                               color: whiteColor,
                             ),
                           ),

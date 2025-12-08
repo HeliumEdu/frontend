@@ -13,7 +13,7 @@ import 'package:helium_mobile/config/app_routes.dart';
 import 'package:helium_mobile/config/app_prefs.dart';
 import 'package:helium_mobile/config/route_observer.dart';
 import 'package:helium_mobile/core/fcm_service.dart';
-import 'package:helium_mobile/presentation/bloc/notificationBloc/notification_bloc.dart';
+import 'package:helium_mobile/presentation/bloc/core/notification_bloc.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_size.dart';
 import 'package:logging/logging.dart';
@@ -30,7 +30,7 @@ void main() async {
 
   await Firebase.initializeApp();
 
-  await FCMService().init();
+  await FcmService().init();
 
   await PrefService().init();
 

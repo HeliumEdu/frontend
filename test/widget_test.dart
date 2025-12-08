@@ -52,7 +52,7 @@ void main() async {
     });
 
     testWidgets('FCM Service can be initialized', (WidgetTester tester) async {
-      final fcmService = FCMService();
+      final fcmService = FcmService();
       expect(fcmService, isNotNull);
       expect(fcmService.isInitialized, false);
     });
@@ -68,7 +68,7 @@ void main() async {
     testWidgets('FCM service provides token model', (
       WidgetTester tester,
     ) async {
-      final tokenModel = FCMService().getFCMTokenModel();
+      final tokenModel = FcmService().getFCMTokenModel();
       expect(tokenModel, isNotNull);
       expect(tokenModel.token, isA<String>());
     });

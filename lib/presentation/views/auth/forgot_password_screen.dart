@@ -8,16 +8,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:helium_mobile/core/dio_client.dart';
-import 'package:helium_mobile/data/datasources/auth_remote_data_source.dart';
+import 'package:helium_mobile/data/sources/auth_remote_data_source.dart';
 import 'package:helium_mobile/data/repositories/auth_repository_impl.dart';
-import 'package:helium_mobile/presentation/bloc/authBloc/auth_bloc.dart';
-import 'package:helium_mobile/presentation/bloc/authBloc/auth_event.dart';
-import 'package:helium_mobile/presentation/bloc/authBloc/auth_state.dart';
+import 'package:helium_mobile/presentation/bloc/auth/auth_bloc.dart';
+import 'package:helium_mobile/presentation/bloc/auth/auth_event.dart';
+import 'package:helium_mobile/presentation/bloc/auth/auth_state.dart';
 import 'package:helium_mobile/presentation/views/auth/register_controller.dart';
-import 'package:helium_mobile/presentation/widgets/custom_text_field.dart';
+import 'package:helium_mobile/presentation/widgets/helium_text_field.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_size.dart';
-import 'package:helium_mobile/utils/app_text_style.dart';
+import 'package:helium_mobile/utils/app_style.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -68,7 +68,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           ),
           title: Text(
             'Forgot Password',
-            style: AppTextStyle.aTextStyle.copyWith(
+            style: AppStyle.aTextStyle.copyWith(
               color: textColor,
               fontWeight: FontWeight.w600,
             ),
@@ -126,7 +126,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         // Title
                         Text(
                           _emailSent ? 'Check Your Email' : 'Reset Password',
-                          style: AppTextStyle.aTextStyle.copyWith(
+                          style: AppStyle.aTextStyle.copyWith(
                             color: textColor,
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
@@ -140,7 +140,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           _emailSent
                               ? 'We have sent a password reset link to ${_controller.emailController.text}. Please check your inbox and spam folder.'
                               : 'Enter the email associated with your account. We\'ll reset your password and send a temporary password to your email address.',
-                          style: AppTextStyle.eTextStyle.copyWith(
+                          style: AppStyle.eTextStyle.copyWith(
                             color: textColor.withValues(alpha: 0.7),
                             height: 1.5,
                           ),
@@ -150,7 +150,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                         if (!_emailSent) ...[
                           // Email Field
-                          CustomTextField(
+                          HeliumTextField(
                             hintText: 'Email',
                             prefixIcon: Icons.email_outlined,
                             controller: _controller.emailController,
@@ -193,7 +193,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                     )
                                   : Text(
                                       'Get It',
-                                      style: AppTextStyle.mTextStyle.copyWith(
+                                      style: AppStyle.mTextStyle.copyWith(
                                         color: whiteColor,
                                         fontWeight: FontWeight.w600,
                                         fontSize: 16,
@@ -219,7 +219,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                   SizedBox(width: 8.h),
                                   Text(
                                     'Back to Login',
-                                    style: AppTextStyle.cTextStyle.copyWith(
+                                    style: AppStyle.cTextStyle.copyWith(
                                       color: primaryColor,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -246,7 +246,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               ),
                               child: Text(
                                 'Open Email App',
-                                style: AppTextStyle.mTextStyle.copyWith(
+                                style: AppStyle.mTextStyle.copyWith(
                                   color: whiteColor,
                                   fontWeight: FontWeight.w600,
                                   fontSize: 16,

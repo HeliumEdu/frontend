@@ -5,85 +5,121 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-class NetworkUrl {
+class ApiUrl {
   static final baseUrl = String.fromEnvironment(
     'PROJECT_API_HOST',
     defaultValue: 'https://api.heliumedu.com',
   );
-  static const signUpUrl = '/auth/user/register/';
-  static const signInUrl = '/auth/token/';
-  static const refreshTokenUrl = '/auth/token/refresh/';
-  static const blacklistTokenUrl = '/auth/token/blacklist/';
-  static const getUserUrl = '/auth/user/';
-  static const deleteAccountUrl = '/auth/user/delete/';
-  static const pushTokenUrl = '/auth/user/pushtoken/';
-  static const allCategoriesUrl = '/planner/categories/';
-  static const updatePhoneProfileUrl = '/auth/user/profile/';
-  static const changePasswordUrl = '/auth/user/';
-  static const userSettingsUrl = '/auth/user/settings/';
-  static const forgotPasswordUrl = '/auth/user/forgot/';
-  static const getCoursesUrl = '/planner/courses/';
 
-  static String createCourseUrl(int groupId) =>
+  // Unauthenticated URLs
+  static const authUserRegisterUrl = '/auth/user/register/';
+  static const authUserForgotUrl = '/auth/user/forgot/';
+  static const authTokenUrl = '/auth/token/';
+
+  // Authenticated URLs
+  // User
+  static const authUserUrl = '/auth/user/';
+  static const authUserDeleteUrl = '/auth/user/delete/';
+  static const authUserProfileUrl = '/auth/user/profile/';
+  static const authUserSettingsUrl = '/auth/user/settings/';
+  static const authUserPushTokenUrl = '/auth/user/pushtoken/';
+
+  // Token
+  static const authTokenRefreshUrl = '/auth/token/refresh/';
+  static const authTokenBlacklistUrl = '/auth/token/blacklist/';
+
+  // Grades
+  static const plannerGradesUrl = '/planner/grades/';
+
+  // External Calendars & Feeds
+  static const feedPrivateEnableUrl = '/feed/private/enable/';
+  static const feedPrivateDisableUrl = '/feed/private/disable/';
+  static const feedExternalCalendarsListUrl = '/feed/externalcalendars/';
+
+  static String feedExternalCalendarDetailUrl(int externalCalendarId) =>
+      '/feed/externalcalendars/$externalCalendarId/';
+
+  // Calendar
+  static const plannerCoursesListUrl = '/planner/courses/';
+  static const plannerCategoriesListUrl = '/planner/categories/';
+  static const plannerMaterialsListUrl = '/planner/materials/';
+  static const plannerHomeworkListUrl = '/planner/homework/';
+  static const plannerEventsListUrl = '/planner/events/';
+  static const plannerSchedulesEvents = '/feed/courseschedules/events/';
+  static const feedExternalCalendarsEventsListUrl =
+      '/feed/externalcalendars/events/';
+  static const plannerRemindersListUrl = '/planner/reminders/';
+  static const plannerAttachmentsListUrl = '/planner/attachments/';
+
+  static String plannerCourseGroupsCoursesHomeworkDetailsUrl(
+    int groupId,
+    int courseId,
+    int homeworkId,
+  ) => '/planner/coursegroups/$groupId/courses/$courseId/homework/$homeworkId/';
+
+  static String plannerEventsDetailsUrl(int eventId) =>
+      '/planner/events/$eventId/';
+
+  static String plannerRemindersDetailsUrl(int reminderId) =>
+      '/planner/reminders/$reminderId/';
+
+  static String plannerAttachmentsDetailsUrl(int attachmentId) =>
+      '/planner/attachments/$attachmentId/';
+
+  static String plannerCourseGroupsCoursesHomeworkListUrl(
+    int groupId,
+    int courseId,
+  ) => '/planner/coursegroups/$groupId/courses/$courseId/homework/';
+
+  // Courses
+  static const plannerCourseGroupsListUrl = '/planner/coursegroups/';
+
+  static String plannerCourseGroupsDetailsUrl(int groupId) =>
+      '/planner/coursegroups/$groupId/';
+
+  static String plannerCourseGroupsCoursesListUrl(int groupId) =>
       '/planner/coursegroups/$groupId/courses/';
 
-  static String deleteCourseUrl(int groupId, int courseId) =>
-      '/planner/coursegroups/$groupId/courses/$courseId/';
+  static String plannerCourseGroupsCoursesDetailsUrl(
+    int groupId,
+    int courseId,
+  ) => '/planner/coursegroups/$groupId/courses/$courseId/';
 
-  static String createCourseScheduleUrl(int groupId, int courseId) =>
-      '/planner/coursegroups/$groupId/courses/$courseId/courseschedules/';
+  static String plannerCourseGroupsCoursesSchedulesListUrl(
+    int groupId,
+    int courseId,
+  ) => '/planner/coursegroups/$groupId/courses/$courseId/courseschedules/';
 
-  static String getCourseScheduleUrl(
+  static String plannerCourseGroupsCoursesSchedulesDetailsUrl(
     int groupId,
     int courseId,
     int scheduleId,
   ) =>
       '/planner/coursegroups/$groupId/courses/$courseId/courseschedules/$scheduleId/';
 
-  static String categoriesUrls(int groupId, int courseId) =>
-      '/planner/coursegroups/$groupId/courses/$courseId/categories/';
+  static String plannerCourseGroupsCoursesCategoriesListUrl(
+    int groupId,
+    int courseId,
+  ) => '/planner/coursegroups/$groupId/courses/$courseId/categories/';
 
-  static String deleteCategoryUrl(int groupId, int courseId, int categoryId) =>
+  static String plannerCourseGroupsCoursesCategoriesDetailsUrl(
+    int groupId,
+    int courseId,
+    int categoryId,
+  ) =>
       '/planner/coursegroups/$groupId/courses/$courseId/categories/$categoryId/';
-  static const courseGroupsUrl = '/planner/coursegroups/';
-  static const attachmentsUrl = '/planner/attachments/';
 
-  static String deleteAttachmentUrl(int attachmentId) =>
-      '/planner/attachments/$attachmentId/';
-  static const materialGroupsUrl = '/planner/materialgroups/';
+  // Materials
+  static const plannerMaterialGroupsListUrl = '/planner/materialgroups/';
 
-  static String materialGroupByIdUrl(int groupId) =>
+  static String plannerMaterialGroupsDetailsUrl(int groupId) =>
       '/planner/materialgroups/$groupId/';
 
-  static String materialsUrl(int groupId) =>
+  static String plannerMaterialGroupsMaterialsListUrl(int groupId) =>
       '/planner/materialgroups/$groupId/materials/';
 
-  static String materialByIdUrl(int groupId, int materialId) =>
-      '/planner/materialgroups/$groupId/materials/$materialId/';
-  static const allMaterialsUrl = '/planner/materials/';
-  static const allHomeworkUrl = '/planner/homework/';
-
-  static String homeworkUrl(int groupId, int courseId) =>
-      '/planner/coursegroups/$groupId/courses/$courseId/homework/';
-
-  static String homeworkByIdUrl(int groupId, int courseId, int homeworkId) =>
-      '/planner/coursegroups/$groupId/courses/$courseId/homework/$homeworkId/';
-  static const remindersUrl = '/planner/reminders/';
-
-  static String reminderByIdUrl(int reminderId) =>
-      '/planner/reminders/$reminderId/';
-  static const eventsUrl = '/planner/events/';
-
-  static String eventByIdUrl(int eventId) => '/planner/events/$eventId/';
-  static const gradesUrl = '/planner/grades/';
-  static const externalCalendarsUrl = '/feed/externalcalendars/';
-
-  static String externalCalendarDetailUrl(int calendarId) =>
-      '/feed/externalcalendars/$calendarId/';
-  static String allExternalCalendarEventsUrl =
-      '/feed/externalcalendars/events/';
-
-  // Private Feed URLs
-  static const enablePrivateFeedsUrl = '/feed/private/enable/';
-  static const disablePrivateFeedsUrl = '/feed/private/disable/';
+  static String plannerMaterialGroupsMaterialDetailsUrl(
+    int groupId,
+    int materialId,
+  ) => '/planner/materialgroups/$groupId/materials/$materialId/';
 }

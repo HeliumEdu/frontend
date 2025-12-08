@@ -8,17 +8,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:helium_mobile/core/dio_client.dart';
-import 'package:helium_mobile/data/datasources/auth_remote_data_source.dart';
+import 'package:helium_mobile/data/sources/auth_remote_data_source.dart';
 import 'package:helium_mobile/data/repositories/auth_repository_impl.dart';
-import 'package:helium_mobile/presentation/bloc/preferenceBloc/preference_bloc.dart';
-import 'package:helium_mobile/presentation/bloc/preferenceBloc/preference_event.dart';
-import 'package:helium_mobile/presentation/bloc/preferenceBloc/preference_states.dart';
-import 'package:helium_mobile/presentation/widgets/custom_color_picker.dart';
-import 'package:helium_mobile/presentation/widgets/custom_text_button.dart';
+import 'package:helium_mobile/presentation/bloc/settings/preferences_bloc.dart';
+import 'package:helium_mobile/presentation/bloc/settings/preferences_event.dart';
+import 'package:helium_mobile/presentation/bloc/settings/preferences_states.dart';
+import 'package:helium_mobile/presentation/widgets/helium_color_picker.dart';
+import 'package:helium_mobile/presentation/widgets/helium_text_button.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_enums.dart';
 import 'package:helium_mobile/utils/app_size.dart';
-import 'package:helium_mobile/utils/app_text_style.dart';
+import 'package:helium_mobile/utils/app_style.dart';
 
 class PreferencesScreen extends StatelessWidget {
   const PreferencesScreen({super.key});
@@ -30,7 +30,7 @@ class PreferencesScreen extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (context) => PreferenceBloc(
+          create: (context) => PreferencesBloc(
             authRepository: AuthRepositoryImpl(
               remoteDataSource: AuthRemoteDataSourceImpl(dioClient: dioClient),
             ),
@@ -66,7 +66,7 @@ class _PreferenceViewState extends State<PreferenceView> {
     // Fetch current preferences on open
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        context.read<PreferenceBloc>().add(FetchPreferencesEvent());
+        context.read<PreferencesBloc>().add(FetchPreferencesEvent());
       }
     });
   }
@@ -83,7 +83,7 @@ class _PreferenceViewState extends State<PreferenceView> {
       builder: (context) => AlertDialog(
         backgroundColor: whiteColor,
         contentPadding: EdgeInsets.zero,
-        content: CustomColorPickerWidget(
+        content: HeliumColorPickerWidget(
           initialColor: selectedEventColor,
           onColorSelected: (color) {
             setState(() {
@@ -102,7 +102,7 @@ class _PreferenceViewState extends State<PreferenceView> {
       builder: (context) => AlertDialog(
         backgroundColor: whiteColor,
         contentPadding: EdgeInsets.zero,
-        content: CustomColorPickerWidget(
+        content: HeliumColorPickerWidget(
           initialColor: selectedGradeColor,
           onColorSelected: (color) {
             setState(() {
@@ -121,7 +121,7 @@ class _PreferenceViewState extends State<PreferenceView> {
       builder: (context) => AlertDialog(
         backgroundColor: whiteColor,
         contentPadding: EdgeInsets.zero,
-        content: CustomColorPickerWidget(
+        content: HeliumColorPickerWidget(
           initialColor: selectedMaterialColor,
           onColorSelected: (color) {
             setState(() {
@@ -138,7 +138,7 @@ class _PreferenceViewState extends State<PreferenceView> {
   Widget build(BuildContext context) {
     return MultiBlocListener(
       listeners: [
-        BlocListener<PreferenceBloc, PreferenceState>(
+        BlocListener<PreferencesBloc, PreferencesState>(
           listener: (context, state) {
             setState(() {
               if (state.defaultView != null) {
@@ -193,7 +193,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                     ),
                     Text(
                       'Preferences',
-                      style: AppTextStyle.bTextStyle.copyWith(
+                      style: AppStyle.bTextStyle.copyWith(
                         color: blackColor,
                       ),
                     ),
@@ -211,7 +211,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                       children: [
                         Text(
                           'Default view',
-                          style: AppTextStyle.cTextStyle.copyWith(
+                          style: AppStyle.cTextStyle.copyWith(
                             color: blackColor.withValues(alpha: 0.8),
                           ),
                         ),
@@ -238,7 +238,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                                 value: course,
                                 child: Text(
                                   course,
-                                  style: AppTextStyle.eTextStyle.copyWith(
+                                  style: AppStyle.eTextStyle.copyWith(
                                     color: blackColor.withValues(alpha: 0.5),
                                   ),
                                 ),
@@ -254,7 +254,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                         SizedBox(height: 22.h),
                         Text(
                           'Time zone',
-                          style: AppTextStyle.cTextStyle.copyWith(
+                          style: AppStyle.cTextStyle.copyWith(
                             color: blackColor.withValues(alpha: 0.8),
                           ),
                         ),
@@ -281,7 +281,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                                 value: timeZone,
                                 child: Text(
                                   timeZone,
-                                  style: AppTextStyle.eTextStyle.copyWith(
+                                  style: AppStyle.eTextStyle.copyWith(
                                     color: blackColor.withValues(alpha: 0.5),
                                   ),
                                 ),
@@ -299,7 +299,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                           children: [
                             Text(
                               'Color for Events',
-                              style: AppTextStyle.cTextStyle.copyWith(
+                              style: AppStyle.cTextStyle.copyWith(
                                 color: blackColor.withValues(alpha: 0.8),
                               ),
                             ),
@@ -327,7 +327,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                           children: [
                             Text(
                               'Color for grades badges',
-                              style: AppTextStyle.cTextStyle.copyWith(
+                              style: AppStyle.cTextStyle.copyWith(
                                 color: blackColor.withValues(alpha: 0.8),
                               ),
                             ),
@@ -355,7 +355,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                           children: [
                             Text(
                               'Color for material badges',
-                              style: AppTextStyle.cTextStyle.copyWith(
+                              style: AppStyle.cTextStyle.copyWith(
                                 color: blackColor.withValues(alpha: 0.8),
                               ),
                             ),
@@ -382,12 +382,12 @@ class _PreferenceViewState extends State<PreferenceView> {
                         // BLoC Implementation for Offset Field
                         Text(
                           'Default reminder offset',
-                          style: AppTextStyle.cTextStyle.copyWith(
+                          style: AppStyle.cTextStyle.copyWith(
                             color: blackColor.withValues(alpha: 0.8),
                           ),
                         ),
                         SizedBox(height: 9.v),
-                        BlocConsumer<PreferenceBloc, PreferenceState>(
+                        BlocConsumer<PreferencesBloc, PreferencesState>(
                           listener: (context, state) {
                             // Update text controller when state changes
                             if (_offsetController.text !=
@@ -414,7 +414,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                                     child: TextFormField(
                                       controller: _offsetController,
                                       keyboardType: TextInputType.number,
-                                      style: AppTextStyle.eTextStyle.copyWith(
+                                      style: AppStyle.eTextStyle.copyWith(
                                         color: blackColor.withValues(
                                           alpha: 0.6,
                                         ),
@@ -432,7 +432,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                                       onChanged: (value) {
                                         final intValue = int.tryParse(value);
                                         if (intValue != null) {
-                                          context.read<PreferenceBloc>().add(
+                                          context.read<PreferencesBloc>().add(
                                             UpdateOffsetEvent(intValue),
                                           );
                                         }
@@ -444,7 +444,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                                     children: [
                                       InkWell(
                                         onTap: () {
-                                          context.read<PreferenceBloc>().add(
+                                          context.read<PreferencesBloc>().add(
                                             IncrementOffsetEvent(),
                                           );
                                         },
@@ -458,7 +458,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                                       ),
                                       InkWell(
                                         onTap: () {
-                                          context.read<PreferenceBloc>().add(
+                                          context.read<PreferencesBloc>().add(
                                             DecrementOffsetEvent(),
                                           );
                                         },
@@ -481,7 +481,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                         SizedBox(height: 22.h),
                         Text(
                           'Default reminder offset type',
-                          style: AppTextStyle.cTextStyle.copyWith(
+                          style: AppStyle.cTextStyle.copyWith(
                             color: blackColor.withValues(alpha: 0.8),
                           ),
                         ),
@@ -504,7 +504,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                             underline: SizedBox(),
                             hint: Text(
                               '',
-                              style: AppTextStyle.eTextStyle.copyWith(
+                              style: AppStyle.eTextStyle.copyWith(
                                 color: blackColor.withValues(alpha: 0.5),
                               ),
                             ),
@@ -514,7 +514,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                                 value: course,
                                 child: Text(
                                   course,
-                                  style: AppTextStyle.eTextStyle.copyWith(
+                                  style: AppStyle.eTextStyle.copyWith(
                                     color: blackColor.withValues(alpha: 0.5),
                                   ),
                                 ),
@@ -530,7 +530,7 @@ class _PreferenceViewState extends State<PreferenceView> {
 
                         SizedBox(height: 48.v),
 
-                        BlocConsumer<PreferenceBloc, PreferenceState>(
+                        BlocConsumer<PreferencesBloc, PreferencesState>(
                           listener: (context, state) {
                             if (state.submitSuccess) {
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -552,7 +552,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                           },
                           builder: (context, state) {
                             final isSubmitting = state.isSubmitting;
-                            return CustomTextButton(
+                            return HeliumTextButton(
                               buttonText: 'Save',
                               isLoading: isSubmitting,
                               onPressed: () {
@@ -595,7 +595,7 @@ class _PreferenceViewState extends State<PreferenceView> {
                                 final offsetVal =
                                     int.tryParse(_offsetController.text) ?? 0;
 
-                                context.read<PreferenceBloc>().add(
+                                context.read<PreferencesBloc>().add(
                                   SubmitPreferencesEvent(
                                     timeZone: tz,
                                     defaultView: viewIndex,

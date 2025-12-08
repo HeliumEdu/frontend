@@ -15,7 +15,7 @@ void main() {
       const token =
           'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzYxMzA4NDY4LCJpYXQiOjE3NjEzMDc1MDgsImp0aSI6IjMxM2FhNjU1YjgwNDQzNjM4OWVkYWViNjBkNGM3ZDBmIiwidXNlcl9pZCI6IjEzNDQ2In0.48BQ2-BU8SZkPgJVi00b2Rwh9FT200VonAzizSrMTsA';
 
-      final payload = JWTUtils.decodePayload(token);
+      final payload = JwtUtils.decodePayload(token);
       expect(payload, isNotNull);
       expect(payload!['user_id'], equals('13446'));
     });
@@ -24,14 +24,14 @@ void main() {
       const token =
           'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzYxMzA4NDY4LCJpYXQiOjE3NjEzMDc1MDgsImp0aSI6IjMxM2FhNjU1YjgwNDQzNjM4OWVkYWViNjBkNGM3ZDBmIiwidXNlcl9pZCI6IjEzNDQ2In0.48BQ2-BU8SZkPgJVi00b2Rwh9FT200VonAzizSrMTsA';
 
-      final userId = JWTUtils.getUserId(token);
+      final userId = JwtUtils.getUserId(token);
       expect(userId, equals(13446));
     });
 
     test('should return null for invalid token', () {
       const invalidToken = 'invalid.token.here';
 
-      final userId = JWTUtils.getUserId(invalidToken);
+      final userId = JwtUtils.getUserId(invalidToken);
       expect(userId, isNull);
     });
 
@@ -40,7 +40,7 @@ void main() {
       const expiredToken =
           'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzYxMzA4NDY4LCJpYXQiOjE3NjEzMDc1MDgsImp0aSI6IjMxM2FhNjU1YjgwNDQzNjM4OWVkYWViNjBkNGM3ZDBmIiwidXNlcl9pZCI6IjEzNDQ2In0.48BQ2-BU8SZkPgJVi00b2Rwh9FT200VonAzizSrMTsA';
 
-      final isExpired = JWTUtils.isAccessTokenExpired(expiredToken);
+      final isExpired = JwtUtils.isAccessTokenExpired(expiredToken);
       expect(isExpired, isA<bool>());
     });
   });

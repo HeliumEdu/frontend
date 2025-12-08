@@ -11,18 +11,18 @@ import 'package:helium_mobile/config/app_routes.dart';
 import 'package:helium_mobile/presentation/views/auth/register_controller.dart';
 import 'package:helium_mobile/utils/app_assets.dart';
 import 'package:helium_mobile/core/dio_client.dart';
-import 'package:helium_mobile/data/datasources/auth_remote_data_source.dart';
+import 'package:helium_mobile/data/sources/auth_remote_data_source.dart';
 import 'package:helium_mobile/data/repositories/auth_repository_impl.dart';
-import 'package:helium_mobile/presentation/bloc/authBloc/auth_bloc.dart';
-import 'package:helium_mobile/presentation/bloc/authBloc/auth_event.dart';
-import 'package:helium_mobile/presentation/bloc/authBloc/auth_state.dart';
-import 'package:helium_mobile/presentation/widgets/custom_drop_down.dart';
-import 'package:helium_mobile/presentation/widgets/custom_text_button.dart';
-import 'package:helium_mobile/presentation/widgets/custom_text_field.dart';
+import 'package:helium_mobile/presentation/bloc/auth/auth_bloc.dart';
+import 'package:helium_mobile/presentation/bloc/auth/auth_event.dart';
+import 'package:helium_mobile/presentation/bloc/auth/auth_state.dart';
+import 'package:helium_mobile/presentation/widgets/helium_drop_down.dart';
+import 'package:helium_mobile/presentation/widgets/helium_text_button.dart';
+import 'package:helium_mobile/presentation/widgets/helium_text_field.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_enums.dart';
 import 'package:helium_mobile/utils/app_size.dart';
-import 'package:helium_mobile/utils/app_text_style.dart';
+import 'package:helium_mobile/utils/app_style.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class RegisterScreen extends StatelessWidget {
@@ -246,7 +246,7 @@ class _RegisterScreenViewState extends State<RegisterScreenView> {
 
                     Text(
                       'New User Registration',
-                      style: AppTextStyle.hTextStyle.copyWith(
+                      style: AppStyle.hTextStyle.copyWith(
                         color: blackColor,
                         fontWeight: FontWeight.w600,
                       ),
@@ -254,7 +254,7 @@ class _RegisterScreenViewState extends State<RegisterScreenView> {
 
                     SizedBox(height: 44.v),
 
-                    CustomTextField(
+                    HeliumTextField(
                       hintText: 'Username',
                       prefixIcon: Icons.person_outline,
                       controller: _controller.usernameController,
@@ -271,7 +271,7 @@ class _RegisterScreenViewState extends State<RegisterScreenView> {
                     ),
                     SizedBox(height: 22.v),
 
-                    CustomTextField(
+                    HeliumTextField(
                       hintText: 'Email',
                       prefixIcon: Icons.email_outlined,
                       controller: _controller.emailController,
@@ -280,7 +280,7 @@ class _RegisterScreenViewState extends State<RegisterScreenView> {
                     ),
                     SizedBox(height: 22.v),
 
-                    CustomTextField(
+                    HeliumTextField(
                       hintText: 'Password',
                       prefixIcon: Icons.lock_outline,
                       controller: _controller.passwordController,
@@ -302,7 +302,7 @@ class _RegisterScreenViewState extends State<RegisterScreenView> {
                     ),
                     SizedBox(height: 22.v),
 
-                    CustomTextField(
+                    HeliumTextField(
                       hintText: 'Confirm password',
                       prefixIcon: Icons.lock_outline,
                       controller: _controller.confirmPasswordController,
@@ -324,7 +324,7 @@ class _RegisterScreenViewState extends State<RegisterScreenView> {
                     ),
                     SizedBox(height: 22.v),
 
-                    CustomDropdown(
+                    HeliumDropdown(
                       hintText: 'Select Timezone',
                       prefixIcon: Icons.access_time_outlined,
                       value: _controller.selectedTimezone,
@@ -354,7 +354,7 @@ class _RegisterScreenViewState extends State<RegisterScreenView> {
                           child: RichText(
                             text: TextSpan(
                               text: 'I agree to Helium\'s ',
-                              style: AppTextStyle.fTextStyle.copyWith(
+                              style: AppStyle.fTextStyle.copyWith(
                                 color: greyColor,
                               ),
                               children: [
@@ -363,7 +363,7 @@ class _RegisterScreenViewState extends State<RegisterScreenView> {
                                     onTap: _launchTermsOfService,
                                     child: Text(
                                       'Terms of Service',
-                                      style: AppTextStyle.fTextStyle.copyWith(
+                                      style: AppStyle.fTextStyle.copyWith(
                                         color: primaryColor,
                                         decoration: TextDecoration.underline,
                                       ),
@@ -372,7 +372,7 @@ class _RegisterScreenViewState extends State<RegisterScreenView> {
                                 ),
                                 TextSpan(
                                   text: ' and ',
-                                  style: AppTextStyle.fTextStyle.copyWith(
+                                  style: AppStyle.fTextStyle.copyWith(
                                     color: greyColor,
                                   ),
                                 ),
@@ -381,7 +381,7 @@ class _RegisterScreenViewState extends State<RegisterScreenView> {
                                     onTap: _launchPrivacyPolicy,
                                     child: Text(
                                       'Privacy Policy',
-                                      style: AppTextStyle.fTextStyle.copyWith(
+                                      style: AppStyle.fTextStyle.copyWith(
                                         color: primaryColor,
                                         decoration: TextDecoration.underline,
                                       ),
@@ -399,7 +399,7 @@ class _RegisterScreenViewState extends State<RegisterScreenView> {
                     BlocBuilder<AuthBloc, AuthState>(
                       builder: (context, state) {
                         final isLoading = state is AuthLoading;
-                        return CustomTextButton(
+                        return HeliumTextButton(
                           buttonText: 'Sign Me Up',
                           onPressed: _handleSignUp,
                           isLoading: isLoading,
@@ -413,7 +413,7 @@ class _RegisterScreenViewState extends State<RegisterScreenView> {
                       children: [
                         Text(
                           'Already have an account? ',
-                          style: AppTextStyle.fTextStyle.copyWith(
+                          style: AppStyle.fTextStyle.copyWith(
                             color: greyColor,
                           ),
                         ),
@@ -426,7 +426,7 @@ class _RegisterScreenViewState extends State<RegisterScreenView> {
                           },
                           child: Text(
                             'Login',
-                            style: AppTextStyle.fTextStyle.copyWith(
+                            style: AppStyle.fTextStyle.copyWith(
                               color: primaryColor,
                               fontWeight: FontWeight.w600,
                               decoration: TextDecoration.underline,

@@ -8,9 +8,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:helium_mobile/core/dio_client.dart';
-import 'package:helium_mobile/data/datasources/material_remote_data_source.dart';
+import 'package:helium_mobile/data/sources/material_remote_data_source.dart';
 import 'package:helium_mobile/data/repositories/material_repository_impl.dart';
-import 'package:helium_mobile/presentation/bloc/materialBloc/material_bloc.dart';
+import 'package:helium_mobile/presentation/bloc/material/material_bloc.dart';
 import 'package:helium_mobile/presentation/views/auth/forgot_password_screen.dart';
 import 'package:helium_mobile/presentation/views/auth/login_screen.dart';
 import 'package:helium_mobile/presentation/views/auth/register_screen.dart';
@@ -18,12 +18,12 @@ import 'package:helium_mobile/presentation/views/calendar/assignment_add_reminde
 import 'package:helium_mobile/presentation/views/calendar/assignment_add_screen.dart';
 import 'package:helium_mobile/presentation/views/calendar/event_add_reminder_screen.dart';
 import 'package:helium_mobile/presentation/views/calendar/event_add_screen.dart';
-import 'package:helium_mobile/presentation/views/classes/class_add_category_screen.dart';
-import 'package:helium_mobile/presentation/views/classes/class_add_schedule_screen.dart';
-import 'package:helium_mobile/presentation/views/classes/class_add_screen.dart';
 import 'package:helium_mobile/presentation/views/core/bottom_nav_bar_screen.dart';
 import 'package:helium_mobile/presentation/views/core/notification_screen.dart';
 import 'package:helium_mobile/presentation/views/core/splash_screen.dart';
+import 'package:helium_mobile/presentation/views/courses/course_add_category_screen.dart';
+import 'package:helium_mobile/presentation/views/courses/course_add_schedule_screen.dart';
+import 'package:helium_mobile/presentation/views/courses/course_add_screen.dart';
 import 'package:helium_mobile/presentation/views/materials/material_add_screen.dart';
 import 'package:helium_mobile/presentation/views/settings/change_password_screen.dart';
 import 'package:helium_mobile/presentation/views/settings/external_calendars_screen.dart';
@@ -44,9 +44,9 @@ class AppRoutes {
       '/calendar/add-assignment/reminder';
   static const String calendarAddEventReminderScreen =
       '/calendar/add-event/reminder';
-  static const String classesAddScreen = '/classes/add';
-  static const String classesAddScheduleScreen = '/classes/add/schedule';
-  static const String classesAddCategoryScreen = '/classes/add/category';
+  static const String coursesAddScreen = '/classes/add';
+  static const String courseAddScheduleScreen = '/classes/add/schedule';
+  static const String courseAddCategoryScreen = '/classes/add/category';
   static const String materialsAddScreen = '/materials/add';
   static const String settingScreen = '/settings';
   static const String preferencesScreen = '/settings/preference';
@@ -83,35 +83,35 @@ class AppRoutes {
 
         return EventAddReminderScreen(eventRequest: args?['eventRequest']);
       },
-      classesAddScreen: (context) {
+      coursesAddScreen: (context) {
         final args = ModalRoute.of(context)?.settings.arguments;
 
         // Handle both int (create) and Map (edit) arguments
         if (args is int) {
-          return ClassAddScreen(courseGroupId: args);
+          return CourseAddScreen(courseGroupId: args);
         } else if (args is Map<String, dynamic>) {
-          return ClassAddScreen(
+          return CourseAddScreen(
             courseGroupId: args['courseGroupId'] as int,
             courseId: args['courseId'] as int?,
             isEdit: args['isEdit'] as bool? ?? false,
           );
         } else {
-          return ClassAddScreen(courseGroupId: 0);
+          return CourseAddScreen(courseGroupId: 0);
         }
       },
-      classesAddScheduleScreen: (context) {
+      courseAddScheduleScreen: (context) {
         final args =
             ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-        return ClassAddScheduleScreen(
+        return CourseAddScheduleScreen(
           courseId: args?['courseId'] ?? 0,
           courseGroupId: args?['courseGroupId'] ?? 0,
           isEdit: args?['isEdit'] as bool? ?? false,
         );
       },
-      classesAddCategoryScreen: (context) {
+      courseAddCategoryScreen: (context) {
         final args =
             ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-        return ClassAddCategoryScreen(
+        return CourseAddCategoryScreen(
           courseId: args?['courseId'] ?? 0,
           courseGroupId: args?['courseGroupId'] ?? 0,
           isEdit: args?['isEdit'] as bool? ?? false,

@@ -8,26 +8,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:helium_mobile/core/dio_client.dart';
-import 'package:helium_mobile/data/datasources/course_remote_data_source.dart';
+import 'package:helium_mobile/data/sources/course_remote_data_source.dart';
 import 'package:helium_mobile/data/models/planner/course_model.dart';
 import 'package:helium_mobile/data/models/planner/material_group_response_model.dart';
 import 'package:helium_mobile/data/models/planner/material_model.dart';
 import 'package:helium_mobile/data/models/planner/material_request_model.dart';
 import 'package:helium_mobile/data/repositories/course_repository_impl.dart';
-import 'package:helium_mobile/presentation/bloc/courseBloc/course_bloc.dart';
-import 'package:helium_mobile/presentation/bloc/courseBloc/course_event.dart';
-import 'package:helium_mobile/presentation/bloc/courseBloc/course_state.dart'
+import 'package:helium_mobile/presentation/bloc/course/course_bloc.dart';
+import 'package:helium_mobile/presentation/bloc/course/course_event.dart';
+import 'package:helium_mobile/presentation/bloc/course/course_state.dart'
     as course_state;
-import 'package:helium_mobile/presentation/bloc/materialBloc/material_bloc.dart';
-import 'package:helium_mobile/presentation/bloc/materialBloc/material_event.dart';
-import 'package:helium_mobile/presentation/bloc/materialBloc/material_state.dart'
+import 'package:helium_mobile/presentation/bloc/material/material_bloc.dart';
+import 'package:helium_mobile/presentation/bloc/material/material_event.dart';
+import 'package:helium_mobile/presentation/bloc/material/material_state.dart'
     as material_state;
-import 'package:helium_mobile/presentation/widgets/custom_class_textfield.dart';
-import 'package:helium_mobile/presentation/widgets/custom_text_button.dart';
+import 'package:helium_mobile/presentation/widgets/helium_course_textfield.dart';
+import 'package:helium_mobile/presentation/widgets/helium_text_button.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_enums.dart';
 import 'package:helium_mobile/utils/app_size.dart';
-import 'package:helium_mobile/utils/app_text_style.dart';
+import 'package:helium_mobile/utils/app_style.dart';
 
 class MaterialsAddScreen extends StatefulWidget {
   final MaterialGroupResponseModel materialGroup;
@@ -190,7 +190,7 @@ class _MaterialsAddScreenState extends State<MaterialsAddScreen> {
           backgroundColor: whiteColor,
           title: Text(
             '',
-            style: AppTextStyle.cTextStyle.copyWith(
+            style: AppStyle.cTextStyle.copyWith(
               color: blackColor,
               fontWeight: FontWeight.w600,
             ),
@@ -219,7 +219,7 @@ class _MaterialsAddScreenState extends State<MaterialsAddScreen> {
                       activeColor: primaryColor,
                       title: Text(
                         course.title,
-                        style: AppTextStyle.eTextStyle.copyWith(
+                        style: AppStyle.eTextStyle.copyWith(
                           color: blackColor,
                         ),
                       ),
@@ -234,7 +234,7 @@ class _MaterialsAddScreenState extends State<MaterialsAddScreen> {
               onPressed: () => Navigator.pop(dialogCtx),
               child: Text(
                 'Cancel',
-                style: AppTextStyle.eTextStyle.copyWith(color: textColor),
+                style: AppStyle.eTextStyle.copyWith(color: textColor),
               ),
             ),
             TextButton(
@@ -246,7 +246,7 @@ class _MaterialsAddScreenState extends State<MaterialsAddScreen> {
               },
               child: Text(
                 'Confirm',
-                style: AppTextStyle.eTextStyle.copyWith(
+                style: AppStyle.eTextStyle.copyWith(
                   color: primaryColor,
                   fontWeight: FontWeight.w700,
                 ),
@@ -344,7 +344,7 @@ class _MaterialsAddScreenState extends State<MaterialsAddScreen> {
                       widget.existingMaterial != null
                           ? 'Edit Material'
                           : 'Add Material',
-                      style: AppTextStyle.aTextStyle.copyWith(
+                      style: AppStyle.aTextStyle.copyWith(
                         color: blackColor,
                         fontWeight: FontWeight.w600,
                       ),
@@ -361,19 +361,19 @@ class _MaterialsAddScreenState extends State<MaterialsAddScreen> {
                   children: [
                     Text(
                       'Title',
-                      style: AppTextStyle.cTextStyle.copyWith(
+                      style: AppStyle.cTextStyle.copyWith(
                         color: blackColor.withValues(alpha: 0.8),
                       ),
                     ),
                     SizedBox(height: 9.v),
-                    CustomClassTextField(
+                    HeliumCourseTextField(
                       text: '',
                       controller: _titleController,
                     ),
                     SizedBox(height: 14.v),
                     Text(
                       'Classes',
-                      style: AppTextStyle.cTextStyle.copyWith(
+                      style: AppStyle.cTextStyle.copyWith(
                         color: blackColor.withValues(alpha: 0.8),
                       ),
                     ),
@@ -398,7 +398,7 @@ class _MaterialsAddScreenState extends State<MaterialsAddScreen> {
                               (_courses.isEmpty && widget.courses.isEmpty)
                                   ? 'No classes available'
                                   : '',
-                              style: AppTextStyle.eTextStyle.copyWith(
+                              style: AppStyle.eTextStyle.copyWith(
                                 color: blackColor.withValues(alpha: 0.5),
                               ),
                             )
@@ -412,7 +412,7 @@ class _MaterialsAddScreenState extends State<MaterialsAddScreen> {
                                   deleteIconColor: whiteColor,
                                   label: Text(
                                     _courseTitleById(id),
-                                    style: AppTextStyle.eTextStyle.copyWith(
+                                    style: AppStyle.eTextStyle.copyWith(
                                       color: whiteColor,
                                     ),
                                   ),
@@ -436,7 +436,7 @@ class _MaterialsAddScreenState extends State<MaterialsAddScreen> {
                                   icon: Icon(Icons.add, color: primaryColor),
                                   label: Text(
                                     'Select classes',
-                                    style: AppTextStyle.eTextStyle.copyWith(
+                                    style: AppStyle.eTextStyle.copyWith(
                                       color: primaryColor,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -451,7 +451,7 @@ class _MaterialsAddScreenState extends State<MaterialsAddScreen> {
                     SizedBox(height: 14.v),
                     Text(
                       'Status',
-                      style: AppTextStyle.cTextStyle.copyWith(
+                      style: AppStyle.cTextStyle.copyWith(
                         color: blackColor.withValues(alpha: 0.8),
                       ),
                     ),
@@ -474,7 +474,7 @@ class _MaterialsAddScreenState extends State<MaterialsAddScreen> {
                         underline: SizedBox(),
                         hint: Text(
                           '',
-                          style: AppTextStyle.eTextStyle.copyWith(
+                          style: AppStyle.eTextStyle.copyWith(
                             color: blackColor.withValues(alpha: 0.5),
                           ),
                         ),
@@ -484,7 +484,7 @@ class _MaterialsAddScreenState extends State<MaterialsAddScreen> {
                             value: entry.key,
                             child: Text(
                               entry.value,
-                              style: AppTextStyle.eTextStyle.copyWith(
+                              style: AppStyle.eTextStyle.copyWith(
                                 color: blackColor.withValues(alpha: 0.5),
                               ),
                             ),
@@ -500,7 +500,7 @@ class _MaterialsAddScreenState extends State<MaterialsAddScreen> {
                     SizedBox(height: 14.v),
                     Text(
                       'Condition',
-                      style: AppTextStyle.cTextStyle.copyWith(
+                      style: AppStyle.cTextStyle.copyWith(
                         color: blackColor.withValues(alpha: 0.8),
                       ),
                     ),
@@ -523,7 +523,7 @@ class _MaterialsAddScreenState extends State<MaterialsAddScreen> {
                         underline: SizedBox(),
                         hint: Text(
                           '',
-                          style: AppTextStyle.eTextStyle.copyWith(
+                          style: AppStyle.eTextStyle.copyWith(
                             color: blackColor.withValues(alpha: 0.5),
                           ),
                         ),
@@ -533,7 +533,7 @@ class _MaterialsAddScreenState extends State<MaterialsAddScreen> {
                             value: entry.key,
                             child: Text(
                               entry.value,
-                              style: AppTextStyle.eTextStyle.copyWith(
+                              style: AppStyle.eTextStyle.copyWith(
                                 color: blackColor.withValues(alpha: 0.5),
                               ),
                             ),
@@ -549,31 +549,31 @@ class _MaterialsAddScreenState extends State<MaterialsAddScreen> {
                     SizedBox(height: 14.v),
                     Text(
                       'Website',
-                      style: AppTextStyle.cTextStyle.copyWith(
+                      style: AppStyle.cTextStyle.copyWith(
                         color: blackColor.withValues(alpha: 0.8),
                       ),
                     ),
                     SizedBox(height: 9.v),
-                    CustomClassTextField(
+                    HeliumCourseTextField(
                       text: '',
                       controller: _websiteController,
                     ),
                     SizedBox(height: 14.v),
                     Text(
                       'Price',
-                      style: AppTextStyle.cTextStyle.copyWith(
+                      style: AppStyle.cTextStyle.copyWith(
                         color: blackColor.withValues(alpha: 0.8),
                       ),
                     ),
                     SizedBox(height: 9.v),
-                    CustomClassTextField(
+                    HeliumCourseTextField(
                       text: '',
                       controller: _priceController,
                     ),
                     SizedBox(height: 14.v),
                     Text(
                       'Details',
-                      style: AppTextStyle.cTextStyle.copyWith(
+                      style: AppStyle.cTextStyle.copyWith(
                         color: blackColor.withValues(alpha: 0.8),
                       ),
                     ),
@@ -587,12 +587,12 @@ class _MaterialsAddScreenState extends State<MaterialsAddScreen> {
                       child: TextFormField(
                         controller: _detailsController,
                         maxLines: 8,
-                        style: AppTextStyle.eTextStyle.copyWith(
+                        style: AppStyle.eTextStyle.copyWith(
                           color: blackColor,
                         ),
                         decoration: InputDecoration(
                           hintText: '',
-                          hintStyle: AppTextStyle.eTextStyle.copyWith(
+                          hintStyle: AppStyle.eTextStyle.copyWith(
                             color: blackColor.withValues(alpha: 0.5),
                           ),
                           border: InputBorder.none,
@@ -605,7 +605,7 @@ class _MaterialsAddScreenState extends State<MaterialsAddScreen> {
                         final isCreating =
                             state is material_state.MaterialCreating;
 
-                        return CustomTextButton(
+                        return HeliumTextButton(
                           buttonText: 'Save',
                           isLoading: isCreating,
                           onPressed: () => _submitMaterial(context),

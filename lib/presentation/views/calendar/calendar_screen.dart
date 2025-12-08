@@ -10,11 +10,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:helium_mobile/config/app_routes.dart';
 import 'package:helium_mobile/core/dio_client.dart';
-import 'package:helium_mobile/data/datasources/category_remote_data_source.dart';
-import 'package:helium_mobile/data/datasources/course_remote_data_source.dart';
-import 'package:helium_mobile/data/datasources/event_remote_data_source.dart';
-import 'package:helium_mobile/data/datasources/external_calendar_remote_data_source.dart';
-import 'package:helium_mobile/data/datasources/homework_remote_data_source.dart';
+import 'package:helium_mobile/data/sources/category_remote_data_source.dart';
+import 'package:helium_mobile/data/sources/course_remote_data_source.dart';
+import 'package:helium_mobile/data/sources/event_remote_data_source.dart';
+import 'package:helium_mobile/data/sources/external_calendar_remote_data_source.dart';
+import 'package:helium_mobile/data/sources/homework_remote_data_source.dart';
 import 'package:helium_mobile/data/models/auth/user_profile_model.dart';
 import 'package:helium_mobile/data/models/planner/category_model.dart';
 import 'package:helium_mobile/data/models/planner/course_model.dart';
@@ -27,26 +27,26 @@ import 'package:helium_mobile/data/repositories/course_repository_impl.dart';
 import 'package:helium_mobile/data/repositories/event_repository_impl.dart';
 import 'package:helium_mobile/data/repositories/external_calendar_repository_impl.dart';
 import 'package:helium_mobile/data/repositories/homework_repository_impl.dart';
-import 'package:helium_mobile/presentation/bloc/categoryBloc/category_bloc.dart';
-import 'package:helium_mobile/presentation/bloc/categoryBloc/category_event.dart'
+import 'package:helium_mobile/presentation/bloc/category/category_bloc.dart';
+import 'package:helium_mobile/presentation/bloc/category/category_event.dart'
     as category_event;
-import 'package:helium_mobile/presentation/bloc/categoryBloc/category_state.dart';
-import 'package:helium_mobile/presentation/bloc/courseBloc/course_bloc.dart';
-import 'package:helium_mobile/presentation/bloc/courseBloc/course_event.dart';
-import 'package:helium_mobile/presentation/bloc/courseBloc/course_state.dart';
-import 'package:helium_mobile/presentation/bloc/eventBloc/event_bloc.dart';
-import 'package:helium_mobile/presentation/bloc/eventBloc/event_event.dart';
-import 'package:helium_mobile/presentation/bloc/eventBloc/event_state.dart';
-import 'package:helium_mobile/presentation/bloc/externalCalendarBloc/external_calendar_bloc.dart';
-import 'package:helium_mobile/presentation/bloc/externalCalendarBloc/external_calendar_event.dart';
-import 'package:helium_mobile/presentation/bloc/externalCalendarBloc/external_calendar_state.dart';
-import 'package:helium_mobile/presentation/bloc/homeworkBloc/homework_bloc.dart';
-import 'package:helium_mobile/presentation/bloc/homeworkBloc/homework_event.dart';
-import 'package:helium_mobile/presentation/bloc/homeworkBloc/homework_state.dart';
+import 'package:helium_mobile/presentation/bloc/category/category_state.dart';
+import 'package:helium_mobile/presentation/bloc/course/course_bloc.dart';
+import 'package:helium_mobile/presentation/bloc/course/course_event.dart';
+import 'package:helium_mobile/presentation/bloc/course/course_state.dart';
+import 'package:helium_mobile/presentation/bloc/event/event_bloc.dart';
+import 'package:helium_mobile/presentation/bloc/event/event_event.dart';
+import 'package:helium_mobile/presentation/bloc/event/event_state.dart';
+import 'package:helium_mobile/presentation/bloc/settings/external_calendar_bloc.dart';
+import 'package:helium_mobile/presentation/bloc/settings/external_calendar_event.dart';
+import 'package:helium_mobile/presentation/bloc/settings/external_calendar_state.dart';
+import 'package:helium_mobile/presentation/bloc/homework/homework_bloc.dart';
+import 'package:helium_mobile/presentation/bloc/homework/homework_event.dart';
+import 'package:helium_mobile/presentation/bloc/homework/homework_state.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_enums.dart';
 import 'package:helium_mobile/utils/app_size.dart';
-import 'package:helium_mobile/utils/app_text_style.dart';
+import 'package:helium_mobile/utils/app_style.dart';
 import 'package:helium_mobile/utils/app_helpers.dart';
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
@@ -766,7 +766,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             margin: EdgeInsets.only(bottom: 8.v, top: 8.v),
             child: Text(
               DateFormat('EEEE, MMMM dd').format(date),
-              style: AppTextStyle.bTextStyle.copyWith(
+              style: AppStyle.bTextStyle.copyWith(
                 color: textColor,
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
@@ -1043,7 +1043,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         padding: EdgeInsets.symmetric(vertical: 8.v),
                         child: Text(
                           'Clear Filters',
-                          style: AppTextStyle.cTextStyle.copyWith(
+                          style: AppStyle.cTextStyle.copyWith(
                             color: textColor,
                             fontWeight: FontWeight.w500,
                           ),
@@ -1087,7 +1087,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           },
                           title: Text(
                             'Assignments',
-                            style: AppTextStyle.eTextStyle.copyWith(
+                            style: AppStyle.eTextStyle.copyWith(
                               color: textColor,
                             ),
                           ),
@@ -1121,7 +1121,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             children: [
                               Text(
                                 'Events',
-                                style: AppTextStyle.eTextStyle.copyWith(
+                                style: AppStyle.eTextStyle.copyWith(
                                   color: textColor,
                                 ),
                               ),
@@ -1166,7 +1166,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           },
                           title: Text(
                             'Class Schedules',
-                            style: AppTextStyle.eTextStyle.copyWith(
+                            style: AppStyle.eTextStyle.copyWith(
                               color: textColor,
                             ),
                           ),
@@ -1202,7 +1202,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           },
                           title: Text(
                             'External Calendars',
-                            style: AppTextStyle.eTextStyle.copyWith(
+                            style: AppStyle.eTextStyle.copyWith(
                               color: textColor,
                             ),
                           ),
@@ -1238,7 +1238,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         },
                         title: Text(
                           label,
-                          style: AppTextStyle.eTextStyle.copyWith(
+                          style: AppStyle.eTextStyle.copyWith(
                             color: textColor,
                           ),
                         ),
@@ -1261,7 +1261,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 Divider(height: 20.v),
                 Text(
                   'Categories',
-                  style: AppTextStyle.bTextStyle.copyWith(
+                  style: AppStyle.bTextStyle.copyWith(
                     color: textColor,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -1301,7 +1301,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               Expanded(
                                 child: Text(
                                   category.title,
-                                  style: AppTextStyle.eTextStyle.copyWith(
+                                  style: AppStyle.eTextStyle.copyWith(
                                     color: textColor,
                                   ),
                                 ),
@@ -1380,7 +1380,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         padding: EdgeInsets.symmetric(vertical: 8.v),
                         child: Text(
                           'Clear Filters',
-                          style: AppTextStyle.cTextStyle.copyWith(
+                          style: AppStyle.cTextStyle.copyWith(
                             color: textColor,
                             fontWeight: FontWeight.w500,
                           ),
@@ -1401,7 +1401,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     child: Center(
                       child: Text(
                         'No classes available',
-                        style: AppTextStyle.eTextStyle.copyWith(
+                        style: AppStyle.eTextStyle.copyWith(
                           color: textColor.withValues(alpha: 0.6),
                           fontSize: 12,
                         ),
@@ -1467,7 +1467,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     children: [
                                       Text(
                                         course.title,
-                                        style: AppTextStyle.cTextStyle.copyWith(
+                                        style: AppStyle.cTextStyle.copyWith(
                                           color: textColor,
                                           fontWeight: FontWeight.w600,
                                           fontSize: 13,
@@ -1478,7 +1478,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       if (course.room.isNotEmpty)
                                         Text(
                                           course.room,
-                                          style: AppTextStyle.eTextStyle
+                                          style: AppStyle.eTextStyle
                                               .copyWith(
                                                 color: textColor.withValues(
                                                   alpha: 0.6,
@@ -1491,7 +1491,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       if (course.teacherName.isNotEmpty)
                                         Text(
                                           course.teacherName,
-                                          style: AppTextStyle.eTextStyle
+                                          style: AppStyle.eTextStyle
                                               .copyWith(
                                                 color: textColor.withValues(
                                                   alpha: 0.6,
@@ -1640,7 +1640,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           children: [
                             Text(
                               weekRanges[index],
-                              style: AppTextStyle.eTextStyle.copyWith(
+                              style: AppStyle.eTextStyle.copyWith(
                                 color: isSelected ? whiteColor : textColor,
                                 fontSize: 12,
                                 fontWeight: isSelected
@@ -1663,7 +1663,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                 ),
                                 child: Text(
                                   '$itemCount',
-                                  style: AppTextStyle.fTextStyle.copyWith(
+                                  style: AppStyle.fTextStyle.copyWith(
                                     color: isSelected
                                         ? whiteColor
                                         : primaryColor,
@@ -1727,7 +1727,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         SizedBox(width: 8.h),
                         Text(
                           'Week ${_selectedWeekIndex + 1} - ${weekRanges[_selectedWeekIndex]}',
-                          style: AppTextStyle.bTextStyle.copyWith(
+                          style: AppStyle.bTextStyle.copyWith(
                             color: textColor,
                             fontWeight: FontWeight.w600,
                           ),
@@ -1749,7 +1749,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         : Center(
                             child: Text(
                               'No week selected',
-                              style: AppTextStyle.cTextStyle.copyWith(
+                              style: AppStyle.cTextStyle.copyWith(
                                 color: textColor.withValues(alpha: 0.6),
                               ),
                             ),
@@ -1792,7 +1792,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             SizedBox(height: 16),
             Text(
               'No items for this week',
-              style: AppTextStyle.bTextStyle.copyWith(
+              style: AppStyle.bTextStyle.copyWith(
                 color: textColor.withValues(alpha: 0.6),
               ),
             ),
@@ -1845,14 +1845,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
             SizedBox(height: 16),
             Text(
               'No items found',
-              style: AppTextStyle.bTextStyle.copyWith(
+              style: AppStyle.bTextStyle.copyWith(
                 color: textColor.withValues(alpha: 0.6),
               ),
             ),
             SizedBox(height: 8),
             Text(
               'Try adjusting your filters',
-              style: AppTextStyle.cTextStyle.copyWith(
+              style: AppStyle.cTextStyle.copyWith(
                 color: textColor.withValues(alpha: 0.5),
               ),
             ),
@@ -1906,7 +1906,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 ),
                 Text(
                   DateFormat('MMMM yyyy').format(_calendarFocusedMonth),
-                  style: AppTextStyle.bTextStyle.copyWith(
+                  style: AppStyle.bTextStyle.copyWith(
                     color: textColor,
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
@@ -1936,7 +1936,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       child: Center(
                         child: Text(
                           day,
-                          style: AppTextStyle.cTextStyle.copyWith(
+                          style: AppStyle.cTextStyle.copyWith(
                             color: textColor.withValues(alpha: 0.6),
                             fontWeight: FontWeight.w600,
                             fontSize: 12,
@@ -2378,7 +2378,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
                       Text(
                         'Calendar',
-                        style: AppTextStyle.bTextStyle.copyWith(
+                        style: AppStyle.bTextStyle.copyWith(
                           color: textColor,
                         ),
                       ),
@@ -2608,7 +2608,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                               child: Center(
                                                 child: Text(
                                                   mobileViews[index],
-                                                  style: AppTextStyle.eTextStyle
+                                                  style: AppStyle.eTextStyle
                                                       .copyWith(
                                                         color: isSelected
                                                             ? whiteColor
@@ -2636,14 +2636,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         if (_currentViewMode != 'Todos')
                           Text(
                             DateFormat('EEEE, MMMM dd').format(_selectedDate),
-                            style: AppTextStyle.bTextStyle.copyWith(
+                            style: AppStyle.bTextStyle.copyWith(
                               color: blackColor,
                             ),
                           )
                         else
                           Text(
                             'Assignments',
-                            style: AppTextStyle.bTextStyle.copyWith(
+                            style: AppStyle.bTextStyle.copyWith(
                               color: blackColor,
                             ),
                           ),
@@ -2898,7 +2898,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                             Text(
                                               courseState.message,
                                               textAlign: TextAlign.center,
-                                              style: AppTextStyle.cTextStyle
+                                              style: AppStyle.cTextStyle
                                                   .copyWith(color: textColor),
                                             ),
                                           ],
@@ -3132,7 +3132,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                               SizedBox(height: 16),
                                               Text(
                                                 'No items for selected date',
-                                                style: AppTextStyle.bTextStyle
+                                                style: AppStyle.bTextStyle
                                                     .copyWith(
                                                       color: textColor
                                                           .withValues(
@@ -3143,7 +3143,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                               SizedBox(height: 8),
                                               Text(
                                                 'Try selecting different filters',
-                                                style: AppTextStyle.cTextStyle
+                                                style: AppStyle.cTextStyle
                                                     .copyWith(
                                                       color: textColor
                                                           .withValues(
@@ -3181,7 +3181,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                           SizedBox(height: 16),
                                           Text(
                                             'Loading...',
-                                            style: AppTextStyle.bTextStyle
+                                            style: AppStyle.bTextStyle
                                                 .copyWith(
                                                   color: textColor.withValues(
                                                     alpha: 0.6,
@@ -3257,7 +3257,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               children: [
                 Text(
                   course.title,
-                  style: AppTextStyle.cTextStyle.copyWith(
+                  style: AppStyle.cTextStyle.copyWith(
                     color: courseColor,
                     fontWeight: FontWeight.w600,
                   ),
@@ -3274,7 +3274,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       SizedBox(width: 4.h),
                       Text(
                         course.room,
-                        style: AppTextStyle.fTextStyle.copyWith(
+                        style: AppStyle.fTextStyle.copyWith(
                           color: courseColor.withValues(alpha: 0.7),
                         ),
                       ),
@@ -3297,7 +3297,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       SizedBox(width: 4.h),
                       Text(
                         _getCourseTimeForDate(course, dateTime),
-                        style: AppTextStyle.fTextStyle.copyWith(
+                        style: AppStyle.fTextStyle.copyWith(
                           color: courseColor.withValues(alpha: 0.6),
                           fontSize: 11,
                         ),
@@ -3345,7 +3345,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               SizedBox(width: 12),
               Text(
                 'Delete Assignment',
-                style: AppTextStyle.bTextStyle.copyWith(
+                style: AppStyle.bTextStyle.copyWith(
                   color: textColor,
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
@@ -3359,7 +3359,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             children: [
               Text(
                 'Are you sure you want to delete this assignment?',
-                style: AppTextStyle.cTextStyle.copyWith(
+                style: AppStyle.cTextStyle.copyWith(
                   color: textColor,
                   fontSize: 14,
                 ),
@@ -3379,7 +3379,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     Expanded(
                       child: Text(
                         homework.title,
-                        style: AppTextStyle.cTextStyle.copyWith(
+                        style: AppStyle.cTextStyle.copyWith(
                           color: textColor,
                           fontWeight: FontWeight.w600,
                         ),
@@ -3393,7 +3393,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               SizedBox(height: 8),
               Text(
                 'This action cannot be undone.',
-                style: AppTextStyle.eTextStyle.copyWith(
+                style: AppStyle.eTextStyle.copyWith(
                   color: textColor.withValues(alpha: 0.6),
                   fontSize: 12,
                   fontStyle: FontStyle.italic,
@@ -3406,7 +3406,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               onPressed: () => Navigator.pop(dialogContext),
               child: Text(
                 'Cancel',
-                style: AppTextStyle.cTextStyle.copyWith(
+                style: AppStyle.cTextStyle.copyWith(
                   color: textColor,
                   fontWeight: FontWeight.w600,
                 ),
@@ -3437,7 +3437,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               ),
               child: Text(
                 'Delete',
-                style: AppTextStyle.cTextStyle.copyWith(
+                style: AppStyle.cTextStyle.copyWith(
                   color: whiteColor,
                   fontWeight: FontWeight.w600,
                 ),
@@ -3570,7 +3570,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     Expanded(
                       child: Text(
                         homework.title,
-                        style: AppTextStyle.cTextStyle.copyWith(
+                        style: AppStyle.cTextStyle.copyWith(
                           color: assignmentColor,
                           fontWeight: FontWeight.w600,
                           decorationColor: assignmentColor,
@@ -3601,7 +3601,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         info.add(
                           Text(
                             _categoriesById[homework.category]!.title,
-                            style: AppTextStyle.fTextStyle.copyWith(
+                            style: AppStyle.fTextStyle.copyWith(
                               color: assignmentColor.withValues(alpha: 0.7),
                             ),
                           ),
@@ -3622,7 +3622,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         info.add(
                           Text(
                             homework.getFormattedGrade(),
-                            style: AppTextStyle.fTextStyle.copyWith(
+                            style: AppStyle.fTextStyle.copyWith(
                               color: assignmentColor.withValues(alpha: 0.7),
                               fontWeight: FontWeight.w600,
                             ),
@@ -3644,7 +3644,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       SizedBox(width: 4.h),
                       Text(
                         timeDisplay,
-                        style: AppTextStyle.fTextStyle.copyWith(
+                        style: AppStyle.fTextStyle.copyWith(
                           color: assignmentColor.withValues(alpha: 0.7),
                         ),
                       ),
@@ -3738,7 +3738,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     Expanded(
                       child: Text(
                         event.title,
-                        style: AppTextStyle.cTextStyle.copyWith(
+                        style: AppStyle.cTextStyle.copyWith(
                           color: eventColor,
                           fontWeight: FontWeight.w600,
                         ),
@@ -3758,7 +3758,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       SizedBox(width: 4.h),
                       Text(
                         timeDisplay,
-                        style: AppTextStyle.fTextStyle.copyWith(
+                        style: AppStyle.fTextStyle.copyWith(
                           color: eventColor.withValues(alpha: 0.7),
                         ),
                       ),
@@ -3811,20 +3811,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
         return AlertDialog(
           title: Text(
             'Delete Event',
-            style: AppTextStyle.cTextStyle.copyWith(
+            style: AppStyle.cTextStyle.copyWith(
               fontWeight: FontWeight.w600,
             ),
           ),
           content: Text(
             'Are you sure you want to delete "${event.title}"?',
-            style: AppTextStyle.eTextStyle,
+            style: AppStyle.eTextStyle,
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
               child: Text(
                 'Cancel',
-                style: AppTextStyle.eTextStyle.copyWith(color: textColor),
+                style: AppStyle.eTextStyle.copyWith(color: textColor),
               ),
             ),
             TextButton(
@@ -3835,7 +3835,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               },
               child: Text(
                 'Delete',
-                style: AppTextStyle.eTextStyle.copyWith(
+                style: AppStyle.eTextStyle.copyWith(
                   color: redColor,
                   fontWeight: FontWeight.w600,
                 ),
@@ -3911,7 +3911,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     Expanded(
                       child: Text(
                         externalEvent.title,
-                        style: AppTextStyle.cTextStyle.copyWith(
+                        style: AppStyle.cTextStyle.copyWith(
                           color: eventColor,
                           fontWeight: FontWeight.w600,
                         ),
@@ -3929,7 +3929,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       ),
                       child: Text(
                         'External',
-                        style: AppTextStyle.fTextStyle.copyWith(
+                        style: AppStyle.fTextStyle.copyWith(
                           color: eventColor,
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
@@ -3949,7 +3949,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     SizedBox(width: 4.h),
                     Text(
                       timeDisplay,
-                      style: AppTextStyle.fTextStyle.copyWith(
+                      style: AppStyle.fTextStyle.copyWith(
                         color: eventColor.withValues(alpha: 0.7),
                       ),
                     ),

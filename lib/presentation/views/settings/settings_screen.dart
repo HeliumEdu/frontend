@@ -9,14 +9,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:helium_mobile/config/app_routes.dart';
 import 'package:helium_mobile/core/dio_client.dart';
-import 'package:helium_mobile/data/datasources/auth_remote_data_source.dart';
+import 'package:helium_mobile/data/sources/auth_remote_data_source.dart';
 import 'package:helium_mobile/data/repositories/auth_repository_impl.dart';
-import 'package:helium_mobile/presentation/bloc/authBloc/auth_bloc.dart';
-import 'package:helium_mobile/presentation/bloc/authBloc/auth_event.dart';
-import 'package:helium_mobile/presentation/bloc/authBloc/auth_state.dart';
+import 'package:helium_mobile/presentation/bloc/auth/auth_bloc.dart';
+import 'package:helium_mobile/presentation/bloc/auth/auth_event.dart';
+import 'package:helium_mobile/presentation/bloc/auth/auth_state.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_size.dart';
-import 'package:helium_mobile/utils/app_text_style.dart';
+import 'package:helium_mobile/utils/app_style.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -59,7 +59,7 @@ class _SettingsScreenViewState extends State<SettingsScreenView> {
             SizedBox(width: 12),
             Text(
               'Logout',
-              style: AppTextStyle.bTextStyle.copyWith(
+              style: AppStyle.bTextStyle.copyWith(
                 color: blackColor,
                 fontWeight: FontWeight.w600,
               ),
@@ -68,14 +68,14 @@ class _SettingsScreenViewState extends State<SettingsScreenView> {
         ),
         content: Text(
           'Are you sure you want to logout?',
-          style: AppTextStyle.eTextStyle.copyWith(color: textColor),
+          style: AppStyle.eTextStyle.copyWith(color: textColor),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
             child: Text(
               'Cancel',
-              style: AppTextStyle.eTextStyle.copyWith(color: textColor),
+              style: AppStyle.eTextStyle.copyWith(color: textColor),
             ),
           ),
           ElevatedButton(
@@ -91,7 +91,7 @@ class _SettingsScreenViewState extends State<SettingsScreenView> {
             ),
             child: Text(
               'Logout',
-              style: AppTextStyle.eTextStyle.copyWith(
+              style: AppStyle.eTextStyle.copyWith(
                 color: whiteColor,
                 fontWeight: FontWeight.w600,
               ),
@@ -168,7 +168,7 @@ class _SettingsScreenViewState extends State<SettingsScreenView> {
               Expanded(
                 child: Text(
                   'Delete Account',
-                  style: AppTextStyle.bTextStyle.copyWith(
+                  style: AppStyle.bTextStyle.copyWith(
                     color: redColor,
                     fontWeight: FontWeight.w700,
                   ),
@@ -183,7 +183,7 @@ class _SettingsScreenViewState extends State<SettingsScreenView> {
               children: [
                 Text(
                   'This action cannot be undone. All your data will be permanently deleted.',
-                  style: AppTextStyle.eTextStyle.copyWith(
+                  style: AppStyle.eTextStyle.copyWith(
                     color: textColor,
                     height: 1.5,
                   ),
@@ -191,7 +191,7 @@ class _SettingsScreenViewState extends State<SettingsScreenView> {
                 SizedBox(height: 20.v),
                 Text(
                   'Enter your password to confirm:',
-                  style: AppTextStyle.cTextStyle.copyWith(
+                  style: AppStyle.cTextStyle.copyWith(
                     color: textColor.withValues(alpha: 0.8),
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
@@ -221,13 +221,13 @@ class _SettingsScreenViewState extends State<SettingsScreenView> {
                         child: TextFormField(
                           controller: _deletePasswordController,
                           obscureText: obscurePassword,
-                          style: AppTextStyle.eTextStyle.copyWith(
+                          style: AppStyle.eTextStyle.copyWith(
                             color: blackColor,
                             fontWeight: FontWeight.w500,
                           ),
                           decoration: InputDecoration(
                             hintText: '',
-                            hintStyle: AppTextStyle.eTextStyle.copyWith(
+                            hintStyle: AppStyle.eTextStyle.copyWith(
                               color: textColor.withValues(alpha: 0.4),
                             ),
                             border: InputBorder.none,
@@ -265,7 +265,7 @@ class _SettingsScreenViewState extends State<SettingsScreenView> {
               },
               child: Text(
                 'Cancel',
-                style: AppTextStyle.eTextStyle.copyWith(
+                style: AppStyle.eTextStyle.copyWith(
                   color: textColor,
                   fontWeight: FontWeight.w600,
                 ),
@@ -303,7 +303,7 @@ class _SettingsScreenViewState extends State<SettingsScreenView> {
               ),
               child: Text(
                 'Delete Account',
-                style: AppTextStyle.eTextStyle.copyWith(
+                style: AppStyle.eTextStyle.copyWith(
                   color: whiteColor,
                   fontWeight: FontWeight.w700,
                 ),
@@ -387,7 +387,7 @@ class _SettingsScreenViewState extends State<SettingsScreenView> {
                     ),
                     Text(
                       'Settings',
-                      style: AppTextStyle.bTextStyle.copyWith(
+                      style: AppStyle.bTextStyle.copyWith(
                         color: blackColor,
                       ),
                     ),
@@ -437,7 +437,7 @@ class _SettingsScreenViewState extends State<SettingsScreenView> {
                                     SizedBox(height: 16.v),
                                     Text(
                                       'Loading profile...',
-                                      style: AppTextStyle.eTextStyle.copyWith(
+                                      style: AppStyle.eTextStyle.copyWith(
                                         color: textColor,
                                       ),
                                     ),
@@ -468,7 +468,7 @@ class _SettingsScreenViewState extends State<SettingsScreenView> {
                                   children: [
                                     Text(
                                       'Username',
-                                      style: AppTextStyle.cTextStyle.copyWith(
+                                      style: AppStyle.cTextStyle.copyWith(
                                         color: textColor.withValues(alpha: 0.7),
                                         fontWeight: FontWeight.w500,
                                         fontSize: 13,
@@ -506,14 +506,14 @@ class _SettingsScreenViewState extends State<SettingsScreenView> {
                                             child: TextFormField(
                                               controller: _usernameController,
                                               enabled: false,
-                                              style: AppTextStyle.eTextStyle
+                                              style: AppStyle.eTextStyle
                                                   .copyWith(
                                                     color: blackColor,
                                                     fontWeight: FontWeight.w500,
                                                   ),
                                               decoration: InputDecoration(
                                                 hintText: 'Username',
-                                                hintStyle: AppTextStyle
+                                                hintStyle: AppStyle
                                                     .eTextStyle
                                                     .copyWith(
                                                       color: textColor
@@ -543,7 +543,7 @@ class _SettingsScreenViewState extends State<SettingsScreenView> {
                                   children: [
                                     Text(
                                       'Email Address',
-                                      style: AppTextStyle.cTextStyle.copyWith(
+                                      style: AppStyle.cTextStyle.copyWith(
                                         color: textColor.withValues(alpha: 0.7),
                                         fontWeight: FontWeight.w500,
                                         fontSize: 13,
@@ -583,14 +583,14 @@ class _SettingsScreenViewState extends State<SettingsScreenView> {
                                               keyboardType:
                                                   TextInputType.emailAddress,
                                               enabled: false,
-                                              style: AppTextStyle.eTextStyle
+                                              style: AppStyle.eTextStyle
                                                   .copyWith(
                                                     color: blackColor,
                                                     fontWeight: FontWeight.w500,
                                                   ),
                                               decoration: InputDecoration(
                                                 hintText: 'Email Address',
-                                                hintStyle: AppTextStyle
+                                                hintStyle: AppStyle
                                                     .eTextStyle
                                                     .copyWith(
                                                       color: textColor
@@ -688,7 +688,7 @@ class _SettingsScreenViewState extends State<SettingsScreenView> {
                                           children: [
                                             Text(
                                               'Change Password',
-                                              style: AppTextStyle.eTextStyle
+                                              style: AppStyle.eTextStyle
                                                   .copyWith(
                                                     color: textColor,
                                                     fontWeight: FontWeight.w600,
@@ -697,7 +697,7 @@ class _SettingsScreenViewState extends State<SettingsScreenView> {
                                             SizedBox(height: 2.v),
                                             Text(
                                               'Update your password',
-                                              style: AppTextStyle.cTextStyle
+                                              style: AppStyle.cTextStyle
                                                   .copyWith(
                                                     color: textColor.withValues(
                                                       alpha: 0.6,
@@ -770,7 +770,7 @@ class _SettingsScreenViewState extends State<SettingsScreenView> {
                                             children: [
                                               Text(
                                                 'Preferences',
-                                                style: AppTextStyle.eTextStyle
+                                                style: AppStyle.eTextStyle
                                                     .copyWith(
                                                       color: textColor,
                                                       fontWeight:
@@ -780,7 +780,7 @@ class _SettingsScreenViewState extends State<SettingsScreenView> {
                                               SizedBox(height: 2.v),
                                               Text(
                                                 'App settings and preferences',
-                                                style: AppTextStyle.cTextStyle
+                                                style: AppStyle.cTextStyle
                                                     .copyWith(
                                                       color: textColor
                                                           .withValues(
@@ -848,7 +848,7 @@ class _SettingsScreenViewState extends State<SettingsScreenView> {
                                           children: [
                                             Text(
                                               'External Calendars',
-                                              style: AppTextStyle.eTextStyle
+                                              style: AppStyle.eTextStyle
                                                   .copyWith(
                                                     color: textColor,
                                                     fontWeight: FontWeight.w600,
@@ -857,7 +857,7 @@ class _SettingsScreenViewState extends State<SettingsScreenView> {
                                             SizedBox(height: 2.v),
                                             Text(
                                               'Bring other calendars in to Helium',
-                                              style: AppTextStyle.cTextStyle
+                                              style: AppStyle.cTextStyle
                                                   .copyWith(
                                                     color: textColor.withValues(
                                                       alpha: 0.6,
@@ -923,7 +923,7 @@ class _SettingsScreenViewState extends State<SettingsScreenView> {
                                           children: [
                                             Text(
                                               'Feeds',
-                                              style: AppTextStyle.eTextStyle
+                                              style: AppStyle.eTextStyle
                                                   .copyWith(
                                                     color: textColor,
                                                     fontWeight: FontWeight.w600,
@@ -932,7 +932,7 @@ class _SettingsScreenViewState extends State<SettingsScreenView> {
                                             SizedBox(height: 2.v),
                                             Text(
                                               'Take Helium\'s calendars elsewhere',
-                                              style: AppTextStyle.cTextStyle
+                                              style: AppStyle.cTextStyle
                                                   .copyWith(
                                                     color: textColor.withValues(
                                                       alpha: 0.6,
@@ -1009,7 +1009,7 @@ class _SettingsScreenViewState extends State<SettingsScreenView> {
                                       children: [
                                         Text(
                                           'Delete Account',
-                                          style: AppTextStyle.eTextStyle
+                                          style: AppStyle.eTextStyle
                                               .copyWith(
                                                 color: redColor,
                                                 fontWeight: FontWeight.w600,
@@ -1018,7 +1018,7 @@ class _SettingsScreenViewState extends State<SettingsScreenView> {
                                         SizedBox(height: 2.v),
                                         Text(
                                           'Permanently delete your account',
-                                          style: AppTextStyle.cTextStyle
+                                          style: AppStyle.cTextStyle
                                               .copyWith(
                                                 color: textColor.withValues(
                                                   alpha: 0.6,

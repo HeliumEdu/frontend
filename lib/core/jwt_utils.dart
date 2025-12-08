@@ -7,7 +7,7 @@
 
 import 'dart:convert';
 
-class JWTUtils {
+class JwtUtils {
   /// Decode JWT token and extract payload
   static Map<String, dynamic>? decodePayload(String token) {
     try {

@@ -9,14 +9,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:helium_mobile/core/dio_client.dart';
-import 'package:helium_mobile/data/datasources/private_feed_remote_data_source.dart';
+import 'package:helium_mobile/data/sources/private_feed_remote_data_source.dart';
 import 'package:helium_mobile/data/repositories/private_feed_repository_impl.dart';
-import 'package:helium_mobile/presentation/bloc/privateFeedBloc/private_feed_bloc.dart';
-import 'package:helium_mobile/presentation/bloc/privateFeedBloc/private_feed_event.dart';
-import 'package:helium_mobile/presentation/bloc/privateFeedBloc/private_feed_state.dart';
+import 'package:helium_mobile/presentation/bloc/settings/feed_bloc.dart';
+import 'package:helium_mobile/presentation/bloc/settings/feed_event.dart';
+import 'package:helium_mobile/presentation/bloc/settings/feed_state.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_size.dart';
-import 'package:helium_mobile/utils/app_text_style.dart';
+import 'package:helium_mobile/utils/app_style.dart';
 import 'package:share_plus/share_plus.dart';
 
 class FeedsSettingsScreen extends StatelessWidget {
@@ -62,7 +62,7 @@ class _FeedsSettingsViewState extends State<FeedsSettingsView> {
             Expanded(
               child: Text(
                 '$label URL copied!',
-                style: AppTextStyle.cTextStyle.copyWith(
+                style: AppStyle.cTextStyle.copyWith(
                   color: whiteColor,
                   fontWeight: FontWeight.w500,
                 ),
@@ -99,7 +99,7 @@ class _FeedsSettingsViewState extends State<FeedsSettingsView> {
                 SnackBar(
                   content: Text(
                     'hello world',
-                    style: AppTextStyle.cTextStyle.copyWith(color: whiteColor),
+                    style: AppStyle.cTextStyle.copyWith(color: whiteColor),
                   ),
                   backgroundColor: greenColor,
                   duration: const Duration(seconds: 2),
@@ -110,7 +110,7 @@ class _FeedsSettingsViewState extends State<FeedsSettingsView> {
                   SnackBar(
                     content: Text(
                       state.message,
-                      style: AppTextStyle.cTextStyle.copyWith(
+                      style: AppStyle.cTextStyle.copyWith(
                         color: whiteColor,
                       ),
                     ),
@@ -155,7 +155,7 @@ class _FeedsSettingsViewState extends State<FeedsSettingsView> {
                     ),
                     Text(
                       'Feeds',
-                      style: AppTextStyle.bTextStyle.copyWith(
+                      style: AppStyle.bTextStyle.copyWith(
                         color: blackColor,
                       ),
                     ),
@@ -215,7 +215,7 @@ class _FeedsSettingsViewState extends State<FeedsSettingsView> {
                     children: [
                       Text(
                         title,
-                        style: AppTextStyle.bTextStyle.copyWith(
+                        style: AppStyle.bTextStyle.copyWith(
                           color: textColor,
                           fontWeight: FontWeight.w600,
                           fontSize: 16,
@@ -245,7 +245,7 @@ class _FeedsSettingsViewState extends State<FeedsSettingsView> {
                   ),
                   child: SelectableText(
                     url,
-                    style: AppTextStyle.fTextStyle.copyWith(
+                    style: AppStyle.fTextStyle.copyWith(
                       color: textColor.withValues(alpha: 0.7),
                       fontSize: 11,
                       height: 1.5,

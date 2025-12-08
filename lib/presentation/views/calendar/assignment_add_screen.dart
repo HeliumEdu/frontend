@@ -10,9 +10,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:helium_mobile/config/app_routes.dart';
 import 'package:helium_mobile/core/dio_client.dart';
-import 'package:helium_mobile/data/datasources/course_remote_data_source.dart';
-import 'package:helium_mobile/data/datasources/homework_remote_data_source.dart';
-import 'package:helium_mobile/data/datasources/material_remote_data_source.dart';
+import 'package:helium_mobile/data/sources/course_remote_data_source.dart';
+import 'package:helium_mobile/data/sources/homework_remote_data_source.dart';
+import 'package:helium_mobile/data/sources/material_remote_data_source.dart';
 import 'package:helium_mobile/data/models/auth/user_profile_model.dart';
 import 'package:helium_mobile/data/models/planner/category_model.dart';
 import 'package:helium_mobile/data/models/planner/course_model.dart';
@@ -23,23 +23,20 @@ import 'package:helium_mobile/data/models/planner/material_model.dart';
 import 'package:helium_mobile/data/repositories/course_repository_impl.dart';
 import 'package:helium_mobile/data/repositories/homework_repository_impl.dart';
 import 'package:helium_mobile/data/repositories/material_repository_impl.dart';
-import 'package:helium_mobile/presentation/bloc/courseBloc/course_bloc.dart';
-import 'package:helium_mobile/presentation/bloc/courseBloc/course_event.dart';
-import 'package:helium_mobile/presentation/bloc/courseBloc/course_state.dart'
-    as course_state;
-import 'package:helium_mobile/presentation/bloc/homeworkBloc/homework_bloc.dart';
-import 'package:helium_mobile/presentation/bloc/homeworkBloc/homework_event.dart';
-import 'package:helium_mobile/presentation/bloc/homeworkBloc/homework_state.dart'
-    as homework_state;
-import 'package:helium_mobile/presentation/bloc/materialBloc/material_bloc.dart';
-import 'package:helium_mobile/presentation/bloc/materialBloc/material_event.dart';
-import 'package:helium_mobile/presentation/bloc/materialBloc/material_state.dart'
-    as material_state;
-import 'package:helium_mobile/presentation/widgets/custom_class_textfield.dart';
-import 'package:helium_mobile/presentation/widgets/custom_text_button.dart';
+import 'package:helium_mobile/presentation/bloc/course/course_bloc.dart';
+import 'package:helium_mobile/presentation/bloc/course/course_event.dart';
+import 'package:helium_mobile/presentation/bloc/course/course_state.dart' as course_state;
+import 'package:helium_mobile/presentation/bloc/homework/homework_bloc.dart';
+import 'package:helium_mobile/presentation/bloc/homework/homework_event.dart';
+import 'package:helium_mobile/presentation/bloc/homework/homework_state.dart' as homework_state;
+import 'package:helium_mobile/presentation/bloc/material/material_bloc.dart';
+import 'package:helium_mobile/presentation/bloc/material/material_event.dart';
+import 'package:helium_mobile/presentation/bloc/material/material_state.dart' as material_state;
+import 'package:helium_mobile/presentation/widgets/helium_course_textfield.dart';
+import 'package:helium_mobile/presentation/widgets/helium_text_button.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_size.dart';
-import 'package:helium_mobile/utils/app_text_style.dart';
+import 'package:helium_mobile/utils/app_style.dart';
 import 'package:helium_mobile/utils/app_helpers.dart';
 import 'package:logging/logging.dart';
 
@@ -376,7 +373,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
           backgroundColor: whiteColor,
           title: Text(
             '',
-            style: AppTextStyle.cTextStyle.copyWith(
+            style: AppStyle.cTextStyle.copyWith(
               color: blackColor,
               fontWeight: FontWeight.w600,
             ),
@@ -405,7 +402,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                       activeColor: primaryColor,
                       title: Text(
                         mat.title,
-                        style: AppTextStyle.eTextStyle.copyWith(
+                        style: AppStyle.eTextStyle.copyWith(
                           color: blackColor,
                         ),
                       ),
@@ -420,7 +417,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
               onPressed: () => Navigator.pop(dialogCtx),
               child: Text(
                 'Cancel',
-                style: AppTextStyle.eTextStyle.copyWith(color: textColor),
+                style: AppStyle.eTextStyle.copyWith(color: textColor),
               ),
             ),
             TextButton(
@@ -432,7 +429,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
               },
               child: Text(
                 'Confirm',
-                style: AppTextStyle.eTextStyle.copyWith(
+                style: AppStyle.eTextStyle.copyWith(
                   color: primaryColor,
                   fontWeight: FontWeight.w700,
                 ),
@@ -573,7 +570,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                   isEditMode
                       ? 'Updating assignment...'
                       : 'Creating assignment...',
-                  style: AppTextStyle.eTextStyle.copyWith(color: blackColor),
+                  style: AppStyle.eTextStyle.copyWith(color: blackColor),
                 ),
               ],
             ),
@@ -838,7 +835,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                     ),
                     Text(
                       isEditMode ? 'Edit Assignment' : 'Add Assignment',
-                      style: AppTextStyle.aTextStyle.copyWith(
+                      style: AppStyle.aTextStyle.copyWith(
                         color: blackColor,
                         fontWeight: FontWeight.w600,
                       ),
@@ -945,7 +942,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                           padding: EdgeInsets.only(top: 8.v),
                           child: Text(
                             'Assignment',
-                            style: AppTextStyle.iTextStyle.copyWith(
+                            style: AppStyle.iTextStyle.copyWith(
                               color: blackColor,
                               fontWeight: FontWeight.w600,
                               fontSize: 13.fSize,
@@ -974,7 +971,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                           padding: EdgeInsets.only(top: 8.v),
                           child: Text(
                             'Reminder',
-                            style: AppTextStyle.iTextStyle.copyWith(
+                            style: AppStyle.iTextStyle.copyWith(
                               color: blackColor,
                               fontWeight: FontWeight.w600,
                               fontSize: 13.fSize,
@@ -1000,13 +997,13 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                         // Title
                         Text(
                           'Title',
-                          style: AppTextStyle.eTextStyle.copyWith(
+                          style: AppStyle.eTextStyle.copyWith(
                             color: blackColor.withValues(alpha: 0.8),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
                         SizedBox(height: 8.v),
-                        CustomClassTextField(
+                        HeliumCourseTextField(
                           text: '',
                           controller: _titleController,
                         ),
@@ -1014,7 +1011,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                         // Class Dropdown
                         Text(
                           'Class',
-                          style: AppTextStyle.eTextStyle.copyWith(
+                          style: AppStyle.eTextStyle.copyWith(
                             color: blackColor.withValues(alpha: 0.8),
                             fontWeight: FontWeight.w500,
                           ),
@@ -1044,7 +1041,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                             underline: SizedBox(),
                             hint: Text(
                               _courses.isEmpty ? 'Loading classes ...' : '',
-                              style: AppTextStyle.eTextStyle.copyWith(
+                              style: AppStyle.eTextStyle.copyWith(
                                 color: blackColor.withValues(alpha: 0.5),
                               ),
                             ),
@@ -1054,7 +1051,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                                 value: course.id,
                                 child: Text(
                                   course.title,
-                                  style: AppTextStyle.eTextStyle.copyWith(
+                                  style: AppStyle.eTextStyle.copyWith(
                                     color: blackColor,
                                   ),
                                 ),
@@ -1094,7 +1091,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                         // Category Dropdown
                         Text(
                           'Category',
-                          style: AppTextStyle.eTextStyle.copyWith(
+                          style: AppStyle.eTextStyle.copyWith(
                             color: blackColor.withValues(alpha: 0.8),
                             fontWeight: FontWeight.w500,
                           ),
@@ -1126,7 +1123,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                                   : _categories.isEmpty
                                   ? 'No categories available'
                                   : '',
-                              style: AppTextStyle.eTextStyle.copyWith(
+                              style: AppStyle.eTextStyle.copyWith(
                                 color: blackColor.withValues(alpha: 0.5),
                               ),
                             ),
@@ -1136,7 +1133,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                                 value: category.id,
                                 child: Text(
                                   category.title,
-                                  style: AppTextStyle.eTextStyle.copyWith(
+                                  style: AppStyle.eTextStyle.copyWith(
                                     color: blackColor,
                                   ),
                                 ),
@@ -1155,7 +1152,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                         // Materials
                         Text(
                           'Materials',
-                          style: AppTextStyle.eTextStyle.copyWith(
+                          style: AppStyle.eTextStyle.copyWith(
                             color: blackColor.withValues(alpha: 0.8),
                             fontWeight: FontWeight.w500,
                           ),
@@ -1183,7 +1180,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                                       : _materials.isEmpty
                                       ? 'No materials available'
                                       : '',
-                                  style: AppTextStyle.eTextStyle.copyWith(
+                                  style: AppStyle.eTextStyle.copyWith(
                                     color: blackColor.withValues(alpha: 0.5),
                                   ),
                                 )
@@ -1199,7 +1196,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                                       deleteIconColor: whiteColor,
                                       label: Text(
                                         _materialTitleById(id),
-                                        style: AppTextStyle.eTextStyle.copyWith(
+                                        style: AppStyle.eTextStyle.copyWith(
                                           color: whiteColor,
                                         ),
                                       ),
@@ -1232,7 +1229,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                                       ),
                                       label: Text(
                                         'Select materials',
-                                        style: AppTextStyle.eTextStyle.copyWith(
+                                        style: AppStyle.eTextStyle.copyWith(
                                           color: primaryColor,
                                           fontWeight: FontWeight.w600,
                                         ),
@@ -1249,7 +1246,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                         // Schedule Section
                         Text(
                           'Schedule',
-                          style: AppTextStyle.cTextStyle.copyWith(
+                          style: AppStyle.cTextStyle.copyWith(
                             color: blackColor,
                             fontWeight: FontWeight.w600,
                             fontSize: 16,
@@ -1276,7 +1273,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                               ),
                               Text(
                                 'All Day',
-                                style: AppTextStyle.eTextStyle.copyWith(
+                                style: AppStyle.eTextStyle.copyWith(
                                   color: blackColor,
                                 ),
                               ),
@@ -1292,7 +1289,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                               ),
                               Text(
                                 'Show End',
-                                style: AppTextStyle.eTextStyle.copyWith(
+                                style: AppStyle.eTextStyle.copyWith(
                                   color: blackColor,
                                 ),
                               ),
@@ -1310,7 +1307,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                                   children: [
                                     Text(
                                       'Start Date',
-                                      style: AppTextStyle.eTextStyle.copyWith(
+                                      style: AppStyle.eTextStyle.copyWith(
                                         color: blackColor.withValues(
                                           alpha: 0.8,
                                         ),
@@ -1346,7 +1343,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                                                       _startDate!,
                                                     )
                                                   : '',
-                                              style: AppTextStyle.eTextStyle
+                                              style: AppStyle.eTextStyle
                                                   .copyWith(
                                                     color: _startDate != null
                                                         ? blackColor
@@ -1374,7 +1371,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                                   children: [
                                     Text(
                                       'End Date',
-                                      style: AppTextStyle.eTextStyle.copyWith(
+                                      style: AppStyle.eTextStyle.copyWith(
                                         color: blackColor.withValues(
                                           alpha: 0.8,
                                         ),
@@ -1410,7 +1407,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                                                       _endDate!,
                                                     )
                                                   : '',
-                                              style: AppTextStyle.eTextStyle
+                                              style: AppStyle.eTextStyle
                                                   .copyWith(
                                                     color: _endDate != null
                                                         ? blackColor
@@ -1436,7 +1433,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                         ] else ...[
                           Text(
                             'Start Date',
-                            style: AppTextStyle.eTextStyle.copyWith(
+                            style: AppStyle.eTextStyle.copyWith(
                               color: blackColor.withValues(alpha: 0.8),
                               fontWeight: FontWeight.w500,
                             ),
@@ -1464,7 +1461,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                                     _startDate != null
                                         ? formatDateForDisplay(_startDate!)
                                         : '',
-                                    style: AppTextStyle.eTextStyle.copyWith(
+                                    style: AppStyle.eTextStyle.copyWith(
                                       color: _startDate != null
                                           ? blackColor
                                           : blackColor.withValues(alpha: 0.5),
@@ -1490,7 +1487,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                                   children: [
                                     Text(
                                       'Start Time',
-                                      style: AppTextStyle.eTextStyle.copyWith(
+                                      style: AppStyle.eTextStyle.copyWith(
                                         color: blackColor.withValues(
                                           alpha: 0.8,
                                         ),
@@ -1526,7 +1523,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                                                       _startTime!,
                                                     )
                                                   : '',
-                                              style: AppTextStyle.eTextStyle
+                                              style: AppStyle.eTextStyle
                                                   .copyWith(
                                                     color: _startTime != null
                                                         ? blackColor
@@ -1556,7 +1553,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                                     children: [
                                       Text(
                                         'End Time',
-                                        style: AppTextStyle.eTextStyle.copyWith(
+                                        style: AppStyle.eTextStyle.copyWith(
                                           color: blackColor.withValues(
                                             alpha: 0.8,
                                           ),
@@ -1593,7 +1590,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                                                         _endTime!,
                                                       )
                                                     : '',
-                                                style: AppTextStyle.eTextStyle
+                                                style: AppStyle.eTextStyle
                                                     .copyWith(
                                                       color: _endTime != null
                                                           ? blackColor
@@ -1626,7 +1623,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                           children: [
                             Text(
                               'Priority',
-                              style: AppTextStyle.eTextStyle.copyWith(
+                              style: AppStyle.eTextStyle.copyWith(
                                 color: blackColor.withValues(alpha: 0.8),
                                 fontWeight: FontWeight.w500,
                               ),
@@ -1700,7 +1697,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                               ),
                               Text(
                                 'Completed',
-                                style: AppTextStyle.eTextStyle.copyWith(
+                                style: AppStyle.eTextStyle.copyWith(
                                   color: blackColor,
                                 ),
                               ),
@@ -1712,13 +1709,13 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                           SizedBox(height: 12.v),
                           Text(
                             'Grade',
-                            style: AppTextStyle.eTextStyle.copyWith(
+                            style: AppStyle.eTextStyle.copyWith(
                               color: blackColor.withValues(alpha: 0.8),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                           SizedBox(height: 8.v),
-                          CustomClassTextField(
+                          HeliumCourseTextField(
                             text: 'Enter Grade',
                             controller: _gradeController,
                             focusNode: _gradeFocusNode,
@@ -1728,7 +1725,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                         // Details Section
                         Text(
                           'Details',
-                          style: AppTextStyle.cTextStyle.copyWith(
+                          style: AppStyle.cTextStyle.copyWith(
                             color: blackColor,
                             fontWeight: FontWeight.w600,
                             fontSize: 16,
@@ -1747,12 +1744,12 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                           child: TextFormField(
                             controller: _detailsController,
                             maxLines: 6,
-                            style: AppTextStyle.eTextStyle.copyWith(
+                            style: AppStyle.eTextStyle.copyWith(
                               color: blackColor,
                             ),
                             decoration: InputDecoration(
                               hintText: '',
-                              hintStyle: AppTextStyle.eTextStyle.copyWith(
+                              hintStyle: AppStyle.eTextStyle.copyWith(
                                 color: blackColor.withValues(alpha: 0.5),
                               ),
                               border: InputBorder.none,
@@ -1766,7 +1763,7 @@ class _AssignmentAddScreenState extends State<AssignmentAddScreen>
                         // Action Button
                         SizedBox(
                           width: double.infinity,
-                          child: CustomTextButton(
+                          child: HeliumTextButton(
                             buttonText: 'Save',
                             onPressed: () => _goToReminderScreen(context),
                           ),
@@ -1842,7 +1839,7 @@ class _AssignmentEventToggle extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: AppTextStyle.eTextStyle.copyWith(
+          style: AppStyle.eTextStyle.copyWith(
             color: selected ? whiteColor : blackColor,
             fontWeight: FontWeight.w600,
           ),

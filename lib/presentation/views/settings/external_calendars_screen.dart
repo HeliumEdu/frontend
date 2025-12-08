@@ -8,16 +8,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:helium_mobile/core/dio_client.dart';
-import 'package:helium_mobile/data/datasources/external_calendar_remote_data_source.dart';
+import 'package:helium_mobile/data/sources/external_calendar_remote_data_source.dart';
 import 'package:helium_mobile/data/models/planner/external_calendar_model.dart';
 import 'package:helium_mobile/data/models/planner/external_calendar_request_model.dart';
 import 'package:helium_mobile/data/repositories/external_calendar_repository_impl.dart';
-import 'package:helium_mobile/presentation/bloc/externalCalendarBloc/external_calendar_bloc.dart';
-import 'package:helium_mobile/presentation/bloc/externalCalendarBloc/external_calendar_event.dart';
-import 'package:helium_mobile/presentation/bloc/externalCalendarBloc/external_calendar_state.dart';
+import 'package:helium_mobile/presentation/bloc/settings/external_calendar_bloc.dart';
+import 'package:helium_mobile/presentation/bloc/settings/external_calendar_event.dart';
+import 'package:helium_mobile/presentation/bloc/settings/external_calendar_state.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_size.dart';
-import 'package:helium_mobile/utils/app_text_style.dart';
+import 'package:helium_mobile/utils/app_style.dart';
 
 class ExternalCalendarsSettingsScreen extends StatelessWidget {
   const ExternalCalendarsSettingsScreen({super.key});
@@ -135,7 +135,7 @@ class _ExternalCalendarsSettingsViewState
               ),
               title: Text(
                 'Select Color',
-                style: AppTextStyle.bTextStyle.copyWith(
+                style: AppStyle.bTextStyle.copyWith(
                   color: blackColor,
                   fontWeight: FontWeight.w600,
                 ),
@@ -225,7 +225,7 @@ class _ExternalCalendarsSettingsViewState
                               isEdit
                                   ? 'Edit External Calendar'
                                   : 'Add External Calendar',
-                              style: AppTextStyle.aTextStyle.copyWith(
+                              style: AppStyle.aTextStyle.copyWith(
                                 color: blackColor,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -234,7 +234,7 @@ class _ExternalCalendarsSettingsViewState
                           SizedBox(height: 28.v),
                           Text(
                             'Name',
-                            style: AppTextStyle.cTextStyle.copyWith(
+                            style: AppStyle.cTextStyle.copyWith(
                               color: blackColor,
                               fontWeight: FontWeight.w600,
                             ),
@@ -244,7 +244,7 @@ class _ExternalCalendarsSettingsViewState
                             controller: _calendarTitleController,
                             decoration: InputDecoration(
                               hintText: 'Enter calendar name',
-                              hintStyle: AppTextStyle.iTextStyle.copyWith(
+                              hintStyle: AppStyle.iTextStyle.copyWith(
                                 color: textColor.withValues(alpha: 0.5),
                               ),
                               filled: true,
@@ -283,7 +283,7 @@ class _ExternalCalendarsSettingsViewState
                           SizedBox(height: 16.v),
                           Text(
                             'URL',
-                            style: AppTextStyle.cTextStyle.copyWith(
+                            style: AppStyle.cTextStyle.copyWith(
                               color: blackColor,
                               fontWeight: FontWeight.w600,
                             ),
@@ -294,7 +294,7 @@ class _ExternalCalendarsSettingsViewState
                             keyboardType: TextInputType.url,
                             decoration: InputDecoration(
                               hintText: 'https://...',
-                              hintStyle: AppTextStyle.iTextStyle.copyWith(
+                              hintStyle: AppStyle.iTextStyle.copyWith(
                                 color: textColor.withValues(alpha: 0.5),
                               ),
                               filled: true,
@@ -335,7 +335,7 @@ class _ExternalCalendarsSettingsViewState
                             children: [
                               Text(
                                 'Color',
-                                style: AppTextStyle.cTextStyle.copyWith(
+                                style: AppStyle.cTextStyle.copyWith(
                                   color: blackColor.withValues(alpha: 0.8),
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -366,7 +366,7 @@ class _ExternalCalendarsSettingsViewState
                             children: [
                               Text(
                                 'Show on calendar',
-                                style: AppTextStyle.cTextStyle.copyWith(
+                                style: AppStyle.cTextStyle.copyWith(
                                   color: blackColor,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -401,7 +401,7 @@ class _ExternalCalendarsSettingsViewState
                               ),
                               child: Text(
                                 actionError!,
-                                style: AppTextStyle.cTextStyle.copyWith(
+                                style: AppStyle.cTextStyle.copyWith(
                                   color: redColor,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -430,7 +430,7 @@ class _ExternalCalendarsSettingsViewState
                                   ),
                                   child: Text(
                                     'Cancel',
-                                    style: AppTextStyle.cTextStyle.copyWith(
+                                    style: AppStyle.cTextStyle.copyWith(
                                       color: primaryColor,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -482,8 +482,7 @@ class _ExternalCalendarsSettingsViewState
                                                     _externalShownOnCalendar,
                                               );
 
-                                          if (isEdit &&
-                                              existingCalendar != null) {
+                                          if (isEdit) {
                                             context
                                                 .read<ExternalCalendarBloc>()
                                                 .add(
@@ -528,7 +527,7 @@ class _ExternalCalendarsSettingsViewState
                                         )
                                       : Text(
                                           'Confirm',
-                                          style: AppTextStyle.cTextStyle
+                                          style: AppStyle.cTextStyle
                                               .copyWith(
                                                 color: whiteColor,
                                                 fontWeight: FontWeight.w600,
@@ -609,7 +608,7 @@ class _ExternalCalendarsSettingsViewState
               children: [
                 Text(
                   calendar.title,
-                  style: AppTextStyle.cTextStyle.copyWith(
+                  style: AppStyle.cTextStyle.copyWith(
                     color: blackColor,
                     fontWeight: FontWeight.w600,
                   ),
@@ -617,7 +616,7 @@ class _ExternalCalendarsSettingsViewState
                 SizedBox(height: 4.v),
                 Text(
                   calendar.url,
-                  style: AppTextStyle.iTextStyle.copyWith(
+                  style: AppStyle.iTextStyle.copyWith(
                     color: textColor.withValues(alpha: 0.6),
                     fontSize: 12.fSize,
                   ),
@@ -660,13 +659,13 @@ class _ExternalCalendarsSettingsViewState
                           ),
                           title: Text(
                             'Delete Calendar',
-                            style: AppTextStyle.bTextStyle.copyWith(
+                            style: AppStyle.bTextStyle.copyWith(
                               color: textColor,
                             ),
                           ),
                           content: Text(
                             'Are you sure you want to delete "${calendar.title}"? This action cannot be undone.',
-                            style: AppTextStyle.cTextStyle.copyWith(
+                            style: AppStyle.cTextStyle.copyWith(
                               color: textColor.withValues(alpha: 0.7),
                             ),
                           ),
@@ -677,7 +676,7 @@ class _ExternalCalendarsSettingsViewState
                               },
                               child: Text(
                                 'Cancel',
-                                style: AppTextStyle.cTextStyle.copyWith(
+                                style: AppStyle.cTextStyle.copyWith(
                                   color: textColor,
                                 ),
                               ),
@@ -701,7 +700,7 @@ class _ExternalCalendarsSettingsViewState
                               ),
                               child: Text(
                                 'Delete',
-                                style: AppTextStyle.cTextStyle.copyWith(
+                                style: AppStyle.cTextStyle.copyWith(
                                   color: whiteColor,
                                 ),
                               ),
@@ -738,7 +737,7 @@ class _ExternalCalendarsSettingsViewState
                 SnackBar(
                   content: Text(
                     state.message,
-                    style: AppTextStyle.cTextStyle.copyWith(color: whiteColor),
+                    style: AppStyle.cTextStyle.copyWith(color: whiteColor),
                   ),
                   backgroundColor: greenColor,
                   duration: const Duration(seconds: 2),
@@ -750,7 +749,7 @@ class _ExternalCalendarsSettingsViewState
                   SnackBar(
                     content: Text(
                       state.message,
-                      style: AppTextStyle.cTextStyle.copyWith(
+                      style: AppStyle.cTextStyle.copyWith(
                         color: whiteColor,
                       ),
                     ),
@@ -800,7 +799,7 @@ class _ExternalCalendarsSettingsViewState
                     ),
                     Text(
                       'External Calendars',
-                      style: AppTextStyle.bTextStyle.copyWith(
+                      style: AppStyle.bTextStyle.copyWith(
                         color: blackColor,
                       ),
                     ),

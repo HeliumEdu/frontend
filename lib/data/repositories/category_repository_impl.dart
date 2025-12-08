@@ -5,7 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:helium_mobile/data/datasources/category_remote_data_source.dart';
+import 'package:helium_mobile/data/sources/category_remote_data_source.dart';
 import 'package:helium_mobile/data/models/planner/category_model.dart';
 import 'package:helium_mobile/domain/repositories/category_repository.dart';
 

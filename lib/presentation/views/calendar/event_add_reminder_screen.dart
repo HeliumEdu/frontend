@@ -11,9 +11,9 @@ import 'package:easy_stepper/easy_stepper.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:helium_mobile/core/dio_client.dart';
-import 'package:helium_mobile/data/datasources/attachment_remote_data_source.dart';
-import 'package:helium_mobile/data/datasources/event_remote_data_source.dart';
-import 'package:helium_mobile/data/datasources/reminder_remote_data_source.dart';
+import 'package:helium_mobile/data/sources/attachment_remote_data_source.dart';
+import 'package:helium_mobile/data/sources/event_remote_data_source.dart';
+import 'package:helium_mobile/data/sources/reminder_remote_data_source.dart';
 import 'package:helium_mobile/data/models/planner/attachment_model.dart';
 import 'package:helium_mobile/data/models/planner/event_request_model.dart';
 import 'package:helium_mobile/data/models/planner/reminder_request_model.dart';
@@ -24,7 +24,7 @@ import 'package:helium_mobile/data/repositories/reminder_repository_impl.dart';
 import 'package:helium_mobile/utils/app_colors.dart';
 import 'package:helium_mobile/utils/app_enums.dart';
 import 'package:helium_mobile/utils/app_size.dart';
-import 'package:helium_mobile/utils/app_text_style.dart';
+import 'package:helium_mobile/utils/app_style.dart';
 import 'package:helium_mobile/utils/app_helpers.dart';
 import 'package:logging/logging.dart';
 
@@ -163,7 +163,7 @@ class _EventAddReminderScreenState extends State<EventAddReminderScreen> {
                   Center(
                     child: Text(
                       existing == null ? 'Add Reminder' : 'Edit Reminder',
-                      style: AppTextStyle.aTextStyle.copyWith(
+                      style: AppStyle.aTextStyle.copyWith(
                         color: blackColor,
                         fontWeight: FontWeight.w600,
                       ),
@@ -172,7 +172,7 @@ class _EventAddReminderScreenState extends State<EventAddReminderScreen> {
                   SizedBox(height: 20.v),
                   Text(
                     'Message',
-                    style: AppTextStyle.cTextStyle.copyWith(
+                    style: AppStyle.cTextStyle.copyWith(
                       color: blackColor,
                       fontWeight: FontWeight.w600,
                     ),
@@ -189,12 +189,12 @@ class _EventAddReminderScreenState extends State<EventAddReminderScreen> {
                     child: TextField(
                       controller: messageCtrl,
                       maxLines: 3,
-                      style: AppTextStyle.eTextStyle.copyWith(
+                      style: AppStyle.eTextStyle.copyWith(
                         color: blackColor,
                       ),
                       decoration: InputDecoration(
                         hintText: '',
-                        hintStyle: AppTextStyle.eTextStyle.copyWith(
+                        hintStyle: AppStyle.eTextStyle.copyWith(
                           color: blackColor.withValues(alpha: 0.5),
                         ),
                         border: InputBorder.none,
@@ -225,7 +225,7 @@ class _EventAddReminderScreenState extends State<EventAddReminderScreen> {
                       underline: SizedBox(),
                       hint: Text(
                         '',
-                        style: AppTextStyle.eTextStyle.copyWith(
+                        style: AppStyle.eTextStyle.copyWith(
                           color: blackColor.withValues(alpha: 0.5),
                         ),
                       ),
@@ -253,7 +253,7 @@ class _EventAddReminderScreenState extends State<EventAddReminderScreen> {
                                   SizedBox(width: 10),
                                   Text(
                                     type,
-                                    style: AppTextStyle.eTextStyle.copyWith(
+                                    style: AppStyle.eTextStyle.copyWith(
                                       color: blackColor,
                                     ),
                                   ),
@@ -272,7 +272,7 @@ class _EventAddReminderScreenState extends State<EventAddReminderScreen> {
                   SizedBox(height: 16.v),
                   Text(
                     'When',
-                    style: AppTextStyle.cTextStyle.copyWith(
+                    style: AppStyle.cTextStyle.copyWith(
                       color: blackColor,
                       fontWeight: FontWeight.w600,
                     ),
@@ -293,12 +293,12 @@ class _EventAddReminderScreenState extends State<EventAddReminderScreen> {
                           child: TextField(
                             controller: customValueCtrl,
                             keyboardType: TextInputType.number,
-                            style: AppTextStyle.eTextStyle.copyWith(
+                            style: AppStyle.eTextStyle.copyWith(
                               color: blackColor,
                             ),
                             decoration: InputDecoration(
                               hintText: '',
-                              hintStyle: AppTextStyle.eTextStyle.copyWith(
+                              hintStyle: AppStyle.eTextStyle.copyWith(
                                 color: blackColor.withValues(alpha: 0.5),
                               ),
                               border: InputBorder.none,
@@ -335,7 +335,7 @@ class _EventAddReminderScreenState extends State<EventAddReminderScreen> {
                             underline: SizedBox(),
                             hint: Text(
                               '',
-                              style: AppTextStyle.eTextStyle.copyWith(
+                              style: AppStyle.eTextStyle.copyWith(
                                 color: blackColor.withValues(alpha: 0.5),
                               ),
                             ),
@@ -345,7 +345,7 @@ class _EventAddReminderScreenState extends State<EventAddReminderScreen> {
                                 value: unit,
                                 child: Text(
                                   unit,
-                                  style: AppTextStyle.eTextStyle.copyWith(
+                                  style: AppStyle.eTextStyle.copyWith(
                                     color: blackColor,
                                   ),
                                 ),
@@ -376,7 +376,7 @@ class _EventAddReminderScreenState extends State<EventAddReminderScreen> {
                           ),
                           child: Text(
                             'Cancel',
-                            style: AppTextStyle.cTextStyle.copyWith(
+                            style: AppStyle.cTextStyle.copyWith(
                               color: primaryColor,
                               fontWeight: FontWeight.w600,
                             ),
@@ -499,7 +499,7 @@ class _EventAddReminderScreenState extends State<EventAddReminderScreen> {
                           ),
                           child: Text(
                             'Save',
-                            style: AppTextStyle.cTextStyle.copyWith(
+                            style: AppStyle.cTextStyle.copyWith(
                               color: whiteColor,
                               fontWeight: FontWeight.w600,
                             ),
@@ -523,18 +523,18 @@ class _EventAddReminderScreenState extends State<EventAddReminderScreen> {
       builder: (dialogContext) => AlertDialog(
         title: Text(
           'Delete Reminder',
-          style: AppTextStyle.cTextStyle.copyWith(fontWeight: FontWeight.w600),
+          style: AppStyle.cTextStyle.copyWith(fontWeight: FontWeight.w600),
         ),
         content: Text(
           'Are you sure you want to delete this reminder?',
-          style: AppTextStyle.eTextStyle,
+          style: AppStyle.eTextStyle,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
             child: Text(
               'Cancel',
-              style: AppTextStyle.eTextStyle.copyWith(color: textColor),
+              style: AppStyle.eTextStyle.copyWith(color: textColor),
             ),
           ),
           TextButton(
@@ -566,7 +566,7 @@ class _EventAddReminderScreenState extends State<EventAddReminderScreen> {
             },
             child: Text(
               'Delete',
-              style: AppTextStyle.eTextStyle.copyWith(color: redColor),
+              style: AppStyle.eTextStyle.copyWith(color: redColor),
             ),
           ),
         ],
@@ -594,18 +594,18 @@ class _EventAddReminderScreenState extends State<EventAddReminderScreen> {
       builder: (dialogContext) => AlertDialog(
         title: Text(
           'Delete Attachment',
-          style: AppTextStyle.cTextStyle.copyWith(fontWeight: FontWeight.w600),
+          style: AppStyle.cTextStyle.copyWith(fontWeight: FontWeight.w600),
         ),
         content: Text(
           'Are you sure you want to delete this attachment?',
-          style: AppTextStyle.eTextStyle,
+          style: AppStyle.eTextStyle,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
             child: Text(
               'Cancel',
-              style: AppTextStyle.eTextStyle.copyWith(color: textColor),
+              style: AppStyle.eTextStyle.copyWith(color: textColor),
             ),
           ),
           TextButton(
@@ -638,7 +638,7 @@ class _EventAddReminderScreenState extends State<EventAddReminderScreen> {
             },
             child: Text(
               'Delete',
-              style: AppTextStyle.eTextStyle.copyWith(color: redColor),
+              style: AppStyle.eTextStyle.copyWith(color: redColor),
             ),
           ),
         ],
@@ -834,7 +834,7 @@ class _EventAddReminderScreenState extends State<EventAddReminderScreen> {
                   ),
                   Text(
                     'Confirm',
-                    style: AppTextStyle.aTextStyle.copyWith(
+                    style: AppStyle.aTextStyle.copyWith(
                       color: blackColor,
                       fontWeight: FontWeight.w600,
                     ),
@@ -921,7 +921,7 @@ class _EventAddReminderScreenState extends State<EventAddReminderScreen> {
                         padding: EdgeInsets.only(top: 8.v),
                         child: Text(
                           'Event',
-                          style: AppTextStyle.iTextStyle.copyWith(
+                          style: AppStyle.iTextStyle.copyWith(
                             color: blackColor,
                             fontWeight: FontWeight.w600,
                             fontSize: 13.fSize,
@@ -958,7 +958,7 @@ class _EventAddReminderScreenState extends State<EventAddReminderScreen> {
                         padding: EdgeInsets.only(top: 8.v),
                         child: Text(
                           'Reminder',
-                          style: AppTextStyle.iTextStyle.copyWith(
+                          style: AppStyle.iTextStyle.copyWith(
                             color: primaryColor,
                             fontWeight: FontWeight.w700,
                             fontSize: 13.fSize,
@@ -1001,7 +1001,7 @@ class _EventAddReminderScreenState extends State<EventAddReminderScreen> {
                       SizedBox(width: 6.h),
                       Text(
                         'Reminder',
-                        style: AppTextStyle.cTextStyle.copyWith(
+                        style: AppStyle.cTextStyle.copyWith(
                           color: whiteColor,
                           fontWeight: FontWeight.w600,
                         ),
@@ -1036,7 +1036,7 @@ class _EventAddReminderScreenState extends State<EventAddReminderScreen> {
                       else if (_serverReminders.isNotEmpty) ...[
                         Text(
                           'Reminders',
-                          style: AppTextStyle.cTextStyle.copyWith(
+                          style: AppStyle.cTextStyle.copyWith(
                             color: blackColor,
                             fontWeight: FontWeight.w600,
                             fontSize: 16,
@@ -1075,7 +1075,7 @@ class _EventAddReminderScreenState extends State<EventAddReminderScreen> {
                                     children: [
                                       Text(
                                         rem.message,
-                                        style: AppTextStyle.cTextStyle.copyWith(
+                                        style: AppStyle.cTextStyle.copyWith(
                                           color: blackColor,
                                           fontWeight: FontWeight.w600,
                                         ),
@@ -1083,7 +1083,7 @@ class _EventAddReminderScreenState extends State<EventAddReminderScreen> {
                                       SizedBox(height: 4.v),
                                       Text(
                                         formatReminderOffset(rem),
-                                        style: AppTextStyle.iTextStyle.copyWith(
+                                        style: AppStyle.iTextStyle.copyWith(
                                           color: textColor.withValues(
                                             alpha: 0.7,
                                           ),
@@ -1093,7 +1093,7 @@ class _EventAddReminderScreenState extends State<EventAddReminderScreen> {
                                       SizedBox(height: 4.v),
                                       Text(
                                         reminderTypes[rem.type],
-                                        style: AppTextStyle.iTextStyle.copyWith(
+                                        style: AppStyle.iTextStyle.copyWith(
                                           color: textColor.withValues(
                                             alpha: 0.7,
                                           ),
@@ -1137,7 +1137,7 @@ class _EventAddReminderScreenState extends State<EventAddReminderScreen> {
 
                       Text(
                         'Attachments',
-                        style: AppTextStyle.cTextStyle.copyWith(
+                        style: AppStyle.cTextStyle.copyWith(
                           color: blackColor,
                           fontWeight: FontWeight.w600,
                           fontSize: 16,
@@ -1167,7 +1167,7 @@ class _EventAddReminderScreenState extends State<EventAddReminderScreen> {
                                     att.title,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: AppTextStyle.eTextStyle.copyWith(
+                                    style: AppStyle.eTextStyle.copyWith(
                                       color: blackColor,
                                     ),
                                   ),
@@ -1238,7 +1238,7 @@ class _EventAddReminderScreenState extends State<EventAddReminderScreen> {
                                         children: [
                                           Text(
                                             uploadedFileName!,
-                                            style: AppTextStyle.eTextStyle
+                                            style: AppStyle.eTextStyle
                                                 .copyWith(
                                                   color: blackColor,
                                                   fontWeight: FontWeight.w500,
@@ -1249,7 +1249,7 @@ class _EventAddReminderScreenState extends State<EventAddReminderScreen> {
                                           SizedBox(height: 2.v),
                                           Text(
                                             'Tap to change file',
-                                            style: AppTextStyle.eTextStyle
+                                            style: AppStyle.eTextStyle
                                                 .copyWith(
                                                   color: blackColor.withValues(
                                                     alpha: 0.5,
@@ -1286,7 +1286,7 @@ class _EventAddReminderScreenState extends State<EventAddReminderScreen> {
                                     SizedBox(width: 12.h),
                                     Text(
                                       'Choose File',
-                                      style: AppTextStyle.eTextStyle.copyWith(
+                                      style: AppStyle.eTextStyle.copyWith(
                                         color: primaryColor,
                                         fontWeight: FontWeight.w600,
                                       ),
@@ -1324,7 +1324,7 @@ class _EventAddReminderScreenState extends State<EventAddReminderScreen> {
                                 )
                               : Text(
                                   'Save',
-                                  style: AppTextStyle.cTextStyle.copyWith(
+                                  style: AppStyle.cTextStyle.copyWith(
                                     color: whiteColor,
                                     fontWeight: FontWeight.w600,
                                   ),
