@@ -27,7 +27,7 @@ dependencies:
   flutter_colorpicker: ^1.1.0
   file_picker: ^10.3.7
   url_launcher: ^6.3.2
-  share_plus: ^7.2.1
+  share_plus: ^12.0.1
   # TODO: looking to remove these if we refactor everything to state
   bloc: ^9.0.0
   flutter_bloc: ^9.1.1
