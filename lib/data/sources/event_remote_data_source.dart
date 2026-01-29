@@ -1,0 +1,206 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
+import 'package:dio/dio.dart';
+import 'package:heliumapp/core/api_url.dart';
+import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/data/models/planner/event_model.dart';
+import 'package:heliumapp/data/models/planner/event_request_model.dart';
+import 'package:heliumapp/data/sources/base_data_source.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('HeliumLogger');
+
+abstract class EventRemoteDataSource extends BaseDataSource {
+  Future<List<EventModel>> getEvents({
+    DateTime? from,
+    DateTime? to,
+    String? search,
+    String? title,
+  });
+
+  Future<EventModel> getEvent({required int id});
+
+  Future<EventModel> createEvent({required EventRequestModel request});
+
+  Future<EventModel> updateEvent({
+    required int eventId,
+    required EventRequestModel request,
+  });
+
+  Future<void> deleteEvent({required int eventId});
+}
+
+class EventRemoteDataSourceImpl extends EventRemoteDataSource {
+  final DioClient dioClient;
+
+  EventRemoteDataSourceImpl({required this.dioClient});
+
+  @override
+  Future<List<EventModel>> getEvents({
+    DateTime? from,
+    DateTime? to,
+    String? search,
+    String? title,
+  }) async {
+    try {
+      log.info('Fetching Events ...');
+
+      final Map<String, dynamic> queryParameters = {};
+      if (from != null) queryParameters['from'] = from;
+      if (to != null) queryParameters['to'] = to;
+      if (search != null) queryParameters['search'] = search;
+      if (title != null) queryParameters['title'] = title;
+
+      final response = await dioClient.dio.get(
+        ApiUrl.plannerEventsListUrl,
+        queryParameters: queryParameters.isNotEmpty ? queryParameters : null,
+      );
+
+      if (response.statusCode == 200) {
+        if (response.data is List) {
+          final List<dynamic> data = response.data;
+          final events = data.map((json) => EventModel.fromJson(json)).toList();
+          log.info('... fetched ${events.length} Event(s)');
+          return events;
+        } else {
+          throw ServerException(
+            message: 'Invalid response format',
+            code: '200',
+          );
+        }
+      } else {
+        throw ServerException(
+          message: 'Failed to fetch events: ${response.statusCode}',
+          code: response.statusCode.toString(),
+        );
+      }
+    } on DioException catch (e, s) {
+      throw handleDioError(e, s);
+    } catch (e, s) {
+      log.severe('An unexpected error occurred', e, s);
+      if (e is HeliumException) {
+        rethrow;
+      }
+      throw HeliumException(message: 'An unexpected error occurred: $e');
+    }
+  }
+
+  @override
+  Future<EventModel> getEvent({required int id}) async {
+    try {
+      log.info('Fetching Event $id ...');
+      final response = await dioClient.dio.get(
+        ApiUrl.plannerEventsDetailsUrl(id),
+      );
+
+      if (response.statusCode == 200) {
+        log.info('... Event $id fetched');
+        return EventModel.fromJson(response.data);
+      } else {
+        throw ServerException(
+          message: 'Failed to fetch event: ${response.statusCode}',
+        );
+      }
+    } on DioException catch (e, s) {
+      throw handleDioError(e, s);
+    } catch (e, s) {
+      log.severe('An unexpected error occurred', e, s);
+      if (e is HeliumException) {
+        rethrow;
+      }
+      throw HeliumException(message: 'An unexpected error occurred: $e');
+    }
+  }
+
+  @override
+  Future<EventModel> createEvent({required EventRequestModel request}) async {
+    try {
+      log.info('Creating Event ...');
+      final response = await dioClient.dio.post(
+        ApiUrl.plannerEventsListUrl,
+        data: request.toJson(),
+      );
+
+      if (response.statusCode == 201) {
+        final event = EventModel.fromJson(response.data);
+        log.info('... Event ${event.id} created');
+        return event;
+      } else {
+        throw ServerException(
+          message: 'Failed to create event: ${response.statusCode}',
+        );
+      }
+    } on DioException catch (e, s) {
+      throw handleDioError(e, s);
+    } catch (e, s) {
+      log.severe('An unexpected error occurred', e, s);
+      if (e is HeliumException) {
+        rethrow;
+      }
+      throw HeliumException(message: 'An unexpected error occurred: $e');
+    }
+  }
+
+  @override
+  Future<EventModel> updateEvent({
+    required int eventId,
+    required EventRequestModel request,
+  }) async {
+    try {
+      log.info('Updating Event $eventId ...');
+      final response = await dioClient.dio.patch(
+        ApiUrl.plannerEventsDetailsUrl(eventId),
+        data: request.toJson(),
+      );
+
+      if (response.statusCode == 200) {
+        log.info('... Event $eventId updated');
+        return EventModel.fromJson(response.data);
+      } else {
+        throw ServerException(
+          message: 'Failed to update event: ${response.statusCode}',
+        );
+      }
+    } on DioException catch (e, s) {
+      throw handleDioError(e, s);
+    } catch (e, s) {
+      log.severe('An unexpected error occurred', e, s);
+      if (e is HeliumException) {
+        rethrow;
+      }
+      throw HeliumException(message: 'An unexpected error occurred: $e');
+    }
+  }
+
+  @override
+  Future<void> deleteEvent({required int eventId}) async {
+    try {
+      log.info('Deleting Event $eventId ...');
+      final response = await dioClient.dio.delete(
+        ApiUrl.plannerEventsDetailsUrl(eventId),
+      );
+
+      if (response.statusCode == 204) {
+        log.info('... Event $eventId deleted');
+      } else {
+        throw ServerException(
+          message: 'Failed to delete event: ${response.statusCode}',
+        );
+      }
+    } on DioException catch (e, s) {
+      throw handleDioError(e, s);
+    } catch (e, s) {
+      log.severe('An unexpected error occurred', e, s);
+      if (e is HeliumException) {
+        rethrow;
+      }
+      throw HeliumException(message: 'An unexpected error occurred: $e');
+    }
+  }
+}

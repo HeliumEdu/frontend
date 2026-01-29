@@ -1,0 +1,128 @@
+name: "Release"
+
+run-name: "Release ${{ github.ref_name }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Platform to build'
+        required: true
+        type: choice
+        options:
+          - both
+          - android
+          - ios
+
+permissions:
+  contents: read
+
+jobs:
+  build-android-release:
+    name: Build Android Release AAB
+    if: ${{ github.event.inputs.platform == 'android' || github.event.inputs.platform == 'both' }}
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Flutter SDK
+        uses: flutter-actions/setup-flutter@v4
+        with:
+          channel: stable
+          version: "3.38.1"
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      - name: Decode keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > $GITHUB_WORKSPACE/android/helium-release-key.jks
+
+      - name: Build Android App Bundle
+        env:
+          SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
+          SIGNING_STORE_FILE: ${{ github.workspace }}/android/helium-release-key.jks
+          SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
+        run: make build-android-release
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-release-aab
+          path: build/app/outputs/bundle/release/app-release.aab
+          retention-days: 30
+
+      - name: Cleanup keystore
+        if: always()
+        run: rm -f $GITHUB_WORKSPACE/android/helium-release-key.jks
+
+  build-ios-release:
+    name: Build iOS Release IPA
+    if: ${{ github.event.inputs.platform == 'ios' || github.event.inputs.platform == 'both' }}
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Flutter SDK
+        uses: flutter-actions/setup-flutter@v4
+        with:
+          channel: stable
+          version: "3.38.1"
+
+      - name: Install Apple Certificate
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.IOS_BUILD_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.IOS_P12_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.IOS_KEYCHAIN_PASSWORD }}
+        run: |
+          # Create variables
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+          # Import certificate from secrets
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
+
+          # Create temporary keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          # Import certificate to keychain
+          security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+      - name: Install Provisioning Profile
+        env:
+          PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+        run: |
+          # Create variables
+          PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
+
+          # Import provisioning profile from secrets
+          echo -n "$PROVISIONING_PROFILE_BASE64" | base64 --decode -o $PP_PATH
+
+          # Copy to the correct location
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
+
+      - name: Build iOS IPA
+        run: make build-ios-release
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-release-ipa
+          path: build/ios/ipa/*.ipa
+          retention-days: 30
+
+      - name: Cleanup keychain and provisioning profile
+        if: always()
+        run: |
+          security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
+          rm -f ~/Library/MobileDevice/Provisioning\ Profiles/build_pp.mobileprovision

@@ -1,0 +1,69 @@
+name: "Build"
+
+run-name: "Build ${{ github.ref_name }}"
+
+on:
+  push:
+    branches: [ main]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: "0 9 * * *"
+
+permissions:
+  contents: read
+  issues: none
+  pull-requests: none
+
+jobs:
+  test:
+    name: Test
+
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v5
+      - name: Setup Flutter SDK
+        uses: flutter-actions/setup-flutter@v4
+        with:
+          channel: stable
+          version: "3.38.1"
+      - name: Test
+        run: make test
+      - name: Upload test coverage
+        if: ${{ !cancelled() }}
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          fail_ci_if_error: false
+
+  build-android:
+    name: Build Android
+
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v5
+      - name: Setup Flutter SDK
+        uses: flutter-actions/setup-flutter@v4
+        with:
+          channel: stable
+          version: "3.38.1"
+      - name: Build Android
+        run: make build-android
+
+  build-ios:
+    name: Build iOS
+
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v5
+      - name: Setup Flutter SDK
+        uses: flutter-actions/setup-flutter@v4
+        with:
+          channel: stable
+          version: "3.38.1"
+      - name: Build iOS
+        run: make build-ios

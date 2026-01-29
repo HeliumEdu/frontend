@@ -1,0 +1,1187 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
+import 'dart:ui';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/data/models/id_or_entity.dart';
+import 'package:heliumapp/data/models/planner/category_model.dart';
+import 'package:heliumapp/data/models/planner/course_model.dart';
+import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
+import 'package:heliumapp/data/models/planner/event_model.dart';
+import 'package:heliumapp/data/models/planner/external_calendar_event_model.dart';
+import 'package:heliumapp/data/models/planner/homework_model.dart';
+import 'package:heliumapp/data/sources/calendar_item_data_source.dart';
+import 'package:heliumapp/domain/repositories/course_schedule_event_repository.dart';
+import 'package:heliumapp/domain/repositories/event_repository.dart';
+import 'package:heliumapp/domain/repositories/external_calendar_repository.dart';
+import 'package:heliumapp/domain/repositories/homework_repository.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:syncfusion_flutter_calendar/calendar.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/standalone.dart' as tz;
+
+class MockEventRepository extends Mock implements EventRepository {}
+
+class MockHomeworkRepository extends Mock implements HomeworkRepository {}
+
+class MockCourseScheduleRepository extends Mock
+    implements CourseScheduleRepository {}
+
+class MockExternalCalendarRepository extends Mock
+    implements ExternalCalendarRepository {}
+
+void main() {
+  late CalendarItemDataSource dataSource;
+  late MockEventRepository mockEventRepository;
+  late MockHomeworkRepository mockHomeworkRepository;
+  late MockCourseScheduleRepository mockCourseScheduleRepository;
+  late MockExternalCalendarRepository mockExternalCalendarRepository;
+  late UserSettingsModel userSettings;
+
+  setUpAll(() {
+    tz.initializeTimeZones();
+  });
+
+  setUp(() {
+    mockEventRepository = MockEventRepository();
+    mockHomeworkRepository = MockHomeworkRepository();
+    mockCourseScheduleRepository = MockCourseScheduleRepository();
+    mockExternalCalendarRepository = MockExternalCalendarRepository();
+
+    userSettings = UserSettingsModel(
+      timeZone: tz.getLocation('America/Los_Angeles'),
+      defaultView: 0,
+      colorSchemeTheme: 0,
+      weekStartsOn: 0,
+      allDayOffset: 0,
+      eventsColor: const Color(0xFF4CAF50),
+      materialColor: const Color(0xFF2196F3),
+      gradeColor: const Color(0xFFF44336),
+      defaultReminderType: 0,
+      defaultReminderOffset: 0,
+      defaultReminderOffsetType: 0,
+      colorByCategory: false,
+    );
+
+    dataSource = CalendarItemDataSource(
+      eventRepository: mockEventRepository,
+      homeworkRepository: mockHomeworkRepository,
+      courseScheduleRepository: mockCourseScheduleRepository,
+      externalCalendarRepository: mockExternalCalendarRepository,
+      userSettings: userSettings,
+    );
+  });
+
+  group('CalendarItemDataSource', () {
+    group('initialization', () {
+      test('initializes with empty appointments', () {
+        expect(dataSource.appointments, isEmpty);
+        expect(dataSource.allCalendarItems, isEmpty);
+        expect(dataSource.hasLoadedInitialData, isFalse);
+      });
+
+      test('initializes with empty filter state', () {
+        expect(dataSource.filteredCourses, isEmpty);
+        expect(dataSource.filterCategories, isEmpty);
+        expect(dataSource.filterTypes, isEmpty);
+        expect(dataSource.filterStatuses, isEmpty);
+        expect(dataSource.searchQuery, isEmpty);
+        expect(dataSource.completedOverrides, isEmpty);
+      });
+    });
+
+    group('data accessors', () {
+      late HomeworkModel homework;
+      late EventModel event;
+
+      setUp(() {
+        homework = _createHomeworkModel(
+          id: 1,
+          title: 'Test Homework',
+          start: '2025-01-15T10:00:00Z',
+          end: '2025-01-15T11:00:00Z',
+          allDay: false,
+        );
+        event = _createEventModel(
+          id: 2,
+          title: 'Test Event',
+          start: '2025-01-15T14:00:00Z',
+          end: '2025-01-15T15:00:00Z',
+          allDay: false,
+        );
+
+        dataSource.allCalendarItems.addAll([homework, event]);
+        dataSource.appointments!.addAll([homework, event]);
+      });
+
+      test('getStartTime returns correct DateTime', () {
+        final startTime = dataSource.getStartTime(0);
+        expect(startTime, DateTime.parse('2025-01-15T10:00:00Z'));
+      });
+
+      test('getEndTime returns correct DateTime for non-allDay events', () {
+        final endTime = dataSource.getEndTime(0);
+        expect(endTime, DateTime.parse('2025-01-15T11:00:00Z'));
+      });
+
+      test('getEndTime subtracts 1 day for allDay events', () {
+        final allDayHomework = _createHomeworkModel(
+          id: 3,
+          title: 'All Day',
+          start: '2025-01-15T00:00:00Z',
+          end: '2025-01-16T00:00:00Z',
+          allDay: true,
+        );
+        dataSource.appointments!.insert(0, allDayHomework);
+
+        final endTime = dataSource.getEndTime(0);
+        expect(endTime, DateTime.parse('2025-01-15T00:00:00Z'));
+      });
+
+      test('isAllDay returns correct value', () {
+        expect(dataSource.isAllDay(0), isFalse);
+
+        final allDayHomework = _createHomeworkModel(
+          id: 3,
+          title: 'All Day',
+          start: '2025-01-15T00:00:00Z',
+          end: '2025-01-16T00:00:00Z',
+          allDay: true,
+        );
+        dataSource.appointments!.insert(0, allDayHomework);
+        expect(dataSource.isAllDay(0), isTrue);
+      });
+
+      test('getSubject returns calendar item title', () {
+        expect(dataSource.getSubject(0), 'Test Homework');
+        expect(dataSource.getSubject(1), 'Test Event');
+      });
+
+      test('getColor returns color from getColorForItem', () {
+        final color = dataSource.getColor(1);
+        expect(color, userSettings.eventsColor);
+      });
+    });
+
+    group('getColorForItem', () {
+      late CourseModel course;
+      late CategoryModel category;
+
+      setUp(() {
+        course = _createCourseModel(id: 1, color: const Color(0xFFFF5722));
+        category =
+            _createCategoryModel(id: 1, color: const Color(0xFF9C27B0));
+
+        dataSource.courses = [course];
+        dataSource.categoriesMap = {1: category};
+      });
+
+      test('returns eventsColor for EventModel', () {
+        final event = _createEventModel();
+        final color = dataSource.getColorForItem(event);
+        expect(color, userSettings.eventsColor);
+      });
+
+      test('returns category color for HomeworkModel when colorByCategory',
+          () {
+        final colorByCategorySettings = UserSettingsModel(
+          timeZone: tz.getLocation('America/Los_Angeles'),
+          defaultView: 0,
+          colorSchemeTheme: 0,
+          weekStartsOn: 0,
+          allDayOffset: 0,
+          eventsColor: const Color(0xFF4CAF50),
+          materialColor: const Color(0xFF2196F3),
+          gradeColor: const Color(0xFFF44336),
+          defaultReminderType: 0,
+          defaultReminderOffset: 0,
+          defaultReminderOffsetType: 0,
+          colorByCategory: true,
+        );
+
+        final colorByCategoryDataSource = CalendarItemDataSource(
+          eventRepository: mockEventRepository,
+          homeworkRepository: mockHomeworkRepository,
+          courseScheduleRepository: mockCourseScheduleRepository,
+          externalCalendarRepository: mockExternalCalendarRepository,
+          userSettings: colorByCategorySettings,
+        );
+        colorByCategoryDataSource.courses = [course];
+        colorByCategoryDataSource.categoriesMap = {1: category};
+
+        final homework = _createHomeworkModel(
+          courseId: 1,
+          categoryId: 1,
+        );
+
+        final color = colorByCategoryDataSource.getColorForItem(homework);
+        expect(color, category.color);
+      });
+
+      test('returns course color for HomeworkModel when not colorByCategory',
+          () {
+        final homework = _createHomeworkModel(
+          courseId: 1,
+          categoryId: 1,
+        );
+
+        final color = dataSource.getColorForItem(homework);
+        expect(color, course.color);
+      });
+
+      test('returns item color for CourseScheduleEventModel', () {
+        final scheduleEvent = _createCourseScheduleEventModel(
+          color: const Color(0xFFFFEB3B),
+        );
+
+        final color = dataSource.getColorForItem(scheduleEvent);
+        expect(color, const Color(0xFFFFEB3B));
+      });
+
+      test('returns item color for ExternalCalendarEventModel', () {
+        final externalEvent = _createExternalCalendarEventModel(
+          color: const Color(0xFF00BCD4),
+        );
+
+        final color = dataSource.getColorForItem(externalEvent);
+        expect(color, const Color(0xFF00BCD4));
+      });
+    });
+
+    group('getLocationForItem', () {
+      late CourseModel course;
+
+      setUp(() {
+        course = _createCourseModel(id: 1, room: 'Room 101');
+        dataSource.courses = [course];
+      });
+
+      test('returns course room for HomeworkModel', () {
+        final homework = _createHomeworkModel(courseId: 1);
+        final location = dataSource.getLocationForItem(homework);
+        expect(location, 'Room 101');
+      });
+
+      test('returns course room for CourseScheduleEventModel', () {
+        final scheduleEvent = _createCourseScheduleEventModel(ownerId: '1');
+        final location = dataSource.getLocationForItem(scheduleEvent);
+        expect(location, 'Room 101');
+      });
+    });
+
+    group('course filtering', () {
+      late CourseModel course1;
+      late CourseModel course2;
+      late HomeworkModel homework1;
+      late HomeworkModel homework2;
+      late HomeworkModel homework3;
+
+      setUp(() {
+        course1 = _createCourseModel(id: 1, title: 'Math 101');
+        course2 = _createCourseModel(id: 2, title: 'Physics 201');
+
+        homework1 = _createHomeworkModel(id: 1, courseId: 1);
+        homework2 = _createHomeworkModel(id: 2, courseId: 2);
+        homework3 = _createHomeworkModel(id: 3, courseId: 1);
+
+        dataSource.courses = [course1, course2];
+        dataSource.allCalendarItems.addAll([homework1, homework2, homework3]);
+      });
+
+      test('returns all homeworks when no courses selected', () {
+        dataSource.setFilteredCourses({});
+        expect(dataSource.filteredHomeworks, hasLength(3));
+      });
+
+      test('filters by single selected course', () {
+        dataSource.setFilteredCourses({'Math 101': true});
+        final filtered = dataSource.filteredHomeworks;
+
+        expect(filtered, hasLength(2));
+        expect(filtered.map((h) => h.id), containsAll([1, 3]));
+      });
+
+      test('filters by multiple selected courses', () {
+        dataSource.setFilteredCourses({
+          'Math 101': true,
+          'Physics 201': true,
+        });
+        expect(dataSource.filteredHomeworks, hasLength(3));
+      });
+
+      test('filters out when course not selected', () {
+        dataSource.setFilteredCourses({
+          'Math 101': true,
+          'Physics 201': false,
+        });
+        final filtered = dataSource.filteredHomeworks;
+
+        expect(filtered, hasLength(2));
+        expect(filtered.map((h) => h.id), containsAll([1, 3]));
+      });
+
+      test('normalizes course titles for matching', () {
+        dataSource.setFilteredCourses({
+          '  MATH 101  ': true,
+        });
+        final filtered = dataSource.filteredHomeworks;
+
+        expect(filtered, hasLength(2));
+        expect(filtered.map((h) => h.id), containsAll([1, 3]));
+      });
+
+      test('filters CourseScheduleEventModels by course', () {
+        final scheduleEvent1 = _createCourseScheduleEventModel(ownerId: '1');
+        final scheduleEvent2 = _createCourseScheduleEventModel(ownerId: '2');
+        dataSource.allCalendarItems.addAll([scheduleEvent1, scheduleEvent2]);
+
+        dataSource.setFilteredCourses({'Math 101': true});
+        dataSource.setFilterTypes(['Class Schedules']);
+
+        expect(dataSource.appointments, hasLength(1));
+        expect((dataSource.appointments![0] as CourseScheduleEventModel).ownerId,
+            '1');
+      });
+    });
+
+    group('category filtering', () {
+      late CategoryModel category1;
+      late CategoryModel category2;
+      late HomeworkModel homework1;
+      late HomeworkModel homework2;
+      late HomeworkModel homework3;
+
+      setUp(() {
+        category1 = _createCategoryModel(id: 1, title: 'Assignments');
+        category2 = _createCategoryModel(id: 2, title: 'Exams');
+
+        homework1 = _createHomeworkModel(id: 1, categoryId: 1);
+        homework2 = _createHomeworkModel(id: 2, categoryId: 2);
+        homework3 = _createHomeworkModel(id: 3, categoryId: 1);
+
+        dataSource.categoriesMap = {1: category1, 2: category2};
+        dataSource.allCalendarItems.addAll([homework1, homework2, homework3]);
+      });
+
+      test('returns all homeworks when no categories filtered', () {
+        dataSource.setFilterCategories([]);
+        expect(dataSource.filteredHomeworks, hasLength(3));
+      });
+
+      test('filters by single category', () {
+        dataSource.setFilterCategories(['Assignments']);
+        final filtered = dataSource.filteredHomeworks;
+
+        expect(filtered, hasLength(2));
+        expect(filtered.map((h) => h.id), containsAll([1, 3]));
+      });
+
+      test('filters by multiple categories', () {
+        dataSource.setFilterCategories(['Assignments', 'Exams']);
+        expect(dataSource.filteredHomeworks, hasLength(3));
+      });
+
+      test('filters out non-matching categories', () {
+        dataSource.setFilterCategories(['Exams']);
+        final filtered = dataSource.filteredHomeworks;
+
+        expect(filtered, hasLength(1));
+        expect(filtered[0].id, 2);
+      });
+
+      test('handles homework with category entity', () {
+        final homeworkWithEntity = _createHomeworkModel(
+          id: 4,
+          categoryEntity: category1,
+        );
+        dataSource.allCalendarItems.add(homeworkWithEntity);
+
+        dataSource.setFilterCategories(['Assignments']);
+        final filtered = dataSource.filteredHomeworks;
+
+        expect(filtered, hasLength(3));
+        expect(filtered.map((h) => h.id), containsAll([1, 3, 4]));
+      });
+
+      test('excludes homework with empty category title', () {
+        final emptyCategory = _createCategoryModel(id: 3, title: '  ');
+        final homework = _createHomeworkModel(id: 4, categoryId: 3);
+        dataSource.categoriesMap![3] = emptyCategory;
+        dataSource.allCalendarItems.add(homework);
+
+        dataSource.setFilterCategories(['Assignments']);
+        final filtered = dataSource.filteredHomeworks;
+
+        expect(filtered, hasLength(2));
+        expect(filtered.map((h) => h.id), containsAll([1, 3]));
+      });
+    });
+
+    group('status filtering', () {
+      late HomeworkModel completedHomework;
+      late HomeworkModel incompleteHomework;
+      late HomeworkModel overdueHomework;
+
+      setUp(() {
+        final now = DateTime.now();
+        completedHomework = _createHomeworkModel(
+          id: 1,
+          completed: true,
+          start: now.add(const Duration(days: 1)).toIso8601String(),
+        );
+        incompleteHomework = _createHomeworkModel(
+          id: 2,
+          completed: false,
+          start: now.add(const Duration(days: 1)).toIso8601String(),
+        );
+        overdueHomework = _createHomeworkModel(
+          id: 3,
+          completed: false,
+          start: now.subtract(const Duration(days: 1)).toIso8601String(),
+        );
+
+        dataSource.allCalendarItems.addAll([
+          completedHomework,
+          incompleteHomework,
+          overdueHomework,
+        ]);
+      });
+
+      test('returns all homeworks when no status filter', () {
+        dataSource.setFilterStatuses({});
+        expect(dataSource.filteredHomeworks, hasLength(3));
+      });
+
+      test('filters by Complete status', () {
+        dataSource.setFilterStatuses({'Complete'});
+        final filtered = dataSource.filteredHomeworks;
+
+        expect(filtered, hasLength(1));
+        expect(filtered[0].id, 1);
+      });
+
+      test('filters by Incomplete status', () {
+        dataSource.setFilterStatuses({'Incomplete'});
+        final filtered = dataSource.filteredHomeworks;
+
+        expect(filtered, hasLength(2));
+        expect(filtered.map((h) => h.id), containsAll([2, 3]));
+      });
+
+      test('filters by Overdue status', () {
+        dataSource.setFilterStatuses({'Overdue'});
+        final filtered = dataSource.filteredHomeworks;
+
+        expect(filtered, hasLength(1));
+        expect(filtered[0].id, 3);
+      });
+
+      test('combines multiple status filters with OR logic', () {
+        dataSource.setFilterStatuses({'Complete', 'Incomplete'});
+        expect(dataSource.filteredHomeworks, hasLength(3));
+      });
+
+      test('Overdue excludes completed items', () {
+        final now = DateTime.now();
+        final completedOverdue = _createHomeworkModel(
+          id: 4,
+          completed: true,
+          start: now.subtract(const Duration(days: 1)).toIso8601String(),
+        );
+        dataSource.allCalendarItems.add(completedOverdue);
+
+        dataSource.setFilterStatuses({'Overdue'});
+        final filtered = dataSource.filteredHomeworks;
+
+        expect(filtered, hasLength(1));
+        expect(filtered[0].id, 3);
+      });
+
+      test('respects completed overrides in status filter', () {
+        dataSource.setCompletedOverride(2, true);
+        dataSource.setFilterStatuses({'Complete'});
+        final filtered = dataSource.filteredHomeworks;
+
+        // Item with override should always be visible
+        expect(filtered, hasLength(2));
+        expect(filtered.map((h) => h.id), containsAll([1, 2]));
+      });
+    });
+
+    group('search filtering', () {
+      late HomeworkModel homework1;
+      late HomeworkModel homework2;
+      late EventModel event1;
+
+      setUp(() {
+        homework1 = _createHomeworkModel(
+          id: 1,
+          title: 'Math Assignment',
+          comments: 'Complete problems 1-10',
+        );
+        homework2 = _createHomeworkModel(
+          id: 2,
+          title: 'Physics Lab Report',
+          comments: 'Write conclusions',
+        );
+        event1 = _createEventModel(
+          id: 3,
+          title: 'Study Session',
+          comments: 'Review math notes',
+        );
+
+        dataSource.allCalendarItems.addAll([homework1, homework2, event1]);
+      });
+
+      test('returns all items when search query is empty', () {
+        dataSource.setSearchQuery('');
+        expect(dataSource.filteredHomeworks, hasLength(2));
+      });
+
+      test('filters by title match', () {
+        dataSource.setSearchQuery('Math');
+        final filtered = dataSource.filteredHomeworks;
+
+        expect(filtered, hasLength(1));
+        expect(filtered[0].id, 1);
+      });
+
+      test('filters by comments match', () {
+        dataSource.setSearchQuery('conclusions');
+        final filtered = dataSource.filteredHomeworks;
+
+        expect(filtered, hasLength(1));
+        expect(filtered[0].id, 2);
+      });
+
+      test('search is case insensitive', () {
+        dataSource.setSearchQuery('PHYSICS');
+        final filtered = dataSource.filteredHomeworks;
+
+        expect(filtered, hasLength(1));
+        expect(filtered[0].id, 2);
+      });
+
+      test('partial match works', () {
+        dataSource.setSearchQuery('Lab');
+        final filtered = dataSource.filteredHomeworks;
+
+        expect(filtered, hasLength(1));
+        expect(filtered[0].id, 2);
+      });
+
+      test('applies search to events', () {
+        dataSource.setSearchQuery('math');
+        dataSource.setFilterTypes(['Events']);
+
+        expect(dataSource.appointments, hasLength(1));
+        expect((dataSource.appointments![0] as EventModel).id, 3);
+      });
+    });
+
+    group('type filtering', () {
+      late HomeworkModel homework;
+      late EventModel event;
+      late CourseScheduleEventModel scheduleEvent;
+      late ExternalCalendarEventModel externalEvent;
+
+      setUp(() {
+        homework = _createHomeworkModel(id: 1);
+        event = _createEventModel(id: 2);
+        scheduleEvent = _createCourseScheduleEventModel(id: 3);
+        externalEvent = _createExternalCalendarEventModel(id: 4);
+
+        dataSource.allCalendarItems.addAll([
+          homework,
+          event,
+          scheduleEvent,
+          externalEvent,
+        ]);
+      });
+
+      test('returns all items when no type filter', () {
+        dataSource.setFilterTypes([]);
+        expect(dataSource.appointments, hasLength(4));
+      });
+
+      test('filters by Assignments type', () {
+        dataSource.setFilterTypes(['Assignments']);
+        expect(dataSource.appointments, hasLength(1));
+        expect(dataSource.appointments![0], isA<HomeworkModel>());
+      });
+
+      test('filters by Events type', () {
+        dataSource.setFilterTypes(['Events']);
+        expect(dataSource.appointments, hasLength(1));
+        expect(dataSource.appointments![0], isA<EventModel>());
+      });
+
+      test('filters by Class Schedules type', () {
+        dataSource.setFilterTypes(['Class Schedules']);
+        expect(dataSource.appointments, hasLength(1));
+        expect(dataSource.appointments![0], isA<CourseScheduleEventModel>());
+      });
+
+      test('filters by External Calendars type', () {
+        dataSource.setFilterTypes(['External Calendars']);
+        expect(dataSource.appointments, hasLength(1));
+        expect(dataSource.appointments![0], isA<ExternalCalendarEventModel>());
+      });
+
+      test('combines multiple type filters', () {
+        dataSource.setFilterTypes(['Assignments', 'Events']);
+        expect(dataSource.appointments, hasLength(2));
+      });
+    });
+
+    group('combined filtering', () {
+      late CourseModel course1;
+      late CategoryModel category1;
+      late HomeworkModel matchingHomework;
+      late HomeworkModel nonMatchingCourse;
+      late HomeworkModel nonMatchingCategory;
+
+      setUp(() {
+        course1 = _createCourseModel(id: 1, title: 'Math 101');
+        category1 = _createCategoryModel(id: 1, title: 'Assignments');
+
+        matchingHomework = _createHomeworkModel(
+          id: 1,
+          title: 'Math Homework',
+          courseId: 1,
+          categoryId: 1,
+          completed: false,
+          start: DateTime.now().add(const Duration(days: 1)).toIso8601String(),
+        );
+        nonMatchingCourse = _createHomeworkModel(
+          id: 2,
+          courseId: 2,
+          categoryId: 1,
+        );
+        nonMatchingCategory = _createHomeworkModel(
+          id: 3,
+          courseId: 1,
+          categoryId: 2,
+        );
+
+        dataSource.courses = [course1];
+        dataSource.categoriesMap = {1: category1};
+        dataSource.allCalendarItems.addAll([
+          matchingHomework,
+          nonMatchingCourse,
+          nonMatchingCategory,
+        ]);
+      });
+
+      test('applies course and category filters together', () {
+        dataSource.setFilteredCourses({'Math 101': true});
+        dataSource.setFilterCategories(['Assignments']);
+
+        final filtered = dataSource.filteredHomeworks;
+        expect(filtered, hasLength(1));
+        expect(filtered[0].id, 1);
+      });
+
+      test('applies all filters together', () {
+        dataSource.setFilteredCourses({'Math 101': true});
+        dataSource.setFilterCategories(['Assignments']);
+        dataSource.setFilterStatuses({'Incomplete'});
+        dataSource.setSearchQuery('Math');
+
+        final filtered = dataSource.filteredHomeworks;
+        expect(filtered, hasLength(1));
+        expect(filtered[0].id, 1);
+      });
+
+      test('returns empty when filters exclude all items', () {
+        dataSource.setFilteredCourses({'Math 101': true});
+        dataSource.setSearchQuery('Physics');
+
+        expect(dataSource.filteredHomeworks, isEmpty);
+      });
+    });
+
+    group('calendar item management', () {
+      test('addCalendarItem adds new item', () {
+        final homework = _createHomeworkModel(id: 1);
+        dataSource.addCalendarItem(homework);
+
+        expect(dataSource.allCalendarItems, hasLength(1));
+        expect(dataSource.appointments, hasLength(1));
+        expect(dataSource.allCalendarItems[0].id, 1);
+      });
+
+      test('addCalendarItem ignores duplicate', () {
+        final homework = _createHomeworkModel(id: 1);
+        dataSource.addCalendarItem(homework);
+        dataSource.addCalendarItem(homework);
+
+        expect(dataSource.allCalendarItems, hasLength(1));
+      });
+
+      test('updateCalendarItem updates existing item', () {
+        final homework = _createHomeworkModel(id: 1, title: 'Original');
+        dataSource.addCalendarItem(homework);
+
+        final updated = _createHomeworkModel(id: 1, title: 'Updated');
+        dataSource.updateCalendarItem(updated);
+
+        expect(dataSource.allCalendarItems, hasLength(1));
+        expect(dataSource.allCalendarItems[0].title, 'Updated');
+      });
+
+      test('updateCalendarItem clears completed override', () {
+        final homework = _createHomeworkModel(id: 1, completed: false);
+        dataSource.addCalendarItem(homework);
+        dataSource.setCompletedOverride(1, true);
+
+        final updated = _createHomeworkModel(id: 1, completed: true);
+        dataSource.updateCalendarItem(updated);
+
+        expect(dataSource.completedOverrides, isEmpty);
+      });
+
+      test('removeCalendarItem removes item', () {
+        final homework = _createHomeworkModel(id: 1);
+        dataSource.addCalendarItem(homework);
+        dataSource.removeCalendarItem(1);
+
+        expect(dataSource.allCalendarItems, isEmpty);
+        expect(dataSource.appointments, isEmpty);
+      });
+
+      test('removeCalendarItem clears completed override', () {
+        final homework = _createHomeworkModel(id: 1);
+        dataSource.addCalendarItem(homework);
+        dataSource.setCompletedOverride(1, true);
+        dataSource.removeCalendarItem(1);
+
+        expect(dataSource.completedOverrides, isEmpty);
+      });
+
+      test('removeCalendarItem handles non-existent item', () {
+        dataSource.removeCalendarItem(999);
+        expect(dataSource.allCalendarItems, isEmpty);
+      });
+    });
+
+    group('completed overrides', () {
+      late HomeworkModel homework;
+
+      setUp(() {
+        homework = _createHomeworkModel(id: 1, completed: false);
+        dataSource.addCalendarItem(homework);
+      });
+
+      test('setCompletedOverride sets override', () {
+        dataSource.setCompletedOverride(1, true);
+        expect(dataSource.completedOverrides[1], isTrue);
+      });
+
+      test('isHomeworkCompleted uses override when present', () {
+        dataSource.setCompletedOverride(1, true);
+        expect(dataSource.isHomeworkCompleted(homework), isTrue);
+      });
+
+      test('isHomeworkCompleted uses model value when no override', () {
+        expect(dataSource.isHomeworkCompleted(homework), isFalse);
+      });
+
+      test('clearCompletedOverride removes override', () {
+        dataSource.setCompletedOverride(1, true);
+        dataSource.clearCompletedOverride(1);
+        expect(dataSource.completedOverrides, isEmpty);
+      });
+
+      test('completedOverrides returns unmodifiable map', () {
+        dataSource.setCompletedOverride(1, true);
+        final overrides = dataSource.completedOverrides;
+
+        expect(
+          () => overrides[2] = true,
+          throwsUnsupportedError,
+        );
+      });
+    });
+
+    group('clearFilters', () {
+      test('clears all filters except search and courses', () {
+        dataSource.setFilterCategories(['Assignments']);
+        dataSource.setFilterTypes(['Events']);
+        dataSource.setFilterStatuses({'Complete'});
+
+        dataSource.clearFilters();
+
+        expect(dataSource.filterCategories, isEmpty);
+        expect(dataSource.filterTypes, isEmpty);
+        expect(dataSource.filterStatuses, isEmpty);
+      });
+
+      test('does not clear search query', () {
+        dataSource.setSearchQuery('test');
+        dataSource.clearFilters();
+        expect(dataSource.searchQuery, 'test');
+      });
+
+      test('does not clear filtered courses', () {
+        dataSource.setFilteredCourses({'Math 101': true});
+        dataSource.clearFilters();
+        expect(dataSource.filteredCourses, isNotEmpty);
+      });
+    });
+
+    group('handleLoadMore', () {
+      setUp(() {
+        when(() => mockHomeworkRepository.getHomeworks(
+              from: any(named: 'from'),
+              to: any(named: 'to'),
+              shownOnCalendar: any(named: 'shownOnCalendar'),
+            )).thenAnswer((_) async => []);
+        when(() => mockEventRepository.getEvents(
+              from: any(named: 'from'),
+              to: any(named: 'to'),
+            )).thenAnswer((_) async => []);
+        when(() => mockCourseScheduleRepository.getCourseScheduleEvents(
+              from: any(named: 'from'),
+              to: any(named: 'to'),
+            )).thenAnswer((_) async => []);
+        when(() => mockExternalCalendarRepository.getExternalCalendarEvents(
+              from: any(named: 'from'),
+              to: any(named: 'to'),
+            )).thenAnswer((_) async => []);
+      });
+
+      test('sets initial date range', () async {
+        final start = DateTime(2025, 1, 1);
+        final end = DateTime(2025, 1, 31);
+
+        await dataSource.handleLoadMore(start, end);
+
+        expect(dataSource.from, start);
+        expect(dataSource.to, end);
+        expect(dataSource.hasLoadedInitialData, isTrue);
+      });
+
+      test('expands date range when earlier dates requested', () async {
+        await dataSource.handleLoadMore(
+          DateTime(2025, 1, 15),
+          DateTime(2025, 1, 31),
+        );
+
+        await dataSource.handleLoadMore(
+          DateTime(2025, 1, 1),
+          DateTime(2025, 1, 31),
+        );
+
+        expect(dataSource.from, DateTime(2025, 1, 1));
+        expect(dataSource.to, DateTime(2025, 1, 31));
+      });
+
+      test('expands date range when later dates requested', () async {
+        await dataSource.handleLoadMore(
+          DateTime(2025, 1, 1),
+          DateTime(2025, 1, 15),
+        );
+
+        await dataSource.handleLoadMore(
+          DateTime(2025, 1, 1),
+          DateTime(2025, 1, 31),
+        );
+
+        expect(dataSource.from, DateTime(2025, 1, 1));
+        expect(dataSource.to, DateTime(2025, 1, 31));
+      });
+
+      test('fetches calendar items from all repositories', () async {
+        final homework = _createHomeworkModel(id: 1);
+        final event = _createEventModel(id: 2);
+        final scheduleEvent = _createCourseScheduleEventModel(id: 3);
+        final externalEvent = _createExternalCalendarEventModel(id: 4);
+
+        when(() => mockHomeworkRepository.getHomeworks(
+              from: any(named: 'from'),
+              to: any(named: 'to'),
+              shownOnCalendar: any(named: 'shownOnCalendar'),
+            )).thenAnswer((_) async => [homework]);
+        when(() => mockEventRepository.getEvents(
+              from: any(named: 'from'),
+              to: any(named: 'to'),
+            )).thenAnswer((_) async => [event]);
+        when(() => mockCourseScheduleRepository.getCourseScheduleEvents(
+              from: any(named: 'from'),
+              to: any(named: 'to'),
+            )).thenAnswer((_) async => [scheduleEvent]);
+        when(() => mockExternalCalendarRepository.getExternalCalendarEvents(
+              from: any(named: 'from'),
+              to: any(named: 'to'),
+            )).thenAnswer((_) async => [externalEvent]);
+
+        await dataSource.handleLoadMore(
+          DateTime(2025, 1, 1),
+          DateTime(2025, 1, 31),
+        );
+
+        expect(dataSource.allCalendarItems, hasLength(4));
+        expect(dataSource.appointments, hasLength(4));
+      });
+
+      test('does not add duplicate items', () async {
+        final homework = _createHomeworkModel(id: 1);
+
+        when(() => mockHomeworkRepository.getHomeworks(
+              from: any(named: 'from'),
+              to: any(named: 'to'),
+              shownOnCalendar: any(named: 'shownOnCalendar'),
+            )).thenAnswer((_) async => [homework]);
+
+        await dataSource.handleLoadMore(
+          DateTime(2025, 1, 1),
+          DateTime(2025, 1, 31),
+        );
+
+        await dataSource.handleLoadMore(
+          DateTime(2025, 1, 1),
+          DateTime(2025, 1, 31),
+        );
+
+        expect(dataSource.allCalendarItems, hasLength(1));
+      });
+
+      test('fetches with shownOnCalendar=true for homework', () async {
+        await dataSource.handleLoadMore(
+          DateTime(2025, 1, 1),
+          DateTime(2025, 1, 31),
+        );
+
+        verify(() => mockHomeworkRepository.getHomeworks(
+              from: any(named: 'from'),
+              to: any(named: 'to'),
+              shownOnCalendar: true,
+            )).called(1);
+      });
+    });
+
+    group('typed getters', () {
+      test('allHomeworks returns only HomeworkModels', () {
+        dataSource.allCalendarItems.addAll([
+          _createHomeworkModel(id: 1),
+          _createEventModel(id: 2),
+          _createHomeworkModel(id: 3),
+        ]);
+
+        expect(dataSource.allHomeworks, hasLength(2));
+      });
+
+      test('allEvents returns only EventModels', () {
+        dataSource.allCalendarItems.addAll([
+          _createHomeworkModel(id: 1),
+          _createEventModel(id: 2),
+          _createEventModel(id: 3),
+        ]);
+
+        expect(dataSource.allEvents, hasLength(2));
+      });
+
+      test('allCourseScheduleEvents returns only CourseScheduleEventModels',
+          () {
+        dataSource.allCalendarItems.addAll([
+          _createCourseScheduleEventModel(id: 1),
+          _createEventModel(id: 2),
+          _createCourseScheduleEventModel(id: 3),
+        ]);
+
+        expect(dataSource.allCourseScheduleEvents, hasLength(2));
+      });
+
+      test('allExternalCalendarEvents returns only ExternalCalendarEventModels',
+          () {
+        dataSource.allCalendarItems.addAll([
+          _createExternalCalendarEventModel(id: 1),
+          _createEventModel(id: 2),
+          _createExternalCalendarEventModel(id: 3),
+        ]);
+
+        expect(dataSource.allExternalCalendarEvents, hasLength(2));
+      });
+    });
+
+    group('convertAppointmentToObject', () {
+      test('returns the custom data unchanged', () {
+        final homework = _createHomeworkModel(id: 1);
+        final appointment = Appointment(
+          startTime: DateTime.now(),
+          endTime: DateTime.now(),
+        );
+
+        final result = dataSource.convertAppointmentToObject(
+          homework,
+          appointment,
+        );
+
+        expect(result, homework);
+      });
+
+      test('returns null when custom data is null', () {
+        final appointment = Appointment(
+          startTime: DateTime.now(),
+          endTime: DateTime.now(),
+        );
+
+        final result = dataSource.convertAppointmentToObject(
+          null,
+          appointment,
+        );
+
+        expect(result, isNull);
+      });
+    });
+  });
+}
+
+// Helper functions to create test models
+
+HomeworkModel _createHomeworkModel({
+  int id = 1,
+  String title = 'Test Homework',
+  String start = '2025-01-15T10:00:00Z',
+  String end = '2025-01-15T11:00:00Z',
+  bool allDay = false,
+  int courseId = 1,
+  int categoryId = 1,
+  CategoryModel? categoryEntity,
+  bool completed = false,
+  String comments = '',
+}) {
+  return HomeworkModel(
+    id: id,
+    title: title,
+    allDay: allDay,
+    showEndTime: true,
+    start: start,
+    end: end,
+    priority: 50,
+    comments: comments,
+    attachments: [],
+    reminders: [],
+    completed: completed,
+    currentGrade: '-1/100',
+    course: IdOrEntity<CourseModel>(id: courseId),
+    category: categoryEntity != null
+        ? IdOrEntity<CategoryModel>(id: categoryId, entity: categoryEntity)
+        : IdOrEntity<CategoryModel>(id: categoryId),
+    materials: [],
+  );
+}
+
+EventModel _createEventModel({
+  int id = 1,
+  String title = 'Test Event',
+  String start = '2025-01-15T14:00:00Z',
+  String end = '2025-01-15T15:00:00Z',
+  bool allDay = false,
+  String comments = '',
+}) {
+  return EventModel(
+    id: id,
+    title: title,
+    allDay: allDay,
+    showEndTime: true,
+    start: start,
+    end: end,
+    priority: 50,
+    url: null,
+    comments: comments,
+    attachments: [],
+    reminders: [],
+    color: const Color(0xFF4CAF50),
+  );
+}
+
+CourseScheduleEventModel _createCourseScheduleEventModel({
+  int id = 1,
+  String title = 'Test Class',
+  String ownerId = '1',
+  Color color = const Color(0xFFFF5722),
+}) {
+  return CourseScheduleEventModel(
+    id: id,
+    title: title,
+    allDay: false,
+    showEndTime: true,
+    start: '2025-01-15T10:00:00Z',
+    end: '2025-01-15T11:00:00Z',
+    priority: 50,
+    url: null,
+    comments: '',
+    attachments: [],
+    reminders: [],
+    ownerId: ownerId,
+    color: color,
+  );
+}
+
+ExternalCalendarEventModel _createExternalCalendarEventModel({
+  int id = 1,
+  String title = 'External Event',
+  Color color = const Color(0xFF9C27B0),
+}) {
+  return ExternalCalendarEventModel(
+    id: id,
+    title: title,
+    allDay: false,
+    showEndTime: true,
+    start: '2025-01-15T10:00:00Z',
+    end: '2025-01-15T11:00:00Z',
+    priority: 50,
+    url: null,
+    comments: '',
+    attachments: [],
+    reminders: [],
+    ownerId: '1',
+    color: color,
+  );
+}
+
+CourseModel _createCourseModel({
+  int id = 1,
+  String title = 'Test Course',
+  Color color = const Color(0xFF2196F3),
+  String? room,
+}) {
+  return CourseModel(
+    id: id,
+    title: title,
+    startDate: '2025-01-01',
+    endDate: '2025-05-31',
+    room: room ?? '',
+    credits: 3,
+    color: color,
+    website: '',
+    isOnline: false,
+    courseGroup: 1,
+    teacherName: '',
+    teacherEmail: '',
+    currentGrade: null,
+    schedules: [],
+  );
+}
+
+CategoryModel _createCategoryModel({
+  int id = 1,
+  String title = 'Test Category',
+  Color color = const Color(0xFFF44336),
+}) {
+  return CategoryModel(
+    id: id,
+    title: title,
+    color: color,
+    course: 1,
+    weight: 100,
+  );
+}
