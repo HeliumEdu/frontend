@@ -64,12 +64,4 @@ class Format {
 
     return '${gradeValue.toStringAsFixed(2)}%';
   }
-
-  static String getTrendIndicator(double grade) {
-    if (grade >= 0) {
-      return '↑';
-    } else {
-      return '↓';
-    }
-  }
 }
