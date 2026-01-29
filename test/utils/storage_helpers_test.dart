@@ -6,7 +6,6 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -152,12 +151,6 @@ void main() {
       });
     });
 
-    group('platform detection', () {
-      test('kIsWeb correctly identifies test environment as non-web', () {
-        // In tests, kIsWeb is typically false unless running in browser
-        expect(kIsWeb, isFalse);
-      });
-    });
   });
 
   group('Permission constants', () {

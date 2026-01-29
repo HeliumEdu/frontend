@@ -8,7 +8,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/base_model.dart';
-import 'package:heliumapp/data/models/id_or_entity.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 
 /// Test model implementing BaseModel for IdOrEntity tests.
