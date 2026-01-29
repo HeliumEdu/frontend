@@ -23,8 +23,7 @@ void main() {
           // GIVEN
           const sdkVersion = 33;
 
-          // THEN
-          // Android 13+ requires READ_MEDIA_* permissions
+          // THEN - SDK 33+ requires READ_MEDIA_* permissions
           expect(sdkVersion >= 33, isTrue);
         });
 
@@ -32,17 +31,16 @@ void main() {
           // GIVEN
           const sdkVersion = 32;
 
-          // THEN
-          // Android <13 uses READ_EXTERNAL_STORAGE
+          // THEN - SDK <33 uses READ_EXTERNAL_STORAGE
           expect(sdkVersion >= 33, isFalse);
+          expect(sdkVersion < 33, isTrue);
         });
 
         test('Android 10+ (SDK 29+) uses scoped storage for downloads', () {
           // GIVEN
           const sdkVersion = 29;
 
-          // THEN
-          // Android 10+ doesn't need WRITE_EXTERNAL_STORAGE for downloads
+          // THEN - SDK 29+ uses scoped storage
           expect(sdkVersion >= 29, isTrue);
         });
 
@@ -50,139 +48,114 @@ void main() {
           // GIVEN
           const sdkVersion = 28;
 
-          // THEN
-          // Android <10 needs WRITE_EXTERNAL_STORAGE
+          // THEN - SDK <29 needs WRITE_EXTERNAL_STORAGE
           expect(sdkVersion >= 29, isFalse);
-        });
-      });
-
-      group('iOS and Web behavior', () {
-        test('iOS does not need storage permissions', () {
-          // iOS uses its own sandboxed file system
-          // requestStoragePermission returns true without requesting
-          expect(true, isTrue);
+          expect(sdkVersion < 29, isTrue);
         });
 
-        test('Web does not need storage permissions', () {
-          // Web uses browser APIs that handle permissions
-          // requestStoragePermission returns true without requesting
-          expect(true, isTrue);
-        });
+        test('various Android SDK versions behave correctly', () {
+          // Test the version boundaries
+          for (final entry in {
+            26: {'needsScoped': false, 'needsGranular': false},
+            28: {'needsScoped': false, 'needsGranular': false},
+            29: {'needsScoped': true, 'needsGranular': false},
+            30: {'needsScoped': true, 'needsGranular': false},
+            32: {'needsScoped': true, 'needsGranular': false},
+            33: {'needsScoped': true, 'needsGranular': true},
+            34: {'needsScoped': true, 'needsGranular': true},
+          }.entries) {
+            final sdkVersion = entry.key;
+            final expected = entry.value;
 
-        test('iOS does not need download permissions', () {
-          // iOS handles downloads through its share system
-          // requestDownloadPermission returns true without requesting
-          expect(true, isTrue);
-        });
-
-        test('Web does not need download permissions', () {
-          // Web uses browser download functionality
-          // requestDownloadPermission returns true without requesting
-          expect(true, isTrue);
+            expect(
+              sdkVersion >= 29,
+              expected['needsScoped'],
+              reason: 'SDK $sdkVersion should ${expected['needsScoped']! ? '' : 'not '}use scoped storage',
+            );
+            expect(
+              sdkVersion >= 33,
+              expected['needsGranular'],
+              reason: 'SDK $sdkVersion should ${expected['needsGranular']! ? '' : 'not '}use granular permissions',
+            );
+          }
         });
       });
 
       group('permission status handling', () {
         test('granted permission returns true', () {
-          // GIVEN
           const status = PermissionStatus.granted;
-
-          // THEN
           expect(status.isGranted, isTrue);
         });
 
         test('denied permission returns false', () {
-          // GIVEN
           const status = PermissionStatus.denied;
-
-          // THEN
           expect(status.isGranted, isFalse);
           expect(status.isDenied, isTrue);
         });
 
         test('permanently denied triggers app settings', () {
-          // GIVEN
           const status = PermissionStatus.permanentlyDenied;
-
-          // THEN
           expect(status.isPermanentlyDenied, isTrue);
-          // In this case, openAppSettings() should be called
+          expect(status.isGranted, isFalse);
         });
 
         test('restricted permission returns false', () {
-          // GIVEN
           const status = PermissionStatus.restricted;
-
-          // THEN
           expect(status.isGranted, isFalse);
           expect(status.isRestricted, isTrue);
         });
 
-        test('limited permission may be considered granted', () {
-          // GIVEN
+        test('limited permission is not fully granted', () {
           const status = PermissionStatus.limited;
-
-          // THEN
-          // Limited access is still some access
           expect(status.isLimited, isTrue);
+          expect(status.isGranted, isFalse);
         });
       });
 
       group('granular media permissions (Android 13+)', () {
         test('any granted media permission allows file picking', () {
-          // GIVEN
           const photoStatus = PermissionStatus.granted;
           const videoStatus = PermissionStatus.denied;
           const audioStatus = PermissionStatus.denied;
 
-          // WHEN
-          final hasPermission =
-              photoStatus.isGranted ||
+          final hasPermission = photoStatus.isGranted ||
               videoStatus.isGranted ||
               audioStatus.isGranted;
 
-          // THEN
           expect(hasPermission, isTrue);
         });
 
         test('all denied media permissions blocks file picking', () {
-          // GIVEN
           const photoStatus = PermissionStatus.denied;
           const videoStatus = PermissionStatus.denied;
           const audioStatus = PermissionStatus.denied;
 
-          // WHEN
-          final hasPermission =
-              photoStatus.isGranted ||
+          final hasPermission = photoStatus.isGranted ||
               videoStatus.isGranted ||
               audioStatus.isGranted;
 
-          // THEN
           expect(hasPermission, isFalse);
+        });
+
+        test('multiple granted permissions work correctly', () {
+          for (final scenario in [
+            [PermissionStatus.granted, PermissionStatus.granted, PermissionStatus.granted],
+            [PermissionStatus.granted, PermissionStatus.denied, PermissionStatus.denied],
+            [PermissionStatus.denied, PermissionStatus.granted, PermissionStatus.denied],
+            [PermissionStatus.denied, PermissionStatus.denied, PermissionStatus.granted],
+          ]) {
+            final hasPermission =
+                scenario[0].isGranted || scenario[1].isGranted || scenario[2].isGranted;
+            expect(hasPermission, isTrue);
+          }
         });
       });
     });
 
-    group('downloadFile', () {
-      test('returns false on exception', () async {
-        // The downloadFile method catches exceptions and returns false
-        // This tests the error handling behavior
-        expect(true, isTrue); // Placeholder - actual test requires platform code
-      });
-
-      test('delegates to platform-specific implementation', () {
-        // downloadFile calls downloadFilePlatform which is conditionally imported
-        // - Mobile: uses dio + path_provider
-        // - Web: uses dart:html anchor element
-        expect(true, isTrue);
-      });
-    });
-
     group('platform detection', () {
-      test('kIsWeb correctly identifies web platform', () {
+      test('kIsWeb correctly identifies test environment as non-web', () {
         // In tests, kIsWeb is typically false unless running in browser
-        // This documents the expected behavior
-        expect(kIsWeb, isFalse); // Test runs in VM, not browser
+        expect(kIsWeb, isFalse);
       });
     });
   });
@@ -190,18 +163,22 @@ void main() {
   group('Permission constants', () {
     test('Permission.photos is available for Android 13+', () {
       expect(Permission.photos, isNotNull);
+      expect(Permission.photos, isA<Permission>());
     });
 
     test('Permission.videos is available for Android 13+', () {
       expect(Permission.videos, isNotNull);
+      expect(Permission.videos, isA<Permission>());
     });
 
     test('Permission.audio is available for Android 13+', () {
       expect(Permission.audio, isNotNull);
+      expect(Permission.audio, isA<Permission>());
     });
 
     test('Permission.storage is available for legacy Android', () {
       expect(Permission.storage, isNotNull);
+      expect(Permission.storage, isA<Permission>());
     });
   });
 }

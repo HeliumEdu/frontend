@@ -220,7 +220,9 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
                         width: 40,
                         height: 40,
                         child: IconButton(
-                          onPressed: () => Share.share(url),
+                          onPressed: () => SharePlus.instance.share(
+                            ShareParams(uri: Uri.parse(url)),
+                          ),
                           icon: Icon(
                             Icons.share_outlined,
                             color: buttonColor,

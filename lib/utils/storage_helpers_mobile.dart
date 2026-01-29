@@ -137,10 +137,12 @@ Future<bool> _downloadFileIOS(String url, String filename) async {
 
     // On iOS, open share sheet so user can save to Files or share
     // Provide a default center position for iPad popover (required on iOS)
-    final result = await Share.shareXFiles(
-      [XFile(filePath)],
-      subject: 'Save $filename',
-      sharePositionOrigin: const Rect.fromLTWH(0, 0, 100, 100),
+    final result = await SharePlus.instance.share(
+      ShareParams(
+        files: [XFile(filePath)],
+        subject: 'Save $filename',
+        sharePositionOrigin: const Rect.fromLTWH(0, 0, 100, 100),
+      ),
     );
 
     log.info('iOS share sheet result: ${result.status}');

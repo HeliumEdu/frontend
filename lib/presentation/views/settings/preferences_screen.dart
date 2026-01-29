@@ -247,7 +247,6 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
                     title: Text('Color by category', style: context.formLabel),
                     value: _isSelectedColorByCategory,
                     onChanged: (value) {
-                      Feedback.forTap(context);
                       setState(() {
                         _isSelectedColorByCategory = value!;
                       });
