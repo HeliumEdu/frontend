@@ -452,7 +452,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         ? calendarItem.id
         : null;
 
-    Feedback.forTap(context);
     context.push(
       AppRoutes.calendarItemAddScreen,
       extra: CalendarItemAddArgs(
@@ -1123,6 +1122,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     final CalendarItemBaseModel calendarItem =
         tapDetails.appointments![0] as CalendarItemBaseModel;
 
+    Feedback.forTap(context);
+
     _openCalendarItem(calendarItem);
   }
 
@@ -1530,6 +1531,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                       return GestureDetector(
                         onTap: () {
                           Navigator.of(context).pop();
+                          Feedback.forTap(context);
                           _openCalendarItem(
                             appointment as CalendarItemBaseModel,
                           );
@@ -1655,7 +1657,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                         Expanded(
                           child: InkWell(
                             onTap: () {
-                              Feedback.forTap(context);
                               _calendarItemDataSource.setFilteredCourses({});
                               setMenuState(() {});
                             },
@@ -1839,7 +1840,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                         Expanded(
                           child: InkWell(
                             onTap: () {
-                              Feedback.forTap(context);
                               _calendarItemDataSource.clearFilters();
                               setMenuState(() {});
                             },

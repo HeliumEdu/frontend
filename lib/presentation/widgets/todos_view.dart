@@ -283,7 +283,6 @@ class _TodosViewState extends State<TodosView> {
                       IconButton(
                         onPressed: _currentPage > 1
                             ? () {
-                                Feedback.forTap(context);
                                 setState(() {
                                   _currentPage--;
                                 });
@@ -302,7 +301,6 @@ class _TodosViewState extends State<TodosView> {
                       IconButton(
                         onPressed: _currentPage < totalPages
                             ? () {
-                                Feedback.forTap(context);
                                 setState(() {
                                   _currentPage++;
                                 });
@@ -571,7 +569,6 @@ class _TodosViewState extends State<TodosView> {
       ),
       child: InkWell(
         onTap: () {
-          Feedback.forTap(context);
           widget.onTap(homework);
         },
         child: Padding(

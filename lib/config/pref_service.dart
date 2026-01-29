@@ -5,20 +5,42 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PrefService {
-  static const FlutterSecureStorage _secureStorage = FlutterSecureStorage();
-  late final SharedPreferencesWithCache? _sharedStorage;
+  FlutterSecureStorage? _secureStorageOverride;
+  FlutterSecureStorage get _secureStorage =>
+      _secureStorageOverride ?? const FlutterSecureStorage();
+
+  SharedPreferencesWithCache? _sharedStorage;
 
   bool _isInitialized = false;
 
-  static final PrefService _instance = PrefService._internal();
+  static PrefService _instance = PrefService._internal();
 
   factory PrefService() => _instance;
 
   PrefService._internal();
+
+  @visibleForTesting
+  PrefService.forTesting({
+    required FlutterSecureStorage secureStorage,
+    required SharedPreferencesWithCache sharedStorage,
+  })  : _secureStorageOverride = secureStorage,
+        _sharedStorage = sharedStorage,
+        _isInitialized = true;
+
+  @visibleForTesting
+  static void resetForTesting() {
+    _instance = PrefService._internal();
+  }
+
+  @visibleForTesting
+  static void setInstanceForTesting(PrefService instance) {
+    _instance = instance;
+  }
 
   Future<void> init() async {
     if (isInitialized) return;

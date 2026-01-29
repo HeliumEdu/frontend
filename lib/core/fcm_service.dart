@@ -27,15 +27,13 @@ import 'package:logging/logging.dart';
 final log = Logger('HeliumLogger');
 
 class FcmService {
-  final DioClient _dioClient = DioClient();
-
-  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
-  final FlutterLocalNotificationsPlugin _localNotifications =
-      FlutterLocalNotificationsPlugin();
+  late final DioClient _dioClient;
+  late final FirebaseMessaging _firebaseMessaging;
+  late final FlutterLocalNotificationsPlugin _localNotifications;
+  late final PrefService _prefService;
 
   final Map<String, DateTime> _recentMessageIds = {};
   static const Duration _dedupeWindow = Duration(seconds: 30);
-  final PrefService _prefService = PrefService();
 
   bool _isInitialized = false;
 
@@ -47,11 +45,42 @@ class FcmService {
   // Getters
   String? get fcmToken => _fcmToken;
 
-  static final FcmService _instance = FcmService._internal();
+  static FcmService _instance = FcmService._internal();
 
   factory FcmService() => _instance;
 
-  FcmService._internal();
+  FcmService._internal()
+      : _dioClient = DioClient(),
+        _firebaseMessaging = FirebaseMessaging.instance,
+        _localNotifications = FlutterLocalNotificationsPlugin(),
+        _prefService = PrefService();
+
+  @visibleForTesting
+  FcmService.forTesting({
+    required DioClient dioClient,
+    required FirebaseMessaging firebaseMessaging,
+    required FlutterLocalNotificationsPlugin localNotifications,
+    required PrefService prefService,
+  })  : _dioClient = dioClient,
+        _firebaseMessaging = firebaseMessaging,
+        _localNotifications = localNotifications,
+        _prefService = prefService;
+
+  @visibleForTesting
+  static void resetForTesting() {
+    _instance = FcmService._internal();
+  }
+
+  @visibleForTesting
+  static void setInstanceForTesting(FcmService instance) {
+    _instance = instance;
+  }
+
+  @visibleForTesting
+  Map<String, DateTime> get recentMessageIdsForTesting => _recentMessageIds;
+
+  @visibleForTesting
+  static Duration get dedupeWindowForTesting => _dedupeWindow;
 
   Future<void> init() async {
     if (isInitialized) return;

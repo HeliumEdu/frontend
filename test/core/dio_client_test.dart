@@ -5,15 +5,51 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:timezone/data/latest_all.dart' as tz_data;
 
-class MockPrefService extends Mock implements PrefService {}
+import '../mocks/mock_services.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUpAll(() {
+    tz_data.initializeTimeZones();
+  });
+
+  late MockPrefService mockPrefService;
+  late MockDio mockDio;
+  late DioClient dioClient;
+
+  setUp(() {
+    mockPrefService = MockPrefService();
+    mockDio = MockDio();
+
+    // Setup default mock behaviors
+    when(() => mockDio.options).thenReturn(BaseOptions(
+      baseUrl: 'https://api.example.com',
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 30),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    ));
+
+    dioClient = DioClient.forTesting(
+      dio: mockDio,
+      prefService: mockPrefService,
+    );
+  });
+
+  tearDown(() {
+    DioClient.resetForTesting();
+    PrefService.resetForTesting();
+  });
 
   group('DioClient', () {
     group('singleton pattern', () {
@@ -26,114 +62,119 @@ void main() {
         expect(identical(instance1, instance2), isTrue);
       });
 
-      test('dio getter returns configured Dio instance', () {
+      test('setInstanceForTesting allows replacing the singleton', () {
         // GIVEN
-        final client = DioClient();
-
-        // THEN
-        expect(client.dio, isNotNull);
-        expect(client.dio.options.headers['Content-Type'], 'application/json');
-        expect(client.dio.options.headers['Accept'], 'application/json');
-      });
-
-      test('dio has correct timeout configuration', () {
-        // GIVEN
-        final client = DioClient();
-
-        // THEN
-        expect(
-          client.dio.options.connectTimeout,
-          equals(const Duration(seconds: 30)),
-        );
-        expect(
-          client.dio.options.receiveTimeout,
-          equals(const Duration(seconds: 30)),
-        );
-      });
-    });
-
-    group('_isInvalidTokenError', () {
-      // Note: This method is private, so we test it indirectly through
-      // error scenarios. These tests document the expected behavior.
-
-      test('Token is blacklisted message indicates invalid token', () {
-        // This is tested through the interceptor behavior
-        // The method checks for:
-        // - 'Token is blacklisted'
-        // - contains 'invalid'
-        // - contains 'expired'
-        expect(true, isTrue); // Placeholder for documentation
-      });
-    });
-  });
-
-  group('DioClient token and storage operations', () {
-    late MockPrefService mockPrefService;
-
-    setUp(() {
-      mockPrefService = MockPrefService();
-    });
-
-    group('secure storage operations', () {
-      test('getSecure reads access_token from secure storage', () async {
-        // GIVEN
-        when(
-          () => mockPrefService.getSecure('access_token'),
-        ).thenAnswer((_) async => 'test_access_token');
+        DioClient.setInstanceForTesting(dioClient);
 
         // WHEN
-        final result = await mockPrefService.getSecure('access_token');
+        final instance = DioClient();
 
         // THEN
-        expect(result, equals('test_access_token'));
+        expect(identical(instance, dioClient), isTrue);
+      });
+
+      test('resetForTesting creates a new instance', () {
+        // GIVEN
+        DioClient.setInstanceForTesting(dioClient);
+        final oldInstance = DioClient();
+
+        // WHEN
+        DioClient.resetForTesting();
+        final newInstance = DioClient();
+
+        // THEN
+        expect(identical(oldInstance, newInstance), isFalse);
+      });
+    });
+
+    group('token methods', () {
+      test('saveAccessToken stores token in secure storage', () async {
+        // GIVEN
+        const token = 'test_access_token';
+        when(
+          () => mockPrefService.setSecure('access_token', token),
+        ).thenAnswer((_) async {});
+
+        // WHEN
+        await dioClient.saveAccessToken(token);
+
+        // THEN
+        verify(
+          () => mockPrefService.setSecure('access_token', token),
+        ).called(1);
+      });
+
+      test('saveRefreshToken stores token in secure storage', () async {
+        // GIVEN
+        const token = 'test_refresh_token';
+        when(
+          () => mockPrefService.setSecure('refresh_token', token),
+        ).thenAnswer((_) async {});
+
+        // WHEN
+        await dioClient.saveRefreshToken(token);
+
+        // THEN
+        verify(
+          () => mockPrefService.setSecure('refresh_token', token),
+        ).called(1);
+      });
+
+      test('saveTokens stores both access and refresh tokens', () async {
+        // GIVEN
+        const accessToken = 'test_access_token';
+        const refreshToken = 'test_refresh_token';
+        when(
+          () => mockPrefService.setSecure('access_token', accessToken),
+        ).thenAnswer((_) async {});
+        when(
+          () => mockPrefService.setSecure('refresh_token', refreshToken),
+        ).thenAnswer((_) async {});
+
+        // WHEN
+        await dioClient.saveTokens(accessToken, refreshToken);
+
+        // THEN
+        verify(
+          () => mockPrefService.setSecure('access_token', accessToken),
+        ).called(1);
+        verify(
+          () => mockPrefService.setSecure('refresh_token', refreshToken),
+        ).called(1);
+      });
+
+      test('getAccessToken retrieves token from secure storage', () async {
+        // GIVEN
+        const token = 'stored_access_token';
+        when(
+          () => mockPrefService.getSecure('access_token'),
+        ).thenAnswer((_) async => token);
+
+        // WHEN
+        final result = await dioClient.getAccessToken();
+
+        // THEN
+        expect(result, equals(token));
         verify(() => mockPrefService.getSecure('access_token')).called(1);
       });
 
-      test('getSecure reads refresh_token from secure storage', () async {
+      test('getRefreshToken retrieves token from secure storage', () async {
         // GIVEN
+        const token = 'stored_refresh_token';
         when(
           () => mockPrefService.getSecure('refresh_token'),
-        ).thenAnswer((_) async => 'test_refresh_token');
+        ).thenAnswer((_) async => token);
 
         // WHEN
-        final result = await mockPrefService.getSecure('refresh_token');
+        final result = await dioClient.getRefreshToken();
 
         // THEN
-        expect(result, equals('test_refresh_token'));
-      });
-
-      test('setSecure stores access_token in secure storage', () async {
-        // GIVEN
-        when(
-          () => mockPrefService.setSecure('access_token', 'new_token'),
-        ).thenAnswer((_) async {});
-
-        // WHEN
-        await mockPrefService.setSecure('access_token', 'new_token');
-
-        // THEN
-        verify(
-          () => mockPrefService.setSecure('access_token', 'new_token'),
-        ).called(1);
-      });
-
-      test('setSecure stores refresh_token in secure storage', () async {
-        // GIVEN
-        when(
-          () => mockPrefService.setSecure('refresh_token', 'new_refresh'),
-        ).thenAnswer((_) async {});
-
-        // WHEN
-        await mockPrefService.setSecure('refresh_token', 'new_refresh');
-
-        // THEN
-        verify(
-          () => mockPrefService.setSecure('refresh_token', 'new_refresh'),
-        ).called(1);
+        expect(result, equals(token));
+        verify(() => mockPrefService.getSecure('refresh_token')).called(1);
       });
     });
 
-    group('isAuthenticated logic', () {
+    group('isAuthenticated', () {
       test('returns true when access token exists and is not empty', () async {
         // GIVEN
         when(
@@ -141,11 +182,10 @@ void main() {
         ).thenAnswer((_) async => 'valid_token');
 
         // WHEN
-        final token = await mockPrefService.getSecure('access_token');
-        final isAuthenticated = token != null && token.isNotEmpty;
+        final result = await dioClient.isAuthenticated();
 
         // THEN
-        expect(isAuthenticated, isTrue);
+        expect(result, isTrue);
       });
 
       test('returns false when access token is null', () async {
@@ -155,11 +195,10 @@ void main() {
         ).thenAnswer((_) async => null);
 
         // WHEN
-        final token = await mockPrefService.getSecure('access_token');
-        final isAuthenticated = token != null && token.isNotEmpty;
+        final result = await dioClient.isAuthenticated();
 
         // THEN
-        expect(isAuthenticated, isFalse);
+        expect(result, isFalse);
       });
 
       test('returns false when access token is empty', () async {
@@ -169,120 +208,149 @@ void main() {
         ).thenAnswer((_) async => '');
 
         // WHEN
-        final token = await mockPrefService.getSecure('access_token');
-        final isAuthenticated = token != null && token.isNotEmpty;
+        final result = await dioClient.isAuthenticated();
 
         // THEN
-        expect(isAuthenticated, isFalse);
+        expect(result, isFalse);
       });
     });
 
     group('clearStorage', () {
-      test('clears both shared and secure storage', () async {
+      test('delegates to prefService.clear()', () async {
         // GIVEN
         when(() => mockPrefService.clear()).thenAnswer((_) async => <void>[]);
 
         // WHEN
-        await mockPrefService.clear();
+        await dioClient.clearStorage();
 
         // THEN
         verify(() => mockPrefService.clear()).called(1);
       });
     });
 
-    group('settings operations', () {
-      test('getString retrieves setting value', () {
+    group('isInvalidTokenError', () {
+      test('returns true for "Token is blacklisted" message', () {
         // GIVEN
-        when(
-          () => mockPrefService.getString('time_zone'),
-        ).thenReturn('America/New_York');
+        final data = {'detail': 'Token is blacklisted'};
 
         // WHEN
-        final result = mockPrefService.getString('time_zone');
-
-        // THEN
-        expect(result, equals('America/New_York'));
-      });
-
-      test('getBool retrieves boolean setting', () {
-        // GIVEN
-        when(
-          () => mockPrefService.getBool('color_by_category'),
-        ).thenReturn(true);
-
-        // WHEN
-        final result = mockPrefService.getBool('color_by_category');
+        final result = dioClient.isInvalidTokenError(data);
 
         // THEN
         expect(result, isTrue);
       });
 
-      test('getInt retrieves integer setting', () {
+      test('returns true for message containing "invalid"', () {
         // GIVEN
-        when(() => mockPrefService.getInt('default_view')).thenReturn(2);
+        final data = {'detail': 'Token is invalid'};
 
         // WHEN
-        final result = mockPrefService.getInt('default_view');
+        final result = dioClient.isInvalidTokenError(data);
 
         // THEN
-        expect(result, equals(2));
+        expect(result, isTrue);
       });
 
-      test('setString stores setting value', () async {
+      test('returns true for message containing "expired"', () {
         // GIVEN
-        when(
-          () => mockPrefService.setString('time_zone', 'Europe/London'),
-        ).thenAnswer((_) async {});
+        final data = {'detail': 'Token has expired'};
 
         // WHEN
-        await mockPrefService.setString('time_zone', 'Europe/London');
+        final result = dioClient.isInvalidTokenError(data);
 
         // THEN
-        verify(
-          () => mockPrefService.setString('time_zone', 'Europe/London'),
-        ).called(1);
+        expect(result, isTrue);
       });
 
-      test('setBool stores boolean setting', () async {
+      test('returns false for other error messages', () {
         // GIVEN
-        when(
-          () => mockPrefService.setBool('color_by_category', false),
-        ).thenAnswer((_) async {});
+        final data = {'detail': 'Network error'};
 
         // WHEN
-        await mockPrefService.setBool('color_by_category', false);
+        final result = dioClient.isInvalidTokenError(data);
 
         // THEN
-        verify(
-          () => mockPrefService.setBool('color_by_category', false),
-        ).called(1);
+        expect(result, isFalse);
       });
 
-      test('setInt stores integer setting', () async {
-        // GIVEN
-        when(
-          () => mockPrefService.setInt('default_view', 1),
-        ).thenAnswer((_) async {});
-
+      test('returns false for null data', () {
         // WHEN
-        await mockPrefService.setInt('default_view', 1);
+        final result = dioClient.isInvalidTokenError(null);
 
         // THEN
-        verify(() => mockPrefService.setInt('default_view', 1)).called(1);
+        expect(result, isFalse);
+      });
+
+      test('returns false for non-map data', () {
+        // WHEN
+        final result = dioClient.isInvalidTokenError('string data');
+
+        // THEN
+        expect(result, isFalse);
+      });
+
+      test('returns false for map without detail key', () {
+        // GIVEN
+        final data = {'error': 'Some error'};
+
+        // WHEN
+        final result = dioClient.isInvalidTokenError(data);
+
+        // THEN
+        expect(result, isFalse);
       });
     });
-  });
 
-  group('DioClient interceptor behavior', () {
-    test('interceptors are configured', () {
-      // GIVEN
-      final client = DioClient();
+    group('getSettings', () {
+      test('retrieves all settings from prefService', () async {
+        // GIVEN
+        when(() => mockPrefService.getString('time_zone'))
+            .thenReturn('America/New_York');
+        when(() => mockPrefService.getBool('color_by_category'))
+            .thenReturn(true);
+        when(() => mockPrefService.getInt('default_view')).thenReturn(0);
+        when(() => mockPrefService.getInt('color_scheme_theme')).thenReturn(1);
+        when(() => mockPrefService.getInt('week_starts_on')).thenReturn(0);
+        when(() => mockPrefService.getInt('all_day_offset')).thenReturn(0);
+        when(() => mockPrefService.getString('events_color'))
+            .thenReturn('#FF0000');
+        when(() => mockPrefService.getString('material_color'))
+            .thenReturn('#00FF00');
+        when(() => mockPrefService.getString('grade_color'))
+            .thenReturn('#0000FF');
+        when(() => mockPrefService.getInt('default_reminder_type'))
+            .thenReturn(0);
+        when(() => mockPrefService.getInt('default_reminder_offset'))
+            .thenReturn(15);
+        when(() => mockPrefService.getInt('default_reminder_offset_type'))
+            .thenReturn(0);
+        when(() => mockPrefService.getBool('calendar_use_category_colors'))
+            .thenReturn(true);
 
-      // THEN
-      // Should have at least 2 interceptors:
-      // 1. Custom InterceptorsWrapper for auth
-      // 2. LogInterceptor
-      expect(client.dio.interceptors.length, greaterThanOrEqualTo(2));
+        // WHEN
+        final settings = await dioClient.getSettings();
+
+        // THEN
+        // timeZone is a Location object, check its name property
+        expect(settings.timeZone.name, equals('America/New_York'));
+        // colorByCategory comes from calendar_use_category_colors in the JSON
+        expect(settings.colorByCategory, isTrue);
+        expect(settings.defaultView, equals(0));
+        expect(settings.colorSchemeTheme, equals(1));
+        verify(() => mockPrefService.getString('time_zone')).called(1);
+        // The service reads from calendar_use_category_colors, not color_by_category
+        verify(() => mockPrefService.getBool('calendar_use_category_colors')).called(1);
+      });
+    });
+
+    group('dio getter', () {
+      test('returns the Dio instance', () {
+        // WHEN
+        final dio = dioClient.dio;
+
+        // THEN
+        expect(dio, equals(mockDio));
+      });
     });
   });
 }

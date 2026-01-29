@@ -24,22 +24,32 @@ import 'package:logging/logging.dart';
 final log = Logger('HeliumLogger');
 
 class DioClient {
-  static final DioClient _instance = DioClient._internal();
+  static DioClient _instance = DioClient._internal();
 
   factory DioClient() => _instance;
 
-  final Dio _dio = Dio(
-    BaseOptions(
-      baseUrl: ApiUrl.baseUrl,
-      connectTimeout: const Duration(seconds: 30),
-      receiveTimeout: const Duration(seconds: 30),
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-    ),
-  );
-  final PrefService _prefService = PrefService();
+  late final Dio _dio;
+  late final PrefService _prefService;
+
+  @visibleForTesting
+  DioClient.forTesting({
+    required Dio dio,
+    required PrefService prefService,
+  })  : _dio = dio,
+        _prefService = prefService;
+
+  @visibleForTesting
+  static void resetForTesting() {
+    _instance = DioClient._internal();
+  }
+
+  @visibleForTesting
+  static void setInstanceForTesting(DioClient instance) {
+    _instance = instance;
+  }
+
+  @visibleForTesting
+  bool isInvalidTokenError(dynamic data) => _isInvalidTokenError(data);
 
   bool _isRefreshing = false;
   Completer<void>? _refreshCompleter;
@@ -47,7 +57,19 @@ class DioClient {
   // Getters
   Dio get dio => _dio;
 
-  DioClient._internal() {
+  DioClient._internal()
+      : _dio = Dio(
+          BaseOptions(
+            baseUrl: ApiUrl.baseUrl,
+            connectTimeout: const Duration(seconds: 30),
+            receiveTimeout: const Duration(seconds: 30),
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+          ),
+        ),
+        _prefService = PrefService() {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {

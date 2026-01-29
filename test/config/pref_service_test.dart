@@ -5,38 +5,63 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:heliumapp/config/pref_service.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-class MockFlutterSecureStorage extends Mock implements FlutterSecureStorage {}
-
-class MockSharedPreferencesWithCache extends Mock
-    implements SharedPreferencesWithCache {}
+import '../mocks/mock_services.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late MockFlutterSecureStorage mockSecureStorage;
   late MockSharedPreferencesWithCache mockSharedStorage;
+  late PrefService prefService;
 
   setUp(() {
     mockSecureStorage = MockFlutterSecureStorage();
     mockSharedStorage = MockSharedPreferencesWithCache();
+
+    prefService = PrefService.forTesting(
+      secureStorage: mockSecureStorage,
+      sharedStorage: mockSharedStorage,
+    );
   });
 
-  group('PrefService storage operations', () {
-    group('SharedPreferences operations', () {
-      test('getString returns stored value', () {
+  tearDown(() {
+    PrefService.resetForTesting();
+  });
+
+  group('PrefService', () {
+    group('initialization', () {
+      test('forTesting constructor sets isInitialized to true', () {
+        expect(prefService.isInitialized, isTrue);
+      });
+
+      test('resetForTesting resets the instance', () {
+        // GIVEN
+        PrefService.setInstanceForTesting(prefService);
+        expect(PrefService().isInitialized, isTrue);
+
+        // WHEN
+        PrefService.resetForTesting();
+
+        // THEN
+        expect(PrefService().isInitialized, isFalse);
+      });
+    });
+
+    group('SharedPreferences operations via PrefService', () {
+      test('getString delegates to SharedPreferencesWithCache', () {
         // GIVEN
         when(() => mockSharedStorage.getString('test_key')).thenReturn('value');
 
         // WHEN
-        final result = mockSharedStorage.getString('test_key');
+        final result = prefService.getString('test_key');
 
         // THEN
         expect(result, equals('value'));
+        verify(() => mockSharedStorage.getString('test_key')).called(1);
       });
 
       test('getString returns null for missing key', () {
@@ -44,125 +69,118 @@ void main() {
         when(() => mockSharedStorage.getString('missing')).thenReturn(null);
 
         // WHEN
-        final result = mockSharedStorage.getString('missing');
+        final result = prefService.getString('missing');
 
         // THEN
         expect(result, isNull);
       });
 
-      test('getInt returns stored value', () {
+      test('getInt delegates to SharedPreferencesWithCache', () {
         // GIVEN
         when(() => mockSharedStorage.getInt('int_key')).thenReturn(42);
 
         // WHEN
-        final result = mockSharedStorage.getInt('int_key');
+        final result = prefService.getInt('int_key');
 
         // THEN
         expect(result, equals(42));
+        verify(() => mockSharedStorage.getInt('int_key')).called(1);
       });
 
-      test('getBool returns stored value', () {
+      test('getBool delegates to SharedPreferencesWithCache', () {
         // GIVEN
         when(() => mockSharedStorage.getBool('bool_key')).thenReturn(true);
 
         // WHEN
-        final result = mockSharedStorage.getBool('bool_key');
+        final result = prefService.getBool('bool_key');
 
         // THEN
         expect(result, isTrue);
+        verify(() => mockSharedStorage.getBool('bool_key')).called(1);
       });
 
-      test('getStringList returns stored value', () {
+      test('getStringList delegates to SharedPreferencesWithCache', () {
         // GIVEN
         when(
           () => mockSharedStorage.getStringList('list_key'),
         ).thenReturn(['a', 'b', 'c']);
 
         // WHEN
-        final result = mockSharedStorage.getStringList('list_key');
+        final result = prefService.getStringList('list_key');
 
         // THEN
         expect(result, equals(['a', 'b', 'c']));
+        verify(() => mockSharedStorage.getStringList('list_key')).called(1);
       });
 
-      test('setString stores value', () async {
+      test('setString delegates to SharedPreferencesWithCache', () async {
         // GIVEN
         when(
           () => mockSharedStorage.setString('key', 'value'),
         ).thenAnswer((_) async {});
 
         // WHEN
-        await mockSharedStorage.setString('key', 'value');
+        await prefService.setString('key', 'value');
 
         // THEN
         verify(() => mockSharedStorage.setString('key', 'value')).called(1);
       });
 
-      test('setInt stores value', () async {
+      test('setInt delegates to SharedPreferencesWithCache', () async {
         // GIVEN
         when(
           () => mockSharedStorage.setInt('key', 123),
         ).thenAnswer((_) async {});
 
         // WHEN
-        await mockSharedStorage.setInt('key', 123);
+        await prefService.setInt('key', 123);
 
         // THEN
         verify(() => mockSharedStorage.setInt('key', 123)).called(1);
       });
 
-      test('setBool stores value', () async {
+      test('setBool delegates to SharedPreferencesWithCache', () async {
         // GIVEN
         when(
           () => mockSharedStorage.setBool('key', true),
         ).thenAnswer((_) async {});
 
         // WHEN
-        await mockSharedStorage.setBool('key', true);
+        await prefService.setBool('key', true);
 
         // THEN
         verify(() => mockSharedStorage.setBool('key', true)).called(1);
       });
 
-      test('setStringList stores value', () async {
+      test('setStringList delegates to SharedPreferencesWithCache', () async {
         // GIVEN
         when(
           () => mockSharedStorage.setStringList('key', ['x', 'y']),
         ).thenAnswer((_) async {});
 
         // WHEN
-        await mockSharedStorage.setStringList('key', ['x', 'y']);
+        await prefService.setStringList('key', ['x', 'y']);
 
         // THEN
         verify(
           () => mockSharedStorage.setStringList('key', ['x', 'y']),
         ).called(1);
       });
-
-      test('clear removes all values', () async {
-        // GIVEN
-        when(() => mockSharedStorage.clear()).thenAnswer((_) async => true);
-
-        // WHEN
-        await mockSharedStorage.clear();
-
-        // THEN
-        verify(() => mockSharedStorage.clear()).called(1);
-      });
     });
 
-    group('FlutterSecureStorage operations', () {
-      test('getSecure reads from secure storage', () async {
+    group('FlutterSecureStorage operations via PrefService', () {
+      test('getSecure delegates to FlutterSecureStorage', () async {
         // GIVEN
         when(
           () => mockSecureStorage.read(key: 'secure_key'),
         ).thenAnswer((_) async => 'secure_value');
 
         // WHEN
-        final result = await mockSecureStorage.read(key: 'secure_key');
+        final result = await prefService.getSecure('secure_key');
 
         // THEN
         expect(result, equals('secure_value'));
+        verify(() => mockSecureStorage.read(key: 'secure_key')).called(1);
       });
 
       test('getSecure returns null for missing key', () async {
@@ -172,20 +190,20 @@ void main() {
         ).thenAnswer((_) async => null);
 
         // WHEN
-        final result = await mockSecureStorage.read(key: 'missing');
+        final result = await prefService.getSecure('missing');
 
         // THEN
         expect(result, isNull);
       });
 
-      test('setSecure writes to secure storage', () async {
+      test('setSecure delegates to FlutterSecureStorage', () async {
         // GIVEN
         when(
           () => mockSecureStorage.write(key: 'key', value: 'secret'),
         ).thenAnswer((_) async {});
 
         // WHEN
-        await mockSecureStorage.write(key: 'key', value: 'secret');
+        await prefService.setSecure('key', 'secret');
 
         // THEN
         verify(
@@ -193,32 +211,36 @@ void main() {
         ).called(1);
       });
 
-      test('deleteSecure removes from secure storage', () async {
+      test('deleteSecure delegates to FlutterSecureStorage', () async {
         // GIVEN
         when(
           () => mockSecureStorage.delete(key: 'key'),
         ).thenAnswer((_) async {});
 
         // WHEN
-        await mockSecureStorage.delete(key: 'key');
+        await prefService.deleteSecure('key');
 
         // THEN
         verify(() => mockSecureStorage.delete(key: 'key')).called(1);
       });
+    });
 
-      test('deleteAll clears secure storage', () async {
+    group('clear operation', () {
+      test('clear clears both SharedPreferences and SecureStorage', () async {
         // GIVEN
+        when(() => mockSharedStorage.clear()).thenAnswer((_) async => true);
         when(() => mockSecureStorage.deleteAll()).thenAnswer((_) async {});
 
         // WHEN
-        await mockSecureStorage.deleteAll();
+        await prefService.clear();
 
         // THEN
+        verify(() => mockSharedStorage.clear()).called(1);
         verify(() => mockSecureStorage.deleteAll()).called(1);
       });
     });
 
-    group('secure storage token operations', () {
+    group('token operations', () {
       test('access_token can be stored and retrieved', () async {
         // GIVEN
         const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test';
@@ -230,11 +252,15 @@ void main() {
         ).thenAnswer((_) async => token);
 
         // WHEN
-        await mockSecureStorage.write(key: 'access_token', value: token);
-        final result = await mockSecureStorage.read(key: 'access_token');
+        await prefService.setSecure('access_token', token);
+        final result = await prefService.getSecure('access_token');
 
         // THEN
         expect(result, equals(token));
+        verify(
+          () => mockSecureStorage.write(key: 'access_token', value: token),
+        ).called(1);
+        verify(() => mockSecureStorage.read(key: 'access_token')).called(1);
       });
 
       test('refresh_token can be stored and retrieved', () async {
@@ -248,8 +274,8 @@ void main() {
         ).thenAnswer((_) async => token);
 
         // WHEN
-        await mockSecureStorage.write(key: 'refresh_token', value: token);
-        final result = await mockSecureStorage.read(key: 'refresh_token');
+        await prefService.setSecure('refresh_token', token);
+        final result = await prefService.getSecure('refresh_token');
 
         // THEN
         expect(result, equals(token));

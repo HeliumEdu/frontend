@@ -5,31 +5,200 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/config/pref_service.dart';
+import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/core/fcm_service.dart';
 import 'package:heliumapp/data/models/notification/notification_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:mocktail/mocktail.dart';
 
-// Note: FcmService cannot be directly tested without Firebase initialization.
-// These tests focus on the supporting logic and models used by FcmService.
+import '../mocks/mock_firebase.dart';
+import '../mocks/mock_services.dart';
 
-class MockPrefService extends Mock implements PrefService {}
+class MockNotificationDetails extends Mock implements NotificationDetails {}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('FcmService', () {
-    // Note: FcmService singleton tests are skipped because they require
-    // Firebase to be initialized. The singleton pattern follows standard
-    // Dart singleton implementation with factory constructor.
+  late MockDioClient mockDioClient;
+  late MockFirebaseMessaging mockFirebaseMessaging;
+  late MockFlutterLocalNotificationsPlugin mockLocalNotifications;
+  late MockPrefService mockPrefService;
+  late FcmService fcmService;
 
-    group('dedupe window constant', () {
-      test('dedupe window is 30 seconds', () {
-        // The _dedupeWindow constant is 30 seconds
-        // This ensures duplicate messages within 30s are ignored
-        const expectedWindow = Duration(seconds: 30);
-        expect(expectedWindow.inSeconds, equals(30));
+  setUpAll(() async {
+    registerFallbackValue(const NotificationDetails());
+    await mockFirebaseInitializeApp();
+  });
+
+  setUp(() {
+    mockDioClient = MockDioClient();
+    mockFirebaseMessaging = MockFirebaseMessaging();
+    mockLocalNotifications = MockFlutterLocalNotificationsPlugin();
+    mockPrefService = MockPrefService();
+
+    fcmService = FcmService.forTesting(
+      dioClient: mockDioClient,
+      firebaseMessaging: mockFirebaseMessaging,
+      localNotifications: mockLocalNotifications,
+      prefService: mockPrefService,
+    );
+
+    // Set the test instance
+    FcmService.setInstanceForTesting(fcmService);
+  });
+
+  tearDown(() {
+    // Don't call resetForTesting as it creates a new _internal instance
+    // which requires Firebase to be initialized
+    DioClient.resetForTesting();
+    PrefService.resetForTesting();
+  });
+
+  group('FcmService', () {
+    group('singleton pattern', () {
+      test('setInstanceForTesting allows replacing the singleton', () {
+        // GIVEN - already set in setUp
+        // WHEN
+        final instance = FcmService();
+
+        // THEN
+        expect(identical(instance, fcmService), isTrue);
+      });
+    });
+
+    group('initialization state (using forTesting)', () {
+      test('fcmToken is initially null', () {
+        // WHEN
+        final token = fcmService.fcmToken;
+
+        // THEN
+        expect(token, isNull);
+      });
+
+      test('deviceId is initially null', () {
+        // WHEN
+        final deviceId = fcmService.deviceId;
+
+        // THEN
+        expect(deviceId, isNull);
+      });
+    });
+
+    group('dedupeWindow constant', () {
+      test('dedupeWindow is 30 seconds', () {
+        // WHEN
+        final window = FcmService.dedupeWindowForTesting;
+
+        // THEN
+        expect(window, equals(const Duration(seconds: 30)));
+        expect(window.inSeconds, equals(30));
+      });
+    });
+
+    group('message deduplication', () {
+      test('recentMessageIds map is accessible for testing', () {
+        // WHEN
+        final messageIds = fcmService.recentMessageIdsForTesting;
+
+        // THEN
+        expect(messageIds, isA<Map<String, DateTime>>());
+        expect(messageIds, isEmpty);
+      });
+
+      test('duplicate message within window is detected', () {
+        // GIVEN
+        final messageIds = fcmService.recentMessageIdsForTesting;
+        final now = DateTime.now();
+        const messageId = 'msg_123';
+        messageIds[messageId] = now.subtract(const Duration(seconds: 5));
+
+        // WHEN
+        final isDuplicate = messageIds.containsKey(messageId);
+
+        // THEN
+        expect(isDuplicate, isTrue);
+      });
+
+      test('new message is not a duplicate', () {
+        // GIVEN
+        final messageIds = fcmService.recentMessageIdsForTesting;
+        const newMessageId = 'new_msg_456';
+
+        // WHEN
+        final isDuplicate = messageIds.containsKey(newMessageId);
+
+        // THEN
+        expect(isDuplicate, isFalse);
+      });
+
+      test('old messages are cleaned up outside dedupe window', () {
+        // GIVEN
+        final messageIds = fcmService.recentMessageIdsForTesting;
+        final now = DateTime.now();
+        const dedupeWindow = Duration(seconds: 30);
+
+        messageIds['old_msg'] = now.subtract(const Duration(seconds: 60));
+        messageIds['recent_msg'] = now.subtract(const Duration(seconds: 10));
+
+        // WHEN - simulate cleanup like the service does
+        messageIds.removeWhere(
+          (_, ts) => now.difference(ts) > dedupeWindow,
+        );
+
+        // THEN
+        expect(messageIds.containsKey('old_msg'), isFalse);
+        expect(messageIds.containsKey('recent_msg'), isTrue);
+      });
+    });
+
+    group('showLocalNotification', () {
+      test('calls localNotifications.show with correct parameters', () async {
+        // GIVEN
+        final reminder = ReminderModel(
+          id: 1,
+          title: 'Test Reminder',
+          message: 'Reminder message',
+          startOfRange: '2025-01-15T10:00:00Z',
+          type: 0,
+          offset: 30,
+          offsetType: 0,
+          sent: false,
+          dismissed: false,
+        );
+
+        final notification = NotificationModel(
+          id: 42,
+          title: 'Test Title',
+          body: 'Test Body',
+          reminder: reminder,
+          timestamp: '2025-01-15T10:00:00Z',
+          isRead: false,
+        );
+
+        when(
+          () => mockLocalNotifications.show(
+            any(),
+            any(),
+            any(),
+            any(),
+          ),
+        ).thenAnswer((_) async {});
+
+        // WHEN
+        await fcmService.showLocalNotification(notification);
+
+        // THEN
+        verify(
+          () => mockLocalNotifications.show(
+            42.hashCode,
+            'Test Title',
+            'Test Body',
+            any(that: isA<NotificationDetails>()),
+          ),
+        ).called(1);
       });
     });
   });
@@ -98,12 +267,6 @@ void main() {
   });
 
   group('FCM token registration logic', () {
-    late MockPrefService mockPrefService;
-
-    setUp(() {
-      mockPrefService = MockPrefService();
-    });
-
     test('stored token comparison detects unchanged token', () async {
       // GIVEN
       const fcmToken = 'test_fcm_token_12345';
@@ -202,56 +365,8 @@ void main() {
 
       // THEN
       expect(accessToken, isNull);
-      // Registration should return early when access token is null
-    });
-  });
-
-  group('Message deduplication logic', () {
-    test('recent message ids map handles cleanup', () {
-      // GIVEN
-      final recentMessageIds = <String, DateTime>{};
-      final now = DateTime.now();
-      const dedupeWindow = Duration(seconds: 30);
-
-      // Add some old messages
-      recentMessageIds['old_msg'] = now.subtract(const Duration(seconds: 60));
-      recentMessageIds['recent_msg'] = now.subtract(const Duration(seconds: 10));
-
-      // WHEN - simulate cleanup
-      recentMessageIds.removeWhere(
-        (_, ts) => now.difference(ts) > dedupeWindow,
-      );
-
-      // THEN
-      expect(recentMessageIds.containsKey('old_msg'), isFalse);
-      expect(recentMessageIds.containsKey('recent_msg'), isTrue);
-    });
-
-    test('duplicate message within window is detected', () {
-      // GIVEN
-      final recentMessageIds = <String, DateTime>{};
-      final now = DateTime.now();
-      const messageId = 'msg_123';
-
-      recentMessageIds[messageId] = now.subtract(const Duration(seconds: 5));
-
-      // WHEN
-      final isDuplicate = recentMessageIds.containsKey(messageId);
-
-      // THEN
-      expect(isDuplicate, isTrue);
-    });
-
-    test('new message is not a duplicate', () {
-      // GIVEN
-      final recentMessageIds = <String, DateTime>{};
-      const newMessageId = 'new_msg_456';
-
-      // WHEN
-      final isDuplicate = recentMessageIds.containsKey(newMessageId);
-
-      // THEN
-      expect(isDuplicate, isFalse);
     });
   });
 }
+
+class MockDioClient extends Mock implements DioClient {}

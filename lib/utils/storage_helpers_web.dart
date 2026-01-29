@@ -9,7 +9,6 @@ import 'dart:js_interop';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:web/web.dart' as web;
 

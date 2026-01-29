@@ -181,103 +181,180 @@ void main() {
 
     group('getDaysBetween', () {
       test('returns 0 when before start date', () {
-        // Using dates far in the future to ensure we're "before" start
-        final result = HeliumDateTime.getDaysBetween(
-          '2099-01-01',
-          '2099-12-31',
-        );
+        // Use dates in the future relative to now
+        final now = DateTime.now();
+        final futureStart = now.add(const Duration(days: 30));
+        final futureEnd = now.add(const Duration(days: 60));
+        final startStr = HeliumDateTime.formatDateForApi(futureStart);
+        final endStr = HeliumDateTime.formatDateForApi(futureEnd);
+
+        final result = HeliumDateTime.getDaysBetween(startStr, endStr);
         expect(result, equals(0));
       });
 
       test('returns 100 when after end date', () {
-        // Using dates in the past to ensure we're "after" end
-        final result = HeliumDateTime.getDaysBetween(
-          '2020-01-01',
-          '2020-12-31',
-        );
+        // Use dates in the past relative to now
+        final now = DateTime.now();
+        final pastStart = now.subtract(const Duration(days: 60));
+        final pastEnd = now.subtract(const Duration(days: 30));
+        final startStr = HeliumDateTime.formatDateForApi(pastStart);
+        final endStr = HeliumDateTime.formatDateForApi(pastEnd);
+
+        final result = HeliumDateTime.getDaysBetween(startStr, endStr);
         expect(result, equals(100));
       });
 
       test('returns 0 for empty start date', () {
-        expect(HeliumDateTime.getDaysBetween('', '2025-12-31'), equals(0));
+        final now = DateTime.now();
+        final endStr = HeliumDateTime.formatDateForApi(
+          now.add(const Duration(days: 30)),
+        );
+        expect(HeliumDateTime.getDaysBetween('', endStr), equals(0));
       });
 
       test('returns 0 for empty end date', () {
-        expect(HeliumDateTime.getDaysBetween('2025-01-01', ''), equals(0));
+        final now = DateTime.now();
+        final startStr = HeliumDateTime.formatDateForApi(
+          now.subtract(const Duration(days: 30)),
+        );
+        expect(HeliumDateTime.getDaysBetween(startStr, ''), equals(0));
       });
 
       test('returns 0 when start equals end and dates are in future', () {
-        // Using future dates where we're "before" start
-        expect(
-          HeliumDateTime.getDaysBetween('2099-06-15', '2099-06-15'),
-          equals(0),
-        );
+        // Use a future date
+        final now = DateTime.now();
+        final futureDate = now.add(const Duration(days: 30));
+        final dateStr = HeliumDateTime.formatDateForApi(futureDate);
+
+        expect(HeliumDateTime.getDaysBetween(dateStr, dateStr), equals(0));
       });
 
       test('returns 100 when start equals end and dates are in past', () {
-        // Using past dates where we're "after" end
-        expect(
-          HeliumDateTime.getDaysBetween('2020-06-15', '2020-06-15'),
-          equals(100),
-        );
+        // Use a past date
+        final now = DateTime.now();
+        final pastDate = now.subtract(const Duration(days: 30));
+        final dateStr = HeliumDateTime.formatDateForApi(pastDate);
+
+        expect(HeliumDateTime.getDaysBetween(dateStr, dateStr), equals(100));
+      });
+
+      test('returns days elapsed when currently within range', () {
+        // Create a range that spans the current date
+        final now = DateTime.now();
+        final start = now.subtract(const Duration(days: 10));
+        final end = now.add(const Duration(days: 20));
+        final startStr = HeliumDateTime.formatDateForApi(start);
+        final endStr = HeliumDateTime.formatDateForApi(end);
+
+        final result = HeliumDateTime.getDaysBetween(startStr, endStr);
+        // Should be approximately 10 days (the elapsed portion)
+        expect(result, greaterThanOrEqualTo(9));
+        expect(result, lessThanOrEqualTo(11));
       });
     });
 
     group('getPercentDiffBetween', () {
       test('returns 0 when before start date', () {
-        final result = HeliumDateTime.getPercentDiffBetween(
-          '2099-01-01',
-          '2099-12-31',
-        );
+        final now = DateTime.now();
+        final futureStart = now.add(const Duration(days: 30));
+        final futureEnd = now.add(const Duration(days: 60));
+        final startStr = HeliumDateTime.formatDateForApi(futureStart);
+        final endStr = HeliumDateTime.formatDateForApi(futureEnd);
+
+        final result = HeliumDateTime.getPercentDiffBetween(startStr, endStr);
         expect(result, equals(0));
       });
 
       test('returns 100 when after end date', () {
-        final result = HeliumDateTime.getPercentDiffBetween(
-          '2020-01-01',
-          '2020-12-31',
-        );
+        final now = DateTime.now();
+        final pastStart = now.subtract(const Duration(days: 60));
+        final pastEnd = now.subtract(const Duration(days: 30));
+        final startStr = HeliumDateTime.formatDateForApi(pastStart);
+        final endStr = HeliumDateTime.formatDateForApi(pastEnd);
+
+        final result = HeliumDateTime.getPercentDiffBetween(startStr, endStr);
         expect(result, equals(100));
       });
 
       test('returns 0 for empty start date', () {
-        expect(
-          HeliumDateTime.getPercentDiffBetween('', '2025-12-31'),
-          equals(0),
+        final now = DateTime.now();
+        final endStr = HeliumDateTime.formatDateForApi(
+          now.add(const Duration(days: 30)),
         );
+        expect(HeliumDateTime.getPercentDiffBetween('', endStr), equals(0));
       });
 
       test('returns 0 for empty end date', () {
+        final now = DateTime.now();
+        final startStr = HeliumDateTime.formatDateForApi(
+          now.subtract(const Duration(days: 30)),
+        );
+        expect(HeliumDateTime.getPercentDiffBetween(startStr, ''), equals(0));
+      });
+
+      test('returns 0 when before start (even if consecutive dates)', () {
+        final now = DateTime.now();
+        final futureStart = now.add(const Duration(days: 30));
+        final futureEnd = now.add(const Duration(days: 31));
+        final startStr = HeliumDateTime.formatDateForApi(futureStart);
+        final endStr = HeliumDateTime.formatDateForApi(futureEnd);
+
         expect(
-          HeliumDateTime.getPercentDiffBetween('2025-01-01', ''),
+          HeliumDateTime.getPercentDiffBetween(startStr, endStr),
           equals(0),
         );
       });
 
-      test('returns 0 when before start (even if same dates)', () {
-        // For future dates where now is before start
-        expect(
-          HeliumDateTime.getPercentDiffBetween('2099-06-15', '2099-06-16'),
-          equals(0),
-        );
-      });
+      test('returns 100 when after end (even if consecutive dates)', () {
+        final now = DateTime.now();
+        final pastStart = now.subtract(const Duration(days: 31));
+        final pastEnd = now.subtract(const Duration(days: 30));
+        final startStr = HeliumDateTime.formatDateForApi(pastStart);
+        final endStr = HeliumDateTime.formatDateForApi(pastEnd);
 
-      test('returns 100 when after end (even if same dates)', () {
-        // For past dates where now is after end
         expect(
-          HeliumDateTime.getPercentDiffBetween('2020-06-14', '2020-06-15'),
+          HeliumDateTime.getPercentDiffBetween(startStr, endStr),
           equals(100),
         );
       });
 
       test('result is always between 0 and 100', () {
-        // After end date should return 100
-        final result = HeliumDateTime.getPercentDiffBetween(
-          '2020-01-01',
-          '2020-06-30',
+        // Test with various date ranges
+        final now = DateTime.now();
+
+        // Past range - should be 100
+        final pastStart = now.subtract(const Duration(days: 60));
+        final pastEnd = now.subtract(const Duration(days: 30));
+        final result1 = HeliumDateTime.getPercentDiffBetween(
+          HeliumDateTime.formatDateForApi(pastStart),
+          HeliumDateTime.formatDateForApi(pastEnd),
         );
-        expect(result, greaterThanOrEqualTo(0));
-        expect(result, lessThanOrEqualTo(100));
+        expect(result1, greaterThanOrEqualTo(0));
+        expect(result1, lessThanOrEqualTo(100));
+
+        // Future range - should be 0
+        final futureStart = now.add(const Duration(days: 30));
+        final futureEnd = now.add(const Duration(days: 60));
+        final result2 = HeliumDateTime.getPercentDiffBetween(
+          HeliumDateTime.formatDateForApi(futureStart),
+          HeliumDateTime.formatDateForApi(futureEnd),
+        );
+        expect(result2, greaterThanOrEqualTo(0));
+        expect(result2, lessThanOrEqualTo(100));
+      });
+
+      test('returns approximately 50% at midpoint of range', () {
+        // Create a range centered on now
+        final now = DateTime.now();
+        final start = now.subtract(const Duration(days: 50));
+        final end = now.add(const Duration(days: 50));
+        final startStr = HeliumDateTime.formatDateForApi(start);
+        final endStr = HeliumDateTime.formatDateForApi(end);
+
+        final result = HeliumDateTime.getPercentDiffBetween(startStr, endStr);
+        // Should be approximately 50%
+        expect(result, greaterThanOrEqualTo(45));
+        expect(result, lessThanOrEqualTo(55));
       });
     });
   });
