@@ -1,4 +1,4 @@
-.PHONY: all env install clean build-android build-android-release build-ios-dev build-ios build-ios-release test run
+.PHONY: all env install clean build-android build-android-release build-ios-dev build-ios build-ios-release test coverage run
 
 SHELL := /usr/bin/env bash
 
@@ -37,6 +37,11 @@ build-ios-release: install
 test: install
 	flutter analyze --no-pub --no-fatal-infos --no-fatal-warnings
 	flutter test --no-pub --coverage
+
+coverage:
+	dart pub global activate test_cov_console
+	lcov --remove coverage/lcov.info 'lib/utils/app_globals.dart' 'lib/utils/app_style.dart' 'lib/data/models/*' 'lib/data/repositories/*' 'lib/presentation/dialogs/*' 'lib/presentation/forms/*' 'lib/presentation/views/*' 'lib/presentation/widgets/*' -o coverage/lcov.info --ignore-errors unused
+	dart pub global run test_cov_console
 
 run: install
 	flutter run $(RUN_ARGS)

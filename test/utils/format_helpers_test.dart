@@ -107,24 +107,6 @@ void main() {
       });
     });
 
-    group('getTrendIndicator', () {
-      test('returns up arrow for positive grade', () {
-        expect(Format.getTrendIndicator(5.0), '↑');
-      });
-
-      test('returns up arrow for zero grade', () {
-        expect(Format.getTrendIndicator(0.0), '↑');
-      });
-
-      test('returns down arrow for negative grade', () {
-        expect(Format.getTrendIndicator(-5.0), '↓');
-      });
-
-      test('returns down arrow for small negative value', () {
-        expect(Format.getTrendIndicator(-0.1), '↓');
-      });
-    });
-
     group('reminderOffset', () {
       test('formats singular minute offset', () {
         final reminder = _createReminder(offset: 1, offsetType: 0);

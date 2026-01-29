@@ -18,8 +18,23 @@ permissions:
   contents: read
 
 jobs:
+  test:
+    name: Test
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v5
+      - name: Setup Flutter SDK
+        uses: flutter-actions/setup-flutter@v4
+        with:
+          channel: stable
+          version: "3.38.1"
+      - name: Test
+        run: make test
+
   build-android-release:
     name: Build Android Release AAB
+    needs: test
     if: ${{ github.event.inputs.platform == 'android' || github.event.inputs.platform == 'both' }}
     runs-on: macos-latest
 
@@ -63,6 +78,7 @@ jobs:
 
   build-ios-release:
     name: Build iOS Release IPA
+    needs: test
     if: ${{ github.event.inputs.platform == 'ios' || github.event.inputs.platform == 'both' }}
     runs-on: macos-latest
 
