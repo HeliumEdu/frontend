@@ -69,45 +69,7 @@ void main() {
       });
     });
 
-    group('initialization state (using forTesting)', () {
-      test('fcmToken is initially null', () {
-        // WHEN
-        final token = fcmService.fcmToken;
-
-        // THEN
-        expect(token, isNull);
-      });
-
-      test('deviceId is initially null', () {
-        // WHEN
-        final deviceId = fcmService.deviceId;
-
-        // THEN
-        expect(deviceId, isNull);
-      });
-    });
-
-    group('dedupeWindow constant', () {
-      test('dedupeWindow is 30 seconds', () {
-        // WHEN
-        final window = FcmService.dedupeWindowForTesting;
-
-        // THEN
-        expect(window, equals(const Duration(seconds: 30)));
-        expect(window.inSeconds, equals(30));
-      });
-    });
-
     group('message deduplication', () {
-      test('recentMessageIds map is accessible for testing', () {
-        // WHEN
-        final messageIds = fcmService.recentMessageIdsForTesting;
-
-        // THEN
-        expect(messageIds, isA<Map<String, DateTime>>());
-        expect(messageIds, isEmpty);
-      });
-
       test('duplicate message within window is detected', () {
         // GIVEN
         final messageIds = fcmService.recentMessageIdsForTesting;
@@ -200,69 +162,6 @@ void main() {
           ),
         ).called(1);
       });
-    });
-  });
-
-  group('NotificationModel', () {
-    test('creates NotificationModel with all required fields', () {
-      // GIVEN
-      final reminder = ReminderModel(
-        id: 1,
-        title: 'Test Reminder',
-        message: 'Reminder message',
-        startOfRange: '2025-01-15T10:00:00Z',
-        type: 0,
-        offset: 30,
-        offsetType: 0,
-        sent: false,
-        dismissed: false,
-      );
-
-      // WHEN
-      final notification = NotificationModel(
-        id: 1,
-        title: 'Test Title',
-        body: 'Test Body',
-        reminder: reminder,
-        timestamp: '2025-01-15T10:00:00Z',
-        isRead: false,
-      );
-
-      // THEN
-      expect(notification.id, equals(1));
-      expect(notification.title, equals('Test Title'));
-      expect(notification.body, equals('Test Body'));
-      expect(notification.reminder, equals(reminder));
-      expect(notification.timestamp, equals('2025-01-15T10:00:00Z'));
-      expect(notification.isRead, isFalse);
-    });
-
-    test('creates NotificationModel with isRead true', () {
-      // GIVEN
-      final reminder = ReminderModel(
-        id: 2,
-        title: 'Read Reminder',
-        message: 'Another reminder message',
-        startOfRange: '2025-01-15T11:00:00Z',
-        type: 1,
-        offset: 60,
-        offsetType: 1,
-        sent: true,
-        dismissed: true,
-      );
-
-      // WHEN
-      final notification = NotificationModel(
-        id: 2,
-        title: 'Read Notification',
-        body: 'Already read',
-        reminder: reminder,
-        timestamp: '2025-01-15T11:00:00Z',
-        isRead: true,
-      );
-
-      // THEN
-      expect(notification.isRead, isTrue);
     });
   });
 

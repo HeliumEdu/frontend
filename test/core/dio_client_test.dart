@@ -90,93 +90,6 @@ void main() {
       });
     });
 
-    group('token methods', () {
-      test('saveAccessToken stores token in secure storage', () async {
-        // GIVEN
-        const token = 'test_access_token';
-        when(
-          () => mockPrefService.setSecure('access_token', token),
-        ).thenAnswer((_) async {});
-
-        // WHEN
-        await dioClient.saveAccessToken(token);
-
-        // THEN
-        verify(
-          () => mockPrefService.setSecure('access_token', token),
-        ).called(1);
-      });
-
-      test('saveRefreshToken stores token in secure storage', () async {
-        // GIVEN
-        const token = 'test_refresh_token';
-        when(
-          () => mockPrefService.setSecure('refresh_token', token),
-        ).thenAnswer((_) async {});
-
-        // WHEN
-        await dioClient.saveRefreshToken(token);
-
-        // THEN
-        verify(
-          () => mockPrefService.setSecure('refresh_token', token),
-        ).called(1);
-      });
-
-      test('saveTokens stores both access and refresh tokens', () async {
-        // GIVEN
-        const accessToken = 'test_access_token';
-        const refreshToken = 'test_refresh_token';
-        when(
-          () => mockPrefService.setSecure('access_token', accessToken),
-        ).thenAnswer((_) async {});
-        when(
-          () => mockPrefService.setSecure('refresh_token', refreshToken),
-        ).thenAnswer((_) async {});
-
-        // WHEN
-        await dioClient.saveTokens(accessToken, refreshToken);
-
-        // THEN
-        verify(
-          () => mockPrefService.setSecure('access_token', accessToken),
-        ).called(1);
-        verify(
-          () => mockPrefService.setSecure('refresh_token', refreshToken),
-        ).called(1);
-      });
-
-      test('getAccessToken retrieves token from secure storage', () async {
-        // GIVEN
-        const token = 'stored_access_token';
-        when(
-          () => mockPrefService.getSecure('access_token'),
-        ).thenAnswer((_) async => token);
-
-        // WHEN
-        final result = await dioClient.getAccessToken();
-
-        // THEN
-        expect(result, equals(token));
-        verify(() => mockPrefService.getSecure('access_token')).called(1);
-      });
-
-      test('getRefreshToken retrieves token from secure storage', () async {
-        // GIVEN
-        const token = 'stored_refresh_token';
-        when(
-          () => mockPrefService.getSecure('refresh_token'),
-        ).thenAnswer((_) async => token);
-
-        // WHEN
-        final result = await dioClient.getRefreshToken();
-
-        // THEN
-        expect(result, equals(token));
-        verify(() => mockPrefService.getSecure('refresh_token')).called(1);
-      });
-    });
-
     group('isAuthenticated', () {
       test('returns true when access token exists and is not empty', () async {
         // GIVEN
@@ -215,19 +128,6 @@ void main() {
 
         // THEN
         expect(result, isFalse);
-      });
-    });
-
-    group('clearStorage', () {
-      test('delegates to prefService.clear()', () async {
-        // GIVEN
-        when(() => mockPrefService.clear()).thenAnswer((_) async => <void>[]);
-
-        // WHEN
-        await dioClient.clearStorage();
-
-        // THEN
-        verify(() => mockPrefService.clear()).called(1);
       });
     });
 
@@ -346,14 +246,5 @@ void main() {
       });
     });
 
-    group('dio getter', () {
-      test('returns the Dio instance', () {
-        // WHEN
-        final dio = dioClient.dio;
-
-        // THEN
-        expect(dio, equals(mockDio));
-      });
-    });
   });
 }

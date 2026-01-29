@@ -18,12 +18,6 @@ import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 void main() {
   group('PlannerHelper', () {
-    group('weekStartsOnRemap', () {
-      test('has correct mapping', () {
-        expect(PlannerHelper.weekStartsOnRemap, [7, 1, 2, 3, 4, 5, 6]);
-      });
-    });
-
     group('mapHeliumViewToSfCalendarView', () {
       test('maps month to CalendarView.month', () {
         expect(

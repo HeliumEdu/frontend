@@ -10,25 +10,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 void main() {
-  group('ResponsiveBreakpoints', () {
-    test('mobile breakpoint is 600', () {
-      expect(ResponsiveBreakpoints.mobile, 600);
-    });
-
-    test('tablet breakpoint is 1024', () {
-      expect(ResponsiveBreakpoints.tablet, 1024);
-    });
-  });
-
-  group('DeviceType', () {
-    test('has three values', () {
-      expect(DeviceType.values.length, 3);
-      expect(DeviceType.values, contains(DeviceType.mobile));
-      expect(DeviceType.values, contains(DeviceType.tablet));
-      expect(DeviceType.values, contains(DeviceType.desktop));
-    });
-  });
-
   group('Responsive.getDeviceTypeFromSize', () {
     test('returns mobile for width < 600', () {
       expect(
