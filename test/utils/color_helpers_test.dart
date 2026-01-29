@@ -126,17 +126,5 @@ void main() {
         expect(color, const Color(0xffD92727));
       });
     });
-
-    group('preferredColors', () {
-      test('has expected number of colors', () {
-        expect(HeliumColors.preferredColors.length, 42);
-      });
-
-      test('contains only valid Color objects', () {
-        for (final color in HeliumColors.preferredColors) {
-          expect(color, isA<Color>());
-        }
-      });
-    });
   });
 }

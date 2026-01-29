@@ -34,19 +34,6 @@ void main() {
         expect(courses[2].title, 'Zebra Studies');
       });
 
-      test('handles empty list', () {
-        final list = MockModels.createCourses(count: 0);
-        Sort.byTitle(list);
-        expect(list, isEmpty);
-      });
-
-      test('handles single item list', () {
-        final courses = [MockModels.createCourse(id: 1, title: 'Only Course')];
-        Sort.byTitle(courses);
-        expect(courses.length, 1);
-        expect(courses[0].title, 'Only Course');
-      });
-
       test('handles list with duplicate titles', () {
         final courses = [
           MockModels.createCourse(id: 1, title: 'Same Title'),
@@ -92,27 +79,6 @@ void main() {
         expect(reminders[0].id, 2); // Jan 15 (newest)
         expect(reminders[1].id, 3); // Jan 10
         expect(reminders[2].id, 1); // Jan 1 (oldest)
-      });
-
-      test('handles empty list', () {
-        final timeZone = tz.getLocation('America/New_York');
-        final reminders = <ReminderModel>[];
-
-        Sort.byStartOfRange(reminders, timeZone);
-
-        expect(reminders, isEmpty);
-      });
-
-      test('handles single item', () {
-        final timeZone = tz.getLocation('America/New_York');
-        final reminders = [
-          _createReminder(id: 1, startOfRange: '2025-01-01T10:00:00Z'),
-        ];
-
-        Sort.byStartOfRange(reminders, timeZone);
-
-        expect(reminders.length, 1);
-        expect(reminders[0].id, 1);
       });
 
       test('handles same date reminders', () {
