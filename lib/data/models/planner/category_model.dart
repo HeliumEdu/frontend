@@ -1,0 +1,62 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
+import 'dart:ui';
+
+import 'package:heliumapp/data/models/base_model.dart';
+import 'package:heliumapp/utils/color_helpers.dart';
+import 'package:heliumapp/utils/conversion_helpers.dart';
+
+class CategoryModel extends BaseModel {
+  final Color color;
+  final int course;
+  final double weight;
+  final double? overallGrade;
+  final double? gradeByWeight;
+  final double? trend;
+  final int? numHomeworkGraded;
+
+  CategoryModel({
+    required super.id,
+    required super.title,
+    required this.color,
+    required this.course,
+    required this.weight,
+    this.overallGrade,
+    this.gradeByWeight,
+    this.trend,
+    this.numHomeworkGraded,
+  });
+
+  factory CategoryModel.fromJson(Map<String, dynamic> json) {
+    return CategoryModel(
+      id: json['id'],
+      title: json['title'],
+      color: HeliumColors.hexToColor(json['color']),
+      course: json['course'],
+      weight: HeliumConversion.toDouble(json['weight'])!,
+      overallGrade: HeliumConversion.toDouble(json['overall_grade']),
+      gradeByWeight: HeliumConversion.toDouble(json['grade_by_weight']),
+      trend: HeliumConversion.toDouble(json['trend']),
+      numHomeworkGraded: json['num_homework_graded'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'color': color,
+      'course': course,
+      'weight': weight,
+      'overall_grade': overallGrade,
+      'grade_by_weight': gradeByWeight,
+      'trend': trend,
+      'num_homework_graded': numHomeworkGraded,
+    };
+  }
+}

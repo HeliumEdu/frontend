@@ -1,0 +1,161 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:heliumapp/utils/responsive_helpers.dart';
+
+extension AppTextStyles on BuildContext {
+  TextStyle get pageTitle => GoogleFonts.roboto(
+    fontWeight: FontWeight.w700,
+    fontSize: 22,
+    color: Theme.of(this).colorScheme.onSurface,
+  );
+
+  TextStyle get sectionHeading => GoogleFonts.poppins(
+    fontWeight: FontWeight.w600,
+    fontSize: 20,
+    color: Theme.of(this).colorScheme.onSurface,
+  );
+
+  TextStyle get dialogTitle => GoogleFonts.roboto(
+    fontWeight: FontWeight.w600,
+    fontSize: 22,
+    color: Theme.of(this).colorScheme.onSurface,
+  );
+
+  TextStyle get dialogText => GoogleFonts.poppins(
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+    color: Theme.of(this).colorScheme.onSurface,
+  );
+
+  TextStyle get formLabel => GoogleFonts.poppins(
+    fontSize: 16,
+    fontWeight: FontWeight.w600,
+    color: Theme.of(this).colorScheme.onSurface.withValues(alpha: 0.7),
+  );
+
+  TextStyle get formText => GoogleFonts.poppins(
+    fontSize: 16,
+    fontWeight: FontWeight.w600,
+    color: Theme.of(this).colorScheme.onSurface.withValues(alpha: 0.9),
+  );
+
+  TextStyle get formHintStyle => GoogleFonts.poppins(
+    fontSize: 16,
+    fontWeight: FontWeight.w600,
+    color: Theme.of(this).colorScheme.onSurface.withValues(alpha: 0.5),
+  );
+
+  TextStyle get formErrorStyle => GoogleFonts.poppins(
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+    color: Theme.of(this).colorScheme.error.withValues(alpha: 0.9),
+  );
+
+  TextStyle get buttonText => GoogleFonts.poppins(
+    fontSize: 16,
+    fontWeight: FontWeight.w600,
+    color: Theme.of(this).colorScheme.onPrimary,
+  );
+
+  TextStyle get settingsMenuItem => GoogleFonts.poppins(
+    fontSize: 16,
+    fontWeight: FontWeight.w700,
+    color: Theme.of(this).colorScheme.onSurface,
+  );
+
+  TextStyle get settingsMenuItemHint => GoogleFonts.poppins(
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+    color: Theme.of(this).colorScheme.onSurface.withValues(alpha: 0.7),
+  );
+
+  TextStyle get paragraphText => GoogleFonts.poppins(
+    fontSize: 18,
+    fontWeight: FontWeight.w500,
+    color: Theme.of(this).colorScheme.onSurface.withValues(alpha: 0.9),
+  );
+
+  TextStyle get calendarDate => GoogleFonts.roboto(
+    fontWeight: FontWeight.w600,
+    fontSize: 18,
+    color: Theme.of(this).colorScheme.primary,
+  );
+
+  TextStyle get calendarData =>
+      GoogleFonts.poppins(fontWeight: FontWeight.w500, color: Colors.white);
+
+  static double calendarDataFontSize(BuildContext context) {
+    return Responsive.getFontSize(
+      context,
+      mobile: 12.0,
+      tablet: 13.0,
+      desktop: 14.0,
+    );
+  }
+
+  static double calendarCheckboxScale(BuildContext context) {
+    final deviceType = Responsive.getDeviceType(context);
+    switch (deviceType) {
+      case DeviceType.desktop:
+      case DeviceType.tablet:
+        return 1.0;
+      case DeviceType.mobile:
+        return 0.8;
+    }
+  }
+
+  TextStyle get stepperTitle => GoogleFonts.roboto(
+    fontSize: 14,
+    fontWeight: FontWeight.w700,
+    color: Theme.of(this).colorScheme.onSurface,
+  );
+
+  TextStyle get stepperTitleActive => GoogleFonts.roboto(
+    fontSize: 14,
+    fontWeight: FontWeight.w700,
+    color: Theme.of(this).colorScheme.primary,
+  );
+
+  TextStyle get aTextStyle => GoogleFonts.poppins(
+    fontWeight: FontWeight.w700,
+    fontSize: 18,
+    color: Theme.of(this).colorScheme.onSurface,
+  );
+
+  TextStyle get bTextStyle => GoogleFonts.roboto(
+    fontWeight: FontWeight.w700,
+    fontSize: 22,
+    color: Theme.of(this).colorScheme.onSurface,
+  );
+
+  TextStyle get cTextStyle => GoogleFonts.poppins(
+    fontWeight: FontWeight.w500,
+    fontSize: 16,
+    color: Theme.of(this).colorScheme.onSurface,
+  );
+
+  TextStyle get eTextStyle => GoogleFonts.poppins(
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+    color: Theme.of(this).colorScheme.onSurface,
+  );
+
+  TextStyle get fTextStyle => GoogleFonts.poppins(
+    fontSize: 13,
+    fontWeight: FontWeight.w400,
+    color: Theme.of(this).colorScheme.onSurface,
+  );
+
+  TextStyle get iTextStyle => GoogleFonts.poppins(
+    fontSize: 15,
+    fontWeight: FontWeight.w400,
+    color: Theme.of(this).colorScheme.onSurface,
+  );
+}

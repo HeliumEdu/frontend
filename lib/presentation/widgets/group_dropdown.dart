@@ -1,0 +1,173 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
+import 'package:flutter/material.dart';
+import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/data/models/base_model.dart';
+import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
+import 'package:heliumapp/presentation/widgets/helium_elevated_button.dart';
+import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
+import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/responsive_helpers.dart';
+
+class GroupDropdown<T extends BaseModel> extends StatelessWidget {
+  final List<T> groups;
+  final ValueChanged<T?> onChanged;
+  final bool isReadOnly;
+  final VoidCallback? onCreate;
+  final Function(T)? onEdit;
+  final Function(T)? onDelete;
+  final T? initialSelection;
+
+  const GroupDropdown({
+    super.key,
+    required this.groups,
+    required this.onChanged,
+    this.isReadOnly = false,
+    this.onCreate,
+    this.onEdit,
+    this.onDelete,
+    this.initialSelection,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final items = groups.map((item) {
+      return DropdownMenuItem(
+        value: item,
+        child: Row(
+          children: [
+            Expanded(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Text(
+                      item.title,
+                      style: context.formText,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (!item.shownOnCalendar!) ...[
+                    const SizedBox(width: 8),
+                    Icon(
+                      Icons.visibility_off,
+                      size: 18,
+                      color: context.colorScheme.primary,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            if (!isReadOnly) ...[
+              const SizedBox(width: 12),
+              ...buildEditButtons(context, item),
+            ],
+          ],
+        ),
+      );
+    }).toList();
+    if (!isReadOnly) {
+      items.add(
+        DropdownMenuItem<T>(
+          value: null,
+          enabled: false,
+          child: HeliumElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              onCreate!();
+            },
+            buttonText: 'Group',
+            icon: Icons.add,
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: context.colorScheme.surface,
+        border: Border.all(
+          color: context.colorScheme.outline.withValues(alpha: 0.2),
+        ),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: ButtonTheme(
+          alignedDropdown: true,
+          child: DropdownButton<T>(
+            icon: const Icon(Icons.keyboard_arrow_down),
+            dropdownColor: context.colorScheme.surface,
+            isExpanded: true,
+            underline: const SizedBox(),
+            value: initialSelection,
+            items: items,
+            selectedItemBuilder: (BuildContext context) {
+              return groups.map<Widget>((T item) {
+                return Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        item.title,
+                        style: context.formText,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (!item.shownOnCalendar!) ...[
+                      const SizedBox(width: 8),
+                      Icon(
+                        Icons.visibility_off,
+                        size: 18,
+                        color: context.colorScheme.primary,
+                      ),
+                    ],
+                  ],
+                );
+              }).toList();
+            },
+            onChanged: onChanged,
+            alignment: AlignmentDirectional.centerStart,
+            menuMaxHeight: 400,
+          ),
+        ),
+      ),
+    );
+  }
+
+  List<Widget> buildEditButtons(BuildContext context, T item) {
+    return [
+      HeliumIconButton(
+        onPressed: () {
+          if (Navigator.canPop(context)) {
+            Navigator.pop(context);
+          }
+          onEdit!(item);
+        },
+        icon: Icons.edit_outlined,
+      ),
+      SizedBox(width: Responsive.isMobile(context) ? 0 : 8),
+      HeliumIconButton(
+        onPressed: () {
+          if (Navigator.canPop(context)) {
+            Navigator.pop(context);
+          }
+          showConfirmDeleteDialog(
+            parentContext: context,
+            item: item,
+            additionalWarning: 'Anything in this group will also be deleted.',
+            onDelete: (value) {
+              onDelete!(value);
+            },
+          );
+        },
+        icon: Icons.delete_outlined,
+        color: context.colorScheme.error,
+      ),
+    ];
+  }
+}
