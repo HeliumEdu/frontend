@@ -20,6 +20,8 @@ import 'package:logging/logging.dart';
 
 final log = Logger('HeliumLogger');
 
+// TODO: the splash screen icon should take system dark mode in to account
+
 class LandingScreen extends StatefulWidget {
   const LandingScreen({super.key});
 
