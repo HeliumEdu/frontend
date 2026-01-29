@@ -253,12 +253,14 @@ Future<void> showCourseGroupDialog<T extends BaseModel>({
   required bool isEdit,
   CourseGroupModel? group,
 }) {
+  final courseBloc = parentContext.read<CourseBloc>();
+
   return showDialog(
     context: parentContext,
     barrierDismissible: false,
     builder: (BuildContext dialogContext) {
       return BlocProvider<CourseBloc>.value(
-        value: parentContext.read<CourseBloc>(),
+        value: courseBloc,
         child: _CourseGroupProvidedWidget(isEdit: isEdit, group: group),
       );
     },

@@ -282,6 +282,9 @@ class DioClient {
   }
 
   Future<UserSettingsModel> getSettings() async {
+    // Ensure PrefService is initialized
+    await _prefService.init();
+
     return UserSettingsModel.fromJson({
       'time_zone': _prefService.getString('time_zone'),
       'color_by_category': _prefService.getBool('color_by_category'),

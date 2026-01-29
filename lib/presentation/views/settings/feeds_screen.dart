@@ -216,26 +216,38 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
                         ),
                       ),
                       const SizedBox(width: 10),
-                      SizedBox(
-                        width: 40,
-                        height: 40,
-                        child: IconButton(
-                          onPressed: () => SharePlus.instance.share(
-                            ShareParams(uri: Uri.parse(url)),
-                          ),
-                          icon: Icon(
-                            Icons.share_outlined,
-                            color: buttonColor,
-                            size: Responsive.getIconSize(
-                              context,
-                              mobile: 18,
-                              tablet: 20,
-                              desktop: 22,
+                      Builder(
+                        builder: (buttonContext) => SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: IconButton(
+                            onPressed: () {
+                              final box = buttonContext.findRenderObject() as RenderBox?;
+                              final sharePositionOrigin = box != null
+                                  ? box.localToGlobal(Offset.zero) & box.size
+                                  : null;
+
+                              SharePlus.instance.share(
+                                ShareParams(
+                                  text: url,
+                                  sharePositionOrigin: sharePositionOrigin,
+                                ),
+                              );
+                            },
+                            icon: Icon(
+                              Icons.share_outlined,
+                              color: buttonColor,
+                              size: Responsive.getIconSize(
+                                context,
+                                mobile: 18,
+                                tablet: 20,
+                                desktop: 22,
+                              ),
                             ),
-                          ),
-                          style: IconButton.styleFrom(
-                            backgroundColor: buttonColor.withValues(
-                              alpha: 0.12,
+                            style: IconButton.styleFrom(
+                              backgroundColor: buttonColor.withValues(
+                                alpha: 0.12,
+                              ),
                             ),
                           ),
                         ),

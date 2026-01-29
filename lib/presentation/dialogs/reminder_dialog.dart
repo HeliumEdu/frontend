@@ -205,12 +205,14 @@ Future<void> showReminderDialog<T extends BaseModel>({
   required Function createReminderRequest,
   ReminderModel? reminder,
 }) {
+  final reminderBloc = parentContext.read<ReminderBloc>();
+
   return showDialog(
     context: parentContext,
     barrierDismissible: false,
     builder: (BuildContext dialogContext) {
       return BlocProvider<ReminderBloc>.value(
-        value: parentContext.read<ReminderBloc>(),
+        value: reminderBloc,
         child: _ReminderProvidedWidget(
           isEdit: isEdit,
           userSettings: userSettings,

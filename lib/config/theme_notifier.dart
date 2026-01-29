@@ -16,7 +16,11 @@ class ThemeNotifier extends ChangeNotifier {
   factory ThemeNotifier() => _instance;
 
   ThemeNotifier._internal() {
-    _loadFromPrefs();
+    // Ensure PrefService is initialized
+    _prefService.init().then((_) {
+      _loadFromPrefs();
+      notifyListeners();
+    });
   }
 
   ThemeMode _themeMode = ThemeMode.system;

@@ -134,7 +134,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   @override
   bool get showActionButton => true;
 
-  final CalendarController _calendarController = CalendarController();
+  late final CalendarController _calendarController;
   final List<CalendarView> _allowedViews = [
     CalendarView.month,
     CalendarView.week,
@@ -148,9 +148,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   final List<CategoryModel> _deduplicatedCategories = [];
   bool _isSearchExpanded = false;
   bool _isFilterExpanded = false;
-  HeliumView _currentView = HeliumView.todos;
+  HeliumView _currentView = HeliumView.day;
 
-  late CalendarItemDataSource _calendarItemDataSource;
+  CalendarItemDataSource? _calendarItemDataSource;
 
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
@@ -164,6 +164,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   @override
   void initState() {
     super.initState();
+
+    _calendarController = CalendarController()
+      ..view = PlannerHelper.mapHeliumViewToSfCalendarView(_currentView);
 
     context.read<CalendarBloc>().add(FetchCalendarScreenDataEvent());
 
@@ -183,9 +186,29 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         });
       }
     });
+  }
 
-    loadSettings().then((settings) {
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    _searchTypingTimer?.cancel();
+    _monthViewScrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Future<UserSettingsModel> loadSettings() {
+    return super.loadSettings().then((settings) {
       setState(() {
+        _currentView = PlannerHelper.mapApiViewToHeliumView(
+          userSettings.defaultView,
+        );
+        if (_currentView != HeliumView.todos) {
+          _calendarController.view =
+              PlannerHelper.mapHeliumViewToSfCalendarView(_currentView);
+        }
+
         _calendarItemDataSource = CalendarItemDataSource(
           homeworkRepository: HomeworkRepositoryImpl(
             remoteDataSource: HomeworkRemoteDataSourceImpl(
@@ -208,26 +231,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           userSettings: settings,
         );
       });
-    });
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    _searchFocusNode.dispose();
-    _searchTypingTimer?.cancel();
-    _monthViewScrollController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Future<UserSettingsModel> loadSettings() {
-    return super.loadSettings().then((settings) {
-      setState(() {
-        _currentView = PlannerHelper.mapApiViewToHeliumView(
-          userSettings.defaultView,
-        );
-      });
 
       return settings;
     });
@@ -245,26 +248,28 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       ),
       BlocListener<CalendarItemBloc, CalendarItemState>(
         listener: (context, state) {
+          if (_calendarItemDataSource == null) return;
+
           if (state is EventCreated) {
-            _calendarItemDataSource.addCalendarItem(state.event);
+            _calendarItemDataSource!.addCalendarItem(state.event);
           } else if (state is EventUpdated) {
             if (state.origin == EventOrigin.screen) {
               showSnackBar(context, 'Event saved');
             }
-            _calendarItemDataSource.updateCalendarItem(state.event);
+            _calendarItemDataSource!.updateCalendarItem(state.event);
           } else if (state is EventDeleted) {
             showSnackBar(context, 'Event deleted');
-            _calendarItemDataSource.removeCalendarItem(state.id);
+            _calendarItemDataSource!.removeCalendarItem(state.id);
           } else if (state is HomeworkCreated) {
-            _calendarItemDataSource.addCalendarItem(state.homework);
+            _calendarItemDataSource!.addCalendarItem(state.homework);
           } else if (state is HomeworkUpdated) {
             if (state.origin == EventOrigin.screen) {
               showSnackBar(context, 'Assignment saved');
             }
-            _calendarItemDataSource.updateCalendarItem(state.homework);
+            _calendarItemDataSource!.updateCalendarItem(state.homework);
           } else if (state is HomeworkDeleted) {
             showSnackBar(context, 'Assignment deleted');
-            _calendarItemDataSource.removeCalendarItem(state.id);
+            _calendarItemDataSource!.removeCalendarItem(state.id);
           }
         },
       ),
@@ -307,8 +312,12 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   Widget _buildCalendarView(BuildContext context) {
+    if (_calendarItemDataSource == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return ListenableBuilder(
-      listenable: _calendarItemDataSource.changeNotifier,
+      listenable: _calendarItemDataSource!.changeNotifier,
       builder: (context, _) {
         // For month view, wrap to make it scrollable if the view height is too small
         if (_calendarController.view == CalendarView.month) {
@@ -329,7 +338,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                       child: _buildCalendar(),
                     ),
                   ),
-                  if (!_calendarItemDataSource.hasLoadedInitialData)
+                  if (!_calendarItemDataSource!.hasLoadedInitialData)
                     Positioned.fill(
                       child: Container(
                         color: context.colorScheme.surface,
@@ -345,7 +354,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         return Stack(
           children: [
             _buildCalendar(),
-            if (!_calendarItemDataSource.hasLoadedInitialData)
+            if (!_calendarItemDataSource!.hasLoadedInitialData)
               Positioned.fill(
                 child: Container(
                   color: context.colorScheme.surface,
@@ -398,7 +407,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
               color: context.colorScheme.primary,
             ),
           ),
-          view: PlannerHelper.mapHeliumViewToSfCalendarView(_currentView),
           allowedViews: _allowedViews,
           dataSource: _calendarItemDataSource,
           timeZone: userSettings.timeZone.name,
@@ -1108,7 +1116,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     }
 
     _searchTypingTimer = Timer(const Duration(milliseconds: 500), () {
-      _calendarItemDataSource.setSearchQuery(value);
+      _calendarItemDataSource!.setSearchQuery(value);
     });
   }
 
@@ -1230,7 +1238,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       height: details.bounds.height,
       isInAgenda: isInAgenda,
       completedOverride: homeworkId != null
-          ? _calendarItemDataSource.completedOverrides[homeworkId]
+          ? _calendarItemDataSource!.completedOverrides[homeworkId]
           : null,
     );
   }
@@ -1243,8 +1251,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     VoidCallback? onCheckboxToggled,
     bool? completedOverride,
   }) {
-    final color = _calendarItemDataSource.getColorForItem(calendarItem);
-    final location = _calendarItemDataSource.getLocationForItem(calendarItem);
+    final color = _calendarItemDataSource!.getColorForItem(calendarItem);
+    final location = _calendarItemDataSource!.getLocationForItem(calendarItem);
 
     return Container(
       width: width,
@@ -1461,7 +1469,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     List<dynamic> appointments,
   ) {
     return ListenableBuilder(
-      listenable: _calendarItemDataSource.changeNotifier,
+      listenable: _calendarItemDataSource!.changeNotifier,
       builder: (context, _) {
         return Dialog(
           shape: RoundedRectangleBorder(
@@ -1513,7 +1521,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                       // Use current item from data source, not stale appointments list
                       final staleAppointment = appointments[index];
                       final appointment =
-                          _calendarItemDataSource.allCalendarItems
+                          _calendarItemDataSource!.allCalendarItems
                               .cast<CalendarItemBaseModel?>()
                               .firstWhere(
                                 (item) => item?.id == staleAppointment.id,
@@ -1524,7 +1532,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                           ? appointment.id
                           : null;
                       final completedOverride = homeworkId != null
-                          ? _calendarItemDataSource
+                          ? _calendarItemDataSource!
                                 .completedOverrides[homeworkId]
                           : null;
 
@@ -1561,8 +1569,11 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         _categoriesMap[category.id] = category;
       }
 
-      _calendarItemDataSource.courses = _courses;
-      _calendarItemDataSource.categoriesMap = _categoriesMap;
+      // Only update data source if it's been initialized (settings loaded)
+      if (_calendarItemDataSource != null) {
+        _calendarItemDataSource!.courses = _courses;
+        _calendarItemDataSource!.categoriesMap = _categoriesMap;
+      }
 
       final uniqueCategories = <String, CategoryModel>{};
       for (var category in state.categories) {
@@ -1588,7 +1599,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   void _toggleHomeworkCompleted(HomeworkModel homework, bool value) {
     // Set optimistic UI state
-    _calendarItemDataSource.setCompletedOverride(homework.id, value);
+    _calendarItemDataSource!.setCompletedOverride(homework.id, value);
 
     final request = HomeworkRequestModel(
       completed: !homework.completed,
@@ -1657,7 +1668,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                         Expanded(
                           child: InkWell(
                             onTap: () {
-                              _calendarItemDataSource.setFilteredCourses({});
+                              _calendarItemDataSource!.setFilteredCourses({});
                               setMenuState(() {});
                             },
                             child: Padding(
@@ -1680,7 +1691,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                     Column(
                       children: displayCourses.map((course) {
                         final isSelected =
-                            _calendarItemDataSource.filteredCourses[course
+                            _calendarItemDataSource!.filteredCourses[course
                                 .title] ??
                             false;
 
@@ -1772,14 +1783,14 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                           value: isSelected,
                           onChanged: (value) {
                             final currentFilters = Map<String, bool>.from(
-                              _calendarItemDataSource.filteredCourses,
+                              _calendarItemDataSource!.filteredCourses,
                             );
                             if (value == true) {
                               currentFilters[course.title] = true;
                             } else {
                               currentFilters.remove(course.title);
                             }
-                            _calendarItemDataSource.setFilteredCourses(
+                            _calendarItemDataSource!.setFilteredCourses(
                               currentFilters,
                             );
                             setMenuState(() {});
@@ -1840,7 +1851,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                         Expanded(
                           child: InkWell(
                             onTap: () {
-                              _calendarItemDataSource.clearFilters();
+                              _calendarItemDataSource!.clearFilters();
                               setMenuState(() {});
                             },
                             child: Padding(
@@ -1869,12 +1880,12 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                               color: context.colorScheme.onSurface,
                             ),
                           ),
-                          value: _calendarItemDataSource.filterTypes.contains(
+                          value: _calendarItemDataSource!.filterTypes.contains(
                             'Assignments',
                           ),
                           onChanged: (value) {
                             final currentTypes = List<String>.from(
-                              _calendarItemDataSource.filterTypes,
+                              _calendarItemDataSource!.filterTypes,
                             );
                             if (value == true) {
                               if (!currentTypes.contains('Assignments')) {
@@ -1883,7 +1894,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                             } else {
                               currentTypes.remove('Assignments');
                             }
-                            _calendarItemDataSource.setFilterTypes(
+                            _calendarItemDataSource!.setFilterTypes(
                               currentTypes,
                             );
                             setMenuState(() {});
@@ -1912,12 +1923,12 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                               ),
                             ],
                           ),
-                          value: _calendarItemDataSource.filterTypes.contains(
+                          value: _calendarItemDataSource!.filterTypes.contains(
                             'Events',
                           ),
                           onChanged: (value) {
                             final currentTypes = List<String>.from(
-                              _calendarItemDataSource.filterTypes,
+                              _calendarItemDataSource!.filterTypes,
                             );
                             if (value == true) {
                               if (!currentTypes.contains('Events')) {
@@ -1926,7 +1937,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                             } else {
                               currentTypes.remove('Events');
                             }
-                            _calendarItemDataSource.setFilterTypes(
+                            _calendarItemDataSource!.setFilterTypes(
                               currentTypes,
                             );
                             setMenuState(() {});
@@ -1942,12 +1953,12 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                               color: context.colorScheme.onSurface,
                             ),
                           ),
-                          value: _calendarItemDataSource.filterTypes.contains(
+                          value: _calendarItemDataSource!.filterTypes.contains(
                             'Class Schedules',
                           ),
                           onChanged: (value) {
                             final currentTypes = List<String>.from(
-                              _calendarItemDataSource.filterTypes,
+                              _calendarItemDataSource!.filterTypes,
                             );
                             if (value == true) {
                               if (!currentTypes.contains('Class Schedules')) {
@@ -1956,7 +1967,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                             } else {
                               currentTypes.remove('Class Schedules');
                             }
-                            _calendarItemDataSource.setFilterTypes(
+                            _calendarItemDataSource!.setFilterTypes(
                               currentTypes,
                             );
                             setMenuState(() {});
@@ -1972,12 +1983,12 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                               color: context.colorScheme.onSurface,
                             ),
                           ),
-                          value: _calendarItemDataSource.filterTypes.contains(
+                          value: _calendarItemDataSource!.filterTypes.contains(
                             'External Calendars',
                           ),
                           onChanged: (value) {
                             final currentTypes = List<String>.from(
-                              _calendarItemDataSource.filterTypes,
+                              _calendarItemDataSource!.filterTypes,
                             );
                             if (value == true) {
                               if (!currentTypes.contains(
@@ -1988,7 +1999,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                             } else {
                               currentTypes.remove('External Calendars');
                             }
-                            _calendarItemDataSource.setFilterTypes(
+                            _calendarItemDataSource!.setFilterTypes(
                               currentTypes,
                             );
                             setMenuState(() {});
@@ -2005,7 +2016,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                     StatefulBuilder(
                       builder: (context, setStatusMenuState) {
                         Widget buildStatusTile(String label) {
-                          final isChecked = _calendarItemDataSource
+                          final isChecked = _calendarItemDataSource!
                               .filterStatuses
                               .contains(label);
                           return CheckboxListTile(
@@ -2018,14 +2029,14 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                             value: isChecked,
                             onChanged: (value) {
                               final currentStatuses = Set<String>.from(
-                                _calendarItemDataSource.filterStatuses,
+                                _calendarItemDataSource!.filterStatuses,
                               );
                               if (value == true) {
                                 currentStatuses.add(label);
                               } else {
                                 currentStatuses.remove(label);
                               }
-                              _calendarItemDataSource.setFilterStatuses(
+                              _calendarItemDataSource!.setFilterStatuses(
                                 currentStatuses,
                               );
                               setStatusMenuState(() {});
@@ -2080,11 +2091,11 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                     ),
                                   ],
                                 ),
-                                value: _calendarItemDataSource.filterCategories
+                                value: _calendarItemDataSource!.filterCategories
                                     .contains(category.title),
                                 onChanged: (value) {
                                   final currentCategories = List<String>.from(
-                                    _calendarItemDataSource.filterCategories,
+                                    _calendarItemDataSource!.filterCategories,
                                   );
                                   if (value == true) {
                                     if (!currentCategories.contains(
@@ -2095,7 +2106,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                   } else {
                                     currentCategories.remove(category.title);
                                   }
-                                  _calendarItemDataSource.setFilterCategories(
+                                  _calendarItemDataSource!.setFilterCategories(
                                     currentCategories,
                                   );
                                   setCategoryMenuState(() {});
@@ -2161,7 +2172,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                         setState(() {
                           _currentView = value!;
                           // Only update the calendar's view if the new view isn't "Todos"
-                          if (value != HeliumView.todos) {
+                          if (_currentView != HeliumView.todos) {
                             _calendarController.view =
                                 PlannerHelper.mapHeliumViewToSfCalendarView(
                                   _currentView,
@@ -2218,9 +2229,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   Widget _buildTodosView() {
     return ListenableBuilder(
-      listenable: _calendarItemDataSource.changeNotifier,
+      listenable: _calendarItemDataSource!.changeNotifier,
       builder: (context, _) => TodosView(
-        dataSource: _calendarItemDataSource,
+        dataSource: _calendarItemDataSource!,
         onTap: _openCalendarItem,
         onToggleCompleted: _toggleHomeworkCompleted,
       ),
