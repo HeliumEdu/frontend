@@ -7,6 +7,7 @@
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/notification/notification_model.dart';
 import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
@@ -21,16 +22,27 @@ class PlannerHelper {
   static final List<int> weekStartsOnRemap = [7, 1, 2, 3, 4, 5, 6];
 
   static NotificationModel mapPayloadToNotification(
-      RemoteMessage message,
-      dynamic payload,
-      ) {
+    RemoteMessage message,
+    dynamic payload,
+  ) {
     final reminder = ReminderModel.fromJson(payload);
 
     final String start;
     if (reminder.homework != null) {
       start = reminder.homework!.entity!.start;
-    } else {
+    } else if (reminder.event != null) {
       start = reminder.event!.entity!.start;
+    } else {
+      if (!kDebugMode) {
+        throw ArgumentError.notNull(
+          'Both homework and event are null on Reminder ${reminder.id}, which is not allowed',
+        );
+      } else {
+        log.warning(
+          'Both homework and event are null on Reminder ${reminder.id}, using now as "start"',
+        );
+        start = DateTime.now().toString();
+      }
     }
 
     return NotificationModel(

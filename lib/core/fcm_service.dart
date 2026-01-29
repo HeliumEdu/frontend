@@ -465,16 +465,25 @@ class FcmService {
     RemoteMessage message,
     String messageId,
   ) async {
-    // Handle Firebase Console test messages (no json_payload) - debug only
+    // Handle Firebase Console test messages, which never have a payload
     if (message.data['json_payload'] == null) {
       if (message.notification != null) {
-        log.info('Displaying notification from Firebase console: $message');
+        log.info(
+          'Displaying notification from Firebase console: ${message.toMap()}',
+        );
+
+        final title = message.notification!.title ?? message.notification!.body;
+
+        final messageMap = message.toMap();
+        messageMap['notification']['title'] = title;
+
+        final remoteMessage = RemoteMessage.fromMap(messageMap);
 
         final payload = {
-          'id': message.messageId,
-          'title': message.notification!.title,
-          'message': message.notification!.title,
-          'start_of_range': DateTime.now(),
+          'id': 1,
+          'title': title,
+          'message': message.notification!.body,
+          'start_of_range': DateTime.now().toString(),
           'offset': 30,
           'offset_type': 0,
           'type': 0,
@@ -483,11 +492,11 @@ class FcmService {
         };
 
         await showLocalNotification(
-          PlannerHelper.mapPayloadToNotification(message, payload),
+          PlannerHelper.mapPayloadToNotification(remoteMessage, payload),
         );
       } else {
         log.warning(
-          'Foreground message $messageId has no notification payload to display',
+          'Message $messageId has no payloads, so it will be dropped',
         );
       }
 
