@@ -167,19 +167,19 @@ class FcmService {
 
   Future<void> _getFCMToken() async {
     try {
-      // On iOS, ensure APNS token is available before getting FCM token
+      // On iOS, ensure APN token is available before getting FCM token
       if (!kIsWeb && Platform.isIOS) {
         try {
           final apnsToken = await _firebaseMessaging.getAPNSToken();
           if (apnsToken != null) {
-            log.info('APNS token retrieved successfully');
+            log.info('APN token retrieved successfully');
           } else {
             log.warning(
-              'APNS token is null, FCM token may not be available yet',
+              'APN token is null, FCM token may not be available yet',
             );
           }
         } catch (e) {
-          log.warning('Failed to get APNS token: $e');
+          log.warning('Failed to get APN token: $e');
         }
       }
 
@@ -194,7 +194,7 @@ class FcmService {
   }
 
   Future<void> _registerToken({bool force = false}) async {
-    // If token is null, try to get it (especially important on iOS where APNS may be delayed)
+    // If token is null, try to get it (especially important on iOS where APN may be delayed)
     if (_fcmToken == null || _fcmToken!.isEmpty) {
       log.info('FCM token not available, attempting to retrieve it now ...');
       await _getFCMToken();
@@ -313,7 +313,7 @@ class FcmService {
     // Handle taps from terminated
     _handleInitialMessage();
 
-    // Listen for token refreshes (important for iOS when APNS token becomes available)
+    // Listen for token refreshes (important for iOS when APN token becomes available)
     _firebaseMessaging.onTokenRefresh.listen((newToken) {
       log.info('FCM token refreshed');
       _fcmToken = newToken;
@@ -324,6 +324,13 @@ class FcmService {
   Future<void> _handleForegroundMessage(RemoteMessage message) async {
     final messageId = message.messageId ?? 'unknown';
     log.info('Foreground message $messageId received from FCM');
+
+    if (kDebugMode) {
+      if (await _handleTestMessages(message, messageId)) {
+        // Return early when test messages are already handled
+        return;
+      }
+    }
 
     final payload = json.decode(message.data['json_payload']);
 
@@ -394,6 +401,7 @@ class FcmService {
       presentAlert: true,
       presentBadge: true,
       presentSound: true,
+      interruptionLevel: InterruptionLevel.active,
     );
 
     const NotificationDetails platformDetails = NotificationDetails(
@@ -452,6 +460,42 @@ class FcmService {
   String? get deviceId => _deviceId;
 
   bool get isInitialized => _isInitialized;
+
+  Future<bool> _handleTestMessages(
+    RemoteMessage message,
+    String messageId,
+  ) async {
+    // Handle Firebase Console test messages (no json_payload) - debug only
+    if (message.data['json_payload'] == null) {
+      if (message.notification != null) {
+        log.info('Displaying notification from Firebase console: $message');
+
+        final payload = {
+          'id': message.messageId,
+          'title': message.notification!.title,
+          'message': message.notification!.title,
+          'start_of_range': DateTime.now(),
+          'offset': 30,
+          'offset_type': 0,
+          'type': 0,
+          'sent': true,
+          'dismissed': false,
+        };
+
+        await showLocalNotification(
+          PlannerHelper.mapPayloadToNotification(message, payload),
+        );
+      } else {
+        log.warning(
+          'Foreground message $messageId has no notification payload to display',
+        );
+      }
+
+      return true;
+    }
+
+    return false;
+  }
 }
 
 @pragma('vm:entry-point')
