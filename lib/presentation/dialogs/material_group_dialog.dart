@@ -159,12 +159,14 @@ Future<void> showMaterialGroupDialog<T extends BaseModel>({
   required bool isEdit,
   MaterialGroupModel? group,
 }) {
+  final materialBloc = parentContext.read<MaterialBloc>();
+
   return showDialog(
     context: parentContext,
     barrierDismissible: false,
     builder: (BuildContext dialogContext) {
       return BlocProvider<MaterialBloc>.value(
-        value: parentContext.read<MaterialBloc>(),
+        value: materialBloc,
         child: _MaterialGroupProvidedWidget(isEdit: isEdit, group: group),
       );
     },

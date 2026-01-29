@@ -219,12 +219,14 @@ Future<void> showExternalCalendarDialog<T extends BaseModel>({
   required bool isEdit,
   ExternalCalendarModel? externalCalendar,
 }) {
+  final externalCalendarBloc = parentContext.read<ExternalCalendarBloc>();
+
   return showDialog(
     context: parentContext,
     barrierDismissible: false,
     builder: (BuildContext dialogContext) {
       return BlocProvider<ExternalCalendarBloc>.value(
-        value: parentContext.read<ExternalCalendarBloc>(),
+        value: externalCalendarBloc,
         child: _ExternalCalendarProvidedWidget(
           isEdit: isEdit,
           externalCalendar: externalCalendar,

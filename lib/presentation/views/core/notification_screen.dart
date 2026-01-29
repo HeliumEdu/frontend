@@ -86,10 +86,15 @@ class _NotificationsScreenState
   void initState() {
     super.initState();
 
-    _readNotificationIds =
-        (_prefService.getStringList('read_notification_ids') ?? [])
-            .map((n) => HeliumConversion.toInt(n)!)
-            .toList();
+    // Ensure PrefService is initialized
+    _prefService.init().then((_) {
+      setState(() {
+        _readNotificationIds =
+            (_prefService.getStringList('read_notification_ids') ?? [])
+                .map((n) => HeliumConversion.toInt(n)!)
+                .toList();
+      });
+    });
 
     context.read<ReminderBloc>().add(
       FetchRemindersEvent(

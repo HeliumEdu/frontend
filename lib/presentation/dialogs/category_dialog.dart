@@ -207,12 +207,14 @@ Future<void> showCategoryDialog<T extends BaseModel>({
   required bool isEdit,
   CategoryModel? category,
 }) {
+  final categoryBloc = parentContext.read<CategoryBloc>();
+
   return showDialog(
     context: parentContext,
     barrierDismissible: false,
     builder: (BuildContext dialogContext) {
       return BlocProvider<CategoryBloc>.value(
-        value: parentContext.read<CategoryBloc>(),
+        value: categoryBloc,
         child: _CategoryProvidedWidget(
           courseGroupId: courseGroupId,
           courseId: courseId,

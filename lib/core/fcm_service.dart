@@ -6,7 +6,8 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
+import 'dart:io'
+    if (dart.library.html) 'package:heliumapp/core/platform_stub.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -16,12 +17,15 @@ import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/core/fcm_web_notifications_stub.dart'
+    if (dart.library.html) 'package:heliumapp/core/fcm_web_notifications_web.dart'
+    as web_notifications;
 import 'package:heliumapp/core/jwt_utils.dart';
 import 'package:heliumapp/data/models/notification/notification_model.dart';
 import 'package:heliumapp/data/models/notification/push_token_request_model.dart';
-import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/data/repositories/push_notification_repository_impl.dart';
 import 'package:heliumapp/data/sources/push_notification_remote_data_source.dart';
+import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:logging/logging.dart';
 
 final log = Logger('HeliumLogger');
@@ -50,10 +54,10 @@ class FcmService {
   factory FcmService() => _instance;
 
   FcmService._internal()
-      : _dioClient = DioClient(),
-        _firebaseMessaging = FirebaseMessaging.instance,
-        _localNotifications = FlutterLocalNotificationsPlugin(),
-        _prefService = PrefService();
+    : _dioClient = DioClient(),
+      _firebaseMessaging = FirebaseMessaging.instance,
+      _localNotifications = FlutterLocalNotificationsPlugin(),
+      _prefService = PrefService();
 
   @visibleForTesting
   FcmService.forTesting({
@@ -61,10 +65,10 @@ class FcmService {
     required FirebaseMessaging firebaseMessaging,
     required FlutterLocalNotificationsPlugin localNotifications,
     required PrefService prefService,
-  })  : _dioClient = dioClient,
-        _firebaseMessaging = firebaseMessaging,
-        _localNotifications = localNotifications,
-        _prefService = prefService;
+  }) : _dioClient = dioClient,
+       _firebaseMessaging = firebaseMessaging,
+       _localNotifications = localNotifications,
+       _prefService = prefService;
 
   @visibleForTesting
   static void resetForTesting() {
@@ -163,16 +167,45 @@ class FcmService {
 
   Future<void> _getFCMToken() async {
     try {
+      // On iOS, ensure APNS token is available before getting FCM token
+      if (!kIsWeb && Platform.isIOS) {
+        try {
+          final apnsToken = await _firebaseMessaging.getAPNSToken();
+          if (apnsToken != null) {
+            log.info('APNS token retrieved successfully');
+          } else {
+            log.warning(
+              'APNS token is null, FCM token may not be available yet',
+            );
+          }
+        } catch (e) {
+          log.warning('Failed to get APNS token: $e');
+        }
+      }
+
       _fcmToken = await _firebaseMessaging.getToken();
+
+      if (_fcmToken != null) {
+        log.info('FCM token retrieved successfully');
+      }
     } catch (e) {
       log.info('FCM token not available: $e');
     }
   }
 
   Future<void> _registerToken({bool force = false}) async {
+    // If token is null, try to get it (especially important on iOS where APNS may be delayed)
     if (_fcmToken == null || _fcmToken!.isEmpty) {
-      log.info('No FCM token available for registration yet');
-      return;
+      log.info('FCM token not available, attempting to retrieve it now ...');
+      await _getFCMToken();
+
+      // If still null after retry, give up
+      if (_fcmToken == null || _fcmToken!.isEmpty) {
+        log.warning(
+          'FCM token still not available after retry, skipping registration',
+        );
+        return;
+      }
     }
 
     try {
@@ -206,16 +239,23 @@ class FcmService {
             final bool isCurrentToken = token.token == _fcmToken;
             final bool isCurrentDevice = token.deviceId == _deviceId;
 
-            final bool shouldKeep =
-                !hasCurrent && isCurrentToken && isCurrentDevice;
-            if (shouldKeep) {
+            // Keep if it's the current token on the current device
+            if (isCurrentToken && isCurrentDevice) {
               hasCurrent = true;
               continue;
             }
 
+            // Ignore tokens for other devices
+            if (!isCurrentDevice) {
+              continue;
+            }
+
+            // Delete stale tokens from this device (old or duplicates)
             try {
               await pushTokenRepo.deletePushTokenById(token.id);
-              log.info('Removed stale push token ID: ${token.id}');
+              log.info(
+                'Removed stale push token ID: ${token.id} from this device',
+              );
             } catch (e) {
               log.warning('Failed to delete stale push token ${token.id}: $e');
             }
@@ -263,7 +303,7 @@ class FcmService {
     if (_handlersConfigured) return;
     _handlersConfigured = true;
 
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    FirebaseMessaging.onBackgroundMessage(_handleBackgroundMessage);
 
     FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
 
@@ -272,6 +312,13 @@ class FcmService {
 
     // Handle taps from terminated
     _handleInitialMessage();
+
+    // Listen for token refreshes (important for iOS when APNS token becomes available)
+    _firebaseMessaging.onTokenRefresh.listen((newToken) {
+      log.info('FCM token refreshed');
+      _fcmToken = newToken;
+      _registerToken();
+    });
   }
 
   Future<void> _handleForegroundMessage(RemoteMessage message) async {
@@ -291,22 +338,9 @@ class FcmService {
     }
     _recentMessageIds[payload['id'].toString()] = now;
 
-    final reminder = ReminderModel.fromJson(payload);
-
-    final String start;
-    if (reminder.homework != null) {
-      start = reminder.homework!.entity!.start;
-    } else {
-      start = reminder.event!.entity!.start;
-    }
-
-    final notification = NotificationModel(
-      id: reminder.id,
-      title: message.notification!.title!,
-      body: message.notification!.body!,
-      reminder: reminder,
-      timestamp: start,
-      isRead: false,
+    final notification = PlannerHelper.mapPayloadToNotification(
+      message,
+      payload,
     );
 
     await showLocalNotification(notification);
@@ -335,6 +369,17 @@ class FcmService {
 
   // Show local notification
   Future<void> showLocalNotification(NotificationModel notification) async {
+    if (kIsWeb) {
+      // On web, use browser's Notification API directly
+      if (await web_notifications.requestWebNotificationPermission()) {
+        web_notifications.showWebNotification(
+          notification,
+          _handleNotificationNavigation,
+        );
+      }
+      return;
+    }
+
     const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
           'helium',
@@ -373,40 +418,54 @@ class FcmService {
     await _registerToken(force: force);
   }
 
+  Future<void> unregisterToken() async {
+    if (_deviceId == null) {
+      log.info('No device ID available, skipping token unregistration');
+      return;
+    }
+
+    final pushTokenRepo = PushTokenRepositoryImpl(
+      remoteDataSource: PushTokenRemoteDataSourceImpl(dioClient: _dioClient),
+    );
+
+    final existingTokens = await pushTokenRepo.retrievePushTokens();
+
+    // Delete existing tokens for this device
+    for (final token in existingTokens) {
+      if (token.deviceId == _deviceId) {
+        await pushTokenRepo.deletePushTokenById(token.id);
+        log.info(
+          'Unregistered push token ID: ${token.id} for device $_deviceId',
+        );
+      }
+    }
+
+    // Clear local state
+    await _prefService.setSecure('pushtoken_device_id', '');
+    await _prefService.setSecure('last_pushtoken', '');
+    _fcmToken = null;
+    _deviceId = null;
+
+    log.info('Successfully unregistered push tokens for this device');
+  }
+
   String? get deviceId => _deviceId;
 
   bool get isInitialized => _isInitialized;
 }
 
 @pragma('vm:entry-point')
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+Future<void> _handleBackgroundMessage(RemoteMessage message) async {
   await Firebase.initializeApp();
   final messageId = message.messageId ?? 'unknown';
   log.info('Background message $messageId received from FCM');
-  if (message.notification == null) {
-    final reminder = ReminderModel.fromJson(message.data);
 
-    final String start;
-    if (reminder.homework != null) {
-      start = reminder.homework!.entity!.start;
-    } else {
-      start = reminder.event!.entity!.start;
-    }
+  // Parse the reminder data from the message
+  final payload = json.decode(message.data['json_payload']);
 
-    final notification = NotificationModel(
-      id: reminder.id,
-      title: message.notification!.title!,
-      body: message.notification!.body!,
-      reminder: reminder,
-      timestamp: start,
-      isRead: false,
-    );
-    final fcmService = FcmService();
-    await fcmService.showLocalNotification(notification);
-    log.info('Background message $messageId notification displayed');
-  } else {
-    log.info(
-      'Background message $messageId already handled by system, skipping local display',
-    );
-  }
+  final notification = PlannerHelper.mapPayloadToNotification(message, payload);
+
+  final fcmService = FcmService();
+  await fcmService.showLocalNotification(notification);
+  log.info('Background message $messageId notification displayed');
 }

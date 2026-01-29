@@ -5,10 +5,13 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/data/models/notification/notification_model.dart';
 import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
+import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
@@ -16,6 +19,29 @@ enum HeliumView { month, week, day, agenda, todos }
 
 class PlannerHelper {
   static final List<int> weekStartsOnRemap = [7, 1, 2, 3, 4, 5, 6];
+
+  static NotificationModel mapPayloadToNotification(
+      RemoteMessage message,
+      dynamic payload,
+      ) {
+    final reminder = ReminderModel.fromJson(payload);
+
+    final String start;
+    if (reminder.homework != null) {
+      start = reminder.homework!.entity!.start;
+    } else {
+      start = reminder.event!.entity!.start;
+    }
+
+    return NotificationModel(
+      id: reminder.id,
+      title: message.notification!.title!,
+      body: message.notification!.body!,
+      reminder: reminder,
+      timestamp: start,
+      isRead: false,
+    );
+  }
 
   static CalendarView mapHeliumViewToSfCalendarView(HeliumView view) {
     switch (view) {

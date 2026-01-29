@@ -40,6 +40,9 @@ void main() {
       },
     ));
 
+    // Stub init() to return a completed Future
+    when(() => mockPrefService.init()).thenAnswer((_) async {});
+
     dioClient = DioClient.forTesting(
       dio: mockDio,
       prefService: mockPrefService,

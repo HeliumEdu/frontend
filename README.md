@@ -39,6 +39,10 @@ Before commits are made, be sure to also run tests.
 make test
 ```
 
+When running a local `web` version of the project but hitting `prod` APIs, CORS will need to be disabled
+by passing a flag like `--web-browser-flag=--disable-web-security` to Flutter so it starts the browser with this
+disabled.
+
 ### Platform
 
 The backend `platform` is served from a separate repository and can be found [here](https://github.com/HeliumEdu/platform#readme).
