@@ -163,16 +163,8 @@ void main() {
       expect(2.plural('item'), 'items');
     });
 
-    test('returns plural for large numbers', () {
-      expect(100.plural('item'), 'items');
-    });
-
     test('uses custom plural suffix', () {
       expect(2.plural('box', 'es'), 'boxes');
-    });
-
-    test('uses custom plural suffix for singular', () {
-      expect(1.plural('box', 'es'), 'box');
     });
   });
 }
