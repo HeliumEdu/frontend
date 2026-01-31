@@ -1427,7 +1427,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       return const SizedBox.shrink();
     }
 
-    // Add top padding when aligned top-left to avoid touching the edge
     final paddedIcon = isInAgenda
         ? iconWidget
         : Padding(
