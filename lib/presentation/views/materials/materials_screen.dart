@@ -30,8 +30,10 @@ import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/dialogs/material_group_dialog.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/course_title_label.dart';
+import 'package:heliumapp/presentation/widgets/empty_card.dart';
 import 'package:heliumapp/presentation/widgets/group_dropdown.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
+import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/material_title_label.dart';
 import 'package:heliumapp/presentation/widgets/pill_badge.dart';
 import 'package:heliumapp/presentation/widgets/responsive_card_grid.dart';
@@ -231,7 +233,7 @@ class _MaterialsScreenState
     return BlocBuilder<MaterialBloc, material_state.MaterialState>(
       builder: (context, state) {
         if (state is material_state.MaterialsLoading) {
-          return buildLoading();
+          return const LoadingIndicator();
         }
 
         if (state is material_state.MaterialsError &&
@@ -244,7 +246,7 @@ class _MaterialsScreenState
         }
 
         if (_materialGroups.isEmpty) {
-          return buildEmptyPage(
+          return const EmptyCard(
             icon: Icons.book,
             title: "You haven't added any groups yet",
             message: 'Click "+ Group" to get started',
@@ -252,7 +254,7 @@ class _MaterialsScreenState
         }
 
         if (_materialsMap[_selectedGroupId!]!.isEmpty) {
-          return buildEmptyPage(
+          return const EmptyCard(
             icon: Icons.book,
             title: "You haven't added any materials yet",
             message: 'Click "+" to get started',

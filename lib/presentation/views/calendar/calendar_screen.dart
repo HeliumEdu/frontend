@@ -49,8 +49,9 @@ import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
+import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/shadow_container.dart';
-import 'package:heliumapp/presentation/widgets/todos_view.dart';
+import 'package:heliumapp/presentation/widgets/todos_table.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
@@ -285,7 +286,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     return BlocBuilder<CalendarBloc, CalendarState>(
       builder: (context, state) {
         if (state is CalendarLoading) {
-          return buildLoading();
+          return const LoadingIndicator();
         }
 
         if (state is CalendarError) {
@@ -2502,13 +2503,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   Widget _buildTodosView() {
-    return ListenableBuilder(
-      listenable: _calendarItemDataSource!.changeNotifier,
-      builder: (context, _) => TodosView(
-        dataSource: _calendarItemDataSource!,
-        onTap: _openCalendarItem,
-        onToggleCompleted: _toggleHomeworkCompleted,
-      ),
+    return TodosTable(
+      dataSource: _calendarItemDataSource!,
+      onTap: _openCalendarItem,
+      onToggleCompleted: _toggleHomeworkCompleted,
     );
   }
 }

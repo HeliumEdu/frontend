@@ -25,8 +25,10 @@ import 'package:heliumapp/presentation/bloc/grade/grade_state.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/category_title_label.dart';
 import 'package:heliumapp/presentation/widgets/course_title_label.dart';
+import 'package:heliumapp/presentation/widgets/empty_card.dart';
 import 'package:heliumapp/presentation/widgets/grade_label.dart';
 import 'package:heliumapp/presentation/widgets/group_dropdown.dart';
+import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/shadow_container.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
@@ -133,7 +135,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     return BlocBuilder<GradeBloc, GradeState>(
       builder: (context, state) {
         if (state is GradesLoading) {
-          return buildLoading();
+          return const LoadingIndicator();
         }
 
         if (state is GradesError) {
@@ -147,7 +149,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
             : [];
 
         if (_grades.isEmpty || courses.isEmpty) {
-          return buildEmptyPage(
+          return const EmptyCard(
             icon: Icons.bar_chart,
             title: "You haven't added any classes yet",
             message: "Head over to 'Classes' to get started",
