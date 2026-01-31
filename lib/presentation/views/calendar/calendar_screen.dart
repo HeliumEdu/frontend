@@ -46,7 +46,9 @@ import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_state.dart
 import 'package:heliumapp/presentation/bloc/category/category_bloc.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
+import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/shadow_container.dart';
 import 'package:heliumapp/presentation/widgets/todos_view.dart';
 import 'package:heliumapp/utils/app_globals.dart';
@@ -58,6 +60,7 @@ import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:timezone/standalone.dart' as tz;
+import 'package:url_launcher/url_launcher.dart';
 
 final log = Logger('HeliumLogger');
 
@@ -1300,10 +1303,39 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     }
   }
 
-  // FIXME: on agenda view, center checkbox vertically, and provide more padding
-  // FIXME: on agenda view, add HeliumIconButton for edit/delete
-  // FIXME: on agenda view (if class has website), add HeliumIconButton for website
-  // FIXME: on agenda view (if class has instructor email), add HeliumIconButton for email
+  void _deleteCalendarItem(BuildContext context, dynamic calendarItem) {
+    if (calendarItem is HomeworkModel) {
+      showConfirmDeleteDialog(
+        parentContext: context,
+        item: calendarItem,
+        onDelete: (h) {
+          context.read<CalendarItemBloc>().add(
+                DeleteHomeworkEvent(
+                  origin: EventOrigin.screen,
+                  courseGroupId: h.course.entity!.courseGroup,
+                  courseId: h.course.id,
+                  homeworkId: h.id,
+                ),
+              );
+        },
+      );
+    } else if (calendarItem is EventModel) {
+      showConfirmDeleteDialog(
+        parentContext: context,
+        item: calendarItem,
+        onDelete: (e) {
+          context.read<CalendarItemBloc>().add(
+                DeleteEventEvent(
+                  origin: EventOrigin.screen,
+                  id: e.id,
+                ),
+              );
+        },
+      );
+    }
+    // Note: CourseScheduleEventModel and ExternalCalendarEventModel
+    // are not deletable from calendar view
+  }
 
   Widget _buildCalendarItem(
     BuildContext context,
@@ -1314,8 +1346,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     }
 
     final calendarItem = details.appointments.first;
-    final isInAgenda =
-        _currentView == HeliumView.month && details.bounds.height > 40;
+    final isInAgenda = _currentView == HeliumView.agenda ||
+        (_currentView == HeliumView.month && details.bounds.height > 40);
     final homeworkId = calendarItem is HomeworkModel ? calendarItem.id : null;
 
     return _buildCalendarItemWidget(
@@ -1340,6 +1372,14 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     final color = _calendarItemDataSource!.getColorForItem(calendarItem);
     final location = _calendarItemDataSource!.getLocationForItem(calendarItem);
 
+    // Get course for homework and course schedule events
+    CourseModel? course;
+    if (calendarItem is HomeworkModel) {
+      course = _courses.firstWhere((c) => c.id == calendarItem.course.id);
+    } else if (calendarItem is CourseScheduleEventModel) {
+      course = _courses.firstWhere((c) => c.id.toString() == calendarItem.ownerId);
+    }
+
     return Container(
       width: width,
       height: height,
@@ -1357,149 +1397,383 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         ),
         clipBehavior: Clip.hardEdge,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  if (PlannerHelper.shouldShowCheckbox(
-                    context,
-                    calendarItem,
-                    _currentView,
-                  )) ...[
-                    SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: Transform.scale(
-                        scale: AppTextStyles.calendarCheckboxScale(context),
-                        child: Builder(
-                          builder: (context) {
-                            // TODO: on non-month views, add a slight padding to top
-                            return Checkbox(
-                              value:
-                                  completedOverride ?? calendarItem.completed,
-                              onChanged: (value) {
-                                Feedback.forTap(context);
-                                _toggleHomeworkCompleted(calendarItem, value!);
-                                onCheckboxToggled?.call();
-                              },
-                              activeColor: context.colorScheme.primary,
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: Responsive.isMobile(context) ? 2 : 4),
-                  ],
-
-                  if (PlannerHelper.shouldShowTimeBeforeTitle(
-                    context,
-                    calendarItem,
-                    isInAgenda,
-                    _currentView,
-                  )) ...[
-                    Text(
-                      HeliumDateTime.formatTimeForDisplay(
-                        HeliumDateTime.parse(
-                          calendarItem.start,
-                          userSettings.timeZone,
-                        ),
-                      ),
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.6),
-                        fontSize: 12.0,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    SizedBox(width: Responsive.isMobile(context) ? 2 : 4),
-                  ],
-
-                  Expanded(
-                    child: Text(
-                      calendarItem.title,
-                      style: context.calendarData.copyWith(
-                        fontSize: AppTextStyles.calendarDataFontSize(context),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-              if (PlannerHelper.shouldShowTimeBelowTitle(
-                context,
-                calendarItem,
-                isInAgenda,
-                _currentView,
-              ))
-                Row(
+          padding: isInAgenda
+              ? const EdgeInsets.only(left: 8, right: 8, bottom: 8)
+              : const EdgeInsets.symmetric(horizontal: 4),
+          child: isInAgenda
+              ? Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.access_time,
-                      size: 10,
-                      color: Colors.white.withValues(alpha: 0.4),
-                    ),
-                    const SizedBox(width: 2),
-                    Expanded(
-                      child: Text(
-                        HeliumDateTime.formatTimeRangeForDisplay(
-                          HeliumDateTime.parse(
-                            calendarItem.start,
-                            userSettings.timeZone,
+                    // Checkbox for homework or school icon for course schedule events
+                    if (PlannerHelper.shouldShowCheckbox(
+                      context,
+                      calendarItem,
+                      _currentView,
+                    )) ...[
+                      SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: Transform.scale(
+                          scale: AppTextStyles.calendarCheckboxScale(context),
+                          child: Checkbox(
+                            value: completedOverride ?? calendarItem.completed,
+                            onChanged: (value) {
+                              Feedback.forTap(context);
+                              _toggleHomeworkCompleted(calendarItem, value!);
+                              onCheckboxToggled?.call();
+                            },
+                            activeColor: context.colorScheme.primary,
                           ),
-                          HeliumDateTime.parse(
-                            calendarItem.end,
-                            userSettings.timeZone,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                    ] else if (PlannerHelper.shouldShowSchoolIcon(
+                      context,
+                      calendarItem,
+                      _currentView,
+                    )) ...[
+                      SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: Transform.scale(
+                          scale: AppTextStyles.calendarCheckboxScale(context),
+                          child: const Icon(
+                            Icons.school,
+                            size: 16,
+                            color: Colors.white,
                           ),
-                          calendarItem.showEndTime,
                         ),
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.6),
-                          fontSize: 12.0,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+
+                    // Content (title, time, location) - use Flexible to prevent vertical expansion
+                    Flexible(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Title
+                          Text(
+                            calendarItem.title,
+                            style: context.calendarData.copyWith(
+                              fontSize:
+                                  AppTextStyles.calendarDataFontSize(context),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+
+                          // Time (shown below title in agenda view)
+                          if (PlannerHelper.shouldShowTimeBelowTitle(
+                            context,
+                            calendarItem,
+                            true,
+                            _currentView,
+                          ))
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.access_time,
+                                  size: 10,
+                                  color: Colors.white.withValues(alpha: 0.4),
+                                ),
+                                const SizedBox(width: 2),
+                                Expanded(
+                                  child: Text(
+                                    HeliumDateTime.formatTimeRangeForDisplay(
+                                      HeliumDateTime.parse(
+                                        calendarItem.start,
+                                        userSettings.timeZone,
+                                      ),
+                                      HeliumDateTime.parse(
+                                        calendarItem.end,
+                                        userSettings.timeZone,
+                                      ),
+                                      calendarItem.showEndTime,
+                                    ),
+                                    style: TextStyle(
+                                      color: Colors.white.withValues(alpha: 0.6),
+                                      fontSize: 12.0,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                          // Location
+                          if (PlannerHelper.shouldShowLocationBelowTitle(
+                                context,
+                                calendarItem,
+                                true,
+                                _currentView,
+                              ) &&
+                              location != null)
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.pin_drop_outlined,
+                                  size: 10,
+                                  color: Colors.white.withValues(alpha: 0.4),
+                                ),
+                                const SizedBox(width: 2),
+                                Expanded(
+                                  child: Text(
+                                    location,
+                                    style: TextStyle(
+                                      color: Colors.white.withValues(alpha: 0.6),
+                                      fontSize: 12.0,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                        ],
                       ),
                     ),
+
+                    const SizedBox(width: 8),
+
+                    // Action buttons (agenda view only)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Email button (if course has instructor email)
+                        if (course?.teacherEmail.isNotEmpty ?? false) ...[
+                          HeliumIconButton(
+                            onPressed: () {
+                              launchUrl(
+                                Uri.parse('mailto:${course!.teacherEmail}'),
+                              );
+                            },
+                            icon: Icons.email_outlined,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 4),
+                        ],
+
+                        // Website button (if course has website)
+                        if (course?.website.isNotEmpty ?? false) ...[
+                          HeliumIconButton(
+                            onPressed: () {
+                              launchUrl(
+                                Uri.parse(course!.website),
+                                mode: LaunchMode.externalApplication,
+                              );
+                            },
+                            icon: Icons.link_outlined,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 4),
+                        ],
+
+                        // Edit button (not for course schedule events)
+                        if (calendarItem is! CourseScheduleEventModel) ...[
+                          HeliumIconButton(
+                            onPressed: () => _openCalendarItem(calendarItem),
+                            icon: Icons.edit_outlined,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 4),
+                        ],
+
+                        // Delete button (only for homework and events)
+                        if (calendarItem is HomeworkModel ||
+                            calendarItem is EventModel)
+                          HeliumIconButton(
+                            onPressed: () =>
+                                _deleteCalendarItem(context, calendarItem),
+                            icon: Icons.delete_outline,
+                            color: Colors.white,
+                          ),
+                      ],
+                    ),
+                  ],
+                )
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        // Checkbox for homework or school icon for course schedule events
+                        if (PlannerHelper.shouldShowCheckbox(
+                          context,
+                          calendarItem,
+                          _currentView,
+                        )) ...[
+                          SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: Transform.scale(
+                              scale:
+                                  AppTextStyles.calendarCheckboxScale(context),
+                              child: Builder(
+                                builder: (context) {
+                                  // TODO: on non-month views, add a slight padding to top
+                                  return Checkbox(
+                                    value: completedOverride ??
+                                        calendarItem.completed,
+                                    onChanged: (value) {
+                                      Feedback.forTap(context);
+                                      _toggleHomeworkCompleted(
+                                        calendarItem,
+                                        value!,
+                                      );
+                                      onCheckboxToggled?.call();
+                                    },
+                                    activeColor: context.colorScheme.primary,
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            width: Responsive.isMobile(context) ? 2 : 4,
+                          ),
+                        ] else if (PlannerHelper.shouldShowSchoolIcon(
+                          context,
+                          calendarItem,
+                          _currentView,
+                        )) ...[
+                          SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: Transform.scale(
+                              scale:
+                                  AppTextStyles.calendarCheckboxScale(context),
+                              child: const Icon(
+                                Icons.school,
+                                size: 16,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            width: Responsive.isMobile(context) ? 2 : 4,
+                          ),
+                        ],
+
+                        // Time before title (compact view)
+                        if (PlannerHelper.shouldShowTimeBeforeTitle(
+                          context,
+                          calendarItem,
+                          false,
+                          _currentView,
+                        )) ...[
+                          Text(
+                            HeliumDateTime.formatTimeForDisplay(
+                              HeliumDateTime.parse(
+                                calendarItem.start,
+                                userSettings.timeZone,
+                              ),
+                            ),
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.6),
+                              fontSize: 12.0,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          SizedBox(
+                            width: Responsive.isMobile(context) ? 2 : 4,
+                          ),
+                        ],
+
+                        // Title
+                        Expanded(
+                          child: Text(
+                            calendarItem.title,
+                            style: context.calendarData.copyWith(
+                              fontSize:
+                                  AppTextStyles.calendarDataFontSize(context),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // Time below title (compact view)
+                    if (PlannerHelper.shouldShowTimeBelowTitle(
+                      context,
+                      calendarItem,
+                      false,
+                      _currentView,
+                    ))
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.access_time,
+                            size: 10,
+                            color: Colors.white.withValues(alpha: 0.4),
+                          ),
+                          const SizedBox(width: 2),
+                          Expanded(
+                            child: Text(
+                              HeliumDateTime.formatTimeRangeForDisplay(
+                                HeliumDateTime.parse(
+                                  calendarItem.start,
+                                  userSettings.timeZone,
+                                ),
+                                HeliumDateTime.parse(
+                                  calendarItem.end,
+                                  userSettings.timeZone,
+                                ),
+                                calendarItem.showEndTime,
+                              ),
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.6),
+                                fontSize: 12.0,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                    // Location below title (compact view)
+                    if (PlannerHelper.shouldShowLocationBelowTitle(
+                          context,
+                          calendarItem,
+                          false,
+                          _currentView,
+                        ) &&
+                        location != null)
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.pin_drop_outlined,
+                            size: 10,
+                            color: Colors.white.withValues(alpha: 0.4),
+                          ),
+                          const SizedBox(width: 2),
+                          Expanded(
+                            child: Text(
+                              location,
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.6),
+                                fontSize: 12.0,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
                   ],
                 ),
-              if (PlannerHelper.shouldShowLocationBelowTitle(
-                    context,
-                    calendarItem,
-                    isInAgenda,
-                    _currentView,
-                  ) &&
-                  location != null)
-                Row(
-                  children: [
-                    Icon(
-                      Icons.pin_drop_outlined,
-                      size: 10,
-                      color: Colors.white.withValues(alpha: 0.4),
-                    ),
-                    const SizedBox(width: 2),
-                    Expanded(
-                      child: Text(
-                        location,
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.6),
-                          fontSize: 12.0,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-            ],
-          ),
         ),
       ),
     );
   }
+
 
   Widget _buildMoreAppointmentsIndicator(
     BuildContext context,
@@ -1976,11 +2250,21 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                           contentPadding: EdgeInsets.zero,
                         ),
                         CheckboxListTile(
-                          title: Text(
-                            'Class Schedules',
-                            style: context.eTextStyle.copyWith(
-                              color: context.colorScheme.onSurface,
-                            ),
+                          title: Row(
+                            children: [
+                              Icon(
+                                Icons.school,
+                                size: 12,
+                                color: context.colorScheme.onSurface,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Class Schedules',
+                                style: context.eTextStyle.copyWith(
+                                  color: context.colorScheme.onSurface,
+                                ),
+                              ),
+                            ],
                           ),
                           value: _calendarItemDataSource!.filterTypes.contains(
                             'Class Schedules',

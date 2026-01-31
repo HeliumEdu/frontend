@@ -11,6 +11,7 @@ import 'package:flutter/foundation.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/notification/notification_model.dart';
 import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
+import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart' hide log;
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/utils/app_globals.dart';
@@ -141,6 +142,24 @@ class PlannerHelper {
     HeliumView view,
   ) {
     if (calendarItem is! HomeworkModel) {
+      return false;
+    }
+
+    if (Responsive.isMobile(context)) {
+      if (view == HeliumView.week || view == HeliumView.day) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  static bool shouldShowSchoolIcon(
+    BuildContext context,
+    CalendarItemBaseModel calendarItem,
+    HeliumView view,
+  ) {
+    if (calendarItem is! CourseScheduleEventModel) {
       return false;
     }
 
