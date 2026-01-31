@@ -1382,7 +1382,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
     return Container(
       width: width,
-      height: height,
+      height: isInAgenda ? null : height,
+      constraints: isInAgenda && height != null
+          ? BoxConstraints(minHeight: height)
+          : null,
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(4),
