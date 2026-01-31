@@ -571,13 +571,17 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       return const Spacer();
     }
 
-    // Schedule view: static "Agenda" label with no navigation
-    // (matches Syncfusion load-more example behavior)
-    if (_currentView == HeliumView.agenda) {
+    // FIXME: "Todos" isn't showing as expected
+    if (_currentView == HeliumView.agenda || _currentView == HeliumView.todos) {
       return Expanded(
         child: Padding(
           padding: const EdgeInsets.only(left: 12),
-          child: Text('Agenda', style: context.calendarDate),
+          child: Text(
+            CalendarConstants.defaultViews[PlannerHelper.mapHeliumViewToApiView(
+              _currentView,
+            )],
+            style: context.calendarDate,
+          ),
         ),
       );
     }
@@ -1066,6 +1070,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       });
     }
 
+    // FIXME: hide "Today" button in "Agenda" and "Todos"
+
     // FIXME: double-check that this logic is intuitive to the user, and works with "schedule" view
     if ((_calendarController.view == CalendarView.month ||
             _calendarController.view == CalendarView.schedule) &&
@@ -1429,10 +1435,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
     final paddedIcon = isInAgenda
         ? iconWidget
-        : Padding(
-            padding: const EdgeInsets.only(top: 1.5),
-            child: iconWidget,
-          );
+        : Padding(padding: const EdgeInsets.only(top: 1.5), child: iconWidget);
 
     final alignedIcon = isInAgenda
         ? Center(child: paddedIcon) // Centered for agenda/schedule
