@@ -104,17 +104,14 @@ class HeliumDateTime {
     TimeOfDay? time,
     tz.Location timeZone,
   ) {
-    if (time != null) {
-      final dateTime = DateTime(
-        date.year,
-        date.month,
-        date.day,
-        time.hour,
-        time.minute,
-      );
-      return tz.TZDateTime.from(dateTime, timeZone).toIso8601String();
-    }
-    return date.toIso8601String();
+    final dateTime = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      time?.hour ?? 0,
+      time?.minute ?? 0,
+    );
+    return tz.TZDateTime.from(dateTime, timeZone).toIso8601String();
   }
 
   static int getDaysBetween(String startDate, String endDate) {

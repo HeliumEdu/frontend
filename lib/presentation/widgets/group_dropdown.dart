@@ -11,8 +11,8 @@ import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/widgets/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
+import 'package:heliumapp/presentation/widgets/shadow_container.dart';
 import 'package:heliumapp/utils/app_style.dart';
-import 'package:heliumapp/utils/responsive_helpers.dart';
 
 class GroupDropdown<T extends BaseModel> extends StatelessWidget {
   final List<T> groups;
@@ -37,39 +37,7 @@ class GroupDropdown<T extends BaseModel> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = groups.map((item) {
-      return DropdownMenuItem(
-        value: item,
-        child: Row(
-          children: [
-            Expanded(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Flexible(
-                    child: Text(
-                      item.title,
-                      style: context.formText,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  if (!item.shownOnCalendar!) ...[
-                    const SizedBox(width: 8),
-                    Icon(
-                      Icons.visibility_off,
-                      size: 18,
-                      color: context.colorScheme.primary,
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            if (!isReadOnly) ...[
-              const SizedBox(width: 12),
-              ...buildEditButtons(context, item),
-            ],
-          ],
-        ),
-      );
+      return DropdownMenuItem(value: item, child: _buildItem(context, item));
     }).toList();
     if (!isReadOnly) {
       items.add(
@@ -88,15 +56,9 @@ class GroupDropdown<T extends BaseModel> extends StatelessWidget {
       );
     }
 
-    return Container(
+    return ShadowContainer(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: context.colorScheme.surface,
-        border: Border.all(
-          color: context.colorScheme.outline.withValues(alpha: 0.2),
-        ),
-        borderRadius: BorderRadius.circular(6),
-      ),
+      borderColor: context.colorScheme.outline.withValues(alpha: 0.2),
       child: DropdownButtonHideUnderline(
         child: ButtonTheme(
           alignedDropdown: true,
@@ -109,25 +71,7 @@ class GroupDropdown<T extends BaseModel> extends StatelessWidget {
             items: items,
             selectedItemBuilder: (BuildContext context) {
               return groups.map<Widget>((T item) {
-                return Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        item.title,
-                        style: context.formText,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    if (!item.shownOnCalendar!) ...[
-                      const SizedBox(width: 8),
-                      Icon(
-                        Icons.visibility_off,
-                        size: 18,
-                        color: context.colorScheme.primary,
-                      ),
-                    ],
-                  ],
-                );
+                return _buildItem(context, item);
               }).toList();
             },
             onChanged: onChanged,
@@ -139,35 +83,66 @@ class GroupDropdown<T extends BaseModel> extends StatelessWidget {
     );
   }
 
+  Widget _buildItem(BuildContext context, T item) {
+    return Row(
+      children: [
+        Expanded(
+          child: Row(
+            children: [
+              Text(
+                item.title,
+                style: context.formText,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (!item.shownOnCalendar!) ...[
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.visibility_off,
+                  size: 18,
+                  color: context.colorScheme.primary,
+                ),
+              ],
+            ],
+          ),
+        ),
+        ...buildEditButtons(context, item),
+      ],
+    );
+  }
+
   List<Widget> buildEditButtons(BuildContext context, T item) {
-    return [
-      HeliumIconButton(
-        onPressed: () {
-          if (Navigator.canPop(context)) {
-            Navigator.pop(context);
-          }
-          onEdit!(item);
-        },
-        icon: Icons.edit_outlined,
-      ),
-      SizedBox(width: Responsive.isMobile(context) ? 0 : 8),
-      HeliumIconButton(
-        onPressed: () {
-          if (Navigator.canPop(context)) {
-            Navigator.pop(context);
-          }
-          showConfirmDeleteDialog(
-            parentContext: context,
-            item: item,
-            additionalWarning: 'Anything in this group will also be deleted.',
-            onDelete: (value) {
-              onDelete!(value);
-            },
-          );
-        },
-        icon: Icons.delete_outlined,
-        color: context.colorScheme.error,
-      ),
-    ];
+    return isReadOnly
+        ? []
+        : [
+            const SizedBox(width: 12),
+            HeliumIconButton(
+              onPressed: () {
+                if (Navigator.canPop(context)) {
+                  Navigator.pop(context);
+                }
+                onEdit!(item);
+              },
+              icon: Icons.edit_outlined,
+            ),
+            const SizedBox(width: 8),
+            HeliumIconButton(
+              onPressed: () {
+                if (Navigator.canPop(context)) {
+                  Navigator.pop(context);
+                }
+                showConfirmDeleteDialog(
+                  parentContext: context,
+                  item: item,
+                  additionalWarning:
+                      'Anything in this group will also be deleted.',
+                  onDelete: (value) {
+                    onDelete!(value);
+                  },
+                );
+              },
+              icon: Icons.delete_outlined,
+              color: context.colorScheme.error,
+            ),
+          ];
   }
 }

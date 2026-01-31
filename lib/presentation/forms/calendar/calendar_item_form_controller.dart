@@ -28,7 +28,7 @@ class CalendarItemFormController extends BasicFormController {
   String initialNotes = '';
 
   CalendarItemFormController() {
-    gradeFocusNode.addListener(_handleGradeFocusChange);
+    gradeFocusNode.addListener(_onGradeFocusChange);
   }
 
   void dispose() {
@@ -37,7 +37,7 @@ class CalendarItemFormController extends BasicFormController {
     gradeFocusNode.dispose();
   }
 
-  void _handleGradeFocusChange() {
+  void _onGradeFocusChange() {
     if (!gradeFocusNode.hasFocus) {
       var value = gradeController.text.trim();
       if (value != '') {

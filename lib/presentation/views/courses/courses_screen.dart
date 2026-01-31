@@ -29,8 +29,10 @@ import 'package:heliumapp/presentation/bloc/course/course_state.dart';
 import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/dialogs/course_group_dialog.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/widgets/course_title_label.dart';
 import 'package:heliumapp/presentation/widgets/group_dropdown.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
+import 'package:heliumapp/presentation/widgets/pill_badge.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -262,7 +264,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
 
         if (_coursesMap[_selectedGroupId!]!.isEmpty) {
           return buildEmptyPage(
-            icon: Icons.menu_book,
+            icon: Icons.school,
             title: "You haven't added any classes yet",
             message: 'Click "+" to get started',
           );
@@ -315,52 +317,22 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
             Row(
               children: [
                 Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: course.color.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: course.color.withValues(alpha: 0.2),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 6,
-                          height: 6,
-                          decoration: BoxDecoration(
-                            color: course.color,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            course.title,
-                            style: context.cTextStyle.copyWith(
-                              color: course.color,
-                              fontWeight: FontWeight.w600,
-                              fontSize: Responsive.getFontSize(
-                                context,
-                                mobile: 12,
-                                tablet: 13,
-                                desktop: 14,
-                              ),
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
+                  child: CourseTitleLabel(
+                    title: course.title,
+                    color: course.color,
                   ),
                 ),
-                // TODO: (if class has instructor email), add HeliumIconButton for email
-                SizedBox(width: Responsive.isMobile(context) ? 0 : 8),
+                const SizedBox(width: 8),
+                if (course.teacherEmail.isNotEmpty) ...[
+                  HeliumIconButton(
+                    onPressed: () {
+                      launchUrl(Uri.parse('mailto:${course.teacherEmail}'));
+                    },
+                    icon: Icons.email_outlined,
+                    color: context.semanticColors.info,
+                  ),
+                  const SizedBox(width: 8),
+                ],
                 if (course.website.isNotEmpty) ...[
                   HeliumIconButton(
                     onPressed: () {
@@ -372,7 +344,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
                     icon: Icons.link_outlined,
                     color: context.semanticColors.success,
                   ),
-                  SizedBox(width: Responsive.isMobile(context) ? 0 : 8),
+                  const SizedBox(width: 8),
                 ],
                 HeliumIconButton(
                   onPressed: () {
@@ -388,7 +360,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
                   },
                   icon: Icons.edit_outlined,
                 ),
-                SizedBox(width: Responsive.isMobile(context) ? 0 : 8),
+                const SizedBox(width: 8),
                 HeliumIconButton(
                   onPressed: () {
                     showConfirmDeleteDialog(
@@ -430,7 +402,6 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
                 ],
               ),
 
-            // Room Info
             if (course.room.isNotEmpty)
               Row(
                 children: [
@@ -468,7 +439,6 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
 
             const SizedBox(height: 12),
 
-            // Date Range
             Row(
               children: [
                 Icon(
@@ -509,9 +479,50 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
     );
   }
 
-  Container _buildCourseScheduleContainerForDay(
-    CourseScheduleModel schedule,
+  List<Container> _buildCourseScheduleContainers(CourseModel course) {
+    final List<Container> containers = [];
+
+    final schedulesByTime = _groupSchedulesByTime(course.schedules);
+
+    // Build a container for each time group
+    for (final timeEntry in schedulesByTime.entries) {
+      final timeRange = timeEntry.key;
+      final days = timeEntry.value;
+
+      containers.add(
+        _buildGroupedScheduleContainer(days, timeRange, course.color),
+      );
+    }
+
+    return containers;
+  }
+
+  Map<String, List<String>> _groupSchedulesByTime(
+    List<CourseScheduleModel> schedules,
+  ) {
+    final Map<String, List<String>> schedulesByTime = {};
+
+    for (final schedule in schedules) {
+      if (schedule.allDaysSameTime()) {
+        final activeDays = schedule.getActiveDays();
+        if (activeDays.isNotEmpty) {
+          final timeKey = schedule.getDateTimeRangeForDisplay(activeDays[0]);
+          schedulesByTime.putIfAbsent(timeKey, () => []).addAll(activeDays);
+        }
+      } else {
+        for (final day in schedule.getActiveDays()) {
+          final timeKey = schedule.getDateTimeRangeForDisplay(day);
+          schedulesByTime.putIfAbsent(timeKey, () => []).add(day);
+        }
+      }
+    }
+
+    return schedulesByTime;
+  }
+
+  Container _buildGroupedScheduleContainer(
     List<String> days,
+    String timeRange,
     Color color,
   ) {
     return Container(
@@ -525,37 +536,16 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Days of week
           Wrap(
             spacing: 6,
             runSpacing: 6,
             children: days.map((day) {
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  day,
-                  style: context.cTextStyle.copyWith(
-                    color: color,
-                    fontSize: Responsive.getFontSize(
-                      context,
-                      mobile: 11,
-                      tablet: 12,
-                      desktop: 13,
-                    ),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              );
+              return PillBadge(text: day, color: color);
             }).toList(),
           ),
 
           const SizedBox(height: 8),
 
-          // Time display for first active day
           Row(
             children: [
               Icon(
@@ -569,79 +559,22 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
                 color: context.colorScheme.onSurface.withValues(alpha: 0.4),
               ),
               const SizedBox(width: 4),
-              if (schedule.allDaysSameTime())
-                Text(
-                  schedule.getDateTimeRangeForDisplay('Sun'),
-                  style: context.cTextStyle.copyWith(
-                    color: context.colorScheme.onSurface.withValues(alpha: 0.6),
-                    fontSize: Responsive.getFontSize(
-                      context,
-                      mobile: 12,
-                      tablet: 13,
-                      desktop: 14,
-                    ),
-                  ),
-                )
-              else
-                Text(
-                  schedule.getDateTimeRangeForDisplay(days[0]),
-                  style: context.cTextStyle.copyWith(
-                    color: context.colorScheme.onSurface.withValues(alpha: 0.6),
-                    fontSize: Responsive.getFontSize(
-                      context,
-                      mobile: 12,
-                      tablet: 13,
-                      desktop: 14,
-                    ),
+              Text(
+                timeRange,
+                style: context.cTextStyle.copyWith(
+                  color: context.colorScheme.onSurface.withValues(alpha: 0.6),
+                  fontSize: Responsive.getFontSize(
+                    context,
+                    mobile: 12,
+                    tablet: 13,
+                    desktop: 14,
                   ),
                 ),
+              ),
             ],
           ),
         ],
       ),
     );
-  }
-
-  List<Container> _buildCourseScheduleContainers(CourseModel course) {
-    final List<Container> containers = [];
-
-    for (final schedule in course.schedules) {
-      final List<Container> dayContainers = [];
-      if (schedule.allDaysSameTime()) {
-        dayContainers.add(
-          _buildCourseScheduleContainerForDay(
-            schedule,
-            schedule.getActiveDays(),
-            course.color,
-          ),
-        );
-      } else {
-        dayContainers.addAll(
-          schedule.getActiveDays().map((day) {
-            return _buildCourseScheduleContainerForDay(schedule, [
-              day,
-            ], course.color);
-          }).toList(),
-        );
-      }
-
-      containers.add(
-        Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: course.color.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: course.color.withValues(alpha: 0.2)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: dayContainers,
-          ),
-        ),
-      );
-    }
-
-    return containers;
   }
 }

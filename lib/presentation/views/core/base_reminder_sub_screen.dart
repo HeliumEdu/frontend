@@ -243,7 +243,7 @@ abstract class BaseReminderScreenState<T>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(
-              ReminderConstants.typeItems[reminder.type].icon!,
+              ReminderConstants.typeItems[reminder.type].iconData!,
               color: context.colorScheme.primary,
               size: Responsive.getIconSize(
                 context,
@@ -297,7 +297,7 @@ abstract class BaseReminderScreenState<T>
                 ],
               ),
             ),
-            SizedBox(width: Responsive.isMobile(context) ? 0 : 8),
+            const SizedBox(width: 8),
             HeliumIconButton(
               onPressed: () {
                 showReminderDialog(

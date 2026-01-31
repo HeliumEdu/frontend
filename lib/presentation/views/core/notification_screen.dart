@@ -198,6 +198,9 @@ class _NotificationsScreenState
       calendarItem = reminder.homework?.entity;
       final course = reminder.homework?.entity?.course.entity;
 
+      // TODO: refactor to use the CourseTitleLabel
+      // TODO: refactor to add category information (and use label)
+
       title = '${reminder.homework?.entity?.title} in ${course?.title}';
       color = course?.color;
     } else {
@@ -242,7 +245,11 @@ class _NotificationsScreenState
                 color: context.colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
                 border: (notification.isRead == true)
-                    ? null
+                    ? Border.all(
+                        color: context.colorScheme.outline.withValues(
+                          alpha: 0.2,
+                        ),
+                      )
                     : Border.all(
                         color: context.colorScheme.primary.withValues(
                           alpha: 0.2,

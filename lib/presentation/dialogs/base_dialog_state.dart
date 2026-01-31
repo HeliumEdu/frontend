@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/forms/core/basic_form_controller.dart';
+import 'package:heliumapp/presentation/widgets/error_container.dart';
 import 'package:heliumapp/presentation/widgets/helium_elevated_button.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -92,43 +93,16 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
   Widget buildMainArea(BuildContext context);
 
   Widget buildErrorArea() {
-    final errorColor = context.colorScheme.error;
-    return Column(
-      children: [
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            color: errorColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: errorColor.withValues(alpha: 0.3)),
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.error_outline, color: errorColor, size: 20),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  errorMessage!,
-                  style: context.cTextStyle.copyWith(
-                    color: errorColor,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-              IconButton(
-                visualDensity: VisualDensity.compact,
-                onPressed: () {
-                  setState(() {
-                    errorMessage = null;
-                  });
-                },
-                icon: Icon(Icons.close, color: errorColor, size: 18),
-              ),
-            ],
-          ),
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: ErrorContainer(
+        text: errorMessage!,
+        onDismiss: () {
+          setState(() {
+            errorMessage = null;
+          });
+        },
+      ),
     );
   }
 

@@ -178,7 +178,7 @@ class _ForgotPasswordScreenState
                       autofocus: true,
                       prefixIcon: Icons.email_outlined,
                       controller: _emailController,
-                      onFieldSubmitted: (value) => _handleSubmit(),
+                      onFieldSubmitted: (value) => _onSubmit(),
                       validator: BasicFormController.validateRequiredEmail,
                       keyboardType: TextInputType.emailAddress,
                     ),
@@ -191,7 +191,7 @@ class _ForgotPasswordScreenState
                       child: HeliumElevatedButton(
                         buttonText: 'Reset Password',
                         isLoading: isSubmitting,
-                        onPressed: _handleSubmit,
+                        onPressed: _onSubmit,
                       ),
                     ),
                   ],
@@ -236,7 +236,7 @@ class _ForgotPasswordScreenState
     );
   }
 
-  Future<void> _handleSubmit() async {
+  Future<void> _onSubmit() async {
     if (_formController.formKey.currentState?.validate() ?? false) {
       setState(() {
         isSubmitting = true;

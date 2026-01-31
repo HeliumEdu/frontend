@@ -22,7 +22,11 @@ import 'package:heliumapp/presentation/bloc/grade/grade_bloc.dart';
 import 'package:heliumapp/presentation/bloc/grade/grade_event.dart';
 import 'package:heliumapp/presentation/bloc/grade/grade_state.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/widgets/category_title_label.dart';
+import 'package:heliumapp/presentation/widgets/course_title_label.dart';
+import 'package:heliumapp/presentation/widgets/grade_label.dart';
 import 'package:heliumapp/presentation/widgets/group_dropdown.dart';
+import 'package:heliumapp/presentation/widgets/shadow_container.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
@@ -206,21 +210,9 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: maxContainerWidth),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          // TODO: migrate to ShadowContainer for consistent usage (that doesn't require Card's InkWell baggage)
-          decoration: BoxDecoration(
-            color: context.colorScheme.primary,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: context.colorScheme.shadow.withValues(alpha: 0.06),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-                spreadRadius: 0,
-              ),
-            ],
-          ),
+        child: ShadowContainer(
+          padding: const EdgeInsets.all(18),
+          color: context.colorScheme.primary,
           child: LayoutBuilder(
             builder: (context, constraints) {
               final availableWidth = constraints.maxWidth - 40;
@@ -306,7 +298,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
             color: course.color.withValues(alpha: 0.15),
           ),
           child: Icon(
-            Icons.book_outlined,
+            Icons.school_outlined,
             color: course.color,
             size: Responsive.getIconSize(
               context,
@@ -321,33 +313,13 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                course.title,
-                style: context.bTextStyle.copyWith(
-                  color: context.colorScheme.onSurface,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              CourseTitleLabel(title: course.title, color: course.color, showIcon: false),
               const SizedBox(height: 4),
               Row(
                 children: [
-                  // TODO: refactor to GradeWidget and use anywhere we display grade
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: userSettings.gradeColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      Format.gradeForDisplay(course.overallGrade),
-                      style: context.cTextStyle.copyWith(
-                        color: userSettings.gradeColor,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                  GradeLabel(
+                    grade: Format.gradeForDisplay(course.overallGrade),
+                    userSettings: userSettings,
                   ),
                   if (course.trend != null) ...[
                     const SizedBox(width: 4),
@@ -385,7 +357,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    '${course.numHomeworkGraded} Graded',
+                    '${course.numHomeworkGraded} graded',
                     style: context.cTextStyle.copyWith(
                       color: context.colorScheme.onSurface.withValues(
                         alpha: 0.6,
@@ -532,23 +504,11 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
             flex: 2,
             child: Row(
               children: [
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: BoxDecoration(
-                    color: category.color,
-                    shape: BoxShape.circle,
-                  ),
-                ),
                 const SizedBox(width: 8),
                 Flexible(
-                  child: Text(
-                    category.title,
-                    style: context.cTextStyle.copyWith(
-                      color: context.colorScheme.onSurface,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    overflow: TextOverflow.ellipsis,
+                  child: CategoryTitleLabel(
+                    title: category.title,
+                    color: category.color,
                   ),
                 ),
               ],
@@ -564,24 +524,13 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
               ),
             ),
           ),
-          // TODO: refactor to GradeWidget and use anywhere we display grade
           Expanded(
             flex: 2,
             child: Align(
               alignment: Alignment.centerRight,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: userSettings.gradeColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  Format.gradeForDisplay(category.overallGrade),
-                  style: context.cTextStyle.copyWith(
-                    color: userSettings.gradeColor,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
+              child: GradeLabel(
+                grade: Format.gradeForDisplay(category.overallGrade),
+                userSettings: userSettings,
               ),
             ),
           ),
