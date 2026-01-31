@@ -20,6 +20,7 @@ import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/dialogs/category_dialog.dart';
 import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/widgets/category_title_label.dart';
 import 'package:heliumapp/presentation/widgets/course_add_stepper.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
@@ -236,27 +237,13 @@ class _CourseAddCategoryScreenState
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            Container(
-              width: 12,
-              height: 12,
-              decoration: BoxDecoration(
-                color: category.color,
-                borderRadius: BorderRadius.circular(3),
-              ),
-            ),
-            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    category.title,
-                    style: context.cTextStyle.copyWith(
-                      color: context.colorScheme.onSurface.withValues(
-                        alpha: 0.6,
-                      ),
-                      fontWeight: FontWeight.w600,
-                    ),
+                  CategoryTitleLabel(
+                    title: category.title,
+                    color: category.color,
                   ),
                   const SizedBox(height: 4),
                   Row(
@@ -282,7 +269,7 @@ class _CourseAddCategoryScreenState
             ),
 
             // TODO: show count of "homeworks" tied to category in list
-            SizedBox(width: Responsive.isMobile(context) ? 0 : 8),
+            const SizedBox(width: 8),
             HeliumIconButton(
               onPressed: () {
                 showCategoryDialog(
@@ -295,7 +282,7 @@ class _CourseAddCategoryScreenState
               },
               icon: Icons.edit_outlined,
             ),
-            SizedBox(width: Responsive.isMobile(context) ? 0 : 8),
+            const SizedBox(width: 8),
             HeliumIconButton(
               onPressed: () {
                 showConfirmDeleteDialog(

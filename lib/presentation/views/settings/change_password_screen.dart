@@ -8,16 +8,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_bloc.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_event.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_state.dart';
 import 'package:heliumapp/presentation/forms/core/basic_form_controller.dart';
 import 'package:heliumapp/presentation/forms/settings/change_password_form_controller.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
-import 'package:heliumapp/presentation/widgets/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/widgets/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
-import 'package:heliumapp/config/app_theme.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -32,7 +31,10 @@ class _ChangePasswordScreenState
   String get screenTitle => 'Change Password';
 
   @override
-  ScreenType get screenType => ScreenType.subPage;
+  ScreenType get screenType => ScreenType.entityPage;
+
+  @override
+  Function? get saveAction => _onSubmit;
 
   final ChangePasswordFormController _formController =
       ChangePasswordFormController();
@@ -139,7 +141,7 @@ class _ChangePasswordScreenState
                 prefixIcon: Icons.repeat,
                 controller: _formController.confirmPasswordController,
                 validator: _formController.validateConfirmPassword,
-                onFieldSubmitted: (value) => _handleSubmit(),
+                onFieldSubmitted: (value) => _onSubmit(),
                 obscureText: !_formController.isConfirmPasswordVisible,
                 suffixIcon: IconButton(
                   onPressed: () {
@@ -157,17 +159,6 @@ class _ChangePasswordScreenState
                 ),
               ),
 
-              const SizedBox(height: 44),
-              BlocBuilder<AuthBloc, AuthState>(
-                builder: (context, state) {
-                  return HeliumElevatedButton(
-                    buttonText: 'Save',
-                    isLoading: isSubmitting,
-                    onPressed: _handleSubmit,
-                  );
-                },
-              ),
-
               const SizedBox(height: 12),
             ],
           ),
@@ -176,7 +167,7 @@ class _ChangePasswordScreenState
     );
   }
 
-  void _handleSubmit() {
+  void _onSubmit() {
     if (_formController.formKey.currentState?.validate() ?? false) {
       setState(() {
         isSubmitting = true;

@@ -89,14 +89,14 @@ extension AppTextStyles on BuildContext {
   );
 
   TextStyle get calendarData =>
-      GoogleFonts.poppins(fontWeight: FontWeight.w500, color: Colors.white);
+      GoogleFonts.poppins(fontWeight: FontWeight.w300, color: Colors.white);
 
   static double calendarDataFontSize(BuildContext context) {
     return Responsive.getFontSize(
       context,
-      mobile: 12.0,
-      tablet: 13.0,
-      desktop: 14.0,
+      mobile: 11.0,
+      tablet: 12.0,
+      desktop: 13.0,
     );
   }
 

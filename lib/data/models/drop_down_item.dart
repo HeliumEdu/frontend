@@ -10,7 +10,13 @@ import 'package:flutter/material.dart';
 class DropDownItem<T> {
   final int id;
   final T value;
-  final IconData? icon;
+  final IconData? iconData;
+  final Color? iconColor;
 
-  DropDownItem({required this.id, required this.value, this.icon});
+  DropDownItem({
+    required this.id,
+    required this.value,
+    this.iconData,
+    this.iconColor,
+  });
 }

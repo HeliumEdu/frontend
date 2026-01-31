@@ -18,7 +18,10 @@ class BasicFormController {
   /// Register and return a GlobalKey for a form field.
   /// Call this for each field that has a validator to enable scroll-to-error.
   GlobalKey<FormFieldState<String>> getFieldKey(String fieldName) {
-    _fieldKeys.putIfAbsent(fieldName, () => GlobalKey<FormFieldState<String>>());
+    _fieldKeys.putIfAbsent(
+      fieldName,
+      () => GlobalKey<FormFieldState<String>>(),
+    );
     return _fieldKeys[fieldName]!;
   }
 
@@ -124,14 +127,18 @@ class BasicFormController {
     if (value == null || value.isEmpty) {
       return null;
     }
-    if (!Uri.parse(value).isAbsolute) {
+
+    final urlPattern = RegExp(
+      r'(http|https)://[\w-]+(\.[\w-]+)*\.[\w-]{2,}([\w.,@?^=%&:/~+#-]*[\w@?^=%&;/~+#-])?',
+    );
+
+    if (!urlPattern.hasMatch(value)) {
       return 'Enter a valid URL';
     }
+
     return null;
   }
 
-  /// Attempts to clean a URL by adding https:// if missing.
-  /// Returns the cleaned URL if valid, otherwise returns the original value.
   static String cleanUrl(String? value) {
     if (value == null || value.isEmpty) {
       return value ?? '';

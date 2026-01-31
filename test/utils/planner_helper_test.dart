@@ -13,6 +13,7 @@ import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 

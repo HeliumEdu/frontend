@@ -14,6 +14,7 @@ class MaterialFormController extends BasicFormController {
   final TextEditingController urlController = TextEditingController();
   final TextEditingController priceController = TextEditingController();
   final HtmlEditorController detailsController = HtmlEditorController();
+  final FocusNode urlFocusNode = FocusNode();
   List<int> selectedCourses = [];
   int selectedStatus = 0;
   int selectedCondition = 0;
@@ -23,5 +24,6 @@ class MaterialFormController extends BasicFormController {
     titleController.dispose();
     urlController.dispose();
     priceController.dispose();
+    urlFocusNode.dispose();
   }
 }

@@ -28,8 +28,11 @@ import 'package:heliumapp/presentation/bloc/material/material_state.dart'
 import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/dialogs/material_group_dialog.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/widgets/course_title_label.dart';
 import 'package:heliumapp/presentation/widgets/group_dropdown.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
+import 'package:heliumapp/presentation/widgets/material_title_label.dart';
+import 'package:heliumapp/presentation/widgets/pill_badge.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -309,15 +312,12 @@ class _MaterialsScreenState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: Text(
-                    material.title,
-                    style: context.aTextStyle.copyWith(
-                      color: context.colorScheme.onSurface,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  child: MaterialTitleLabel(
+                    title: material.title,
+                    userSettings: userSettings,
                   ),
                 ),
-                SizedBox(width: Responsive.isMobile(context) ? 0 : 8),
+                const SizedBox(width: 8),
                 if (material.website.isNotEmpty) ...[
                   HeliumIconButton(
                     onPressed: () {
@@ -329,7 +329,7 @@ class _MaterialsScreenState
                     icon: Icons.link_outlined,
                     color: context.semanticColors.success,
                   ),
-                  SizedBox(width: Responsive.isMobile(context) ? 0 : 8),
+                  const SizedBox(width: 8),
                 ],
                 HeliumIconButton(
                   onPressed: () {
@@ -345,7 +345,7 @@ class _MaterialsScreenState
                   },
                   icon: Icons.edit_outlined,
                 ),
-                SizedBox(width: Responsive.isMobile(context) ? 0 : 8),
+                const SizedBox(width: 8),
                 HeliumIconButton(
                   onPressed: () {
                     showConfirmDeleteDialog(
@@ -374,36 +374,13 @@ class _MaterialsScreenState
             Row(
               children: [
                 ...[
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
+                  PillBadge(text: MaterialConstants.status[material.status]),
+                  const SizedBox(width: 8),
+                  if (MaterialConstants.status[material.status] !=
+                      MaterialConstants.condition[material.condition])
+                    PillBadge(
+                      text: MaterialConstants.condition[material.condition],
                     ),
-                    decoration: BoxDecoration(
-                      color: context.semanticColors.success.withValues(
-                        alpha: 0.1,
-                      ),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
-                        color: context.semanticColors.success.withValues(
-                          alpha: 0.2,
-                        ),
-                      ),
-                    ),
-                    child: Text(
-                      MaterialConstants.status[material.status],
-                      style: context.cTextStyle.copyWith(
-                        color: context.semanticColors.success,
-                        fontWeight: FontWeight.w600,
-                        fontSize: Responsive.getFontSize(
-                          context,
-                          mobile: 11,
-                          tablet: 12,
-                          desktop: 13,
-                        ),
-                      ),
-                    ),
-                  ),
                   const SizedBox(width: 8),
                 ],
                 const Spacer(),
@@ -411,9 +388,15 @@ class _MaterialsScreenState
                   const SizedBox(width: 12),
                   Text(
                     material.price!,
-                    style: context.aTextStyle.copyWith(
-                      color: context.colorScheme.primary,
-                      fontWeight: FontWeight.w700,
+                    style: context.cTextStyle.copyWith(
+                      color: context.colorScheme.onSurface,
+                      fontWeight: FontWeight.w600,
+                      fontSize: Responsive.getFontSize(
+                        context,
+                        mobile: 11,
+                        tablet: 13,
+                        desktop: 15,
+                      ),
                     ),
                   ),
                 ],
@@ -431,22 +414,9 @@ class _MaterialsScreenState
                     return const SizedBox.shrink();
                   }
 
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: course.color.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    child: Text(
-                      course.title,
-                      style: context.cTextStyle.copyWith(
-                        color: course.color,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                  return CourseTitleLabel(
+                    title: course.title,
+                    color: course.color,
                   );
                 }).toList(),
               ),
@@ -465,12 +435,14 @@ class _MaterialsScreenState
                   'body': Style(
                     margin: Margins.zero,
                     padding: HtmlPaddings.zero,
-                    fontSize: FontSize(Responsive.getFontSize(
-                      context,
-                      mobile: 12,
-                      tablet: 13,
-                      desktop: 14,
-                    )),
+                    fontSize: FontSize(
+                      Responsive.getFontSize(
+                        context,
+                        mobile: 12,
+                        tablet: 13,
+                        desktop: 14,
+                      ),
+                    ),
                     color: context.colorScheme.onSurface.withValues(alpha: 0.6),
                     maxLines: 2,
                     textOverflow: TextOverflow.ellipsis,

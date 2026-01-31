@@ -96,12 +96,12 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   @override
   DateTime getEndTime(int index) {
     final calendarItem = _getData(index);
+    final startTime = DateTime.parse(calendarItem.start);
     final endTime = DateTime.parse(calendarItem.end);
 
-    // Helium API uses exclusive end dates for all-day events, but SyncFusion
-    // uses inclusive end dates, so subtract 1 day
     if (calendarItem.allDay) {
-      return endTime.subtract(const Duration(days: 1));
+      final adjustedEnd = endTime.subtract(const Duration(days: 1));
+      return adjustedEnd.isBefore(startTime) ? startTime : adjustedEnd;
     }
 
     return endTime;
@@ -153,7 +153,6 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
 
   @override
   Future<void> handleLoadMore(DateTime startDate, DateTime endDate) async {
-    // Track the loaded date range
     bool windowPushed = false;
     if (from == null || startDate.isBefore(from!)) {
       windowPushed = true;
@@ -184,7 +183,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
         ...externalCalendarEvents,
       ];
 
-      // Add only items not already in allCalendarItems
+      // Add only new items
       for (final CalendarItemBaseModel calendarItem in calendarItems) {
         if (!allCalendarItems.any((ca) => ca.id == calendarItem.id)) {
           allCalendarItems.add(calendarItem);
@@ -248,9 +247,9 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
 
     // CourseSchedule events - apply course and search filters
     if (includeAllTypes || _filterTypes.contains('Class Schedules')) {
-      final courseScheduleEvents = allCourseScheduleEvents.where(
-        _applyCourseFilterToCourseScheduleEvent,
-      ).toList();
+      final courseScheduleEvents = allCourseScheduleEvents
+          .where(_applyCourseFilterToCourseScheduleEvent)
+          .toList();
       items.addAll(_applySearchFilterToItems(courseScheduleEvents));
     }
 
@@ -366,8 +365,8 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     _notifyChangeListeners();
   }
 
-  /// Force SfCalendar to re-read all appointments.
-  /// Call this when switching views to ensure data is displayed.
+  /// Force SfCalendar to re-read all appointments, sometimes necessary when
+  /// switching views.
   void refreshAppointments() {
     appointments!.clear();
     appointments!.addAll(_filteredCalendarItems);
