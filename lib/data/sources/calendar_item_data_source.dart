@@ -198,9 +198,14 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
 
     if (!_hasLoadedInitialData) {
       _hasLoadedInitialData = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      try {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _notifyChangeListeners();
+        });
+      } catch (_) {
+        // Binding not initialized (e.g., in tests), call directly
         _notifyChangeListeners();
-      });
+      }
     }
   }
 
