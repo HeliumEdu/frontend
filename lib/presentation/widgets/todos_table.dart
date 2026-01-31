@@ -416,6 +416,8 @@ class _TodosTableState extends State<TodosTable> {
   }
 
   Widget _buildPagination(int totalPages) {
+    final isMobile = Responsive.isMobile(context);
+
     return Row(
       children: [
         IconButton(
@@ -432,7 +434,16 @@ class _TodosTableState extends State<TodosTable> {
           constraints: const BoxConstraints(),
         ),
         const SizedBox(width: 8),
-        ..._buildPageNumbers(totalPages),
+        // On mobile, show page indicator text; on desktop, show page numbers
+        if (isMobile)
+          Text(
+            'Page $_currentPage of $totalPages',
+            style: context.eTextStyle.copyWith(
+              color: context.colorScheme.onSurface.withValues(alpha: 0.7),
+            ),
+          )
+        else
+          ..._buildPageNumbers(totalPages),
         const SizedBox(width: 8),
         IconButton(
           onPressed: _currentPage < totalPages
@@ -453,7 +464,7 @@ class _TodosTableState extends State<TodosTable> {
 
   List<Widget> _buildPageNumbers(int totalPages) {
     final List<Widget> pages = [];
-    // FIXME: might need to adjust this number to be lower for mobile
+    // Only used on non-mobile screens
     const int maxVisiblePages = 5;
 
     if (totalPages <= maxVisiblePages) {
