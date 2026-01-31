@@ -879,7 +879,7 @@ class _CalendarItemAddScreenState
         _formController.isAllDay ? 0 : _formController.startTime.minute,
       );
 
-      // TODO: add smart logic to "add" time to 0-minute events when "show end time" is not checked, that way they display well on the calendar
+      // TODO: evaluate if the "add 30 minutes" logic that was on the legacy frontend is still necessary, SfCalendar might resolve this issue for us
 
       if (endDateTimeUnaware.isAfter(startDateTimeUnaware)) {
         showSnackBar(

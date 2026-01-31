@@ -239,7 +239,6 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
 
   @override
   Widget buildMainArea(BuildContext context) {
-    // TODO: on larger screens, wrap cards after a max width
     return BlocBuilder<CourseBloc, CourseState>(
       builder: (context, state) {
         if (state is CoursesLoading) {
@@ -276,6 +275,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
   }
 
   Widget _buildCoursesList() {
+    // TODO: on larger screens, wrap cards after a max width
     return Expanded(
       child: ListView.builder(
         itemCount: _coursesMap[_selectedGroupId!]!.length,
