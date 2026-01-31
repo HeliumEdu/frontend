@@ -1382,7 +1382,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     VoidCallback? onCheckboxToggled,
     bool? completedOverride,
   }) {
-    // On mobile, only render in agenda/schedule views
     if (Responsive.isMobile(context) && !isInAgenda) {
       return const SizedBox.shrink();
     }
@@ -1434,7 +1433,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       return const SizedBox.shrink();
     }
 
-    // Wrap with alignment based on view
     final alignedIcon = isInAgenda
         ? Center(child: iconWidget) // Centered for agenda/schedule
         : Align(
@@ -1456,12 +1454,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     required bool isInAgenda,
     String? location,
   }) {
-    // Content is always oriented top-left and uses ellipses for overflow
     final contentColumn = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min, // Shrink-to-fit in agenda/schedule
       children: [
-        // Title (with optional time before for compact views)
         if (!isInAgenda &&
             PlannerHelper.shouldShowTimeBeforeTitle(
               context,
@@ -1508,7 +1503,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             overflow: TextOverflow.ellipsis,
           ),
 
-        // Time below title (if applicable)
         if (PlannerHelper.shouldShowTimeBelowTitle(
           context,
           calendarItem,
@@ -1547,16 +1541,12 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             ],
           ),
 
-        // Location below title (if applicable)
-        // For all-day items in agenda/schedule, always show location even though
-        // PlannerHelper.shouldShowLocationBelowTitle returns false for all-day items
-        if (((isInAgenda && calendarItem.allDay) ||
-                PlannerHelper.shouldShowLocationBelowTitle(
-                  context,
-                  calendarItem,
-                  isInAgenda,
-                  _currentView,
-                )) &&
+        if (PlannerHelper.shouldShowLocationBelowTitle(
+              context,
+              calendarItem,
+              isInAgenda,
+              _currentView,
+            ) &&
             location != null)
           Row(
             children: [
@@ -1582,9 +1572,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       ],
     );
 
-    // Flexible to take available width, content aligned top-left
-    // For agenda views: OverflowBox allows content to overflow silently
-    // For other views: content already handled by parent UnconstrainedBox
     return Flexible(
       child: Align(
         alignment: Alignment.topLeft,
@@ -1604,14 +1591,12 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     required bool isInAgenda,
     CourseModel? course,
   }) {
-    // Only show on agenda/schedule views
     if (!isInAgenda) {
       return const SizedBox.shrink();
     }
 
     final buttons = <Widget>[];
 
-    // Build button list
     if (course?.teacherEmail.isNotEmpty ?? false) {
       buttons.add(
         HeliumIconButton(
@@ -1641,8 +1626,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       );
     }
 
-    if (calendarItem is! CourseScheduleEventModel &&
-        calendarItem is! ExternalCalendarEventModel) {
+    if (PlannerHelper.shouldShowEditAndDeleteButtons(calendarItem)) {
       buttons.add(
         HeliumIconButton(
           onPressed: () => _openCalendarItem(calendarItem),
@@ -1652,7 +1636,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       );
     }
 
-    if (calendarItem is HomeworkModel || calendarItem is EventModel) {
+    if (PlannerHelper.shouldShowEditAndDeleteButtons(calendarItem)) {
       buttons.add(
         HeliumIconButton(
           onPressed: () => _deleteCalendarItem(context, calendarItem),
@@ -1666,10 +1650,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       return const SizedBox.shrink();
     }
 
-    // Build row with buttons and spacing, pulling right
     return Row(
       mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.end, // Pull right
+      mainAxisAlignment: MainAxisAlignment.end,
       children: [
         for (int i = 0; i < buttons.length; i++) ...[
           buttons[i],
@@ -1687,7 +1670,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     VoidCallback? onCheckboxToggled,
     bool? completedOverride,
   }) {
-    // Calculate necessary data structures
     final color = _calendarItemDataSource!.getColorForItem(calendarItem);
     final location = _calendarItemDataSource!.getLocationForItem(calendarItem);
 
@@ -1707,7 +1689,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         ? math.max(height, defaultMinHeight)
         : (height ?? defaultMinHeight);
 
-    // Build the three sections
     final leftWidget = _buildCalendarItemLeft(
       calendarItem: calendarItem,
       isInAgenda: isInAgenda,
