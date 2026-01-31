@@ -9,6 +9,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
@@ -199,7 +200,9 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
 
     if (!_hasLoadedInitialData) {
       _hasLoadedInitialData = true;
-      _notifyChangeListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _notifyChangeListeners();
+      });
     }
   }
 
