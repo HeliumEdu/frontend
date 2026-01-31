@@ -7,7 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/presentation/widgets/loading_circle.dart';
+import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/utils/app_style.dart';
 
 class HeliumElevatedButton extends StatelessWidget {
@@ -47,7 +47,7 @@ class HeliumElevatedButton extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
       label: isLoading
-          ? const LoadingIndicator()
+          ? const LoadingIndicator(small: true)
           : Text(
               buttonText,
               style: context.buttonText.copyWith(

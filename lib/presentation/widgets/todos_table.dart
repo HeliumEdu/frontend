@@ -15,8 +15,10 @@ import 'package:heliumapp/data/sources/calendar_item_data_source.dart';
 import 'package:heliumapp/presentation/widgets/category_title_label.dart';
 import 'package:heliumapp/presentation/widgets/course_title_label.dart';
 import 'package:heliumapp/presentation/widgets/drop_down.dart';
+import 'package:heliumapp/presentation/widgets/empty_card.dart';
 import 'package:heliumapp/presentation/widgets/grade_label.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
+import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
@@ -25,15 +27,15 @@ import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-// FIXME: once priority-based hiding of columns based on screen width is done, evaluate what else needs to be for view to be fully mobile-friendly
+// FIXME: evaluate what additional mobile-friendly improvements are needed
 
-class TodosView extends StatefulWidget {
+class TodosTable extends StatefulWidget {
   final CalendarItemDataSource dataSource;
   final Function(HomeworkModel) onTap;
   final Function(HomeworkModel, bool) onToggleCompleted;
   final Function(HomeworkModel)? onDelete;
 
-  const TodosView({
+  const TodosTable({
     super.key,
     required this.dataSource,
     required this.onTap,
@@ -42,80 +44,40 @@ class TodosView extends StatefulWidget {
   });
 
   @override
-  State<TodosView> createState() => _TodosViewState();
+  State<TodosTable> createState() => _TodosTableState();
 }
 
-class _TodosViewState extends State<TodosView> {
+class _TodosTableState extends State<TodosTable> {
   String _sortColumn = 'dueDate';
   bool _sortAscending = true;
   int _currentPage = 1;
   int _itemsPerPage = 10;
-  bool _isExpandingDataWindow = false;
+  bool _isLoading = true;
 
-  final List<int> _itemsPerPageOptions = [
-    5,
-    10,
-    25,
-    50,
-    100,
-    -1,
-  ]; // -1 represents "All"
+  final List<int> _itemsPerPageOptions = [5, 10, 25, 50, 100, -1];
 
   @override
   void initState() {
     super.initState();
-    _expandDataWindowForAllCourses();
 
-    // FIXME: when page loads, start by ordering by due date (which maps to homework.start), earliest to latest. once all items and pages are loaded, "jump" to the page that has shows events for "today" (or the nearest next calendar item)
+    widget.dataSource.changeNotifier.addListener(_onDataSourceChanged);
+
+    _expandDataWindowForAllCourses();
   }
 
-  /// Expands the data source window to load ALL homework for visible courses
-  Future<void> _expandDataWindowForAllCourses() async {
-    if (_isExpandingDataWindow) return;
-    _isExpandingDataWindow = true;
-
-    final dataSource = widget.dataSource;
-    final courses = dataSource.courses ?? [];
-
-    if (courses.isEmpty) {
-      _isExpandingDataWindow = false;
-      return;
-    }
-
-    // Find earliest start date and latest end date across all courses
-    DateTime? earliestStart;
-    DateTime? latestEnd;
-
-    for (final course in courses) {
-      final startDate = DateTime.parse(course.startDate);
-      final endDate = DateTime.parse(course.endDate);
-
-      if (earliestStart == null || startDate.isBefore(earliestStart)) {
-        earliestStart = startDate;
-      }
-      if (latestEnd == null || endDate.isAfter(latestEnd)) {
-        latestEnd = endDate;
-      }
-    }
-
-    // Expand data window to cover all courses
-    if (earliestStart != null && latestEnd != null) {
-      await dataSource.handleLoadMore(earliestStart, latestEnd);
-    }
-
-    _isExpandingDataWindow = false;
+  @override
+  void dispose() {
+    widget.dataSource.changeNotifier.removeListener(_onDataSourceChanged);
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final dataSource = widget.dataSource;
-
-    // Show loading animation while initial data is being fetched
-    if (!dataSource.hasLoadedInitialData) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+    if (_isLoading) {
+      return const LoadingIndicator();
     }
+
+    final dataSource = widget.dataSource;
 
     // Sort homework based on selected column
     final sortedHomeworks = _sortHomeworks(dataSource.filteredHomeworks);
@@ -139,68 +101,125 @@ class _TodosViewState extends State<TodosView> {
     );
 
     if (totalItems == 0) {
-      final onSurface = context.colorScheme.onSurface;
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.assignment_outlined,
-              size: 64,
-              color: onSurface.withValues(alpha: 0.3),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No assignments found',
-              style: context.bTextStyle.copyWith(
-                color: onSurface.withValues(alpha: 0.7),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Change filters or click "+" to add one',
-              style: context.eTextStyle.copyWith(
-                color: onSurface.withValues(alpha: 0.5),
-              ),
-            ),
-          ],
-        ),
+      return const EmptyCard(
+        icon: Icons.assignment_outlined,
+        message: 'No assignments found',
       );
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: context.colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: context.colorScheme.shadow.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+    return Stack(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: context.colorScheme.surface,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: context.colorScheme.shadow.withValues(alpha: 0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Column(
-        children: [
-          _buildTableHeader(),
-          Expanded(
-            child: ListView.builder(
-              itemCount: paginatedHomeworks.length,
-              itemBuilder: (context, index) {
-                return _buildTodoRow(paginatedHomeworks[index]);
-              },
-            ),
+          child: Column(
+            children: [
+              _buildTableHeader(),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: paginatedHomeworks.length,
+                  itemBuilder: (context, index) {
+                    return _buildTodoRow(paginatedHomeworks[index]);
+                  },
+                ),
+              ),
+              _buildTableFooter(
+                startIndex: startIndex,
+                endIndex: endIndex,
+                totalItems: totalItems,
+                isShowingAll: isShowingAll,
+                totalPages: totalPages,
+              ),
+            ],
           ),
-          _buildTableFooter(
-            startIndex: startIndex,
-            endIndex: endIndex,
-            totalItems: totalItems,
-            isShowingAll: isShowingAll,
-            totalPages: totalPages,
-          ),
-        ],
-      ),
+        ),
+      ],
     );
+  }
+
+  void _onDataSourceChanged() {
+    if (widget.dataSource.hasLoadedInitialData && _isLoading) {
+      setState(() {
+        _goToToday();
+
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _expandDataWindowForAllCourses() async {
+    if (!_isLoading) return;
+
+    final dataSource = widget.dataSource;
+    final courses = dataSource.courses ?? [];
+
+    if (courses.isEmpty) {
+      setState(() {
+        _isLoading = false;
+      });
+      return;
+    }
+
+    // Find earliest start date and latest end date across all courses
+    DateTime? from;
+    DateTime? to;
+
+    for (final course in courses) {
+      final startDate = DateTime.parse(course.startDate);
+
+      final endDate = DateTime.parse(
+        course.endDate,
+      ).add(const Duration(days: 1));
+
+      if (from == null || startDate.isBefore(from)) {
+        from = startDate;
+      }
+      if (to == null || endDate.isAfter(to)) {
+        to = endDate;
+      }
+    }
+
+    // Trigger data source to expand its window
+    if (from != null && to != null) {
+      await dataSource.handleLoadMore(from, to);
+    }
+  }
+
+  void _goToToday() {
+    // FIXME: when page loads, start by ordering by due date (which maps to homework.start), earliest to latest. once all items and pages are loaded, "jump" to the page that has shows events for "today" (or the nearest next calendar item)
+  }
+
+  bool _shouldShowPriorityColumn(BuildContext context) {
+    return MediaQuery.of(context).size.width >= 1200;
+  }
+
+  bool _shouldShowCategoryColumn(BuildContext context) {
+    return MediaQuery.of(context).size.width >= 1000;
+  }
+
+  bool _shouldShowGradeColumn(BuildContext context) {
+    return MediaQuery.of(context).size.width >= 800;
+  }
+
+  bool _shouldShowClassColumn(BuildContext context) {
+    return MediaQuery.of(context).size.width >= 600;
+  }
+
+  bool _shouldShowMaterialsColumn(BuildContext context) {
+    return MediaQuery.of(context).size.width >= 500;
+  }
+
+  bool _shouldShowActionsColumn(BuildContext context) {
+    return MediaQuery.of(context).size.width >= 400;
   }
 
   Widget _buildTableHeader() {
@@ -219,44 +238,34 @@ class _TodosViewState extends State<TodosView> {
         children: [
           SizedBox(
             width: 40,
-            child: _buildSortableHeader(
-              '',
-              'completed',
-              isCheckbox: true,
+            child: _buildSortableHeader('', 'completed', isCheckbox: true),
+          ),
+          Expanded(flex: 3, child: _buildSortableHeader('Title', 'title')),
+          Expanded(flex: 2, child: _buildSortableHeader('Due Date', 'dueDate')),
+          if (_shouldShowClassColumn(context))
+            Expanded(flex: 2, child: _buildSortableHeader('Class', 'class')),
+          if (_shouldShowCategoryColumn(context))
+            Expanded(
+              flex: 2,
+              child: _buildSortableHeader('Category', 'category'),
             ),
-          ),
-          Expanded(
-            flex: 3,
-            child: _buildSortableHeader('Title', 'title'),
-          ),
-          Expanded(
-            flex: 2,
-            child: _buildSortableHeader('Due Date', 'dueDate'),
-          ),
-          Expanded(
-            flex: 2,
-            child: _buildSortableHeader('Class', 'class'),
-          ),
-          Expanded(
-            flex: 2,
-            child: _buildSortableHeader('Category', 'category'),
-          ),
-          Expanded(
-            flex: 1,
-            child: _buildSortableHeader('Materials', 'materials'),
-          ),
-          Expanded(
-            flex: 2,
-            child: _buildSortableHeader('Priority', 'priority'),
-          ),
-          SizedBox(
-            width: 95,
-            child: _buildSortableHeader('Grade', 'grade'),
-          ),
-          const SizedBox(
-            width: 170,
-            child: SizedBox.shrink(), // Actions column - no header label
-          ),
+          if (_shouldShowMaterialsColumn(context))
+            Expanded(
+              flex: 1,
+              child: _buildSortableHeader('Materials', 'materials'),
+            ),
+          if (_shouldShowPriorityColumn(context))
+            Expanded(
+              flex: 2,
+              child: _buildSortableHeader('Priority', 'priority'),
+            ),
+          if (_shouldShowGradeColumn(context))
+            SizedBox(width: 95, child: _buildSortableHeader('Grade', 'grade')),
+          if (_shouldShowActionsColumn(context))
+            const SizedBox(
+              width: 170,
+              child: SizedBox.shrink(), // Actions column - no header label
+            ),
         ],
       ),
     );
@@ -286,8 +295,7 @@ class _TodosViewState extends State<TodosView> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _buildItemsCountText(startIndex, endIndex, totalItems),
-              if (!isShowingAll && totalPages > 1)
-                _buildPagination(totalPages),
+              if (!isShowingAll && totalPages > 1) _buildPagination(totalPages),
             ],
           ),
           const SizedBox(height: 12),
@@ -315,9 +323,7 @@ class _TodosViewState extends State<TodosView> {
         Text(
           'Show',
           style: context.eTextStyle.copyWith(
-            color: context.colorScheme.onSurface.withValues(
-              alpha: 0.7,
-            ),
+            color: context.colorScheme.onSurface.withValues(alpha: 0.7),
           ),
         ),
         const SizedBox(width: 8),
@@ -344,9 +350,7 @@ class _TodosViewState extends State<TodosView> {
     return Text(
       'Showing ${startIndex + 1} to $endIndex of $totalItems',
       style: context.eTextStyle.copyWith(
-        color: context.colorScheme.onSurface.withValues(
-          alpha: 0.7,
-        ),
+        color: context.colorScheme.onSurface.withValues(alpha: 0.7),
       ),
     );
   }
@@ -638,23 +642,41 @@ class _TodosViewState extends State<TodosView> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              _buildCheckboxColumn(isCompleted, homework, category, course, userSettings),
-              const SizedBox(width: 2),
+              _buildCheckboxColumn(
+                isCompleted,
+                homework,
+                category,
+                course,
+                userSettings,
+              ),
+              const SizedBox(width: 4),
               _buildTitleColumn(homework, isCompleted),
-              const SizedBox(width: 2),
+              const SizedBox(width: 4),
               _buildDueDateColumn(homework, userSettings),
-              const SizedBox(width: 2),
-              _buildClassColumn(course),
-              const SizedBox(width: 2),
-              _buildCategoryColumn(category),
-              const SizedBox(width: 2),
-              _buildMaterialsColumn(homework, userSettings),
-              const SizedBox(width: 2),
-              _buildPriorityColumn(homework),
-              const SizedBox(width: 2),
-              _buildGradeColumn(homework, userSettings),
-              const SizedBox(width: 2),
-              _buildActionsColumn(actionButtons),
+              if (_shouldShowClassColumn(context)) ...[
+                const SizedBox(width: 4),
+                _buildClassColumn(course),
+              ],
+              if (_shouldShowCategoryColumn(context)) ...[
+                const SizedBox(width: 4),
+                _buildCategoryColumn(category),
+              ],
+              if (_shouldShowMaterialsColumn(context)) ...[
+                const SizedBox(width: 4),
+                _buildMaterialsColumn(homework, userSettings),
+              ],
+              if (_shouldShowPriorityColumn(context)) ...[
+                const SizedBox(width: 4),
+                _buildPriorityColumn(homework),
+              ],
+              if (_shouldShowGradeColumn(context)) ...[
+                const SizedBox(width: 4),
+                _buildGradeColumn(homework, userSettings),
+              ],
+              if (_shouldShowActionsColumn(context)) ...[
+                const SizedBox(width: 4),
+                _buildActionsColumn(actionButtons),
+              ],
             ],
           ),
         ),
@@ -726,26 +748,18 @@ class _TodosViewState extends State<TodosView> {
     );
   }
 
-  // FIXME: if screen is not wide enough to view, hide this 4th
   Widget _buildClassColumn(dynamic course) {
     return Expanded(
       flex: 2,
-      child: CourseTitleLabel(
-        title: course.title,
-        color: course.color,
-      ),
+      child: CourseTitleLabel(title: course.title, color: course.color),
     );
   }
 
   // FIXME: the container within the category label should shrink-to-fix the text within it (but using Flexible here messes with table row width, so find another solution
-  // FIXME: if screen is not wide enough to view, hide this 2nd
   Widget _buildCategoryColumn(CategoryModel category) {
     return Expanded(
       flex: 2,
-      child: CategoryTitleLabel(
-        title: category.title,
-        color: category.color,
-      ),
+      child: CategoryTitleLabel(title: category.title, color: category.color),
     );
   }
 
@@ -785,28 +799,22 @@ class _TodosViewState extends State<TodosView> {
     );
   }
 
-  // FIXME: if screen is not wide enough to view, hide this 1st
   Widget _buildPriorityColumn(HomeworkModel homework) {
-    return Expanded(
-      flex: 2,
-      child: _buildPriorityIndicator(homework.priority),
-    );
+    return Expanded(flex: 2, child: _buildPriorityIndicator(homework.priority));
   }
 
-  // FIXME: if screen is not wide enough to view, hide this 3rd
   Widget _buildGradeColumn(
     HomeworkModel homework,
     UserSettingsModel userSettings,
   ) {
     return SizedBox(
       width: 95,
-      child:
-          homework.currentGrade != null && homework.currentGrade!.isNotEmpty
-              ? GradeLabel(
-                  grade: Format.gradeForDisplay(homework.currentGrade),
-                  userSettings: userSettings,
-                )
-              : const SizedBox.shrink(),
+      child: homework.currentGrade != null && homework.currentGrade!.isNotEmpty
+          ? GradeLabel(
+              grade: Format.gradeForDisplay(homework.currentGrade),
+              userSettings: userSettings,
+            )
+          : const SizedBox.shrink(),
     );
   }
 

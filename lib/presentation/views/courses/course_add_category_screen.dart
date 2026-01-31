@@ -22,7 +22,9 @@ import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/category_title_label.dart';
 import 'package:heliumapp/presentation/widgets/course_add_stepper.dart';
+import 'package:heliumapp/presentation/widgets/empty_card.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
+import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
@@ -189,7 +191,7 @@ class _CourseAddCategoryScreenState
           BlocBuilder<CategoryBloc, CategoryState>(
             builder: (context, state) {
               if (state is CategoriesLoading) {
-                return buildLoading();
+                return const LoadingIndicator();
               }
 
               if (state is CategoriesError &&
@@ -205,7 +207,7 @@ class _CourseAddCategoryScreenState
               }
 
               if (_categories.isEmpty) {
-                return buildEmptyPage(
+                return const EmptyCard(
                   icon: Icons.category_outlined,
                   message: 'Click "+" to add a category',
                 );

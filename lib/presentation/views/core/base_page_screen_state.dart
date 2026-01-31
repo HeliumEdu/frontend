@@ -14,6 +14,7 @@ import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/presentation/views/core/navigation_shell.dart';
 import 'package:heliumapp/presentation/widgets/helium_elevated_button.dart';
+import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -104,7 +105,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       child: Column(
         children: [
           if (isLoading)
-            buildLoading()
+            const LoadingIndicator()
           else ...[
             buildHeaderArea(context),
 
@@ -177,52 +178,6 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
   @mustBeOverridden
   Widget buildMainArea(BuildContext context);
-
-  Widget buildLoading() {
-    return const Expanded(child: Center(child: CircularProgressIndicator()));
-  }
-
-  Widget buildEmptyPage({
-    required IconData icon,
-    required String message,
-    String title = 'Nothing to see here',
-  }) {
-    final onSurface = context.colorScheme.onSurface;
-    return Expanded(
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: Responsive.getIconSize(
-                context,
-                mobile: 60,
-                tablet: 64,
-                desktop: 68,
-              ),
-              color: onSurface.withValues(alpha: 0.3),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: context.bTextStyle.copyWith(
-                color: onSurface.withValues(alpha: 0.6),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: context.cTextStyle.copyWith(
-                color: onSurface.withValues(alpha: 0.4),
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget buildReload(String errorMsg, VoidCallback retryCallback) {
     final errorColor = context.colorScheme.error;

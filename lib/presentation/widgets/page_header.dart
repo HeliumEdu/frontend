@@ -14,7 +14,7 @@ import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_bloc.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_event.dart';
 import 'package:heliumapp/presentation/widgets/helium_elevated_button.dart';
-import 'package:heliumapp/presentation/widgets/loading_circle.dart';
+import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
@@ -113,7 +113,7 @@ class PageHeader extends StatelessWidget {
                       saveAction?.call();
                     },
               icon: isLoading
-                  ? const LoadingIndicator()
+                  ? const LoadingIndicator(small: true)
                   : Icon(
                       Icons.check_circle,
                       color: context.colorScheme.primary,

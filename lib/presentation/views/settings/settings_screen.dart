@@ -19,6 +19,7 @@ import 'package:heliumapp/presentation/forms/core/basic_form_controller.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/widgets/label_and_text_form_field.dart';
+import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/presentation/widgets/shadow_container.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -105,7 +106,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
         if (state is AuthLoading) {
-          return buildLoading();
+          return const LoadingIndicator();
         }
 
         return _buildSettingsPage();

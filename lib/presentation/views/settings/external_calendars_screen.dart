@@ -21,8 +21,10 @@ import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/dialogs/external_calendar_dialog.dart';
 import 'package:heliumapp/presentation/forms/settings/external_calendar_form_controller.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/widgets/empty_card.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/info_container.dart';
+import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
@@ -152,7 +154,7 @@ class _ExternalCalendarsProvidedScreenState
     return BlocBuilder<ExternalCalendarBloc, ExternalCalendarState>(
       builder: (context, state) {
         if (state is ExternalCalendarsLoading) {
-          return buildLoading();
+          return const LoadingIndicator();
         }
 
         if (state is ExternalCalendarsError &&
@@ -165,7 +167,7 @@ class _ExternalCalendarsProvidedScreenState
         }
 
         if (_externalCalendars.isEmpty) {
-          return buildEmptyPage(
+          return const EmptyCard(
             icon: Icons.cloud_download,
             message: 'Click "+" to add an external calendar',
           );

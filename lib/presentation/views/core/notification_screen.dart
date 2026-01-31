@@ -25,6 +25,8 @@ import 'package:heliumapp/presentation/bloc/reminder/reminder_bloc.dart';
 import 'package:heliumapp/presentation/bloc/reminder/reminder_event.dart';
 import 'package:heliumapp/presentation/bloc/reminder/reminder_state.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/widgets/empty_card.dart';
+import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
@@ -137,7 +139,7 @@ class _NotificationsScreenState
     return BlocBuilder<ReminderBloc, ReminderState>(
       builder: (context, state) {
         if (state is RemindersLoading) {
-          return buildLoading();
+          return const LoadingIndicator();
         }
 
         if (state is RemindersError) {
@@ -154,7 +156,7 @@ class _NotificationsScreenState
         }
 
         if (_notifications.isEmpty) {
-          return buildEmptyPage(
+          return const EmptyCard(
             icon: Icons.notifications_off,
             message: 'Reminders will appear here when they are due',
           );

@@ -22,7 +22,9 @@ import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/dialogs/reminder_dialog.dart';
 import 'package:heliumapp/presentation/forms/core/reminder_form_controller.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/widgets/empty_card.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
+import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -198,7 +200,7 @@ abstract class BaseReminderScreenState<T>
           BlocBuilder<ReminderBloc, ReminderState>(
             builder: (context, state) {
               if (state is RemindersLoading) {
-                return buildLoading();
+                return const LoadingIndicator();
               }
 
               if (state is RemindersError &&
@@ -209,7 +211,7 @@ abstract class BaseReminderScreenState<T>
               }
 
               if (_reminders.isEmpty) {
-                return buildEmptyPage(
+                return const EmptyCard(
                   icon: Icons.notifications_active_outlined,
                   message: 'Click "+" to add a reminder',
                 );

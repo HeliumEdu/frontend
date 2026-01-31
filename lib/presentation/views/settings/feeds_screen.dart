@@ -17,6 +17,7 @@ import 'package:heliumapp/presentation/bloc/auth/auth_state.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/widgets/info_container.dart';
+import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/presentation/widgets/warning_container.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -100,7 +101,7 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
           }
         }
 
-        return buildLoading();
+        return const LoadingIndicator();
       },
     );
   }

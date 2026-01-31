@@ -31,8 +31,10 @@ import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/dialogs/course_group_dialog.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/course_title_label.dart';
+import 'package:heliumapp/presentation/widgets/empty_card.dart';
 import 'package:heliumapp/presentation/widgets/group_dropdown.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
+import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/pill_badge.dart';
 import 'package:heliumapp/presentation/widgets/responsive_card_grid.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -243,7 +245,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
     return BlocBuilder<CourseBloc, CourseState>(
       builder: (context, state) {
         if (state is CoursesLoading) {
-          return buildLoading();
+          return const LoadingIndicator();
         }
 
         if (state is CoursesError && state.origin == EventOrigin.screen) {
@@ -255,7 +257,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
         }
 
         if (_courseGroups.isEmpty) {
-          return buildEmptyPage(
+          return const EmptyCard(
             icon: Icons.school,
             title: "You haven't added any groups yet",
             message: 'Click "+ Group" to get started',
@@ -263,7 +265,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
         }
 
         if (_coursesMap[_selectedGroupId!]!.isEmpty) {
-          return buildEmptyPage(
+          return const EmptyCard(
             icon: Icons.school,
             title: "You haven't added any classes yet",
             message: 'Click "+" to get started',
