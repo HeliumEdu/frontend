@@ -1721,8 +1721,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     }
     final List<CourseModel> displayCourses = uniqueCourseMap.values.toList();
 
-    // TODO: splash effect for InkWell and CheckboxListTile not showing as expected
-
     showMenu(
       context: context,
       position: position,
@@ -1734,25 +1732,26 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           padding: EdgeInsets.zero,
           child: StatefulBuilder(
             builder: (context, setMenuState) {
-              return Container(
-                decoration: BoxDecoration(color: context.colorScheme.surface),
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: InkWell(
-                            onTap: () {
-                              _calendarItemDataSource!.setFilteredCourses({});
-                              setMenuState(() {});
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              child: Text(
-                                'Show All Classes',
+              return Material(
+                color: context.colorScheme.surface,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: InkWell(
+                              onTap: () {
+                                _calendarItemDataSource!.setFilteredCourses({});
+                                setMenuState(() {});
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                child: Text(
+                                  'Show All Classes',
                                 style: context.cTextStyle.copyWith(
                                   color: context.colorScheme.onSurface,
                                   fontWeight: FontWeight.w500,
@@ -1833,6 +1832,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                     ),
                   ],
                 ),
+              ),
               );
             },
           ),
@@ -1856,8 +1856,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       Offset.zero & overlay.size,
     );
 
-    // TODO: splash effect for InkWell and CheckboxListTile not showing as expected
-
     showMenu(
       context: context,
       position: position,
@@ -1869,25 +1867,26 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           padding: EdgeInsets.zero,
           child: StatefulBuilder(
             builder: (context, setMenuState) {
-              return Container(
-                decoration: BoxDecoration(color: context.colorScheme.surface),
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: InkWell(
-                            onTap: () {
-                              _calendarItemDataSource!.clearFilters();
-                              setMenuState(() {});
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              child: Text(
-                                'Clear Filters',
+              return Material(
+                color: context.colorScheme.surface,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: InkWell(
+                              onTap: () {
+                                _calendarItemDataSource!.clearFilters();
+                                setMenuState(() {});
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                child: Text(
+                                  'Clear Filters',
                                 style: context.cTextStyle.copyWith(
                                   color: context.colorScheme.onSurface,
                                   fontWeight: FontWeight.w500,
@@ -2139,6 +2138,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                     ],
                   ],
                 ),
+              ),
               );
             },
           ),
@@ -2162,8 +2162,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       Offset.zero & overlay.size,
     );
 
-    // TODO: add an InkWell for splash effect on click (like filters)
-
     showMenu(
       context: context,
       position: position,
@@ -2173,16 +2171,17 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         PopupMenuItem(
           enabled: false,
           padding: EdgeInsets.zero,
-          child: Container(
-            decoration: BoxDecoration(color: context.colorScheme.surface),
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                StatefulBuilder(
-                  builder: (innerContext, setMenuState) {
-                    return RadioGroup<HeliumView>(
+          child: Material(
+            color: context.colorScheme.surface,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  StatefulBuilder(
+                    builder: (innerContext, setMenuState) {
+                      return RadioGroup<HeliumView>(
                       groupValue: _currentView,
                       onChanged: (value) {
                         setState(() {
@@ -2237,6 +2236,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                 ),
               ],
             ),
+          ),
           ),
         ),
       ],

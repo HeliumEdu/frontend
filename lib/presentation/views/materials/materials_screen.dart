@@ -227,7 +227,6 @@ class _MaterialsScreenState
 
   @override
   Widget buildMainArea(BuildContext context) {
-    // TODO: on larger screens, wrap cards after a max width
     return BlocBuilder<MaterialBloc, material_state.MaterialState>(
       builder: (context, state) {
         if (state is material_state.MaterialsLoading) {
@@ -265,6 +264,7 @@ class _MaterialsScreenState
   }
 
   Widget _buildMaterialsList() {
+    // TODO: on larger screens, wrap cards after a max width
     return Expanded(
       child: ListView.builder(
         itemCount: _materialsMap[_selectedGroupId!]!.length,

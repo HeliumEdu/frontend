@@ -82,6 +82,7 @@ class _ExternalCalendarsProvidedScreenState
 
   // State
   List<ExternalCalendarModel> _externalCalendars = [];
+  final Set<int> _updatingCalendarIds = {};
 
   @override
   void initState() {
@@ -122,6 +123,7 @@ class _ExternalCalendarsProvidedScreenState
                   )] =
                   state.externalCalendar;
               Sort.byTitle(_externalCalendars);
+              _updatingCalendarIds.remove(state.externalCalendar.id);
             });
           } else if (state is ExternalCalendarDeleted) {
             showSnackBar(context, 'External calendar deleted');
@@ -197,6 +199,15 @@ class _ExternalCalendarsProvidedScreenState
     ExternalCalendarModel externalCalendar,
     bool value,
   ) {
+    // Prevent double-tap by checking if an update is already in progress
+    if (_updatingCalendarIds.contains(externalCalendar.id)) {
+      return;
+    }
+
+    setState(() {
+      _updatingCalendarIds.add(externalCalendar.id);
+    });
+
     final request = ExternalCalendarRequestModel(
       title: externalCalendar.title,
       url: externalCalendar.url,
@@ -260,14 +271,15 @@ class _ExternalCalendarsProvidedScreenState
               ),
             ),
             const SizedBox(width: 8),
-            // TODO: should properly gracefully handle a double-tap here
             Switch.adaptive(
               value: externalCalendar.shownOnCalendar!,
               activeTrackColor: context.colorScheme.primary,
-              onChanged: (value) {
-                Feedback.forTap(context);
-                _toggleShownOnCalendar(externalCalendar, value);
-              },
+              onChanged: _updatingCalendarIds.contains(externalCalendar.id)
+                  ? null
+                  : (value) {
+                      Feedback.forTap(context);
+                      _toggleShownOnCalendar(externalCalendar, value);
+                    },
             ),
             const SizedBox(width: 8),
             HeliumIconButton(
