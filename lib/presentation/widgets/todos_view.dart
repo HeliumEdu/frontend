@@ -7,10 +7,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/data/models/drop_down_item.dart';
+import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/sources/calendar_item_data_source.dart';
 import 'package:heliumapp/presentation/widgets/category_title_label.dart';
 import 'package:heliumapp/presentation/widgets/course_title_label.dart';
+import 'package:heliumapp/presentation/widgets/drop_down.dart';
 import 'package:heliumapp/presentation/widgets/grade_label.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -22,7 +26,6 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 // FIXME: once priority-based hiding of columns based on screen width is done, evaluate what else needs to be for view to be fully mobile-friendly
-// FIXME: better place for pagination, obscured by "+" hover button
 // FIXME: listen for CalendarDataSourceAction, show loading animation until that event fires completion
 
 class TodosView extends StatefulWidget {
@@ -173,64 +176,7 @@ class _TodosViewState extends State<TodosView> {
       ),
       child: Column(
         children: [
-          // Table header
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: context.colorScheme.surfaceContainerHighest.withValues(
-                alpha: 0.5,
-              ),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
-              ),
-            ),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 40,
-                  child: _buildSortableHeader(
-                    '',
-                    'completed',
-                    isCheckbox: true,
-                  ),
-                ),
-                Expanded(
-                  flex: 3,
-                  child: _buildSortableHeader('Title', 'title'),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: _buildSortableHeader('Due Date', 'dueDate'),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: _buildSortableHeader('Class', 'class'),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: _buildSortableHeader('Category', 'category'),
-                ),
-                Expanded(
-                  flex: 1,
-                  child: _buildSortableHeader('Materials', 'materials'),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: _buildSortableHeader('Priority', 'priority'),
-                ),
-                SizedBox(
-                  width: 95,
-                  child: _buildSortableHeader('Grade', 'grade'),
-                ),
-                const SizedBox(
-                  width: 170,
-                  child: SizedBox.shrink(), // Actions column - no header label
-                ),
-              ],
-            ),
-          ),
-          // Table rows
+          _buildTableHeader(),
           Expanded(
             child: ListView.builder(
               itemCount: paginatedHomeworks.length,
@@ -239,120 +185,202 @@ class _TodosViewState extends State<TodosView> {
               },
             ),
           ),
-          // Pagination footer
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              border: Border(
-                top: BorderSide(
-                  color: context.colorScheme.outline.withValues(alpha: 0.2),
-                ),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Left side: Items per page dropdown and count
-                Row(
-                  children: [
-                    Text(
-                      'Show',
-                      style: context.eTextStyle.copyWith(
-                        color: context.colorScheme.onSurface.withValues(
-                          alpha: 0.7,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: context.colorScheme.outline.withValues(
-                            alpha: 0.3,
-                          ),
-                        ),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: DropdownButton<int>(
-                        value: _itemsPerPage,
-                        underline: const SizedBox.shrink(),
-                        isDense: true,
-                        items: _itemsPerPageOptions.map((value) {
-                          return DropdownMenuItem<int>(
-                            value: value,
-                            child: Text(
-                              value == -1 ? 'All' : value.toString(),
-                              style: context.eTextStyle.copyWith(
-                                color: context.colorScheme.onSurface,
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                        onChanged: (newValue) {
-                          if (newValue != null) {
-                            setState(() {
-                              _itemsPerPage = newValue;
-                              _currentPage = 1; // Reset to first page
-                            });
-                          }
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Showing ${startIndex + 1} to $endIndex of $totalItems',
-                      style: context.eTextStyle.copyWith(
-                        color: context.colorScheme.onSurface.withValues(
-                          alpha: 0.7,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                // Right side: Page navigation (only show if not showing all)
-                if (!isShowingAll && totalPages > 1)
-                  Row(
-                    children: [
-                      // Previous button
-                      IconButton(
-                        onPressed: _currentPage > 1
-                            ? () {
-                                setState(() {
-                                  _currentPage--;
-                                });
-                              }
-                            : null,
-                        icon: const Icon(Icons.chevron_left),
-                        iconSize: 20,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                      const SizedBox(width: 8),
-                      // Page numbers
-                      ..._buildPageNumbers(totalPages),
-                      const SizedBox(width: 8),
-                      // Next button
-                      IconButton(
-                        onPressed: _currentPage < totalPages
-                            ? () {
-                                setState(() {
-                                  _currentPage++;
-                                });
-                              }
-                            : null,
-                        icon: const Icon(Icons.chevron_right),
-                        iconSize: 20,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                    ],
-                  ),
-              ],
-            ),
+          _buildTableFooter(
+            startIndex: startIndex,
+            endIndex: endIndex,
+            totalItems: totalItems,
+            isShowingAll: isShowingAll,
+            totalPages: totalPages,
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildTableHeader() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: context.colorScheme.surfaceContainerHighest.withValues(
+          alpha: 0.5,
+        ),
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(12),
+          topRight: Radius.circular(12),
+        ),
+      ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 40,
+            child: _buildSortableHeader(
+              '',
+              'completed',
+              isCheckbox: true,
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: _buildSortableHeader('Title', 'title'),
+          ),
+          Expanded(
+            flex: 2,
+            child: _buildSortableHeader('Due Date', 'dueDate'),
+          ),
+          Expanded(
+            flex: 2,
+            child: _buildSortableHeader('Class', 'class'),
+          ),
+          Expanded(
+            flex: 2,
+            child: _buildSortableHeader('Category', 'category'),
+          ),
+          Expanded(
+            flex: 1,
+            child: _buildSortableHeader('Materials', 'materials'),
+          ),
+          Expanded(
+            flex: 2,
+            child: _buildSortableHeader('Priority', 'priority'),
+          ),
+          SizedBox(
+            width: 95,
+            child: _buildSortableHeader('Grade', 'grade'),
+          ),
+          const SizedBox(
+            width: 170,
+            child: SizedBox.shrink(), // Actions column - no header label
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTableFooter({
+    required int startIndex,
+    required int endIndex,
+    required int totalItems,
+    required bool isShowingAll,
+    required int totalPages,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(
+            color: context.colorScheme.outline.withValues(alpha: 0.2),
+          ),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Top row: Count and pagination
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildItemsCountText(startIndex, endIndex, totalItems),
+              if (!isShowingAll && totalPages > 1)
+                _buildPagination(totalPages),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Bottom row: Items per page dropdown
+          _buildItemsPerPageDropdown(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildItemsPerPageDropdown() {
+    final dropDownItems = _itemsPerPageOptions.map((value) {
+      return DropDownItem<String>(
+        id: value,
+        value: value == -1 ? 'All' : value.toString(),
+      );
+    }).toList();
+
+    final currentItem = dropDownItems.firstWhere(
+      (item) => item.id == _itemsPerPage,
+    );
+
+    return Row(
+      children: [
+        Text(
+          'Show',
+          style: context.eTextStyle.copyWith(
+            color: context.colorScheme.onSurface.withValues(
+              alpha: 0.7,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        SizedBox(
+          width: 100,
+          child: DropDown<String>(
+            initialValue: currentItem,
+            items: dropDownItems,
+            onChanged: (newItem) {
+              if (newItem != null) {
+                setState(() {
+                  _itemsPerPage = newItem.id;
+                  _currentPage = 1; // Reset to first page
+                });
+              }
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildItemsCountText(int startIndex, int endIndex, int totalItems) {
+    return Text(
+      'Showing ${startIndex + 1} to $endIndex of $totalItems',
+      style: context.eTextStyle.copyWith(
+        color: context.colorScheme.onSurface.withValues(
+          alpha: 0.7,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPagination(int totalPages) {
+    return Row(
+      children: [
+        // Previous button
+        IconButton(
+          onPressed: _currentPage > 1
+              ? () {
+                  setState(() {
+                    _currentPage--;
+                  });
+                }
+              : null,
+          icon: const Icon(Icons.chevron_left),
+          iconSize: 20,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+        ),
+        const SizedBox(width: 8),
+        // Page numbers
+        ..._buildPageNumbers(totalPages),
+        const SizedBox(width: 8),
+        // Next button
+        IconButton(
+          onPressed: _currentPage < totalPages
+              ? () {
+                  setState(() {
+                    _currentPage++;
+                  });
+                }
+              : null,
+          icon: const Icon(Icons.chevron_right),
+          iconSize: 20,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+        ),
+      ],
     );
   }
 
@@ -477,9 +505,7 @@ class _TodosViewState extends State<TodosView> {
             Icon(
               Icons.check_box_outline_blank,
               size: 16,
-              color: isActive
-                  ? context.colorScheme.primary
-                  : context.colorScheme.onSurface.withValues(alpha: 0.6),
+              color: context.colorScheme.onSurface.withValues(alpha: 0.6),
             )
           else
             Text(
@@ -606,141 +632,190 @@ class _TodosViewState extends State<TodosView> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              // Checkbox
-              SizedBox(
-                width: 40,
-                child: Checkbox(
-                  value: isCompleted,
-                  onChanged: (value) {
-                    Feedback.forTap(context);
-                    widget.onToggleCompleted(homework, value!);
-                  },
-                  activeColor: userSettings.colorByCategory
-                      ? category.color
-                      : course.color,
-                ),
-              ),
-              // Title
-              Expanded(
-                flex: 3,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        homework.title,
-                        style: context.eTextStyle.copyWith(
-                          color: context.colorScheme.onSurface,
-                          decoration: isCompleted
-                              ? TextDecoration.lineThrough
-                              : TextDecoration.none,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // Due Date
-              Expanded(
-                flex: 2,
-                child: Text(
-                  HeliumDateTime.formatDateAndTimeForDisplay(
-                    HeliumDateTime.parse(homework.start, userSettings.timeZone),
-                  ),
-                  style: context.eTextStyle.copyWith(
-                    color: context.colorScheme.onSurface.withValues(alpha: 0.8),
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              // FIXME: if screen is not wide enough to view, hide this 4th
-              // Class
-              Expanded(
-                flex: 2,
-                child: CourseTitleLabel(
-                  title: course.title,
-                  color: course.color,
-                ),
-              ),
-              // FIXME: the container within the category label should shrink-to-fix the text within it (but using Flexible here messes with table row width, so find another solution
-              // FIXME: if screen is not wide enough to view, hide this 2nd
-              // Category
-              Expanded(
-                flex: 2,
-                child: CategoryTitleLabel(
-                  title: category.title,
-                  color: category.color,
-                ),
-              ),
-              // FIXME: if more than 150 pixels available, render these as MaterialLabelTitle, and allow to wrap within the column; otherwise continue to rollup number of materials in to an icon count (like it is currently done now)
-              // Materials
-              Expanded(
-                flex: 1,
-                child: homework.materials.isNotEmpty
-                    ? Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.book_outlined,
-                            size: 14,
-                            color: userSettings.materialColor,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            homework.materials.length.toString(),
-                            style: context.eTextStyle.copyWith(
-                              color: userSettings.materialColor,
-                              fontWeight: FontWeight.w600,
-                              fontSize: Responsive.getFontSize(
-                                context,
-                                mobile: 11,
-                                tablet: 12,
-                                desktop: 13,
-                              ),
-                            ),
-                          ),
-                        ],
-                      )
-                    : const SizedBox.shrink(),
-              ),
-              // FIXME: if screen is not wide enough to view, hide this 1st
-              // Priority
-              Expanded(
-                flex: 2,
-                child: _buildPriorityIndicator(homework.priority),
-              ),
-              // FIXME: if screen is not wide enough to view, hide this 3rd
-              // Grade
-              SizedBox(
-                width: 95,
-                child:
-                    homework.currentGrade != null &&
-                        homework.currentGrade!.isNotEmpty
-                    ? GradeLabel(
-                        grade: Format.gradeForDisplay(homework.currentGrade),
-                        userSettings: userSettings,
-                      )
-                    : const SizedBox.shrink(),
-              ),
-              // Actions
-              SizedBox(
-                width: 170,
-                child: Row(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    for (int i = 0; i < actionButtons.length; i++) ...[
-                      actionButtons[i],
-                      if (i < actionButtons.length - 1) const SizedBox(width: 8),
-                    ],
-                  ],
-                ),
-              ),
+              _buildCheckboxColumn(isCompleted, homework, category, course, userSettings),
+              const SizedBox(width: 2),
+              _buildTitleColumn(homework, isCompleted),
+              const SizedBox(width: 2),
+              _buildDueDateColumn(homework, userSettings),
+              const SizedBox(width: 2),
+              _buildClassColumn(course),
+              const SizedBox(width: 2),
+              _buildCategoryColumn(category),
+              const SizedBox(width: 2),
+              _buildMaterialsColumn(homework, userSettings),
+              const SizedBox(width: 2),
+              _buildPriorityColumn(homework),
+              const SizedBox(width: 2),
+              _buildGradeColumn(homework, userSettings),
+              const SizedBox(width: 2),
+              _buildActionsColumn(actionButtons),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildCheckboxColumn(
+    bool isCompleted,
+    HomeworkModel homework,
+    CategoryModel category,
+    dynamic course,
+    UserSettingsModel userSettings,
+  ) {
+    return SizedBox(
+      width: 40,
+      child: Checkbox(
+        value: isCompleted,
+        onChanged: (value) {
+          Feedback.forTap(context);
+          widget.onToggleCompleted(homework, value!);
+        },
+        activeColor: userSettings.colorByCategory
+            ? category.color
+            : course.color,
+      ),
+    );
+  }
+
+  Widget _buildTitleColumn(HomeworkModel homework, bool isCompleted) {
+    return Expanded(
+      flex: 3,
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              homework.title,
+              style: context.eTextStyle.copyWith(
+                color: context.colorScheme.onSurface,
+                decoration: isCompleted
+                    ? TextDecoration.lineThrough
+                    : TextDecoration.none,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDueDateColumn(
+    HomeworkModel homework,
+    UserSettingsModel userSettings,
+  ) {
+    return Expanded(
+      flex: 2,
+      child: Text(
+        HeliumDateTime.formatDateAndTimeForDisplay(
+          HeliumDateTime.parse(homework.start, userSettings.timeZone),
+        ),
+        style: context.eTextStyle.copyWith(
+          color: context.colorScheme.onSurface.withValues(alpha: 0.8),
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+
+  // FIXME: if screen is not wide enough to view, hide this 4th
+  Widget _buildClassColumn(dynamic course) {
+    return Expanded(
+      flex: 2,
+      child: CourseTitleLabel(
+        title: course.title,
+        color: course.color,
+      ),
+    );
+  }
+
+  // FIXME: the container within the category label should shrink-to-fix the text within it (but using Flexible here messes with table row width, so find another solution
+  // FIXME: if screen is not wide enough to view, hide this 2nd
+  Widget _buildCategoryColumn(CategoryModel category) {
+    return Expanded(
+      flex: 2,
+      child: CategoryTitleLabel(
+        title: category.title,
+        color: category.color,
+      ),
+    );
+  }
+
+  // FIXME: if more than 150 pixels available, render these as MaterialLabelTitle, and allow to wrap within the column; otherwise continue to rollup number of materials in to an icon count (like it is currently done now)
+  Widget _buildMaterialsColumn(
+    HomeworkModel homework,
+    UserSettingsModel userSettings,
+  ) {
+    return Expanded(
+      flex: 1,
+      child: homework.materials.isNotEmpty
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.book_outlined,
+                  size: 14,
+                  color: userSettings.materialColor,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  homework.materials.length.toString(),
+                  style: context.eTextStyle.copyWith(
+                    color: userSettings.materialColor,
+                    fontWeight: FontWeight.w600,
+                    fontSize: Responsive.getFontSize(
+                      context,
+                      mobile: 11,
+                      tablet: 12,
+                      desktop: 13,
+                    ),
+                  ),
+                ),
+              ],
+            )
+          : const SizedBox.shrink(),
+    );
+  }
+
+  // FIXME: if screen is not wide enough to view, hide this 1st
+  Widget _buildPriorityColumn(HomeworkModel homework) {
+    return Expanded(
+      flex: 2,
+      child: _buildPriorityIndicator(homework.priority),
+    );
+  }
+
+  // FIXME: if screen is not wide enough to view, hide this 3rd
+  Widget _buildGradeColumn(
+    HomeworkModel homework,
+    UserSettingsModel userSettings,
+  ) {
+    return SizedBox(
+      width: 95,
+      child:
+          homework.currentGrade != null && homework.currentGrade!.isNotEmpty
+              ? GradeLabel(
+                  grade: Format.gradeForDisplay(homework.currentGrade),
+                  userSettings: userSettings,
+                )
+              : const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildActionsColumn(List<Widget> actionButtons) {
+    return SizedBox(
+      width: 170,
+      child: Row(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          for (int i = 0; i < actionButtons.length; i++) ...[
+            actionButtons[i],
+            if (i < actionButtons.length - 1) const SizedBox(width: 8),
+          ],
+        ],
       ),
     );
   }
@@ -805,28 +880,27 @@ class _TodosViewState extends State<TodosView> {
   }
 
   Widget _buildPriorityIndicator(int priority) {
-    // FIXME: this would look better as a filled progress bar of sorts, not the individual "pill" look
-
-    // Priority is 1-100, displayed in increments of 10 (10 levels)
+    // Priority is 1-100, displayed as a filled progress bar
     final clampedPriority = priority.clamp(1, 100);
-    final priorityLevel = ((clampedPriority - 1) / 10).floor();
+    final priorityPercent = clampedPriority / 100;
     final priorityColor = HeliumColors.getColorForPriority(
       clampedPriority.toDouble(),
     );
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(
-        10,
-        (index) => Container(
-          width: 12,
-          height: 8,
-          margin: const EdgeInsets.only(right: 2),
+    return Container(
+      width: 100,
+      height: 8,
+      decoration: BoxDecoration(
+        color: context.colorScheme.outline.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: FractionallySizedBox(
+        alignment: Alignment.centerLeft,
+        widthFactor: priorityPercent,
+        child: Container(
           decoration: BoxDecoration(
-            color: index <= priorityLevel
-                ? priorityColor
-                : context.colorScheme.outline.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(2),
+            color: priorityColor,
+            borderRadius: BorderRadius.circular(4),
           ),
         ),
       ),
