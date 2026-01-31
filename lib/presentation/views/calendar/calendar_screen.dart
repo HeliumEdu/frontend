@@ -1060,7 +1060,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   void _calendarViewChanged() {
-    // Sync _currentView with the calendar controller's view
+    // FIXME: I think there are three places where we have to change the view, and modify both variables like this, let's use a helper function instead
     final newView = PlannerHelper.mapSfCalendarViewToHeliumView(
       _calendarController.view!,
     );
