@@ -224,7 +224,7 @@ class _TodosViewState extends State<TodosView> {
                   child: _buildSortableHeader('Grade', 'grade'),
                 ),
                 const SizedBox(
-                  width: 140,
+                  width: 170,
                   child: SizedBox.shrink(), // Actions column - no header label
                 ),
               ],
@@ -726,10 +726,11 @@ class _TodosViewState extends State<TodosView> {
               ),
               // Actions
               SizedBox(
-                width: 140,
+                width: 170,
                 child: Row(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    const Spacer(),
                     for (int i = 0; i < actionButtons.length; i++) ...[
                       actionButtons[i],
                       if (i < actionButtons.length - 1) const SizedBox(width: 8),
