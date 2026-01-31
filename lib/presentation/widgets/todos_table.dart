@@ -207,15 +207,15 @@ class _TodosTableState extends State<TodosTable> {
   }
 
   void _goToToday() {
-    setState(() {
-      _sortColumn = 'dueDate';
-      _sortAscending = true;
-    });
+    // Set sort to due date, ascending (caller handles setState)
+    _sortColumn = 'dueDate';
+    _sortAscending = true;
 
     final dataSource = widget.dataSource;
     final allHomeworks = _sortHomeworks(dataSource.filteredHomeworks);
 
     if (allHomeworks.isEmpty) {
+      _currentPage = 1;
       return;
     }
 
@@ -234,10 +234,13 @@ class _TodosTableState extends State<TodosTable> {
       }
     }
 
+    // If no future items found, show the last page (most recent past items)
     if (targetIndex == -1) {
-      setState(() {
-        _currentPage = 1;
-      });
+      final effectiveItemsPerPage = _itemsPerPage == -1
+          ? allHomeworks.length
+          : _itemsPerPage;
+      final lastPage = (allHomeworks.length / effectiveItemsPerPage).ceil();
+      _currentPage = lastPage;
       return;
     }
 
@@ -247,11 +250,7 @@ class _TodosTableState extends State<TodosTable> {
         : _itemsPerPage;
     final targetPage = (targetIndex / effectiveItemsPerPage).floor() + 1;
 
-    // FIXME: we stay on page 1 even after this
-
-    setState(() {
-      _currentPage = targetPage;
-    });
+    _currentPage = targetPage;
   }
 
   // Order to hide columns, based on screen size:
