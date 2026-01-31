@@ -63,7 +63,7 @@ class _VerifyScreenState extends BasePageScreenState<VerifyScreen> {
     if (widget.username != null && widget.code != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          _handleSubmit();
+          _onSubmit();
         }
       });
     }
@@ -194,7 +194,7 @@ class _VerifyScreenState extends BasePageScreenState<VerifyScreen> {
                 prefixIcon: Icons.pin,
                 controller: _codeController,
                 validator: _validateCode,
-                onFieldSubmitted: (value) => _handleSubmit(),
+                onFieldSubmitted: (value) => _onSubmit(),
                 keyboardType: TextInputType.number,
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,
@@ -209,7 +209,7 @@ class _VerifyScreenState extends BasePageScreenState<VerifyScreen> {
                   return HeliumElevatedButton(
                     buttonText: 'Verify Email',
                     isLoading: isSubmitting,
-                    onPressed: _handleSubmit,
+                    onPressed: _onSubmit,
                   );
                 },
               ),
@@ -262,7 +262,7 @@ class _VerifyScreenState extends BasePageScreenState<VerifyScreen> {
     return null;
   }
 
-  void _handleSubmit() {
+  void _onSubmit() {
     if (_formController.formKey.currentState?.validate() ?? false) {
       setState(() {
         isSubmitting = true;

@@ -305,7 +305,7 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
                   return HeliumElevatedButton(
                     buttonText: 'Sign Up',
                     isLoading: isSubmitting,
-                    onPressed: _handleSubmit,
+                    onPressed: _onSubmit,
                   );
                 },
               ),
@@ -350,7 +350,7 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
     );
   }
 
-  void _handleSubmit() {
+  void _onSubmit() {
     if (_formController.formKey.currentState!.validate()) {
       if (!_formController.agreeToTerms) {
         showSnackBar(

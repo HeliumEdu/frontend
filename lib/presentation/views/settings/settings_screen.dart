@@ -20,6 +20,7 @@ import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/widgets/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
+import 'package:heliumapp/presentation/widgets/shadow_container.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
@@ -44,6 +45,8 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
       BasicFormController();
   final TextEditingController _deleteAccountPasswordController =
       TextEditingController();
+
+  final themeNotifier = ThemeNotifier();
 
   // State
   late String _username;
@@ -85,7 +88,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
               context,
               'Sorry to see you go! We\'ve deleted all traces of your existence from Helium.',
               isError: false,
-              seconds: 6
+              seconds: 6,
             );
             if (context.mounted) {
               context.go(AppRoutes.loginScreen);
@@ -115,10 +118,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
       child: SingleChildScrollView(
         child: Column(
           children: [
-            _buildThemeArea(),
-
             // TODO: implement ability to change username, email
-
             _buildProfileArea(),
 
             const SizedBox(height: 12),
@@ -130,7 +130,6 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
             // TODO: implement section for import/export, re-importing example schedule
 
             // TODO: implement ability to delete all events
-
             _buildDeleteAccountArea(),
 
             const SizedBox(height: 12),
@@ -141,22 +140,51 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
   }
 
   Widget _buildProfileArea() {
-    return Container(
+    return ShadowContainer(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: context.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: context.colorScheme.shadow.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              SegmentedButton<ThemeMode>(
+                segments: const [
+                  ButtonSegment<ThemeMode>(
+                    value: ThemeMode.light,
+                    icon: Icon(Icons.light_mode),
+                  ),
+                  ButtonSegment<ThemeMode>(
+                    value: ThemeMode.dark,
+                    icon: Icon(Icons.dark_mode),
+                  ),
+                  ButtonSegment<ThemeMode>(
+                    value: ThemeMode.system,
+                    icon: Icon(Icons.settings_brightness),
+                  ),
+                ],
+                selected: {themeNotifier.themeMode},
+                onSelectionChanged: (Set<ThemeMode> selected) {
+                  themeNotifier.setThemeMode(selected.first);
+
+                  final colorSchemeTheme = switch (selected.first) {
+                    ThemeMode.light => 0,
+                    ThemeMode.dark => 1,
+                    ThemeMode.system => 2,
+                  };
+
+                  context.read<AuthBloc>().add(
+                    UpdateProfileEvent(
+                      request: UpdateSettingsRequestModel(
+                        colorSchemeTheme: colorSchemeTheme,
+                      ),
+                    ),
+                  );
+                },
+                showSelectedIcon: false,
+              ),
+            ],
+          ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -199,78 +227,9 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
     );
   }
 
-  Widget _buildThemeArea() {
-    final themeNotifier = ThemeNotifier();
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      decoration: BoxDecoration(
-        color: context.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: context.colorScheme.shadow.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          SegmentedButton<ThemeMode>(
-            segments: const [
-              ButtonSegment<ThemeMode>(
-                value: ThemeMode.light,
-                icon: Icon(Icons.light_mode),
-              ),
-              ButtonSegment<ThemeMode>(
-                value: ThemeMode.dark,
-                icon: Icon(Icons.dark_mode),
-              ),
-              ButtonSegment<ThemeMode>(
-                value: ThemeMode.system,
-                icon: Icon(Icons.settings_brightness),
-              ),
-            ],
-            selected: {themeNotifier.themeMode},
-            onSelectionChanged: (Set<ThemeMode> selected) {
-              themeNotifier.setThemeMode(selected.first);
-
-              final colorSchemeTheme = switch (selected.first) {
-                ThemeMode.light => 0,
-                ThemeMode.dark => 1,
-                ThemeMode.system => 2,
-              };
-
-              context.read<AuthBloc>().add(
-                UpdateProfileEvent(
-                  request: UpdateSettingsRequestModel(
-                    colorSchemeTheme: colorSchemeTheme,
-                  ),
-                ),
-              );
-            },
-            showSelectedIcon: false,
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildSubSettingsArea() {
-    return Container(
-      decoration: BoxDecoration(
-        color: context.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: context.colorScheme.shadow.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+    return ShadowContainer(
+      padding: EdgeInsets.zero,
       child: Column(
         children: [
           Material(
@@ -290,7 +249,9 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: context.semanticColors.info.withValues(alpha: 0.1),
+                        color: context.semanticColors.info.withValues(
+                          alpha: 0.1,
+                        ),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
@@ -320,7 +281,9 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                     ),
                     Icon(
                       Icons.arrow_forward_ios,
-                      color: context.colorScheme.onSurface.withValues(alpha: 0.3),
+                      color: context.colorScheme.onSurface.withValues(
+                        alpha: 0.3,
+                      ),
                       size: Responsive.getIconSize(
                         context,
                         mobile: 16,
@@ -353,7 +316,9 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: context.colorScheme.primary.withValues(alpha: 0.1),
+                        color: context.colorScheme.primary.withValues(
+                          alpha: 0.1,
+                        ),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
@@ -386,7 +351,9 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                     ),
                     Icon(
                       Icons.arrow_forward_ios,
-                      color: context.colorScheme.onSurface.withValues(alpha: 0.3),
+                      color: context.colorScheme.onSurface.withValues(
+                        alpha: 0.3,
+                      ),
                       size: Responsive.getIconSize(
                         context,
                         mobile: 16,
@@ -419,7 +386,9 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: context.colorScheme.primary.withValues(alpha: 0.1),
+                        color: context.colorScheme.primary.withValues(
+                          alpha: 0.1,
+                        ),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
@@ -449,7 +418,9 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                     ),
                     Icon(
                       Icons.arrow_forward_ios,
-                      color: context.colorScheme.onSurface.withValues(alpha: 0.3),
+                      color: context.colorScheme.onSurface.withValues(
+                        alpha: 0.3,
+                      ),
                       size: Responsive.getIconSize(
                         context,
                         mobile: 16,
@@ -482,7 +453,9 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: context.colorScheme.primary.withValues(alpha: 0.1),
+                        color: context.colorScheme.primary.withValues(
+                          alpha: 0.1,
+                        ),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
@@ -515,7 +488,9 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                     ),
                     Icon(
                       Icons.arrow_forward_ios,
-                      color: context.colorScheme.onSurface.withValues(alpha: 0.3),
+                      color: context.colorScheme.onSurface.withValues(
+                        alpha: 0.3,
+                      ),
                       size: Responsive.getIconSize(
                         context,
                         mobile: 16,
@@ -534,19 +509,8 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
   }
 
   Widget _buildDeleteAccountArea() {
-    return Container(
-      decoration: BoxDecoration(
-        color: context.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: context.colorScheme.error.withValues(alpha: 0.2)),
-        boxShadow: [
-          BoxShadow(
-            color: context.colorScheme.shadow.withValues(alpha: 0.2),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+    return ShadowContainer(
+      borderColor: context.colorScheme.error.withValues(alpha: 0.2),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -696,9 +660,8 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                                   obscurePassword
                                       ? Icons.visibility_outlined
                                       : Icons.visibility_off_outlined,
-                                  color: context.colorScheme.onSurface.withValues(
-                                    alpha: 0.4,
-                                  ),
+                                  color: context.colorScheme.onSurface
+                                      .withValues(alpha: 0.4),
                                   size: Responsive.getIconSize(
                                     context,
                                     mobile: 20,

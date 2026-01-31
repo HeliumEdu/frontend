@@ -32,8 +32,8 @@ class NavigationShellProvider extends InheritedWidget {
 
 enum NavigationPage {
   calendar('Calendar', Icons.calendar_month, AppRoutes.calendarScreen),
-  courses('Classes', Icons.menu_book, AppRoutes.coursesScreen),
-  materials('Materials', Icons.business_center, AppRoutes.materialsScreen),
+  courses('Classes', Icons.school, AppRoutes.coursesScreen),
+  materials('Materials', Icons.book, AppRoutes.materialsScreen),
   grades('Grades', Icons.bar_chart, AppRoutes.gradesScreen);
 
   final String label;

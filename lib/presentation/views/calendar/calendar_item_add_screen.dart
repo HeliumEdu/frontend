@@ -30,13 +30,13 @@ import 'package:heliumapp/presentation/forms/core/basic_form_controller.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/calendar_item_add_stepper.dart';
 import 'package:heliumapp/presentation/widgets/drop_down.dart';
+import 'package:heliumapp/presentation/widgets/label_and_html_editor.dart';
 import 'package:heliumapp/presentation/widgets/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
-import 'package:html_editor_enhanced/html_editor.dart';
 import 'package:logging/logging.dart';
 import 'package:timezone/standalone.dart' as tz;
 
@@ -77,7 +77,7 @@ class _CalendarItemAddScreenState
   ScreenType get screenType => ScreenType.entityPage;
 
   @override
-  Function get saveAction => _handleSubmit;
+  Function get saveAction => _onSubmit;
 
   ValueChanged<bool>? get calendarItemToggleCallback =>
       !widget.isEdit && _courses.isNotEmpty
@@ -193,7 +193,7 @@ class _CalendarItemAddScreenState
           eventId: widget.eventId,
           homeworkId: widget.homeworkId,
           isEdit: widget.isEdit,
-          onStep: () => _handleSubmit(advanceNavOnSuccess: false),
+          onStep: () => _onSubmit(advanceNavOnSuccess: false),
         ),
       ],
     );
@@ -221,7 +221,7 @@ class _CalendarItemAddScreenState
                 controller: _formController.titleController,
                 validator: BasicFormController.validateRequiredField,
                 fieldKey: _formController.getFieldKey('title'),
-                onFieldSubmitted: (value) => _handleSubmit(),
+                onFieldSubmitted: (value) => _onSubmit(),
               ),
               const SizedBox(height: 14),
               if (!_isEvent) ...[
@@ -669,53 +669,10 @@ class _CalendarItemAddScreenState
               const Divider(),
               const SizedBox(height: 14),
 
-              // TODO: migrate to quill: https://pub.dev/packages/flutter_quill
-              Text('Notes', style: context.formLabel),
-              const SizedBox(height: 9),
-              Container(
-                decoration: BoxDecoration(
-                  color: context.colorScheme.surface,
-                  border: Border.all(
-                    color: context.colorScheme.outline.withValues(alpha: 0.2),
-                    width: 2,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: ClipRRect(
-                  child: HtmlEditor(
-                    controller: _formController.detailsController,
-                    htmlToolbarOptions: const HtmlToolbarOptions(
-                      toolbarType: ToolbarType.nativeGrid,
-                      defaultToolbarButtons: [
-                        FontButtons(
-                          superscript: false,
-                          subscript: false,
-                          clearAll: false,
-                        ),
-                        ListButtons(listStyles: false),
-                        ParagraphButtons(
-                          alignLeft: false,
-                          alignCenter: false,
-                          alignRight: false,
-                          alignJustify: false,
-                          textDirection: false,
-                          lineHeight: false,
-                          caseConverter: false,
-                        ),
-                      ],
-                    ),
-                    htmlEditorOptions: HtmlEditorOptions(
-                      hint: '',
-                      initialText: _formController.initialNotes,
-                      autoAdjustHeight: true,
-                      darkMode: context.isDarkMode,
-                    ),
-                    otherOptions: const OtherOptions(
-                      height: 300,
-                      decoration: BoxDecoration(),
-                    ),
-                  ),
-                ),
+              LabelAndHtmlEditor(
+                label: 'Notes',
+                controller: _formController.detailsController,
+                initialText: _formController.initialNotes,
               ),
 
               const SizedBox(height: 12),
@@ -732,12 +689,26 @@ class _CalendarItemAddScreenState
     setState(() {
       _courses = state.courses;
       _courseItems = _courses
-          .map((c) => DropDownItem(id: c.id, value: c))
+          .map(
+            (c) => DropDownItem(
+              id: c.id,
+              value: c,
+              iconData: Icons.school_outlined,
+              iconColor: c.color,
+            ),
+          )
           .toList();
       _courseSchedules = state.courseSchedules;
       _categories = state.categories;
       _categoryItems = _categories
-          .map((c) => DropDownItem(id: c.id, value: c))
+          .map(
+            (c) => DropDownItem(
+              id: c.id,
+              value: c,
+              iconData: Icons.category_outlined,
+              iconColor: c.color,
+            ),
+          )
           .toList();
       _materials = state.materials;
 
@@ -769,8 +740,12 @@ class _CalendarItemAddScreenState
           calendarItem.end,
           userSettings.timeZone,
         );
-        _formController.endDate = endDateTime;
-        if (!_formController.isAllDay) {
+        if (_formController.isAllDay) {
+          _formController.endDate = endDateTime.subtract(
+            const Duration(days: 1),
+          );
+        } else {
+          _formController.endDate = endDateTime;
           _formController.endTime = TimeOfDay.fromDateTime(endDateTime);
         }
 
@@ -877,7 +852,7 @@ class _CalendarItemAddScreenState
     return _formController.priorityValue.round();
   }
 
-  Future<void> _handleSubmit({bool advanceNavOnSuccess = true}) async {
+  Future<void> _onSubmit({bool advanceNavOnSuccess = true}) async {
     if (_formController.validateAndScrollToError()) {
       if (_formController.endDate.isBefore(_formController.startDate)) {
         showSnackBar(
@@ -927,13 +902,27 @@ class _CalendarItemAddScreenState
 
       String end;
       if (_formController.showEndDateTime) {
+        final endDateForApi = _formController.isAllDay
+            ? _formController.endDate.add(const Duration(days: 1))
+            : _formController.endDate;
         end = HeliumDateTime.formatDateAndTimeForApi(
-          _formController.endDate,
+          endDateForApi,
           _formController.isAllDay ? null : _formController.endTime,
           userSettings.timeZone,
         );
       } else {
-        end = start;
+        if (_formController.isAllDay) {
+          final endDate = _formController.startDate.add(
+            const Duration(days: 1),
+          );
+          end = HeliumDateTime.formatDateAndTimeForApi(
+            endDate,
+            null,
+            userSettings.timeZone,
+          );
+        } else {
+          end = start;
+        }
       }
 
       final notes = await _formController.detailsController.getText();

@@ -164,7 +164,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                   prefixIcon: Icons.lock,
                   controller: _formController.passwordController,
                   validator: BasicFormController.validateRequiredField,
-                  onFieldSubmitted: (value) => _handleSubmit(),
+                  onFieldSubmitted: (value) => _onSubmit(),
                   obscureText: !_formController.isPasswordVisible,
                   autofillHints: const [AutofillHints.password],
                   suffixIcon: IconButton(
@@ -216,7 +216,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                         HeliumElevatedButton(
                           buttonText: 'Sign In',
                           isLoading: isSubmitting,
-                          onPressed: _handleSubmit,
+                          onPressed: _onSubmit,
                         ),
                         const SizedBox(height: 16),
                       ],
@@ -263,7 +263,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
     );
   }
 
-  void _handleSubmit() {
+  void _onSubmit() {
     if (_formController.formKey.currentState!.validate()) {
       setState(() {
         isSubmitting = true;

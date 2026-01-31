@@ -12,11 +12,12 @@ import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
+import 'package:heliumapp/presentation/widgets/shadow_container.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/config/app_theme.dart';
 
 enum CalendarItemAddSteps {
-  details('Details', Icons.menu_book),
+  details('Details', Icons.list),
   reminders('Reminders', Icons.notifications_active_outlined),
   attachments('Attachments', Icons.attachment_outlined);
 
@@ -46,21 +47,7 @@ class CalendarItemStepper extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      // TODO: migrate to ShadowContainer for consistent usage (that doesn't require Card's InkWell baggage)
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: context.colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: context.colorScheme.shadow.withValues(alpha: 0.06),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-              spreadRadius: 0,
-            ),
-          ],
-        ),
+      child: ShadowContainer(
         child: EasyStepper(
           lineStyle: LineStyle(
             lineLength: (MediaQuery.sizeOf(context).width - 275) / 3,

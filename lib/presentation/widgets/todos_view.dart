@@ -9,17 +9,21 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/sources/calendar_item_data_source.dart';
+import 'package:heliumapp/presentation/widgets/category_title_label.dart';
+import 'package:heliumapp/presentation/widgets/course_title_label.dart';
+import 'package:heliumapp/presentation/widgets/grade_label.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
-// FIXME: clean this view up further, including making mobile friendly
+// FIXME: once priority-based hiding of columns based on screen width is done, evaluate what else needs to be for view to be fully mobile-friendly
 // FIXME: add HeliumIconButton for edit/delete
 // FIXME: (if class has website), add HeliumIconButton for website
 // FIXME: (if class teacher has email), add HeliumIconButton for email
 // FIXME: better place for pagination, obscured by "+" hover button
+// FIXME: listen for CalendarDataSourceAction, show loading animation until that event fires completion
 
 class TodosView extends StatefulWidget {
   final CalendarItemDataSource dataSource;
@@ -44,12 +48,21 @@ class _TodosViewState extends State<TodosView> {
   int _itemsPerPage = 10;
   bool _isExpandingDataWindow = false;
 
-  final List<int> _itemsPerPageOptions = [5, 10, 25, 50, 100, -1]; // -1 represents "All"
+  final List<int> _itemsPerPageOptions = [
+    5,
+    10,
+    25,
+    50,
+    100,
+    -1,
+  ]; // -1 represents "All"
 
   @override
   void initState() {
     super.initState();
     _expandDataWindowForAllCourses();
+
+    // FIXME: when page loads, start by ordering by due date (which maps to homework.start), earliest to latest. once all items and pages are loaded, "jump" to the page that has shows events for "today" (or the nearest next calendar item)
   }
 
   /// Expands the data source window to load ALL homework for visible courses
@@ -100,9 +113,15 @@ class _TodosViewState extends State<TodosView> {
     final totalItems = sortedHomeworks.length;
     final isShowingAll = _itemsPerPage == -1;
     final effectiveItemsPerPage = isShowingAll ? totalItems : _itemsPerPage;
-    final totalPages = isShowingAll ? 1 : (totalItems / effectiveItemsPerPage).ceil();
-    final startIndex = isShowingAll ? 0 : (_currentPage - 1) * effectiveItemsPerPage;
-    final endIndex = isShowingAll ? totalItems : (startIndex + effectiveItemsPerPage).clamp(0, totalItems);
+    final totalPages = isShowingAll
+        ? 1
+        : (totalItems / effectiveItemsPerPage).ceil();
+    final startIndex = isShowingAll
+        ? 0
+        : (_currentPage - 1) * effectiveItemsPerPage;
+    final endIndex = isShowingAll
+        ? totalItems
+        : (startIndex + effectiveItemsPerPage).clamp(0, totalItems);
     final paginatedHomeworks = sortedHomeworks.sublist(
       startIndex.clamp(0, totalItems),
       endIndex,
@@ -168,7 +187,11 @@ class _TodosViewState extends State<TodosView> {
               children: [
                 SizedBox(
                   width: 40,
-                  child: _buildSortableHeader('', 'completed', isCheckbox: true),
+                  child: _buildSortableHeader(
+                    '',
+                    'completed',
+                    isCheckbox: true,
+                  ),
                 ),
                 Expanded(
                   flex: 3,
@@ -194,8 +217,8 @@ class _TodosViewState extends State<TodosView> {
                   flex: 2,
                   child: _buildSortableHeader('Priority', 'priority'),
                 ),
-                Expanded(
-                  flex: 1,
+                SizedBox(
+                  width: 95,
                   child: _buildSortableHeader('Grade', 'grade'),
                 ),
               ],
@@ -229,7 +252,9 @@ class _TodosViewState extends State<TodosView> {
                     Text(
                       'Show',
                       style: context.eTextStyle.copyWith(
-                        color: context.colorScheme.onSurface.withValues(alpha: 0.7),
+                        color: context.colorScheme.onSurface.withValues(
+                          alpha: 0.7,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -237,7 +262,9 @@ class _TodosViewState extends State<TodosView> {
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       decoration: BoxDecoration(
                         border: Border.all(
-                          color: context.colorScheme.outline.withValues(alpha: 0.3),
+                          color: context.colorScheme.outline.withValues(
+                            alpha: 0.3,
+                          ),
                         ),
                         borderRadius: BorderRadius.circular(4),
                       ),
@@ -270,7 +297,9 @@ class _TodosViewState extends State<TodosView> {
                     Text(
                       'Showing ${startIndex + 1} to $endIndex of $totalItems',
                       style: context.eTextStyle.copyWith(
-                        color: context.colorScheme.onSurface.withValues(alpha: 0.7),
+                        color: context.colorScheme.onSurface.withValues(
+                          alpha: 0.7,
+                        ),
                       ),
                     ),
                   ],
@@ -371,10 +400,7 @@ class _TodosViewState extends State<TodosView> {
           });
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 6,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
             color: _currentPage == pageNumber
                 ? context.colorScheme.primary
@@ -406,10 +432,7 @@ class _TodosViewState extends State<TodosView> {
     return Padding(
       padding: const EdgeInsets.only(left: 4),
       child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 6,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         child: Text(
           '...',
           style: context.eTextStyle.copyWith(
@@ -420,7 +443,11 @@ class _TodosViewState extends State<TodosView> {
     );
   }
 
-  Widget _buildSortableHeader(String label, String column, {bool isCheckbox = false}) {
+  Widget _buildSortableHeader(
+    String label,
+    String column, {
+    bool isCheckbox = false,
+  }) {
     final isActive = _sortColumn == column;
 
     return GestureDetector(
@@ -436,7 +463,9 @@ class _TodosViewState extends State<TodosView> {
         });
       },
       child: Row(
-        mainAxisAlignment: isCheckbox ? MainAxisAlignment.center : MainAxisAlignment.start,
+        mainAxisAlignment: isCheckbox
+            ? MainAxisAlignment.center
+            : MainAxisAlignment.start,
         children: [
           if (isCheckbox)
             Icon(
@@ -489,8 +518,8 @@ class _TodosViewState extends State<TodosView> {
           comparison = isCompletedA == isCompletedB
               ? 0
               : isCompletedA
-                  ? 1
-                  : -1;
+              ? 1
+              : -1;
           break;
         case 'title':
           comparison = a.title.toLowerCase().compareTo(b.title.toLowerCase());
@@ -552,12 +581,7 @@ class _TodosViewState extends State<TodosView> {
 
     final bool isCompleted = dataSource.isHomeworkCompleted(homework);
 
-    final categoryName = categoriesMap.containsKey(homework.category.id)
-        ? categoriesMap[homework.category.id]!.title
-        : '';
-    final categoryColor = categoriesMap.containsKey(homework.category.id)
-        ? categoriesMap[homework.category.id]!.color
-        : null;
+    final category = categoriesMap[homework.category.id]!;
 
     return Container(
       decoration: BoxDecoration(
@@ -584,24 +608,16 @@ class _TodosViewState extends State<TodosView> {
                     Feedback.forTap(context);
                     widget.onToggleCompleted(homework, value!);
                   },
-                  activeColor: course.color,
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  activeColor: userSettings.colorByCategory
+                      ? category.color
+                      : course.color,
                 ),
               ),
-              // Title with course color indicator
+              // Title
               Expanded(
                 flex: 3,
                 child: Row(
                   children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: course.color,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         homework.title,
@@ -632,64 +648,26 @@ class _TodosViewState extends State<TodosView> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
+              // FIXME: if screen is not wide enough to view, hide this 4th
               // Class
               Expanded(
                 flex: 2,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: course.color.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    course.title,
-                    style: context.eTextStyle.copyWith(
-                      color: course.color,
-                      fontSize: Responsive.getFontSize(
-                        context,
-                        mobile: 11,
-                        tablet: 12,
-                        desktop: 13,
-                      ),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                child: CourseTitleLabel(
+                  title: course.title,
+                  color: course.color,
                 ),
               ),
+              // FIXME: the container within the category label should shrink-to-fix the text within it (but using Flexible here messes with table row width, so find another solution
+              // FIXME: if screen is not wide enough to view, hide this 2nd
               // Category
               Expanded(
                 flex: 2,
-                child: categoryName.isNotEmpty
-                    ? Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: categoryColor!.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          categoryName,
-                          style: context.eTextStyle.copyWith(
-                            color: categoryColor,
-                            fontSize: Responsive.getFontSize(
-                              context,
-                              mobile: 11,
-                              tablet: 12,
-                              desktop: 13,
-                            ),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      )
-                    : const SizedBox.shrink(),
+                child: CategoryTitleLabel(
+                  title: category.title,
+                  color: category.color,
+                ),
               ),
+              // FIXME: if more than 150 pixels available, render these as MaterialLabelTitle, and allow to wrap within the column; otherwise continue to rollup number of materials in to an icon count (like it is currently done now)
               // Materials
               Expanded(
                 flex: 1,
@@ -698,7 +676,7 @@ class _TodosViewState extends State<TodosView> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            Icons.attachment,
+                            Icons.book_outlined,
                             size: 14,
                             color: userSettings.materialColor,
                           ),
@@ -720,41 +698,22 @@ class _TodosViewState extends State<TodosView> {
                       )
                     : const SizedBox.shrink(),
               ),
+              // FIXME: if screen is not wide enough to view, hide this 1st
               // Priority
               Expanded(
                 flex: 2,
                 child: _buildPriorityIndicator(homework.priority),
               ),
+              // FIXME: if screen is not wide enough to view, hide this 3rd
               // Grade
-              Expanded(
-                flex: 1,
+              SizedBox(
+                width: 95,
                 child:
-                    // TODO: refactor to GradeWidget and use anywhere we display grade
                     homework.currentGrade != null &&
                         homework.currentGrade!.isNotEmpty
-                    ? Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: userSettings.gradeColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          Format.gradeForDisplay(homework.currentGrade, true),
-                          style: context.eTextStyle.copyWith(
-                            color: context.colorScheme.primary,
-                            fontWeight: FontWeight.w600,
-                            fontSize: Responsive.getFontSize(
-                              context,
-                              mobile: 11,
-                              tablet: 12,
-                              desktop: 13,
-                            ),
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
+                    ? GradeLabel(
+                        grade: Format.gradeForDisplay(homework.currentGrade),
+                        userSettings: userSettings,
                       )
                     : const SizedBox.shrink(),
               ),
@@ -766,10 +725,14 @@ class _TodosViewState extends State<TodosView> {
   }
 
   Widget _buildPriorityIndicator(int priority) {
+    // FIXME: this would look better as a filled progress bar of sorts, not the individual "pill" look
+
     // Priority is 1-100, displayed in increments of 10 (10 levels)
     final clampedPriority = priority.clamp(1, 100);
     final priorityLevel = ((clampedPriority - 1) / 10).floor();
-    final priorityColor = HeliumColors.getColorForPriority(clampedPriority.toDouble());
+    final priorityColor = HeliumColors.getColorForPriority(
+      clampedPriority.toDouble(),
+    );
 
     return Row(
       mainAxisSize: MainAxisSize.min,

@@ -7,8 +7,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
+import 'package:heliumapp/utils/planner_helper.dart';
 
 enum CalendarItemType { event, homework, external, courseSchedule }
+
+enum HeliumView { month, week, day, agenda, todos }
 
 List<DropDownItem<String>> _listToDropDownItems(List<String> list) {
   return list
@@ -55,8 +58,13 @@ class CalendarConstants {
     'Todos',
     'Agenda',
   ];
-  static final List<DropDownItem<String>> defaultViewItems =
-      _listToDropDownItems(defaultViews);
+  static final List<DropDownItem<String>> defaultViewItems = HeliumView
+      .values
+      .map((view) {
+        final apiIndex = PlannerHelper.mapHeliumViewToApiView(view);
+        return DropDownItem(id: apiIndex, value: defaultViews[apiIndex]);
+      })
+      .toList();
 }
 
 class ReminderConstants {
@@ -65,11 +73,11 @@ class ReminderConstants {
     DropDownItem(
       id: 0,
       value: 'Popup',
-      icon: Icons.notifications_active_outlined,
+      iconData: Icons.notifications_active_outlined,
     ),
-    DropDownItem(id: 1, value: 'Email', icon: Icons.mail_outline),
-    DropDownItem(id: 2, value: 'Text', icon: Icons.sms_outlined),
-    DropDownItem(id: 3, value: 'Push', icon: Icons.phone_android_outlined),
+    DropDownItem(id: 1, value: 'Email', iconData: Icons.mail_outline),
+    DropDownItem(id: 2, value: 'Text', iconData: Icons.sms_outlined),
+    DropDownItem(id: 3, value: 'Push', iconData: Icons.phone_android_outlined),
   ];
 
   static const List<String> offsetTypes = ['Minutes', 'Hours', 'Days', 'Weeks'];

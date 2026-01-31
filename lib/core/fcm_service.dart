@@ -303,12 +303,12 @@ class FcmService {
     if (_handlersConfigured) return;
     _handlersConfigured = true;
 
-    FirebaseMessaging.onBackgroundMessage(_handleBackgroundMessage);
+    FirebaseMessaging.onBackgroundMessage(_onBackgroundMessage);
 
-    FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+    FirebaseMessaging.onMessage.listen(_onForegroundMessage);
 
     // Handle taps from background
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
+    FirebaseMessaging.onMessageOpenedApp.listen(_onNotificationTap);
 
     // Handle taps from terminated
     _handleInitialMessage();
@@ -321,7 +321,7 @@ class FcmService {
     });
   }
 
-  Future<void> _handleForegroundMessage(RemoteMessage message) async {
+  Future<void> _onForegroundMessage(RemoteMessage message) async {
     final messageId = message.messageId ?? 'unknown';
     log.info('Foreground message $messageId received from FCM');
 
@@ -354,10 +354,10 @@ class FcmService {
     log.info('Foreground message $messageId notification displayed');
   }
 
-  Future<void> _handleNotificationTap(RemoteMessage message) async {
-    final messageId = message.messageId ?? 'unknown';
+  Future<void> _onNotificationTap(RemoteMessage message) async {
+    final messageId = message.messageId;
     log.info('Notification $messageId tapped');
-    _handleNotificationNavigation(message.data);
+    await router.push(AppRoutes.notificationsScreen);
   }
 
   Future<void> _handleInitialMessage() async {
@@ -366,12 +366,8 @@ class FcmService {
 
     if (initialMessage != null) {
       log.info('App opened from terminated state via notification');
-      _handleNotificationNavigation(initialMessage.data);
+      await router.push(AppRoutes.notificationsScreen);
     }
-  }
-
-  void _handleNotificationNavigation(Map<String, dynamic> data) {
-    router.push(AppRoutes.notificationsScreen);
   }
 
   // Show local notification
@@ -381,7 +377,7 @@ class FcmService {
       if (await web_notifications.requestWebNotificationPermission()) {
         web_notifications.showWebNotification(
           notification,
-          _handleNotificationNavigation,
+          (_) => router.push(AppRoutes.notificationsScreen),
         );
       }
       return;
@@ -419,7 +415,7 @@ class FcmService {
 
   void _onNotificationTapped(NotificationResponse response) {
     log.info('Local notification tapped: ${response.id}');
-    _handleNotificationNavigation({});
+    router.push(AppRoutes.notificationsScreen);
   }
 
   Future<void> registerToken({bool force = false}) async {
@@ -508,7 +504,7 @@ class FcmService {
 }
 
 @pragma('vm:entry-point')
-Future<void> _handleBackgroundMessage(RemoteMessage message) async {
+Future<void> _onBackgroundMessage(RemoteMessage message) async {
   await Firebase.initializeApp();
   final messageId = message.messageId ?? 'unknown';
   log.info('Background message $messageId received from FCM');
