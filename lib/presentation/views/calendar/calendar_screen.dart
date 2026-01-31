@@ -6,6 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -417,12 +418,14 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           timeZone: userSettings.timeZone.name,
           firstDayOfWeek:
               PlannerHelper.weekStartsOnRemap[userSettings.weekStartsOn],
-          scheduleViewSettings: const ScheduleViewSettings(
+          scheduleViewSettings: ScheduleViewSettings(
             hideEmptyScheduleWeek: true,
+            appointmentItemHeight: Responsive.isMobile(context) ? 56 : 48,
           ),
           monthViewSettings: MonthViewSettings(
             appointmentDisplayCount: appointmentDisplayCount,
             showAgenda: Responsive.isMobile(context),
+            agendaItemHeight: Responsive.isMobile(context) ? 56 : -1,
             appointmentDisplayMode: Responsive.isMobile(context)
                 ? MonthAppointmentDisplayMode.indicator
                 : MonthAppointmentDisplayMode.appointment,
@@ -1699,7 +1702,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
     // Use provided height or calculate default minimum based on device
     final double defaultMinHeight = Responsive.isMobile(context) ? 56.0 : 48.0;
-    final double effectiveMinHeight = height ?? defaultMinHeight;
+    // In agenda views, enforce minimum height even if SfCalendar provides smaller height
+    final double effectiveMinHeight = isInAgenda && height != null
+        ? math.max(height, defaultMinHeight)
+        : (height ?? defaultMinHeight);
 
     // Build the three sections
     final leftWidget = _buildCalendarItemLeft(
