@@ -1545,12 +1545,15 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           ),
 
         // Location below title (if applicable)
-        if (PlannerHelper.shouldShowLocationBelowTitle(
-              context,
-              calendarItem,
-              isInAgenda,
-              _currentView,
-            ) &&
+        // For all-day items in agenda/schedule, always show location even though
+        // PlannerHelper.shouldShowLocationBelowTitle returns false for all-day items
+        if (((isInAgenda && calendarItem.allDay) ||
+                PlannerHelper.shouldShowLocationBelowTitle(
+                  context,
+                  calendarItem,
+                  isInAgenda,
+                  _currentView,
+                )) &&
             location != null)
           Row(
             children: [
