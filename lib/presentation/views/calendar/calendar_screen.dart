@@ -572,7 +572,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       return const Spacer();
     }
 
-    // FIXME: "Todos" isn't showing as expected
+    // FIXME: "Todos" title isn't showing as expected
     if (_currentView == HeliumView.agenda || _currentView == HeliumView.todos) {
       return Expanded(
         child: Padding(

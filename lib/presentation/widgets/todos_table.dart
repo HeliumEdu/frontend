@@ -27,7 +27,7 @@ import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-// FIXME: evaluate what additional mobile-friendly improvements are needed
+// FIXME: we should add a GlobalKey or similar to this from calendar_screen, similar to how SfCalendar does this. That way when the user switches back and forth between views, they come back to the state they were just on for this view
 
 class TodosTable extends StatefulWidget {
   final CalendarItemDataSource dataSource;
@@ -53,6 +53,7 @@ class _TodosTableState extends State<TodosTable> {
   int _currentPage = 1;
   int _itemsPerPage = 10;
   bool _isLoading = true;
+  bool _hasInitialized = false;
 
   final List<int> _itemsPerPageOptions = [5, 10, 25, 50, 100, -1];
 
@@ -62,7 +63,13 @@ class _TodosTableState extends State<TodosTable> {
 
     widget.dataSource.changeNotifier.addListener(_onDataSourceChanged);
 
-    _expandDataWindowForAllCourses();
+    if (_hasInitialized) {
+      setState(() {
+        _isLoading = false;
+      });
+    } else {
+      _expandDataWindowForAllCourses();
+    }
   }
 
   @override
@@ -147,11 +154,14 @@ class _TodosTableState extends State<TodosTable> {
   }
 
   void _onDataSourceChanged() {
-    if (widget.dataSource.hasLoadedInitialData && _isLoading) {
-      setState(() {
-        _goToToday();
+    if (widget.dataSource.hasLoadedInitialData &&
+        _isLoading &&
+        !_hasInitialized) {
+      _goToToday();
 
+      setState(() {
         _isLoading = false;
+        _hasInitialized = true;
       });
     }
   }
@@ -188,6 +198,8 @@ class _TodosTableState extends State<TodosTable> {
       }
     }
 
+    // FIXME: within the data source, we should have a separate from/to window for homework only, since this page only renders homework
+
     // Trigger data source to expand its window
     if (from != null && to != null) {
       await dataSource.handleLoadMore(from, to);
@@ -195,31 +207,84 @@ class _TodosTableState extends State<TodosTable> {
   }
 
   void _goToToday() {
-    // FIXME: when page loads, start by ordering by due date (which maps to homework.start), earliest to latest. once all items and pages are loaded, "jump" to the page that has shows events for "today" (or the nearest next calendar item)
+    setState(() {
+      _sortColumn = 'dueDate';
+      _sortAscending = true;
+    });
+
+    final dataSource = widget.dataSource;
+    final allHomeworks = _sortHomeworks(dataSource.filteredHomeworks);
+
+    if (allHomeworks.isEmpty) {
+      return;
+    }
+
+    // Find the first homework that is due today or later
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    int targetIndex = -1;
+    for (int i = 0; i < allHomeworks.length; i++) {
+      final dueDate = DateTime.parse(allHomeworks[i].start);
+      final dueDateOnly = DateTime(dueDate.year, dueDate.month, dueDate.day);
+
+      if (dueDateOnly.isAtSameMomentAs(today) || dueDateOnly.isAfter(today)) {
+        targetIndex = i;
+        break;
+      }
+    }
+
+    if (targetIndex == -1) {
+      setState(() {
+        _currentPage = 1;
+      });
+      return;
+    }
+
+    // Calculate which page contains this item
+    final effectiveItemsPerPage = _itemsPerPage == -1
+        ? allHomeworks.length
+        : _itemsPerPage;
+    final targetPage = (targetIndex / effectiveItemsPerPage).floor() + 1;
+
+    // FIXME: we stay on page 1 even after this
+
+    setState(() {
+      _currentPage = targetPage;
+    });
   }
 
+  // Order to hide columns, based on screen size:
+  // 1. Priority
+  // 2. Materials
+  // 3. Category
+  // 4. Grade
+  // 5. Class
+  // 6. Materials
+  // 7. Actions
+
   bool _shouldShowPriorityColumn(BuildContext context) {
+    return MediaQuery.of(context).size.width >= 1300;
+  }
+
+  bool _shouldShowMaterialsColumn(BuildContext context) {
     return MediaQuery.of(context).size.width >= 1200;
   }
 
   bool _shouldShowCategoryColumn(BuildContext context) {
-    return MediaQuery.of(context).size.width >= 1000;
+    return MediaQuery.of(context).size.width >= 900;
   }
 
   bool _shouldShowGradeColumn(BuildContext context) {
+    return MediaQuery.of(context).size.width >= 850;
+  }
+
+  bool _shouldShowActionsColumn(BuildContext context) {
     return MediaQuery.of(context).size.width >= 800;
   }
 
   bool _shouldShowClassColumn(BuildContext context) {
-    return MediaQuery.of(context).size.width >= 600;
-  }
-
-  bool _shouldShowMaterialsColumn(BuildContext context) {
-    return MediaQuery.of(context).size.width >= 500;
-  }
-
-  bool _shouldShowActionsColumn(BuildContext context) {
-    return MediaQuery.of(context).size.width >= 400;
+    return MediaQuery.of(context).size.width >= 625;
   }
 
   Widget _buildTableHeader() {
@@ -262,10 +327,7 @@ class _TodosTableState extends State<TodosTable> {
           if (_shouldShowGradeColumn(context))
             SizedBox(width: 95, child: _buildSortableHeader('Grade', 'grade')),
           if (_shouldShowActionsColumn(context))
-            const SizedBox(
-              width: 170,
-              child: SizedBox.shrink(), // Actions column - no header label
-            ),
+            const SizedBox(width: 170, child: SizedBox.shrink()),
         ],
       ),
     );
@@ -290,7 +352,6 @@ class _TodosTableState extends State<TodosTable> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top row: Count and pagination
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -299,7 +360,6 @@ class _TodosTableState extends State<TodosTable> {
             ],
           ),
           const SizedBox(height: 12),
-          // Bottom row: Items per page dropdown
           _buildItemsPerPageDropdown(),
         ],
       ),
@@ -336,7 +396,7 @@ class _TodosTableState extends State<TodosTable> {
               if (newItem != null) {
                 setState(() {
                   _itemsPerPage = newItem.id;
-                  _currentPage = 1; // Reset to first page
+                  _currentPage = 1;
                 });
               }
             },
@@ -348,7 +408,7 @@ class _TodosTableState extends State<TodosTable> {
 
   Widget _buildItemsCountText(int startIndex, int endIndex, int totalItems) {
     return Text(
-      'Showing ${startIndex + 1} to $endIndex of $totalItems',
+      '${!Responsive.isMobile(context) ? 'Showing ' : ''}${startIndex + 1} to $endIndex of $totalItems',
       style: context.eTextStyle.copyWith(
         color: context.colorScheme.onSurface.withValues(alpha: 0.7),
       ),
@@ -358,7 +418,6 @@ class _TodosTableState extends State<TodosTable> {
   Widget _buildPagination(int totalPages) {
     return Row(
       children: [
-        // Previous button
         IconButton(
           onPressed: _currentPage > 1
               ? () {
@@ -373,10 +432,8 @@ class _TodosTableState extends State<TodosTable> {
           constraints: const BoxConstraints(),
         ),
         const SizedBox(width: 8),
-        // Page numbers
         ..._buildPageNumbers(totalPages),
         const SizedBox(width: 8),
-        // Next button
         IconButton(
           onPressed: _currentPage < totalPages
               ? () {
@@ -396,37 +453,31 @@ class _TodosTableState extends State<TodosTable> {
 
   List<Widget> _buildPageNumbers(int totalPages) {
     final List<Widget> pages = [];
+    // FIXME: might need to adjust this number to be lower for mobile
     const int maxVisiblePages = 5;
 
     if (totalPages <= maxVisiblePages) {
-      // Show all pages if total is 5 or fewer
       for (int i = 1; i <= totalPages; i++) {
         pages.add(_buildPageButton(i));
       }
     } else {
-      // Show first page
       pages.add(_buildPageButton(1));
 
-      // Calculate range around current page
       final int start = (_currentPage - 1).clamp(2, totalPages - 3);
       final int end = (_currentPage + 1).clamp(4, totalPages - 1);
 
-      // Add ellipsis before if needed
       if (start > 2) {
         pages.add(_buildEllipsis());
       }
 
-      // Add pages around current page
       for (int i = start; i <= end; i++) {
         pages.add(_buildPageButton(i));
       }
 
-      // Add ellipsis after if needed
       if (end < totalPages - 1) {
         pages.add(_buildEllipsis());
       }
 
-      // Show last page
       pages.add(_buildPageButton(totalPages));
     }
 
@@ -837,7 +888,6 @@ class _TodosTableState extends State<TodosTable> {
   List<Widget> _buildActionButtons(HomeworkModel homework, dynamic course) {
     final buttons = <Widget>[];
 
-    // Email button (if course has teacher email)
     if (course?.teacherEmail?.isNotEmpty ?? false) {
       buttons.add(
         HeliumIconButton(
@@ -850,7 +900,6 @@ class _TodosTableState extends State<TodosTable> {
       );
     }
 
-    // Website button (if course has website)
     if (course?.website?.isNotEmpty ?? false) {
       buttons.add(
         HeliumIconButton(
@@ -866,7 +915,6 @@ class _TodosTableState extends State<TodosTable> {
       );
     }
 
-    // Edit button (if editable)
     if (PlannerHelper.shouldShowEditAndDeleteButtons(homework)) {
       buttons.add(
         HeliumIconButton(
@@ -877,7 +925,6 @@ class _TodosTableState extends State<TodosTable> {
       );
     }
 
-    // Delete button (if deletable)
     if (PlannerHelper.shouldShowEditAndDeleteButtons(homework)) {
       buttons.add(
         HeliumIconButton(
@@ -894,7 +941,6 @@ class _TodosTableState extends State<TodosTable> {
   }
 
   Widget _buildPriorityIndicator(int priority) {
-    // Priority is 1-100, displayed as a filled progress bar
     final clampedPriority = priority.clamp(1, 100);
     final priorityPercent = clampedPriority / 100;
     final priorityColor = HeliumColors.getColorForPriority(
