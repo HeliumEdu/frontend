@@ -233,7 +233,6 @@ class PlannerHelper {
     bool isInAgenda,
     HeliumView view,
   ) {
-    // For all-day items in agenda/schedule, always show location
     if (isInAgenda && calendarItem.allDay) {
       return true;
     }
@@ -260,6 +259,6 @@ class PlannerHelper {
   static bool shouldShowEditAndDeleteButtons(
     CalendarItemBaseModel calendarItem,
   ) {
-    return calendarItem is HomeworkModel && calendarItem is EventModel;
+    return calendarItem is HomeworkModel || calendarItem is EventModel;
   }
 }
