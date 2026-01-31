@@ -112,8 +112,8 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
       child: GroupDropdown(
         groups: _courseGroups,
         initialSelection: _courseGroups.firstWhereOrNull(
-              (g) => g.id == _selectedGroupId,
-            ),
+          (g) => g.id == _selectedGroupId,
+        ),
         isReadOnly: true,
         onChanged: (value) {
           if (value == null) return;
@@ -313,7 +313,11 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CourseTitleLabel(title: course.title, color: course.color, showIcon: false),
+              CourseTitleLabel(
+                title: course.title,
+                color: course.color,
+                showIcon: false,
+              ),
               const SizedBox(height: 4),
               Row(
                 children: [

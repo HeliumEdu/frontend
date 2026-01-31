@@ -199,7 +199,6 @@ class _ExternalCalendarsProvidedScreenState
     ExternalCalendarModel externalCalendar,
     bool value,
   ) {
-    // Prevent double-tap by checking if an update is already in progress
     if (_updatingCalendarIds.contains(externalCalendar.id)) {
       return;
     }
