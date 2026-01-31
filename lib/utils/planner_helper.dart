@@ -11,12 +11,16 @@ import 'package:flutter/foundation.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/notification/notification_model.dart';
 import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
-import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart' hide log;
+import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
+import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:logging/logging.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
+
+final log = Logger('HeliumLogger');
 
 class PlannerHelper {
   static final List<int> weekStartsOnRemap = [7, 1, 2, 3, 4, 5, 6];
@@ -229,6 +233,11 @@ class PlannerHelper {
     bool isInAgenda,
     HeliumView view,
   ) {
+    // For all-day items in agenda/schedule, always show location
+    if (isInAgenda && calendarItem.allDay) {
+      return true;
+    }
+
     if (calendarItem.allDay) {
       return false;
     }
@@ -246,5 +255,11 @@ class PlannerHelper {
     }
 
     return true;
+  }
+
+  static bool shouldShowEditAndDeleteButtons(
+    CalendarItemBaseModel calendarItem,
+  ) {
+    return calendarItem is HomeworkModel && calendarItem is EventModel;
   }
 }
