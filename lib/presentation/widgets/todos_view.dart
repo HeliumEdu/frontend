@@ -12,16 +12,16 @@ import 'package:heliumapp/data/sources/calendar_item_data_source.dart';
 import 'package:heliumapp/presentation/widgets/category_title_label.dart';
 import 'package:heliumapp/presentation/widgets/course_title_label.dart';
 import 'package:heliumapp/presentation/widgets/grade_label.dart';
+import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
+import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // FIXME: once priority-based hiding of columns based on screen width is done, evaluate what else needs to be for view to be fully mobile-friendly
-// FIXME: add HeliumIconButton for edit/delete
-// FIXME: (if class has website), add HeliumIconButton for website
-// FIXME: (if class teacher has email), add HeliumIconButton for email
 // FIXME: better place for pagination, obscured by "+" hover button
 // FIXME: listen for CalendarDataSourceAction, show loading animation until that event fires completion
 
@@ -29,12 +29,14 @@ class TodosView extends StatefulWidget {
   final CalendarItemDataSource dataSource;
   final Function(HomeworkModel) onTap;
   final Function(HomeworkModel, bool) onToggleCompleted;
+  final Function(HomeworkModel)? onDelete;
 
   const TodosView({
     super.key,
     required this.dataSource,
     required this.onTap,
     required this.onToggleCompleted,
+    this.onDelete,
   });
 
   @override
@@ -220,6 +222,10 @@ class _TodosViewState extends State<TodosView> {
                 SizedBox(
                   width: 95,
                   child: _buildSortableHeader('Grade', 'grade'),
+                ),
+                const SizedBox(
+                  width: 140,
+                  child: SizedBox.shrink(), // Actions column - no header label
                 ),
               ],
             ),
@@ -582,6 +588,7 @@ class _TodosViewState extends State<TodosView> {
     final bool isCompleted = dataSource.isHomeworkCompleted(homework);
 
     final category = categoriesMap[homework.category.id]!;
+    final actionButtons = _buildActionButtons(homework, course);
 
     return Container(
       decoration: BoxDecoration(
@@ -717,11 +724,83 @@ class _TodosViewState extends State<TodosView> {
                       )
                     : const SizedBox.shrink(),
               ),
+              // Actions
+              SizedBox(
+                width: 140,
+                child: Row(
+                  children: [
+                    const Spacer(),
+                    for (int i = 0; i < actionButtons.length; i++) ...[
+                      actionButtons[i],
+                      if (i < actionButtons.length - 1) const SizedBox(width: 8),
+                    ],
+                  ],
+                ),
+              ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  List<Widget> _buildActionButtons(HomeworkModel homework, dynamic course) {
+    final buttons = <Widget>[];
+
+    // Email button (if course has teacher email)
+    if (course?.teacherEmail?.isNotEmpty ?? false) {
+      buttons.add(
+        HeliumIconButton(
+          onPressed: () {
+            launchUrl(Uri.parse('mailto:${course!.teacherEmail}'));
+          },
+          icon: Icons.email_outlined,
+          color: context.colorScheme.onSurface,
+        ),
+      );
+    }
+
+    // Website button (if course has website)
+    if (course?.website?.isNotEmpty ?? false) {
+      buttons.add(
+        HeliumIconButton(
+          onPressed: () {
+            launchUrl(
+              Uri.parse(course!.website),
+              mode: LaunchMode.externalApplication,
+            );
+          },
+          icon: Icons.link_outlined,
+          color: context.colorScheme.onSurface,
+        ),
+      );
+    }
+
+    // Edit button (if editable)
+    if (PlannerHelper.shouldShowEditAndDeleteButtons(homework)) {
+      buttons.add(
+        HeliumIconButton(
+          onPressed: () => widget.onTap(homework),
+          icon: Icons.edit_outlined,
+          color: context.colorScheme.onSurface,
+        ),
+      );
+    }
+
+    // Delete button (if deletable)
+    if (PlannerHelper.shouldShowEditAndDeleteButtons(homework)) {
+      buttons.add(
+        HeliumIconButton(
+          onPressed: widget.onDelete != null
+              ? () => widget.onDelete!(homework)
+              : () {},
+          icon: Icons.delete_outline,
+          color: context.colorScheme.onSurface,
+        ),
+      );
+    }
+
+    return buttons;
   }
 
   Widget _buildPriorityIndicator(int priority) {
