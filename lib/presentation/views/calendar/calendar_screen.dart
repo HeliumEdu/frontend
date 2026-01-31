@@ -1427,11 +1427,19 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       return const SizedBox.shrink();
     }
 
+    // Add top padding when aligned top-left to avoid touching the edge
+    final paddedIcon = isInAgenda
+        ? iconWidget
+        : Padding(
+            padding: const EdgeInsets.only(top: 1.5),
+            child: iconWidget,
+          );
+
     final alignedIcon = isInAgenda
-        ? Center(child: iconWidget) // Centered for agenda/schedule
+        ? Center(child: paddedIcon) // Centered for agenda/schedule
         : Align(
             alignment: Alignment.topLeft,
-            child: iconWidget,
+            child: paddedIcon,
           ); // Top-left for other views
 
     return Row(
