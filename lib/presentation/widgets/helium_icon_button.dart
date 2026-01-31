@@ -41,6 +41,7 @@ class HeliumIconButton extends StatelessWidget {
           }
           return useColor.withValues(alpha: 0.2);
         }),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
       onPressed: onPressed,
       icon: Icon(icon, color: useColor, size: useSize),
