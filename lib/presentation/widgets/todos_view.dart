@@ -26,7 +26,6 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 // FIXME: once priority-based hiding of columns based on screen width is done, evaluate what else needs to be for view to be fully mobile-friendly
-// FIXME: listen for CalendarDataSourceAction, show loading animation until that event fires completion
 
 class TodosView extends StatefulWidget {
   final CalendarItemDataSource dataSource;
@@ -110,6 +109,13 @@ class _TodosViewState extends State<TodosView> {
   @override
   Widget build(BuildContext context) {
     final dataSource = widget.dataSource;
+
+    // Show loading animation while initial data is being fetched
+    if (!dataSource.hasLoadedInitialData) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
 
     // Sort homework based on selected column
     final sortedHomeworks = _sortHomeworks(dataSource.filteredHomeworks);
