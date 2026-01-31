@@ -637,13 +637,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     if (containerWidth == null || !isExpanded) {
       expandedToolbarWidth = 300;
     } else {
-      // Calculate width to extend from right edge to end of today button,
-      // with some padding after the today button
       final renderBox =
           (_todayButtonKey.currentContext?.findRenderObject() as RenderBox);
       final calculatedWidth = containerWidth - renderBox.size.width - 8;
-      // For non-mobile, cap at 300px so it doesn't extend too far on large screens
-      // Minimum of 200px to fit all filter buttons without overflow
       expandedToolbarWidth = isMobile
           ? calculatedWidth
           : calculatedWidth.clamp(200, 300);
@@ -903,7 +899,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   Widget _buildFilterAndSearchButtons() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Only render buttons if there's enough width to prevent overflow errors
         if (constraints.maxWidth < 200) {
           return const SizedBox.shrink();
         }
@@ -911,87 +906,87 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           mainAxisAlignment: MainAxisAlignment.end,
           mainAxisSize: MainAxisSize.min,
           children: [
-        Builder(
-          builder: (context) {
-            return IconButton.outlined(
-              onPressed: () => _openViewMenu(context),
-              icon: const Icon(Icons.calendar_month),
-              style: ButtonStyle(
-                side: WidgetStateProperty.all(
-                  BorderSide(color: context.colorScheme.primary),
-                ),
-              ),
-            );
-          },
-        ),
-        const SizedBox(width: 8),
-        SizedBox(
-          width: 50,
-          child: Builder(
-            builder: (context) {
-              return IconButton.outlined(
-                onPressed: _courses.isEmpty
-                    ? null
-                    : () => _openCoursesMenu(context, _courses),
-                icon: const Icon(Icons.school),
-                style: ButtonStyle(
-                  side: WidgetStateProperty.resolveWith((states) {
-                    if (states.contains(WidgetState.disabled)) {
-                      return BorderSide(
-                        color: context.colorScheme.onSurface.withValues(
-                          alpha: 0.12,
-                        ),
-                      );
-                    }
-                    return BorderSide(color: context.colorScheme.primary);
-                  }),
-                ),
-              );
-            },
-          ),
-        ),
-        const SizedBox(width: 8),
-        Builder(
-          builder: (context) {
-            return IconButton.outlined(
-              onPressed: _courses.isEmpty
-                  ? null
-                  : () => _openFilterMenu(context),
-              icon: const Icon(Icons.filter_alt),
-              style: ButtonStyle(
-                side: WidgetStateProperty.resolveWith((states) {
-                  if (states.contains(WidgetState.disabled)) {
-                    return BorderSide(
-                      color: context.colorScheme.onSurface.withValues(
-                        alpha: 0.12,
-                      ),
-                    );
-                  }
-                  return BorderSide(color: context.colorScheme.primary);
-                }),
-              ),
-            );
-          },
-        ),
-        const SizedBox(width: 8),
-        IconButton.outlined(
-          onPressed: () {
-            setState(() {
-              _isFilterExpanded = false;
-              _isSearchExpanded = true;
-              _searchFocusNode.requestFocus();
-            });
-          },
-          icon: Icon(Icons.search, color: context.colorScheme.primary),
-          style: ButtonStyle(
-            side: _isSearchExpanded
-                ? null
-                : WidgetStateProperty.all(
-                    BorderSide(color: context.colorScheme.primary),
+            Builder(
+              builder: (context) {
+                return IconButton.outlined(
+                  onPressed: () => _openViewMenu(context),
+                  icon: const Icon(Icons.calendar_month),
+                  style: ButtonStyle(
+                    side: WidgetStateProperty.all(
+                      BorderSide(color: context.colorScheme.primary),
+                    ),
                   ),
-          ),
-        ),
-      ],
+                );
+              },
+            ),
+            const SizedBox(width: 8),
+            SizedBox(
+              width: 50,
+              child: Builder(
+                builder: (context) {
+                  return IconButton.outlined(
+                    onPressed: _courses.isEmpty
+                        ? null
+                        : () => _openCoursesMenu(context, _courses),
+                    icon: const Icon(Icons.school),
+                    style: ButtonStyle(
+                      side: WidgetStateProperty.resolveWith((states) {
+                        if (states.contains(WidgetState.disabled)) {
+                          return BorderSide(
+                            color: context.colorScheme.onSurface.withValues(
+                              alpha: 0.12,
+                            ),
+                          );
+                        }
+                        return BorderSide(color: context.colorScheme.primary);
+                      }),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(width: 8),
+            Builder(
+              builder: (context) {
+                return IconButton.outlined(
+                  onPressed: _courses.isEmpty
+                      ? null
+                      : () => _openFilterMenu(context),
+                  icon: const Icon(Icons.filter_alt),
+                  style: ButtonStyle(
+                    side: WidgetStateProperty.resolveWith((states) {
+                      if (states.contains(WidgetState.disabled)) {
+                        return BorderSide(
+                          color: context.colorScheme.onSurface.withValues(
+                            alpha: 0.12,
+                          ),
+                        );
+                      }
+                      return BorderSide(color: context.colorScheme.primary);
+                    }),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(width: 8),
+            IconButton.outlined(
+              onPressed: () {
+                setState(() {
+                  _isFilterExpanded = false;
+                  _isSearchExpanded = true;
+                  _searchFocusNode.requestFocus();
+                });
+              },
+              icon: Icon(Icons.search, color: context.colorScheme.primary),
+              style: ButtonStyle(
+                side: _isSearchExpanded
+                    ? null
+                    : WidgetStateProperty.all(
+                        BorderSide(color: context.colorScheme.primary),
+                      ),
+              ),
+            ),
+          ],
         );
       },
     );
@@ -1312,38 +1307,44 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     }
   }
 
-  void _deleteCalendarItem(BuildContext context, dynamic calendarItem) {
+  void _deleteCalendarItem(
+    BuildContext context,
+    CalendarItemBaseModel calendarItem,
+  ) {
+    final CourseModel? course;
     if (calendarItem is HomeworkModel) {
-      showConfirmDeleteDialog(
-        parentContext: context,
-        item: calendarItem,
-        onDelete: (h) {
-          context.read<CalendarItemBloc>().add(
-                DeleteHomeworkEvent(
-                  origin: EventOrigin.screen,
-                  courseGroupId: h.course.entity!.courseGroup,
-                  courseId: h.course.id,
-                  homeworkId: h.id,
-                ),
-              );
-        },
-      );
-    } else if (calendarItem is EventModel) {
-      showConfirmDeleteDialog(
-        parentContext: context,
-        item: calendarItem,
-        onDelete: (e) {
-          context.read<CalendarItemBloc>().add(
-                DeleteEventEvent(
-                  origin: EventOrigin.screen,
-                  id: e.id,
-                ),
-              );
-        },
-      );
+      course = _courses.firstWhere((c) => c.id == calendarItem.course.id);
+    } else {
+      course = null;
     }
-    // Note: CourseScheduleEventModel and ExternalCalendarEventModel
-    // are not deletable from calendar view
+
+    final Function(CalendarItemBaseModel) onDelete;
+    if (calendarItem is HomeworkModel) {
+      onDelete = (h) {
+        context.read<CalendarItemBloc>().add(
+          DeleteHomeworkEvent(
+            origin: EventOrigin.screen,
+            courseGroupId: course!.courseGroup,
+            courseId: course.id,
+            homeworkId: h.id,
+          ),
+        );
+      };
+    } else if (calendarItem is EventModel) {
+      onDelete = (e) {
+        context.read<CalendarItemBloc>().add(
+          DeleteEventEvent(origin: EventOrigin.screen, id: e.id),
+        );
+      };
+    } else {
+      return;
+    }
+
+    showConfirmDeleteDialog(
+      parentContext: context,
+      item: calendarItem,
+      onDelete: onDelete,
+    );
   }
 
   Widget _buildCalendarItem(
@@ -1354,9 +1355,11 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       return _buildMoreAppointmentsIndicator(context, details);
     }
 
-    final calendarItem = details.appointments.first;
+    final calendarItem = details.appointments.first as CalendarItemBaseModel;
     final isInAgenda = _currentView == HeliumView.agenda ||
-        (_currentView == HeliumView.month && details.bounds.height > 40);
+        (_currentView == HeliumView.month &&
+            (details.bounds.height > 40 ||
+                (Responsive.isMobile(context) && calendarItem.allDay)));
     final homeworkId = calendarItem is HomeworkModel ? calendarItem.id : null;
 
     return _buildCalendarItemWidget(
@@ -1370,422 +1373,396 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     );
   }
 
+  Widget _buildCalendarItemLeft({
+    required CalendarItemBaseModel calendarItem,
+    required bool isInAgenda,
+    VoidCallback? onCheckboxToggled,
+    bool? completedOverride,
+  }) {
+    // On mobile, only render in agenda/schedule views
+    if (Responsive.isMobile(context) && !isInAgenda) {
+      return const SizedBox.shrink();
+    }
+
+    Widget? iconWidget;
+
+    if (PlannerHelper.shouldShowCheckbox(
+          context,
+          calendarItem,
+          _currentView,
+        ) &&
+        calendarItem is HomeworkModel) {
+      iconWidget = SizedBox(
+        width: 16,
+        height: 16,
+        child: Transform.scale(
+          scale: AppTextStyles.calendarCheckboxScale(context),
+          child: Checkbox(
+            value: completedOverride ?? calendarItem.completed,
+            onChanged: (value) {
+              Feedback.forTap(context);
+              _toggleHomeworkCompleted(calendarItem, value!);
+              onCheckboxToggled?.call();
+            },
+            activeColor: context.colorScheme.primary,
+          ),
+        ),
+      );
+    } else if (PlannerHelper.shouldShowSchoolIcon(
+      context,
+      calendarItem,
+      _currentView,
+    )) {
+      iconWidget = SizedBox(
+        width: 16,
+        height: 16,
+        child: Transform.scale(
+          scale: AppTextStyles.calendarCheckboxScale(context),
+          child: const Icon(
+            Icons.school,
+            size: 16,
+            color: Colors.white,
+          ),
+        ),
+      );
+    }
+
+    if (iconWidget == null) {
+      return const SizedBox.shrink();
+    }
+
+    // Wrap with alignment based on view
+    final alignedIcon = isInAgenda
+        ? Center(child: iconWidget) // Centered for agenda/schedule
+        : Align(
+            alignment: Alignment.topLeft,
+            child: iconWidget,
+          ); // Top-left for other views
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        alignedIcon,
+        SizedBox(width: Responsive.isMobile(context) && !isInAgenda ? 2 : 8),
+      ],
+    );
+  }
+
+  Widget _buildCalendarItemCenter({
+    required CalendarItemBaseModel calendarItem,
+    required bool isInAgenda,
+    String? location,
+  }) {
+    // Content is always oriented top-left and uses ellipses for overflow
+    final contentColumn = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min, // Shrink-to-fit in agenda/schedule
+      children: [
+        // Title (with optional time before for compact views)
+        if (!isInAgenda &&
+            PlannerHelper.shouldShowTimeBeforeTitle(
+              context,
+              calendarItem,
+              false,
+              _currentView,
+            ))
+          Row(
+            children: [
+              Text(
+                HeliumDateTime.formatTimeForDisplay(
+                  HeliumDateTime.parse(
+                    calendarItem.start,
+                    userSettings.timeZone,
+                  ),
+                ),
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.6),
+                  fontSize: 12.0,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              SizedBox(width: Responsive.isMobile(context) ? 2 : 4),
+              Expanded(
+                child: Text(
+                  calendarItem.title,
+                  style: context.calendarData.copyWith(
+                    fontSize: AppTextStyles.calendarDataFontSize(context),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          )
+        else
+          Text(
+            calendarItem.title,
+            style: context.calendarData.copyWith(
+              fontSize: AppTextStyles.calendarDataFontSize(context),
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+
+        // Time below title (if applicable)
+        if (PlannerHelper.shouldShowTimeBelowTitle(
+          context,
+          calendarItem,
+          isInAgenda,
+          _currentView,
+        ))
+          Row(
+            children: [
+              Icon(
+                Icons.access_time,
+                size: 10,
+                color: Colors.white.withValues(alpha: 0.4),
+              ),
+              const SizedBox(width: 2),
+              Expanded(
+                child: Text(
+                  HeliumDateTime.formatTimeRangeForDisplay(
+                    HeliumDateTime.parse(
+                      calendarItem.start,
+                      userSettings.timeZone,
+                    ),
+                    HeliumDateTime.parse(
+                      calendarItem.end,
+                      userSettings.timeZone,
+                    ),
+                    calendarItem.showEndTime,
+                  ),
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.6),
+                    fontSize: 12.0,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+
+        // Location below title (if applicable)
+        if (PlannerHelper.shouldShowLocationBelowTitle(
+              context,
+              calendarItem,
+              isInAgenda,
+              _currentView,
+            ) &&
+            location != null)
+          Row(
+            children: [
+              Icon(
+                Icons.pin_drop_outlined,
+                size: 10,
+                color: Colors.white.withValues(alpha: 0.4),
+              ),
+              const SizedBox(width: 2),
+              Expanded(
+                child: Text(
+                  location,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.6),
+                    fontSize: 12.0,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+      ],
+    );
+
+    // Flexible to take available width, content aligned top-left
+    // For agenda views: OverflowBox allows content to overflow silently
+    // For other views: content already handled by parent UnconstrainedBox
+    return Flexible(
+      child: Align(
+        alignment: Alignment.topLeft,
+        child: isInAgenda
+            ? OverflowBox(
+                alignment: Alignment.topLeft,
+                maxHeight: double.infinity,
+                child: contentColumn,
+              )
+            : contentColumn,
+      ),
+    );
+  }
+
+  Widget _buildCalendarItemRight({
+    required CalendarItemBaseModel calendarItem,
+    required bool isInAgenda,
+    CourseModel? course,
+  }) {
+    // Only show on agenda/schedule views
+    if (!isInAgenda) {
+      return const SizedBox.shrink();
+    }
+
+    final buttons = <Widget>[];
+
+    // Build button list
+    if (course?.teacherEmail.isNotEmpty ?? false) {
+      buttons.add(
+        HeliumIconButton(
+          onPressed: () {
+            launchUrl(
+              Uri.parse('mailto:${course!.teacherEmail}'),
+            );
+          },
+          icon: Icons.email_outlined,
+          color: Colors.white,
+        ),
+      );
+    }
+
+    if (course?.website.isNotEmpty ?? false) {
+      buttons.add(
+        HeliumIconButton(
+          onPressed: () {
+            launchUrl(
+              Uri.parse(course!.website),
+              mode: LaunchMode.externalApplication,
+            );
+          },
+          icon: Icons.link_outlined,
+          color: Colors.white,
+        ),
+      );
+    }
+
+    if (calendarItem is! CourseScheduleEventModel &&
+        calendarItem is! ExternalCalendarEventModel) {
+      buttons.add(
+        HeliumIconButton(
+          onPressed: () => _openCalendarItem(calendarItem),
+          icon: Icons.edit_outlined,
+          color: Colors.white,
+        ),
+      );
+    }
+
+    if (calendarItem is HomeworkModel || calendarItem is EventModel) {
+      buttons.add(
+        HeliumIconButton(
+          onPressed: () => _deleteCalendarItem(context, calendarItem),
+          icon: Icons.delete_outline,
+          color: Colors.white,
+        ),
+      );
+    }
+
+    if (buttons.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    // Build row with buttons and spacing, pulling right
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.end, // Pull right
+      children: [
+        for (int i = 0; i < buttons.length; i++) ...[
+          buttons[i],
+          if (i < buttons.length - 1) const SizedBox(width: 8),
+        ],
+      ],
+    );
+  }
+
   Widget _buildCalendarItemWidget({
-    required dynamic calendarItem,
+    required CalendarItemBaseModel calendarItem,
     required double width,
     double? height,
     required bool isInAgenda,
     VoidCallback? onCheckboxToggled,
     bool? completedOverride,
   }) {
+    // Calculate necessary data structures
     final color = _calendarItemDataSource!.getColorForItem(calendarItem);
     final location = _calendarItemDataSource!.getLocationForItem(calendarItem);
 
-    // Get course for homework and course schedule events
     CourseModel? course;
     if (calendarItem is HomeworkModel) {
       course = _courses.firstWhere((c) => c.id == calendarItem.course.id);
     } else if (calendarItem is CourseScheduleEventModel) {
-      course = _courses.firstWhere((c) => c.id.toString() == calendarItem.ownerId);
+      course = _courses.firstWhere(
+        (c) => c.id.toString() == calendarItem.ownerId,
+      );
     }
+
+    // Use provided height or calculate default minimum based on device
+    final double defaultMinHeight = Responsive.isMobile(context) ? 56.0 : 48.0;
+    final double effectiveMinHeight = height ?? defaultMinHeight;
+
+    // Build the three sections
+    final leftWidget = _buildCalendarItemLeft(
+      calendarItem: calendarItem,
+      isInAgenda: isInAgenda,
+      onCheckboxToggled: onCheckboxToggled,
+      completedOverride: completedOverride,
+    );
+
+    final centerWidget = _buildCalendarItemCenter(
+      calendarItem: calendarItem,
+      isInAgenda: isInAgenda,
+      location: location,
+    );
+
+    final rightWidget = _buildCalendarItemRight(
+      calendarItem: calendarItem,
+      isInAgenda: isInAgenda,
+      course: course,
+    );
 
     return Container(
       width: width,
       height: isInAgenda ? null : height,
-      constraints: isInAgenda && height != null
-          ? BoxConstraints(minHeight: height)
+      constraints: isInAgenda
+          ? BoxConstraints(minHeight: effectiveMinHeight)
           : null,
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(4),
       ),
       clipBehavior: Clip.hardEdge,
-      child: UnconstrainedBox(
-        constrainedAxis: Axis.horizontal,
-        alignment: PlannerHelper.getAlignmentForView(
-          context,
-          isInAgenda,
-          _currentView,
-        ),
-        clipBehavior: Clip.hardEdge,
-        child: Padding(
-          padding: isInAgenda
-              ? const EdgeInsets.only(left: 8, right: 8, bottom: 8)
-              : const EdgeInsets.symmetric(horizontal: 4),
-          child: isInAgenda
-              ? Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+      child: isInAgenda
+          ? Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  leftWidget,
+                  centerWidget,
+                  const SizedBox(width: 8),
+                  rightWidget,
+                ],
+              ),
+            )
+          : UnconstrainedBox(
+              constrainedAxis: Axis.horizontal,
+              alignment: PlannerHelper.getAlignmentForView(
+                context,
+                isInAgenda,
+                _currentView,
+              ),
+              clipBehavior: Clip.hardEdge,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Checkbox for homework or school icon for course schedule events
-                    if (PlannerHelper.shouldShowCheckbox(
-                      context,
-                      calendarItem,
-                      _currentView,
-                    )) ...[
-                      SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: Transform.scale(
-                          scale: AppTextStyles.calendarCheckboxScale(context),
-                          child: Checkbox(
-                            value: completedOverride ?? calendarItem.completed,
-                            onChanged: (value) {
-                              Feedback.forTap(context);
-                              _toggleHomeworkCompleted(calendarItem, value!);
-                              onCheckboxToggled?.call();
-                            },
-                            activeColor: context.colorScheme.primary,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                    ] else if (PlannerHelper.shouldShowSchoolIcon(
-                      context,
-                      calendarItem,
-                      _currentView,
-                    )) ...[
-                      SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: Transform.scale(
-                          scale: AppTextStyles.calendarCheckboxScale(context),
-                          child: const Icon(
-                            Icons.school,
-                            size: 16,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-
-                    // Content (title, time, location) - use Flexible to prevent vertical expansion
-                    Flexible(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Title
-                          Text(
-                            calendarItem.title,
-                            style: context.calendarData.copyWith(
-                              fontSize:
-                                  AppTextStyles.calendarDataFontSize(context),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-
-                          // Time (shown below title in agenda view)
-                          if (PlannerHelper.shouldShowTimeBelowTitle(
-                            context,
-                            calendarItem,
-                            true,
-                            _currentView,
-                          ))
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.access_time,
-                                  size: 10,
-                                  color: Colors.white.withValues(alpha: 0.4),
-                                ),
-                                const SizedBox(width: 2),
-                                Expanded(
-                                  child: Text(
-                                    HeliumDateTime.formatTimeRangeForDisplay(
-                                      HeliumDateTime.parse(
-                                        calendarItem.start,
-                                        userSettings.timeZone,
-                                      ),
-                                      HeliumDateTime.parse(
-                                        calendarItem.end,
-                                        userSettings.timeZone,
-                                      ),
-                                      calendarItem.showEndTime,
-                                    ),
-                                    style: TextStyle(
-                                      color: Colors.white.withValues(alpha: 0.6),
-                                      fontSize: 12.0,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                          // Location
-                          if (PlannerHelper.shouldShowLocationBelowTitle(
-                                context,
-                                calendarItem,
-                                true,
-                                _currentView,
-                              ) &&
-                              location != null)
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.pin_drop_outlined,
-                                  size: 10,
-                                  color: Colors.white.withValues(alpha: 0.4),
-                                ),
-                                const SizedBox(width: 2),
-                                Expanded(
-                                  child: Text(
-                                    location,
-                                    style: TextStyle(
-                                      color: Colors.white.withValues(alpha: 0.6),
-                                      fontSize: 12.0,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(width: 8),
-
-                    // Action buttons (agenda view only)
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Email button (if course has instructor email)
-                        if (course?.teacherEmail.isNotEmpty ?? false) ...[
-                          HeliumIconButton(
-                            onPressed: () {
-                              launchUrl(
-                                Uri.parse('mailto:${course!.teacherEmail}'),
-                              );
-                            },
-                            icon: Icons.email_outlined,
-                            color: Colors.white,
-                          ),
-                          const SizedBox(width: 4),
-                        ],
-
-                        // Website button (if course has website)
-                        if (course?.website.isNotEmpty ?? false) ...[
-                          HeliumIconButton(
-                            onPressed: () {
-                              launchUrl(
-                                Uri.parse(course!.website),
-                                mode: LaunchMode.externalApplication,
-                              );
-                            },
-                            icon: Icons.link_outlined,
-                            color: Colors.white,
-                          ),
-                          const SizedBox(width: 4),
-                        ],
-
-                        // Edit button (not for course schedule events)
-                        if (calendarItem is! CourseScheduleEventModel) ...[
-                          HeliumIconButton(
-                            onPressed: () => _openCalendarItem(calendarItem),
-                            icon: Icons.edit_outlined,
-                            color: Colors.white,
-                          ),
-                          const SizedBox(width: 4),
-                        ],
-
-                        // Delete button (only for homework and events)
-                        if (calendarItem is HomeworkModel ||
-                            calendarItem is EventModel)
-                          HeliumIconButton(
-                            onPressed: () =>
-                                _deleteCalendarItem(context, calendarItem),
-                            icon: Icons.delete_outline,
-                            color: Colors.white,
-                          ),
-                      ],
-                    ),
-                  ],
-                )
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      children: [
-                        // Checkbox for homework or school icon for course schedule events
-                        if (PlannerHelper.shouldShowCheckbox(
-                          context,
-                          calendarItem,
-                          _currentView,
-                        )) ...[
-                          SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: Transform.scale(
-                              scale:
-                                  AppTextStyles.calendarCheckboxScale(context),
-                              child: Builder(
-                                builder: (context) {
-                                  // TODO: on non-month views, add a slight padding to top
-                                  return Checkbox(
-                                    value: completedOverride ??
-                                        calendarItem.completed,
-                                    onChanged: (value) {
-                                      Feedback.forTap(context);
-                                      _toggleHomeworkCompleted(
-                                        calendarItem,
-                                        value!,
-                                      );
-                                      onCheckboxToggled?.call();
-                                    },
-                                    activeColor: context.colorScheme.primary,
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            width: Responsive.isMobile(context) ? 2 : 4,
-                          ),
-                        ] else if (PlannerHelper.shouldShowSchoolIcon(
-                          context,
-                          calendarItem,
-                          _currentView,
-                        )) ...[
-                          SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: Transform.scale(
-                              scale:
-                                  AppTextStyles.calendarCheckboxScale(context),
-                              child: const Icon(
-                                Icons.school,
-                                size: 16,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            width: Responsive.isMobile(context) ? 2 : 4,
-                          ),
-                        ],
-
-                        // Time before title (compact view)
-                        if (PlannerHelper.shouldShowTimeBeforeTitle(
-                          context,
-                          calendarItem,
-                          false,
-                          _currentView,
-                        )) ...[
-                          Text(
-                            HeliumDateTime.formatTimeForDisplay(
-                              HeliumDateTime.parse(
-                                calendarItem.start,
-                                userSettings.timeZone,
-                              ),
-                            ),
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.6),
-                              fontSize: 12.0,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          SizedBox(
-                            width: Responsive.isMobile(context) ? 2 : 4,
-                          ),
-                        ],
-
-                        // Title
-                        Expanded(
-                          child: Text(
-                            calendarItem.title,
-                            style: context.calendarData.copyWith(
-                              fontSize:
-                                  AppTextStyles.calendarDataFontSize(context),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    // Time below title (compact view)
-                    if (PlannerHelper.shouldShowTimeBelowTitle(
-                      context,
-                      calendarItem,
-                      false,
-                      _currentView,
-                    ))
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.access_time,
-                            size: 10,
-                            color: Colors.white.withValues(alpha: 0.4),
-                          ),
-                          const SizedBox(width: 2),
-                          Expanded(
-                            child: Text(
-                              HeliumDateTime.formatTimeRangeForDisplay(
-                                HeliumDateTime.parse(
-                                  calendarItem.start,
-                                  userSettings.timeZone,
-                                ),
-                                HeliumDateTime.parse(
-                                  calendarItem.end,
-                                  userSettings.timeZone,
-                                ),
-                                calendarItem.showEndTime,
-                              ),
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.6),
-                                fontSize: 12.0,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-
-                    // Location below title (compact view)
-                    if (PlannerHelper.shouldShowLocationBelowTitle(
-                          context,
-                          calendarItem,
-                          false,
-                          _currentView,
-                        ) &&
-                        location != null)
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.pin_drop_outlined,
-                            size: 10,
-                            color: Colors.white.withValues(alpha: 0.4),
-                          ),
-                          const SizedBox(width: 2),
-                          Expanded(
-                            child: Text(
-                              location,
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.6),
-                                fontSize: 12.0,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
+                    leftWidget,
+                    centerWidget,
                   ],
                 ),
-        ),
-      ),
+              ),
+            ),
     );
   }
-
 
   Widget _buildMoreAppointmentsIndicator(
     BuildContext context,
@@ -1793,7 +1770,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   ) {
     return GestureDetector(
       onTap: () {
-        _showDayAppointmentsDialog(details.date, details.appointments.toList());
+        _showDayAppointmentsDialog(
+          details.date,
+          (details.appointments as List<CalendarItemBaseModel>).toList(),
+        );
       },
       child: Container(
         width: details.bounds.width,
@@ -1815,7 +1795,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     );
   }
 
-  void _showDayAppointmentsDialog(DateTime? date, List<dynamic> appointments) {
+  void _showDayAppointmentsDialog(
+    DateTime? date,
+    List<CalendarItemBaseModel> appointments,
+  ) {
     // TODO: migrate this out to its own file
     if (date == null || Responsive.isMobile(context)) return;
 
@@ -1829,7 +1812,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   Widget _buildDayAppointmentsDialog(
     BuildContext dialogContext,
     DateTime date,
-    List<dynamic> appointments,
+    List<CalendarItemBaseModel> appointments,
   ) {
     return ListenableBuilder(
       listenable: _calendarItemDataSource!.changeNotifier,
@@ -1902,9 +1885,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                       return GestureDetector(
                         onTap: () {
                           Feedback.forTap(context);
-                          if (_openCalendarItem(
-                            appointment as CalendarItemBaseModel,
-                          )) {
+                          if (_openCalendarItem(appointment)) {
                             Navigator.of(context).pop();
                           }
                         },
@@ -2035,90 +2016,93 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                 setMenuState(() {});
                               },
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
                                 child: Text(
                                   'Show All Classes',
-                                style: context.cTextStyle.copyWith(
-                                  color: context.colorScheme.onSurface,
-                                  fontWeight: FontWeight.w500,
+                                  style: context.cTextStyle.copyWith(
+                                    color: context.colorScheme.onSurface,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
 
-                    const Divider(height: 20),
+                      const Divider(height: 20),
 
-                    Column(
-                      children: displayCourses.map((course) {
-                        final isSelected =
-                            _calendarItemDataSource!.filteredCourses[course
-                                .title] ??
-                            false;
+                      Column(
+                        children: displayCourses.map((course) {
+                          final isSelected =
+                              _calendarItemDataSource!.filteredCourses[course
+                                  .title] ??
+                              false;
 
-                        return CheckboxListTile(
-                          title: Row(
-                            children: [
-                              Container(
-                                width: 12,
-                                height: 12,
-                                decoration: BoxDecoration(
-                                  color: course.color,
-                                  shape: BoxShape.circle,
+                          return CheckboxListTile(
+                            title: Row(
+                              children: [
+                                Container(
+                                  width: 12,
+                                  height: 12,
+                                  decoration: BoxDecoration(
+                                    color: course.color,
+                                    shape: BoxShape.circle,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      course.title,
-                                      style: context.cTextStyle.copyWith(
-                                        color: context.colorScheme.onSurface,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: Responsive.getFontSize(
-                                          context,
-                                          mobile: 13,
-                                          tablet: 14,
-                                          desktop: 15,
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        course.title,
+                                        style: context.cTextStyle.copyWith(
+                                          color: context.colorScheme.onSurface,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: Responsive.getFontSize(
+                                            context,
+                                            mobile: 13,
+                                            tablet: 14,
+                                            desktop: 15,
+                                          ),
                                         ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          value: isSelected,
-                          onChanged: (value) {
-                            final currentFilters = Map<String, bool>.from(
-                              _calendarItemDataSource!.filteredCourses,
-                            );
-                            if (value == true) {
-                              currentFilters[course.title] = true;
-                            } else {
-                              currentFilters.remove(course.title);
-                            }
-                            _calendarItemDataSource!.setFilteredCourses(
-                              currentFilters,
-                            );
-                            setMenuState(() {});
-                          },
-                          controlAffinity: ListTileControlAffinity.leading,
-                          dense: true,
-                          contentPadding: EdgeInsets.zero,
-                        );
-                      }).toList(),
-                    ),
-                  ],
+                              ],
+                            ),
+                            value: isSelected,
+                            onChanged: (value) {
+                              final currentFilters = Map<String, bool>.from(
+                                _calendarItemDataSource!.filteredCourses,
+                              );
+                              if (value == true) {
+                                currentFilters[course.title] = true;
+                              } else {
+                                currentFilters.remove(course.title);
+                              }
+                              _calendarItemDataSource!.setFilteredCourses(
+                                currentFilters,
+                              );
+                              setMenuState(() {});
+                            },
+                            controlAffinity: ListTileControlAffinity.leading,
+                            dense: true,
+                            contentPadding: EdgeInsets.zero,
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
               );
             },
           ),
@@ -2170,271 +2154,270 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                 setMenuState(() {});
                               },
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
                                 child: Text(
                                   'Clear Filters',
-                                style: context.cTextStyle.copyWith(
-                                  color: context.colorScheme.onSurface,
-                                  fontWeight: FontWeight.w500,
+                                  style: context.cTextStyle.copyWith(
+                                    color: context.colorScheme.onSurface,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
 
-                    const Divider(height: 20),
+                      const Divider(height: 20),
 
-                    Column(
-                      children: [
-                        CheckboxListTile(
-                          title: Text(
-                            'Assignments',
-                            style: context.eTextStyle.copyWith(
-                              color: context.colorScheme.onSurface,
-                            ),
-                          ),
-                          value: _calendarItemDataSource!.filterTypes.contains(
-                            'Assignments',
-                          ),
-                          onChanged: (value) {
-                            final currentTypes = List<String>.from(
-                              _calendarItemDataSource!.filterTypes,
-                            );
-                            if (value == true) {
-                              if (!currentTypes.contains('Assignments')) {
-                                currentTypes.add('Assignments');
-                              }
-                            } else {
-                              currentTypes.remove('Assignments');
-                            }
-                            _calendarItemDataSource!.setFilterTypes(
-                              currentTypes,
-                            );
-                            setMenuState(() {});
-                          },
-                          controlAffinity: ListTileControlAffinity.leading,
-                          dense: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                        CheckboxListTile(
-                          title: Row(
-                            children: [
-                              Container(
-                                width: 12,
-                                height: 12,
-                                decoration: BoxDecoration(
-                                  color: userSettings.eventsColor,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Events',
-                                style: context.eTextStyle.copyWith(
-                                  color: context.colorScheme.onSurface,
-                                ),
-                              ),
-                            ],
-                          ),
-                          value: _calendarItemDataSource!.filterTypes.contains(
-                            'Events',
-                          ),
-                          onChanged: (value) {
-                            final currentTypes = List<String>.from(
-                              _calendarItemDataSource!.filterTypes,
-                            );
-                            if (value == true) {
-                              if (!currentTypes.contains('Events')) {
-                                currentTypes.add('Events');
-                              }
-                            } else {
-                              currentTypes.remove('Events');
-                            }
-                            _calendarItemDataSource!.setFilterTypes(
-                              currentTypes,
-                            );
-                            setMenuState(() {});
-                          },
-                          controlAffinity: ListTileControlAffinity.leading,
-                          dense: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                        CheckboxListTile(
-                          title: Row(
-                            children: [
-                              Icon(
-                                Icons.school,
-                                size: 12,
-                                color: context.colorScheme.onSurface,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Class Schedules',
-                                style: context.eTextStyle.copyWith(
-                                  color: context.colorScheme.onSurface,
-                                ),
-                              ),
-                            ],
-                          ),
-                          value: _calendarItemDataSource!.filterTypes.contains(
-                            'Class Schedules',
-                          ),
-                          onChanged: (value) {
-                            final currentTypes = List<String>.from(
-                              _calendarItemDataSource!.filterTypes,
-                            );
-                            if (value == true) {
-                              if (!currentTypes.contains('Class Schedules')) {
-                                currentTypes.add('Class Schedules');
-                              }
-                            } else {
-                              currentTypes.remove('Class Schedules');
-                            }
-                            _calendarItemDataSource!.setFilterTypes(
-                              currentTypes,
-                            );
-                            setMenuState(() {});
-                          },
-                          controlAffinity: ListTileControlAffinity.leading,
-                          dense: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                        CheckboxListTile(
-                          title: Text(
-                            'External Calendars',
-                            style: context.eTextStyle.copyWith(
-                              color: context.colorScheme.onSurface,
-                            ),
-                          ),
-                          value: _calendarItemDataSource!.filterTypes.contains(
-                            'External Calendars',
-                          ),
-                          onChanged: (value) {
-                            final currentTypes = List<String>.from(
-                              _calendarItemDataSource!.filterTypes,
-                            );
-                            if (value == true) {
-                              if (!currentTypes.contains(
-                                'External Calendars',
-                              )) {
-                                currentTypes.add('External Calendars');
-                              }
-                            } else {
-                              currentTypes.remove('External Calendars');
-                            }
-                            _calendarItemDataSource!.setFilterTypes(
-                              currentTypes,
-                            );
-                            setMenuState(() {});
-                          },
-                          controlAffinity: ListTileControlAffinity.leading,
-                          dense: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                      ],
-                    ),
-
-                    const Divider(height: 20),
-
-                    StatefulBuilder(
-                      builder: (context, setStatusMenuState) {
-                        Widget buildStatusTile(String label) {
-                          final isChecked = _calendarItemDataSource!
-                              .filterStatuses
-                              .contains(label);
-                          return CheckboxListTile(
+                      Column(
+                        children: [
+                          CheckboxListTile(
                             title: Text(
-                              label,
+                              'Assignments',
                               style: context.eTextStyle.copyWith(
                                 color: context.colorScheme.onSurface,
                               ),
                             ),
-                            value: isChecked,
+                            value: _calendarItemDataSource!.filterTypes
+                                .contains('Assignments'),
                             onChanged: (value) {
-                              final currentStatuses = Set<String>.from(
-                                _calendarItemDataSource!.filterStatuses,
+                              final currentTypes = List<String>.from(
+                                _calendarItemDataSource!.filterTypes,
                               );
                               if (value == true) {
-                                currentStatuses.add(label);
+                                if (!currentTypes.contains('Assignments')) {
+                                  currentTypes.add('Assignments');
+                                }
                               } else {
-                                currentStatuses.remove(label);
+                                currentTypes.remove('Assignments');
                               }
-                              _calendarItemDataSource!.setFilterStatuses(
-                                currentStatuses,
+                              _calendarItemDataSource!.setFilterTypes(
+                                currentTypes,
                               );
-                              setStatusMenuState(() {});
+                              setMenuState(() {});
                             },
                             controlAffinity: ListTileControlAffinity.leading,
                             dense: true,
                             contentPadding: EdgeInsets.zero,
-                          );
-                        }
+                          ),
+                          CheckboxListTile(
+                            title: Row(
+                              children: [
+                                Container(
+                                  width: 12,
+                                  height: 12,
+                                  decoration: BoxDecoration(
+                                    color: userSettings.eventsColor,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Events',
+                                  style: context.eTextStyle.copyWith(
+                                    color: context.colorScheme.onSurface,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            value: _calendarItemDataSource!.filterTypes
+                                .contains('Events'),
+                            onChanged: (value) {
+                              final currentTypes = List<String>.from(
+                                _calendarItemDataSource!.filterTypes,
+                              );
+                              if (value == true) {
+                                if (!currentTypes.contains('Events')) {
+                                  currentTypes.add('Events');
+                                }
+                              } else {
+                                currentTypes.remove('Events');
+                              }
+                              _calendarItemDataSource!.setFilterTypes(
+                                currentTypes,
+                              );
+                              setMenuState(() {});
+                            },
+                            controlAffinity: ListTileControlAffinity.leading,
+                            dense: true,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          CheckboxListTile(
+                            title: Row(
+                              children: [
+                                Icon(
+                                  Icons.school,
+                                  size: 12,
+                                  color: context.colorScheme.onSurface,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Class Schedules',
+                                  style: context.eTextStyle.copyWith(
+                                    color: context.colorScheme.onSurface,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            value: _calendarItemDataSource!.filterTypes
+                                .contains('Class Schedules'),
+                            onChanged: (value) {
+                              final currentTypes = List<String>.from(
+                                _calendarItemDataSource!.filterTypes,
+                              );
+                              if (value == true) {
+                                if (!currentTypes.contains('Class Schedules')) {
+                                  currentTypes.add('Class Schedules');
+                                }
+                              } else {
+                                currentTypes.remove('Class Schedules');
+                              }
+                              _calendarItemDataSource!.setFilterTypes(
+                                currentTypes,
+                              );
+                              setMenuState(() {});
+                            },
+                            controlAffinity: ListTileControlAffinity.leading,
+                            dense: true,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          CheckboxListTile(
+                            title: Text(
+                              'External Calendars',
+                              style: context.eTextStyle.copyWith(
+                                color: context.colorScheme.onSurface,
+                              ),
+                            ),
+                            value: _calendarItemDataSource!.filterTypes
+                                .contains('External Calendars'),
+                            onChanged: (value) {
+                              final currentTypes = List<String>.from(
+                                _calendarItemDataSource!.filterTypes,
+                              );
+                              if (value == true) {
+                                if (!currentTypes.contains(
+                                  'External Calendars',
+                                )) {
+                                  currentTypes.add('External Calendars');
+                                }
+                              } else {
+                                currentTypes.remove('External Calendars');
+                              }
+                              _calendarItemDataSource!.setFilterTypes(
+                                currentTypes,
+                              );
+                              setMenuState(() {});
+                            },
+                            controlAffinity: ListTileControlAffinity.leading,
+                            dense: true,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                        ],
+                      ),
 
-                        return Column(
-                          children: [
-                            buildStatusTile('Complete'),
-                            buildStatusTile('Incomplete'),
-                            buildStatusTile('Overdue'),
-                          ],
-                        );
-                      },
-                    ),
-                    if (_deduplicatedCategories.isNotEmpty) ...[
                       const Divider(height: 20),
 
                       StatefulBuilder(
-                        builder: (context, setCategoryMenuState) {
-                          return Column(
-                            children: _deduplicatedCategories.map((category) {
-                              return CheckboxListTile(
-                                title: Row(
-                                  children: [
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Text(
-                                        category.title,
-                                        style: context.eTextStyle.copyWith(
-                                          color: context.colorScheme.onSurface,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                        builder: (context, setStatusMenuState) {
+                          Widget buildStatusTile(String label) {
+                            final isChecked = _calendarItemDataSource!
+                                .filterStatuses
+                                .contains(label);
+                            return CheckboxListTile(
+                              title: Text(
+                                label,
+                                style: context.eTextStyle.copyWith(
+                                  color: context.colorScheme.onSurface,
                                 ),
-                                value: _calendarItemDataSource!.filterCategories
-                                    .contains(category.title),
-                                onChanged: (value) {
-                                  final currentCategories = List<String>.from(
-                                    _calendarItemDataSource!.filterCategories,
-                                  );
-                                  if (value == true) {
-                                    if (!currentCategories.contains(
-                                      category.title,
-                                    )) {
-                                      currentCategories.add(category.title);
-                                    }
-                                  } else {
-                                    currentCategories.remove(category.title);
-                                  }
-                                  _calendarItemDataSource!.setFilterCategories(
-                                    currentCategories,
-                                  );
-                                  setCategoryMenuState(() {});
-                                },
-                                controlAffinity:
-                                    ListTileControlAffinity.leading,
-                                dense: true,
-                                contentPadding: EdgeInsets.zero,
-                              );
-                            }).toList(),
+                              ),
+                              value: isChecked,
+                              onChanged: (value) {
+                                final currentStatuses = Set<String>.from(
+                                  _calendarItemDataSource!.filterStatuses,
+                                );
+                                if (value == true) {
+                                  currentStatuses.add(label);
+                                } else {
+                                  currentStatuses.remove(label);
+                                }
+                                _calendarItemDataSource!.setFilterStatuses(
+                                  currentStatuses,
+                                );
+                                setStatusMenuState(() {});
+                              },
+                              controlAffinity: ListTileControlAffinity.leading,
+                              dense: true,
+                              contentPadding: EdgeInsets.zero,
+                            );
+                          }
+
+                          return Column(
+                            children: [
+                              buildStatusTile('Complete'),
+                              buildStatusTile('Incomplete'),
+                              buildStatusTile('Overdue'),
+                            ],
                           );
                         },
                       ),
+                      if (_deduplicatedCategories.isNotEmpty) ...[
+                        const Divider(height: 20),
+
+                        StatefulBuilder(
+                          builder: (context, setCategoryMenuState) {
+                            return Column(
+                              children: _deduplicatedCategories.map((category) {
+                                return CheckboxListTile(
+                                  title: Row(
+                                    children: [
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          category.title,
+                                          style: context.eTextStyle.copyWith(
+                                            color:
+                                                context.colorScheme.onSurface,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  value: _calendarItemDataSource!
+                                      .filterCategories
+                                      .contains(category.title),
+                                  onChanged: (value) {
+                                    final currentCategories = List<String>.from(
+                                      _calendarItemDataSource!.filterCategories,
+                                    );
+                                    if (value == true) {
+                                      if (!currentCategories.contains(
+                                        category.title,
+                                      )) {
+                                        currentCategories.add(category.title);
+                                      }
+                                    } else {
+                                      currentCategories.remove(category.title);
+                                    }
+                                    _calendarItemDataSource!
+                                        .setFilterCategories(currentCategories);
+                                    setCategoryMenuState(() {});
+                                  },
+                                  controlAffinity:
+                                      ListTileControlAffinity.leading,
+                                  dense: true,
+                                  contentPadding: EdgeInsets.zero,
+                                );
+                              }).toList(),
+                            );
+                          },
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
               );
             },
           ),
@@ -2478,61 +2461,61 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                   StatefulBuilder(
                     builder: (innerContext, setMenuState) {
                       return RadioGroup<HeliumView>(
-                      groupValue: _currentView,
-                      onChanged: (value) {
-                        setState(() {
-                          _currentView = value!;
-                          // Only update the calendar's view if the new view isn't "Todos"
-                          if (_currentView != HeliumView.todos) {
-                            _calendarController.view =
-                                PlannerHelper.mapHeliumViewToSfCalendarView(
-                                  _currentView,
-                                );
-                          }
-                        });
-
-                        Navigator.pop(context);
-
-                        if (Responsive.isMobile(context)) {
+                        groupValue: _currentView,
+                        onChanged: (value) {
                           setState(() {
-                            _isFilterExpanded = false;
+                            _currentView = value!;
+                            // Only update the calendar's view if the new view isn't "Todos"
+                            if (_currentView != HeliumView.todos) {
+                              _calendarController.view =
+                                  PlannerHelper.mapHeliumViewToSfCalendarView(
+                                    _currentView,
+                                  );
+                            }
                           });
-                        }
-                      },
-                      child: Column(
-                        children: List.generate(HeliumView.values.length, (
-                          index,
-                        ) {
-                          return RadioListTile<HeliumView>(
-                            title: Text(
-                              CalendarConstants
-                                  .defaultViews[PlannerHelper.mapHeliumViewToApiView(
-                                HeliumView.values[index],
-                              )],
-                              style: context.cTextStyle.copyWith(
-                                color: context.colorScheme.onSurface,
-                                fontWeight: FontWeight.w600,
-                                fontSize: Responsive.getFontSize(
-                                  context,
-                                  mobile: 13,
-                                  tablet: 14,
-                                  desktop: 15,
+
+                          Navigator.pop(context);
+
+                          if (Responsive.isMobile(context)) {
+                            setState(() {
+                              _isFilterExpanded = false;
+                            });
+                          }
+                        },
+                        child: Column(
+                          children: List.generate(HeliumView.values.length, (
+                            index,
+                          ) {
+                            return RadioListTile<HeliumView>(
+                              title: Text(
+                                CalendarConstants
+                                    .defaultViews[PlannerHelper.mapHeliumViewToApiView(
+                                  HeliumView.values[index],
+                                )],
+                                style: context.cTextStyle.copyWith(
+                                  color: context.colorScheme.onSurface,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: Responsive.getFontSize(
+                                    context,
+                                    mobile: 13,
+                                    tablet: 14,
+                                    desktop: 15,
+                                  ),
                                 ),
                               ),
-                            ),
-                            value: HeliumView.values[index],
-                            controlAffinity: ListTileControlAffinity.leading,
-                            dense: true,
-                            contentPadding: EdgeInsets.zero,
-                          );
-                        }),
-                      ),
-                    );
-                  },
-                ),
-              ],
+                              value: HeliumView.values[index],
+                              controlAffinity: ListTileControlAffinity.leading,
+                              dense: true,
+                              contentPadding: EdgeInsets.zero,
+                            );
+                          }),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
-          ),
           ),
         ),
       ],
