@@ -45,6 +45,7 @@ void main() {
   late UserSettingsModel userSettings;
 
   setUpAll(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
     tz.initializeTimeZones();
   });
 
