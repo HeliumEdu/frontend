@@ -643,9 +643,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           (_todayButtonKey.currentContext?.findRenderObject() as RenderBox);
       final calculatedWidth = containerWidth - renderBox.size.width - 8;
       // For non-mobile, cap at 300px so it doesn't extend too far on large screens
+      // Minimum of 200px to fit all filter buttons without overflow
       expandedToolbarWidth = isMobile
           ? calculatedWidth
-          : calculatedWidth.clamp(0, 300);
+          : calculatedWidth.clamp(200, 300);
     }
 
     if (!isMobile) {
@@ -900,10 +901,16 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   Widget _buildFilterAndSearchButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      mainAxisSize: MainAxisSize.min,
-      children: [
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Only render buttons if there's enough width to prevent overflow errors
+        if (constraints.maxWidth < 200) {
+          return const SizedBox.shrink();
+        }
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          mainAxisSize: MainAxisSize.min,
+          children: [
         Builder(
           builder: (context) {
             return IconButton.outlined(
@@ -985,6 +992,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           ),
         ),
       ],
+        );
+      },
     );
   }
 
