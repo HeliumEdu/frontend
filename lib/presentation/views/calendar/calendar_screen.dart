@@ -920,25 +920,21 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           child: Builder(
             builder: (context) {
               return IconButton.outlined(
-                onPressed: () {
-                  if (_courses.isNotEmpty) {
-                    _openCoursesMenu(context, _courses);
-                  }
-                },
-                icon: Icon(
-                  Icons.school,
-                  color: _courses.isNotEmpty
-                      ? context.colorScheme.primary
-                      : context.colorScheme.outline,
-                ),
+                onPressed: _courses.isEmpty
+                    ? null
+                    : () => _openCoursesMenu(context, _courses),
+                icon: const Icon(Icons.school),
                 style: ButtonStyle(
-                  side: WidgetStateProperty.all(
-                    BorderSide(
-                      color: _courses.isNotEmpty
-                          ? context.colorScheme.primary
-                          : context.colorScheme.outline,
-                    ),
-                  ),
+                  side: WidgetStateProperty.resolveWith((states) {
+                    if (states.contains(WidgetState.disabled)) {
+                      return BorderSide(
+                        color: context.colorScheme.onSurface.withValues(
+                          alpha: 0.12,
+                        ),
+                      );
+                    }
+                    return BorderSide(color: context.colorScheme.primary);
+                  }),
                 ),
               );
             },
@@ -948,25 +944,21 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         Builder(
           builder: (context) {
             return IconButton.outlined(
-              onPressed: () {
-                if (_courses.isNotEmpty) {
-                  _openFilterMenu(context);
-                }
-              },
-              icon: Icon(
-                Icons.filter_alt,
-                color: _courses.isNotEmpty
-                    ? context.colorScheme.primary
-                    : context.colorScheme.outline,
-              ),
+              onPressed: _courses.isEmpty
+                  ? null
+                  : () => _openFilterMenu(context),
+              icon: const Icon(Icons.filter_alt),
               style: ButtonStyle(
-                side: WidgetStateProperty.all(
-                  BorderSide(
-                    color: _courses.isNotEmpty
-                        ? context.colorScheme.primary
-                        : context.colorScheme.outline,
-                  ),
-                ),
+                side: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.disabled)) {
+                    return BorderSide(
+                      color: context.colorScheme.onSurface.withValues(
+                        alpha: 0.12,
+                      ),
+                    );
+                  }
+                  return BorderSide(color: context.colorScheme.primary);
+                }),
               ),
             );
           },
@@ -1225,7 +1217,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       );
 
       // Determine which edge was dragged by comparing to original start
-      final startWasDragged = resizeDetails.startTime!.year != originalStart.year ||
+      final startWasDragged =
+          resizeDetails.startTime!.year != originalStart.year ||
           resizeDetails.startTime!.month != originalStart.month ||
           resizeDetails.startTime!.day != originalStart.day ||
           resizeDetails.startTime!.hour != originalStart.hour ||

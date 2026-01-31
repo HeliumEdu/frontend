@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_theme.dart';
@@ -110,10 +111,9 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
       padding: const EdgeInsets.only(bottom: 12),
       child: GroupDropdown(
         groups: _courseGroups,
-        initialSelection: _courseGroups.firstWhere(
-          (g) => g.id == _selectedGroupId,
-          orElse: () => _courseGroups.first,
-        ),
+        initialSelection: _courseGroups.firstWhereOrNull(
+              (g) => g.id == _selectedGroupId,
+            ),
         isReadOnly: true,
         onChanged: (value) {
           if (value == null) return;

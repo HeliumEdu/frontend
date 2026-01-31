@@ -36,6 +36,19 @@ class GroupDropdown<T extends BaseModel> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // When empty and not read-only, show the "+ Group" button directly
+    if (groups.isEmpty && !isReadOnly) {
+      return ShadowContainer(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        borderColor: context.colorScheme.outline.withValues(alpha: 0.2),
+        child: HeliumElevatedButton(
+          onPressed: onCreate!,
+          buttonText: 'Group',
+          icon: Icons.add,
+        ),
+      );
+    }
+
     final items = groups.map((item) {
       return DropdownMenuItem(value: item, child: _buildItem(context, item));
     }).toList();

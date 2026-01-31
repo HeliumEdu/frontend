@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_html/flutter_html.dart';
@@ -190,10 +191,9 @@ class _MaterialsScreenState
       padding: const EdgeInsets.only(bottom: 12),
       child: GroupDropdown(
         groups: _materialGroups,
-        initialSelection: _materialGroups.firstWhere(
-          (g) => g.id == _selectedGroupId,
-          orElse: () => _materialGroups.first,
-        ),
+        initialSelection: _materialGroups.firstWhereOrNull(
+              (g) => g.id == _selectedGroupId,
+            ),
         onChanged: (value) {
           // The "+" button has a null value
           if (value == null) return;
@@ -245,15 +245,15 @@ class _MaterialsScreenState
 
         if (_materialGroups.isEmpty) {
           return buildEmptyPage(
-            icon: Icons.business_center,
+            icon: Icons.book,
             title: "You haven't added any groups yet",
-            message: 'Click the dropdown above to get started',
+            message: 'Click "+ Group" to get started',
           );
         }
 
         if (_materialsMap[_selectedGroupId!]!.isEmpty) {
           return buildEmptyPage(
-            icon: Icons.business_center,
+            icon: Icons.book,
             title: "You haven't added any materials yet",
             message: 'Click "+" to get started',
           );

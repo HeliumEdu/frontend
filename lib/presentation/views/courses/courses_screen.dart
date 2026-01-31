@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -202,10 +203,9 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
       padding: const EdgeInsets.only(bottom: 12),
       child: GroupDropdown(
         groups: _courseGroups,
-        initialSelection: _courseGroups.firstWhere(
-          (g) => g.id == _selectedGroupId,
-          orElse: () => _courseGroups.first,
-        ),
+        initialSelection: _courseGroups.firstWhereOrNull(
+              (g) => g.id == _selectedGroupId,
+            ),
         onChanged: (value) {
           // The "+" button has a null value
           if (value == null) return;
@@ -256,9 +256,9 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
 
         if (_courseGroups.isEmpty) {
           return buildEmptyPage(
-            icon: Icons.menu_book,
+            icon: Icons.school,
             title: "You haven't added any groups yet",
-            message: 'Click the dropdown above to get started',
+            message: 'Click "+ Group" to get started',
           );
         }
 
