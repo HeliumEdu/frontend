@@ -6,21 +6,24 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:heliumapp/data/models/base_model.dart';
-import 'package:heliumapp/presentation/widgets/helium_elevated_button.dart';
-import 'package:heliumapp/utils/responsive_helpers.dart';
-import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/data/models/base_model.dart';
+import 'package:heliumapp/data/models/planner/course_model.dart';
+import 'package:heliumapp/presentation/widgets/helium_elevated_button.dart';
+import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/responsive_helpers.dart';
 
 class _SelectWidget<T extends BaseModel> extends StatefulWidget {
   final List<T> items;
   final Set<int> initialSelected;
   final Function(Set<int>) onConfirm;
+  final Color? color;
 
   const _SelectWidget({
     required this.items,
     required this.initialSelected,
     required this.onConfirm,
+    this.color,
   });
 
   @override
@@ -51,8 +54,29 @@ class _SelectWidgetState<T extends BaseModel> extends State<_SelectWidget<T>> {
           itemBuilder: (context, index) {
             final item = widget.items[index];
             final checked = selected.contains(item.id);
+
+            Color? itemColor;
+            if (item is CourseModel) {
+              itemColor = item.color;
+            }
+
             return CheckboxListTile(
-              title: Text(item.title, style: context.formText),
+              title: Row(
+                children: [
+                  if (itemColor != null) ...[
+                    Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: itemColor,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                  Expanded(child: Text(item.title, style: context.formText)),
+                ],
+              ),
               value: checked,
               onChanged: (value) {
                 setState(() {

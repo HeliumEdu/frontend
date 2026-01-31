@@ -50,7 +50,7 @@ class _CourseAddScheduleScreenState
   ScreenType get screenType => ScreenType.entityPage;
 
   @override
-  Function get saveAction => _handleSubmit;
+  Function get saveAction => _onSubmit;
 
   // State
   int? _scheduleId;
@@ -129,7 +129,7 @@ class _CourseAddScheduleScreenState
       courseGroupId: widget.courseGroupId,
       courseId: widget.courseId,
       isEdit: widget.isEdit,
-      onStep: () => _handleSubmit(advanceNavOnSuccess: false),
+      onStep: () => _onSubmit(advanceNavOnSuccess: false),
     );
   }
 
@@ -227,9 +227,8 @@ class _CourseAddScheduleScreenState
                     _selectedDays.addAll(newSelection);
                   });
                 },
-                // Allows multiple selections (weekdays often require this use case).
+                emptySelectionAllowed: true,
                 multiSelectionEnabled: true,
-                // Hides the default checkmark icon for a cleaner look with short labels.
                 showSelectedIcon: false,
               ),
             ),
@@ -565,7 +564,7 @@ class _CourseAddScheduleScreenState
     return daysString.join('');
   }
 
-  bool _handleSubmit({bool advanceNavOnSuccess = true}) {
+  bool _onSubmit({bool advanceNavOnSuccess = true}) {
     if (_variesByDay) {
       if (_selectedDays.isEmpty) {
         showSnackBar(context, 'Select at least one day', isError: true);

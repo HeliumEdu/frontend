@@ -110,12 +110,12 @@ class DioClient {
                   return handler.resolve(retryResponse);
                 } else {
                   // Refresh completed but no token available, logout
-                  await _handleForceLogout('Please login to continue.');
+                  await _forceLogout('Please login to continue.');
                   return handler.next(error);
                 }
               } catch (e) {
                 // Refresh failed, logout
-                await _handleForceLogout('Please login to continue.');
+                await _forceLogout('Please login to continue.');
                 return handler.next(error);
               }
             }
@@ -133,7 +133,7 @@ class DioClient {
                 _isRefreshing = false;
                 _refreshCompleter!.completeError('No refresh token');
                 _refreshCompleter = null;
-                await _handleForceLogout('Please login to continue.');
+                await _forceLogout('Please login to continue.');
                 return handler.next(error);
               }
 
@@ -189,7 +189,7 @@ class DioClient {
                   log.info(
                     'Refresh token is invalid/expired, clearing tokens',
                   );
-                  await _handleForceLogout('Please login to continue.');
+                  await _forceLogout('Please login to continue.');
                   return handler.next(error);
                 }
 
@@ -223,7 +223,7 @@ class DioClient {
               // Only logout if refresh token is actually invalid/expired
               // or account doesn't exist. Don't logout on network errors.
               if (shouldLogout) {
-                await _handleForceLogout('Please login to continue.');
+                await _forceLogout('Please login to continue.');
               } else {
                 log.warning(
                   'Refresh failed due to network/transient error, not logging out',
@@ -366,7 +366,7 @@ class DioClient {
     return false;
   }
 
-  Future<void> _handleForceLogout(String message) async {
+  Future<void> _forceLogout(String message) async {
     try {
       await clearStorage();
       final context = rootNavigatorKey.currentContext;

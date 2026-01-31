@@ -22,6 +22,7 @@ import 'package:heliumapp/presentation/forms/core/basic_form_controller.dart';
 import 'package:heliumapp/presentation/forms/courses/course_form_controller.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/course_add_stepper.dart';
+import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -30,6 +31,7 @@ import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 final log = Logger('HeliumLogger');
 
@@ -58,13 +60,15 @@ class _CourseAddScreenState
   ScreenType get screenType => ScreenType.entityPage;
 
   @override
-  Function get saveAction => _handleSubmit;
+  Function get saveAction => _onSubmit;
 
   final CourseFormController _formController = CourseFormController();
 
   @override
   void initState() {
     super.initState();
+
+    _formController.urlFocusNode.addListener(_onUrlFocusChange);
 
     context.read<CourseBloc>().add(
       FetchCourseScreenDataEvent(
@@ -77,9 +81,18 @@ class _CourseAddScreenState
 
   @override
   void dispose() {
+    _formController.urlFocusNode.removeListener(_onUrlFocusChange);
     _formController.dispose();
 
     super.dispose();
+  }
+
+  void _onUrlFocusChange() {
+    if (!_formController.urlFocusNode.hasFocus) {
+      _formController.urlController.text = BasicFormController.cleanUrl(
+        _formController.urlController.text.trim(),
+      );
+    }
   }
 
   @override
@@ -126,7 +139,7 @@ class _CourseAddScreenState
       courseGroupId: widget.courseGroupId,
       courseId: widget.courseId,
       isEdit: widget.isEdit,
-      onStep: () => _handleSubmit(advanceNavOnSuccess: false),
+      onStep: () => _onSubmit(advanceNavOnSuccess: false),
     );
   }
 
@@ -145,7 +158,7 @@ class _CourseAddScreenState
                 controller: _formController.titleController,
                 validator: BasicFormController.validateRequiredField,
                 fieldKey: _formController.getFieldKey('title'),
-                onFieldSubmitted: (value) => _handleSubmit(),
+                onFieldSubmitted: (value) => _onSubmit(),
               ),
               const SizedBox(height: 14),
               Text('From', style: context.formLabel),
@@ -239,12 +252,19 @@ class _CourseAddScreenState
                 const SizedBox(height: 14),
               ],
 
-              // TODO: (if class has website), add HeliumIconButton for website
               LabelAndTextFormField(
                 label: 'Website',
                 controller: _formController.urlController,
                 validator: BasicFormController.validateUrl,
                 fieldKey: _formController.getFieldKey('url'),
+                focusNode: _formController.urlFocusNode,
+                trailingIconButton: HeliumIconButton(
+                  onPressed: () {
+                    launchUrl(Uri.parse(_formController.urlController.text));
+                  },
+                  icon: Icons.link_outlined,
+                  color: context.semanticColors.success,
+                ),
               ),
               const SizedBox(height: 14),
               LabelAndTextFormField(
@@ -252,12 +272,22 @@ class _CourseAddScreenState
                 controller: _formController.teacherNameController,
               ),
               const SizedBox(height: 14),
-              // TODO: (if class has instructor email), add HeliumIconButton for email
               LabelAndTextFormField(
                 label: 'Teacher Email',
                 controller: _formController.teacherEmailController,
                 validator: BasicFormController.validateEmail,
                 fieldKey: _formController.getFieldKey('teacherEmail'),
+                trailingIconButton: HeliumIconButton(
+                  onPressed: () {
+                    launchUrl(
+                      Uri.parse(
+                        'mailto:${_formController.teacherEmailController.text}',
+                      ),
+                    );
+                  },
+                  icon: Icons.email_outlined,
+                  color: context.semanticColors.info,
+                ),
               ),
               const SizedBox(height: 14),
               Row(
@@ -304,7 +334,7 @@ class _CourseAddScreenState
                               tablet: 22,
                               desktop: 24,
                             ),
-                            color: context.colorScheme.shadow.withValues(
+                            color: context.colorScheme.onSurface.withValues(
                               alpha: 0.6,
                             ),
                           ),
@@ -328,7 +358,7 @@ class _CourseAddScreenState
                               tablet: 22,
                               desktop: 24,
                             ),
-                            color: context.colorScheme.shadow.withValues(
+                            color: context.colorScheme.onSurface.withValues(
                               alpha: 0.6,
                             ),
                           ),
@@ -458,12 +488,7 @@ class _CourseAddScreenState
     }
   }
 
-  bool _handleSubmit({bool advanceNavOnSuccess = true}) {
-    // Clean URL field before validation
-    _formController.urlController.text = BasicFormController.cleanUrl(
-      _formController.urlController.text.trim(),
-    );
-
+  bool _onSubmit({bool advanceNavOnSuccess = true}) {
     if (_formController.validateAndScrollToError()) {
       if (_formController.endDate!.isBefore(_formController.startDate!)) {
         showSnackBar(

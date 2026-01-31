@@ -22,6 +22,7 @@ import 'package:heliumapp/presentation/dialogs/external_calendar_dialog.dart';
 import 'package:heliumapp/presentation/forms/settings/external_calendar_form_controller.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
+import 'package:heliumapp/presentation/widgets/info_container.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
@@ -136,16 +137,11 @@ class _ExternalCalendarsProvidedScreenState
 
   @override
   Widget buildHeaderArea(BuildContext context) {
-    // TODO: make this prettier
-    return Column(
-      children: [
-        Text(
-          'External Calendars allow you to bring other calendars in to Helium',
-          style: context.paragraphText,
-        ),
-
-        const SizedBox(height: 12),
-      ],
+    return const Padding(
+      padding: EdgeInsets.only(bottom: 12),
+      child: InfoContainer(
+        text: 'External Calendars allow you to bring other calendars in to Helium',
+      ),
     );
   }
 
@@ -273,7 +269,7 @@ class _ExternalCalendarsProvidedScreenState
                 _toggleShownOnCalendar(externalCalendar, value);
               },
             ),
-            SizedBox(width: Responsive.isMobile(context) ? 0 : 8),
+            const SizedBox(width: 8),
             HeliumIconButton(
               onPressed: () {
                 showExternalCalendarDialog(
@@ -284,7 +280,7 @@ class _ExternalCalendarsProvidedScreenState
               },
               icon: Icons.edit_outlined,
             ),
-            SizedBox(width: Responsive.isMobile(context) ? 0 : 8),
+            const SizedBox(width: 8),
             HeliumIconButton(
               onPressed: () {
                 showConfirmDeleteDialog(

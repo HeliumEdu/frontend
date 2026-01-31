@@ -21,12 +21,14 @@ import 'package:heliumapp/presentation/forms/core/basic_form_controller.dart';
 import 'package:heliumapp/presentation/forms/materials/material_form_controller.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/drop_down.dart';
+import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
+import 'package:heliumapp/presentation/widgets/label_and_html_editor.dart';
 import 'package:heliumapp/presentation/widgets/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
-import 'package:html_editor_enhanced/html_editor.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MaterialAddProvidedScreen extends StatefulWidget {
   final int materialGroupId;
@@ -53,7 +55,7 @@ class _MaterialAddScreenState
   ScreenType get screenType => ScreenType.entityPage;
 
   @override
-  Function get saveAction => _handleSubmit;
+  Function get saveAction => _onSubmit;
 
   final MaterialFormController _formController = MaterialFormController();
 
@@ -63,6 +65,8 @@ class _MaterialAddScreenState
   @override
   void initState() {
     super.initState();
+
+    _formController.urlFocusNode.addListener(_onUrlFocusChange);
 
     context.read<MaterialBloc>().add(
       FetchMaterialScreenDataEvent(
@@ -75,9 +79,18 @@ class _MaterialAddScreenState
 
   @override
   void dispose() {
+    _formController.urlFocusNode.removeListener(_onUrlFocusChange);
     _formController.dispose();
 
     super.dispose();
+  }
+
+  void _onUrlFocusChange() {
+    if (!_formController.urlFocusNode.hasFocus) {
+      _formController.urlController.text = BasicFormController.cleanUrl(
+        _formController.urlController.text.trim(),
+      );
+    }
   }
 
   @override
@@ -121,7 +134,7 @@ class _MaterialAddScreenState
                 controller: _formController.titleController,
                 validator: BasicFormController.validateRequiredField,
                 fieldKey: _formController.getFieldKey('title'),
-                onFieldSubmitted: (value) => _handleSubmit(),
+                onFieldSubmitted: (value) => _onSubmit(),
               ),
               const SizedBox(height: 14),
               Text('Classes', style: context.formLabel),
@@ -238,12 +251,19 @@ class _MaterialAddScreenState
                 },
               ),
               const SizedBox(height: 14),
-              // TODO: add HeliumIconButton to take user to website (if specified)
               LabelAndTextFormField(
                 label: 'Website',
                 controller: _formController.urlController,
                 validator: BasicFormController.validateUrl,
                 fieldKey: _formController.getFieldKey('url'),
+                focusNode: _formController.urlFocusNode,
+                trailingIconButton: HeliumIconButton(
+                  onPressed: () {
+                    launchUrl(Uri.parse(_formController.urlController.text));
+                  },
+                  icon: Icons.link_outlined,
+                  color: context.semanticColors.success,
+                ),
               ),
               const SizedBox(height: 14),
               LabelAndTextFormField(
@@ -255,53 +275,10 @@ class _MaterialAddScreenState
               const Divider(),
               const SizedBox(height: 9),
 
-              // TODO: migrate to quill: https://pub.dev/packages/flutter_quill
-              Text('Notes', style: context.formLabel),
-              const SizedBox(height: 9),
-              Container(
-                decoration: BoxDecoration(
-                  color: context.colorScheme.surface,
-                  border: Border.all(
-                    color: context.colorScheme.outline.withValues(alpha: 0.2),
-                    width: 2,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: ClipRRect(
-                  child: HtmlEditor(
-                    controller: _formController.detailsController,
-                    htmlToolbarOptions: const HtmlToolbarOptions(
-                      toolbarType: ToolbarType.nativeGrid,
-                      defaultToolbarButtons: [
-                        FontButtons(
-                          superscript: false,
-                          subscript: false,
-                          clearAll: false,
-                        ),
-                        ListButtons(listStyles: false),
-                        ParagraphButtons(
-                          alignLeft: false,
-                          alignCenter: false,
-                          alignRight: false,
-                          alignJustify: false,
-                          textDirection: false,
-                          lineHeight: false,
-                          caseConverter: false,
-                        ),
-                      ],
-                    ),
-                    htmlEditorOptions: HtmlEditorOptions(
-                      hint: '',
-                      initialText: _formController.initialNotes,
-                      autoAdjustHeight: true,
-                      darkMode: context.isDarkMode,
-                    ),
-                    otherOptions: const OtherOptions(
-                      height: 300,
-                      decoration: BoxDecoration(),
-                    ),
-                  ),
-                ),
+              LabelAndHtmlEditor(
+                label: 'Notes',
+                controller: _formController.detailsController,
+                initialText: _formController.initialNotes,
               ),
 
               const SizedBox(height: 12),
@@ -336,12 +313,7 @@ class _MaterialAddScreenState
     });
   }
 
-  Future<void> _handleSubmit() async {
-    // Clean URL field before validation
-    _formController.urlController.text = BasicFormController.cleanUrl(
-      _formController.urlController.text.trim(),
-    );
-
+  Future<void> _onSubmit() async {
     if (_formController.validateAndScrollToError()) {
       setState(() {
         isSubmitting = true;

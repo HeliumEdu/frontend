@@ -17,7 +17,6 @@ import 'package:heliumapp/presentation/bloc/auth/auth_state.dart';
 import 'package:heliumapp/presentation/dialogs/color_picker_dialog.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/drop_down.dart';
-import 'package:heliumapp/presentation/widgets/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/widgets/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
@@ -52,7 +51,10 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
   String get screenTitle => 'Preferences';
 
   @override
-  ScreenType get screenType => ScreenType.subPage;
+  ScreenType get screenType => ScreenType.entityPage;
+
+  @override
+  Function? get saveAction => _onSubmit;
 
   @override
   void initState() {
@@ -100,7 +102,6 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // TODO: make this dropdown order match the view display order on the calendar
             DropDown(
               label: 'Default view',
               initialValue: CalendarConstants.defaultViewItems.firstWhere(
@@ -261,8 +262,6 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
             // TODO: implement "remember filter selection"
             const SizedBox(height: 14),
 
-            // TODO: implement "collapse busy days" (or decide to remove support)
-
             DropDown(
               label: 'Time zone',
               initialValue: TimeZoneConstants.items.firstWhere(
@@ -377,17 +376,6 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
                 });
               },
             ),
-            const SizedBox(height: 44),
-
-            BlocBuilder<AuthBloc, AuthState>(
-              builder: (context, state) {
-                return HeliumElevatedButton(
-                  buttonText: 'Save',
-                  isLoading: isSubmitting,
-                  onPressed: _handleSubmit,
-                );
-              },
-            ),
 
             const SizedBox(height: 12),
           ],
@@ -424,7 +412,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
     });
   }
 
-  void _handleSubmit() {
+  void _onSubmit() {
     setState(() {
       isSubmitting = true;
     });

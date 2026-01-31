@@ -16,7 +16,9 @@ import 'package:heliumapp/presentation/bloc/auth/auth_event.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_state.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/helium_elevated_button.dart';
+import 'package:heliumapp/presentation/widgets/info_container.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
+import 'package:heliumapp/presentation/widgets/warning_container.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:share_plus/share_plus.dart';
@@ -63,16 +65,11 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
 
   @override
   Widget buildHeaderArea(BuildContext context) {
-    // TODO: make this prettier
-    return Column(
-      children: [
-        Text(
-          "Feeds allow you to take Helium's calendars elsewhere",
-          style: context.paragraphText,
-        ),
-
-        const SizedBox(height: 12),
-      ],
+    return const Padding(
+      padding: EdgeInsets.only(bottom: 12),
+      child: InfoContainer(
+        text: "Feeds allow you to take Helium's calendars elsewhere",
+      ),
     );
   }
 
@@ -331,63 +328,9 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: context.semanticColors.warning.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: context.semanticColors.warning.withValues(alpha: 0.2),
-                ),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: context.semanticColors.warning.withValues(
-                        alpha: 0.15,
-                      ),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      Icons.lock_outline_rounded,
-                      color: context.semanticColors.warning,
-                      size: Responsive.getIconSize(
-                        context,
-                        mobile: 20,
-                        tablet: 22,
-                        desktop: 24,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 6),
-                        Text(
-                          'Keep private feed URLs secret. If a feed is compromised, disabling and re-enabling feeds will regenerate URLs.',
-                          style: context.eTextStyle.copyWith(
-                            color: context.colorScheme.onSurface.withValues(
-                              alpha: 0.7,
-                            ),
-                            height: 1.5,
-                            fontSize: Responsive.getFontSize(
-                              context,
-                              mobile: 13,
-                              tablet: 14,
-                              desktop: 15,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+            const WarningContainer(
+              text: 'Keep private feed URLs secret. If a feed is compromised, disabling and re-enabling feeds will regenerate URLs.',
+              icon: Icons.privacy_tip_outlined,
             ),
 
             const SizedBox(height: 12),
@@ -405,7 +348,7 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
 
             _buildFeedCard(
               context: context,
-              icon: Icons.calendar_today_outlined,
+              icon: Icons.date_range_outlined,
               iconColor: context.colorScheme.primary,
               iconBgColor: context.colorScheme.primary,
               title: 'Class Schedules',

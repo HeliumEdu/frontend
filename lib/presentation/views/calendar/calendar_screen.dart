@@ -47,6 +47,7 @@ import 'package:heliumapp/presentation/bloc/category/category_bloc.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/widgets/shadow_container.dart';
 import 'package:heliumapp/presentation/widgets/todos_view.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -407,6 +408,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
               color: context.colorScheme.primary,
             ),
           ),
+          allowAppointmentResize: true,
           allowedViews: _allowedViews,
           dataSource: _calendarItemDataSource,
           timeZone: userSettings.timeZone.name,
@@ -431,12 +433,13 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           appointmentBuilder: _buildCalendarItem,
           onTap: _openCalendarItemFromSfCalendar,
           onDragEnd: _dropCalendarItemFromSfCalendar,
+          onAppointmentResizeEnd: _resizeCalendarItemFromSfCalendar,
         );
       },
     );
   }
 
-  void _openCalendarItem(CalendarItemBaseModel calendarItem) {
+  bool _openCalendarItem(CalendarItemBaseModel calendarItem) {
     if (calendarItem is CourseScheduleEventModel) {
       showSnackBar(
         context,
@@ -444,7 +447,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         isError: true,
       );
 
-      return;
+      return false;
     } else if (calendarItem is ExternalCalendarEventModel) {
       showSnackBar(
         context,
@@ -452,7 +455,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         isError: true,
       );
 
-      return;
+      return false;
     }
 
     final int? eventId = calendarItem is EventModel ? calendarItem.id : null;
@@ -469,6 +472,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         isEdit: true,
       ),
     );
+
+    return true;
   }
 
   Widget _buildCalendarHeader() {
@@ -476,21 +481,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        // TODO: migrate to ShadowContainer for consistent usage (that doesn't require Card's InkWell baggage)
-        decoration: BoxDecoration(
-          color: context.colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: context.colorScheme.shadow.withValues(alpha: 0.06),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-              spreadRadius: 0,
-            ),
-          ],
-        ),
+      child: ShadowContainer(
         child: LayoutBuilder(
           builder: (context, constraints) {
             return Stack(
@@ -935,7 +926,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                   }
                 },
                 icon: Icon(
-                  Icons.menu_book,
+                  Icons.school,
                   color: _courses.isNotEmpty
                       ? context.colorScheme.primary
                       : context.colorScheme.outline,
@@ -1215,6 +1206,108 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     }
   }
 
+  void _resizeCalendarItemFromSfCalendar(
+    AppointmentResizeEndDetails resizeDetails,
+  ) {
+    if (resizeDetails.appointment == null ||
+        resizeDetails.startTime == null ||
+        resizeDetails.endTime == null) {
+      return;
+    }
+
+    final CalendarItemBaseModel calendarItem =
+        resizeDetails.appointment as CalendarItemBaseModel;
+
+    if (calendarItem is HomeworkModel || calendarItem is EventModel) {
+      final originalStart = tz.TZDateTime.from(
+        DateTime.parse(calendarItem.start),
+        userSettings.timeZone,
+      );
+
+      // Determine which edge was dragged by comparing to original start
+      final startWasDragged = resizeDetails.startTime!.year != originalStart.year ||
+          resizeDetails.startTime!.month != originalStart.month ||
+          resizeDetails.startTime!.day != originalStart.day ||
+          resizeDetails.startTime!.hour != originalStart.hour ||
+          resizeDetails.startTime!.minute != originalStart.minute;
+
+      // Only round the dragged edge's time
+      final startMinute = startWasDragged
+          ? ((resizeDetails.startTime!.minute + 15) ~/ 30) * 30
+          : resizeDetails.startTime!.minute;
+      final endMinute = startWasDragged
+          ? resizeDetails.endTime!.minute
+          : ((resizeDetails.endTime!.minute + 15) ~/ 30) * 30;
+
+      final DateTime start = tz.TZDateTime(
+        userSettings.timeZone,
+        resizeDetails.startTime!.year,
+        resizeDetails.startTime!.month,
+        resizeDetails.startTime!.day,
+        resizeDetails.startTime!.hour,
+        startMinute,
+      );
+
+      DateTime end = tz.TZDateTime(
+        userSettings.timeZone,
+        resizeDetails.endTime!.year,
+        resizeDetails.endTime!.month,
+        resizeDetails.endTime!.day,
+        resizeDetails.endTime!.hour,
+        endMinute,
+      );
+      if (calendarItem.allDay) {
+        end = end.add(const Duration(days: 1));
+      }
+
+      if (calendarItem is HomeworkModel) {
+        final request = HomeworkRequestModel(
+          start: start.toIso8601String(),
+          end: end.toIso8601String(),
+          course: calendarItem.course.id,
+        );
+
+        context.read<CalendarItemBloc>().add(
+          UpdateHomeworkEvent(
+            origin: EventOrigin.screen,
+            courseGroupId: _courses
+                .firstWhere((c) => c.id == calendarItem.course.id)
+                .courseGroup,
+            courseId: calendarItem.course.id,
+            homeworkId: calendarItem.id,
+            request: request,
+          ),
+        );
+      } else {
+        final request = EventRequestModel(
+          start: start.toIso8601String(),
+          end: end.toIso8601String(),
+        );
+
+        context.read<CalendarItemBloc>().add(
+          UpdateEventEvent(
+            origin: EventOrigin.screen,
+            id: calendarItem.id,
+            request: request,
+          ),
+        );
+      }
+    } else if (calendarItem is CourseScheduleEventModel) {
+      showSnackBar(
+        context,
+        'Items from schedules can\'t be edited on the Calendar',
+        isError: true,
+      );
+    } else if (calendarItem is ExternalCalendarEventModel) {
+      showSnackBar(
+        context,
+        "Items from external calendars can't be edited on the Calendar",
+        isError: true,
+      );
+    }
+  }
+
+  // FIXME: on agenda view, center checkbox vertically, and provide more padding
   // FIXME: on agenda view, add HeliumIconButton for edit/delete
   // FIXME: on agenda view (if class has website), add HeliumIconButton for website
   // FIXME: on agenda view (if class has instructor email), add HeliumIconButton for email
@@ -1290,6 +1383,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                         scale: AppTextStyles.calendarCheckboxScale(context),
                         child: Builder(
                           builder: (context) {
+                            // TODO: on non-month views, add a slight padding to top
                             return Checkbox(
                               value:
                                   completedOverride ?? calendarItem.completed,
@@ -1298,17 +1392,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                 _toggleHomeworkCompleted(calendarItem, value!);
                                 onCheckboxToggled?.call();
                               },
-                              fillColor: WidgetStateProperty.all(color),
-                              checkColor: Colors.white,
-                              side: WidgetStateBorderSide.resolveWith(
-                                (states) => const BorderSide(
-                                  color: Colors.white,
-                                  width: 1.5,
-                                ),
-                              ),
-                              materialTapTargetSize:
-                                  MaterialTapTargetSize.shrinkWrap,
-                              visualDensity: VisualDensity.compact,
+                              activeColor: context.colorScheme.primary,
                             );
                           },
                         ),
@@ -1538,11 +1622,12 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
                       return GestureDetector(
                         onTap: () {
-                          Navigator.of(context).pop();
                           Feedback.forTap(context);
-                          _openCalendarItem(
+                          if (_openCalendarItem(
                             appointment as CalendarItemBaseModel,
-                          );
+                          )) {
+                            Navigator.of(context).pop();
+                          }
                         },
                         child: _buildCalendarItemWidget(
                           calendarItem: appointment,
@@ -1727,54 +1812,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
-                                    if (course.room.isNotEmpty)
-                                      Row(
-                                        children: [
-                                          Icon(
-                                            Icons.pin_drop_outlined,
-                                            size: Responsive.getIconSize(
-                                              context,
-                                              mobile: 11,
-                                              tablet: 12,
-                                              desktop: 13,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 2),
-                                          Text(
-                                            course.room,
-                                            style: context.eTextStyle.copyWith(
-                                              color: context
-                                                  .colorScheme
-                                                  .onSurface
-                                                  .withValues(alpha: 0.6),
-                                              fontSize: Responsive.getFontSize(
-                                                context,
-                                                mobile: 11,
-                                                tablet: 12,
-                                                desktop: 13,
-                                              ),
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ],
-                                      ),
-                                    if (course.teacherName.isNotEmpty)
-                                      Text(
-                                        course.teacherName,
-                                        style: context.eTextStyle.copyWith(
-                                          color: context.colorScheme.onSurface
-                                              .withValues(alpha: 0.6),
-                                          fontSize: Responsive.getFontSize(
-                                            context,
-                                            mobile: 10,
-                                            tablet: 11,
-                                            desktop: 12,
-                                          ),
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
                                   ],
                                 ),
                               ),
@@ -1906,19 +1943,19 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                         CheckboxListTile(
                           title: Row(
                             children: [
-                              Text(
-                                'Events',
-                                style: context.eTextStyle.copyWith(
-                                  color: context.colorScheme.onSurface,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
                               Container(
                                 width: 12,
                                 height: 12,
                                 decoration: BoxDecoration(
                                   color: userSettings.eventsColor,
                                   shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Events',
+                                style: context.eTextStyle.copyWith(
+                                  color: context.colorScheme.onSurface,
                                 ),
                               ),
                             ],
@@ -2059,20 +2096,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                     if (_deduplicatedCategories.isNotEmpty) ...[
                       const Divider(height: 20),
 
-                      Text(
-                        'Categories',
-                        style: context.bTextStyle.copyWith(
-                          color: context.colorScheme.onSurface,
-                          fontSize: Responsive.getFontSize(
-                            context,
-                            mobile: 14,
-                            tablet: 15,
-                            desktop: 16,
-                          ),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
                       StatefulBuilder(
                         builder: (context, setCategoryMenuState) {
                           return Column(

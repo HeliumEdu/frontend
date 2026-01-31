@@ -353,7 +353,7 @@ abstract class BaseAttachmentScreenState<T>
         child: Row(
           children: [
             Icon(
-              Icons.insert_drive_file,
+              Icons.insert_drive_file_outlined,
               color: context.colorScheme.primary,
               size: Responsive.getIconSize(
                 context,
@@ -420,7 +420,7 @@ abstract class BaseAttachmentScreenState<T>
         child: Row(
           children: [
             Icon(
-              Icons.insert_drive_file,
+              Icons.insert_drive_file_outlined,
               color: context.colorScheme.primary,
               size: Responsive.getIconSize(
                 context,

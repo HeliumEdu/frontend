@@ -6,9 +6,9 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/utils/app_style.dart';
-import 'package:heliumapp/config/app_theme.dart';
 
 class DropDown<T> extends StatelessWidget {
   final String? label;
@@ -45,7 +45,6 @@ class DropDown<T> extends StatelessWidget {
             color: isDisabled
                 ? context.theme.scaffoldBackgroundColor
                 : context.colorScheme.surface,
-            border: Border.all(color: context.colorScheme.outline.withValues(alpha: 0.2)),
             borderRadius: BorderRadius.circular(8),
           ),
           child: DropdownButtonFormField<DropDownItem<T>>(
@@ -59,7 +58,18 @@ class DropDown<T> extends StatelessWidget {
                 top: prefixIcon != null ? 12 : 0,
                 left: 12,
               ),
-              border: InputBorder.none,
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                  color: context.colorScheme.outline.withValues(alpha: 0.2),
+                  width: 2,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                  color: context.colorScheme.outline.withValues(alpha: 0.2),
+                  width: 2,
+                ),
+              ),
             ),
             style: context.formText,
             dropdownColor: context.colorScheme.surface,
@@ -70,8 +80,8 @@ class DropDown<T> extends StatelessWidget {
                 value: item,
                 child: Row(
                   children: [
-                    if (item.icon != null) ...[
-                      Icon(item.icon!, color: context.colorScheme.primary),
+                    if (item.iconData != null) ...[
+                      Icon(item.iconData, color: item.iconColor ?? iconColor),
                       const SizedBox(width: 10),
                     ],
                     Text(item.value.toString(), style: context.formText),

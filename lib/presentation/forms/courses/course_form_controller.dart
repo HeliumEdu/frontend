@@ -16,6 +16,7 @@ class CourseFormController extends BasicFormController {
   final TextEditingController teacherNameController = TextEditingController();
   final TextEditingController teacherEmailController = TextEditingController();
   final TextEditingController creditsController = TextEditingController();
+  final FocusNode urlFocusNode = FocusNode();
   Color selectedColor = HeliumColors.getRandomColor();
   bool isOnline = false;
   DateTime? startDate;
@@ -28,5 +29,6 @@ class CourseFormController extends BasicFormController {
     teacherNameController.dispose();
     teacherEmailController.dispose();
     creditsController.dispose();
+    urlFocusNode.dispose();
   }
 }

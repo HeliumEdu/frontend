@@ -10,7 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/utils/app_style.dart';
 
-class LabelAndTextFormField extends StatelessWidget {
+class LabelAndTextFormField extends StatefulWidget {
   final String? label;
   final String hintText;
   final IconData? prefixIcon;
@@ -29,12 +29,9 @@ class LabelAndTextFormField extends StatelessWidget {
   final bool enabled;
   final int maxLines;
   final ValueChanged<String>? onFieldSubmitted;
-
-  /// Optional key for the TextFormField, used for scroll-to-error functionality.
   final GlobalKey<FormFieldState<String>>? fieldKey;
-
-  /// Autofill hints for password managers (e.g., AutofillHints.username).
   final Iterable<String>? autofillHints;
+  final Widget? trailingIconButton;
 
   const LabelAndTextFormField({
     super.key,
@@ -57,18 +54,53 @@ class LabelAndTextFormField extends StatelessWidget {
     this.onFieldSubmitted,
     this.fieldKey,
     this.autofillHints,
+    this.trailingIconButton,
   });
 
   @override
+  State<LabelAndTextFormField> createState() => _LabelAndTextFormFieldState();
+}
+
+class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
+  // State
+  bool _isTrailingButtonEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.controller != null && widget.trailingIconButton != null) {
+      widget.controller!.addListener(_onTextChanged);
+      _onTextChanged();
+    }
+  }
+
+  @override
+  void dispose() {
+    if (widget.controller != null && widget.trailingIconButton != null) {
+      widget.controller!.removeListener(_onTextChanged);
+    }
+    super.dispose();
+  }
+
+  void _onTextChanged() {
+    final text = widget.controller!.text;
+    final validationResult = widget.validator?.call(text);
+
+    setState(() {
+      _isTrailingButtonEnabled = text.isNotEmpty && validationResult == null;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Column(
+    final formField = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (label != null) Text(label!, style: context.formLabel),
-        if (label != null) const SizedBox(height: 9),
+        if (widget.label != null) Text(widget.label!, style: context.formLabel),
+        if (widget.label != null) const SizedBox(height: 9),
         Container(
           decoration: BoxDecoration(
-            color: enabled
+            color: widget.enabled
                 ? context.colorScheme.surface
                 : context.colorScheme.surfaceContainerHighest,
             border: Border.all(
@@ -80,55 +112,85 @@ class LabelAndTextFormField extends StatelessWidget {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: TextFormField(
-            key: fieldKey,
-            initialValue: initialValue,
-            autofocus: autofocus,
-            controller: controller,
-            validator: validator,
-            focusNode: focusNode,
-            enabled: enabled,
-            maxLines: maxLines,
-            obscureText: obscureText,
-            onChanged: onChanged,
-            keyboardType: keyboardType,
-            inputFormatters: inputFormatters,
-            autofillHints: autofillHints,
-            style: context.formText,
-            onFieldSubmitted: onFieldSubmitted,
-            decoration: InputDecoration(
-              prefixIcon: prefixIcon != null
-                  ? Icon(
-                      prefixIcon,
-                      color: context.colorScheme.onSurface.withValues(alpha: 0.4),
-                    )
-                  : null,
-              contentPadding: EdgeInsets.only(
-                left: 12,
-                top: _horizontalPadding(),
-                bottom: _horizontalPadding(),
+              key: widget.fieldKey,
+              initialValue: widget.initialValue,
+              autofocus: widget.autofocus,
+              controller: widget.controller,
+              validator: widget.validator,
+              focusNode: widget.focusNode,
+              enabled: widget.enabled,
+              maxLines: widget.maxLines,
+              obscureText: widget.obscureText,
+              onChanged: widget.onChanged,
+              keyboardType: widget.keyboardType,
+              inputFormatters: widget.inputFormatters,
+              autofillHints: widget.autofillHints,
+              style: context.formText,
+              onFieldSubmitted: widget.onFieldSubmitted,
+              decoration: InputDecoration(
+                prefixIcon: widget.prefixIcon != null
+                    ? Icon(
+                        widget.prefixIcon,
+                        color: context.colorScheme.onSurface.withValues(
+                          alpha: 0.4,
+                        ),
+                      )
+                    : null,
+                contentPadding: EdgeInsets.only(
+                  left: 12,
+                  top: _horizontalPadding(),
+                  bottom: _horizontalPadding(),
+                ),
+                hintText: widget.hintText,
+                hintStyle: context.formHintStyle,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                disabledBorder: InputBorder.none,
+                errorBorder: InputBorder.none,
+                focusedErrorBorder: InputBorder.none,
+                suffixIcon: widget.suffixIcon,
+                errorText: widget.errorText,
+                errorStyle: context.formErrorStyle,
+                errorMaxLines: 3,
               ),
-              hintText: hintText,
-              hintStyle: context.formHintStyle,
-              border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              focusedBorder: InputBorder.none,
-              disabledBorder: InputBorder.none,
-              errorBorder: InputBorder.none,
-              focusedErrorBorder: InputBorder.none,
-              suffixIcon: suffixIcon,
-              errorText: errorText,
-              errorStyle: context.formErrorStyle,
-              errorMaxLines: 3,
             ),
-          ),
           ),
         ),
       ],
     );
+
+    if (widget.trailingIconButton != null) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(child: formField),
+          const SizedBox(width: 8),
+          Padding(
+            padding: EdgeInsets.only(top: widget.label != null ? 33 : 0),
+            child: SizedBox(
+              width: 48,
+              height: 48,
+              child: IgnorePointer(
+                ignoring: !_isTrailingButtonEnabled,
+                child: Opacity(
+                  opacity: _isTrailingButtonEnabled ? 1.0 : 0.4,
+                  child: widget.trailingIconButton,
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return formField;
   }
 
   double _horizontalPadding() {
-    if (prefixIcon != null || suffixIcon != null || maxLines > 1) {
+    if (widget.prefixIcon != null ||
+        widget.suffixIcon != null ||
+        widget.maxLines > 1) {
       return 15;
     } else {
       return 0;
