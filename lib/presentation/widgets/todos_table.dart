@@ -18,7 +18,6 @@ import 'package:heliumapp/presentation/widgets/drop_down.dart';
 import 'package:heliumapp/presentation/widgets/empty_card.dart';
 import 'package:heliumapp/presentation/widgets/grade_label.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
-import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
@@ -26,8 +25,6 @@ import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-// FIXME: we should add a GlobalKey or similar to this from calendar_screen, similar to how SfCalendar does this. That way when the user switches back and forth between views, they come back to the state they were just on for this view
 
 class TodosTable extends StatefulWidget {
   final CalendarItemDataSource dataSource;
@@ -52,10 +49,11 @@ class _TodosTableState extends State<TodosTable> {
   bool _sortAscending = true;
   int _currentPage = 1;
   int _itemsPerPage = 10;
-  bool _isLoading = true;
-  bool _hasInitialized = false;
+  bool _hasLoadedData = false;
 
   final List<int> _itemsPerPageOptions = [5, 10, 25, 50, 100, -1];
+
+  bool get hasLoadedData => _hasLoadedData;
 
   @override
   void initState() {
@@ -63,12 +61,18 @@ class _TodosTableState extends State<TodosTable> {
 
     widget.dataSource.changeNotifier.addListener(_onDataSourceChanged);
 
-    if (_hasInitialized) {
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    await _expandDataWindowForAllCourses();
+
+    // After expanding data window, check if data is loaded and mark as ready
+    if (mounted && widget.dataSource.hasLoadedInitialData && !_hasLoadedData) {
       setState(() {
-        _isLoading = false;
+        _goToToday();
+        _hasLoadedData = true;
       });
-    } else {
-      _expandDataWindowForAllCourses();
     }
   }
 
@@ -80,8 +84,8 @@ class _TodosTableState extends State<TodosTable> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const LoadingIndicator();
+    if (!_hasLoadedData) {
+      return const Center(child: CircularProgressIndicator());
     }
 
     final dataSource = widget.dataSource;
@@ -154,28 +158,20 @@ class _TodosTableState extends State<TodosTable> {
   }
 
   void _onDataSourceChanged() {
-    if (widget.dataSource.hasLoadedInitialData &&
-        _isLoading &&
-        !_hasInitialized) {
-      _goToToday();
-
+    // Jump to today when initial data finishes loading (for async data loads)
+    if (widget.dataSource.hasLoadedInitialData && !_hasLoadedData) {
       setState(() {
-        _isLoading = false;
-        _hasInitialized = true;
+        _goToToday();
+        _hasLoadedData = true;
       });
     }
   }
 
   Future<void> _expandDataWindowForAllCourses() async {
-    if (!_isLoading) return;
-
     final dataSource = widget.dataSource;
     final courses = dataSource.courses ?? [];
 
     if (courses.isEmpty) {
-      setState(() {
-        _isLoading = false;
-      });
       return;
     }
 
@@ -824,7 +820,7 @@ class _TodosTableState extends State<TodosTable> {
     );
   }
 
-  // FIXME: if more than 150 pixels available, render these as MaterialLabelTitle, and allow to wrap within the column; otherwise continue to rollup number of materials in to an icon count (like it is currently done now)
+  // TODO: consider if we want to use MaterialLabelTitle and actually render titles here, or if that will just get messy
   Widget _buildMaterialsColumn(
     HomeworkModel homework,
     UserSettingsModel userSettings,

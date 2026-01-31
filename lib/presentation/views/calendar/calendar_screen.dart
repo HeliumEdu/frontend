@@ -163,6 +163,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   final ScrollController _monthViewScrollController = ScrollController();
 
   final GlobalKey calendarKey = GlobalKey();
+  final GlobalKey todosTableKey = GlobalKey();
   final GlobalKey _todayButtonKey = GlobalKey();
   int _scheduleViewRebuildCounter = 0;
 
@@ -2503,7 +2504,12 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   Widget _buildTodosView() {
+    if (_calendarItemDataSource == null) {
+      return const LoadingIndicator();
+    }
+
     return TodosTable(
+      key: todosTableKey,
       dataSource: _calendarItemDataSource!,
       onTap: _openCalendarItem,
       onToggleCompleted: _toggleHomeworkCompleted,
