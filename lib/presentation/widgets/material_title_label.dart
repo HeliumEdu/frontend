@@ -49,32 +49,35 @@ class MaterialTitleLabel extends StatelessWidget {
               ),
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: userSettings.materialColor.withValues(alpha: 0.1),
-              borderRadius: const BorderRadius.only(
-                topRight: Radius.circular(10),
-                bottomRight: Radius.circular(10),
-              ),
-              border: Border.all(
-                color: userSettings.materialColor.withValues(alpha: 0.2),
-              ),
-            ),
-            child: Center(
-              child: Text(
-                title,
-                style: context.cTextStyle.copyWith(
-                  color: userSettings.materialColor,
-                  fontWeight: FontWeight.w600,
-                  fontSize: Responsive.getFontSize(
-                    context,
-                    mobile: 12,
-                    tablet: 13,
-                    desktop: 14,
-                  ),
+          Flexible(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: userSettings.materialColor.withValues(alpha: 0.1),
+                borderRadius: const BorderRadius.only(
+                  topRight: Radius.circular(10),
+                  bottomRight: Radius.circular(10),
                 ),
-                overflow: TextOverflow.ellipsis,
+                border: Border.all(
+                  color: userSettings.materialColor.withValues(alpha: 0.2),
+                ),
+              ),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  title,
+                  style: context.cTextStyle.copyWith(
+                    color: userSettings.materialColor,
+                    fontWeight: FontWeight.w600,
+                    fontSize: Responsive.getFontSize(
+                      context,
+                      mobile: 12,
+                      tablet: 13,
+                      desktop: 14,
+                    ),
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ),
           ),

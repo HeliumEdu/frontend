@@ -34,6 +34,7 @@ import 'package:heliumapp/presentation/widgets/course_title_label.dart';
 import 'package:heliumapp/presentation/widgets/group_dropdown.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/pill_badge.dart';
+import 'package:heliumapp/presentation/widgets/responsive_card_grid.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -204,8 +205,8 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
       child: GroupDropdown(
         groups: _courseGroups,
         initialSelection: _courseGroups.firstWhereOrNull(
-              (g) => g.id == _selectedGroupId,
-            ),
+          (g) => g.id == _selectedGroupId,
+        ),
         onChanged: (value) {
           // The "+" button has a null value
           if (value == null) return;
@@ -275,14 +276,10 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
   }
 
   Widget _buildCoursesList() {
-    // TODO: on larger screens, wrap cards after a max width
     return Expanded(
-      child: ListView.builder(
-        itemCount: _coursesMap[_selectedGroupId!]!.length,
-        itemBuilder: (context, index) {
-          final course = _coursesMap[_selectedGroupId!]![index];
-          return _buildCoursesCard(context, course);
-        },
+      child: ResponsiveCardGrid<CourseModel>(
+        items: _coursesMap[_selectedGroupId!]!,
+        itemBuilder: (context, course) => _buildCoursesCard(context, course),
       ),
     );
   }

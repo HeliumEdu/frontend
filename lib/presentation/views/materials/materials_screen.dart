@@ -34,6 +34,7 @@ import 'package:heliumapp/presentation/widgets/group_dropdown.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/material_title_label.dart';
 import 'package:heliumapp/presentation/widgets/pill_badge.dart';
+import 'package:heliumapp/presentation/widgets/responsive_card_grid.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -192,8 +193,8 @@ class _MaterialsScreenState
       child: GroupDropdown(
         groups: _materialGroups,
         initialSelection: _materialGroups.firstWhereOrNull(
-              (g) => g.id == _selectedGroupId,
-            ),
+          (g) => g.id == _selectedGroupId,
+        ),
         onChanged: (value) {
           // The "+" button has a null value
           if (value == null) return;
@@ -264,14 +265,11 @@ class _MaterialsScreenState
   }
 
   Widget _buildMaterialsList() {
-    // TODO: on larger screens, wrap cards after a max width
     return Expanded(
-      child: ListView.builder(
-        itemCount: _materialsMap[_selectedGroupId!]!.length,
-        itemBuilder: (context, index) {
-          final material = _materialsMap[_selectedGroupId!]![index];
-          return _buildMaterialCard(context, material);
-        },
+      child: ResponsiveCardGrid<MaterialModel>(
+        items: _materialsMap[_selectedGroupId!]!,
+        itemBuilder: (context, material) =>
+            _buildMaterialCard(context, material),
       ),
     );
   }
