@@ -199,7 +199,18 @@ class AppTheme {
           shape: WidgetStateProperty.all(
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
           ),
-          foregroundColor: WidgetStateProperty.all(colorScheme.primary),
+          foregroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.disabled)) {
+              return colorScheme.onSurface.withValues(alpha: 0.38);
+            }
+            return colorScheme.primary;
+          }),
+          overlayColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.disabled)) {
+              return Colors.transparent;
+            }
+            return null; // Use default overlay
+          }),
         ),
       ),
       sliderTheme: SliderThemeData(

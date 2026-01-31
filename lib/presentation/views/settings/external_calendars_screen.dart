@@ -140,7 +140,7 @@ class _ExternalCalendarsProvidedScreenState
     return const Padding(
       padding: EdgeInsets.only(bottom: 12),
       child: InfoContainer(
-        text: 'External Calendars allow you to bring other calendars in to Helium',
+        text: 'External calendars allow you to bring other calendars in to Helium',
       ),
     );
   }
