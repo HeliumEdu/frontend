@@ -6,7 +6,6 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -399,6 +398,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             ? ValueKey('schedule_$_scheduleViewRebuildCounter')
             : calendarKey;
 
+        final agendaHeight = Responsive.isMobile(context) ? 50.0 : 53.0;
+
         return SfCalendar(
           key: effectiveKey,
           backgroundColor: context.colorScheme.surface,
@@ -420,12 +421,12 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
               PlannerHelper.weekStartsOnRemap[userSettings.weekStartsOn],
           scheduleViewSettings: ScheduleViewSettings(
             hideEmptyScheduleWeek: true,
-            appointmentItemHeight: Responsive.isMobile(context) ? 56 : 48,
+            appointmentItemHeight: agendaHeight,
           ),
           monthViewSettings: MonthViewSettings(
             appointmentDisplayCount: appointmentDisplayCount,
             showAgenda: Responsive.isMobile(context),
-            agendaItemHeight: Responsive.isMobile(context) ? 56 : -1,
+            agendaItemHeight: agendaHeight,
             appointmentDisplayMode: Responsive.isMobile(context)
                 ? MonthAppointmentDisplayMode.indicator
                 : MonthAppointmentDisplayMode.appointment,
@@ -1359,7 +1360,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     }
 
     final calendarItem = details.appointments.first as CalendarItemBaseModel;
-    final isInAgenda = _currentView == HeliumView.agenda ||
+    final isInAgenda =
+        _currentView == HeliumView.agenda ||
         (_currentView == HeliumView.month &&
             (details.bounds.height > 40 ||
                 (Responsive.isMobile(context) && calendarItem.allDay)));
@@ -1388,12 +1390,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
     Widget? iconWidget;
 
-    if (PlannerHelper.shouldShowCheckbox(
-          context,
-          calendarItem,
-          _currentView,
-        ) &&
-        calendarItem is HomeworkModel) {
+    if (PlannerHelper.shouldShowCheckbox(context, calendarItem, _currentView)) {
+      calendarItem as HomeworkModel;
       iconWidget = SizedBox(
         width: 16,
         height: 16,
@@ -1420,11 +1418,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         height: 16,
         child: Transform.scale(
           scale: AppTextStyles.calendarCheckboxScale(context),
-          child: const Icon(
-            Icons.school,
-            size: 16,
-            color: Colors.white,
-          ),
+          child: const Icon(Icons.school, size: 16, color: Colors.white),
         ),
       );
     }
@@ -1601,9 +1595,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       buttons.add(
         HeliumIconButton(
           onPressed: () {
-            launchUrl(
-              Uri.parse('mailto:${course!.teacherEmail}'),
-            );
+            launchUrl(Uri.parse('mailto:${course!.teacherEmail}'));
           },
           icon: Icons.email_outlined,
           color: Colors.white,
@@ -1682,13 +1674,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       );
     }
 
-    // Use provided height or calculate default minimum based on device
-    final double defaultMinHeight = Responsive.isMobile(context) ? 56.0 : 48.0;
-    // In agenda views, enforce minimum height even if SfCalendar provides smaller height
-    final double effectiveMinHeight = isInAgenda && height != null
-        ? math.max(height, defaultMinHeight)
-        : (height ?? defaultMinHeight);
-
     final leftWidget = _buildCalendarItemLeft(
       calendarItem: calendarItem,
       isInAgenda: isInAgenda,
@@ -1711,9 +1696,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     return Container(
       width: width,
       height: isInAgenda ? null : height,
-      constraints: isInAgenda
-          ? BoxConstraints(minHeight: effectiveMinHeight)
-          : null,
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(4),
@@ -1744,10 +1726,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    leftWidget,
-                    centerWidget,
-                  ],
+                  children: [leftWidget, centerWidget],
                 ),
               ),
             ),
