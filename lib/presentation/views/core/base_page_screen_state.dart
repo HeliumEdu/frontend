@@ -101,7 +101,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
     // Build the main content
     final Widget content = Padding(
-      padding: const EdgeInsets.only(left: 12, right: 12, top: 12, bottom: 0),
+      padding: const EdgeInsets.only(left: 12, right: 12, top: 8, bottom: 0),
       child: Column(
         children: [
           if (isLoading)
