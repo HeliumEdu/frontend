@@ -167,12 +167,6 @@ class PlannerHelper {
       return false;
     }
 
-    if (Responsive.isMobile(context)) {
-      if (view == HeliumView.week || view == HeliumView.day) {
-        return false;
-      }
-    }
-
     return true;
   }
 
@@ -241,12 +235,6 @@ class PlannerHelper {
       return false;
     }
 
-    if (Responsive.isMobile(context)) {
-      if (view == HeliumView.week || view == HeliumView.day) {
-        return false;
-      }
-    }
-
     if (!Responsive.isMobile(context) && view == HeliumView.month) {
       if (!isInAgenda) {
         return false;
@@ -256,9 +244,15 @@ class PlannerHelper {
     return true;
   }
 
-  static bool shouldShowEditAndDeleteButtons(
+  static bool shouldShowEditButton(
+    BuildContext context,
     CalendarItemBaseModel calendarItem,
   ) {
+    return !Responsive.isMobile(context) &&
+        (calendarItem is HomeworkModel || calendarItem is EventModel);
+  }
+
+  static bool shouldShowDeleteButton(CalendarItemBaseModel calendarItem) {
     return calendarItem is HomeworkModel || calendarItem is EventModel;
   }
 }

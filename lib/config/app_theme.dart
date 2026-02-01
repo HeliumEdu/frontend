@@ -190,7 +190,6 @@ class AppTheme {
           ),
         ),
       ),
-      // FIXME: this feels pretty large now, with all the UI improvements. if we reduce it, todos view in calendar can get more space for the footer too
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: colorScheme.primary,
         foregroundColor: colorScheme.onPrimary,

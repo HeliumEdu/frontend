@@ -27,6 +27,7 @@ import 'package:heliumapp/presentation/widgets/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -130,7 +131,7 @@ class _MaterialAddScreenState
             children: [
               LabelAndTextFormField(
                 label: 'Title',
-                autofocus: true,
+                autofocus: !widget.isEdit || !Responsive.isMobile(context),
                 controller: _formController.titleController,
                 validator: BasicFormController.validateRequiredField,
                 fieldKey: _formController.getFieldKey('title'),

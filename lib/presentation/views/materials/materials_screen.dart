@@ -84,7 +84,8 @@ class MaterialsProvidedScreen extends StatefulWidget {
 class _MaterialsScreenState
     extends BasePageScreenState<MaterialsProvidedScreen> {
   @override
-  String get screenTitle => 'Materials';
+  // This is set from the shell
+  String get screenTitle => '';
 
   @override
   VoidCallback get actionButtonCallback => () {

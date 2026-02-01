@@ -31,9 +31,9 @@ class NavigationShellProvider extends InheritedWidget {
 }
 
 enum NavigationPage {
-  calendar('Calendar', Icons.calendar_month, AppRoutes.calendarScreen),
+  calendar('Planner', Icons.calendar_month, AppRoutes.calendarScreen),
   courses('Classes', Icons.school, AppRoutes.coursesScreen),
-  materials('Materials', Icons.book, AppRoutes.materialsScreen),
+  materials('Resources', Icons.book, AppRoutes.materialsScreen),
   grades('Grades', Icons.bar_chart, AppRoutes.gradesScreen);
 
   final String label;
@@ -195,11 +195,11 @@ class _NavigationShellState extends State<NavigationShell> {
           bottomNavigationBar: useNavigationRail
               ? null
               : NavigationBar(
-                  height: 70,
+                  height: 60,
                   selectedIndex: currentPage.index,
                   onDestinationSelected: (index) =>
                       _onDestinationSelected(context, index),
-                  labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+                  labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
                   destinations: NavigationPage.values
                       .map(
                         (page) => NavigationDestination(
