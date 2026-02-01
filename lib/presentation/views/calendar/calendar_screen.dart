@@ -114,7 +114,8 @@ class CalendarProvidedScreen extends StatefulWidget {
 
 class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   @override
-  String get screenTitle => 'Calendar';
+  // This is set from the shell
+  String get screenTitle => '';
 
   @override
   NotificationArgs? get notificationNavArgs =>
@@ -208,9 +209,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     return super.loadSettings().then((settings) {
       if (mounted) {
         setState(() {
-          _changeView(PlannerHelper.mapApiViewToHeliumView(
-            userSettings.defaultView,
-          ));
+          _changeView(
+            PlannerHelper.mapApiViewToHeliumView(userSettings.defaultView),
+          );
 
           _calendarItemDataSource = CalendarItemDataSource(
             homeworkRepository: HomeworkRepositoryImpl(
@@ -513,7 +514,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                     right: 0,
                     top: 0,
                     bottom: 0,
-                    child: _buildFilterArea(containerWidth: constraints.maxWidth),
+                    child: _buildFilterArea(
+                      containerWidth: constraints.maxWidth,
+                    ),
                   ),
                 ],
               ),
@@ -569,10 +572,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             ),
           );
 
-    return Padding(
-      padding: const EdgeInsets.only(top: 3),
-      child: button,
-    );
+    return Padding(padding: const EdgeInsets.only(top: 3), child: button);
   }
 
   Widget _buildCalendarDateArea() {
@@ -652,8 +652,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       final todayButtonContext = _todayButtonKey.currentContext;
       final calculatedWidth = todayButtonContext != null
           ? containerWidth -
-              (todayButtonContext.findRenderObject() as RenderBox).size.width -
-              8
+                (todayButtonContext.findRenderObject() as RenderBox)
+                    .size
+                    .width -
+                8
           : containerWidth - 8;
       expandedToolbarWidth = isMobile
           ? calculatedWidth
@@ -1072,8 +1074,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     // Only update the calendar controller's view if not switching to Todos
     // (Todos is a custom view that doesn't exist in SfCalendar)
     if (newView != HeliumView.todos) {
-      _calendarController.view =
-          PlannerHelper.mapHeliumViewToSfCalendarView(newView);
+      _calendarController.view = PlannerHelper.mapHeliumViewToSfCalendarView(
+        newView,
+      );
     }
   }
 
@@ -1400,15 +1403,12 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   Widget _buildCalendarItemLeft({
+    required BuildContext context,
     required CalendarItemBaseModel calendarItem,
     required bool isInAgenda,
     VoidCallback? onCheckboxToggled,
     bool? completedOverride,
   }) {
-    if (Responsive.isMobile(context) && !isInAgenda) {
-      return const SizedBox.shrink();
-    }
-
     Widget? iconWidget;
 
     if (PlannerHelper.shouldShowCheckbox(context, calendarItem, _currentView)) {
@@ -1439,7 +1439,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         height: 16,
         child: Transform.scale(
           scale: AppTextStyles.calendarCheckboxScale(context),
-          child: const Icon(Icons.school, size: 16, color: Colors.white),
+          child: Icon(Icons.school, size: 16, color: context.colorScheme.onSurface),
         ),
       );
     }
@@ -1496,8 +1496,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                   color: Colors.white.withValues(alpha: 0.6),
                   fontSize: 12.0,
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
               SizedBox(width: Responsive.isMobile(context) ? 2 : 4),
               Expanded(
@@ -1506,8 +1504,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                   style: context.calendarData.copyWith(
                     fontSize: AppTextStyles.calendarDataFontSize(context),
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -1518,8 +1514,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             style: context.calendarData.copyWith(
               fontSize: AppTextStyles.calendarDataFontSize(context),
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
 
         if (PlannerHelper.shouldShowTimeBelowTitle(
@@ -1643,7 +1637,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       );
     }
 
-    if (PlannerHelper.shouldShowEditAndDeleteButtons(calendarItem)) {
+    if (PlannerHelper.shouldShowEditButton(context, calendarItem)) {
       buttons.add(
         HeliumIconButton(
           onPressed: () => _openCalendarItem(calendarItem),
@@ -1653,7 +1647,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       );
     }
 
-    if (PlannerHelper.shouldShowEditAndDeleteButtons(calendarItem)) {
+    if (PlannerHelper.shouldShowDeleteButton(calendarItem)) {
       buttons.add(
         HeliumIconButton(
           onPressed: () => _deleteCalendarItem(context, calendarItem),
@@ -1700,6 +1694,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     }
 
     final leftWidget = _buildCalendarItemLeft(
+      context: context,
       calendarItem: calendarItem,
       isInAgenda: isInAgenda,
       onCheckboxToggled: onCheckboxToggled,

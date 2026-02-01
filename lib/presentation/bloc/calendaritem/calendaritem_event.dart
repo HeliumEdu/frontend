@@ -50,7 +50,7 @@ class UpdateEventEvent extends CalendarItemEvent {
     required super.origin,
     required this.id,
     required this.request,
-    this.advanceNavOnSuccess = true,
+    this.advanceNavOnSuccess = false,
   });
 }
 
@@ -94,7 +94,7 @@ class UpdateHomeworkEvent extends CalendarItemEvent {
     required this.courseId,
     required this.homeworkId,
     required this.request,
-    this.advanceNavOnSuccess = true,
+    this.advanceNavOnSuccess = false,
   });
 }
 

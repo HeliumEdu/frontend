@@ -88,7 +88,8 @@ class CoursesProvidedScreen extends StatefulWidget {
 
 class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
   @override
-  String get screenTitle => 'Classes';
+  // This is set from the shell
+  String get screenTitle => '';
 
   @override
   VoidCallback get actionButtonCallback => () {

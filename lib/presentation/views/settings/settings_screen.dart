@@ -34,7 +34,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
   @override
-  String get screenTitle => 'Settings';
+  String get screenTitle => '';
 
   @override
   ScreenType get screenType => ScreenType.subPage;
@@ -271,10 +271,10 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Preferences', style: context.settingsMenuItem),
+                          Text('Settings', style: context.settingsMenuItem),
                           const SizedBox(height: 2),
                           Text(
-                            'Change settings and preferences',
+                            'Change your preferences',
                             style: context.settingsMenuItemHint,
                           ),
                         ],

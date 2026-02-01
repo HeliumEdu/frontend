@@ -225,7 +225,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
           ),
         ],
       ),
-      child: FloatingActionButton(
+      child: FloatingActionButton.small(
         shape: const CircleBorder(),
         onPressed: actionButtonCallback!,
         backgroundColor: context.colorScheme.primary,
@@ -235,9 +235,9 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
           color: context.colorScheme.onPrimary,
           size: Responsive.getIconSize(
             context,
-            mobile: 24,
-            tablet: 26,
-            desktop: 28,
+            mobile: 20,
+            tablet: 22,
+            desktop: 24,
           ),
         ),
       ),

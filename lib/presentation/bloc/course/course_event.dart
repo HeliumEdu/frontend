@@ -102,7 +102,7 @@ class UpdateCourseEvent extends CourseEvent {
     required this.courseGroupId,
     required this.courseId,
     required this.request,
-    this.advanceNavOnSuccess = true,
+    this.advanceNavOnSuccess = false,
   });
 }
 
@@ -154,6 +154,6 @@ class UpdateCourseScheduleEvent extends CourseEvent {
     required this.courseId,
     required this.scheduleId,
     required this.request,
-    this.advanceNavOnSuccess = true,
+    this.advanceNavOnSuccess = false,
   });
 }

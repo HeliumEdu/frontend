@@ -154,7 +154,7 @@ class _CourseAddScreenState
             children: [
               LabelAndTextFormField(
                 label: 'Title',
-                autofocus: true,
+                autofocus: !widget.isEdit || !Responsive.isMobile(context),
                 controller: _formController.titleController,
                 validator: BasicFormController.validateRequiredField,
                 fieldKey: _formController.getFieldKey('title'),

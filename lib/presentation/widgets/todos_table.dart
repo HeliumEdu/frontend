@@ -336,7 +336,14 @@ class _TodosTableState extends State<TodosTable> {
     required int totalPages,
   }) {
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: EdgeInsets.only(
+        left: 8,
+        right: 8,
+        bottom: 8,
+        // Bottom margin is only needed when we're showing the pagination
+        // IconButtons, but not on mobile
+        top: Responsive.isMobile(context) ? 0 : 8,
+      ),
       decoration: BoxDecoration(
         border: Border(
           top: BorderSide(
@@ -354,7 +361,7 @@ class _TodosTableState extends State<TodosTable> {
               if (!isShowingAll && totalPages > 1) _buildPagination(totalPages),
             ],
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 4),
           _buildItemsPerPageDropdown(),
         ],
       ),
@@ -395,6 +402,9 @@ class _TodosTableState extends State<TodosTable> {
                 });
               }
             },
+            style: context.calendarData.copyWith(
+              color: context.colorScheme.onSurface.withValues(alpha: 0.7),
+            ),
           ),
         ),
       ],
@@ -921,7 +931,7 @@ class _TodosTableState extends State<TodosTable> {
       );
     }
 
-    if (PlannerHelper.shouldShowEditAndDeleteButtons(homework)) {
+    if (PlannerHelper.shouldShowEditButton(context, homework)) {
       buttons.add(
         HeliumIconButton(
           onPressed: () => widget.onTap(homework),
@@ -931,7 +941,7 @@ class _TodosTableState extends State<TodosTable> {
       );
     }
 
-    if (PlannerHelper.shouldShowEditAndDeleteButtons(homework)) {
+    if (PlannerHelper.shouldShowDeleteButton(homework)) {
       buttons.add(
         HeliumIconButton(
           onPressed: widget.onDelete != null
