@@ -576,7 +576,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     if (_currentView == HeliumView.agenda || _currentView == HeliumView.todos) {
       return Expanded(
         child: Padding(
-          padding: const EdgeInsets.only(left: 12),
+          padding: const EdgeInsets.only(left: 12, top: 6),
           child: Text(
             CalendarConstants.defaultViews[PlannerHelper.mapHeliumViewToApiView(
               _currentView,
@@ -821,7 +821,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
         return ClipRect(
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(6),
               color: context.colorScheme.surface,
