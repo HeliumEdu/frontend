@@ -567,11 +567,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   Widget _buildCalendarDateArea() {
-    if (_currentView == HeliumView.todos) {
-      return const Spacer();
-    }
-
-    // FIXME: "Todos" title isn't showing as expected
     if (_currentView == HeliumView.agenda || _currentView == HeliumView.todos) {
       return Expanded(
         child: Padding(
