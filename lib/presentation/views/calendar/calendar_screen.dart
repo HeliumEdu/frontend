@@ -206,37 +206,35 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   @override
   Future<UserSettingsModel> loadSettings() {
     return super.loadSettings().then((settings) {
-      setState(() {
-        _currentView = PlannerHelper.mapApiViewToHeliumView(
-          userSettings.defaultView,
-        );
-        if (_currentView != HeliumView.todos) {
-          _calendarController.view =
-              PlannerHelper.mapHeliumViewToSfCalendarView(_currentView);
-        }
+      if (mounted) {
+        setState(() {
+          _changeView(PlannerHelper.mapApiViewToHeliumView(
+            userSettings.defaultView,
+          ));
 
-        _calendarItemDataSource = CalendarItemDataSource(
-          homeworkRepository: HomeworkRepositoryImpl(
-            remoteDataSource: HomeworkRemoteDataSourceImpl(
-              dioClient: dioClient,
+          _calendarItemDataSource = CalendarItemDataSource(
+            homeworkRepository: HomeworkRepositoryImpl(
+              remoteDataSource: HomeworkRemoteDataSourceImpl(
+                dioClient: dioClient,
+              ),
             ),
-          ),
-          eventRepository: EventRepositoryImpl(
-            remoteDataSource: EventRemoteDataSourceImpl(dioClient: dioClient),
-          ),
-          courseScheduleRepository: CourseScheduleRepositoryImpl(
-            remoteDataSource: CourseScheduleRemoteDataSourceImpl(
-              dioClient: dioClient,
+            eventRepository: EventRepositoryImpl(
+              remoteDataSource: EventRemoteDataSourceImpl(dioClient: dioClient),
             ),
-          ),
-          externalCalendarRepository: ExternalCalendarRepositoryImpl(
-            remoteDataSource: ExternalCalendarRemoteDataSourceImpl(
-              dioClient: dioClient,
+            courseScheduleRepository: CourseScheduleRepositoryImpl(
+              remoteDataSource: CourseScheduleRemoteDataSourceImpl(
+                dioClient: dioClient,
+              ),
             ),
-          ),
-          userSettings: settings,
-        );
-      });
+            externalCalendarRepository: ExternalCalendarRepositoryImpl(
+              remoteDataSource: ExternalCalendarRemoteDataSourceImpl(
+                dioClient: dioClient,
+              ),
+            ),
+            userSettings: settings,
+          );
+        });
+      }
 
       return settings;
     });
@@ -1061,14 +1059,24 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     }
   }
 
+  /// Centralized helper to change the current view and keep both state variables in sync
+  void _changeView(HeliumView newView) {
+    _currentView = newView;
+    // Only update the calendar controller's view if not switching to Todos
+    // (Todos is a custom view that doesn't exist in SfCalendar)
+    if (newView != HeliumView.todos) {
+      _calendarController.view =
+          PlannerHelper.mapHeliumViewToSfCalendarView(newView);
+    }
+  }
+
   void _calendarViewChanged() {
-    // FIXME: I think there are three places where we have to change the view, and modify both variables like this, let's use a helper function instead
     final newView = PlannerHelper.mapSfCalendarViewToHeliumView(
       _calendarController.view!,
     );
     if (newView != _currentView) {
       setState(() {
-        _currentView = newView;
+        _changeView(newView);
       });
     }
 
@@ -2445,14 +2453,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                         groupValue: _currentView,
                         onChanged: (value) {
                           setState(() {
-                            _currentView = value!;
-                            // Only update the calendar's view if the new view isn't "Todos"
-                            if (_currentView != HeliumView.todos) {
-                              _calendarController.view =
-                                  PlannerHelper.mapHeliumViewToSfCalendarView(
-                                    _currentView,
-                                  );
-                            }
+                            _changeView(value!);
                           });
 
                           Navigator.pop(context);
