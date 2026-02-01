@@ -576,7 +576,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     if (_currentView == HeliumView.agenda || _currentView == HeliumView.todos) {
       return Expanded(
         child: Padding(
-          padding: const EdgeInsets.only(left: 12, top: 6),
+          padding: const EdgeInsets.only(left: 12, top: 10),
           child: Text(
             CalendarConstants.defaultViews[PlannerHelper.mapHeliumViewToApiView(
               _currentView,
