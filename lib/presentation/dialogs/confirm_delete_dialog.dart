@@ -12,7 +12,7 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/config/app_theme.dart';
 
-class _ConfirmDeleteWidget<T extends BaseModel> extends StatelessWidget {
+class _ConfirmDeleteWidget<T extends BaseModel> extends StatefulWidget {
   final T item;
   final Function(T) onDelete;
   final String? additionalWarning;
@@ -24,12 +24,28 @@ class _ConfirmDeleteWidget<T extends BaseModel> extends StatelessWidget {
     this.additionalWarning,
   });
 
+  @override
+  State<_ConfirmDeleteWidget<T>> createState() => _ConfirmDeleteWidgetState<T>();
+}
+
+class _ConfirmDeleteWidgetState<T extends BaseModel> extends State<_ConfirmDeleteWidget<T>> {
+  bool _isSubmitting = false;
+
   static String _withTrailingSpace(String? additionalWarning) {
     if (additionalWarning != null && additionalWarning.isNotEmpty) {
       return '$additionalWarning ';
     } else {
       return '';
     }
+  }
+
+  void _handleDelete() {
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    Navigator.pop(context);
+    widget.onDelete(widget.item);
   }
 
   @override
@@ -39,7 +55,7 @@ class _ConfirmDeleteWidget<T extends BaseModel> extends StatelessWidget {
       content: SizedBox(
         width: Responsive.getDialogWidth(context),
         child: Text(
-          'Are you sure you want to delete "${item.title}"? ${_withTrailingSpace(additionalWarning)}This action cannot be undone.',
+          'Are you sure you want to delete "${widget.item.title}"? ${_withTrailingSpace(widget.additionalWarning)}This action cannot be undone.',
           style: context.dialogText,
         ),
       ),
@@ -60,11 +76,8 @@ class _ConfirmDeleteWidget<T extends BaseModel> extends StatelessWidget {
                 child: HeliumElevatedButton(
                   buttonText: 'Delete',
                   backgroundColor: context.colorScheme.error,
-                  // TODO: convert to a stateful dialog, then use isSubmitting to properly handle double-tap here
-                  onPressed: () {
-                    Navigator.pop(context);
-                    onDelete(item);
-                  },
+                  isLoading: _isSubmitting,
+                  onPressed: _handleDelete,
                 ),
               ),
             ],
