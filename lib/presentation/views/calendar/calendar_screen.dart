@@ -485,6 +485,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   Widget _buildCalendarHeader() {
     final isMobile = Responsive.isMobile(context);
+    final showTodayButton =
+        _currentView != HeliumView.agenda && _currentView != HeliumView.todos;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -495,9 +497,15 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
               children: [
                 Row(
                   children: [
-                    _buildTodayButton(
-                      showLabel: !isMobile,
-                      key: _todayButtonKey,
+                    Visibility(
+                      visible: showTodayButton,
+                      maintainSize: true,
+                      maintainAnimation: true,
+                      maintainState: true,
+                      child: _buildTodayButton(
+                        showLabel: !isMobile,
+                        key: _todayButtonKey,
+                      ),
                     ),
                     _buildCalendarDateArea(),
                     // Spacer for collapsed filter area (single button on mobile, 4 buttons on desktop)
@@ -1074,8 +1082,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         _changeView(newView);
       });
     }
-
-    // FIXME: hide "Today" button in "Agenda" and "Todos"
 
     // FIXME: double-check that this logic is intuitive to the user, and works with "schedule" view
     if ((_calendarController.view == CalendarView.month ||
