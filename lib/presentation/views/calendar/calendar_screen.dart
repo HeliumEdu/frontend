@@ -821,7 +821,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
         return ClipRect(
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(6),
               color: context.colorScheme.surface,
