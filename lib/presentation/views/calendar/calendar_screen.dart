@@ -535,41 +535,44 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       ),
     );
 
-    if (showLabel) {
-      return OutlinedButton.icon(
-        key: key,
-        onPressed: _goToToday,
-        icon: icon,
-        style: ButtonStyle(
-          padding: WidgetStateProperty.all(
-            EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: Responsive.isMobile(context) ? 12 : 16,
+    final button = showLabel
+        ? OutlinedButton.icon(
+            key: key,
+            onPressed: _goToToday,
+            icon: icon,
+            style: ButtonStyle(
+              padding: WidgetStateProperty.all(
+                EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: Responsive.isMobile(context) ? 12 : 16,
+                ),
+              ),
+              side: WidgetStateProperty.all(
+                BorderSide(color: context.colorScheme.primary),
+              ),
             ),
-          ),
-          side: WidgetStateProperty.all(
-            BorderSide(color: context.colorScheme.primary),
-          ),
-        ),
-        label: Text(
-          'Today',
-          style: context.buttonText.copyWith(
-            color: context.colorScheme.primary,
-          ),
-        ),
-      );
-    } else {
-      return IconButton.outlined(
-        key: key,
-        onPressed: _goToToday,
-        icon: icon,
-        style: ButtonStyle(
-          side: WidgetStateProperty.all(
-            BorderSide(color: context.colorScheme.primary),
-          ),
-        ),
-      );
-    }
+            label: Text(
+              'Today',
+              style: context.buttonText.copyWith(
+                color: context.colorScheme.primary,
+              ),
+            ),
+          )
+        : IconButton.outlined(
+            key: key,
+            onPressed: _goToToday,
+            icon: icon,
+            style: ButtonStyle(
+              side: WidgetStateProperty.all(
+                BorderSide(color: context.colorScheme.primary),
+              ),
+            ),
+          );
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 3),
+      child: button,
+    );
   }
 
   Widget _buildCalendarDateArea() {
