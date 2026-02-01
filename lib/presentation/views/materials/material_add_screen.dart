@@ -50,7 +50,7 @@ class MaterialAddProvidedScreen extends StatefulWidget {
 class _MaterialAddScreenState
     extends BasePageScreenState<MaterialAddProvidedScreen> {
   @override
-  String get screenTitle => widget.isEdit ? 'Edit Material' : 'Add Material';
+  String get screenTitle => widget.isEdit ? 'Edit Resource' : 'Add Resource';
 
   @override
   ScreenType get screenType => ScreenType.entityPage;

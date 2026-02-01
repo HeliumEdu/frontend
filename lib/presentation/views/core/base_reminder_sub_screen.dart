@@ -25,6 +25,7 @@ import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/empty_card.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
+import 'package:heliumapp/presentation/widgets/mobile_gesture_detector.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -238,102 +239,108 @@ abstract class BaseReminderScreenState<T>
   }
 
   Widget _buildReminderCard(BuildContext context, ReminderModel reminder) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(
-              ReminderConstants.typeItems[reminder.type].iconData!,
-              color: context.colorScheme.primary,
-              size: Responsive.getIconSize(
-                context,
-                mobile: 20,
-                tablet: 22,
-                desktop: 24,
+    return MobileGestureDetector(
+      onTap: () => _onEdit(reminder),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Icon(
+                ReminderConstants.typeItems[reminder.type].iconData!,
+                color: context.colorScheme.primary,
+                size: Responsive.getIconSize(
+                  context,
+                  mobile: 20,
+                  tablet: 22,
+                  desktop: 24,
+                ),
               ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    reminder.message,
-                    style: context.cTextStyle.copyWith(
-                      color: context.colorScheme.onSurface,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    Format.reminderOffset(reminder),
-                    style: context.iTextStyle.copyWith(
-                      color: context.colorScheme.onSurface.withValues(
-                        alpha: 0.7,
-                      ),
-                      fontSize: Responsive.getFontSize(
-                        context,
-                        mobile: 12,
-                        tablet: 13,
-                        desktop: 14,
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      reminder.message,
+                      style: context.cTextStyle.copyWith(
+                        color: context.colorScheme.onSurface,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    ReminderConstants.types[reminder.type],
-                    style: context.iTextStyle.copyWith(
-                      color: context.colorScheme.onSurface.withValues(
-                        alpha: 0.7,
-                      ),
-                      fontSize: Responsive.getFontSize(
-                        context,
-                        mobile: 12,
-                        tablet: 13,
-                        desktop: 14,
+                    const SizedBox(height: 4),
+                    Text(
+                      Format.reminderOffset(reminder),
+                      style: context.iTextStyle.copyWith(
+                        color: context.colorScheme.onSurface.withValues(
+                          alpha: 0.7,
+                        ),
+                        fontSize: Responsive.getFontSize(
+                          context,
+                          mobile: 12,
+                          tablet: 13,
+                          desktop: 14,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    Text(
+                      ReminderConstants.types[reminder.type],
+                      style: context.iTextStyle.copyWith(
+                        color: context.colorScheme.onSurface.withValues(
+                          alpha: 0.7,
+                        ),
+                        fontSize: Responsive.getFontSize(
+                          context,
+                          mobile: 12,
+                          tablet: 13,
+                          desktop: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            HeliumIconButton(
-              onPressed: () {
-                showReminderDialog(
-                  parentContext: context,
-                  isEdit: true,
-                  userSettings: userSettings,
-                  createReminderRequest: createReminderRequest,
-                  reminder: reminder,
-                );
-              },
-              icon: Icons.edit_outlined,
-            ),
-            SizedBox(width: Responsive.isMobile(context) ? 0 : 8),
-            HeliumIconButton(
-              onPressed: () {
-                showConfirmDeleteDialog(
-                  parentContext: context,
-                  item: reminder,
-                  onDelete: (r) async {
-                    context.read<ReminderBloc>().add(
-                      DeleteReminderEvent(
-                        origin: EventOrigin.subScreen,
-                        id: r.id,
-                      ),
-                    );
-                  },
-                );
-              },
-              icon: Icons.delete_outline,
-              color: context.colorScheme.error,
-            ),
-          ],
+              const SizedBox(width: 8),
+              if (!Responsive.isMobile(context)) ...[
+                HeliumIconButton(
+                  onPressed: () => _onEdit(reminder),
+                  icon: Icons.edit_outlined,
+                ),
+                const SizedBox(width: 8),
+              ],
+              HeliumIconButton(
+                onPressed: () {
+                  showConfirmDeleteDialog(
+                    parentContext: context,
+                    item: reminder,
+                    onDelete: (r) async {
+                      context.read<ReminderBloc>().add(
+                        DeleteReminderEvent(
+                          origin: EventOrigin.subScreen,
+                          id: r.id,
+                        ),
+                      );
+                    },
+                  );
+                },
+                icon: Icons.delete_outline,
+                color: context.colorScheme.error,
+              ),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  void _onEdit(ReminderModel reminder) {
+    showReminderDialog(
+      parentContext: context,
+      isEdit: true,
+      userSettings: userSettings,
+      createReminderRequest: createReminderRequest,
+      reminder: reminder,
     );
   }
 }

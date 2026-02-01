@@ -90,6 +90,8 @@ class PageHeader extends StatelessWidget {
 
           Text(title, style: context.pageTitle),
 
+          // TODO: should add the Helium logo up here
+
           if (screenType == ScreenType.page)
             IconButton(
               visualDensity: VisualDensity.compact,

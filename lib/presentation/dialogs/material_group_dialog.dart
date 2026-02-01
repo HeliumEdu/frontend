@@ -38,7 +38,7 @@ class _MaterialGroupWidgetState
       MaterialGroupFormController();
 
   @override
-  String get dialogTitle => 'Material Group';
+  String get dialogTitle => 'Resource Group';
 
   @override
   BasicFormController get formController => _formController;

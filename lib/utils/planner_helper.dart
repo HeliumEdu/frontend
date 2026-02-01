@@ -244,12 +244,19 @@ class PlannerHelper {
     return true;
   }
 
-  static bool shouldShowEditButton(
+  static bool shouldShowEditButton(BuildContext context) {
+    return !Responsive.isMobile(context);
+  }
+
+  static bool shouldShowEditButtonForCalendarItem(
     BuildContext context,
     CalendarItemBaseModel calendarItem,
   ) {
-    return !Responsive.isMobile(context) &&
-        (calendarItem is HomeworkModel || calendarItem is EventModel);
+    if (!shouldShowEditButton(context)) {
+      return false;
+    }
+
+    return calendarItem is HomeworkModel || calendarItem is EventModel;
   }
 
   static bool shouldShowDeleteButton(CalendarItemBaseModel calendarItem) {

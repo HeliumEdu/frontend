@@ -111,6 +111,12 @@ extension AppTextStyles on BuildContext {
     }
   }
 
+  TextStyle get calendarHeader => GoogleFonts.poppins(
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+    color: Theme.of(this).colorScheme.onSurface,
+  );
+
   TextStyle get stepperTitle => GoogleFonts.roboto(
     fontSize: 14,
     fontWeight: FontWeight.w700,
