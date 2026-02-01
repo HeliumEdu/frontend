@@ -493,32 +493,30 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       child: ShadowContainer(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            return Stack(
-              children: [
-                Row(
-                  children: [
-                    Visibility(
-                      visible: showTodayButton,
-                      maintainSize: true,
-                      maintainAnimation: true,
-                      maintainState: true,
-                      child: _buildTodayButton(
-                        showLabel: !isMobile,
-                        key: _todayButtonKey,
-                      ),
-                    ),
-                    _buildCalendarDateArea(),
-                    // Spacer for collapsed filter area (single button on mobile, 4 buttons on desktop)
-                    SizedBox(width: isMobile ? 46 : 220),
-                  ],
-                ),
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  bottom: 0,
-                  child: _buildFilterArea(containerWidth: constraints.maxWidth),
-                ),
-              ],
+            return ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 48),
+              child: Stack(
+                children: [
+                  Row(
+                    children: [
+                      if (showTodayButton)
+                        _buildTodayButton(
+                          showLabel: !isMobile,
+                          key: _todayButtonKey,
+                        ),
+                      _buildCalendarDateArea(),
+                      // Spacer for collapsed filter area (single button on mobile, 4 buttons on desktop)
+                      SizedBox(width: isMobile ? 46 : 220),
+                    ],
+                  ),
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    bottom: 0,
+                    child: _buildFilterArea(containerWidth: constraints.maxWidth),
+                  ),
+                ],
+              ),
             );
           },
         ),
@@ -648,9 +646,12 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     if (containerWidth == null || !isExpanded) {
       expandedToolbarWidth = 300;
     } else {
-      final renderBox =
-          (_todayButtonKey.currentContext?.findRenderObject() as RenderBox);
-      final calculatedWidth = containerWidth - renderBox.size.width - 8;
+      final todayButtonContext = _todayButtonKey.currentContext;
+      final calculatedWidth = todayButtonContext != null
+          ? containerWidth -
+              (todayButtonContext.findRenderObject() as RenderBox).size.width -
+              8
+          : containerWidth - 8;
       expandedToolbarWidth = isMobile
           ? calculatedWidth
           : calculatedWidth.clamp(200, 300);
