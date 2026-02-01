@@ -116,6 +116,7 @@ class _NavigationShellState extends State<NavigationShell> {
             children: [
               if (useNavigationRail)
                 NavigationRail(
+                  minWidth: 56,
                   selectedIndex: currentPage.index,
                   onDestinationSelected: (index) =>
                       _onDestinationSelected(context, index),
@@ -194,6 +195,7 @@ class _NavigationShellState extends State<NavigationShell> {
           bottomNavigationBar: useNavigationRail
               ? null
               : NavigationBar(
+                  height: 70,
                   selectedIndex: currentPage.index,
                   onDestinationSelected: (index) =>
                       _onDestinationSelected(context, index),

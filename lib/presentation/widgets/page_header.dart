@@ -47,7 +47,7 @@ class PageHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: context.colorScheme.surface,
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

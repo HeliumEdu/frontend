@@ -494,7 +494,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         child: LayoutBuilder(
           builder: (context, constraints) {
             return ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 48),
+              constraints: const BoxConstraints(minHeight: 40),
               child: Stack(
                 children: [
                   Row(
@@ -579,7 +579,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     if (_currentView == HeliumView.agenda || _currentView == HeliumView.todos) {
       return Expanded(
         child: Padding(
-          padding: const EdgeInsets.only(left: 12, top: 10),
+          padding: const EdgeInsets.only(left: 12, top: 8),
           child: Text(
             CalendarConstants.defaultViews[PlannerHelper.mapHeliumViewToApiView(
               _currentView,

@@ -284,7 +284,7 @@ class _TodosTableState extends State<TodosTable> {
 
   Widget _buildTableHeader() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
         color: context.colorScheme.surfaceContainerHighest.withValues(
           alpha: 0.5,
@@ -336,7 +336,7 @@ class _TodosTableState extends State<TodosTable> {
     required int totalPages,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         border: Border(
           top: BorderSide(
@@ -354,7 +354,7 @@ class _TodosTableState extends State<TodosTable> {
               if (!isShowingAll && totalPages > 1) _buildPagination(totalPages),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 18),
           _buildItemsPerPageDropdown(),
         ],
       ),
@@ -377,7 +377,7 @@ class _TodosTableState extends State<TodosTable> {
       children: [
         Text(
           'Show',
-          style: context.eTextStyle.copyWith(
+          style: context.calendarData.copyWith(
             color: context.colorScheme.onSurface.withValues(alpha: 0.7),
           ),
         ),
@@ -404,7 +404,7 @@ class _TodosTableState extends State<TodosTable> {
   Widget _buildItemsCountText(int startIndex, int endIndex, int totalItems) {
     return Text(
       '${!Responsive.isMobile(context) ? 'Showing ' : ''}${startIndex + 1} to $endIndex of $totalItems',
-      style: context.eTextStyle.copyWith(
+      style: context.calendarData.copyWith(
         color: context.colorScheme.onSurface.withValues(alpha: 0.7),
       ),
     );
@@ -433,7 +433,7 @@ class _TodosTableState extends State<TodosTable> {
         if (isMobile)
           Text(
             'Page $_currentPage of $totalPages',
-            style: context.eTextStyle.copyWith(
+            style: context.calendarData.copyWith(
               color: context.colorScheme.onSurface.withValues(alpha: 0.7),
             ),
           )
@@ -515,7 +515,7 @@ class _TodosTableState extends State<TodosTable> {
           ),
           child: Text(
             pageNumber.toString(),
-            style: context.eTextStyle.copyWith(
+            style: context.calendarData.copyWith(
               color: _currentPage == pageNumber
                   ? context.colorScheme.onPrimary
                   : context.colorScheme.onSurface,
@@ -536,7 +536,7 @@ class _TodosTableState extends State<TodosTable> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         child: Text(
           '...',
-          style: context.eTextStyle.copyWith(
+          style: context.calendarData.copyWith(
             color: context.colorScheme.onSurface.withValues(alpha: 0.5),
           ),
         ),
@@ -577,7 +577,7 @@ class _TodosTableState extends State<TodosTable> {
           else
             Text(
               label,
-              style: context.bTextStyle.copyWith(
+              style: context.calendarData.copyWith(
                 color: context.colorScheme.onSurface,
                 fontSize: Responsive.getFontSize(
                   context,
@@ -696,7 +696,7 @@ class _TodosTableState extends State<TodosTable> {
           widget.onTap(homework);
         },
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
           child: Row(
             children: [
               _buildCheckboxColumn(
@@ -771,7 +771,7 @@ class _TodosTableState extends State<TodosTable> {
           Expanded(
             child: Text(
               homework.title,
-              style: context.eTextStyle.copyWith(
+              style: context.calendarData.copyWith(
                 color: context.colorScheme.onSurface,
                 decoration: isCompleted
                     ? TextDecoration.lineThrough
@@ -796,7 +796,7 @@ class _TodosTableState extends State<TodosTable> {
         HeliumDateTime.formatDateAndTimeForDisplay(
           HeliumDateTime.parse(homework.start, userSettings.timeZone),
         ),
-        style: context.eTextStyle.copyWith(
+        style: context.calendarData.copyWith(
           color: context.colorScheme.onSurface.withValues(alpha: 0.8),
         ),
         maxLines: 1,
@@ -839,7 +839,7 @@ class _TodosTableState extends State<TodosTable> {
                 const SizedBox(width: 4),
                 Text(
                   homework.materials.length.toString(),
-                  style: context.eTextStyle.copyWith(
+                  style: context.calendarData.copyWith(
                     color: userSettings.materialColor,
                     fontWeight: FontWeight.w600,
                     fontSize: Responsive.getFontSize(
