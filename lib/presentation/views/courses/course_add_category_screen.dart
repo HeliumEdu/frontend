@@ -25,9 +25,11 @@ import 'package:heliumapp/presentation/widgets/course_add_stepper.dart';
 import 'package:heliumapp/presentation/widgets/empty_card.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
+import 'package:heliumapp/presentation/widgets/mobile_gesture_detector.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
+import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:logging/logging.dart';
@@ -234,83 +236,90 @@ class _CourseAddCategoryScreenState
   }
 
   Widget _buildCategoryCard(BuildContext context, CategoryModel category) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CategoryTitleLabel(
-                    title: category.title,
-                    color: category.color,
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Text(
-                        'Weight: ${Format.percentForDisplay(category.weight.toString(), true)}',
-                        style: context.iTextStyle.copyWith(
-                          color: context.colorScheme.onSurface.withValues(
-                            alpha: 0.6,
-                          ),
-                          fontSize: Responsive.getFontSize(
-                            context,
-                            mobile: 12,
-                            tablet: 13,
-                            desktop: 14,
+    return MobileGestureDetector(
+      onTap: () => _onEdit(category),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CategoryTitleLabel(
+                      title: category.title,
+                      color: category.color,
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Text(
+                          'Weight: ${Format.percentForDisplay(category.weight.toString(), true)}',
+                          style: context.iTextStyle.copyWith(
+                            color: context.colorScheme.onSurface.withValues(
+                              alpha: 0.6,
+                            ),
+                            fontSize: Responsive.getFontSize(
+                              context,
+                              mobile: 12,
+                              tablet: 13,
+                              desktop: 14,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
 
-            // TODO: show count of "homeworks" tied to category in list
-            const SizedBox(width: 8),
-            HeliumIconButton(
-              onPressed: () {
-                showCategoryDialog(
-                  parentContext: context,
-                  courseGroupId: widget.courseGroupId,
-                  courseId: widget.courseId,
-                  isEdit: true,
-                  category: category,
-                );
-              },
-              icon: Icons.edit_outlined,
-            ),
-            const SizedBox(width: 8),
-            HeliumIconButton(
-              onPressed: () {
-                showConfirmDeleteDialog(
-                  parentContext: context,
-                  item: category,
-                  additionalWarning:
-                      'Any assignments associated with this category will be moved to "Uncategorized".',
-                  onDelete: (c) {
-                    context.read<CategoryBloc>().add(
-                      DeleteCategoryEvent(
-                        origin: EventOrigin.screen,
-                        courseGroupId: widget.courseGroupId,
-                        courseId: widget.courseId,
-                        categoryId: c.id,
-                        isLastCategory: _categories.length == 1,
-                      ),
-                    );
-                  },
-                );
-              },
-              icon: Icons.delete_outline,
-              color: context.colorScheme.error,
-            ),
-          ],
+              // TODO: show count of "homeworks" tied to category in list
+              const SizedBox(width: 8),
+              if (PlannerHelper.shouldShowEditButton(context)) ...[
+                HeliumIconButton(
+                  onPressed: () => _onEdit(category),
+                  icon: Icons.edit_outlined,
+                ),
+                const SizedBox(width: 8),
+              ],
+              HeliumIconButton(
+                onPressed: () {
+                  showConfirmDeleteDialog(
+                    parentContext: context,
+                    item: category,
+                    additionalWarning:
+                        'Any assignments associated with this category will be moved to "Uncategorized".',
+                    onDelete: (c) {
+                      context.read<CategoryBloc>().add(
+                        DeleteCategoryEvent(
+                          origin: EventOrigin.screen,
+                          courseGroupId: widget.courseGroupId,
+                          courseId: widget.courseId,
+                          categoryId: c.id,
+                          isLastCategory: _categories.length == 1,
+                        ),
+                      );
+                    },
+                  );
+                },
+                icon: Icons.delete_outline,
+                color: context.colorScheme.error,
+              ),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  void _onEdit(CategoryModel category) {
+    showCategoryDialog(
+      parentContext: context,
+      courseGroupId: widget.courseGroupId,
+      courseId: widget.courseId,
+      isEdit: true,
+      category: category,
     );
   }
 }

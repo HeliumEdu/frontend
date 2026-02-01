@@ -35,6 +35,7 @@ import 'package:heliumapp/presentation/widgets/empty_card.dart';
 import 'package:heliumapp/presentation/widgets/group_dropdown.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
+import 'package:heliumapp/presentation/widgets/mobile_gesture_detector.dart';
 import 'package:heliumapp/presentation/widgets/pill_badge.dart';
 import 'package:heliumapp/presentation/widgets/responsive_card_grid.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -308,105 +309,137 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
   }
 
   Widget _buildCoursesCard(BuildContext context, CourseModel course) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: CourseTitleLabel(
-                    title: course.title,
-                    color: course.color,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                if (course.teacherEmail.isNotEmpty) ...[
-                  HeliumIconButton(
-                    onPressed: () {
-                      launchUrl(Uri.parse('mailto:${course.teacherEmail}'));
-                    },
-                    icon: Icons.email_outlined,
-                    color: context.semanticColors.info,
-                  ),
-                  const SizedBox(width: 8),
-                ],
-                if (course.website.isNotEmpty) ...[
-                  HeliumIconButton(
-                    onPressed: () {
-                      launchUrl(
-                        Uri.parse(course.website),
-                        mode: LaunchMode.externalApplication,
-                      );
-                    },
-                    icon: Icons.link_outlined,
-                    color: context.semanticColors.success,
-                  ),
-                  const SizedBox(width: 8),
-                ],
-                HeliumIconButton(
-                  onPressed: () {
-                    context.push(
-                      AppRoutes.courseAddScreen,
-                      extra: CourseAddArgs(
-                        courseBloc: context.read<CourseBloc>(),
-                        courseGroupId: course.courseGroup,
-                        courseId: course.id,
-                        isEdit: true,
-                      ),
-                    );
-                  },
-                  icon: Icons.edit_outlined,
-                ),
-                const SizedBox(width: 8),
-                HeliumIconButton(
-                  onPressed: () {
-                    showConfirmDeleteDialog(
-                      parentContext: context,
-                      item: course,
-                      additionalWarning:
-                          'Any assignments associated with this class will also be deleted.',
-                      onDelete: (c) {
-                        context.read<CourseBloc>().add(
-                          DeleteCourseEvent(
-                            origin: EventOrigin.subScreen,
-                            courseGroupId: c.courseGroup,
-                            courseId: c.id,
-                          ),
-                        );
-                      },
-                    );
-                  },
-                  icon: Icons.delete_outline,
-                  color: context.colorScheme.error,
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 16),
-
-            if (course.teacherName.isNotEmpty)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    return MobileGestureDetector(
+      onTap: () => _onEdit(course),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  Text(
-                    course.teacherName,
-                    style: context.aTextStyle.copyWith(
-                      color: context.colorScheme.onSurface,
-                      fontWeight: FontWeight.w600,
+                  Expanded(
+                    child: CourseTitleLabel(
+                      title: course.title,
+                      color: course.color,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(width: 8),
+                  if (course.teacherEmail.isNotEmpty) ...[
+                    HeliumIconButton(
+                      onPressed: () {
+                        launchUrl(Uri.parse('mailto:${course.teacherEmail}'));
+                      },
+                      icon: Icons.email_outlined,
+                      color: context.semanticColors.info,
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                  if (course.website.isNotEmpty) ...[
+                    HeliumIconButton(
+                      onPressed: () {
+                        launchUrl(
+                          Uri.parse(course.website),
+                          mode: LaunchMode.externalApplication,
+                        );
+                      },
+                      icon: Icons.link_outlined,
+                      color: context.semanticColors.success,
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                  if (!Responsive.isMobile(context)) ...[
+                    HeliumIconButton(
+                      onPressed: () => _onEdit(course),
+                      icon: Icons.edit_outlined,
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                  HeliumIconButton(
+                    onPressed: () {
+                      showConfirmDeleteDialog(
+                        parentContext: context,
+                        item: course,
+                        additionalWarning:
+                            'Any assignments associated with this class will also be deleted.',
+                        onDelete: (c) {
+                          context.read<CourseBloc>().add(
+                            DeleteCourseEvent(
+                              origin: EventOrigin.subScreen,
+                              courseGroupId: c.courseGroup,
+                              courseId: c.id,
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    icon: Icons.delete_outline,
+                    color: context.colorScheme.error,
+                  ),
                 ],
               ),
 
-            if (course.room.isNotEmpty)
+              const SizedBox(height: 16),
+
+              if (course.teacherName.isNotEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      course.teacherName,
+                      style: context.aTextStyle.copyWith(
+                        color: context.colorScheme.onSurface,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                ),
+
+              if (course.room.isNotEmpty)
+                Row(
+                  children: [
+                    Icon(
+                      Icons.pin_drop_outlined,
+                      size: Responsive.getIconSize(
+                        context,
+                        mobile: 16,
+                        tablet: 18,
+                        desktop: 20,
+                      ),
+                      color: context.colorScheme.onSurface.withValues(
+                        alpha: 0.4,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      course.room,
+                      style: context.cTextStyle.copyWith(
+                        color: context.colorScheme.onSurface.withValues(
+                          alpha: 0.5,
+                        ),
+                        fontSize: Responsive.getFontSize(
+                          context,
+                          mobile: 13,
+                          tablet: 14,
+                          desktop: 15,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+              const SizedBox(height: 12),
+
+              const Divider(),
+
+              const SizedBox(height: 12),
+
               Row(
                 children: [
                   Icon(
-                    Icons.pin_drop_outlined,
+                    Icons.date_range_outlined,
                     size: Responsive.getIconSize(
                       context,
                       mobile: 16,
@@ -417,7 +450,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    course.room,
+                    '${HeliumDateTime.formatDateForDisplay(DateTime.parse(course.startDate))} to ${HeliumDateTime.formatDateForDisplay(DateTime.parse(course.endDate))}',
                     style: context.cTextStyle.copyWith(
                       color: context.colorScheme.onSurface.withValues(
                         alpha: 0.5,
@@ -433,47 +466,14 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
                 ],
               ),
 
-            const SizedBox(height: 12),
+              if (course.schedules.isNotEmpty &&
+                  course.schedules[0].daysOfWeek != '0000000') ...[
+                const SizedBox(height: 12),
 
-            const Divider(),
-
-            const SizedBox(height: 12),
-
-            Row(
-              children: [
-                Icon(
-                  Icons.date_range_outlined,
-                  size: Responsive.getIconSize(
-                    context,
-                    mobile: 16,
-                    tablet: 18,
-                    desktop: 20,
-                  ),
-                  color: context.colorScheme.onSurface.withValues(alpha: 0.4),
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  '${HeliumDateTime.formatDateForDisplay(DateTime.parse(course.startDate))} to ${HeliumDateTime.formatDateForDisplay(DateTime.parse(course.endDate))}',
-                  style: context.cTextStyle.copyWith(
-                    color: context.colorScheme.onSurface.withValues(alpha: 0.5),
-                    fontSize: Responsive.getFontSize(
-                      context,
-                      mobile: 13,
-                      tablet: 14,
-                      desktop: 15,
-                    ),
-                  ),
-                ),
+                Column(children: _buildCourseScheduleContainers(course)),
               ],
-            ),
-
-            if (course.schedules.isNotEmpty &&
-                course.schedules[0].daysOfWeek != '0000000') ...[
-              const SizedBox(height: 12),
-
-              Column(children: _buildCourseScheduleContainers(course)),
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -574,6 +574,18 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  void _onEdit(CourseModel course) {
+    context.push(
+      AppRoutes.courseAddScreen,
+      extra: CourseAddArgs(
+        courseBloc: context.read<CourseBloc>(),
+        courseGroupId: course.courseGroup,
+        courseId: course.id,
+        isEdit: true,
       ),
     );
   }

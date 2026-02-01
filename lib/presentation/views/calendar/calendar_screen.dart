@@ -420,6 +420,12 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           timeZone: userSettings.timeZone.name,
           firstDayOfWeek:
               PlannerHelper.weekStartsOnRemap[userSettings.weekStartsOn],
+          viewHeaderStyle: ViewHeaderStyle(
+            dayTextStyle: context.calendarHeader,
+          ),
+          weekNumberStyle: WeekNumberStyle(
+            textStyle: context.calendarHeader.copyWith(fontSize: 10),
+          ),
           scheduleViewSettings: ScheduleViewSettings(
             hideEmptyScheduleWeek: true,
             appointmentItemHeight: agendaHeight,
@@ -488,6 +494,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     final isMobile = Responsive.isMobile(context);
     final showTodayButton =
         _currentView != HeliumView.agenda && _currentView != HeliumView.todos;
+
+    // FIXME: when calendar changes date (from swiping), this header isn't update
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -1148,6 +1156,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     final CalendarItemBaseModel calendarItem =
         tapDetails.appointments![0] as CalendarItemBaseModel;
 
+    if (PlannerHelper.shouldShowEditButtonForCalendarItem(context, calendarItem)) {
+      return;
+    }
+
     Feedback.forTap(context);
 
     _openCalendarItem(calendarItem);
@@ -1418,6 +1430,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         height: 16,
         child: Transform.scale(
           scale: AppTextStyles.calendarCheckboxScale(context),
+          // FIXME: make checkbox have consistent "onSurface" styling (when unchecked) for both dark and light mode, key being we want it to match the .school icons visual in both cases as well (again only when unchecked, when checked it shoul be .primary)
           child: Checkbox(
             value: completedOverride ?? calendarItem.completed,
             onChanged: (value) {
@@ -1439,7 +1452,11 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         height: 16,
         child: Transform.scale(
           scale: AppTextStyles.calendarCheckboxScale(context),
-          child: Icon(Icons.school, size: 16, color: context.colorScheme.onSurface),
+          child: Icon(
+            Icons.school,
+            size: 16,
+            color: Colors.white.withValues(alpha: 0.7),
+          ),
         ),
       );
     }
@@ -1498,23 +1515,11 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                 ),
               ),
               SizedBox(width: Responsive.isMobile(context) ? 2 : 4),
-              Expanded(
-                child: Text(
-                  calendarItem.title,
-                  style: context.calendarData.copyWith(
-                    fontSize: AppTextStyles.calendarDataFontSize(context),
-                  ),
-                ),
-              ),
+              Expanded(child: _buildCalendarItemTitle(calendarItem)),
             ],
           )
         else
-          Text(
-            calendarItem.title,
-            style: context.calendarData.copyWith(
-              fontSize: AppTextStyles.calendarDataFontSize(context),
-            ),
-          ),
+          _buildCalendarItemTitle(calendarItem),
 
         if (PlannerHelper.shouldShowTimeBelowTitle(
           context,
@@ -1637,7 +1642,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       );
     }
 
-    if (PlannerHelper.shouldShowEditButton(context, calendarItem)) {
+    if (PlannerHelper.shouldShowEditButtonForCalendarItem(
+      context,
+      calendarItem,
+    )) {
       buttons.add(
         HeliumIconButton(
           onPressed: () => _openCalendarItem(calendarItem),
@@ -2514,6 +2522,18 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       dataSource: _calendarItemDataSource!,
       onTap: _openCalendarItem,
       onToggleCompleted: _toggleHomeworkCompleted,
+      onDelete: _deleteCalendarItem,
+    );
+  }
+
+  Widget _buildCalendarItemTitle(CalendarItemBaseModel calendarItem) {
+    return Text(
+      calendarItem.title,
+      style: context.calendarData.copyWith(
+        fontSize: AppTextStyles.calendarDataFontSize(context),
+      ),
+      maxLines: _currentView == HeliumView.month ? 1 : null,
+      overflow: _currentView == HeliumView.month ? TextOverflow.ellipsis : null,
     );
   }
 }

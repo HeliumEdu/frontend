@@ -62,6 +62,12 @@ class HeliumDateTime {
     ).format(date).replaceAll(':00', '');
   }
 
+  static String formatDateAndTimeForTodosDisplay(DateTime date) {
+    return DateFormat(
+      'EEE, MMM dd • h:mm a',
+    ).format(date).replaceAll(':00', '');
+  }
+
   static String formatTimeForDisplay(DateTime date) {
     return DateFormat('h:mm a').format(date).replaceAll(':00', '');
   }

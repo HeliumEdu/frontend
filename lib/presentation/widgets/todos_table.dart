@@ -30,19 +30,21 @@ class TodosTable extends StatefulWidget {
   final CalendarItemDataSource dataSource;
   final Function(HomeworkModel) onTap;
   final Function(HomeworkModel, bool) onToggleCompleted;
-  final Function(HomeworkModel)? onDelete;
+  final Function(BuildContext, HomeworkModel) onDelete;
 
   const TodosTable({
     super.key,
     required this.dataSource,
     required this.onTap,
     required this.onToggleCompleted,
-    this.onDelete,
+    required this.onDelete,
   });
 
   @override
   State<TodosTable> createState() => _TodosTableState();
 }
+
+// FIXME: I don't think filter state changes are causing a rebuild to this widget (it is working for SfCalendar though), need to fix
 
 class _TodosTableState extends State<TodosTable> {
   String _sortColumn = 'dueDate';
@@ -121,17 +123,7 @@ class _TodosTableState extends State<TodosTable> {
     return Stack(
       children: [
         Container(
-          decoration: BoxDecoration(
-            color: context.colorScheme.surface,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: context.colorScheme.shadow.withValues(alpha: 0.1),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
+          decoration: BoxDecoration(color: context.colorScheme.surface),
           child: Column(
             children: [
               _buildTableHeader(),
@@ -251,18 +243,17 @@ class _TodosTableState extends State<TodosTable> {
 
   // Order to hide columns, based on screen size:
   // 1. Priority
-  // 2. Materials
+  // 2. Resources
   // 3. Category
   // 4. Grade
-  // 5. Class
-  // 6. Materials
-  // 7. Actions
+  // 5. Actions
+  // 6. Class
 
   bool _shouldShowPriorityColumn(BuildContext context) {
     return MediaQuery.of(context).size.width >= 1300;
   }
 
-  bool _shouldShowMaterialsColumn(BuildContext context) {
+  bool _shouldShowResourcesColumn(BuildContext context) {
     return MediaQuery.of(context).size.width >= 1200;
   }
 
@@ -289,10 +280,6 @@ class _TodosTableState extends State<TodosTable> {
         color: context.colorScheme.surfaceContainerHighest.withValues(
           alpha: 0.5,
         ),
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(12),
-          topRight: Radius.circular(12),
-        ),
       ),
       child: Row(
         children: [
@@ -309,11 +296,8 @@ class _TodosTableState extends State<TodosTable> {
               flex: 2,
               child: _buildSortableHeader('Category', 'category'),
             ),
-          if (_shouldShowMaterialsColumn(context))
-            Expanded(
-              flex: 1,
-              child: _buildSortableHeader('Materials', 'materials'),
-            ),
+          if (_shouldShowResourcesColumn(context))
+            Expanded(flex: 1, child: _buildSortableHeader('', 'resources')),
           if (_shouldShowPriorityColumn(context))
             Expanded(
               flex: 2,
@@ -587,15 +571,8 @@ class _TodosTableState extends State<TodosTable> {
           else
             Text(
               label,
-              style: context.calendarData.copyWith(
+              style: context.calendarHeader.copyWith(
                 color: context.colorScheme.onSurface,
-                fontSize: Responsive.getFontSize(
-                  context,
-                  mobile: 13,
-                  tablet: 14,
-                  desktop: 15,
-                ),
-                fontWeight: FontWeight.w600,
               ),
             ),
           if (isActive) ...[
@@ -658,7 +635,7 @@ class _TodosTableState extends State<TodosTable> {
               : '';
           comparison = catA.toLowerCase().compareTo(catB.toLowerCase());
           break;
-        case 'materials':
+        case 'resources':
           comparison = a.materials.length.compareTo(b.materials.length);
           break;
         case 'priority':
@@ -693,58 +670,61 @@ class _TodosTableState extends State<TodosTable> {
     final category = categoriesMap[homework.category.id]!;
     final actionButtons = _buildActionButtons(homework, course);
 
-    return Container(
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: context.colorScheme.outline.withValues(alpha: 0.1),
+    return Material(
+      // FIXME: add a hover effect (even though not clickable) to emphasize table row, similar to how SfCalendar handles hovers in "schedule" view
+      child: Ink(
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: context.colorScheme.outline.withValues(alpha: 0.1),
+            ),
           ),
         ),
-      ),
-      child: InkWell(
-        onTap: () {
-          widget.onTap(homework);
-        },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-          child: Row(
-            children: [
-              _buildCheckboxColumn(
-                isCompleted,
-                homework,
-                category,
-                course,
-                userSettings,
-              ),
-              const SizedBox(width: 4),
-              _buildTitleColumn(homework, isCompleted),
-              const SizedBox(width: 4),
-              _buildDueDateColumn(homework, userSettings),
-              if (_shouldShowClassColumn(context)) ...[
+        child: InkWell(
+          onTap: Responsive.isMobile(context)
+              ? () => widget.onTap(homework)
+              : null,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+            child: Row(
+              children: [
+                _buildCheckboxColumn(
+                  isCompleted,
+                  homework,
+                  category,
+                  course,
+                  userSettings,
+                ),
                 const SizedBox(width: 4),
-                _buildClassColumn(course),
-              ],
-              if (_shouldShowCategoryColumn(context)) ...[
+                _buildTitleColumn(homework, isCompleted),
                 const SizedBox(width: 4),
-                _buildCategoryColumn(category),
+                _buildDueDateColumn(homework, userSettings),
+                if (_shouldShowClassColumn(context)) ...[
+                  const SizedBox(width: 4),
+                  _buildClassColumn(course),
+                ],
+                if (_shouldShowCategoryColumn(context)) ...[
+                  const SizedBox(width: 4),
+                  _buildCategoryColumn(category),
+                ],
+                if (_shouldShowResourcesColumn(context)) ...[
+                  const SizedBox(width: 4),
+                  _buildResourcesColumn(homework, userSettings),
+                ],
+                if (_shouldShowPriorityColumn(context)) ...[
+                  const SizedBox(width: 4),
+                  _buildPriorityColumn(homework),
+                ],
+                if (_shouldShowGradeColumn(context)) ...[
+                  const SizedBox(width: 4),
+                  _buildGradeColumn(homework, userSettings),
+                ],
+                if (_shouldShowActionsColumn(context)) ...[
+                  const SizedBox(width: 4),
+                  _buildActionsColumn(actionButtons),
+                ],
               ],
-              if (_shouldShowMaterialsColumn(context)) ...[
-                const SizedBox(width: 4),
-                _buildMaterialsColumn(homework, userSettings),
-              ],
-              if (_shouldShowPriorityColumn(context)) ...[
-                const SizedBox(width: 4),
-                _buildPriorityColumn(homework),
-              ],
-              if (_shouldShowGradeColumn(context)) ...[
-                const SizedBox(width: 4),
-                _buildGradeColumn(homework, userSettings),
-              ],
-              if (_shouldShowActionsColumn(context)) ...[
-                const SizedBox(width: 4),
-                _buildActionsColumn(actionButtons),
-              ],
-            ],
+            ),
           ),
         ),
       ),
@@ -765,6 +745,8 @@ class _TodosTableState extends State<TodosTable> {
         onChanged: (value) {
           Feedback.forTap(context);
           widget.onToggleCompleted(homework, value!);
+          // FIXME: this might not be necessary once we fix the filter-state refresh issue, since onToggleCompleted should then also start rebuilding this view along with SfCalendar
+          setState(() {});
         },
         activeColor: userSettings.colorByCategory
             ? category.color
@@ -803,7 +785,7 @@ class _TodosTableState extends State<TodosTable> {
     return Expanded(
       flex: 2,
       child: Text(
-        HeliumDateTime.formatDateAndTimeForDisplay(
+        HeliumDateTime.formatDateAndTimeForTodosDisplay(
           HeliumDateTime.parse(homework.start, userSettings.timeZone),
         ),
         style: context.calendarData.copyWith(
@@ -830,8 +812,8 @@ class _TodosTableState extends State<TodosTable> {
     );
   }
 
-  // TODO: consider if we want to use MaterialLabelTitle and actually render titles here, or if that will just get messy
-  Widget _buildMaterialsColumn(
+  // TODO: implement where if the user clicks on this, a menu appears with the full resource names
+  Widget _buildResourcesColumn(
     HomeworkModel homework,
     UserSettingsModel userSettings,
   ) {
@@ -931,7 +913,7 @@ class _TodosTableState extends State<TodosTable> {
       );
     }
 
-    if (PlannerHelper.shouldShowEditButton(context, homework)) {
+    if (PlannerHelper.shouldShowEditButtonForCalendarItem(context, homework)) {
       buttons.add(
         HeliumIconButton(
           onPressed: () => widget.onTap(homework),
@@ -944,9 +926,7 @@ class _TodosTableState extends State<TodosTable> {
     if (PlannerHelper.shouldShowDeleteButton(homework)) {
       buttons.add(
         HeliumIconButton(
-          onPressed: widget.onDelete != null
-              ? () => widget.onDelete!(homework)
-              : () {},
+          onPressed: () => widget.onDelete(context, homework),
           icon: Icons.delete_outline,
           color: context.colorScheme.onSurface,
         ),

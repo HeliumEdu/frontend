@@ -35,6 +35,7 @@ import 'package:heliumapp/presentation/widgets/group_dropdown.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/material_title_label.dart';
+import 'package:heliumapp/presentation/widgets/mobile_gesture_detector.dart';
 import 'package:heliumapp/presentation/widgets/pill_badge.dart';
 import 'package:heliumapp/presentation/widgets/responsive_card_grid.dart';
 import 'package:heliumapp/utils/app_globals.dart';
@@ -138,7 +139,7 @@ class _MaterialsScreenState
               _materialsMap[_selectedGroupId!] = [];
             });
           } else if (state is material_state.MaterialGroupUpdated) {
-            showSnackBar(context, 'Material group saved');
+            showSnackBar(context, 'Resource group saved');
 
             setState(() {
               _materialGroups[_materialGroups.indexWhere(
@@ -148,7 +149,7 @@ class _MaterialsScreenState
               Sort.byTitle(_materialGroups);
             });
           } else if (state is material_state.MaterialGroupDeleted) {
-            showSnackBar(context, 'Material group deleted');
+            showSnackBar(context, 'Resource group deleted');
 
             setState(() {
               _materialGroups.removeWhere((g) => g.id == state.id);
@@ -302,157 +303,166 @@ class _MaterialsScreenState
   }
 
   Widget _buildMaterialCard(BuildContext context, MaterialModel material) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: MaterialTitleLabel(
-                    title: material.title,
-                    userSettings: userSettings,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                if (material.website.isNotEmpty) ...[
-                  HeliumIconButton(
-                    onPressed: () {
-                      launchUrl(
-                        Uri.parse(material.website),
-                        mode: LaunchMode.externalApplication,
-                      );
-                    },
-                    icon: Icons.link_outlined,
-                    color: context.semanticColors.success,
+    return MobileGestureDetector(
+      onTap: () => _onEdit(material),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: MaterialTitleLabel(
+                      title: material.title,
+                      userSettings: userSettings,
+                    ),
                   ),
                   const SizedBox(width: 8),
-                ],
-                HeliumIconButton(
-                  onPressed: () {
-                    context.push(
-                      AppRoutes.materialAddScreen,
-                      extra: MaterialAddArgs(
-                        materialBloc: context.read<MaterialBloc>(),
-                        materialGroupId: _selectedGroupId!,
-                        materialId: material.id,
-                        isEdit: true,
-                      ),
-                    );
-                  },
-                  icon: Icons.edit_outlined,
-                ),
-                const SizedBox(width: 8),
-                HeliumIconButton(
-                  onPressed: () {
-                    showConfirmDeleteDialog(
-                      parentContext: context,
-                      item: material,
-                      onDelete: (m) {
-                        context.read<MaterialBloc>().add(
-                          DeleteMaterialEvent(
-                            origin: EventOrigin.screen,
-                            materialGroupId: m.materialGroup,
-                            materialId: m.id,
-                          ),
+                  if (material.website.isNotEmpty) ...[
+                    HeliumIconButton(
+                      onPressed: () {
+                        launchUrl(
+                          Uri.parse(material.website),
+                          mode: LaunchMode.externalApplication,
                         );
                       },
+                      icon: Icons.link_outlined,
+                      color: context.semanticColors.success,
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                  if (!Responsive.isMobile(context)) ...[
+                    HeliumIconButton(
+                      onPressed: () => _onEdit(material),
+                      icon: Icons.edit_outlined,
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                  HeliumIconButton(
+                    onPressed: () {
+                      showConfirmDeleteDialog(
+                        parentContext: context,
+                        item: material,
+                        onDelete: (m) {
+                          context.read<MaterialBloc>().add(
+                            DeleteMaterialEvent(
+                              origin: EventOrigin.screen,
+                              materialGroupId: m.materialGroup,
+                              materialId: m.id,
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    icon: Icons.delete_outline,
+                    color: context.colorScheme.error,
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 12),
+
+              // Status and Price Row
+              Row(
+                children: [
+                  ...[
+                    PillBadge(text: MaterialConstants.status[material.status]),
+                    const SizedBox(width: 8),
+                    if (MaterialConstants.status[material.status] !=
+                        MaterialConstants.condition[material.condition])
+                      PillBadge(
+                        text: MaterialConstants.condition[material.condition],
+                      ),
+                    const SizedBox(width: 8),
+                  ],
+                  const Spacer(),
+                  if (material.price != null && material.price!.isNotEmpty) ...[
+                    const SizedBox(width: 12),
+                    Text(
+                      material.price!,
+                      style: context.cTextStyle.copyWith(
+                        color: context.colorScheme.onSurface,
+                        fontWeight: FontWeight.w600,
+                        fontSize: Responsive.getFontSize(
+                          context,
+                          mobile: 11,
+                          tablet: 13,
+                          desktop: 15,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+
+              if (material.courses.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: material.courses.map((courseId) {
+                    final course = _coursesMap[courseId];
+                    if (course == null) {
+                      return const SizedBox.shrink();
+                    }
+
+                    return CourseTitleLabel(
+                      title: course.title,
+                      color: course.color,
                     );
-                  },
-                  icon: Icons.delete_outline,
-                  color: context.colorScheme.error,
+                  }).toList(),
                 ),
               ],
-            ),
 
-            const SizedBox(height: 12),
+              const SizedBox(height: 12),
 
-            // Status and Price Row
-            Row(
-              children: [
-                ...[
-                  PillBadge(text: MaterialConstants.status[material.status]),
-                  const SizedBox(width: 8),
-                  if (MaterialConstants.status[material.status] !=
-                      MaterialConstants.condition[material.condition])
-                    PillBadge(
-                      text: MaterialConstants.condition[material.condition],
-                    ),
-                  const SizedBox(width: 8),
-                ],
-                const Spacer(),
-                if (material.price != null && material.price!.isNotEmpty) ...[
-                  const SizedBox(width: 12),
-                  Text(
-                    material.price!,
-                    style: context.cTextStyle.copyWith(
-                      color: context.colorScheme.onSurface,
-                      fontWeight: FontWeight.w600,
-                      fontSize: Responsive.getFontSize(
-                        context,
-                        mobile: 11,
-                        tablet: 13,
-                        desktop: 15,
+              if (material.details != null && material.details!.isNotEmpty) ...[
+                const Divider(),
+
+                const SizedBox(height: 12),
+
+                Html(
+                  data: material.details!,
+                  style: {
+                    'body': Style(
+                      margin: Margins.zero,
+                      padding: HtmlPaddings.zero,
+                      fontSize: FontSize(
+                        Responsive.getFontSize(
+                          context,
+                          mobile: 12,
+                          tablet: 13,
+                          desktop: 14,
+                        ),
                       ),
+                      color: context.colorScheme.onSurface.withValues(
+                        alpha: 0.6,
+                      ),
+                      maxLines: 2,
+                      textOverflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                ],
+                  },
+                ),
               ],
-            ),
-
-            if (material.courses.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: material.courses.map((courseId) {
-                  final course = _coursesMap[courseId];
-                  if (course == null) {
-                    return const SizedBox.shrink();
-                  }
-
-                  return CourseTitleLabel(
-                    title: course.title,
-                    color: course.color,
-                  );
-                }).toList(),
-              ),
             ],
-
-            const SizedBox(height: 12),
-
-            if (material.details != null && material.details!.isNotEmpty) ...[
-              const Divider(),
-
-              const SizedBox(height: 12),
-
-              Html(
-                data: material.details!,
-                style: {
-                  'body': Style(
-                    margin: Margins.zero,
-                    padding: HtmlPaddings.zero,
-                    fontSize: FontSize(
-                      Responsive.getFontSize(
-                        context,
-                        mobile: 12,
-                        tablet: 13,
-                        desktop: 14,
-                      ),
-                    ),
-                    color: context.colorScheme.onSurface.withValues(alpha: 0.6),
-                    maxLines: 2,
-                    textOverflow: TextOverflow.ellipsis,
-                  ),
-                },
-              ),
-            ],
-          ],
+          ),
         ),
+      ),
+    );
+  }
+
+  void _onEdit(MaterialModel material) {
+    context.push(
+      AppRoutes.materialAddScreen,
+      extra: MaterialAddArgs(
+        materialBloc: context.read<MaterialBloc>(),
+        materialGroupId: _selectedGroupId!,
+        materialId: material.id,
+        isEdit: true,
       ),
     );
   }

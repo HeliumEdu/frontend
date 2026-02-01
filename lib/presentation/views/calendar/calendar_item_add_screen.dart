@@ -514,7 +514,7 @@ class _CalendarItemAddScreenState
                   },
                 ),
                 const SizedBox(height: 14),
-                Text('Materials', style: context.formLabel),
+                Text('Resources', style: context.formLabel),
                 const SizedBox(height: 9),
                 Container(
                   padding: const EdgeInsets.symmetric(

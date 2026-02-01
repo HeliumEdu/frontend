@@ -25,6 +25,7 @@ import 'package:heliumapp/presentation/widgets/empty_card.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/info_container.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
+import 'package:heliumapp/presentation/widgets/mobile_gesture_detector.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
@@ -144,7 +145,8 @@ class _ExternalCalendarsProvidedScreenState
     return const Padding(
       padding: EdgeInsets.only(bottom: 12),
       child: InfoContainer(
-        text: 'External calendars allow you to bring other calendars in to Helium',
+        text:
+            'External calendars allow you to bring other calendars in to Helium',
       ),
     );
   }
@@ -226,95 +228,102 @@ class _ExternalCalendarsProvidedScreenState
   }
 
   Widget _buildExternalCalendarCard(ExternalCalendarModel externalCalendar) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Container(
-              width: 12,
-              height: 12,
-              decoration: BoxDecoration(
-                color: externalCalendar.color,
-                borderRadius: BorderRadius.circular(3),
+    return MobileGestureDetector(
+      onTap: () => _onEdit(externalCalendar),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: externalCalendar.color,
+                  borderRadius: BorderRadius.circular(3),
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    externalCalendar.title,
-                    style: context.cTextStyle.copyWith(
-                      color: context.colorScheme.onSurface,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    externalCalendar.url,
-                    style: context.iTextStyle.copyWith(
-                      color: context.colorScheme.onSurface.withValues(
-                        alpha: 0.6,
-                      ),
-                      fontSize: Responsive.getFontSize(
-                        context,
-                        mobile: 12,
-                        tablet: 13,
-                        desktop: 14,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      externalCalendar.title,
+                      style: context.cTextStyle.copyWith(
+                        color: context.colorScheme.onSurface,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    Text(
+                      externalCalendar.url,
+                      style: context.iTextStyle.copyWith(
+                        color: context.colorScheme.onSurface.withValues(
+                          alpha: 0.6,
+                        ),
+                        fontSize: Responsive.getFontSize(
+                          context,
+                          mobile: 12,
+                          tablet: 13,
+                          desktop: 14,
+                        ),
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Switch.adaptive(
-              value: externalCalendar.shownOnCalendar!,
-              activeTrackColor: context.colorScheme.primary,
-              onChanged: _updatingCalendarIds.contains(externalCalendar.id)
-                  ? null
-                  : (value) {
-                      Feedback.forTap(context);
-                      _toggleShownOnCalendar(externalCalendar, value);
+              const SizedBox(width: 8),
+              Switch.adaptive(
+                value: externalCalendar.shownOnCalendar!,
+                activeTrackColor: context.colorScheme.primary,
+                onChanged: _updatingCalendarIds.contains(externalCalendar.id)
+                    ? null
+                    : (value) {
+                        Feedback.forTap(context);
+                        _toggleShownOnCalendar(externalCalendar, value);
+                      },
+              ),
+              const SizedBox(width: 8),
+              if (!Responsive.isMobile(context)) ...[
+                HeliumIconButton(
+                  onPressed: () => _onEdit(externalCalendar),
+                  icon: Icons.edit_outlined,
+                ),
+                const SizedBox(width: 8),
+              ],
+              HeliumIconButton(
+                onPressed: () {
+                  showConfirmDeleteDialog(
+                    parentContext: context,
+                    item: externalCalendar,
+                    onDelete: (ec) {
+                      context.read<ExternalCalendarBloc>().add(
+                        DeleteExternalCalendarEvent(
+                          origin: EventOrigin.screen,
+                          id: ec.id,
+                        ),
+                      );
                     },
-            ),
-            const SizedBox(width: 8),
-            HeliumIconButton(
-              onPressed: () {
-                showExternalCalendarDialog(
-                  parentContext: context,
-                  isEdit: true,
-                  externalCalendar: externalCalendar,
-                );
-              },
-              icon: Icons.edit_outlined,
-            ),
-            const SizedBox(width: 8),
-            HeliumIconButton(
-              onPressed: () {
-                showConfirmDeleteDialog(
-                  parentContext: context,
-                  item: externalCalendar,
-                  onDelete: (ec) {
-                    context.read<ExternalCalendarBloc>().add(
-                      DeleteExternalCalendarEvent(
-                        origin: EventOrigin.screen,
-                        id: ec.id,
-                      ),
-                    );
-                  },
-                );
-              },
-              icon: Icons.delete_outline,
-              color: context.colorScheme.error,
-            ),
-          ],
+                  );
+                },
+                icon: Icons.delete_outline,
+                color: context.colorScheme.error,
+              ),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  void _onEdit(ExternalCalendarModel externalCalendar) {
+    showExternalCalendarDialog(
+      parentContext: context,
+      isEdit: true,
+      externalCalendar: externalCalendar,
     );
   }
 }
