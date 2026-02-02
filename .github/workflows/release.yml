@@ -30,7 +30,7 @@ jobs:
       - name: Get version from pubspec.yaml
         id: get_version
         run: |
-          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' ')
+          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' \r\n')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Version: $VERSION"
 
@@ -135,6 +135,14 @@ jobs:
           # Copy to the correct location with UUID as filename (required by Xcode)
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$PP_UUID.mobileprovision
+
+      - name: Configure manual signing
+        run: |
+          # Update Xcode project to use manual signing for Release
+          sed -i '' 's/"iPhone Developer"/"iPhone Distribution"/g' ios/Runner.xcodeproj/project.pbxproj
+
+          # Inject manual signing settings alongside DEVELOPMENT_TEAM
+          sed -i '' 's/DEVELOPMENT_TEAM = SHY4MCK827;/CODE_SIGN_STYLE = Manual; DEVELOPMENT_TEAM = SHY4MCK827; PROVISIONING_PROFILE_SPECIFIER = "Helium";/g' ios/Runner.xcodeproj/project.pbxproj
 
       - name: Build iOS IPA
         run: make build-ios-release
