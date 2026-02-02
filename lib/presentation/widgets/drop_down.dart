@@ -17,7 +17,6 @@ class DropDown<T> extends StatelessWidget {
   final DropDownItem<T>? initialValue;
   final List<DropDownItem<T>> items;
   final void Function(DropDownItem<T>?)? onChanged;
-  final String? Function(DropDownItem<T>?)? validator;
 
   const DropDown({
     super.key,
@@ -27,15 +26,14 @@ class DropDown<T> extends StatelessWidget {
     this.initialValue,
     required this.items,
     required this.onChanged,
-    this.validator,
   });
 
   @override
   Widget build(BuildContext context) {
     final isDisabled = onChanged == null;
     final iconColor = isDisabled
-        ? context.colorScheme.onSurface.withValues(alpha: 0.4)
-        : context.colorScheme.onSurface;
+        ? context.colorScheme.primary.withValues(alpha: 0.4)
+        : context.colorScheme.primary;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -51,7 +49,6 @@ class DropDown<T> extends StatelessWidget {
           ),
           child: DropdownButtonFormField<DropDownItem<T>>(
             initialValue: initialValue,
-            validator: validator,
             decoration: InputDecoration(
               prefixIcon: prefixIcon != null
                   ? Icon(prefixIcon, color: iconColor)
@@ -86,7 +83,10 @@ class DropDown<T> extends StatelessWidget {
                       Icon(item.iconData, color: item.iconColor ?? iconColor),
                       const SizedBox(width: 10),
                     ],
-                    Text(item.value.toString(), style: style ?? context.formText),
+                    Text(
+                      item.value.toString(),
+                      style: style ?? context.formText,
+                    ),
                   ],
                 ),
               );

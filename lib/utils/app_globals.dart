@@ -58,8 +58,7 @@ class CalendarConstants {
     'Todos',
     'Agenda',
   ];
-  static final List<DropDownItem<String>> defaultViewItems = HeliumView
-      .values
+  static final List<DropDownItem<String>> defaultViewItems = HeliumView.values
       .map((view) {
         final apiIndex = PlannerHelper.mapHeliumViewToApiView(view);
         return DropDownItem(id: apiIndex, value: defaultViews[apiIndex]);
