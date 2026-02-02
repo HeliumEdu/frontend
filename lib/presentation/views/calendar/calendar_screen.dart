@@ -129,8 +129,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     final truncatedNow = DateTime(now.year, now.month, now.day, now.hour);
     final initialDate =
         (_currentView == HeliumView.todos || _currentView == HeliumView.agenda)
-            ? truncatedNow
-            : _calendarController.selectedDate;
+        ? truncatedNow
+        : _calendarController.selectedDate;
 
     context.push(
       AppRoutes.plannerItemAddScreen,
@@ -242,7 +242,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   @override
   void dispose() {
-    _calendarItemDataSource?.changeNotifier.removeListener(_onInitialDataLoaded);
+    _calendarItemDataSource?.changeNotifier.removeListener(
+      _onInitialDataLoaded,
+    );
     _searchController.dispose();
     _searchFocusNode.dispose();
     _searchTypingTimer?.cancel();
@@ -255,8 +257,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     return super.loadSettings().then((settings) {
       if (mounted && settings != null) {
         setState(() {
-          final defaultView =
-              PlannerHelper.mapApiViewToHeliumView(settings.defaultView);
+          final defaultView = PlannerHelper.mapApiViewToHeliumView(
+            settings.defaultView,
+          );
           // Defer Schedule view until after data loads (Syncfusion rendering quirk)
           if (defaultView == HeliumView.agenda) {
             _deferredScheduleView = true;
@@ -366,10 +369,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           Expanded(
             child: IndexedStack(
               index: _currentView == HeliumView.todos ? 1 : 0,
-              children: [
-                _buildCalendarView(context),
-                _buildTodosView(),
-              ],
+              children: [_buildCalendarView(context), _buildTodosView()],
             ),
           ),
         ],
@@ -596,6 +596,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
+                        // FIXME: actually show this on "Todos" view, and have it jump to today in either the calendar or table (depending on what's currently shown)
                         if (showTodayButton)
                           _buildTodayButton(
                             showLabel: !isMobile,
@@ -1179,6 +1180,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     final displayDate = _calendarController.displayDate!;
     DateTime newDate;
 
+    // FIXME: hitting this more than once doesn't go more than one month forward / backward
+
     switch (_calendarController.view) {
       case CalendarView.month:
       case CalendarView.schedule:
@@ -1189,7 +1192,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         );
         break;
       case CalendarView.week:
-      case CalendarView.timelineWeek:
         newDate = displayDate.add(Duration(days: forward ? 7 : -7));
         break;
       case CalendarView.day:
@@ -1199,9 +1201,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         newDate = displayDate;
     }
 
-    setState(() {
-      _calendarController.displayDate = newDate;
-    });
+    _jumpToDate(newDate);
   }
 
   Future<void> _openDatePicker() async {
@@ -1212,32 +1212,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       lastDate: DateTime.now().add(const Duration(days: 365 * 10)),
     );
 
-    if (picked != null && mounted) {
-      // Use picked date with current hour (like month view selection)
-      final now = DateTime.now();
-      final selectedWithTime = DateTime(
-        picked.year,
-        picked.month,
-        picked.day,
-        now.hour,
-      );
-
-      setState(() {
-        // Update displayDate and stored date
-        _calendarController.displayDate = picked;
-        _storedDisplayDate = picked;
-
-        // Only update selectedDate if one is already set
-        if (_calendarController.selectedDate != null) {
-          _calendarController.selectedDate = selectedWithTime;
-          _storedSelectedDate = selectedWithTime;
-        }
-
-        // Force Schedule view to rebuild with new date
-        if (_currentView == HeliumView.agenda) {
-          _scheduleViewRebuildCounter++;
-        }
-      });
+    if (picked != null) {
+      _jumpToDate(picked, setSelectedDate: true);
     }
   }
 
@@ -1249,8 +1225,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         _previousView != null && _previousView == HeliumView.todos;
     final isEnteringCalendarView =
         (newView == HeliumView.month ||
-            newView == HeliumView.week ||
-            newView == HeliumView.day);
+        newView == HeliumView.week ||
+        newView == HeliumView.day);
     final isLeavingMonthView = _currentView == HeliumView.month;
 
     // Restore selectedDate when leaving month view if mobile quirk was applied
@@ -2212,20 +2188,27 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   void _goToToday() {
-    final now = DateTime.now();
+    _jumpToDate(DateTime.now(), setSelectedDate: true);
+  }
+
+  /// Jump to a specific date. This is the canonical way to navigate the calendar
+  /// to a new date - used by Today button, date picker, and period navigation.
+  void _jumpToDate(DateTime date, {setSelectedDate = false}) {
     // Truncate to nearest hour (remove minutes/seconds) and offset for visibility
-    final truncatedNow = DateTime(now.year, now.month, now.day, now.hour);
-    final displayDate = truncatedNow.subtract(const Duration(hours: 2));
+    final truncatedDate = DateTime(date.year, date.month, date.day, date.hour);
+    final displayDate = truncatedDate.subtract(const Duration(hours: 2));
 
     setState(() {
       // Always update displayDate
       _calendarController.displayDate = displayDate;
       _storedDisplayDate = displayDate;
 
-      // Only update selectedDate if one is already set, otherwise leave it alone
-      if (_calendarController.selectedDate != null) {
-        _calendarController.selectedDate = truncatedNow;
-        _storedSelectedDate = truncatedNow;
+      // FIXME: this isn't always the case, when jumpToDate comes from the date picker or the "today" button, then set selected
+      // Only update selectedDate if one is already set (or if caller
+      // specifically requested), otherwise leave it alone
+      if (setSelectedDate || _calendarController.selectedDate != null) {
+        _calendarController.selectedDate = truncatedDate;
+        _storedSelectedDate = truncatedDate;
       }
 
       // Force Schedule view to rebuild with new date
