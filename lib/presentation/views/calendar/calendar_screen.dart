@@ -122,9 +122,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       NotificationArgs(calendarItemBloc: context.read<CalendarItemBloc>());
 
   @override
-  VoidCallback get navPopCallback => loadSettings;
-
-  @override
   VoidCallback get actionButtonCallback => () {
     context.push(
       AppRoutes.calendarItemAddScreen,
@@ -328,8 +325,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         if (_calendarController.view == CalendarView.month) {
           return LayoutBuilder(
             builder: (context, constraints) {
-              final double calendarHeight =
-                  _calculateCalendarHeight(constraints.maxHeight);
+              final double calendarHeight = _calculateCalendarHeight(
+                constraints.maxHeight,
+              );
 
               return Stack(
                 children: [
@@ -1236,7 +1234,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     final CalendarItemBaseModel calendarItem =
         tapDetails.appointments![0] as CalendarItemBaseModel;
 
-    if (PlannerHelper.shouldShowEditButton(context)) {
+    if (_currentView == HeliumView.agenda &&
+        PlannerHelper.shouldShowEditButton(context)) {
       return;
     }
 
@@ -1630,7 +1629,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           WidgetSpan(
             alignment: PlaceholderAlignment.middle,
             child: Padding(
-              padding: EdgeInsets.only(right: Responsive.isMobile(context) ? 2 : 4),
+              padding: EdgeInsets.only(
+                right: Responsive.isMobile(context) ? 2 : 4,
+              ),
               child: _buildTimeText(calendarItem),
             ),
           ),
@@ -1650,7 +1651,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       titleRowWidget = Text.rich(
         TextSpan(children: spans),
         maxLines: _currentView == HeliumView.month ? 1 : null,
-        overflow: _currentView == HeliumView.month ? TextOverflow.ellipsis : null,
+        overflow: _currentView == HeliumView.month
+            ? TextOverflow.ellipsis
+            : null,
       );
     } else {
       titleRowWidget = _buildCalendarItemTitle(calendarItem);
@@ -1679,10 +1682,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       ],
     );
 
-    return Align(
-      alignment: Alignment.topLeft,
-      child: contentColumn,
-    );
+    return Align(alignment: Alignment.topLeft, child: contentColumn);
   }
 
   /// Builds the right action buttons for agenda view.
@@ -2733,10 +2733,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   Widget _buildTimeText(CalendarItemBaseModel calendarItem) {
     return Text(
       HeliumDateTime.formatTimeForDisplay(
-        HeliumDateTime.parse(
-          calendarItem.start,
-          userSettings!.timeZone,
-        ),
+        HeliumDateTime.parse(calendarItem.start, userSettings!.timeZone),
       ),
       style: TextStyle(
         color: Colors.white.withValues(alpha: 0.6),
@@ -2758,14 +2755,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         Expanded(
           child: Text(
             HeliumDateTime.formatTimeRangeForDisplay(
-              HeliumDateTime.parse(
-                calendarItem.start,
-                userSettings!.timeZone,
-              ),
-              HeliumDateTime.parse(
-                calendarItem.end,
-                userSettings!.timeZone,
-              ),
+              HeliumDateTime.parse(calendarItem.start, userSettings!.timeZone),
+              HeliumDateTime.parse(calendarItem.end, userSettings!.timeZone),
               calendarItem.showEndTime,
             ),
             style: TextStyle(
