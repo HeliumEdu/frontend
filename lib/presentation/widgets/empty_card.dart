@@ -14,19 +14,20 @@ class EmptyCard extends StatelessWidget {
   final IconData icon;
   final String message;
   final String title;
+  final bool expanded;
 
   const EmptyCard({
     super.key,
     required this.icon,
     required this.message,
     this.title = 'Nothing to see here',
+    this.expanded = true,
   });
 
   @override
   Widget build(BuildContext context) {
     final onSurface = context.colorScheme.onSurface;
-    return Expanded(
-      child: Center(
+    final content = Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -57,7 +58,8 @@ class EmptyCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
     );
+
+    return expanded ? Expanded(child: content) : content;
   }
 }
