@@ -56,7 +56,7 @@ class PageHeader extends StatelessWidget {
                 if (Navigator.canPop(context)) {
                   context.pop();
                 } else {
-                  context.go(AppRoutes.calendarScreen);
+                  context.go(AppRoutes.plannerScreen);
                 }
               },
               icon: Icon(

@@ -484,7 +484,7 @@ class _NotificationsScreenState
       final int? homeworkId = notification.reminder.homework?.id;
 
       await context.push(
-        AppRoutes.calendarItemAddScreen,
+        AppRoutes.plannerItemAddScreen,
         extra: CalendarItemAddArgs(
           calendarItemBloc: context.read<CalendarItemBloc>(),
           eventId: eventId,

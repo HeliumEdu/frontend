@@ -226,6 +226,7 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
               ),
               const SizedBox(height: 12),
 
+              // FIXME: refactor this widget to a separate file, use a searchable dropdown
               DropDown(
                 prefixIcon: Icons.access_time_outlined,
                 initialValue: TimeZoneConstants.items.firstWhere(

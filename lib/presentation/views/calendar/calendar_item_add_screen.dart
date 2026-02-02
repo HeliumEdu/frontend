@@ -144,7 +144,7 @@ class _CalendarItemAddScreenState
 
             if (state.advanceNavOnSuccess) {
               context.pushReplacement(
-                AppRoutes.calendarItemAddRemindersScreen,
+                AppRoutes.plannerItemAddRemindersScreen,
                 extra: CalendarItemReminderArgs(
                   calendarItemBloc: context.read<CalendarItemBloc>(),
                   isEvent: state.isEvent,

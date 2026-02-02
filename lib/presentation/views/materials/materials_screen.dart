@@ -94,7 +94,7 @@ class _MaterialsScreenState
   VoidCallback get actionButtonCallback => () {
     if (_selectedGroupId != null) {
       context.push(
-        AppRoutes.materialAddScreen,
+        AppRoutes.resourcesAddScreen,
         extra: MaterialAddArgs(
           materialBloc: context.read<MaterialBloc>(),
           materialGroupId: _selectedGroupId!,
@@ -459,7 +459,7 @@ class _MaterialsScreenState
 
   void _onEdit(MaterialModel material) {
     context.push(
-      AppRoutes.materialAddScreen,
+      AppRoutes.resourcesAddScreen,
       extra: MaterialAddArgs(
         materialBloc: context.read<MaterialBloc>(),
         materialGroupId: _selectedGroupId!,
