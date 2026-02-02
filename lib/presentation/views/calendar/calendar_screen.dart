@@ -1536,7 +1536,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         height: 16,
         child: Transform.scale(
           scale: AppTextStyles.calendarCheckboxScale(context),
-          // FIXME: when unchecked, make checkbox have consistent "onSurface" styling for both dark and light mode, key being we want it to match the .school icons visual in both cases as well; when checked, keep current .primary coloring
           child: Checkbox(
             value: completedOverride ?? calendarItem.completed,
             onChanged: (value) {
@@ -1545,6 +1544,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
               onCheckboxToggled?.call();
             },
             activeColor: context.colorScheme.primary,
+            side: BorderSide(
+              color: Colors.white.withValues(alpha: 0.7),
+              width: 2.5
+            ),
           ),
         ),
       );

@@ -47,7 +47,7 @@ class PageHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: context.colorScheme.surface,
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
+      padding: const EdgeInsets.only(top: 6, bottom: 2, left: 12, right: 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -91,7 +91,6 @@ class PageHeader extends StatelessWidget {
           Text(title, style: context.pageTitle),
 
           // TODO: should add the Helium logo up here
-
           if (screenType == ScreenType.page)
             IconButton(
               visualDensity: VisualDensity.compact,

@@ -286,9 +286,8 @@ class _TodosTableState extends State<TodosTable> {
     return MediaQuery.of(context).size.width >= 850;
   }
 
-  // FIXME: let's still show the action column down to the smallest screens, _but_ instead hide all buttons except delete (also means the column could be a lot smaller once it enter this responsive state
-  bool _shouldShowActionsColumn(BuildContext context) {
-    return MediaQuery.of(context).size.width >= 800;
+  bool _isCompactActionsMode(BuildContext context) {
+    return MediaQuery.of(context).size.width < 800;
   }
 
   bool _shouldShowClassColumn(BuildContext context) {
@@ -330,8 +329,10 @@ class _TodosTableState extends State<TodosTable> {
             ),
           if (_shouldShowGradeColumn(context))
             SizedBox(width: 95, child: _buildSortableHeader('Grade', 'grade')),
-          if (_shouldShowActionsColumn(context))
-            const SizedBox(width: 170, child: SizedBox.shrink()),
+          SizedBox(
+            width: _isCompactActionsMode(context) ? 48 : 170,
+            child: const SizedBox.shrink(),
+          ),
         ],
       ),
     );
@@ -683,7 +684,8 @@ class _TodosTableState extends State<TodosTable> {
     final bool isCompleted = dataSource.isHomeworkCompleted(homework);
 
     final category = categoriesMap[homework.category.id]!;
-    final actionButtons = _buildActionButtons(homework, course);
+    final isCompact = _isCompactActionsMode(context);
+    final actionButtons = _buildActionButtons(homework, course, isCompact);
 
     return Material(
       // FIXME: add standard InkWell hover effect (even though not clickable) to emphasize current row, similar to how SfCalendar handles this hover in "schedule" view
@@ -734,10 +736,8 @@ class _TodosTableState extends State<TodosTable> {
                   const SizedBox(width: 4),
                   _buildGradeColumn(homework, userSettings),
                 ],
-                if (_shouldShowActionsColumn(context)) ...[
-                  const SizedBox(width: 4),
-                  _buildActionsColumn(actionButtons),
-                ],
+                const SizedBox(width: 4),
+                _buildActionsColumn(actionButtons, isCompact),
               ],
             ),
           ),
@@ -881,9 +881,9 @@ class _TodosTableState extends State<TodosTable> {
     );
   }
 
-  Widget _buildActionsColumn(List<Widget> actionButtons) {
+  Widget _buildActionsColumn(List<Widget> actionButtons, bool isCompact) {
     return SizedBox(
-      width: 170,
+      width: isCompact ? 48 : 170,
       child: Row(
         mainAxisSize: MainAxisSize.max,
         mainAxisAlignment: MainAxisAlignment.end,
@@ -897,44 +897,50 @@ class _TodosTableState extends State<TodosTable> {
     );
   }
 
-  List<Widget> _buildActionButtons(HomeworkModel homework, dynamic course) {
+  List<Widget> _buildActionButtons(
+    HomeworkModel homework,
+    dynamic course,
+    bool isCompact,
+  ) {
     final buttons = <Widget>[];
 
-    if (course?.teacherEmail?.isNotEmpty ?? false) {
-      buttons.add(
-        HeliumIconButton(
-          onPressed: () {
-            launchUrl(Uri.parse('mailto:${course!.teacherEmail}'));
-          },
-          icon: Icons.email_outlined,
-          color: context.colorScheme.onSurface,
-        ),
-      );
-    }
+    if (!isCompact) {
+      if (course?.teacherEmail?.isNotEmpty ?? false) {
+        buttons.add(
+          HeliumIconButton(
+            onPressed: () {
+              launchUrl(Uri.parse('mailto:${course!.teacherEmail}'));
+            },
+            icon: Icons.email_outlined,
+            color: context.colorScheme.onSurface,
+          ),
+        );
+      }
 
-    if (course?.website?.isNotEmpty ?? false) {
-      buttons.add(
-        HeliumIconButton(
-          onPressed: () {
-            launchUrl(
-              Uri.parse(course!.website),
-              mode: LaunchMode.externalApplication,
-            );
-          },
-          icon: Icons.link_outlined,
-          color: context.colorScheme.onSurface,
-        ),
-      );
-    }
+      if (course?.website?.isNotEmpty ?? false) {
+        buttons.add(
+          HeliumIconButton(
+            onPressed: () {
+              launchUrl(
+                Uri.parse(course!.website),
+                mode: LaunchMode.externalApplication,
+              );
+            },
+            icon: Icons.link_outlined,
+            color: context.colorScheme.onSurface,
+          ),
+        );
+      }
 
-    if (PlannerHelper.shouldShowEditButtonForCalendarItem(context, homework)) {
-      buttons.add(
-        HeliumIconButton(
-          onPressed: () => widget.onTap(homework),
-          icon: Icons.edit_outlined,
-          color: context.colorScheme.onSurface,
-        ),
-      );
+      if (PlannerHelper.shouldShowEditButtonForCalendarItem(context, homework)) {
+        buttons.add(
+          HeliumIconButton(
+            onPressed: () => widget.onTap(homework),
+            icon: Icons.edit_outlined,
+            color: context.colorScheme.onSurface,
+          ),
+        );
+      }
     }
 
     if (PlannerHelper.shouldShowDeleteButton(homework)) {
