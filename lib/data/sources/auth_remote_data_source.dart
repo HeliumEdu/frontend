@@ -232,7 +232,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       // If we have a refresh token, blacklist it on the server
       if (refreshToken?.isNotEmpty ?? false) {
         try {
-          await _blacklistRefreshToken(refreshToken);
+          await _blacklistRefreshToken(refreshToken!);
         } catch (e) {
           // If blacklisting fails, we still want to logout locally
           log.warning('Failed to blacklist token on server: $e');

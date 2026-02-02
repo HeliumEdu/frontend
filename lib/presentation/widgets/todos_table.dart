@@ -688,7 +688,6 @@ class _TodosTableState extends State<TodosTable> {
     final actionButtons = _buildActionButtons(homework, course, isCompact);
 
     return Material(
-      // FIXME: add standard InkWell hover effect (even though not clickable) to emphasize current row, similar to how SfCalendar handles this hover in "schedule" view
       child: Ink(
         decoration: BoxDecoration(
           border: Border(
@@ -700,7 +699,10 @@ class _TodosTableState extends State<TodosTable> {
         child: InkWell(
           onTap: Responsive.isMobile(context)
               ? () => widget.onTap(homework)
-              : null,
+              : () {},
+          mouseCursor: Responsive.isMobile(context)
+              ? SystemMouseCursors.click
+              : SystemMouseCursors.basic,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
             child: Row(
@@ -764,6 +766,10 @@ class _TodosTableState extends State<TodosTable> {
         activeColor: userSettings.colorByCategory
             ? category.color
             : course.color,
+        side: BorderSide(
+            color: context.colorScheme.onSurface.withValues(alpha: 0.7),
+            width: 2
+        ),
       ),
     );
   }

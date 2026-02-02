@@ -70,11 +70,11 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
       };
       if (categoryTitles?.isNotEmpty ?? false) {
         final sanitizedTitles = categoryTitles
-            .map((title) => title.trim())
+            ?.map((title) => title.trim())
             .where((title) => title.isNotEmpty)
             .toSet()
             .toList();
-        if (sanitizedTitles.isNotEmpty) {
+        if (sanitizedTitles!.isNotEmpty) {
           queryParameters['category__title_in'] = sanitizedTitles.join(',');
         }
       }
