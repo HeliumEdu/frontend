@@ -68,7 +68,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
         'from': HeliumDateTime.formatDateForApi(from),
         'to': HeliumDateTime.formatDateForApi(to),
       };
-      if (categoryTitles != null && categoryTitles.isNotEmpty) {
+      if (categoryTitles?.isNotEmpty ?? false) {
         final sanitizedTitles = categoryTitles
             .map((title) => title.trim())
             .where((title) => title.isNotEmpty)

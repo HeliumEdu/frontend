@@ -51,7 +51,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
 
       final Map<String, dynamic> queryParameters = {};
       if (courseId != null) queryParameters['course'] = courseId;
-      if (title != null && title.isNotEmpty) queryParameters['title'] = title;
+      if (title?.isNotEmpty ?? false) queryParameters['title'] = title;
 
       final response = await dioClient.dio.get(
         ApiUrl.plannerCategoriesListUrl,

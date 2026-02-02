@@ -74,7 +74,7 @@ class DioClient {
       InterceptorsWrapper(
         onRequest: (options, handler) async {
           final token = await _prefService.getSecure('access_token');
-          if (token != null && token.isNotEmpty) {
+          if (token?.isNotEmpty ?? false) {
             options.headers['Authorization'] = 'Bearer $token';
             log.info('Authorization token attached to request');
           }
@@ -103,7 +103,7 @@ class DioClient {
                 await _refreshCompleter!.future;
                 // After refresh completes, retry the original request
                 final newToken = await getAccessToken();
-                if (newToken != null && newToken.isNotEmpty) {
+                if (newToken?.isNotEmpty ?? false) {
                   error.requestOptions.headers['Authorization'] =
                       'Bearer $newToken';
                   final retryResponse = await _dio.fetch(error.requestOptions);
@@ -278,7 +278,7 @@ class DioClient {
 
   Future<bool> isAuthenticated() async {
     final token = await getAccessToken();
-    return token != null && token.isNotEmpty;
+    return token?.isNotEmpty ?? false;
   }
 
   Future<UserSettingsModel> getSettings() async {
