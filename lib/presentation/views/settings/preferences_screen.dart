@@ -259,7 +259,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
               ],
             ),
 
-            // TODO: implement "remember filter selection"
+            // TODO: implement "remember filter selection", make it apply to "show X on page" in todos view as well
             const SizedBox(height: 14),
 
             DropDown(
