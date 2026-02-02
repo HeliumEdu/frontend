@@ -250,11 +250,11 @@ class _TodosTableState extends State<TodosTable> {
   // 6. Class
 
   bool _shouldShowPriorityColumn(BuildContext context) {
-    return MediaQuery.of(context).size.width >= 1300;
+    return MediaQuery.of(context).size.width >= 1150;
   }
 
   bool _shouldShowResourcesColumn(BuildContext context) {
-    return MediaQuery.of(context).size.width >= 1200;
+    return MediaQuery.of(context).size.width >= 1000;
   }
 
   bool _shouldShowCategoryColumn(BuildContext context) {
@@ -289,7 +289,7 @@ class _TodosTableState extends State<TodosTable> {
             child: _buildSortableHeader('', 'completed', isCheckbox: true),
           ),
           Expanded(flex: 3, child: _buildSortableHeader('Title', 'title')),
-          Expanded(flex: 2, child: _buildSortableHeader('Due Date', 'dueDate')),
+          SizedBox(width: 155, child: _buildSortableHeader('Due Date', 'dueDate')),
           if (_shouldShowClassColumn(context))
             Expanded(flex: 2, child: _buildSortableHeader('Class', 'class')),
           if (_shouldShowCategoryColumn(context))
@@ -783,8 +783,8 @@ class _TodosTableState extends State<TodosTable> {
     HomeworkModel homework,
     UserSettingsModel userSettings,
   ) {
-    return Expanded(
-      flex: 2,
+    return SizedBox(
+      width: 155,
       child: Text(
         HeliumDateTime.formatDateAndTimeForTodosDisplay(
           HeliumDateTime.parse(homework.start, userSettings.timeZone),
