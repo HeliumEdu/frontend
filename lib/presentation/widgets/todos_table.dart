@@ -44,7 +44,7 @@ class TodosTable extends StatefulWidget {
   State<TodosTable> createState() => _TodosTableState();
 }
 
-// FIXME: filter state changes (from parent screen) aren't causing a rebuild to this widget, only to SfCalendar; fix
+// TODO: evaluate making columns adjustable in width, how hard?
 
 class _TodosTableState extends State<TodosTable> {
   String _sortColumn = 'dueDate';
@@ -102,9 +102,24 @@ class _TodosTableState extends State<TodosTable> {
     final totalPages = isShowingAll
         ? 1
         : (totalItems / effectiveItemsPerPage).ceil();
+
+    // Reset to page 1 if current page is beyond valid range (e.g., after filtering)
+    // Use local variable for immediate UI update, persist to state for next build
+    var effectiveCurrentPage = _currentPage;
+    if (effectiveCurrentPage > totalPages && totalPages > 0) {
+      effectiveCurrentPage = 1;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _currentPage != 1) {
+          setState(() {
+            _currentPage = 1;
+          });
+        }
+      });
+    }
+
     final startIndex = isShowingAll
         ? 0
-        : (_currentPage - 1) * effectiveItemsPerPage;
+        : (effectiveCurrentPage - 1) * effectiveItemsPerPage;
     final endIndex = isShowingAll
         ? totalItems
         : (startIndex + effectiveItemsPerPage).clamp(0, totalItems);
@@ -114,9 +129,14 @@ class _TodosTableState extends State<TodosTable> {
     );
 
     if (totalItems == 0) {
-      return const EmptyCard(
+      // Distinguish between "no assignments at all" vs "filters hiding everything"
+      final hasAssignments = dataSource.allHomeworks.isNotEmpty;
+      return EmptyCard(
         icon: Icons.assignment_outlined,
-        message: 'No assignments found',
+        message: hasAssignments
+            ? 'No assignments match the current filters'
+            : 'No assignments found',
+        expanded: false,
       );
     }
 
@@ -141,6 +161,7 @@ class _TodosTableState extends State<TodosTable> {
                 totalItems: totalItems,
                 isShowingAll: isShowingAll,
                 totalPages: totalPages,
+                currentPage: effectiveCurrentPage,
               ),
             ],
           ),
@@ -289,7 +310,10 @@ class _TodosTableState extends State<TodosTable> {
             child: _buildSortableHeader('', 'completed', isCheckbox: true),
           ),
           Expanded(flex: 3, child: _buildSortableHeader('Title', 'title')),
-          SizedBox(width: 155, child: _buildSortableHeader('Due Date', 'dueDate')),
+          SizedBox(
+            width: 155,
+            child: _buildSortableHeader('Due Date', 'dueDate'),
+          ),
           if (_shouldShowClassColumn(context))
             Expanded(flex: 2, child: _buildSortableHeader('Class', 'class')),
           if (_shouldShowCategoryColumn(context))
@@ -319,15 +343,14 @@ class _TodosTableState extends State<TodosTable> {
     required int totalItems,
     required bool isShowingAll,
     required int totalPages,
+    required int currentPage,
   }) {
     return Container(
       padding: EdgeInsets.only(
         left: 8,
         right: 8,
         bottom: 8,
-        // Bottom margin is only needed when we're showing the pagination
-        // IconButtons, but not on mobile
-        top: Responsive.isMobile(context) ? 0 : 8,
+        top: Responsive.isMobile(context) ? 4 : 8,
       ),
       decoration: BoxDecoration(
         border: Border(
@@ -343,7 +366,8 @@ class _TodosTableState extends State<TodosTable> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _buildItemsCountText(startIndex, endIndex, totalItems),
-              if (!isShowingAll && totalPages > 1) _buildPagination(totalPages),
+              if (!isShowingAll && totalPages > 1)
+                _buildPagination(totalPages, currentPage),
             ],
           ),
           const SizedBox(height: 4),
@@ -405,13 +429,13 @@ class _TodosTableState extends State<TodosTable> {
     );
   }
 
-  Widget _buildPagination(int totalPages) {
+  Widget _buildPagination(int totalPages, int currentPage) {
     final isMobile = Responsive.isMobile(context);
 
     return Row(
       children: [
         IconButton(
-          onPressed: _currentPage > 1
+          onPressed: currentPage > 1
               ? () {
                   setState(() {
                     _currentPage--;
@@ -427,16 +451,16 @@ class _TodosTableState extends State<TodosTable> {
         // On mobile, show page indicator text; on desktop, show page numbers
         if (isMobile)
           Text(
-            'Page $_currentPage of $totalPages',
+            'Page $currentPage of $totalPages',
             style: context.calendarData.copyWith(
               color: context.colorScheme.onSurface.withValues(alpha: 0.7),
             ),
           )
         else
-          ..._buildPageNumbers(totalPages),
+          ..._buildPageNumbers(totalPages, currentPage),
         const SizedBox(width: 8),
         IconButton(
-          onPressed: _currentPage < totalPages
+          onPressed: currentPage < totalPages
               ? () {
                   setState(() {
                     _currentPage++;
@@ -452,75 +476,65 @@ class _TodosTableState extends State<TodosTable> {
     );
   }
 
-  List<Widget> _buildPageNumbers(int totalPages) {
+  List<Widget> _buildPageNumbers(int totalPages, int currentPage) {
     final List<Widget> pages = [];
     // Only used on non-mobile screens
     const int maxVisiblePages = 5;
 
     if (totalPages <= maxVisiblePages) {
       for (int i = 1; i <= totalPages; i++) {
-        pages.add(_buildPageButton(i));
+        pages.add(_buildPageButton(i, currentPage));
       }
     } else {
-      pages.add(_buildPageButton(1));
+      pages.add(_buildPageButton(1, currentPage));
 
-      final int start = (_currentPage - 1).clamp(2, totalPages - 3);
-      final int end = (_currentPage + 1).clamp(4, totalPages - 1);
+      final int start = (currentPage - 1).clamp(2, totalPages - 3);
+      final int end = (currentPage + 1).clamp(4, totalPages - 1);
 
       if (start > 2) {
         pages.add(_buildEllipsis());
       }
 
       for (int i = start; i <= end; i++) {
-        pages.add(_buildPageButton(i));
+        pages.add(_buildPageButton(i, currentPage));
       }
 
       if (end < totalPages - 1) {
         pages.add(_buildEllipsis());
       }
 
-      pages.add(_buildPageButton(totalPages));
+      pages.add(_buildPageButton(totalPages, currentPage));
     }
 
     return pages;
   }
 
-  Widget _buildPageButton(int pageNumber) {
+  Widget _buildPageButton(int pageNumber, int currentPage) {
+    final isActive = currentPage == pageNumber;
+
     return Padding(
       padding: const EdgeInsets.only(left: 4),
-      child: GestureDetector(
-        onTap: () {
-          Feedback.forTap(context);
-          setState(() {
-            _currentPage = pageNumber;
-          });
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: _currentPage == pageNumber
-                ? context.colorScheme.primary
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(4),
-            border: Border.all(
-              color: _currentPage == pageNumber
-                  ? context.colorScheme.primary
-                  : context.colorScheme.outline.withValues(alpha: 0.2),
+      child: isActive
+          ? IconButton.filled(
+              onPressed: null,
+              icon: Text(
+                pageNumber.toString(),
+                style: context.calendarData.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              style: IconButton.styleFrom(
+                disabledBackgroundColor: context.colorScheme.primary,
+              ),
+            )
+          : IconButton.outlined(
+              onPressed: () {
+                setState(() {
+                  _currentPage = pageNumber;
+                });
+              },
+              icon: Text(pageNumber.toString(), style: context.calendarData),
             ),
-          ),
-          child: Text(
-            pageNumber.toString(),
-            style: context.calendarData.copyWith(
-              color: _currentPage == pageNumber
-                  ? context.colorScheme.onPrimary
-                  : context.colorScheme.onSurface,
-              fontWeight: _currentPage == pageNumber
-                  ? FontWeight.w600
-                  : FontWeight.normal,
-            ),
-          ),
-        ),
-      ),
     );
   }
 
@@ -746,8 +760,6 @@ class _TodosTableState extends State<TodosTable> {
         onChanged: (value) {
           Feedback.forTap(context);
           widget.onToggleCompleted(homework, value!);
-          // FIXME: this might not be necessary once we fix the filter-state refresh issue, since onToggleCompleted should then also start rebuilding this view along with SfCalendar
-          setState(() {});
         },
         activeColor: userSettings.colorByCategory
             ? category.color
