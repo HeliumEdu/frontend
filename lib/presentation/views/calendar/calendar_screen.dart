@@ -429,6 +429,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           scheduleViewSettings: ScheduleViewSettings(
             hideEmptyScheduleWeek: true,
             appointmentItemHeight: agendaHeight,
+            monthHeaderSettings: const MonthHeaderSettings(height: 0),
           ),
           monthViewSettings: MonthViewSettings(
             appointmentDisplayCount: appointmentDisplayCount,
@@ -452,10 +453,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             if (mounted) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (mounted) {
-                  setState(() {
-                    // displayDate automatically updated by CalendarController
-                    // setState triggers header rebuild to show new date
-                  });
+                  setState(() {});
                 }
               });
             }
@@ -1230,10 +1228,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     final CalendarItemBaseModel calendarItem =
         tapDetails.appointments![0] as CalendarItemBaseModel;
 
-    if (PlannerHelper.shouldShowEditButtonForCalendarItem(
-      context,
-      calendarItem,
-    )) {
+    if (PlannerHelper.shouldShowEditButton(context)) {
       return;
     }
 
@@ -1491,210 +1486,204 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     );
   }
 
-  Widget _buildCalendarItemLeft({
-    required BuildContext context,
+  /// Builds the left icon widget (checkbox or school icon) for agenda view only.
+  /// For timeline views, this returns empty - the icon is shown inline with title instead.
+  Widget _buildCalendarItemLeftForAgenda({
     required CalendarItemBaseModel calendarItem,
-    required bool isInAgenda,
     VoidCallback? onCheckboxToggled,
     bool? completedOverride,
   }) {
     Widget? iconWidget;
 
-    // FIXME: checkbox and school icon should show here and this way (as a vertically centered, left column) only on "agenda" and "schedule" view. in all other views, this entire column is hidden, and they should show (conditionally, using the same helpers) as a prefix to the title, that way the "wrapping" behavior of the title considers them to be part of the text, and wraps all the way back to the start of the line
     if (PlannerHelper.shouldShowCheckbox(context, calendarItem, _currentView)) {
-      calendarItem as HomeworkModel;
-      iconWidget = SizedBox(
-        width: 16,
-        height: 16,
-        child: Transform.scale(
-          scale: AppTextStyles.calendarCheckboxScale(context),
-          child: Checkbox(
-            value: completedOverride ?? calendarItem.completed,
-            onChanged: (value) {
-              Feedback.forTap(context);
-              _toggleHomeworkCompleted(calendarItem, value!);
-              onCheckboxToggled?.call();
-            },
-            activeColor: context.colorScheme.primary,
-            side: BorderSide(
-              color: Colors.white.withValues(alpha: 0.7),
-              width: 2.5,
-            ),
-          ),
-        ),
+      iconWidget = _buildCheckboxWidget(
+        homework: calendarItem as HomeworkModel,
+        onCheckboxToggled: onCheckboxToggled,
+        completedOverride: completedOverride,
       );
     } else if (PlannerHelper.shouldShowSchoolIcon(
       context,
       calendarItem,
       _currentView,
     )) {
-      iconWidget = SizedBox(
-        width: 16,
-        height: 16,
-        child: Transform.scale(
-          scale: AppTextStyles.calendarCheckboxScale(context),
-          child: Icon(
-            Icons.school,
-            size: 16,
-            color: Colors.white.withValues(alpha: 0.7),
-          ),
-        ),
-      );
+      iconWidget = _buildSchoolIconWidget();
     }
 
     if (iconWidget == null) {
       return const SizedBox.shrink();
     }
 
-    final paddedIcon = isInAgenda
-        ? iconWidget
-        : Padding(padding: const EdgeInsets.only(top: 1.5), child: iconWidget);
-
-    final alignedIcon = isInAgenda
-        ? Center(child: paddedIcon) // Centered for agenda/schedule
-        : Align(
-            alignment: Alignment.topLeft,
-            child: paddedIcon,
-          ); // Top-left for other views
-
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        alignedIcon,
-        SizedBox(width: Responsive.isMobile(context) && !isInAgenda ? 2 : 8),
+        Center(child: iconWidget),
+        const SizedBox(width: 8),
       ],
     );
   }
 
-  Widget _buildCalendarItemCenter({
+  /// Gets the icon widget (checkbox or school) for inline display in timeline views.
+  Widget? _getInlineIconWidget({
     required CalendarItemBaseModel calendarItem,
-    required bool isInAgenda,
+    VoidCallback? onCheckboxToggled,
+    bool? completedOverride,
+  }) {
+    if (PlannerHelper.shouldShowCheckbox(context, calendarItem, _currentView)) {
+      return _buildCheckboxWidget(
+        homework: calendarItem as HomeworkModel,
+        onCheckboxToggled: onCheckboxToggled,
+        completedOverride: completedOverride,
+      );
+    } else if (PlannerHelper.shouldShowSchoolIcon(
+      context,
+      calendarItem,
+      _currentView,
+    )) {
+      return _buildSchoolIconWidget();
+    }
+    return null;
+  }
+
+  /// Builds the center content for agenda view.
+  Widget _buildCalendarItemCenterForAgenda({
+    required CalendarItemBaseModel calendarItem,
     String? location,
   }) {
     final contentColumn = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (!isInAgenda &&
-            PlannerHelper.shouldShowTimeBeforeTitle(
-              context,
-              calendarItem,
-              false,
-              _currentView,
-            ))
-          Row(
-            children: [
-              Text(
-                HeliumDateTime.formatTimeForDisplay(
-                  HeliumDateTime.parse(
-                    calendarItem.start,
-                    userSettings.timeZone,
-                  ),
-                ),
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.6),
-                  fontSize: 12.0,
-                ),
-              ),
-              SizedBox(width: Responsive.isMobile(context) ? 2 : 4),
-              Expanded(child: _buildCalendarItemTitle(calendarItem)),
-            ],
-          )
-        else
-          _buildCalendarItemTitle(calendarItem),
-
+        _buildCalendarItemTitle(calendarItem),
         if (PlannerHelper.shouldShowTimeBelowTitle(
           context,
           calendarItem,
-          isInAgenda,
+          true,
           _currentView,
         ))
-          Row(
-            children: [
-              Icon(
-                Icons.access_time,
-                size: 10,
-                color: Colors.white.withValues(alpha: 0.4),
-              ),
-              const SizedBox(width: 2),
-              Expanded(
-                child: Text(
-                  HeliumDateTime.formatTimeRangeForDisplay(
-                    HeliumDateTime.parse(
-                      calendarItem.start,
-                      userSettings.timeZone,
-                    ),
-                    HeliumDateTime.parse(
-                      calendarItem.end,
-                      userSettings.timeZone,
-                    ),
-                    calendarItem.showEndTime,
-                  ),
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.6),
-                    fontSize: 12.0,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-
+          _buildTimeBelowTitleRow(calendarItem),
         if (PlannerHelper.shouldShowLocationBelowTitle(
               context,
               calendarItem,
-              isInAgenda,
+              true,
               _currentView,
             ) &&
             location != null &&
             location.isNotEmpty)
-          Row(
-            children: [
-              Icon(
-                Icons.pin_drop_outlined,
-                size: 10,
-                color: Colors.white.withValues(alpha: 0.4),
-              ),
-              const SizedBox(width: 2),
-              Expanded(
-                child: Text(
-                  location,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.6),
-                    fontSize: 12.0,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
+          _buildLocationRow(location),
       ],
     );
 
     return Flexible(
       child: Align(
         alignment: Alignment.topLeft,
-        child: isInAgenda
-            ? OverflowBox(
-                alignment: Alignment.topLeft,
-                maxHeight: double.infinity,
-                child: contentColumn,
-              )
-            : contentColumn,
+        child: OverflowBox(
+          alignment: Alignment.topLeft,
+          maxHeight: double.infinity,
+          child: contentColumn,
+        ),
       ),
     );
   }
 
-  Widget _buildCalendarItemRight({
+  /// Builds the center content for timeline views (month, week, day).
+  Widget _buildCalendarItemCenterForTimeline({
     required CalendarItemBaseModel calendarItem,
-    required bool isInAgenda,
-    CourseModel? course,
+    String? location,
+    Widget? inlineIcon,
   }) {
-    if (!isInAgenda) {
-      return const SizedBox.shrink();
+    final showTimeBeforeTitle = PlannerHelper.shouldShowTimeBeforeTitle(
+      context,
+      calendarItem,
+      false,
+      _currentView,
+    );
+
+    // Build the title row with optional inline icon and time prefix
+    // Order: icon (if any) → time (if shown before title) → title
+    Widget titleRowWidget;
+    if (inlineIcon != null || showTimeBeforeTitle) {
+      final spans = <InlineSpan>[];
+
+      // Add icon first (if present)
+      if (inlineIcon != null) {
+        spans.add(
+          WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: inlineIcon,
+            ),
+          ),
+        );
+      }
+
+      // Add time (if shown before title)
+      if (showTimeBeforeTitle) {
+        spans.add(
+          WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: Padding(
+              padding: EdgeInsets.only(right: Responsive.isMobile(context) ? 2 : 4),
+              child: _buildTimeText(calendarItem),
+            ),
+          ),
+        );
+      }
+
+      // Add title
+      spans.add(
+        TextSpan(
+          text: calendarItem.title,
+          style: context.calendarData.copyWith(
+            fontSize: AppTextStyles.calendarDataFontSize(context),
+          ),
+        ),
+      );
+
+      titleRowWidget = Text.rich(
+        TextSpan(children: spans),
+        maxLines: _currentView == HeliumView.month ? 1 : null,
+        overflow: _currentView == HeliumView.month ? TextOverflow.ellipsis : null,
+      );
+    } else {
+      titleRowWidget = _buildCalendarItemTitle(calendarItem);
     }
 
+    final contentColumn = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        titleRowWidget,
+        if (PlannerHelper.shouldShowTimeBelowTitle(
+          context,
+          calendarItem,
+          false,
+          _currentView,
+        ))
+          _buildTimeBelowTitleRow(calendarItem),
+        if (PlannerHelper.shouldShowLocationBelowTitle(
+              context,
+              calendarItem,
+              false,
+              _currentView,
+            ) &&
+            location != null &&
+            location.isNotEmpty)
+          _buildLocationRow(location),
+      ],
+    );
+
+    return Flexible(
+      child: Align(
+        alignment: Alignment.topLeft,
+        child: contentColumn,
+      ),
+    );
+  }
+
+  /// Builds the right action buttons for agenda view.
+  Widget _buildCalendarItemRight({
+    required CalendarItemBaseModel calendarItem,
+    CourseModel? course,
+  }) {
     final buttons = <Widget>[];
 
     if (course?.teacherEmail.isNotEmpty ?? false) {
@@ -1771,76 +1760,132 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     VoidCallback? onCheckboxToggled,
     bool? completedOverride,
   }) {
-    final color = _calendarItemDataSource!.getColorForItem(calendarItem);
-    final location = _calendarItemDataSource!.getLocationForItem(calendarItem);
-
-    CourseModel? course;
-    if (calendarItem is HomeworkModel) {
-      course = _courses.firstWhere((c) => c.id == calendarItem.course.id);
-    } else if (calendarItem is CourseScheduleEventModel) {
-      course = _courses.firstWhere(
-        (c) => c.id.toString() == calendarItem.ownerId,
+    if (isInAgenda) {
+      return _buildCalendarItemWidgetForAgenda(
+        calendarItem: calendarItem,
+        width: width,
+        onCheckboxToggled: onCheckboxToggled,
+        completedOverride: completedOverride,
+      );
+    } else {
+      return _buildCalendarItemWidgetForTimeline(
+        calendarItem: calendarItem,
+        width: width,
+        height: height,
+        onCheckboxToggled: onCheckboxToggled,
+        completedOverride: completedOverride,
       );
     }
+  }
 
-    final leftWidget = _buildCalendarItemLeft(
-      context: context,
+  /// Builds a calendar item widget for agenda/schedule views.
+  /// Checkbox/school icon shown as a left column.
+  Widget _buildCalendarItemWidgetForAgenda({
+    required CalendarItemBaseModel calendarItem,
+    required double width,
+    VoidCallback? onCheckboxToggled,
+    bool? completedOverride,
+  }) {
+    final color = _calendarItemDataSource!.getColorForItem(calendarItem);
+    final location = _calendarItemDataSource!.getLocationForItem(calendarItem);
+    final course = _getCourseForCalendarItem(calendarItem);
+
+    final leftWidget = _buildCalendarItemLeftForAgenda(
       calendarItem: calendarItem,
-      isInAgenda: isInAgenda,
       onCheckboxToggled: onCheckboxToggled,
       completedOverride: completedOverride,
     );
 
-    final centerWidget = _buildCalendarItemCenter(
+    final centerWidget = _buildCalendarItemCenterForAgenda(
       calendarItem: calendarItem,
-      isInAgenda: isInAgenda,
       location: location,
     );
 
     final rightWidget = _buildCalendarItemRight(
       calendarItem: calendarItem,
-      isInAgenda: isInAgenda,
       course: course,
     );
 
     return Container(
       width: width,
-      height: isInAgenda ? null : height,
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(4),
       ),
       clipBehavior: Clip.hardEdge,
-      child: isInAgenda
-          ? Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  leftWidget,
-                  centerWidget,
-                  const SizedBox(width: 8),
-                  rightWidget,
-                ],
-              ),
-            )
-          : UnconstrainedBox(
-              constrainedAxis: Axis.horizontal,
-              alignment: PlannerHelper.getAlignmentForView(
-                context,
-                isInAgenda,
-                _currentView,
-              ),
-              clipBehavior: Clip.hardEdge,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [leftWidget, centerWidget],
-                ),
-              ),
-            ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            leftWidget,
+            centerWidget,
+            const SizedBox(width: 8),
+            rightWidget,
+          ],
+        ),
+      ),
     );
+  }
+
+  /// Builds a calendar item widget for timeline views (month, week, day).
+  /// Checkbox/school icon shown inline with title.
+  Widget _buildCalendarItemWidgetForTimeline({
+    required CalendarItemBaseModel calendarItem,
+    required double width,
+    double? height,
+    VoidCallback? onCheckboxToggled,
+    bool? completedOverride,
+  }) {
+    final color = _calendarItemDataSource!.getColorForItem(calendarItem);
+    final location = _calendarItemDataSource!.getLocationForItem(calendarItem);
+
+    final inlineIcon = _getInlineIconWidget(
+      calendarItem: calendarItem,
+      onCheckboxToggled: onCheckboxToggled,
+      completedOverride: completedOverride,
+    );
+
+    final centerWidget = _buildCalendarItemCenterForTimeline(
+      calendarItem: calendarItem,
+      location: location,
+      inlineIcon: inlineIcon,
+    );
+
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      clipBehavior: Clip.hardEdge,
+      child: UnconstrainedBox(
+        constrainedAxis: Axis.horizontal,
+        alignment: PlannerHelper.getAlignmentForView(
+          context,
+          false,
+          _currentView,
+        ),
+        clipBehavior: Clip.hardEdge,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: centerWidget,
+        ),
+      ),
+    );
+  }
+
+  /// Gets the course model for a calendar item.
+  CourseModel? _getCourseForCalendarItem(CalendarItemBaseModel calendarItem) {
+    if (calendarItem is HomeworkModel) {
+      return _courses.firstWhere((c) => c.id == calendarItem.course.id);
+    } else if (calendarItem is CourseScheduleEventModel) {
+      return _courses.firstWhere(
+        (c) => c.id.toString() == calendarItem.ownerId,
+      );
+    }
+    return null;
   }
 
   Widget _buildMoreAppointmentsIndicator(
@@ -1962,6 +2007,13 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
                       return GestureDetector(
                         onTap: () {
+                          if (PlannerHelper.shouldShowEditButtonForCalendarItem(
+                            context,
+                            appointment,
+                          )) {
+                            return;
+                          }
+
                           Feedback.forTap(context);
                           if (_openCalendarItem(appointment)) {
                             Navigator.of(context).pop();
@@ -2624,6 +2676,126 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       ),
       maxLines: _currentView == HeliumView.month ? 1 : null,
       overflow: _currentView == HeliumView.month ? TextOverflow.ellipsis : null,
+    );
+  }
+
+  /// Builds the checkbox widget for homework items.
+  Widget _buildCheckboxWidget({
+    required HomeworkModel homework,
+    required VoidCallback? onCheckboxToggled,
+    bool? completedOverride,
+  }) {
+    return SizedBox(
+      width: 16,
+      height: 16,
+      child: Transform.scale(
+        scale: AppTextStyles.calendarCheckboxScale(context),
+        child: Checkbox(
+          value: completedOverride ?? homework.completed,
+          onChanged: (value) {
+            Feedback.forTap(context);
+            _toggleHomeworkCompleted(homework, value!);
+            onCheckboxToggled?.call();
+          },
+          activeColor: context.colorScheme.primary,
+          side: BorderSide(
+            color: Colors.white.withValues(alpha: 0.7),
+            width: 2.5,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Builds the school icon widget for course schedule events.
+  Widget _buildSchoolIconWidget() {
+    return SizedBox(
+      width: 16,
+      height: 16,
+      child: Transform.scale(
+        scale: AppTextStyles.calendarCheckboxScale(context),
+        child: Icon(
+          Icons.school,
+          size: 16,
+          color: Colors.white.withValues(alpha: 0.7),
+        ),
+      ),
+    );
+  }
+
+  /// Builds the formatted time text widget.
+  Widget _buildTimeText(CalendarItemBaseModel calendarItem) {
+    return Text(
+      HeliumDateTime.formatTimeForDisplay(
+        HeliumDateTime.parse(
+          calendarItem.start,
+          userSettings.timeZone,
+        ),
+      ),
+      style: TextStyle(
+        color: Colors.white.withValues(alpha: 0.6),
+        fontSize: 12.0,
+      ),
+    );
+  }
+
+  /// Builds the time row shown below the title.
+  Widget _buildTimeBelowTitleRow(CalendarItemBaseModel calendarItem) {
+    return Row(
+      children: [
+        Icon(
+          Icons.access_time,
+          size: 10,
+          color: Colors.white.withValues(alpha: 0.4),
+        ),
+        const SizedBox(width: 2),
+        Expanded(
+          child: Text(
+            HeliumDateTime.formatTimeRangeForDisplay(
+              HeliumDateTime.parse(
+                calendarItem.start,
+                userSettings.timeZone,
+              ),
+              HeliumDateTime.parse(
+                calendarItem.end,
+                userSettings.timeZone,
+              ),
+              calendarItem.showEndTime,
+            ),
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.6),
+              fontSize: 12.0,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Builds the location row shown below the title.
+  Widget _buildLocationRow(String location) {
+    return Row(
+      children: [
+        Icon(
+          Icons.pin_drop_outlined,
+          size: 10,
+          color: Colors.white.withValues(alpha: 0.4),
+        ),
+        const SizedBox(width: 2),
+        Expanded(
+          child: Text(
+            location,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.6),
+              fontSize: 12.0,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
   }
 }
