@@ -604,7 +604,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           child: Padding(
             padding: const EdgeInsets.only(left: 12),
             child: Text(
-              CalendarConstants.defaultViews[PlannerHelper.mapHeliumViewToApiView(
+              CalendarConstants
+                  .defaultViews[PlannerHelper.mapHeliumViewToApiView(
                 _currentView,
               )],
               style: context.calendarDate,
@@ -965,118 +966,89 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-            Builder(
-              builder: (context) {
-                return IconButton.outlined(
-                  onPressed: () => _openViewMenu(context),
-                  icon: const Icon(Icons.calendar_month),
-                  style: ButtonStyle(
-                    side: WidgetStateProperty.all(
-                      BorderSide(color: context.colorScheme.primary),
-                    ),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(width: 8),
-            SizedBox(
-              width: 50,
-              child: Builder(
-                builder: (context) {
-                  final hasCoursesFilter = _hasCoursesFilter();
-                  final button = IconButton.outlined(
-                    onPressed: _courses.isEmpty
-                        ? null
-                        : () => _openCoursesMenu(context, _courses),
-                    icon: const Icon(Icons.school),
-                    style: ButtonStyle(
-                      side: WidgetStateProperty.resolveWith((states) {
-                        if (states.contains(WidgetState.disabled)) {
-                          return BorderSide(
-                            color: context.colorScheme.onSurface.withValues(
-                              alpha: 0.12,
-                            ),
-                          );
-                        }
-                        return BorderSide(color: context.colorScheme.primary);
-                      }),
-                    ),
-                  );
-
-                  return hasCoursesFilter
-                      ? Badge(
-                          smallSize: 8,
-                          offset: const Offset(6, -6),
-                          child: button,
-                        )
-                      : button;
-                },
+        Builder(
+          builder: (context) {
+            return IconButton.outlined(
+              onPressed: () => _openViewMenu(context),
+              icon: const Icon(Icons.calendar_month),
+              style: ButtonStyle(
+                side: WidgetStateProperty.all(
+                  BorderSide(color: context.colorScheme.primary),
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Builder(
-              builder: (context) {
-                final hasCategoryStatusFilters = _hasCategoryStatusFilters();
-                final button = IconButton.outlined(
-                  onPressed: _courses.isEmpty
-                      ? null
-                      : () => _openFilterMenu(context),
-                  icon: const Icon(Icons.filter_alt),
-                  style: ButtonStyle(
-                    side: WidgetStateProperty.resolveWith((states) {
-                      if (states.contains(WidgetState.disabled)) {
-                        return BorderSide(
-                          color: context.colorScheme.onSurface.withValues(
-                            alpha: 0.12,
-                          ),
-                        );
-                      }
-                      return BorderSide(color: context.colorScheme.primary);
-                    }),
-                  ),
-                );
-
-                return hasCategoryStatusFilters
-                    ? Badge(
-                        smallSize: 8,
-                        offset: const Offset(6, -6),
-                        child: button,
-                      )
-                    : button;
+            );
+          },
+        ),
+        const SizedBox(width: 8),
+        Builder(
+          builder: (context) {
+            final hasCoursesFilter = _hasCoursesFilter();
+            return IconButton.outlined(
+              onPressed: _courses.isEmpty
+                  ? null
+                  : () => _openCoursesMenu(context, _courses),
+              icon: const Icon(Icons.school),
+              style: IconButton.styleFrom(
+                backgroundColor: hasCoursesFilter
+                    ? context.colorScheme.primary
+                    : null,
+                foregroundColor: hasCoursesFilter
+                    ? context.colorScheme.onPrimary
+                    : null,
+                side: BorderSide(color: context.colorScheme.primary),
+              ),
+            );
+          },
+        ),
+        const SizedBox(width: 8),
+        Builder(
+          builder: (context) {
+            final hasStatusFilters = _hasStatusFilters();
+            return IconButton.outlined(
+              onPressed: _courses.isEmpty
+                  ? null
+                  : () => _openFilterMenu(context),
+              icon: const Icon(Icons.filter_alt),
+              style: IconButton.styleFrom(
+                backgroundColor: hasStatusFilters
+                    ? context.colorScheme.primary
+                    : null,
+                foregroundColor: hasStatusFilters
+                    ? context.colorScheme.onPrimary
+                    : null,
+                side: BorderSide(color: context.colorScheme.primary),
+              ),
+            );
+          },
+        ),
+        const SizedBox(width: 8),
+        Builder(
+          builder: (context) {
+            final hasSearchQuery = _hasSearchQuery();
+            return IconButton.outlined(
+              onPressed: () {
+                setState(() {
+                  _isFilterExpanded = false;
+                  _isSearchExpanded = true;
+                  _searchFocusNode.requestFocus();
+                });
               },
-            ),
-            const SizedBox(width: 8),
-            Builder(
-              builder: (context) {
-                final hasSearchQuery = _hasSearchQuery();
-                final button = IconButton.outlined(
-                  onPressed: () {
-                    setState(() {
-                      _isFilterExpanded = false;
-                      _isSearchExpanded = true;
-                      _searchFocusNode.requestFocus();
-                    });
-                  },
-                  icon: Icon(Icons.search, color: context.colorScheme.primary),
-                  style: ButtonStyle(
-                    side: _isSearchExpanded
-                        ? null
-                        : WidgetStateProperty.all(
-                            BorderSide(color: context.colorScheme.primary),
-                          ),
-                  ),
-                );
-
-                return hasSearchQuery
-                    ? Badge(
-                        smallSize: 8,
-                        offset: const Offset(6, -6),
-                        child: button,
-                      )
-                    : button;
-              },
-            ),
-          ],
+              icon: const Icon(Icons.search),
+              style: IconButton.styleFrom(
+                backgroundColor: hasSearchQuery
+                    ? context.colorScheme.primary
+                    : null,
+                foregroundColor: hasSearchQuery
+                    ? context.colorScheme.onPrimary
+                    : null,
+                side: _isSearchExpanded
+                    ? BorderSide.none
+                    : BorderSide(color: context.colorScheme.primary),
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 
@@ -1108,7 +1080,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     return filteredCourses.values.any((isSelected) => isSelected);
   }
 
-  bool _hasCategoryStatusFilters() {
+  bool _hasStatusFilters() {
     if (_calendarItemDataSource == null) return false;
 
     final categories = _calendarItemDataSource!.filterCategories;
@@ -1546,7 +1518,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             activeColor: context.colorScheme.primary,
             side: BorderSide(
               color: Colors.white.withValues(alpha: 0.7),
-              width: 2.5
+              width: 2.5,
             ),
           ),
         ),
