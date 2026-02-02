@@ -1212,7 +1212,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       lastDate: DateTime.now().add(const Duration(days: 365 * 10)),
     );
 
-    if (picked != null) {
+    if (picked != null && mounted) {
       // Use picked date with current hour (like month view selection)
       final now = DateTime.now();
       final selectedWithTime = DateTime(
@@ -1223,8 +1223,20 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       );
 
       setState(() {
+        // Update displayDate and stored date
         _calendarController.displayDate = picked;
-        _calendarController.selectedDate = selectedWithTime;
+        _storedDisplayDate = picked;
+
+        // Only update selectedDate if one is already set
+        if (_calendarController.selectedDate != null) {
+          _calendarController.selectedDate = selectedWithTime;
+          _storedSelectedDate = selectedWithTime;
+        }
+
+        // Force Schedule view to rebuild with new date
+        if (_currentView == HeliumView.agenda) {
+          _scheduleViewRebuildCounter++;
+        }
       });
     }
   }
@@ -2214,6 +2226,11 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       if (_calendarController.selectedDate != null) {
         _calendarController.selectedDate = truncatedNow;
         _storedSelectedDate = truncatedNow;
+      }
+
+      // Force Schedule view to rebuild with new date
+      if (_currentView == HeliumView.agenda) {
+        _scheduleViewRebuildCounter++;
       }
     });
   }
