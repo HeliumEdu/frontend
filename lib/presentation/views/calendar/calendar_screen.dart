@@ -123,11 +123,20 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   @override
   VoidCallback get actionButtonCallback => () {
+    // For Todos and Schedule views, use today as initial date since we don't
+    // have a confident selection. For calendar views, use the selected date.
+    final now = DateTime.now();
+    final truncatedNow = DateTime(now.year, now.month, now.day, now.hour);
+    final initialDate =
+        (_currentView == HeliumView.todos || _currentView == HeliumView.agenda)
+            ? truncatedNow
+            : _calendarController.selectedDate;
+
     context.push(
       AppRoutes.plannerItemAddScreen,
       extra: CalendarItemAddArgs(
         calendarItemBloc: context.read<CalendarItemBloc>(),
-        initialDate: _calendarController.selectedDate,
+        initialDate: initialDate,
         isFromMonthView: _calendarController.view == CalendarView.month,
         isEdit: false,
       ),
@@ -152,6 +161,16 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   bool _isSearchExpanded = false;
   bool _isFilterExpanded = false;
   HeliumView _currentView = HeliumView.day;
+  HeliumView? _previousView;
+
+  // Stored calendar state for when user is in Todos/Schedule views
+  DateTime? _storedSelectedDate;
+  DateTime? _storedDisplayDate;
+
+  // Stored selectedDate before mobile month auto-selection was applied
+  // (allows restoring null selection when leaving month view on mobile)
+  DateTime? _selectedDateBeforeMobileMonth;
+  bool _mobileMonthAutoSelectApplied = false;
 
   CalendarItemDataSource? _calendarItemDataSource;
 
@@ -304,9 +323,13 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           _buildCalendarHeader(),
 
           Expanded(
-            child: _currentView == HeliumView.todos
-                ? _buildTodosView()
-                : _buildCalendarView(context),
+            child: IndexedStack(
+              index: _currentView == HeliumView.todos ? 1 : 0,
+              children: [
+                _buildCalendarView(context),
+                _buildTodosView(),
+              ],
+            ),
           ),
         ],
       ),
@@ -449,6 +472,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           onTap: _openCalendarItemFromSfCalendar,
           onDragEnd: _dropCalendarItemFromSfCalendar,
           onAppointmentResizeEnd: _resizeCalendarItemFromSfCalendar,
+          onSelectionChanged: _onCalendarSelectionChanged,
           onViewChanged: (ViewChangedDetails details) {
             if (mounted) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1145,12 +1169,72 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   void _changeView(HeliumView newView) {
+    final isEnteringNonCalendarView =
+        (newView == HeliumView.todos || newView == HeliumView.agenda);
+    final wasInNonCalendarView = _previousView != null &&
+        (_previousView == HeliumView.todos ||
+            _previousView == HeliumView.agenda);
+    final isEnteringCalendarView =
+        (newView == HeliumView.month ||
+            newView == HeliumView.week ||
+            newView == HeliumView.day);
+    final isLeavingMonthView = _currentView == HeliumView.month;
+
+    // Restore selectedDate when leaving month view if mobile quirk was applied
+    if (isLeavingMonthView && _mobileMonthAutoSelectApplied) {
+      _calendarController.selectedDate = _selectedDateBeforeMobileMonth;
+      _mobileMonthAutoSelectApplied = false;
+      _selectedDateBeforeMobileMonth = null;
+    }
+
+    // Store calendar state when entering Todos or Schedule view
+    if (isEnteringNonCalendarView && !wasInNonCalendarView) {
+      _storedSelectedDate = _calendarController.selectedDate;
+      _storedDisplayDate = _calendarController.displayDate;
+    }
+
+    // Restore calendar state when leaving Todos/Schedule for a calendar view
+    if (isEnteringCalendarView && wasInNonCalendarView) {
+      if (_storedSelectedDate != null) {
+        _calendarController.selectedDate = _storedSelectedDate;
+      }
+      if (_storedDisplayDate != null) {
+        _calendarController.displayDate = _storedDisplayDate;
+      }
+    }
+
+    // When switching between calendar views (Month/Week/Day), sync displayDate
+    // to selectedDate so the view navigates to the selected date
+    if (isEnteringCalendarView &&
+        !wasInNonCalendarView &&
+        _calendarController.selectedDate != null) {
+      _calendarController.displayDate = _calendarController.selectedDate;
+    }
+
+    _previousView = _currentView;
     _currentView = newView;
+
     // Only update the calendar controller's view if not switching to Todos
     // (Todos is a custom view that doesn't exist in SfCalendar)
     if (newView != HeliumView.todos) {
       _calendarController.view = PlannerHelper.mapHeliumViewToSfCalendarView(
         newView,
+      );
+    }
+
+    // Mobile month view quirk: needs a selected date to display the agenda
+    // properly. Set to today if no date is currently selected.
+    if (Responsive.isMobile(context) &&
+        newView == HeliumView.month &&
+        _calendarController.selectedDate == null) {
+      _selectedDateBeforeMobileMonth = _calendarController.selectedDate;
+      _mobileMonthAutoSelectApplied = true;
+      final now = DateTime.now();
+      _calendarController.selectedDate = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        now.hour,
       );
     }
   }
@@ -1165,19 +1249,34 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       });
     }
 
-    // FIXME: double-check that this logic is intuitive to the user, and works with "schedule" view
-    if ((_calendarController.view == CalendarView.month ||
-            _calendarController.view == CalendarView.schedule) &&
-        _calendarController.selectedDate == null) {
-      _calendarController.selectedDate = DateTime.now();
-    } else {
-      _calendarController.selectedDate = null;
-    }
-
     // Force schedule view to rebuild when entering it
     // This resets SfCalendar's internal state which can get corrupted
     if (_calendarController.view == CalendarView.schedule) {
       _scheduleViewRebuildCounter++;
+    }
+  }
+
+  void _onCalendarSelectionChanged(CalendarSelectionDetails details) {
+    if (details.date == null) return;
+
+    // User made a manual selection, clear mobile month auto-select flags
+    // so we don't restore the old value when leaving month view
+    if (_mobileMonthAutoSelectApplied) {
+      _mobileMonthAutoSelectApplied = false;
+      _selectedDateBeforeMobileMonth = null;
+    }
+
+    // In month view, SfCalendar sets selectedDate to midnight.
+    // Update it to include current hour for more intuitive event creation.
+    if (_currentView == HeliumView.month) {
+      final now = DateTime.now();
+      final selectedWithTime = DateTime(
+        details.date!.year,
+        details.date!.month,
+        details.date!.day,
+        now.hour,
+      );
+      _calendarController.selectedDate = selectedWithTime;
     }
   }
 
@@ -2040,11 +2139,21 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   void _goToToday() {
+    final now = DateTime.now();
+    // Truncate to nearest hour (remove minutes/seconds) and offset for visibility
+    final truncatedNow = DateTime(now.year, now.month, now.day, now.hour);
+    final displayDate = truncatedNow.subtract(const Duration(hours: 2));
+
     setState(() {
-      _calendarController.selectedDate = null;
-      _calendarController.displayDate = DateTime.now().subtract(
-        const Duration(hours: 2),
-      );
+      // Always update displayDate
+      _calendarController.displayDate = displayDate;
+      _storedDisplayDate = displayDate;
+
+      // Only update selectedDate if one is already set, otherwise leave it alone
+      if (_calendarController.selectedDate != null) {
+        _calendarController.selectedDate = truncatedNow;
+        _storedSelectedDate = truncatedNow;
+      }
     });
   }
 
