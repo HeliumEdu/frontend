@@ -945,11 +945,26 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         if (constraints.maxWidth < 200) {
           return const SizedBox.shrink();
         }
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
+
+        // Wrap in ListenableBuilder to rebuild when filters change
+        if (_calendarItemDataSource == null) {
+          return _buildFilterButtonsRow();
+        }
+
+        return ListenableBuilder(
+          listenable: _calendarItemDataSource!.changeNotifier,
+          builder: (context, _) => _buildFilterButtonsRow(),
+        );
+      },
+    );
+  }
+
+  Widget _buildFilterButtonsRow() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
             Builder(
               builder: (context) {
                 return IconButton.outlined(
@@ -968,7 +983,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
               width: 50,
               child: Builder(
                 builder: (context) {
-                  return IconButton.outlined(
+                  final hasCoursesFilter = _hasCoursesFilter();
+                  final button = IconButton.outlined(
                     onPressed: _courses.isEmpty
                         ? null
                         : () => _openCoursesMenu(context, _courses),
@@ -986,13 +1002,22 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                       }),
                     ),
                   );
+
+                  return hasCoursesFilter
+                      ? Badge(
+                          smallSize: 8,
+                          offset: const Offset(6, -6),
+                          child: button,
+                        )
+                      : button;
                 },
               ),
             ),
             const SizedBox(width: 8),
             Builder(
               builder: (context) {
-                return IconButton.outlined(
+                final hasCategoryStatusFilters = _hasCategoryStatusFilters();
+                final button = IconButton.outlined(
                   onPressed: _courses.isEmpty
                       ? null
                       : () => _openFilterMenu(context),
@@ -1010,29 +1035,48 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                     }),
                   ),
                 );
+
+                return hasCategoryStatusFilters
+                    ? Badge(
+                        smallSize: 8,
+                        offset: const Offset(6, -6),
+                        child: button,
+                      )
+                    : button;
               },
             ),
             const SizedBox(width: 8),
-            IconButton.outlined(
-              onPressed: () {
-                setState(() {
-                  _isFilterExpanded = false;
-                  _isSearchExpanded = true;
-                  _searchFocusNode.requestFocus();
-                });
+            Builder(
+              builder: (context) {
+                final hasSearchQuery = _hasSearchQuery();
+                final button = IconButton.outlined(
+                  onPressed: () {
+                    setState(() {
+                      _isFilterExpanded = false;
+                      _isSearchExpanded = true;
+                      _searchFocusNode.requestFocus();
+                    });
+                  },
+                  icon: Icon(Icons.search, color: context.colorScheme.primary),
+                  style: ButtonStyle(
+                    side: _isSearchExpanded
+                        ? null
+                        : WidgetStateProperty.all(
+                            BorderSide(color: context.colorScheme.primary),
+                          ),
+                  ),
+                );
+
+                return hasSearchQuery
+                    ? Badge(
+                        smallSize: 8,
+                        offset: const Offset(6, -6),
+                        child: button,
+                      )
+                    : button;
               },
-              icon: Icon(Icons.search, color: context.colorScheme.primary),
-              style: ButtonStyle(
-                side: _isSearchExpanded
-                    ? null
-                    : WidgetStateProperty.all(
-                        BorderSide(color: context.colorScheme.primary),
-                      ),
-              ),
             ),
           ],
-        );
-      },
     );
   }
 
@@ -1049,6 +1093,45 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       default:
         return DateFormat('$monthFormat yyyy').format(displayDate);
     }
+  }
+
+  bool _hasCoursesFilter() {
+    if (_calendarItemDataSource == null) return false;
+
+    final filteredCourses = _calendarItemDataSource!.filteredCourses;
+
+    // Check if any courses are explicitly selected (filter is active)
+    // Empty map means "show all" (no filter)
+    // Non-empty map with at least one true value means filter is active
+    if (filteredCourses.isEmpty) return false;
+
+    return filteredCourses.values.any((isSelected) => isSelected);
+  }
+
+  bool _hasCategoryStatusFilters() {
+    if (_calendarItemDataSource == null) return false;
+
+    final categories = _calendarItemDataSource!.filterCategories;
+    final types = _calendarItemDataSource!.filterTypes;
+    final statuses = _calendarItemDataSource!.filterStatuses;
+
+    // Check if any type filters are active
+    if (types.isNotEmpty) return true;
+
+    // Check if any category filters are active
+    if (categories.isNotEmpty) return true;
+
+    // Check if any status filters are active
+    if (statuses.isNotEmpty) return true;
+
+    return false;
+  }
+
+  bool _hasSearchQuery() {
+    if (_calendarItemDataSource == null) return false;
+
+    final searchQuery = _calendarItemDataSource!.searchQuery;
+    return searchQuery.isNotEmpty;
   }
 
   void _changeCalendarPeriod(bool forward) {
@@ -1848,7 +1931,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Header with date and close button
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
                   child: Row(
