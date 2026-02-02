@@ -515,7 +515,7 @@ class _TodosTableState extends State<TodosTable> {
 
     return Padding(
       padding: const EdgeInsets.only(left: 4),
-      child: IconButton.outlined(
+      child: OutlinedButton(
         onPressed: isActive
             ? null
             : () {
@@ -523,18 +523,18 @@ class _TodosTableState extends State<TodosTable> {
                   _currentPage = pageNumber;
                 });
               },
-        icon: Text(
+        style: OutlinedButton.styleFrom(
+          backgroundColor: isActive ? context.colorScheme.primary : null,
+          disabledBackgroundColor: isActive ? context.colorScheme.primary : null,
+          minimumSize: const Size(40, 40),
+          padding: EdgeInsets.zero,
+        ),
+        child: Text(
           pageNumber.toString(),
           style: context.calendarData.copyWith(
             fontWeight: isActive ? FontWeight.w600 : FontWeight.w300,
-            color: isActive ? context.colorScheme.onPrimary : null
+            color: isActive ? context.colorScheme.onPrimary : null,
           ),
-        ),
-        style: IconButton.styleFrom(
-          backgroundColor: isActive ? context.colorScheme.primary : null,
-          disabledBackgroundColor: isActive
-              ? context.colorScheme.primary
-              : null,
         ),
       ),
     );
