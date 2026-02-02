@@ -1,6 +1,6 @@
 name: "Release"
 
-run-name: "Release ${{ github.ref_name }}"
+run-name: "Release"
 
 on:
   workflow_dispatch:
@@ -15,20 +15,31 @@ on:
           - ios
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   test:
     name: Test
     runs-on: macos-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
 
     steps:
       - uses: actions/checkout@v5
+
+      - name: Get version from pubspec.yaml
+        id: get_version
+        run: |
+          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' ')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
           version: "3.38.1"
+
       - name: Test
         run: make test
 
@@ -68,7 +79,7 @@ jobs:
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
         with:
-          name: android-release-aab
+          name: helium-${{ needs.test.outputs.version }}-android.aab
           path: build/app/outputs/bundle/release/app-release.aab
           retention-days: 30
 
@@ -133,7 +144,7 @@ jobs:
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ios-release-ipa
+          name: helium-${{ needs.test.outputs.version }}-ios.ipa
           path: build/ios/ipa/*.ipa
           retention-days: 30
 
@@ -142,3 +153,38 @@ jobs:
         run: |
           security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
           rm -f ~/Library/MobileDevice/Provisioning\ Profiles/build_pp.mobileprovision
+
+  create-release-tag:
+    name: Create Release Tag
+    needs: [test, build-android-release, build-ios-release]
+    if: always() && needs.test.result == 'success' && (needs.build-android-release.result == 'success' || needs.build-android-release.result == 'skipped') && (needs.build-ios-release.result == 'success' || needs.build-ios-release.result == 'skipped')
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Display release info
+        run: |
+          FULL_VERSION="${{ needs.test.outputs.version }}"
+          echo "### 🚀 Release v$FULL_VERSION" >> $GITHUB_STEP_SUMMARY
+          echo "**Platform:** ${{ github.event.inputs.platform }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Create and push tag
+        env:
+          FULL_VERSION: ${{ needs.test.outputs.version }}
+        run: |
+          git config --global user.name "GitHub Release Bot"
+          git config --global user.email "<contact@alexlaird.com>"
+
+          SEMVER="${FULL_VERSION%%+*}"
+
+          if git rev-parse "v$SEMVER" >/dev/null 2>&1; then
+            echo "Tag v$SEMVER already exists, skipping tag creation"
+          else
+            echo "Creating tag v$SEMVER for build $FULL_VERSION"
+            git tag -a "v$SEMVER" -m "Release v$SEMVER (build $FULL_VERSION)"
+            git push origin "v$SEMVER"
+            echo "Successfully created and pushed tag v$SEMVER"
+          fi
