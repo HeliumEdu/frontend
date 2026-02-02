@@ -1180,8 +1180,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     final displayDate = _calendarController.displayDate!;
     DateTime newDate;
 
-    // FIXME: hitting this more than once doesn't go more than one month forward / backward
-
     switch (_calendarController.view) {
       case CalendarView.month:
       case CalendarView.schedule:
@@ -2187,35 +2185,59 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     });
   }
 
-  void _goToToday() {
-    _jumpToDate(DateTime.now(), setSelectedDate: true);
+  /// Forces Schedule view to rebuild and re-render after programmatic navigation.
+  /// SfCalendar's Schedule view has a rendering quirk where it doesn't properly
+  /// update after displayDate changes - this workaround forces a rebuild then
+  /// triggers a delayed state change to complete the render.
+  void _refreshScheduleViewAfterNavigation() {
+    if (_currentView != HeliumView.agenda || _calendarItemDataSource == null) {
+      return;
+    }
+
+    _calendarItemDataSource!.refreshAppointments();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        setState(() {
+          _scheduleViewRebuildCounter++;
+        });
+        // Delay before second state change to let SfCalendar fully initialize
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (mounted) {
+            setState(() {});
+          }
+        });
+      }
+    });
   }
 
-  /// Jump to a specific date. This is the canonical way to navigate the calendar
-  /// to a new date - used by Today button, date picker, and period navigation.
-  void _jumpToDate(DateTime date, {setSelectedDate = false}) {
-    // Truncate to nearest hour (remove minutes/seconds) and offset for visibility
+  void _goToToday() {
+    _jumpToDate(DateTime.now(), offsetForVisibility: true);
+  }
+
+  /// Jump to a specific date. Canonical method for all calendar navigation.
+  void _jumpToDate(
+    DateTime date, {
+    bool setSelectedDate = false,
+    bool offsetForVisibility = false,
+  }) {
+    // Truncate to nearest hour (remove minutes/seconds)
     final truncatedDate = DateTime(date.year, date.month, date.day, date.hour);
-    final displayDate = truncatedDate.subtract(const Duration(hours: 2));
+    // Optionally offset by 2 hours so current time is visible (used for "today")
+    final displayDate = offsetForVisibility
+        ? truncatedDate.subtract(const Duration(hours: 2))
+        : truncatedDate;
 
     setState(() {
-      // Always update displayDate
       _calendarController.displayDate = displayDate;
       _storedDisplayDate = displayDate;
 
-      // FIXME: this isn't always the case, when jumpToDate comes from the date picker or the "today" button, then set selected
-      // Only update selectedDate if one is already set (or if caller
-      // specifically requested), otherwise leave it alone
       if (setSelectedDate || _calendarController.selectedDate != null) {
         _calendarController.selectedDate = truncatedDate;
         _storedSelectedDate = truncatedDate;
       }
-
-      // Force Schedule view to rebuild with new date
-      if (_currentView == HeliumView.agenda) {
-        _scheduleViewRebuildCounter++;
-      }
     });
+
+    _refreshScheduleViewAfterNavigation();
   }
 
   void _toggleHomeworkCompleted(HomeworkModel homework, bool value) {
