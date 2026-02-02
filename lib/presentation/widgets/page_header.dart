@@ -24,7 +24,6 @@ class PageHeader extends StatelessWidget {
   final String title;
   final ScreenType screenType;
   final bool isLoading;
-  final Function? settingsNavPopAction;
   final Function? cancelAction;
   final Function? saveAction;
   final NotificationArgs? notificationNavArgs;
@@ -36,7 +35,6 @@ class PageHeader extends StatelessWidget {
     required this.title,
     required this.screenType,
     this.isLoading = false,
-    this.settingsNavPopAction,
     this.cancelAction,
     this.saveAction,
     this.showLogout = false,

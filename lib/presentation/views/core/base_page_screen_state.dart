@@ -40,15 +40,13 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
   NotificationArgs? get notificationNavArgs => null;
 
-  VoidCallback get navPopCallback =>
-      () => {};
-
   VoidCallback? get actionButtonCallback => null;
 
   bool get showActionButton => false;
 
   // State
   UserSettingsModel? userSettings;
+  bool settingsLoaded = false;
   bool isLoading = false;
   bool isSubmitting = false;
 
@@ -73,20 +71,14 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       if (mounted) {
         setState(() {
           userSettings = settings;
-          // Only set isLoading to false if settings were successfully loaded
-          if (settings != null) {
-            isLoading = false;
+          if (userSettings != null) {
+            settingsLoaded = true;
           }
         });
       }
 
       return settings;
     }).catchError((error) {
-      if (mounted) {
-        setState(() {
-          isLoading = false;
-        });
-      }
       throw error;
     });
   }
@@ -118,7 +110,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       child: Column(
         children: [
           // Show loading until settings are loaded for authenticated screens
-          if (isLoading || (isAuthenticatedScreen && userSettings == null))
+          if (isLoading || (isAuthenticatedScreen && !settingsLoaded))
             const LoadingIndicator()
           else ...[
             buildHeaderArea(context),
@@ -177,7 +169,6 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     return PageHeader(
       title: screenTitle,
       screenType: screenType,
-      settingsNavPopAction: navPopCallback,
       isLoading: isSubmitting,
       cancelAction: cancelAction,
       saveAction: saveAction,
