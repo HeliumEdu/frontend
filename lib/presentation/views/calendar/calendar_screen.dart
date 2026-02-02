@@ -163,7 +163,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   HeliumView _currentView = HeliumView.day;
   HeliumView? _previousView;
 
-  // Stored calendar state for when user is in Todos/Schedule views
+  // Stored calendar state for when user is in Todos view
   DateTime? _storedSelectedDate;
   DateTime? _storedDisplayDate;
 
@@ -183,6 +183,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   final GlobalKey todosTableKey = GlobalKey();
   final GlobalKey _todayButtonKey = GlobalKey();
   int _scheduleViewRebuildCounter = 0;
+  bool _deferredScheduleView = false;
 
   @override
   void initState() {
@@ -196,6 +197,14 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     _calendarController.addPropertyChangedListener((value) {
       if (value == 'calendarView') {
         _calendarViewChanged();
+      }
+      if (value == 'displayDate' && _currentView == HeliumView.agenda) {
+        // Use addPostFrameCallback to avoid setState during build
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            setState(() {}); // Update header with new date
+          }
+        });
       }
     });
 
@@ -211,8 +220,29 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     });
   }
 
+  void _onInitialDataLoaded() {
+    if (_calendarItemDataSource != null &&
+        _calendarItemDataSource!.hasLoadedInitialData) {
+      _calendarItemDataSource!.changeNotifier.removeListener(
+        _onInitialDataLoaded,
+      );
+      // Switch to Schedule view now that data is loaded
+      if (_deferredScheduleView) {
+        _deferredScheduleView = false;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            setState(() {
+              _changeView(HeliumView.agenda);
+            });
+          }
+        });
+      }
+    }
+  }
+
   @override
   void dispose() {
+    _calendarItemDataSource?.changeNotifier.removeListener(_onInitialDataLoaded);
     _searchController.dispose();
     _searchFocusNode.dispose();
     _searchTypingTimer?.cancel();
@@ -225,9 +255,15 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     return super.loadSettings().then((settings) {
       if (mounted && settings != null) {
         setState(() {
-          _changeView(
-            PlannerHelper.mapApiViewToHeliumView(settings.defaultView),
-          );
+          final defaultView =
+              PlannerHelper.mapApiViewToHeliumView(settings.defaultView);
+          // Defer Schedule view until after data loads (Syncfusion rendering quirk)
+          if (defaultView == HeliumView.agenda) {
+            _deferredScheduleView = true;
+            _changeView(HeliumView.month);
+          } else {
+            _changeView(defaultView);
+          }
 
           _calendarItemDataSource = CalendarItemDataSource(
             homeworkRepository: HomeworkRepositoryImpl(
@@ -249,6 +285,11 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
               ),
             ),
             userSettings: settings,
+          );
+
+          // Force rebuild when initial data loads (Syncfusion Schedule view quirk)
+          _calendarItemDataSource!.changeNotifier.addListener(
+            _onInitialDataLoaded,
           );
         });
       }
@@ -339,6 +380,17 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   Widget _buildCalendarView(BuildContext context) {
     if (_calendarItemDataSource == null) {
       return const Center(child: CircularProgressIndicator());
+    }
+
+    // Show loading while waiting to switch to deferred Schedule view
+    if (_deferredScheduleView) {
+      return IndexedStack(
+        index: 1,
+        children: [
+          _buildCalendar(),
+          const Center(child: CircularProgressIndicator()),
+        ],
+      );
     }
 
     return ListenableBuilder(
@@ -526,8 +578,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   Widget _buildCalendarHeader() {
     final isMobile = Responsive.isMobile(context);
-    final showTodayButton =
-        _currentView != HeliumView.agenda && _currentView != HeliumView.todos;
+    final showTodayButton = _currentView != HeliumView.todos;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -626,7 +677,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   Widget _buildCalendarDateArea() {
-    if (_currentView == HeliumView.agenda || _currentView == HeliumView.todos) {
+    if (_currentView == HeliumView.todos) {
       return Expanded(
         child: Align(
           alignment: Alignment.centerLeft,
@@ -1162,18 +1213,28 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     );
 
     if (picked != null) {
+      // Use picked date with current hour (like month view selection)
+      final now = DateTime.now();
+      final selectedWithTime = DateTime(
+        picked.year,
+        picked.month,
+        picked.day,
+        now.hour,
+      );
+
       setState(() {
         _calendarController.displayDate = picked;
+        _calendarController.selectedDate = selectedWithTime;
       });
     }
   }
 
   void _changeView(HeliumView newView) {
-    final isEnteringNonCalendarView =
-        (newView == HeliumView.todos || newView == HeliumView.agenda);
-    final wasInNonCalendarView = _previousView != null &&
-        (_previousView == HeliumView.todos ||
-            _previousView == HeliumView.agenda);
+    // Only Todos view is "non-calendar" - Schedule view uses SfCalendar and
+    // should let displayDate persist naturally across view switches
+    final isEnteringNonCalendarView = (newView == HeliumView.todos);
+    final wasInNonCalendarView =
+        _previousView != null && _previousView == HeliumView.todos;
     final isEnteringCalendarView =
         (newView == HeliumView.month ||
             newView == HeliumView.week ||
@@ -1187,13 +1248,13 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       _selectedDateBeforeMobileMonth = null;
     }
 
-    // Store calendar state when entering Todos or Schedule view
+    // Store calendar state when entering Todos view
     if (isEnteringNonCalendarView && !wasInNonCalendarView) {
       _storedSelectedDate = _calendarController.selectedDate;
       _storedDisplayDate = _calendarController.displayDate;
     }
 
-    // Restore calendar state when leaving Todos/Schedule for a calendar view
+    // Restore calendar state when leaving Todos for a calendar view
     if (isEnteringCalendarView && wasInNonCalendarView) {
       if (_storedSelectedDate != null) {
         _calendarController.selectedDate = _storedSelectedDate;
