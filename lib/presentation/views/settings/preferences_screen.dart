@@ -262,6 +262,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
             // TODO: implement "remember filter selection", make it apply to "show X on page" in todos view as well
             const SizedBox(height: 14),
 
+            // FIXME: refactor this widget to a separate file, use a searchable dropdown
             DropDown(
               label: 'Time zone',
               initialValue: TimeZoneConstants.items.firstWhere(

@@ -90,7 +90,7 @@ class CalendarItemStepper extends StatelessWidget {
 
     if (index == CalendarItemAddSteps.details.index) {
       context.pushReplacement(
-        AppRoutes.calendarItemAddScreen,
+        AppRoutes.plannerItemAddScreen,
         extra: CalendarItemAddArgs(
           calendarItemBloc: calendarItemBloc,
           eventId: eventId,
@@ -106,7 +106,7 @@ class CalendarItemStepper extends StatelessWidget {
 
     if (index == CalendarItemAddSteps.reminders.index) {
       context.pushReplacement(
-        AppRoutes.calendarItemAddRemindersScreen,
+        AppRoutes.plannerItemAddRemindersScreen,
         extra: CalendarItemReminderArgs(
           calendarItemBloc: calendarItemBloc,
           isEvent: eventId != null,
@@ -118,7 +118,7 @@ class CalendarItemStepper extends StatelessWidget {
 
     if (index == CalendarItemAddSteps.attachments.index) {
       context.pushReplacement(
-        AppRoutes.calendarItemAddAttachmentsScreen,
+        AppRoutes.plannerItemAddAttachmentsScreen,
         extra: CalendarItemAttachmentArgs(
           calendarItemBloc: calendarItemBloc,
           isEvent: eventId != null,

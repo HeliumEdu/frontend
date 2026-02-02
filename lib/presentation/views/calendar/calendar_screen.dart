@@ -124,7 +124,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   @override
   VoidCallback get actionButtonCallback => () {
     context.push(
-      AppRoutes.calendarItemAddScreen,
+      AppRoutes.plannerItemAddScreen,
       extra: CalendarItemAddArgs(
         calendarItemBloc: context.read<CalendarItemBloc>(),
         initialDate: _calendarController.selectedDate,
@@ -488,7 +488,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         : null;
 
     context.push(
-      AppRoutes.calendarItemAddScreen,
+      AppRoutes.plannerItemAddScreen,
       extra: CalendarItemAddArgs(
         calendarItemBloc: context.read<CalendarItemBloc>(),
         eventId: eventId,

@@ -95,7 +95,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
 
             if (context.mounted) {
               // Redirect to intended destination or default to calendar
-              final destination = _nextRoute ?? AppRoutes.calendarScreen;
+              final destination = _nextRoute ?? AppRoutes.plannerScreen;
               context.replace(destination);
             }
           } else if (state is AuthError) {

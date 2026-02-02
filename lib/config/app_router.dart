@@ -81,7 +81,7 @@ void initializeRouter() {
         builder: (context, state, child) => NavigationShell(child: child),
         routes: [
           GoRoute(
-            path: AppRoutes.calendarScreen,
+            path: AppRoutes.plannerScreen,
             pageBuilder: (context, state) => const NoTransitionPage(
               child: NavigationShellContent(page: NavigationPage.calendar),
             ),
@@ -93,7 +93,7 @@ void initializeRouter() {
             ),
           ),
           GoRoute(
-            path: AppRoutes.materialsScreen,
+            path: AppRoutes.resourcesScreen,
             pageBuilder: (context, state) => const NoTransitionPage(
               child: NavigationShellContent(page: NavigationPage.materials),
             ),
@@ -127,11 +127,11 @@ void initializeRouter() {
 
       // Calendar item add flow
       GoRoute(
-        path: AppRoutes.calendarItemAddScreen,
+        path: AppRoutes.plannerItemAddScreen,
         builder: (context, state) {
           final args = state.extra as CalendarItemAddArgs?;
           if (args == null) {
-            return const _RouteRedirect(redirectTo: AppRoutes.calendarScreen);
+            return const _RouteRedirect(redirectTo: AppRoutes.plannerScreen);
           }
           return BlocProvider<CalendarItemBloc>.value(
             value: args.calendarItemBloc,
@@ -146,11 +146,11 @@ void initializeRouter() {
         },
       ),
       GoRoute(
-        path: AppRoutes.calendarItemAddRemindersScreen,
+        path: AppRoutes.plannerItemAddRemindersScreen,
         builder: (context, state) {
           final args = state.extra as CalendarItemReminderArgs?;
           if (args == null) {
-            return const _RouteRedirect(redirectTo: AppRoutes.calendarScreen);
+            return const _RouteRedirect(redirectTo: AppRoutes.plannerScreen);
           }
           return BlocProvider<CalendarItemBloc>.value(
             value: args.calendarItemBloc,
@@ -163,11 +163,11 @@ void initializeRouter() {
         },
       ),
       GoRoute(
-        path: AppRoutes.calendarItemAddAttachmentsScreen,
+        path: AppRoutes.plannerItemAddAttachmentsScreen,
         builder: (context, state) {
           final args = state.extra as CalendarItemAttachmentArgs?;
           if (args == null) {
-            return const _RouteRedirect(redirectTo: AppRoutes.calendarScreen);
+            return const _RouteRedirect(redirectTo: AppRoutes.plannerScreen);
           }
           return BlocProvider<CalendarItemBloc>.value(
             value: args.calendarItemBloc,
@@ -252,11 +252,11 @@ void initializeRouter() {
 
       // Material add flow
       GoRoute(
-        path: AppRoutes.materialAddScreen,
+        path: AppRoutes.resourcesAddScreen,
         builder: (context, state) {
           final args = state.extra as MaterialAddArgs?;
           if (args == null) {
-            return const _RouteRedirect(redirectTo: AppRoutes.materialsScreen);
+            return const _RouteRedirect(redirectTo: AppRoutes.resourcesScreen);
           }
           return BlocProvider<MaterialBloc>.value(
             value: args.materialBloc,
@@ -318,7 +318,7 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
 
   // If logged in and trying to access a public route, redirect to calendar
   if (isLoggedIn && publicRoutes.contains(matchedLocation)) {
-    return AppRoutes.calendarScreen;
+    return AppRoutes.plannerScreen;
   }
 
   return null;

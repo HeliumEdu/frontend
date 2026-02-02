@@ -92,7 +92,7 @@ class _LandingScreenState extends State<LandingScreen> {
   void _navigateToTarget() {
     if (!mounted) return;
 
-    final targetRoute = _deepLinkRoute ?? AppRoutes.calendarScreen;
+    final targetRoute = _deepLinkRoute ?? AppRoutes.plannerScreen;
     log.info('Navigating to: $targetRoute');
 
     context.go(targetRoute);
