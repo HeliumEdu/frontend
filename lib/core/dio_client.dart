@@ -281,7 +281,7 @@ class DioClient {
     return token?.isNotEmpty ?? false;
   }
 
-  Future<UserSettingsModel> getSettings() async {
+  Future<UserSettingsModel?> getSettings() async {
     // Ensure PrefService is initialized
     await _prefService.init();
 

@@ -48,7 +48,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   bool get showActionButton => false;
 
   // State
-  late UserSettingsModel userSettings;
+  UserSettingsModel? userSettings;
   bool isLoading = false;
   bool isSubmitting = false;
 
@@ -68,13 +68,26 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   }
 
   @mustCallSuper
-  Future<UserSettingsModel> loadSettings() {
+  Future<UserSettingsModel?> loadSettings() {
     return dioClient.getSettings().then((settings) {
-      setState(() {
-        userSettings = settings;
-      });
+      if (mounted) {
+        setState(() {
+          userSettings = settings;
+          // Only set isLoading to false if settings were successfully loaded
+          if (settings != null) {
+            isLoading = false;
+          }
+        });
+      }
 
       return settings;
+    }).catchError((error) {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+      throw error;
     });
   }
 
@@ -104,7 +117,8 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       padding: const EdgeInsets.only(left: 12, right: 12, top: 8, bottom: 0),
       child: Column(
         children: [
-          if (isLoading)
+          // Show loading until settings are loaded for authenticated screens
+          if (isLoading || (isAuthenticatedScreen && userSettings == null))
             const LoadingIndicator()
           else ...[
             buildHeaderArea(context),

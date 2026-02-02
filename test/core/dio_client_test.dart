@@ -234,8 +234,9 @@ void main() {
         final settings = await dioClient.getSettings();
 
         // THEN
+        expect(settings, isNotNull);
         // timeZone is a Location object, check its name property
-        expect(settings.timeZone.name, equals('America/New_York'));
+        expect(settings!.timeZone.name, equals('America/New_York'));
         // colorByCategory comes from calendar_use_category_colors in the JSON
         expect(settings.colorByCategory, isTrue);
         expect(settings.defaultView, equals(0));

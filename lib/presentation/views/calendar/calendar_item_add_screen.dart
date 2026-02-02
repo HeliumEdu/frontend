@@ -538,7 +538,7 @@ class _CalendarItemAddScreenState
                           runSpacing: 2,
                           children: _formController.selectedMaterials.map((id) {
                             return Chip(
-                              backgroundColor: userSettings.materialColor,
+                              backgroundColor: userSettings!.materialColor,
                               deleteIconColor: context.colorScheme.surface,
                               label: Text(
                                 _materialTitleById(id),
@@ -729,7 +729,7 @@ class _CalendarItemAddScreenState
 
         final startDateTime = HeliumDateTime.parse(
           calendarItem.start,
-          userSettings.timeZone,
+          userSettings!.timeZone,
         );
         _formController.startDate = startDateTime;
         if (!_formController.isAllDay) {
@@ -738,7 +738,7 @@ class _CalendarItemAddScreenState
 
         final endDateTime = HeliumDateTime.parse(
           calendarItem.end,
-          userSettings.timeZone,
+          userSettings!.timeZone,
         );
         if (_formController.isAllDay) {
           _formController.endDate = endDateTime.subtract(
@@ -789,7 +789,7 @@ class _CalendarItemAddScreenState
       if (widget.initialDate != null && !widget.isFromMonthView) {
         final tzDateTime = tz.TZDateTime.from(
           widget.initialDate!,
-          userSettings.timeZone,
+          userSettings!.timeZone,
         );
         setState(() {
           _formController.startTime = TimeOfDay.fromDateTime(tzDateTime);
@@ -897,7 +897,7 @@ class _CalendarItemAddScreenState
       final start = HeliumDateTime.formatDateAndTimeForApi(
         _formController.startDate,
         _formController.isAllDay ? null : _formController.startTime,
-        userSettings.timeZone,
+        userSettings!.timeZone,
       );
 
       String end;
@@ -908,7 +908,7 @@ class _CalendarItemAddScreenState
         end = HeliumDateTime.formatDateAndTimeForApi(
           endDateForApi,
           _formController.isAllDay ? null : _formController.endTime,
-          userSettings.timeZone,
+          userSettings!.timeZone,
         );
       } else {
         if (_formController.isAllDay) {
@@ -918,7 +918,7 @@ class _CalendarItemAddScreenState
           end = HeliumDateTime.formatDateAndTimeForApi(
             endDate,
             null,
-            userSettings.timeZone,
+            userSettings!.timeZone,
           );
         } else {
           end = start;

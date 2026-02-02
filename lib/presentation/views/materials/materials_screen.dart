@@ -320,7 +320,7 @@ class _MaterialsScreenState
                   Expanded(
                     child: MaterialTitleLabel(
                       title: material.title,
-                      userSettings: userSettings,
+                      userSettings: userSettings!,
                     ),
                   ),
                   const SizedBox(width: 8),
