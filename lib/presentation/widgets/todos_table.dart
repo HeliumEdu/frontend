@@ -704,6 +704,9 @@ class _TodosTableState extends State<TodosTable> {
           mouseCursor: Responsive.isMobile(context)
               ? SystemMouseCursors.click
               : SystemMouseCursors.basic,
+          splashColor: Responsive.isMobile(context) ? null : Colors.transparent,
+          highlightColor:
+              Responsive.isMobile(context) ? null : Colors.transparent,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
             child: Row(
