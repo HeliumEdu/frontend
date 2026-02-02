@@ -134,7 +134,7 @@ class _TodosTableState extends State<TodosTable> {
       return EmptyCard(
         icon: Icons.assignment_outlined,
         message: hasAssignments
-            ? 'No assignments match the current filters'
+            ? 'No assignments match the applied filters'
             : 'No assignments found',
         expanded: false,
       );
@@ -515,27 +515,28 @@ class _TodosTableState extends State<TodosTable> {
 
     return Padding(
       padding: const EdgeInsets.only(left: 4),
-      child: isActive
-          ? IconButton.filled(
-              onPressed: null,
-              icon: Text(
-                pageNumber.toString(),
-                style: context.calendarData.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              style: IconButton.styleFrom(
-                disabledBackgroundColor: context.colorScheme.primary,
-              ),
-            )
-          : IconButton.outlined(
-              onPressed: () {
+      child: IconButton.outlined(
+        onPressed: isActive
+            ? null
+            : () {
                 setState(() {
                   _currentPage = pageNumber;
                 });
               },
-              icon: Text(pageNumber.toString(), style: context.calendarData),
-            ),
+        icon: Text(
+          pageNumber.toString(),
+          style: context.calendarData.copyWith(
+            fontWeight: isActive ? FontWeight.w600 : FontWeight.w300,
+            color: isActive ? context.colorScheme.onPrimary : null
+          ),
+        ),
+        style: IconButton.styleFrom(
+          backgroundColor: isActive ? context.colorScheme.primary : null,
+          disabledBackgroundColor: isActive
+              ? context.colorScheme.primary
+              : null,
+        ),
+      ),
     );
   }
 
@@ -767,8 +768,8 @@ class _TodosTableState extends State<TodosTable> {
             ? category.color
             : course.color,
         side: BorderSide(
-            color: context.colorScheme.onSurface.withValues(alpha: 0.7),
-            width: 2
+          color: context.colorScheme.onSurface.withValues(alpha: 0.7),
+          width: 2,
         ),
       ),
     );
@@ -938,7 +939,10 @@ class _TodosTableState extends State<TodosTable> {
         );
       }
 
-      if (PlannerHelper.shouldShowEditButtonForCalendarItem(context, homework)) {
+      if (PlannerHelper.shouldShowEditButtonForCalendarItem(
+        context,
+        homework,
+      )) {
         buttons.add(
           HeliumIconButton(
             onPressed: () => widget.onTap(homework),
