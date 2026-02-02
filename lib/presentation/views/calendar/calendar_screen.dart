@@ -1387,6 +1387,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     );
   }
 
+  // FIXME: in week/day views, overflow errors appear in console when many items are on the same day. Visual behavior is correct (content naturally overflows the calendar item bounds), so these overflow warnings should be suppressed without affecting the UI.
   Widget _buildCalendarItem(
     BuildContext context,
     CalendarAppointmentDetails details,
