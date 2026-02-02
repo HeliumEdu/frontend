@@ -1567,7 +1567,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
               isInAgenda,
               _currentView,
             ) &&
-            location != null)
+            location != null && location.isNotEmpty)
           Row(
             children: [
               Icon(
