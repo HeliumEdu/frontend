@@ -326,7 +326,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                 children: [
                   GradeLabel(
                     grade: Format.gradeForDisplay(course.overallGrade),
-                    userSettings: userSettings,
+                    userSettings: userSettings!,
                   ),
                   if (course.trend != null) ...[
                     const SizedBox(width: 4),
@@ -537,7 +537,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
               alignment: Alignment.centerRight,
               child: GradeLabel(
                 grade: Format.gradeForDisplay(category.overallGrade),
-                userSettings: userSettings,
+                userSettings: userSettings!,
               ),
             ),
           ),

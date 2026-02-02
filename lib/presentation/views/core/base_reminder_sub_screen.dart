@@ -187,7 +187,7 @@ abstract class BaseReminderScreenState<T>
                   showReminderDialog(
                     parentContext: context,
                     isEdit: false,
-                    userSettings: userSettings,
+                    userSettings: userSettings!,
                     createReminderRequest: createReminderRequest,
                   );
                 },
@@ -338,7 +338,7 @@ abstract class BaseReminderScreenState<T>
     showReminderDialog(
       parentContext: context,
       isEdit: true,
-      userSettings: userSettings,
+      userSettings: userSettings!,
       createReminderRequest: createReminderRequest,
       reminder: reminder,
     );

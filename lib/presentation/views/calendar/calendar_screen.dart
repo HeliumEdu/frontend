@@ -205,12 +205,12 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   @override
-  Future<UserSettingsModel> loadSettings() {
+  Future<UserSettingsModel?> loadSettings() {
     return super.loadSettings().then((settings) {
-      if (mounted) {
+      if (mounted && settings != null) {
         setState(() {
           _changeView(
-            PlannerHelper.mapApiViewToHeliumView(userSettings.defaultView),
+            PlannerHelper.mapApiViewToHeliumView(settings.defaultView),
           );
 
           _calendarItemDataSource = CalendarItemDataSource(
@@ -419,9 +419,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           allowAppointmentResize: true,
           allowedViews: _allowedViews,
           dataSource: _calendarItemDataSource,
-          timeZone: userSettings.timeZone.name,
+          timeZone: userSettings!.timeZone.name,
           firstDayOfWeek:
-              PlannerHelper.weekStartsOnRemap[userSettings.weekStartsOn],
+              PlannerHelper.weekStartsOnRemap[userSettings!.weekStartsOn],
           viewHeaderStyle: ViewHeaderStyle(
             dayTextStyle: context.calendarHeader,
           ),
@@ -1256,18 +1256,18 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     if (calendarItem is HomeworkModel || calendarItem is EventModel) {
       final startDateTime = tz.TZDateTime.from(
         DateTime.parse(calendarItem.start),
-        userSettings.timeZone,
+        userSettings!.timeZone,
       );
       final Duration duration = tz.TZDateTime.from(
         DateTime.parse(calendarItem.end),
-        userSettings.timeZone,
+        userSettings!.timeZone,
       ).difference(startDateTime);
 
       final roundedMinute =
           ((dropDetails.droppingTime!.minute + 15) ~/ 30) * 30;
 
       final DateTime start = tz.TZDateTime(
-        userSettings.timeZone,
+        userSettings!.timeZone,
         dropDetails.droppingTime!.year,
         dropDetails.droppingTime!.month,
         dropDetails.droppingTime!.day,
@@ -1340,7 +1340,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     if (calendarItem is HomeworkModel || calendarItem is EventModel) {
       final originalStart = tz.TZDateTime.from(
         DateTime.parse(calendarItem.start),
-        userSettings.timeZone,
+        userSettings!.timeZone,
       );
 
       // Determine which edge was dragged by comparing to original start
@@ -1360,7 +1360,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           : ((resizeDetails.endTime!.minute + 15) ~/ 30) * 30;
 
       final DateTime start = tz.TZDateTime(
-        userSettings.timeZone,
+        userSettings!.timeZone,
         resizeDetails.startTime!.year,
         resizeDetails.startTime!.month,
         resizeDetails.startTime!.day,
@@ -1369,7 +1369,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       );
 
       DateTime end = tz.TZDateTime(
-        userSettings.timeZone,
+        userSettings!.timeZone,
         resizeDetails.endTime!.year,
         resizeDetails.endTime!.month,
         resizeDetails.endTime!.day,
@@ -2347,7 +2347,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                     width: 12,
                                     height: 12,
                                     decoration: BoxDecoration(
-                                      color: userSettings.eventsColor,
+                                      color: userSettings!.eventsColor,
                                       shape: BoxShape.circle,
                                     ),
                                   ),
@@ -2735,7 +2735,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       HeliumDateTime.formatTimeForDisplay(
         HeliumDateTime.parse(
           calendarItem.start,
-          userSettings.timeZone,
+          userSettings!.timeZone,
         ),
       ),
       style: TextStyle(
@@ -2760,11 +2760,11 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             HeliumDateTime.formatTimeRangeForDisplay(
               HeliumDateTime.parse(
                 calendarItem.start,
-                userSettings.timeZone,
+                userSettings!.timeZone,
               ),
               HeliumDateTime.parse(
                 calendarItem.end,
-                userSettings.timeZone,
+                userSettings!.timeZone,
               ),
               calendarItem.showEndTime,
             ),

@@ -181,7 +181,7 @@ class _NotificationsScreenState
 
   void _populateInitialStateData(RemindersFetched state) {
     final reminders = state.reminders;
-    Sort.byStartOfRange(reminders, userSettings.timeZone);
+    Sort.byStartOfRange(reminders, userSettings!.timeZone);
 
     setState(() {
       _notifications = reminders
@@ -366,11 +366,11 @@ class _NotificationsScreenState
                               HeliumDateTime.formatDateTimeRangeForDisplay(
                                 HeliumDateTime.parse(
                                   calendarItem.start,
-                                  userSettings.timeZone,
+                                  userSettings!.timeZone,
                                 ),
                                 HeliumDateTime.parse(
                                   calendarItem.end,
-                                  userSettings.timeZone,
+                                  userSettings!.timeZone,
                                 ),
                                 calendarItem.showEndTime,
                                 calendarItem.allDay,
