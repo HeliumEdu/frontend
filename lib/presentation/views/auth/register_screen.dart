@@ -17,8 +17,8 @@ import 'package:heliumapp/presentation/bloc/auth/auth_state.dart';
 import 'package:heliumapp/presentation/forms/auth/register_form_controller.dart';
 import 'package:heliumapp/presentation/forms/core/basic_form_controller.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
-import 'package:heliumapp/presentation/widgets/drop_down.dart';
 import 'package:heliumapp/presentation/widgets/helium_elevated_button.dart';
+import 'package:heliumapp/presentation/widgets/searchable_dropdown.dart';
 import 'package:heliumapp/presentation/widgets/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/widgets/responsive_center_card.dart';
 import 'package:heliumapp/utils/app_globals.dart';
@@ -226,9 +226,7 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
               ),
               const SizedBox(height: 12),
 
-              // FIXME: refactor this widget to a separate file, use a searchable dropdown
-              DropDown(
-                prefixIcon: Icons.access_time_outlined,
+              SearchableDropdown(
                 initialValue: TimeZoneConstants.items.firstWhere(
                   (tz) => tz.value == _formController.selectedTimezone,
                 ),

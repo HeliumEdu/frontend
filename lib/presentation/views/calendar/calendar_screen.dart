@@ -508,10 +508,11 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: ShadowContainer(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         child: LayoutBuilder(
           builder: (context, constraints) {
             return SizedBox(
-              height: 56,
+              height: 48,
               child: Stack(
                 children: [
                   Align(
@@ -601,7 +602,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   Widget _buildCalendarDateArea() {
-    // FIXME: this is taller than it needs to be, make consistent with group dropdown on other pages
     if (_currentView == HeliumView.agenda || _currentView == HeliumView.todos) {
       return Expanded(
         child: Align(

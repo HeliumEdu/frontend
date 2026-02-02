@@ -18,6 +18,7 @@ import 'package:heliumapp/presentation/dialogs/color_picker_dialog.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/drop_down.dart';
 import 'package:heliumapp/presentation/widgets/label_and_text_form_field.dart';
+import 'package:heliumapp/presentation/widgets/searchable_dropdown.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -262,8 +263,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
             // TODO: implement "remember filter selection", make it apply to "show X on page" in todos view as well
             const SizedBox(height: 14),
 
-            // FIXME: refactor this widget to a separate file, use a searchable dropdown
-            DropDown(
+            SearchableDropdown(
               label: 'Time zone',
               initialValue: TimeZoneConstants.items.firstWhere(
                 (tz) => tz.value == _selectedTimezone,
@@ -418,13 +418,11 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
       isSubmitting = true;
     });
 
-    final timeZone = _selectedTimezone ?? 'Etc/UTC';
-    final defaultView = _selectedDefaultView == null
-        ? 0
-        : CalendarConstants.defaultViews.indexOf(_selectedDefaultView!);
-    final weekStartsOn = _selectedWeekStartsOn == null
-        ? 0
-        : CalendarConstants.dayNames.indexOf(_selectedWeekStartsOn!);
+    final timeZone = _selectedTimezone!;
+    final defaultView =
+        CalendarConstants.defaultViews.indexOf(_selectedDefaultView!);
+    final weekStartsOn =
+        CalendarConstants.dayNames.indexOf(_selectedWeekStartsOn!);
     String eventsColor = HeliumColors.colorToHex(_selectedEventColor);
     if (eventsColor.length == 9) {
       eventsColor = '#${eventsColor.substring(3)}';
@@ -440,23 +438,11 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
       gradeColor = '#${gradeColor.substring(3)}';
     }
     gradeColor = gradeColor.toLowerCase();
-    final reminderType = () {
-      if (_selectedReminderType == null) {
-        return 0;
-      }
-      final idx = ReminderConstants.types.indexOf(_selectedReminderType!);
-      return idx >= 0 ? idx : 0;
-    }();
-    final reminderOffsetType = () {
-      if (_selectedReminderOffsetType == null) {
-        return 0;
-      }
-      final idx = ReminderConstants.offsetTypes.indexOf(
-        _selectedReminderOffsetType!,
-      );
-      return idx >= 0 ? idx : 0;
-    }();
-    final reminderOffset = int.tryParse(_reminderOffsetController.text) ?? 0;
+    final reminderType =
+        ReminderConstants.types.indexOf(_selectedReminderType!);
+    final reminderOffsetType =
+        ReminderConstants.offsetTypes.indexOf(_selectedReminderOffsetType!);
+    final reminderOffset = int.parse(_reminderOffsetController.text);
     final colorByCategory = _isSelectedColorByCategory;
 
     context.read<AuthBloc>().add(
