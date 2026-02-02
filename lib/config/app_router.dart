@@ -297,7 +297,7 @@ void initializeRouter() {
 /// Auth redirect logic for go_router.
 Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
   final token = await PrefService().getSecure('access_token');
-  final isLoggedIn = token != null && token.isNotEmpty;
+  final isLoggedIn = token?.isNotEmpty ?? false;
   final publicRoutes = [
     AppRoutes.landingScreen,
     AppRoutes.loginScreen,

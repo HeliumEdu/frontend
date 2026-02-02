@@ -32,7 +32,7 @@ class _ConfirmDeleteWidgetState<T extends BaseModel> extends State<_ConfirmDelet
   bool _isSubmitting = false;
 
   static String _withTrailingSpace(String? additionalWarning) {
-    if (additionalWarning != null && additionalWarning.isNotEmpty) {
+    if (additionalWarning?.isNotEmpty ?? false) {
       return '$additionalWarning ';
     } else {
       return '';

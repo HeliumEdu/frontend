@@ -177,14 +177,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final accessToken = await dioClient.getAccessToken();
       final refreshToken = await dioClient.getRefreshToken();
 
-      if (accessToken != null && accessToken.isNotEmpty) {
+      if (accessToken?.isNotEmpty ?? false) {
         try {
           final user = await authRepository.getUser();
           await dioClient.saveSettings(user.settings!);
 
           emit(AuthAuthenticated());
         } catch (e) {
-          if (refreshToken != null && refreshToken.isNotEmpty) {
+          if (refreshToken?.isNotEmpty ?? false) {
             log.info('Access token seems expired, will attempt refresh ...');
             add(RefreshTokenEvent());
           } else {

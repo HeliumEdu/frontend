@@ -230,7 +230,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       await dioClient.clearStorage();
 
       // If we have a refresh token, blacklist it on the server
-      if (refreshToken != null && refreshToken.isNotEmpty) {
+      if (refreshToken?.isNotEmpty ?? false) {
         try {
           await _blacklistRefreshToken(refreshToken);
         } catch (e) {

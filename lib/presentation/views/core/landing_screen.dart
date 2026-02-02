@@ -62,7 +62,7 @@ class _LandingScreenState extends State<LandingScreen> {
   Future<void> _checkAutoLogin() async {
     final accessToken = await _dioClient.getAccessToken();
 
-    if (mounted && accessToken != null && accessToken.isNotEmpty) {
+    if (mounted && (accessToken?.isNotEmpty ?? false)) {
       log.info('Token found, checking authentication ...');
 
       log.info('Checking access token validity ...');

@@ -54,7 +54,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final next = GoRouterState.of(context).uri.queryParameters['next'];
-      if (next != null && next.isNotEmpty) {
+      if (next?.isNotEmpty ?? false) {
         _nextRoute = Uri.decodeComponent(next);
         showSnackBar(
           context,
