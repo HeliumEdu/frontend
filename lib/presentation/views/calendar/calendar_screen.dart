@@ -1671,11 +1671,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       ],
     );
 
-    return Flexible(
-      child: Align(
-        alignment: Alignment.topLeft,
-        child: contentColumn,
-      ),
+    return Align(
+      alignment: Alignment.topLeft,
+      child: contentColumn,
     );
   }
 
