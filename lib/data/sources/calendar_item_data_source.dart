@@ -191,7 +191,6 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     }
 
     // Always rebuild appointments from filtered items to ensure consistency
-    // This fixes issues where appointments gets out of sync with allCalendarItems
     appointments!.clear();
     appointments!.addAll(_filteredCalendarItems);
     notifyListeners(CalendarDataSourceAction.reset, appointments!);

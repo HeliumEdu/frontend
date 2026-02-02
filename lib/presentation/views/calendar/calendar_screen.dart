@@ -601,6 +601,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   Widget _buildCalendarDateArea() {
+    // FIXME: this is taller than it needs to be, make consistent with group dropdown on other pages
     if (_currentView == HeliumView.agenda || _currentView == HeliumView.todos) {
       return Expanded(
         child: Align(
@@ -700,7 +701,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         child: Stack(
           alignment: Alignment.centerRight,
           children: [
-            // Filter icons
             AnimatedOpacity(
               duration: const Duration(milliseconds: 300),
               opacity: _isSearchExpanded ? 0.0 : 1.0,
@@ -709,7 +709,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                 child: _buildFilterAndSearchButtons(),
               ),
             ),
-            // Search field
             AnimatedPositioned(
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
@@ -734,7 +733,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         child: Stack(
           alignment: Alignment.centerRight,
           children: [
-            // Single filter button (collapsed state)
             AnimatedOpacity(
               duration: const Duration(milliseconds: 300),
               opacity: (_isFilterExpanded || _isSearchExpanded) ? 0.0 : 1.0,
@@ -743,7 +741,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                 child: _buildCollapsedFilterButton(),
               ),
             ),
-            // All filter buttons (expanded state)
             AnimatedPositioned(
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
@@ -758,7 +755,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                 ),
               ),
             ),
-            // Search field
             AnimatedPositioned(
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
@@ -1076,9 +1072,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
     final filteredCourses = _calendarItemDataSource!.filteredCourses;
 
-    // Check if any courses are explicitly selected (filter is active)
-    // Empty map means "show all" (no filter)
-    // Non-empty map with at least one true value means filter is active
     if (filteredCourses.isEmpty) return false;
 
     return filteredCourses.values.any((isSelected) => isSelected);
@@ -1091,13 +1084,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     final types = _calendarItemDataSource!.filterTypes;
     final statuses = _calendarItemDataSource!.filterStatuses;
 
-    // Check if any type filters are active
     if (types.isNotEmpty) return true;
 
-    // Check if any category filters are active
     if (categories.isNotEmpty) return true;
 
-    // Check if any status filters are active
     if (statuses.isNotEmpty) return true;
 
     return false;
@@ -1154,7 +1144,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     }
   }
 
-  /// Centralized helper to change the current view and keep both state variables in sync
   void _changeView(HeliumView newView) {
     _currentView = newView;
     // Only update the calendar controller's view if not switching to Todos
@@ -1493,8 +1482,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     );
   }
 
-  /// Builds the left icon widget (checkbox or school icon) for agenda view only.
-  /// For timeline views, this returns empty - the icon is shown inline with title instead.
   Widget _buildCalendarItemLeftForAgenda({
     required CalendarItemBaseModel calendarItem,
     VoidCallback? onCheckboxToggled,
@@ -1529,7 +1516,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     );
   }
 
-  /// Gets the icon widget (checkbox or school) for inline display in timeline views.
   Widget? _getInlineIconWidget({
     required CalendarItemBaseModel calendarItem,
     VoidCallback? onCheckboxToggled,
@@ -1551,7 +1537,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     return null;
   }
 
-  /// Builds the center content for agenda view.
   Widget _buildCalendarItemCenterForAgenda({
     required CalendarItemBaseModel calendarItem,
     String? location,
@@ -1591,7 +1576,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     );
   }
 
-  /// Builds the center content for timeline views (month, week, day).
   Widget _buildCalendarItemCenterForTimeline({
     required CalendarItemBaseModel calendarItem,
     String? location,
@@ -1604,13 +1588,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       _currentView,
     );
 
-    // Build the title row with optional inline icon and time prefix
-    // Order: icon (if any) → time (if shown before title) → title
     Widget titleRowWidget;
     if (inlineIcon != null || showTimeBeforeTitle) {
       final spans = <InlineSpan>[];
 
-      // Add icon first (if present)
       if (inlineIcon != null) {
         spans.add(
           WidgetSpan(
@@ -1623,7 +1604,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         );
       }
 
-      // Add time (if shown before title)
       if (showTimeBeforeTitle) {
         spans.add(
           WidgetSpan(
@@ -1638,7 +1618,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         );
       }
 
-      // Add title
       spans.add(
         TextSpan(
           text: calendarItem.title,
@@ -1685,7 +1664,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     return Align(alignment: Alignment.topLeft, child: contentColumn);
   }
 
-  /// Builds the right action buttons for agenda view.
   Widget _buildCalendarItemRight({
     required CalendarItemBaseModel calendarItem,
     CourseModel? course,
@@ -1784,8 +1762,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     }
   }
 
-  /// Builds a calendar item widget for agenda/schedule views.
-  /// Checkbox/school icon shown as a left column.
   Widget _buildCalendarItemWidgetForAgenda({
     required CalendarItemBaseModel calendarItem,
     required double width,
@@ -1834,8 +1810,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     );
   }
 
-  /// Builds a calendar item widget for timeline views (month, week, day).
-  /// Checkbox/school icon shown inline with title.
   Widget _buildCalendarItemWidgetForTimeline({
     required CalendarItemBaseModel calendarItem,
     required double width,
@@ -1882,7 +1856,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     );
   }
 
-  /// Gets the course model for a calendar item.
   CourseModel? _getCourseForCalendarItem(CalendarItemBaseModel calendarItem) {
     if (calendarItem is HomeworkModel) {
       return _courses.firstWhere((c) => c.id == calendarItem.course.id);
@@ -1984,7 +1957,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                   ),
                 ),
                 const Divider(height: 1),
-                // Appointments list
                 Flexible(
                   child: ListView.separated(
                     shrinkWrap: true,
@@ -1993,7 +1965,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                     separatorBuilder: (context, index) =>
                         const SizedBox(height: 6),
                     itemBuilder: (_, index) {
-                      // Use current item from data source, not stale appointments list
                       final staleAppointment = appointments[index];
                       final appointment =
                           _calendarItemDataSource!.allCalendarItems
@@ -2050,7 +2021,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         _categoriesMap[category.id] = category;
       }
 
-      // Only update data source if it's been initialized (settings loaded)
       if (_calendarItemDataSource != null) {
         _calendarItemDataSource!.courses = _courses;
         _calendarItemDataSource!.categoriesMap = _categoriesMap;
@@ -2685,7 +2655,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     );
   }
 
-  /// Builds the checkbox widget for homework items.
   Widget _buildCheckboxWidget({
     required HomeworkModel homework,
     required VoidCallback? onCheckboxToggled,
@@ -2713,7 +2682,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     );
   }
 
-  /// Builds the school icon widget for course schedule events.
   Widget _buildSchoolIconWidget() {
     return SizedBox(
       width: 16,
@@ -2729,7 +2697,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     );
   }
 
-  /// Builds the formatted time text widget.
   Widget _buildTimeText(CalendarItemBaseModel calendarItem) {
     return Text(
       HeliumDateTime.formatTimeForDisplay(
@@ -2742,7 +2709,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     );
   }
 
-  /// Builds the time row shown below the title.
   Widget _buildTimeBelowTitleRow(CalendarItemBaseModel calendarItem) {
     return Row(
       children: [
@@ -2771,7 +2737,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     );
   }
 
-  /// Builds the location row shown below the title.
   Widget _buildLocationRow(String location) {
     return Row(
       children: [
