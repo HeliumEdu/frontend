@@ -44,7 +44,7 @@ class TodosTable extends StatefulWidget {
   State<TodosTable> createState() => _TodosTableState();
 }
 
-// FIXME: I don't think filter state changes are causing a rebuild to this widget (it is working for SfCalendar though), need to fix
+// FIXME: filter state changes (from parent screen) aren't causing a rebuild to this widget, only to SfCalendar; fix
 
 class _TodosTableState extends State<TodosTable> {
   String _sortColumn = 'dueDate';
@@ -186,7 +186,7 @@ class _TodosTableState extends State<TodosTable> {
       }
     }
 
-    // FIXME: within the data source, we should have a separate from/to window for homework only, since this page only renders homework
+    // TODO: within the data source, we should have a separate from/to window for homework only, since this page only renders homework; would load quicker; (separate so we know in calendar-based views, the from/to for non-homework items still needs to be expanded on date change)
 
     // Trigger data source to expand its window
     if (from != null && to != null) {
@@ -265,6 +265,7 @@ class _TodosTableState extends State<TodosTable> {
     return MediaQuery.of(context).size.width >= 850;
   }
 
+  // FIXME: let's still show the action column down to the smallest screens, _but_ instead hide all buttons except delete (also means the column could be a lot smaller once it enter this responsive state
   bool _shouldShowActionsColumn(BuildContext context) {
     return MediaQuery.of(context).size.width >= 800;
   }
@@ -671,7 +672,7 @@ class _TodosTableState extends State<TodosTable> {
     final actionButtons = _buildActionButtons(homework, course);
 
     return Material(
-      // FIXME: add a hover effect (even though not clickable) to emphasize table row, similar to how SfCalendar handles hovers in "schedule" view
+      // FIXME: add standard InkWell hover effect (even though not clickable) to emphasize current row, similar to how SfCalendar handles this hover in "schedule" view
       child: Ink(
         decoration: BoxDecoration(
           border: Border(
@@ -797,6 +798,7 @@ class _TodosTableState extends State<TodosTable> {
     );
   }
 
+  // TODO: the CourseTitleLabel should shrink-to-fix its text rather than expanding to fill the entire row
   Widget _buildClassColumn(dynamic course) {
     return Expanded(
       flex: 2,
@@ -804,7 +806,7 @@ class _TodosTableState extends State<TodosTable> {
     );
   }
 
-  // FIXME: the container within the category label should shrink-to-fix the text within it (but using Flexible here messes with table row width, so find another solution
+  // TODO: the CategoryTitleLabel should shrink-to-fix its text rather than expanding to fill the entire row
   Widget _buildCategoryColumn(CategoryModel category) {
     return Expanded(
       flex: 2,

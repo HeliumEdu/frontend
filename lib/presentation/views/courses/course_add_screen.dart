@@ -158,7 +158,8 @@ class _CourseAddScreenState
                 controller: _formController.titleController,
                 validator: BasicFormController.validateRequiredField,
                 fieldKey: _formController.getFieldKey('title'),
-                onFieldSubmitted: (value) => _onSubmit(),
+                onFieldSubmitted: (value) =>
+                    _onSubmit(advanceNavOnSuccess: !widget.isEdit),
               ),
               const SizedBox(height: 14),
               Text('From', style: context.formLabel),
@@ -521,13 +522,14 @@ class _CourseAddScreenState
       );
 
       if (widget.isEdit && widget.courseId != null) {
+        // TODO: only submit if actual changes are made
         context.read<CourseBloc>().add(
           UpdateCourseEvent(
             origin: EventOrigin.subScreen,
             courseGroupId: widget.courseGroupId,
             courseId: widget.courseId!,
             request: request,
-            advanceNavOnSuccess: advanceNavOnSuccess,
+            advanceNavOnSuccess: false,
           ),
         );
       } else {

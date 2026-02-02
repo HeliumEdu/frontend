@@ -495,7 +495,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     final showTodayButton =
         _currentView != HeliumView.agenda && _currentView != HeliumView.todos;
 
-    // FIXME: when calendar changes date (from swiping), this header isn't update
+    // FIXME: when calendar changes date from swiping, we need to hook in to event from SfCalendar, as the header date isn't being updated
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -1423,6 +1423,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }) {
     Widget? iconWidget;
 
+    // FIXME: checkbox and school icon should show here and this way (as a vertically centered, left column) only on "agenda" and "schedule" view. in all other views, this entire column is hidden, and they should show (conditionally, using the same helpers) as a prefix to the title, that way the "wrapping" behavior of the title considers them to be part of the text, and wraps all the way back to the start of the line
     if (PlannerHelper.shouldShowCheckbox(context, calendarItem, _currentView)) {
       calendarItem as HomeworkModel;
       iconWidget = SizedBox(
@@ -1430,7 +1431,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         height: 16,
         child: Transform.scale(
           scale: AppTextStyles.calendarCheckboxScale(context),
-          // FIXME: make checkbox have consistent "onSurface" styling (when unchecked) for both dark and light mode, key being we want it to match the .school icons visual in both cases as well (again only when unchecked, when checked it shoul be .primary)
+          // FIXME: when unchecked, make checkbox have consistent "onSurface" styling for both dark and light mode, key being we want it to match the .school icons visual in both cases as well; when checked, keep current .primary coloring
           child: Checkbox(
             value: completedOverride ?? calendarItem.completed,
             onChanged: (value) {

@@ -940,11 +940,14 @@ class _CalendarItemAddScreenState
 
         if (mounted) {
           if (widget.isEdit) {
+            // TODO: only submit if actual changes are made
+
             context.read<CalendarItemBloc>().add(
               UpdateEventEvent(
                 origin: EventOrigin.subScreen,
                 id: widget.eventId!,
                 request: request,
+                advanceNavOnSuccess: false,
               ),
             );
           } else {
@@ -984,6 +987,7 @@ class _CalendarItemAddScreenState
 
         if (mounted) {
           if (widget.isEdit) {
+            // TODO: only submit if actual changes are made
             context.read<CalendarItemBloc>().add(
               UpdateHomeworkEvent(
                 origin: EventOrigin.subScreen,
@@ -991,7 +995,7 @@ class _CalendarItemAddScreenState
                 courseId: selectedCourse.id,
                 homeworkId: widget.homeworkId!,
                 request: request,
-                advanceNavOnSuccess: advanceNavOnSuccess,
+                advanceNavOnSuccess: false,
               ),
             );
           } else {

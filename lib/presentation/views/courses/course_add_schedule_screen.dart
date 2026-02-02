@@ -565,6 +565,8 @@ class _CourseAddScheduleScreenState
   }
 
   bool _onSubmit({bool advanceNavOnSuccess = true}) {
+    // TODO: only submit if actual changes are made
+
     if (_variesByDay) {
       if (_selectedDays.isEmpty) {
         showSnackBar(context, 'Select at least one day', isError: true);
