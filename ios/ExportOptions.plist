@@ -3,14 +3,19 @@
 <plist version="1.0">
 <dict>
 	<key>method</key>
-	<string>app-store</string>
+	<string>app-store-connect</string>
 	<key>uploadBitcode</key>
 	<false/>
 	<key>uploadSymbols</key>
 	<true/>
 	<key>signingStyle</key>
-	<string>automatic</string>
+	<string>manual</string>
 	<key>teamID</key>
 	<string>SHY4MCK827</string>
+	<key>provisioningProfiles</key>
+	<dict>
+		<key>com.heliumedu.heliumapp</key>
+		<string>Helium</string>
+	</dict>
 </dict>
 </plist>
