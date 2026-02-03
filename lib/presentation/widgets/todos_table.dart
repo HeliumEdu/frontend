@@ -25,8 +25,8 @@ import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:logging/logging.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 final _log = Logger('presentation.widgets');
 
@@ -270,8 +270,6 @@ class TodosTableState extends State<TodosTable> {
               flex: 2,
               child: _buildSortableHeader('Category', 'category'),
             ),
-          if (_shouldShowResourcesColumn(context))
-            Expanded(flex: 1, child: _buildSortableHeader('', 'resources')),
           if (_shouldShowPriorityColumn(context))
             Expanded(
               flex: 2,
@@ -279,6 +277,8 @@ class TodosTableState extends State<TodosTable> {
             ),
           if (_shouldShowGradeColumn(context))
             SizedBox(width: 95, child: _buildSortableHeader('Grade', 'grade')),
+          if (_shouldShowResourcesColumn(context))
+            const SizedBox(width: 30, child: SizedBox.shrink()),
           SizedBox(
             width: _isCompactActionsMode(context) ? 48 : 170,
             child: const SizedBox.shrink(),
@@ -601,9 +601,6 @@ class TodosTableState extends State<TodosTable> {
               : '';
           comparison = catA.toLowerCase().compareTo(catB.toLowerCase());
           break;
-        case 'resources':
-          comparison = a.materials.length.compareTo(b.materials.length);
-          break;
         case 'priority':
           comparison = (a.priority).compareTo(b.priority);
           break;
@@ -680,10 +677,6 @@ class TodosTableState extends State<TodosTable> {
                   const SizedBox(width: 4),
                   _buildCategoryColumn(category),
                 ],
-                if (_shouldShowResourcesColumn(context)) ...[
-                  const SizedBox(width: 4),
-                  _buildResourcesColumn(homework, userSettings),
-                ],
                 if (_shouldShowPriorityColumn(context)) ...[
                   const SizedBox(width: 4),
                   _buildPriorityColumn(homework),
@@ -692,6 +685,11 @@ class TodosTableState extends State<TodosTable> {
                   const SizedBox(width: 4),
                   _buildGradeColumn(homework, userSettings),
                 ],
+                if (_shouldShowResourcesColumn(context)) ...[
+                  const SizedBox(width: 4),
+                  _buildResourcesColumn(homework, userSettings),
+                ],
+                // TODO: show attachments in a similar way to resources, with attachment icon, when clicked open a menu and list as rows with titles and download buttons
                 const SizedBox(width: 4),
                 _buildActionsColumn(actionButtons, isCompact),
               ],
@@ -786,13 +784,13 @@ class TodosTableState extends State<TodosTable> {
     );
   }
 
-  // TODO: implement where if the user clicks on this, a menu appears with the full resource names
+  // TODO: implement where if the user clicks on this, a menu appears with the full resource names / links
   Widget _buildResourcesColumn(
     HomeworkModel homework,
     UserSettingsModel userSettings,
   ) {
-    return Expanded(
-      flex: 1,
+    return SizedBox(
+      width: 30,
       child: homework.materials.isNotEmpty
           ? Row(
               mainAxisSize: MainAxisSize.min,
