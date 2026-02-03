@@ -67,9 +67,9 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
 
       final formData = FormData.fromMap({
         'file[]': multipart,
-        if (course != null) 'course': course,
-        if (event != null) 'event': event,
-        if (homework != null) 'homework': homework,
+        'course': ?course,
+        'event': ?event,
+        'homework': ?homework,
       });
 
       final response = await dioClient.dio.post(

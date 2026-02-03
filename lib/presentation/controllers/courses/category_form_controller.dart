@@ -6,7 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:heliumapp/presentation/forms/core/basic_form_controller.dart';
+import 'package:heliumapp/presentation/controllers/core/basic_form_controller.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 
 class CategoryFormController extends BasicFormController {
