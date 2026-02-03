@@ -2162,7 +2162,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       Offset.zero & overlay.size,
     );
 
-    // TODO: don't group course's by title, instead group them by parent group (and sort that collection by the group's start time)
+    // FIXME: don't group course's by title, instead group them by parent group (and sort that collection by the group's start time)
 
     final Map<String, CourseModel> uniqueCourseMap = {};
     for (final course in courses) {
