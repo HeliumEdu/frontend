@@ -19,7 +19,7 @@ import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_e
 import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_state.dart';
 import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/dialogs/external_calendar_dialog.dart';
-import 'package:heliumapp/presentation/forms/settings/external_calendar_form_controller.dart';
+import 'package:heliumapp/presentation/controllers/settings/external_calendar_form_controller.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/empty_card.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';

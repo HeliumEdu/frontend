@@ -18,6 +18,7 @@ import 'package:heliumapp/presentation/widgets/drop_down.dart';
 import 'package:heliumapp/presentation/widgets/empty_card.dart';
 import 'package:heliumapp/presentation/widgets/grade_label.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
+import 'package:heliumapp/presentation/views/calendar/todos_table_controller.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
@@ -28,6 +29,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 class TodosTable extends StatefulWidget {
   final CalendarItemDataSource dataSource;
+  final TodosTableController controller;
   final Function(HomeworkModel) onTap;
   final Function(HomeworkModel, bool) onToggleCompleted;
   final Function(BuildContext, HomeworkModel) onDelete;
@@ -35,6 +37,7 @@ class TodosTable extends StatefulWidget {
   const TodosTable({
     super.key,
     required this.dataSource,
+    required this.controller,
     required this.onTap,
     required this.onToggleCompleted,
     required this.onDelete,
@@ -47,71 +50,75 @@ class TodosTable extends StatefulWidget {
 // TODO: evaluate making columns adjustable in width, how hard?
 
 class TodosTableState extends State<TodosTable> {
-  String _sortColumn = 'dueDate';
-  bool _sortAscending = true;
-  int _currentPage = 1;
-  int _itemsPerPage = 10;
-  bool _hasLoadedData = false;
-
-  final List<int> _itemsPerPageOptions = [5, 10, 25, 50, 100, -1];
-
-  bool get hasLoadedData => _hasLoadedData;
+  static const List<int> _itemsPerPageOptions = [5, 10, 25, 50, 100, -1];
+  bool _isInitialized = false;
 
   @override
   void initState() {
     super.initState();
-
-    widget.dataSource.changeNotifier.addListener(_onDataSourceChanged);
-
+    widget.controller.addListener(_onControllerChanged);
     _initializeData();
   }
 
   Future<void> _initializeData() async {
     await _expandDataWindowForAllCourses();
+    if (mounted) {
+      setState(() {
+        _isInitialized = true;
+      });
+      // Navigate to today only on first initialization
+      if (!widget.controller.hasInitializedNavigation) {
+        widget.controller.goToToday(widget.dataSource.filteredHomeworks);
+      }
+    }
   }
 
   @override
   void dispose() {
-    widget.dataSource.changeNotifier.removeListener(_onDataSourceChanged);
+    widget.controller.removeListener(_onControllerChanged);
     super.dispose();
+  }
+
+  void _onControllerChanged() {
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_hasLoadedData) {
+    final dataSource = widget.dataSource;
+    final controller = widget.controller;
+
+    // Show loading until TodosTable's data window expansion is complete
+    if (!_isInitialized) {
       return const Center(child: CircularProgressIndicator());
     }
-
-    final dataSource = widget.dataSource;
 
     // Sort homework based on selected column
     final sortedHomeworks = _sortHomeworks(dataSource.filteredHomeworks);
 
     // Calculate pagination
     final totalItems = sortedHomeworks.length;
-    final isShowingAll = _itemsPerPage == -1;
-    final effectiveItemsPerPage = isShowingAll ? totalItems : _itemsPerPage;
-    final totalPages = isShowingAll
-        ? 1
-        : (totalItems / effectiveItemsPerPage).ceil();
+    final isShowingAll = controller.itemsPerPage == -1;
+    final effectiveItemsPerPage =
+        isShowingAll ? totalItems : controller.itemsPerPage;
+    final totalPages =
+        isShowingAll ? 1 : (totalItems / effectiveItemsPerPage).ceil();
 
     // Reset to page 1 if current page is beyond valid range (e.g., after filtering)
-    // Use local variable for immediate UI update, persist to state for next build
-    var effectiveCurrentPage = _currentPage;
+    var effectiveCurrentPage = controller.currentPage;
     if (effectiveCurrentPage > totalPages && totalPages > 0) {
       effectiveCurrentPage = 1;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _currentPage != 1) {
-          setState(() {
-            _currentPage = 1;
-          });
+        if (mounted && controller.currentPage != 1) {
+          controller.currentPage = 1;
         }
       });
     }
 
-    final startIndex = isShowingAll
-        ? 0
-        : (effectiveCurrentPage - 1) * effectiveItemsPerPage;
+    final startIndex =
+        isShowingAll ? 0 : (effectiveCurrentPage - 1) * effectiveItemsPerPage;
     final endIndex = isShowingAll
         ? totalItems
         : (startIndex + effectiveItemsPerPage).clamp(0, totalItems);
@@ -162,15 +169,6 @@ class TodosTableState extends State<TodosTable> {
     );
   }
 
-  void _onDataSourceChanged() {
-    if (widget.dataSource.hasLoadedInitialData && !_hasLoadedData) {
-      setState(() {
-        goToToday();
-        _hasLoadedData = true;
-      });
-    }
-  }
-
   Future<void> _expandDataWindowForAllCourses() async {
     final dataSource = widget.dataSource;
     final courses = dataSource.courses ?? [];
@@ -204,55 +202,6 @@ class TodosTableState extends State<TodosTable> {
     if (from != null && to != null) {
       await dataSource.handleLoadMore(from, to);
     }
-  }
-
-  void goToToday() {
-    setState(() {
-      // Set sort to due date, ascending
-      _sortColumn = 'dueDate';
-      _sortAscending = true;
-
-      final dataSource = widget.dataSource;
-      final allHomeworks = _sortHomeworks(dataSource.filteredHomeworks);
-
-      if (allHomeworks.isEmpty) {
-        _currentPage = 1;
-        return;
-      }
-
-      // Find the first homework that is due today or later
-      final now = DateTime.now();
-      final today = DateTime(now.year, now.month, now.day);
-
-      int targetIndex = -1;
-      for (int i = 0; i < allHomeworks.length; i++) {
-        final dueDate = DateTime.parse(allHomeworks[i].start);
-        final dueDateOnly = DateTime(dueDate.year, dueDate.month, dueDate.day);
-
-        if (dueDateOnly.isAtSameMomentAs(today) || dueDateOnly.isAfter(today)) {
-          targetIndex = i;
-          break;
-        }
-      }
-
-      // If no future items found, show the last page (most recent past items)
-      if (targetIndex == -1) {
-        final effectiveItemsPerPage = _itemsPerPage == -1
-            ? allHomeworks.length
-            : _itemsPerPage;
-        final lastPage = (allHomeworks.length / effectiveItemsPerPage).ceil();
-        _currentPage = lastPage;
-        return;
-      }
-
-      // Calculate which page contains this item
-      final effectiveItemsPerPage = _itemsPerPage == -1
-          ? allHomeworks.length
-          : _itemsPerPage;
-      final targetPage = (targetIndex / effectiveItemsPerPage).floor() + 1;
-
-      _currentPage = targetPage;
-    });
   }
 
   // Order to hide columns, based on screen size:
@@ -372,6 +321,7 @@ class TodosTableState extends State<TodosTable> {
   }
 
   Widget _buildItemsPerPageDropdown() {
+    final controller = widget.controller;
     final dropDownItems = _itemsPerPageOptions.map((value) {
       return DropDownItem<String>(
         id: value,
@@ -380,7 +330,7 @@ class TodosTableState extends State<TodosTable> {
     }).toList();
 
     final currentItem = dropDownItems.firstWhere(
-      (item) => item.id == _itemsPerPage,
+      (item) => item.id == controller.itemsPerPage,
     );
 
     return Row(
@@ -399,10 +349,8 @@ class TodosTableState extends State<TodosTable> {
             items: dropDownItems,
             onChanged: (newItem) {
               if (newItem != null) {
-                setState(() {
-                  _itemsPerPage = newItem.id;
-                  _currentPage = 1;
-                });
+                controller.itemsPerPage = newItem.id;
+                controller.currentPage = 1;
               }
             },
             style: context.calendarData.copyWith(
@@ -424,6 +372,7 @@ class TodosTableState extends State<TodosTable> {
   }
 
   Widget _buildPagination(int totalPages, int currentPage) {
+    final controller = widget.controller;
     final isMobile = Responsive.isMobile(context);
 
     return Row(
@@ -431,9 +380,7 @@ class TodosTableState extends State<TodosTable> {
         IconButton(
           onPressed: currentPage > 1
               ? () {
-                  setState(() {
-                    _currentPage--;
-                  });
+                  controller.currentPage--;
                 }
               : null,
           icon: const Icon(Icons.chevron_left),
@@ -456,9 +403,7 @@ class TodosTableState extends State<TodosTable> {
         IconButton(
           onPressed: currentPage < totalPages
               ? () {
-                  setState(() {
-                    _currentPage++;
-                  });
+                  controller.currentPage++;
                 }
               : null,
           icon: const Icon(Icons.chevron_right),
@@ -504,6 +449,7 @@ class TodosTableState extends State<TodosTable> {
   }
 
   Widget _buildPageButton(int pageNumber, int currentPage) {
+    final controller = widget.controller;
     final isActive = currentPage == pageNumber;
 
     return Padding(
@@ -512,9 +458,7 @@ class TodosTableState extends State<TodosTable> {
         onPressed: isActive
             ? null
             : () {
-                setState(() {
-                  _currentPage = pageNumber;
-                });
+                controller.currentPage = pageNumber;
               },
         style: OutlinedButton.styleFrom(
           backgroundColor: isActive ? context.colorScheme.primary : null,
@@ -553,24 +497,22 @@ class TodosTableState extends State<TodosTable> {
     String column, {
     bool isCheckbox = false,
   }) {
-    final isActive = _sortColumn == column;
+    final controller = widget.controller;
+    final isActive = controller.sortColumn == column;
 
     return GestureDetector(
       onTap: () {
         Feedback.forTap(context);
-        setState(() {
-          if (_sortColumn == column) {
-            _sortAscending = !_sortAscending;
-          } else {
-            _sortColumn = column;
-            _sortAscending = true;
-          }
-        });
+        if (controller.sortColumn == column) {
+          controller.sortAscending = !controller.sortAscending;
+        } else {
+          controller.sortColumn = column;
+          controller.sortAscending = true;
+        }
       },
       child: Row(
-        mainAxisAlignment: isCheckbox
-            ? MainAxisAlignment.center
-            : MainAxisAlignment.start,
+        mainAxisAlignment:
+            isCheckbox ? MainAxisAlignment.center : MainAxisAlignment.start,
         children: [
           if (isCheckbox)
             Icon(
@@ -588,7 +530,9 @@ class TodosTableState extends State<TodosTable> {
           if (isActive) ...[
             const SizedBox(width: 4),
             Icon(
-              _sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
+              controller.sortAscending
+                  ? Icons.arrow_upward
+                  : Icons.arrow_downward,
               size: 14,
               color: context.colorScheme.primary,
             ),
@@ -599,6 +543,7 @@ class TodosTableState extends State<TodosTable> {
   }
 
   List<HomeworkModel> _sortHomeworks(List<HomeworkModel> homeworks) {
+    final controller = widget.controller;
     final dataSource = widget.dataSource;
     final courses = dataSource.courses ?? [];
     final categoriesMap = dataSource.categoriesMap ?? {};
@@ -607,15 +552,15 @@ class TodosTableState extends State<TodosTable> {
     sorted.sort((a, b) {
       int comparison = 0;
 
-      switch (_sortColumn) {
+      switch (controller.sortColumn) {
         case 'completed':
           final isCompletedA = dataSource.isHomeworkCompleted(a);
           final isCompletedB = dataSource.isHomeworkCompleted(b);
           comparison = isCompletedA == isCompletedB
               ? 0
               : isCompletedA
-              ? 1
-              : -1;
+                  ? 1
+                  : -1;
           break;
         case 'title':
           comparison = a.title.toLowerCase().compareTo(b.title.toLowerCase());
@@ -633,8 +578,8 @@ class TodosTableState extends State<TodosTable> {
             orElse: () => courses.first,
           );
           comparison = courseA.title.toLowerCase().compareTo(
-            courseB.title.toLowerCase(),
-          );
+                courseB.title.toLowerCase(),
+              );
           break;
         case 'category':
           final catA = categoriesMap.containsKey(a.category.id)
@@ -658,7 +603,7 @@ class TodosTableState extends State<TodosTable> {
           break;
       }
 
-      return _sortAscending ? comparison : -comparison;
+      return controller.sortAscending ? comparison : -comparison;
     });
 
     return sorted;
@@ -697,7 +642,8 @@ class TodosTableState extends State<TodosTable> {
           mouseCursor: Responsive.isMobile(context)
               ? SystemMouseCursors.click
               : SystemMouseCursors.basic,
-          splashColor: Responsive.isMobile(context) ? null : Colors.transparent,
+          splashColor:
+              Responsive.isMobile(context) ? null : Colors.transparent,
           highlightColor:
               Responsive.isMobile(context) ? null : Colors.transparent,
           child: Padding(
@@ -760,9 +706,8 @@ class TodosTableState extends State<TodosTable> {
           Feedback.forTap(context);
           widget.onToggleCompleted(homework, value!);
         },
-        activeColor: userSettings.colorByCategory
-            ? category.color
-            : course.color,
+        activeColor:
+            userSettings.colorByCategory ? category.color : course.color,
         side: BorderSide(
           color: context.colorScheme.onSurface.withValues(alpha: 0.7),
           width: 2,

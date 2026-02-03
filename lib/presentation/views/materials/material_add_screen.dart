@@ -17,8 +17,8 @@ import 'package:heliumapp/presentation/bloc/material/material_event.dart';
 import 'package:heliumapp/presentation/bloc/material/material_state.dart'
     as material_state;
 import 'package:heliumapp/presentation/dialogs/select_dialog.dart';
-import 'package:heliumapp/presentation/forms/core/basic_form_controller.dart';
-import 'package:heliumapp/presentation/forms/materials/material_form_controller.dart';
+import 'package:heliumapp/presentation/controllers/core/basic_form_controller.dart';
+import 'package:heliumapp/presentation/controllers/materials/material_form_controller.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/drop_down.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';

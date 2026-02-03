@@ -17,8 +17,8 @@ import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_e
 import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_state.dart';
 import 'package:heliumapp/presentation/dialogs/base_dialog_state.dart';
 import 'package:heliumapp/presentation/dialogs/color_picker_dialog.dart';
-import 'package:heliumapp/presentation/forms/core/basic_form_controller.dart';
-import 'package:heliumapp/presentation/forms/settings/external_calendar_form_controller.dart';
+import 'package:heliumapp/presentation/controllers/core/basic_form_controller.dart';
+import 'package:heliumapp/presentation/controllers/settings/external_calendar_form_controller.dart';
 import 'package:heliumapp/presentation/widgets/label_and_text_form_field.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';

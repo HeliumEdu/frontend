@@ -52,6 +52,7 @@ import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/shadow_container.dart';
 import 'package:heliumapp/presentation/widgets/todos_table.dart';
+import 'package:heliumapp/presentation/views/calendar/todos_table_controller.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
@@ -179,9 +180,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   Timer? _searchTypingTimer;
   final ScrollController _monthViewScrollController = ScrollController();
 
-  final GlobalKey calendarKey = GlobalKey();
-  final GlobalKey<TodosTableState> todosTableKey = GlobalKey<TodosTableState>();
   final GlobalKey _todayButtonKey = GlobalKey();
+  late final TodosTableController _todosController;
 
   @override
   void initState() {
@@ -189,18 +189,13 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
     _calendarController = CalendarController()
       ..view = PlannerHelper.mapHeliumViewToSfCalendarView(_currentView);
+    _todosController = TodosTableController();
 
     context.read<CalendarBloc>().add(FetchCalendarScreenDataEvent());
 
     _calendarController.addPropertyChangedListener((value) {
       if (value == 'calendarView') {
         _calendarViewChanged();
-      } else if (value == 'displayDate' && _currentView == HeliumView.agenda) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            setState(() {});
-          }
-        });
       }
     });
 
@@ -218,6 +213,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   @override
   void dispose() {
+    _todosController.dispose();
     _searchController.dispose();
     _searchFocusNode.dispose();
     _searchTypingTimer?.cancel();
@@ -329,10 +325,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           _buildCalendarHeader(),
 
           Expanded(
-            child: IndexedStack(
-              index: _currentView == HeliumView.todos ? 1 : 0,
-              children: [_buildCalendarView(context), _buildTodosView()],
-            ),
+            child: _currentView == HeliumView.todos
+                ? _buildTodosView()
+                : _buildCalendarView(context),
           ),
         ],
       ),
@@ -340,10 +335,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   Widget _buildCalendarView(BuildContext context) {
-    if (_calendarItemDataSource == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
     return ListenableBuilder(
       listenable: _calendarItemDataSource!.changeNotifier,
       builder: (context, _) {
@@ -355,40 +346,18 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                 constraints.maxHeight,
               );
 
-              return Stack(
-                children: [
-                  SingleChildScrollView(
-                    controller: _monthViewScrollController,
-                    child: SizedBox(
-                      height: calendarHeight,
-                      child: _buildCalendar(),
-                    ),
-                  ),
-                  if (!_calendarItemDataSource!.hasLoadedInitialData)
-                    Positioned.fill(
-                      child: Container(
-                        color: context.colorScheme.surface,
-                        child: const Center(child: CircularProgressIndicator()),
-                      ),
-                    ),
-                ],
+              return SingleChildScrollView(
+                controller: _monthViewScrollController,
+                child: SizedBox(
+                  height: calendarHeight,
+                  child: _buildCalendar(),
+                ),
               );
             },
           );
+        } else {
+          return _buildCalendar();
         }
-
-        return Stack(
-          children: [
-            _buildCalendar(),
-            if (!_calendarItemDataSource!.hasLoadedInitialData)
-              Positioned.fill(
-                child: Container(
-                  color: context.colorScheme.surface,
-                  child: const Center(child: CircularProgressIndicator()),
-                ),
-              ),
-          ],
-        );
       },
     );
   }
@@ -422,7 +391,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         final agendaHeight = Responsive.isMobile(context) ? 50.0 : 53.0;
 
         return SfCalendar(
-          key: calendarKey,
           backgroundColor: context.colorScheme.surface,
           controller: _calendarController,
           headerHeight: 0,
@@ -1243,9 +1211,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     return FutureBuilder<void>(
       future: loadMoreAppointments(),
       builder: (context, snapShot) {
-        if (snapShot.connectionState == ConnectionState.done) {
-          return const SizedBox.shrink();
-        }
         return Container(
           height: double.infinity,
           width: double.infinity,
@@ -2094,7 +2059,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   void _goToToday() {
     if (_currentView == HeliumView.todos) {
-      todosTableKey.currentState?.goToToday();
+      if (_calendarItemDataSource != null) {
+        _todosController.goToToday(_calendarItemDataSource!.filteredHomeworks);
+      }
     } else {
       _jumpToDate(DateTime.now(), offsetForVisibility: true);
     }
@@ -2702,16 +2669,12 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   Widget _buildTodosView() {
-    if (_calendarItemDataSource == null) {
-      return const LoadingIndicator();
-    }
-
     return ListenableBuilder(
       listenable: _calendarItemDataSource!.changeNotifier,
       builder: (context, _) {
         return TodosTable(
-          key: todosTableKey,
           dataSource: _calendarItemDataSource!,
+          controller: _todosController,
           onTap: _openCalendarItem,
           onToggleCompleted: _toggleHomeworkCompleted,
           onDelete: _deleteCalendarItem,

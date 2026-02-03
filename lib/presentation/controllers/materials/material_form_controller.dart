@@ -6,7 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/cupertino.dart';
-import 'package:heliumapp/presentation/forms/core/basic_form_controller.dart';
+import 'package:heliumapp/presentation/controllers/core/basic_form_controller.dart';
 import 'package:html_editor_enhanced/html_editor.dart';
 
 class MaterialFormController extends BasicFormController {

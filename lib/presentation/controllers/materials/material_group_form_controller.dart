@@ -5,14 +5,12 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:flutter/material.dart';
-import 'package:heliumapp/presentation/forms/core/basic_form_controller.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:heliumapp/presentation/controllers/core/basic_form_controller.dart';
 
-class CourseGroupFormController extends BasicFormController {
+class MaterialGroupFormController extends BasicFormController {
   final TextEditingController titleController = TextEditingController();
   bool shownOnCalendar = true;
-  DateTime? startDate;
-  DateTime? endDate;
 
   void dispose() {
     titleController.dispose();
