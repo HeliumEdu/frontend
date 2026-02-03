@@ -2113,7 +2113,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         _storedSelectedDate = truncatedDate;
       }
 
-      // TODO: when jumping that isn't within the loaded data source on "Schedule" view, it doesn't see to trigger the "load more" behavior for that date window
+      // TODO: when jumping to a date that isn't within the loaded data source on "Schedule" view, it doesn't see to trigger the "load more" behavior for that date window
     });
   }
 

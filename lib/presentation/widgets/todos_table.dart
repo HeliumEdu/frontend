@@ -207,7 +207,7 @@ class TodosTableState extends State<TodosTable> {
 
     // Trigger data source to expand its window
     if (from != null && to != null) {
-      _log.info('Expanding data window for ${courses.length} courses: $from to $to');
+      _log.info('Date window for ${courses.length} courses: $from to $to');
       await dataSource.handleLoadMore(from, to);
     }
   }
