@@ -325,6 +325,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
                       color: course.color,
                     ),
                   ),
+                  // TODO: show attachments icon, when clicked open a menu and list as rows with titles and download buttons
                   const SizedBox(width: 8),
                   if (course.teacherEmail.isNotEmpty) ...[
                     HeliumIconButton(
