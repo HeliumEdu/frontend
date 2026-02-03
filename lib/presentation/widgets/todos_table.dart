@@ -68,14 +68,6 @@ class TodosTableState extends State<TodosTable> {
 
   Future<void> _initializeData() async {
     await _expandDataWindowForAllCourses();
-
-    // After expanding data window, check if data is loaded and mark as ready
-    if (mounted && widget.dataSource.hasLoadedInitialData && !_hasLoadedData) {
-      setState(() {
-        _goToTodayInternal();
-        _hasLoadedData = true;
-      });
-    }
   }
 
   @override
@@ -171,10 +163,9 @@ class TodosTableState extends State<TodosTable> {
   }
 
   void _onDataSourceChanged() {
-    // Jump to today when initial data finishes loading (for async data loads)
     if (widget.dataSource.hasLoadedInitialData && !_hasLoadedData) {
       setState(() {
-        _goToTodayInternal();
+        goToToday();
         _hasLoadedData = true;
       });
     }
@@ -215,59 +206,53 @@ class TodosTableState extends State<TodosTable> {
     }
   }
 
-  /// Navigate to the page containing today's assignments.
-  /// Can be called externally via GlobalKey<TodosTableState>.
   void goToToday() {
     setState(() {
-      _goToTodayInternal();
-    });
-  }
+      // Set sort to due date, ascending
+      _sortColumn = 'dueDate';
+      _sortAscending = true;
 
-  void _goToTodayInternal() {
-    // Set sort to due date, ascending
-    _sortColumn = 'dueDate';
-    _sortAscending = true;
+      final dataSource = widget.dataSource;
+      final allHomeworks = _sortHomeworks(dataSource.filteredHomeworks);
 
-    final dataSource = widget.dataSource;
-    final allHomeworks = _sortHomeworks(dataSource.filteredHomeworks);
-
-    if (allHomeworks.isEmpty) {
-      _currentPage = 1;
-      return;
-    }
-
-    // Find the first homework that is due today or later
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-
-    int targetIndex = -1;
-    for (int i = 0; i < allHomeworks.length; i++) {
-      final dueDate = DateTime.parse(allHomeworks[i].start);
-      final dueDateOnly = DateTime(dueDate.year, dueDate.month, dueDate.day);
-
-      if (dueDateOnly.isAtSameMomentAs(today) || dueDateOnly.isAfter(today)) {
-        targetIndex = i;
-        break;
+      if (allHomeworks.isEmpty) {
+        _currentPage = 1;
+        return;
       }
-    }
 
-    // If no future items found, show the last page (most recent past items)
-    if (targetIndex == -1) {
+      // Find the first homework that is due today or later
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+
+      int targetIndex = -1;
+      for (int i = 0; i < allHomeworks.length; i++) {
+        final dueDate = DateTime.parse(allHomeworks[i].start);
+        final dueDateOnly = DateTime(dueDate.year, dueDate.month, dueDate.day);
+
+        if (dueDateOnly.isAtSameMomentAs(today) || dueDateOnly.isAfter(today)) {
+          targetIndex = i;
+          break;
+        }
+      }
+
+      // If no future items found, show the last page (most recent past items)
+      if (targetIndex == -1) {
+        final effectiveItemsPerPage = _itemsPerPage == -1
+            ? allHomeworks.length
+            : _itemsPerPage;
+        final lastPage = (allHomeworks.length / effectiveItemsPerPage).ceil();
+        _currentPage = lastPage;
+        return;
+      }
+
+      // Calculate which page contains this item
       final effectiveItemsPerPage = _itemsPerPage == -1
           ? allHomeworks.length
           : _itemsPerPage;
-      final lastPage = (allHomeworks.length / effectiveItemsPerPage).ceil();
-      _currentPage = lastPage;
-      return;
-    }
+      final targetPage = (targetIndex / effectiveItemsPerPage).floor() + 1;
 
-    // Calculate which page contains this item
-    final effectiveItemsPerPage = _itemsPerPage == -1
-        ? allHomeworks.length
-        : _itemsPerPage;
-    final targetPage = (targetIndex / effectiveItemsPerPage).floor() + 1;
-
-    _currentPage = targetPage;
+      _currentPage = targetPage;
+    });
   }
 
   // Order to hide columns, based on screen size:
