@@ -20,7 +20,7 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
-final log = Logger('HeliumLogger');
+final _log = Logger('utils');
 
 class PlannerHelper {
   static final List<int> weekStartsOnRemap = [7, 1, 2, 3, 4, 5, 6];
@@ -42,7 +42,7 @@ class PlannerHelper {
           'Both homework and event are null on Reminder ${reminder.id}, which is not allowed',
         );
       } else {
-        log.warning(
+        _log.warning(
           'Both homework and event are null on Reminder ${reminder.id}, using now as "start"',
         );
         start = DateTime.now().toString();

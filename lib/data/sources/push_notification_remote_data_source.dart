@@ -14,7 +14,7 @@ import 'package:heliumapp/data/models/notification/push_token_request_model.dart
 import 'package:heliumapp/data/sources/base_data_source.dart';
 import 'package:logging/logging.dart';
 
-final log = Logger('HeliumLogger');
+final _log = Logger('data.sources');
 
 abstract class PushNotificationRemoteDataSource extends BaseDataSource {
   Future<PushTokenModel> registerPushToken(PushTokenRequestModel request);
@@ -36,7 +36,7 @@ class PushTokenRemoteDataSourceImpl extends PushNotificationRemoteDataSource {
     PushTokenRequestModel request,
   ) async {
     try {
-      log.info('Registering PushToken for device ${request.deviceId} ...');
+      _log.info('Registering PushToken for device ${request.deviceId} ...');
 
       final response = await dioClient.dio.post(
         ApiUrl.authUserPushTokenUrl,
@@ -45,7 +45,7 @@ class PushTokenRemoteDataSourceImpl extends PushNotificationRemoteDataSource {
 
       if (response.statusCode == 201) {
         final pushToken = PushTokenModel.fromJson(response.data);
-        log.info('... PushToken ${pushToken.id} registered for device ${request.deviceId}');
+        _log.info('... PushToken ${pushToken.id} registered for device ${request.deviceId}');
         return pushToken;
       } else {
         throw ServerException(
@@ -56,7 +56,7 @@ class PushTokenRemoteDataSourceImpl extends PushNotificationRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -67,14 +67,14 @@ class PushTokenRemoteDataSourceImpl extends PushNotificationRemoteDataSource {
   @override
   Future<void> deletePushToken(int tokenId) async {
     try {
-      log.info('Deleting PushToken $tokenId ...');
+      _log.info('Deleting PushToken $tokenId ...');
 
       final response = await dioClient.dio.delete(
         '${ApiUrl.authUserPushTokenUrl}$tokenId/',
       );
 
       if (response.statusCode == 204) {
-        log.info('... PushToken $tokenId deleted');
+        _log.info('... PushToken $tokenId deleted');
       } else {
         String errorMessage = 'Failed to delete push token';
         if (response.data != null) {
@@ -89,7 +89,7 @@ class PushTokenRemoteDataSourceImpl extends PushNotificationRemoteDataSource {
             errorMessage = response.data as String;
           }
         }
-        log.severe('API Error: $errorMessage');
+        _log.severe('API Error: $errorMessage');
         throw ServerException(
           message: errorMessage,
           code: response.statusCode.toString(),
@@ -112,10 +112,10 @@ class PushTokenRemoteDataSourceImpl extends PushNotificationRemoteDataSource {
       } else {
         errorMessage = e.message ?? errorMessage;
       }
-      log.severe('DioException Error: $errorMessage');
+      _log.severe('DioException Error: $errorMessage');
       throw HeliumException(message: errorMessage);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: 'An unexpected error occurred: $e');
     }
   }
@@ -123,13 +123,13 @@ class PushTokenRemoteDataSourceImpl extends PushNotificationRemoteDataSource {
   @override
   Future<void> deletePushTokenById(int tokenId) async {
     try {
-      log.info('Deleting PushToken $tokenId ...');
+      _log.info('Deleting PushToken $tokenId ...');
       final response = await dioClient.dio.delete(
         '${ApiUrl.authUserPushTokenUrl}$tokenId/',
       );
 
       if (response.statusCode == 204) {
-        log.info('... PushToken $tokenId deleted');
+        _log.info('... PushToken $tokenId deleted');
       } else {
         final message = response.data is Map<String, dynamic>
             ? (response.data['detail'] ?? 'Failed to delete push token')
@@ -142,7 +142,7 @@ class PushTokenRemoteDataSourceImpl extends PushNotificationRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -153,7 +153,7 @@ class PushTokenRemoteDataSourceImpl extends PushNotificationRemoteDataSource {
   @override
   Future<List<PushTokenModel>> retrievePushTokens() async {
     try {
-      log.info('Fetching PushTokens ...');
+      _log.info('Fetching PushTokens ...');
 
       final response = await dioClient.dio.get(ApiUrl.authUserPushTokenUrl);
 
@@ -161,7 +161,7 @@ class PushTokenRemoteDataSourceImpl extends PushNotificationRemoteDataSource {
         final List<dynamic> data = response.data;
         final tokens =
             data.map((json) => PushTokenModel.fromJson(json)).toList();
-        log.info('... fetched ${tokens.length} PushToken(s)');
+        _log.info('... fetched ${tokens.length} PushToken(s)');
         return tokens;
       } else {
         throw ServerException(
@@ -172,7 +172,7 @@ class PushTokenRemoteDataSourceImpl extends PushNotificationRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }

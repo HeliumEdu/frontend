@@ -20,7 +20,10 @@ import 'package:heliumapp/domain/repositories/course_schedule_event_repository.d
 import 'package:heliumapp/domain/repositories/event_repository.dart';
 import 'package:heliumapp/domain/repositories/external_calendar_repository.dart';
 import 'package:heliumapp/domain/repositories/homework_repository.dart';
+import 'package:logging/logging.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
+
+final _log = Logger('data.sources');
 
 class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   final EventRepository eventRepository;
@@ -164,6 +167,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
 
     // Fetch new data if the window expanded
     if (windowPushed) {
+      _log.info('Data window expanded: $from to $to');
       final homeworks = await homeworkRepository.getHomeworks(
         from: from!,
         to: to!,
@@ -182,6 +186,11 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
         ...courseScheduleEvents,
         ...externalCalendarEvents,
       ];
+      _log.fine(
+        'Fetched ${homeworks.length} homeworks, ${events.length} events, '
+        '${courseScheduleEvents.length} schedule events, '
+        '${externalCalendarEvents.length} external events',
+      );
 
       // Add only new items
       for (final CalendarItemBaseModel calendarItem in calendarItems) {
@@ -277,31 +286,49 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   }
 
   void setFilteredCourses(Map<String, bool> courses) {
+    final selectedCourses = courses.entries
+        .where((e) => e.value)
+        .map((e) => e.key)
+        .toList();
+    _log.info(
+      'Course filter changed: ${selectedCourses.isEmpty ? "all" : selectedCourses.join(", ")}',
+    );
     _filteredCourses = courses;
     _applyFiltersAndNotify();
   }
 
   void setFilterCategories(List<String> categories) {
+    _log.info(
+      'Category filter changed: ${categories.isEmpty ? "all" : categories.join(", ")}',
+    );
     _filterCategories = categories;
     _applyFiltersAndNotify();
   }
 
   void setFilterTypes(List<String> types) {
+    _log.info(
+      'Type filter changed: ${types.isEmpty ? "all" : types.join(", ")}',
+    );
     _filterTypes = types;
     _applyFiltersAndNotify();
   }
 
   void setFilterStatuses(Set<String> statuses) {
+    _log.info(
+      'Status filter changed: ${statuses.isEmpty ? "all" : statuses.join(", ")}',
+    );
     _filterStatuses = statuses;
     _applyFiltersAndNotify();
   }
 
   void setSearchQuery(String query) {
+    _log.info('Search query changed: "${query.isEmpty ? "(empty)" : query}"');
     _searchQuery = query;
     _applyFiltersAndNotify();
   }
 
   void clearFilters() {
+    _log.info('All filters cleared');
     _filterCategories = [];
     _filterTypes = [];
     _filterStatuses = {};
@@ -312,6 +339,9 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     if (allCalendarItems.any((existing) => existing.id == calendarItem.id)) {
       return;
     }
+    _log.info(
+      'Calendar item added: ${calendarItem.runtimeType} ${calendarItem.id} "${calendarItem.title}"',
+    );
     allCalendarItems.add(calendarItem);
     _applyFiltersAndNotify();
   }
@@ -321,6 +351,9 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
       (existing) => existing.id == calendarItem.id,
     );
     if (index != -1) {
+      _log.info(
+        'Calendar item updated: ${calendarItem.runtimeType} ${calendarItem.id} "${calendarItem.title}"',
+      );
       allCalendarItems[index] = calendarItem;
     }
 
@@ -339,6 +372,9 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     );
 
     if (item != null) {
+      _log.info(
+        'Calendar item removed: ${item.runtimeType} $calendarItemId "${item.title}"',
+      );
       allCalendarItems.remove(item);
       appointments!.remove(item);
       _completedOverrides.remove(calendarItemId);
@@ -367,6 +403,9 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   void _applyFiltersAndNotify() {
     appointments!.clear();
     appointments!.addAll(_filteredCalendarItems);
+    _log.fine(
+      'Filters applied: ${appointments!.length} of ${allCalendarItems.length} items visible',
+    );
     notifyListeners(CalendarDataSourceAction.reset, appointments!);
     _notifyChangeListeners();
   }

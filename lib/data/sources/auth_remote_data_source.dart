@@ -24,7 +24,7 @@ import 'package:heliumapp/data/models/no_content_response_model.dart';
 import 'package:heliumapp/data/sources/base_data_source.dart';
 import 'package:logging/logging.dart';
 
-final log = Logger('HeliumLogger');
+final _log = Logger('data.sources');
 
 abstract class AuthRemoteDataSource extends BaseDataSource {
   Future<NoContentResponseModel> register(RegisterRequestModel request);
@@ -82,7 +82,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -112,7 +112,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -129,7 +129,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       );
 
       if (response.statusCode == 200) {
-        log.info('Login successful');
+        _log.info('Login successful');
 
         await dioClient.saveTokens(
           response.data['access'],
@@ -144,12 +144,12 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
         try {
           await FcmService().registerToken(force: true);
           if (FcmService().fcmToken != null) {
-            log.info('FCM token registered after login');
+            _log.info('FCM token registered after login');
           } else {
-            log.warning('FCM token not yet available after login');
+            _log.warning('FCM token not yet available after login');
           }
         } catch (e) {
-          log.warning('Failed to register FCM token after login: $e');
+          _log.warning('Failed to register FCM token after login: $e');
         }
 
         return loginResponse;
@@ -162,7 +162,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -183,7 +183,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       if (response.statusCode == 200) {
         final refreshResponse = TokenResponseModel.fromJson(response.data);
 
-        log.info('Token refreshed successfully');
+        _log.info('Token refreshed successfully');
 
         if (refreshResponse.access.isNotEmpty) {
           await dioClient.saveTokens(
@@ -191,7 +191,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
             refreshResponse.refresh,
           );
         } else {
-          log.severe('New access token is empty!');
+          _log.severe('New access token is empty!');
         }
 
         return refreshResponse;
@@ -204,7 +204,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -224,7 +224,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
         await fcmService.unregisterToken();
       } catch (e) {
         // If FCM cleanup fails, we still want to logout
-        log.warning('Failed to unregister FCM token: $e');
+        _log.warning('Failed to unregister FCM token: $e');
       }
 
       await dioClient.clearStorage();
@@ -235,7 +235,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
           await _blacklistRefreshToken(refreshToken!);
         } catch (e) {
           // If blacklisting fails, we still want to logout locally
-          log.warning('Failed to blacklist token on server: $e');
+          _log.warning('Failed to blacklist token on server: $e');
         }
       }
     } catch (e) {
@@ -261,7 +261,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -285,7 +285,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -307,7 +307,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -339,7 +339,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -366,7 +366,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -399,7 +399,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -428,7 +428,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -444,7 +444,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       );
 
       if (response.statusCode == 200) {
-        log.info('Token blacklisted successfully');
+        _log.info('Token blacklisted successfully');
       } else {
         throw ServerException(
           message: 'Failed to blacklist token',
@@ -454,7 +454,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }

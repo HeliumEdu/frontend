@@ -28,7 +28,7 @@ import 'package:heliumapp/data/sources/push_notification_remote_data_source.dart
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:logging/logging.dart';
 
-final log = Logger('HeliumLogger');
+final _log = Logger('core');
 
 class FcmService {
   late final DioClient _dioClient;
@@ -101,9 +101,9 @@ class FcmService {
       await _registerToken();
 
       _isInitialized = true;
-      log.info('FCM initialized successfully');
+      _log.info('FCM initialized successfully');
     } catch (e, s) {
-      log.severe('FCM initialization failed', e, s);
+      _log.severe('FCM initialization failed', e, s);
       rethrow;
     }
   }
@@ -162,7 +162,7 @@ class FcmService {
       sound: true,
     );
 
-    log.info('Notification permission status: ${settings.authorizationStatus}');
+    _log.info('Notification permission status: ${settings.authorizationStatus}');
   }
 
   Future<void> _getFCMToken() async {
@@ -172,36 +172,36 @@ class FcmService {
         try {
           final apnsToken = await _firebaseMessaging.getAPNSToken();
           if (apnsToken != null) {
-            log.info('APN token retrieved successfully');
+            _log.info('APN token retrieved successfully');
           } else {
-            log.warning(
+            _log.warning(
               'APN token is null, FCM token may not be available yet',
             );
           }
         } catch (e) {
-          log.warning('Failed to get APN token: $e');
+          _log.warning('Failed to get APN token: $e');
         }
       }
 
       _fcmToken = await _firebaseMessaging.getToken();
 
       if (_fcmToken != null) {
-        log.info('FCM token retrieved successfully');
+        _log.info('FCM token retrieved successfully');
       }
     } catch (e) {
-      log.info('FCM token not available: $e');
+      _log.info('FCM token not available: $e');
     }
   }
 
   Future<void> _registerToken({bool force = false}) async {
     // If token is null, try to get it (especially important on iOS where APN may be delayed)
     if (_fcmToken == null || _fcmToken!.isEmpty) {
-      log.info('FCM token not available, attempting to retrieve it now ...');
+      _log.info('FCM token not available, attempting to retrieve it now ...');
       await _getFCMToken();
 
       // If still null after retry, give up
       if (_fcmToken == null || _fcmToken!.isEmpty) {
-        log.warning(
+        _log.warning(
           'FCM token still not available after retry, skipping registration',
         );
         return;
@@ -253,15 +253,15 @@ class FcmService {
             // Delete stale tokens from this device (old or duplicates)
             try {
               await pushTokenRepo.deletePushTokenById(token.id);
-              log.info(
+              _log.info(
                 'Removed stale push token ID: ${token.id} from this device',
               );
             } catch (e) {
-              log.warning('Failed to delete stale push token ${token.id}: $e');
+              _log.warning('Failed to delete stale push token ${token.id}: $e');
             }
           }
         } catch (e) {
-          log.warning('Failed to sweep existing push tokens: $e');
+          _log.warning('Failed to sweep existing push tokens: $e');
         }
         return hasCurrent;
       }
@@ -269,17 +269,17 @@ class FcmService {
       if (tokenUnchanged) {
         final hasCurrentToken = await cleanExistingTokens();
         if (hasCurrentToken && !force) {
-          log.info('FCM token unchanged; skipping push token registration');
+          _log.info('FCM token unchanged; skipping push token registration');
           return;
         }
         if (hasCurrentToken && force) {
-          log.info(
+          _log.info(
             'FCM token unchanged; forced re-registration will refresh token',
           );
         }
       }
 
-      log.info(
+      _log.info(
         'Registering FCM token with for $userId on device $_deviceId ...',
       );
 
@@ -295,7 +295,7 @@ class FcmService {
       await _prefService.setSecure('pushtoken_device_id', _deviceId!);
       await _prefService.setSecure('last_pushtoken', _fcmToken!);
     } catch (e, s) {
-      log.severe('Failed to register FCM token', e, s);
+      _log.severe('Failed to register FCM token', e, s);
     }
   }
 
@@ -315,7 +315,7 @@ class FcmService {
 
     // Listen for token refreshes (important for iOS when APN token becomes available)
     _firebaseMessaging.onTokenRefresh.listen((newToken) {
-      log.info('FCM token refreshed');
+      _log.info('FCM token refreshed');
       _fcmToken = newToken;
       _registerToken();
     });
@@ -323,7 +323,7 @@ class FcmService {
 
   Future<void> _onForegroundMessage(RemoteMessage message) async {
     final messageId = message.messageId ?? 'unknown';
-    log.info('Foreground message $messageId received from FCM');
+    _log.info('Foreground message $messageId received from FCM');
 
     if (kDebugMode) {
       if (await _handleTestMessages(message, messageId)) {
@@ -340,7 +340,7 @@ class FcmService {
     );
 
     if (_recentMessageIds.containsKey(payload['id'].toString())) {
-      log.info('Foreground message $messageId within dedupe window, skipping');
+      _log.info('Foreground message $messageId within dedupe window, skipping');
       return;
     }
     _recentMessageIds[payload['id'].toString()] = now;
@@ -351,12 +351,12 @@ class FcmService {
     );
 
     await showLocalNotification(notification);
-    log.info('Foreground message $messageId notification displayed');
+    _log.info('Foreground message $messageId notification displayed');
   }
 
   Future<void> _onNotificationTap(RemoteMessage message) async {
     final messageId = message.messageId;
-    log.info('Notification $messageId tapped');
+    _log.info('Notification $messageId tapped');
     await router.push(AppRoutes.notificationsScreen);
   }
 
@@ -365,7 +365,7 @@ class FcmService {
         .getInitialMessage();
 
     if (initialMessage != null) {
-      log.info('App opened from terminated state via notification');
+      _log.info('App opened from terminated state via notification');
       await router.push(AppRoutes.notificationsScreen);
     }
   }
@@ -414,7 +414,7 @@ class FcmService {
   }
 
   void _onNotificationTapped(NotificationResponse response) {
-    log.info('Local notification tapped: ${response.id}');
+    _log.info('Local notification tapped: ${response.id}');
     router.push(AppRoutes.notificationsScreen);
   }
 
@@ -424,7 +424,7 @@ class FcmService {
 
   Future<void> unregisterToken() async {
     if (_deviceId == null) {
-      log.info('No device ID available, skipping token unregistration');
+      _log.info('No device ID available, skipping token unregistration');
       return;
     }
 
@@ -438,7 +438,7 @@ class FcmService {
     for (final token in existingTokens) {
       if (token.deviceId == _deviceId) {
         await pushTokenRepo.deletePushTokenById(token.id);
-        log.info(
+        _log.info(
           'Unregistered push token ID: ${token.id} for device $_deviceId',
         );
       }
@@ -450,7 +450,7 @@ class FcmService {
     _fcmToken = null;
     _deviceId = null;
 
-    log.info('Successfully unregistered push tokens for this device');
+    _log.info('Successfully unregistered push tokens for this device');
   }
 
   String? get deviceId => _deviceId;
@@ -464,7 +464,7 @@ class FcmService {
     // Handle Firebase Console test messages, which never have a payload
     if (message.data['json_payload'] == null) {
       if (message.notification != null) {
-        log.info(
+        _log.info(
           'Displaying notification from Firebase console: ${message.toMap()}',
         );
 
@@ -491,7 +491,7 @@ class FcmService {
           PlannerHelper.mapPayloadToNotification(remoteMessage, payload),
         );
       } else {
-        log.warning(
+        _log.warning(
           'Message $messageId has no payloads, so it will be dropped',
         );
       }
@@ -507,7 +507,7 @@ class FcmService {
 Future<void> _onBackgroundMessage(RemoteMessage message) async {
   await Firebase.initializeApp();
   final messageId = message.messageId ?? 'unknown';
-  log.info('Background message $messageId received from FCM');
+  _log.info('Background message $messageId received from FCM');
 
   // Parse the reminder data from the message
   final payload = json.decode(message.data['json_payload']);
@@ -516,5 +516,5 @@ Future<void> _onBackgroundMessage(RemoteMessage message) async {
 
   final fcmService = FcmService();
   await fcmService.showLocalNotification(notification);
-  log.info('Background message $messageId notification displayed');
+  _log.info('Background message $messageId notification displayed');
 }

@@ -18,7 +18,7 @@ import 'package:heliumapp/presentation/bloc/auth/auth_event.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_state.dart';
 import 'package:logging/logging.dart';
 
-final log = Logger('HeliumLogger');
+final _log = Logger('presentation.views');
 
 class LandingScreen extends StatefulWidget {
   const LandingScreen({super.key});
@@ -41,7 +41,7 @@ class _LandingScreenState extends State<LandingScreen> {
       final currentPath = uri.path;
       if (currentPath.isNotEmpty && currentPath != '/') {
         _deepLinkRoute = currentPath;
-        log.info('Deep link detected: $_deepLinkRoute');
+        _log.info('Deep link detected: $_deepLinkRoute');
       }
     }
 
@@ -63,19 +63,19 @@ class _LandingScreenState extends State<LandingScreen> {
     final accessToken = await _dioClient.getAccessToken();
 
     if (mounted && (accessToken?.isNotEmpty ?? false)) {
-      log.info('Token found, checking authentication ...');
+      _log.info('Token found, checking authentication ...');
 
-      log.info('Checking access token validity ...');
+      _log.info('Checking access token validity ...');
 
       // Set up listener before dispatching event to avoid race condition
       _authSubscription = context.read<AuthBloc>().stream.listen((state) {
-        log.info('Auth state received: ${state.runtimeType}');
+        _log.info('Auth state received: ${state.runtimeType}');
         if (state is AuthAuthenticated || state is AuthTokenRefreshed) {
-          log.info('Access token is valid, navigating to home');
+          _log.info('Access token is valid, navigating to home');
           _authSubscription?.cancel();
           _navigateToTarget();
         } else if (state is AuthUnauthenticated || state is AuthError) {
-          log.info(
+          _log.info(
             'Access and refresh tokens missing or invalid, navigating to login',
           );
           _authSubscription?.cancel();
@@ -84,7 +84,7 @@ class _LandingScreenState extends State<LandingScreen> {
       });
       context.read<AuthBloc>().add(CheckAuthEvent());
     } else {
-      log.info('No token found or context not mounted, navigate to login');
+      _log.info('No token found or context not mounted, navigate to login');
       _navigateToLogin();
     }
   }
@@ -93,7 +93,7 @@ class _LandingScreenState extends State<LandingScreen> {
     if (!mounted) return;
 
     final targetRoute = _deepLinkRoute ?? AppRoutes.plannerScreen;
-    log.info('Navigating to: $targetRoute');
+    _log.info('Navigating to: $targetRoute');
 
     context.go(targetRoute);
   }

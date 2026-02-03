@@ -7,10 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:logging/logging.dart';
 import 'package:timezone/standalone.dart' as tz;
-
-final log = Logger('HeliumLogger');
 
 class HeliumTime {
   static TimeOfDay? parse(String timeString) {

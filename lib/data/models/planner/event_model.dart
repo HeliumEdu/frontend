@@ -11,9 +11,6 @@ import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
-import 'package:logging/logging.dart';
-
-final log = Logger('HeliumLogger');
 
 class EventModel extends CalendarItemBaseModel {
   final String? ownerId;

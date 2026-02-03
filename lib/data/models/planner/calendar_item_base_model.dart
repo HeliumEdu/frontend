@@ -12,9 +12,6 @@ import 'package:heliumapp/data/models/id_or_entity.dart';
 import 'package:heliumapp/data/models/planner/attachment_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/utils/app_globals.dart';
-import 'package:logging/logging.dart';
-
-final log = Logger('HeliumLogger');
 
 abstract class CalendarItemBaseModel extends BaseModel {
   final bool allDay;

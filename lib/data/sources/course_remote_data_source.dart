@@ -16,7 +16,7 @@ import 'package:heliumapp/data/models/planner/course_request_model.dart';
 import 'package:heliumapp/data/sources/base_data_source.dart';
 import 'package:logging/logging.dart';
 
-final log = Logger('HeliumLogger');
+final _log = Logger('data.sources');
 
 abstract class CourseRemoteDataSource extends BaseDataSource {
   Future<List<CourseGroupModel>> getCourseGroups();
@@ -59,7 +59,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
   }) async {
     try {
       final filterInfo = groupId != null ? ' for CourseGroup $groupId' : '';
-      log.info('Fetching Courses$filterInfo ...');
+      _log.info('Fetching Courses$filterInfo ...');
 
       final Map<String, dynamic> queryParameters = {};
       if (groupId != null) queryParameters['course_group'] = groupId;
@@ -77,7 +77,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
           final courses = (response.data as List)
               .map((course) => CourseModel.fromJson(course))
               .toList();
-          log.info('... fetched ${courses.length} Course(s)');
+          _log.info('... fetched ${courses.length} Course(s)');
           return courses;
         } else {
           throw ServerException(
@@ -94,7 +94,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -105,14 +105,14 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
   @override
   Future<CourseModel> getCourse(int groupId, int courseId) async {
     try {
-      log.info('Fetching Course $courseId in CourseGroup $groupId ...');
+      _log.info('Fetching Course $courseId in CourseGroup $groupId ...');
 
       final response = await dioClient.dio.get(
         ApiUrl.plannerCourseGroupsCoursesDetailsUrl(groupId, courseId),
       );
 
       if (response.statusCode == 200) {
-        log.info('... Course $courseId fetched');
+        _log.info('... Course $courseId fetched');
         return CourseModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -123,7 +123,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -137,7 +137,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
     CourseRequestModel request,
   ) async {
     try {
-      log.info('Creating Course in CourseGroup $groupId ...');
+      _log.info('Creating Course in CourseGroup $groupId ...');
       final response = await dioClient.dio.post(
         ApiUrl.plannerCourseGroupsCoursesListUrl(groupId),
         data: request.toJson(),
@@ -145,7 +145,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
 
       if (response.statusCode == 201) {
         final course = CourseModel.fromJson(response.data);
-        log.info('... Course ${course.id} created in CourseGroup $groupId');
+        _log.info('... Course ${course.id} created in CourseGroup $groupId');
         return course;
       } else {
         throw ServerException(
@@ -156,7 +156,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -171,7 +171,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
     CourseRequestModel request,
   ) async {
     try {
-      log.info('Updating Course $courseId in CourseGroup $groupId ...');
+      _log.info('Updating Course $courseId in CourseGroup $groupId ...');
 
       final response = await dioClient.dio.put(
         ApiUrl.plannerCourseGroupsCoursesDetailsUrl(groupId, courseId),
@@ -179,7 +179,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
       );
 
       if (response.statusCode == 200) {
-        log.info('... Course $courseId updated');
+        _log.info('... Course $courseId updated');
         return CourseModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -190,7 +190,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -201,13 +201,13 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
   @override
   Future<void> deleteCourse(int groupId, int courseId) async {
     try {
-      log.info('Deleting Course $courseId in CourseGroup $groupId ...');
+      _log.info('Deleting Course $courseId in CourseGroup $groupId ...');
       final response = await dioClient.dio.delete(
         ApiUrl.plannerCourseGroupsCoursesDetailsUrl(groupId, courseId),
       );
 
       if (response.statusCode == 204) {
-        log.info('... Course $courseId deleted');
+        _log.info('... Course $courseId deleted');
         return;
       } else {
         throw ServerException(
@@ -218,7 +218,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -229,7 +229,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
   @override
   Future<List<CourseGroupModel>> getCourseGroups() async {
     try {
-      log.info('Fetching CourseGroups ...');
+      _log.info('Fetching CourseGroups ...');
       final response = await dioClient.dio.get(
         ApiUrl.plannerCourseGroupsListUrl,
       );
@@ -239,7 +239,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
           final groups = (response.data as List)
               .map((group) => CourseGroupModel.fromJson(group))
               .toList();
-          log.info('... fetched ${groups.length} CourseGroup(s)');
+          _log.info('... fetched ${groups.length} CourseGroup(s)');
           return groups;
         } else {
           throw ServerException(
@@ -256,7 +256,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -267,13 +267,13 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
   @override
   Future<CourseGroupModel> getCourseGroup(int id) async {
     try {
-      log.info('Fetching CourseGroup $id ...');
+      _log.info('Fetching CourseGroup $id ...');
       final response = await dioClient.dio.get(
         ApiUrl.plannerCourseGroupsDetailsUrl(id),
       );
 
       if (response.statusCode == 200) {
-        log.info('... CourseGroup $id fetched');
+        _log.info('... CourseGroup $id fetched');
         return CourseGroupModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -284,7 +284,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -297,7 +297,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
     CourseGroupRequestModel request,
   ) async {
     try {
-      log.info('Creating CourseGroup ...');
+      _log.info('Creating CourseGroup ...');
       final response = await dioClient.dio.post(
         ApiUrl.plannerCourseGroupsListUrl,
         data: request.toJson(),
@@ -305,7 +305,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
 
       if (response.statusCode == 201) {
         final group = CourseGroupModel.fromJson(response.data);
-        log.info('... CourseGroup ${group.id} created');
+        _log.info('... CourseGroup ${group.id} created');
         return group;
       } else {
         throw ServerException(
@@ -316,7 +316,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -330,14 +330,14 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
     CourseGroupRequestModel request,
   ) async {
     try {
-      log.info('Updating CourseGroup $groupId ...');
+      _log.info('Updating CourseGroup $groupId ...');
       final response = await dioClient.dio.put(
         ApiUrl.plannerCourseGroupsDetailsUrl(groupId),
         data: request.toJson(),
       );
 
       if (response.statusCode == 200) {
-        log.info('... CourseGroup $groupId updated');
+        _log.info('... CourseGroup $groupId updated');
         return CourseGroupModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -348,7 +348,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -359,13 +359,13 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
   @override
   Future<void> deleteCourseGroup(int groupId) async {
     try {
-      log.info('Deleting CourseGroup $groupId ...');
+      _log.info('Deleting CourseGroup $groupId ...');
       final response = await dioClient.dio.delete(
         ApiUrl.plannerCourseGroupsDetailsUrl(groupId),
       );
 
       if (response.statusCode == 204) {
-        log.info('... CourseGroup $groupId deleted');
+        _log.info('... CourseGroup $groupId deleted');
         return;
       } else {
         throw ServerException(
@@ -376,7 +376,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }

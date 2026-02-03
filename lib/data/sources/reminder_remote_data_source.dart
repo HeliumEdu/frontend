@@ -14,7 +14,7 @@ import 'package:heliumapp/data/models/planner/reminder_request_model.dart';
 import 'package:heliumapp/data/sources/base_data_source.dart';
 import 'package:logging/logging.dart';
 
-final log = Logger('HeliumLogger');
+final _log = Logger('data.sources');
 
 abstract class ReminderRemoteDataSource extends BaseDataSource {
   Future<List<ReminderModel>> getReminders({
@@ -51,7 +51,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
           : homeworkId != null
               ? 'Homework $homeworkId'
               : 'all';
-      log.info('Fetching Reminders for $parentInfo ...');
+      _log.info('Fetching Reminders for $parentInfo ...');
 
       final Map<String, dynamic> queryParameters = {};
       if (homeworkId != null) queryParameters['homework'] = homeworkId;
@@ -69,7 +69,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
         final List<dynamic> data = response.data;
         final reminders =
             data.map((json) => ReminderModel.fromJson(json)).toList();
-        log.info('... fetched ${reminders.length} Reminder(s)');
+        _log.info('... fetched ${reminders.length} Reminder(s)');
         return reminders;
       } else {
         throw ServerException(
@@ -79,7 +79,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -90,7 +90,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
   @override
   Future<ReminderModel> createReminder(ReminderRequestModel request) async {
     try {
-      log.info('Creating Reminder ...');
+      _log.info('Creating Reminder ...');
       final response = await dioClient.dio.post(
         ApiUrl.plannerRemindersListUrl,
         data: request.toJson(),
@@ -98,7 +98,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
 
       if (response.statusCode == 201) {
         final reminder = ReminderModel.fromJson(response.data);
-        log.info('... Reminder ${reminder.id} created');
+        _log.info('... Reminder ${reminder.id} created');
         return reminder;
       } else {
         throw ServerException(
@@ -108,7 +108,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -122,14 +122,14 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
     ReminderRequestModel request,
   ) async {
     try {
-      log.info('Updating Reminder $id ...');
+      _log.info('Updating Reminder $id ...');
       final response = await dioClient.dio.put(
         ApiUrl.plannerRemindersDetailsUrl(id),
         data: request.toJson(),
       );
 
       if (response.statusCode == 200) {
-        log.info('... Reminder $id updated');
+        _log.info('... Reminder $id updated');
         return ReminderModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -139,7 +139,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -150,13 +150,13 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
   @override
   Future<void> deleteReminder(int id) async {
     try {
-      log.info('Deleting Reminder $id ...');
+      _log.info('Deleting Reminder $id ...');
       final response = await dioClient.dio.delete(
         ApiUrl.plannerRemindersDetailsUrl(id),
       );
 
       if (response.statusCode == 204) {
-        log.info('... Reminder $id deleted');
+        _log.info('... Reminder $id deleted');
       } else {
         throw ServerException(
           message: 'Failed to delete reminder: ${response.statusCode}',
@@ -165,7 +165,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }

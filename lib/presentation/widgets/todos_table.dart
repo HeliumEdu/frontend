@@ -12,13 +12,13 @@ import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/sources/calendar_item_data_source.dart';
+import 'package:heliumapp/presentation/views/calendar/todos_table_controller.dart';
 import 'package:heliumapp/presentation/widgets/category_title_label.dart';
 import 'package:heliumapp/presentation/widgets/course_title_label.dart';
 import 'package:heliumapp/presentation/widgets/drop_down.dart';
 import 'package:heliumapp/presentation/widgets/empty_card.dart';
 import 'package:heliumapp/presentation/widgets/grade_label.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
-import 'package:heliumapp/presentation/views/calendar/todos_table_controller.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
@@ -26,6 +26,9 @@ import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:logging/logging.dart';
+
+final _log = Logger('presentation.widgets');
 
 class TodosTable extends StatefulWidget {
   final CalendarItemDataSource dataSource;
@@ -101,10 +104,12 @@ class TodosTableState extends State<TodosTable> {
     // Calculate pagination
     final totalItems = sortedHomeworks.length;
     final isShowingAll = controller.itemsPerPage == -1;
-    final effectiveItemsPerPage =
-        isShowingAll ? totalItems : controller.itemsPerPage;
-    final totalPages =
-        isShowingAll ? 1 : (totalItems / effectiveItemsPerPage).ceil();
+    final effectiveItemsPerPage = isShowingAll
+        ? totalItems
+        : controller.itemsPerPage;
+    final totalPages = isShowingAll
+        ? 1
+        : (totalItems / effectiveItemsPerPage).ceil();
 
     // Reset to page 1 if current page is beyond valid range (e.g., after filtering)
     var effectiveCurrentPage = controller.currentPage;
@@ -117,8 +122,9 @@ class TodosTableState extends State<TodosTable> {
       });
     }
 
-    final startIndex =
-        isShowingAll ? 0 : (effectiveCurrentPage - 1) * effectiveItemsPerPage;
+    final startIndex = isShowingAll
+        ? 0
+        : (effectiveCurrentPage - 1) * effectiveItemsPerPage;
     final endIndex = isShowingAll
         ? totalItems
         : (startIndex + effectiveItemsPerPage).clamp(0, totalItems);
@@ -174,6 +180,7 @@ class TodosTableState extends State<TodosTable> {
     final courses = dataSource.courses ?? [];
 
     if (courses.isEmpty) {
+      _log.fine('No courses, skipping data window expansion');
       return;
     }
 
@@ -200,6 +207,7 @@ class TodosTableState extends State<TodosTable> {
 
     // Trigger data source to expand its window
     if (from != null && to != null) {
+      _log.info('Expanding data window for ${courses.length} courses: $from to $to');
       await dataSource.handleLoadMore(from, to);
     }
   }
@@ -462,7 +470,9 @@ class TodosTableState extends State<TodosTable> {
               },
         style: OutlinedButton.styleFrom(
           backgroundColor: isActive ? context.colorScheme.primary : null,
-          disabledBackgroundColor: isActive ? context.colorScheme.primary : null,
+          disabledBackgroundColor: isActive
+              ? context.colorScheme.primary
+              : null,
           minimumSize: const Size(40, 40),
           padding: EdgeInsets.zero,
         ),
@@ -511,8 +521,9 @@ class TodosTableState extends State<TodosTable> {
         }
       },
       child: Row(
-        mainAxisAlignment:
-            isCheckbox ? MainAxisAlignment.center : MainAxisAlignment.start,
+        mainAxisAlignment: isCheckbox
+            ? MainAxisAlignment.center
+            : MainAxisAlignment.start,
         children: [
           if (isCheckbox)
             Icon(
@@ -559,8 +570,8 @@ class TodosTableState extends State<TodosTable> {
           comparison = isCompletedA == isCompletedB
               ? 0
               : isCompletedA
-                  ? 1
-                  : -1;
+              ? 1
+              : -1;
           break;
         case 'title':
           comparison = a.title.toLowerCase().compareTo(b.title.toLowerCase());
@@ -578,8 +589,8 @@ class TodosTableState extends State<TodosTable> {
             orElse: () => courses.first,
           );
           comparison = courseA.title.toLowerCase().compareTo(
-                courseB.title.toLowerCase(),
-              );
+            courseB.title.toLowerCase(),
+          );
           break;
         case 'category':
           final catA = categoriesMap.containsKey(a.category.id)
@@ -642,10 +653,10 @@ class TodosTableState extends State<TodosTable> {
           mouseCursor: Responsive.isMobile(context)
               ? SystemMouseCursors.click
               : SystemMouseCursors.basic,
-          splashColor:
-              Responsive.isMobile(context) ? null : Colors.transparent,
-          highlightColor:
-              Responsive.isMobile(context) ? null : Colors.transparent,
+          splashColor: Responsive.isMobile(context) ? null : Colors.transparent,
+          highlightColor: Responsive.isMobile(context)
+              ? null
+              : Colors.transparent,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
             child: Row(
@@ -706,8 +717,9 @@ class TodosTableState extends State<TodosTable> {
           Feedback.forTap(context);
           widget.onToggleCompleted(homework, value!);
         },
-        activeColor:
-            userSettings.colorByCategory ? category.color : course.color,
+        activeColor: userSettings.colorByCategory
+            ? category.color
+            : course.color,
         side: BorderSide(
           color: context.colorScheme.onSurface.withValues(alpha: 0.7),
           width: 2,

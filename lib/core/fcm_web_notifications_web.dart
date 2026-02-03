@@ -11,7 +11,7 @@ import 'package:heliumapp/data/models/notification/notification_model.dart';
 import 'package:logging/logging.dart';
 import 'package:web/web.dart' as web;
 
-final log = Logger('HeliumLogger');
+final _log = Logger('core');
 
 Future<bool> requestWebNotificationPermission() async {
   try {
@@ -27,7 +27,7 @@ Future<bool> requestWebNotificationPermission() async {
 
     return false;
   } catch (e) {
-    log.warning('Failed to request web notification permission: $e');
+    _log.warning('Failed to request web notification permission: $e');
     return false;
   }
 }
@@ -50,8 +50,8 @@ void showWebNotification(
       webNotification.close();
     }.toJS;
 
-    log.info('Web notification displayed: ${notification.title}');
+    _log.info('Web notification displayed: ${notification.title}');
   } catch (e) {
-    log.warning('Failed to show web notification: $e');
+    _log.warning('Failed to show web notification: $e');
   }
 }

@@ -15,7 +15,7 @@ import 'package:heliumapp/data/sources/base_data_source.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:logging/logging.dart';
 
-final log = Logger('HeliumLogger');
+final _log = Logger('data.sources');
 
 abstract class HomeworkRemoteDataSource extends BaseDataSource {
   Future<List<HomeworkModel>> getHomeworks({
@@ -84,7 +84,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
         queryParameters['shown_on_calendar'] = shownOnCalendar.toString();
       }
 
-      log.info('Fetching Homeworks ...');
+      _log.info('Fetching Homeworks ...');
       final response = await dioClient.dio.get(
         ApiUrl.plannerHomeworkListUrl,
         queryParameters: queryParameters.isEmpty ? null : queryParameters,
@@ -95,7 +95,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
           final List<dynamic> data = response.data;
           final homeworks =
               data.map((json) => HomeworkModel.fromJson(json)).toList();
-          log.info('... fetched ${homeworks.length} Homework(s)');
+          _log.info('... fetched ${homeworks.length} Homework(s)');
           return homeworks;
         } else {
           throw ServerException(
@@ -112,7 +112,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -123,7 +123,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
   @override
   Future<HomeworkModel> getHomework({required int id}) async {
     try {
-      log.info('Fetching Homework $id ...');
+      _log.info('Fetching Homework $id ...');
       final response = await dioClient.dio.get(
         ApiUrl.plannerHomeworkListUrl,
         queryParameters: {'id': id},
@@ -133,7 +133,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
         if (response.data.isEmpty) {
           throw NotFoundException(message: 'Homework not found');
         }
-        log.info('... Homework $id fetched');
+        _log.info('... Homework $id fetched');
         return HomeworkModel.fromJson(response.data[0]);
       } else {
         throw ServerException(
@@ -143,7 +143,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -158,7 +158,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
     required HomeworkRequestModel request,
   }) async {
     try {
-      log.info('Creating Homework for Course $courseId in CourseGroup $groupId ...');
+      _log.info('Creating Homework for Course $courseId in CourseGroup $groupId ...');
       final response = await dioClient.dio.post(
         ApiUrl.plannerCourseGroupsCoursesHomeworkListUrl(groupId, courseId),
         data: request.toJson(),
@@ -166,7 +166,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
 
       if (response.statusCode == 201) {
         final homework = HomeworkModel.fromJson(response.data);
-        log.info('... Homework ${homework.id} created for Course $courseId');
+        _log.info('... Homework ${homework.id} created for Course $courseId');
         return homework;
       } else {
         throw ServerException(
@@ -176,7 +176,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -192,7 +192,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
     required HomeworkRequestModel request,
   }) async {
     try {
-      log.info('Updating Homework $homeworkId for Course $courseId ...');
+      _log.info('Updating Homework $homeworkId for Course $courseId ...');
       final response = await dioClient.dio.patch(
         ApiUrl.plannerCourseGroupsCoursesHomeworkDetailsUrl(
           groupId,
@@ -203,7 +203,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
       );
 
       if (response.statusCode == 200) {
-        log.info('... Homework $homeworkId updated');
+        _log.info('... Homework $homeworkId updated');
         return HomeworkModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -213,7 +213,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -228,7 +228,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
     required int homeworkId,
   }) async {
     try {
-      log.info('Deleting Homework $homeworkId for Course $courseId ...');
+      _log.info('Deleting Homework $homeworkId for Course $courseId ...');
       final response = await dioClient.dio.delete(
         ApiUrl.plannerCourseGroupsCoursesHomeworkDetailsUrl(
           groupId,
@@ -238,7 +238,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
       );
 
       if (response.statusCode == 204) {
-        log.info('... Homework $homeworkId deleted');
+        _log.info('... Homework $homeworkId deleted');
       } else {
         throw ServerException(
           message: 'Failed to delete homework: ${response.statusCode}',
@@ -247,7 +247,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }

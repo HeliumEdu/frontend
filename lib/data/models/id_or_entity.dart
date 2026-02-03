@@ -9,7 +9,7 @@ import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:logging/logging.dart';
 
-final log = Logger('HeliumLogger');
+final _log = Logger('data.models');
 
 class IdOrEntity<T extends BaseModel> {
   final int id;
@@ -30,7 +30,7 @@ class IdOrEntity<T extends BaseModel> {
         return IdOrEntity(id: data['id'], entity: fromJson(data));
       }
     } catch (e, s) {
-      log.severe('An unknown error occurred', e, s);
+      _log.severe('An unknown error occurred', e, s);
     }
 
     throw HeliumException(

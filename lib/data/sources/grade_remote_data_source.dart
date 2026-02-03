@@ -13,7 +13,7 @@ import 'package:heliumapp/data/models/planner/grade_course_group_model.dart';
 import 'package:heliumapp/data/sources/base_data_source.dart';
 import 'package:logging/logging.dart';
 
-final log = Logger('HeliumLogger');
+final _log = Logger('data.sources');
 
 abstract class GradeRemoteDataSource extends BaseDataSource {
   Future<List<GradeCourseGroupModel>> getGrades();
@@ -27,7 +27,7 @@ class GradeRemoteDataSourceImpl extends GradeRemoteDataSource {
   @override
   Future<List<GradeCourseGroupModel>> getGrades() async {
     try {
-      log.info('Fetching Grades ...');
+      _log.info('Fetching Grades ...');
 
       final response = await dioClient.dio.get(ApiUrl.plannerGradesUrl);
 
@@ -45,7 +45,7 @@ class GradeRemoteDataSourceImpl extends GradeRemoteDataSource {
                 )
                 .toList();
 
-            log.info('... fetched Grades for ${grades.length} CourseGroup(s)');
+            _log.info('... fetched Grades for ${grades.length} CourseGroup(s)');
             return grades;
           } else {
             throw ServerException(
@@ -68,7 +68,7 @@ class GradeRemoteDataSourceImpl extends GradeRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }

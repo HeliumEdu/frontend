@@ -27,10 +27,7 @@ import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:heliumapp/utils/storage_helpers.dart';
-import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
-
-final log = Logger('HeliumLogger');
 
 abstract class BaseAttachmentScreen extends StatelessWidget {
   final DioClient _dioClient = DioClient();

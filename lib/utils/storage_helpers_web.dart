@@ -12,7 +12,7 @@ import 'package:dio/dio.dart';
 import 'package:logging/logging.dart';
 import 'package:web/web.dart' as web;
 
-final log = Logger('HeliumLogger');
+final _log = Logger('utils');
 
 Future<bool> downloadFilePlatform(String url, String filename) async {
   try {
@@ -23,7 +23,7 @@ Future<bool> downloadFilePlatform(String url, String filename) async {
     );
 
     if (response.data == null) {
-      log.warning('No data received from download URL');
+      _log.warning('No data received from download URL');
       return false;
     }
 
@@ -46,10 +46,10 @@ Future<bool> downloadFilePlatform(String url, String filename) async {
     anchor.remove();
     web.URL.revokeObjectURL(blobUrl);
 
-    log.info('Web download triggered for: $filename');
+    _log.info('Web download triggered for: $filename');
     return true;
   } catch (e) {
-    log.severe('Web download failed: $e');
+    _log.severe('Web download failed: $e');
     return false;
   }
 }

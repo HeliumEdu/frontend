@@ -20,6 +20,7 @@ dependencies:
   collection: ^1.19.0
   google_fonts: ^6.3.0
   dio: ^5.4.0
+  pretty_dio_logger: ^1.4.0
   bloc: ^9.0.0
   flutter_bloc: ^9.1.0
   shared_preferences: ^2.2.0

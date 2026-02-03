@@ -8,7 +8,9 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/app_theme.dart';
@@ -21,7 +23,7 @@ import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:logging/logging.dart';
 
-final log = Logger('HeliumLogger');
+final _log = Logger('core');
 
 class DioClient {
   static DioClient _instance = DioClient._internal();
@@ -76,7 +78,7 @@ class DioClient {
           final token = await _prefService.getSecure('access_token');
           if (token?.isNotEmpty ?? false) {
             options.headers['Authorization'] = 'Bearer $token';
-            log.info('Authorization token attached to request');
+            _log.info('Authorization token attached to request');
           }
           return handler.next(options);
         },
@@ -96,7 +98,7 @@ class DioClient {
 
             // If refresh is already in progress, wait for it to complete
             if (_isRefreshing && _refreshCompleter != null) {
-              log.info(
+              _log.info(
                 'Token refresh in progress, waiting for completion ...',
               );
               try {
@@ -121,7 +123,7 @@ class DioClient {
             }
 
             // Start token refresh process
-            log.info('Got 401 error, attempting to refresh token ...');
+            _log.info('Got 401 error, attempting to refresh token ...');
             _isRefreshing = true;
             _refreshCompleter = Completer<void>();
 
@@ -129,7 +131,7 @@ class DioClient {
               final refreshToken = await getRefreshToken();
 
               if (refreshToken == null || refreshToken.isEmpty) {
-                log.warning('No refresh token available');
+                _log.warning('No refresh token available');
                 _isRefreshing = false;
                 _refreshCompleter!.completeError('No refresh token');
                 _refreshCompleter = null;
@@ -163,7 +165,7 @@ class DioClient {
                   refreshResponse.access,
                   refreshResponse.refresh,
                 );
-                log.info('Token refreshed successfully');
+                _log.info('Token refreshed successfully');
 
                 // Complete the refresh completer to unblock queued requests
                 _isRefreshing = false;
@@ -177,7 +179,7 @@ class DioClient {
                 final retryResponse = await _dio.fetch(error.requestOptions);
                 return handler.resolve(retryResponse);
               } else {
-                log.warning(
+                _log.warning(
                   'Token refresh failed with status: ${response.statusCode}',
                 );
                 _isRefreshing = false;
@@ -186,21 +188,21 @@ class DioClient {
 
                 // Check if the error is due to blacklisted/invalid refresh token
                 if (_isInvalidTokenError(response.data)) {
-                  log.info(
+                  _log.info(
                     'Refresh token is invalid/expired, clearing tokens',
                   );
                   await _forceLogout('Please login to continue.');
                   return handler.next(error);
                 }
 
-                log.warning(
+                _log.warning(
                   'Token refresh failed but not due to invalid token, retrying request',
                 );
 
                 return handler.next(error);
               }
             } catch (e) {
-              log.severe('Error during token refresh: $e');
+              _log.severe('Error during token refresh: $e');
               _isRefreshing = false;
               if (_refreshCompleter != null) {
                 _refreshCompleter!.completeError(e);
@@ -212,10 +214,10 @@ class DioClient {
               bool shouldLogout = false;
               if (e is DioException) {
                 if (e.response?.statusCode == 403) {
-                  log.info('Got 403 during token refresh, account may not exist');
+                  _log.info('Got 403 during token refresh, account may not exist');
                   shouldLogout = true;
                 } else if (_isInvalidTokenError(e.response?.data)) {
-                  log.info('Refresh token is invalid/expired');
+                  _log.info('Refresh token is invalid/expired');
                   shouldLogout = true;
                 }
               }
@@ -225,7 +227,7 @@ class DioClient {
               if (shouldLogout) {
                 await _forceLogout('Please login to continue.');
               } else {
-                log.warning(
+                _log.warning(
                   'Refresh failed due to network/transient error, not logging out',
                 );
               }
@@ -238,17 +240,21 @@ class DioClient {
       ),
     );
 
-    _dio.interceptors.add(
-      LogInterceptor(
-        request: true,
-        requestHeader: false,
-        requestBody: false,
-        responseHeader: false,
-        responseBody: false,
-        error: true,
-        logPrint: (o) => log.info(o.toString()),
-      ),
-    );
+    if (kDebugMode) {
+      final logLevel = Logger.root.level;
+      final isVerbose = logLevel <= Level.FINE;
+      final isVeryVerbose = logLevel <= Level.FINER;
+
+      _dio.interceptors.add(
+        PrettyDioLogger(
+          requestHeader: isVerbose,
+          requestBody: isVeryVerbose,
+          responseHeader: isVerbose,
+          responseBody: isVeryVerbose,
+          compact: !isVeryVerbose,
+        ),
+      );
+    }
   }
 
   Future<void> saveAccessToken(String accessToken) async {

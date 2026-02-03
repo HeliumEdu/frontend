@@ -15,7 +15,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 
-final log = Logger('HeliumLogger');
+final _log = Logger('utils');
 
 /// Mobile download with platform-specific behavior:
 /// - Android: Saves to Downloads folder (accessible to user)
@@ -27,11 +27,11 @@ Future<bool> downloadFilePlatform(String url, String filename) async {
     } else if (Platform.isIOS) {
       return await _downloadFileIOS(url, filename);
     } else {
-      log.warning('Unsupported platform for download');
+      _log.warning('Unsupported platform for download');
       return false;
     }
   } catch (e) {
-    log.severe('Mobile download failed: $e');
+    _log.severe('Mobile download failed: $e');
     return false;
   }
 }
@@ -43,13 +43,13 @@ Future<bool> _downloadFileAndroid(String url, String filename) async {
     final AndroidDeviceInfo androidInfo = await plugin.androidInfo;
     final int sdkVersion = androidInfo.version.sdkInt;
 
-    log.info('Android SDK version: $sdkVersion');
+    _log.info('Android SDK version: $sdkVersion');
 
     // Request permission for older Android versions
     if (sdkVersion < 29) {
       final status = await Permission.storage.request();
       if (!status.isGranted) {
-        log.warning('Storage permission denied for downloads');
+        _log.warning('Storage permission denied for downloads');
         return false;
       }
     }
@@ -57,29 +57,29 @@ Future<bool> _downloadFileAndroid(String url, String filename) async {
     // Use the PUBLIC Downloads directory
     // Works on all Android versions with requestLegacyExternalStorage flag
     final downloadsDir = Directory('/storage/emulated/0/Download');
-    log.info('Public Downloads directory: ${downloadsDir.path}');
+    _log.info('Public Downloads directory: ${downloadsDir.path}');
 
     // Create Downloads directory if it doesn't exist
     if (!await downloadsDir.exists()) {
-      log.info('Public Downloads directory does not exist, creating...');
+      _log.info('Public Downloads directory does not exist, creating...');
       try {
         await downloadsDir.create(recursive: true);
       } catch (e) {
-        log.warning('Could not create public Downloads directory: $e');
-        log.warning('This may require storage permissions');
+        _log.warning('Could not create public Downloads directory: $e');
+        _log.warning('This may require storage permissions');
         return false;
       }
     }
 
     final filePath = '${downloadsDir.path}/$filename';
-    log.info('Attempting download to PUBLIC Downloads: $filePath');
+    _log.info('Attempting download to PUBLIC Downloads: $filePath');
 
     final response = await Dio().download(
       url,
       filePath,
       onReceiveProgress: (received, total) {
         if (total != -1) {
-          log.info(
+          _log.info(
             'Download progress: ${(received / total * 100).toStringAsFixed(0)}%',
           );
         }
@@ -87,7 +87,7 @@ Future<bool> _downloadFileAndroid(String url, String filename) async {
     );
 
     if (response.statusCode != 200) {
-      log.warning('Download failed with status: ${response.statusCode}');
+      _log.warning('Download failed with status: ${response.statusCode}');
       return false;
     }
 
@@ -96,14 +96,14 @@ Future<bool> _downloadFileAndroid(String url, String filename) async {
     final exists = await file.exists();
     final size = exists ? await file.length() : 0;
 
-    log.info('Download complete:');
-    log.info('  Path: $filePath');
-    log.info('  File exists: $exists');
-    log.info('  File size: $size bytes');
+    _log.info('Download complete:');
+    _log.info('  Path: $filePath');
+    _log.info('  File exists: $exists');
+    _log.info('  File size: $size bytes');
 
     return exists;
   } catch (e) {
-    log.severe('Android download failed: $e');
+    _log.severe('Android download failed: $e');
     return false;
   }
 }
@@ -116,14 +116,14 @@ Future<bool> _downloadFileIOS(String url, String filename) async {
     final Directory appDocDir = await getApplicationDocumentsDirectory();
     final filePath = '${appDocDir.path}/$filename';
 
-    log.info('Downloading to app documents: $filePath');
+    _log.info('Downloading to app documents: $filePath');
 
     final response = await Dio().download(
       url,
       filePath,
       onReceiveProgress: (received, total) {
         if (total != -1) {
-          log.info(
+          _log.info(
             'Download progress: ${(received / total * 100).toStringAsFixed(0)}%',
           );
         }
@@ -131,7 +131,7 @@ Future<bool> _downloadFileIOS(String url, String filename) async {
     );
 
     if (response.statusCode != 200) {
-      log.warning('Download failed with status: ${response.statusCode}');
+      _log.warning('Download failed with status: ${response.statusCode}');
       return false;
     }
 
@@ -145,10 +145,10 @@ Future<bool> _downloadFileIOS(String url, String filename) async {
       ),
     );
 
-    log.info('iOS share sheet result: ${result.status}');
+    _log.info('iOS share sheet result: ${result.status}');
     return true;
   } catch (e) {
-    log.severe('iOS download failed: $e');
+    _log.severe('iOS download failed: $e');
     return false;
   }
 }

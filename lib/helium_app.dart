@@ -14,7 +14,7 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:logging/logging.dart';
 
-final log = Logger('HeliumLogger');
+final _log = Logger('app');
 
 class HeliumApp extends StatefulWidget {
   const HeliumApp({super.key});
@@ -30,7 +30,7 @@ class _HeliumAppState extends State<HeliumApp> {
   void initState() {
     super.initState();
     _themeNotifier.addListener(_onThemeChanged);
-    log.info('HeliumApp initialized with theme: ${_themeNotifier.themeMode}');
+    _log.info('HeliumApp initialized with theme: ${_themeNotifier.themeMode}');
   }
 
   @override
