@@ -47,7 +47,7 @@ class TodosTable extends StatefulWidget {
   State<TodosTable> createState() => TodosTableState();
 }
 
-// TODO: evaluate making columns adjustable in width, how hard?
+// TODO: consider migrating to https://pub.dev/packages/syncfusion_flutter_datagrid, gives us ability for adjustable column widths easily
 
 class TodosTableState extends State<TodosTable> {
   static const List<int> _itemsPerPageOptions = [5, 10, 25, 50, 100, -1];

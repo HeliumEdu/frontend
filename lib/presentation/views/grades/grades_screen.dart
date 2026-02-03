@@ -250,7 +250,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
   }
 
   Widget _buildGraphArea() {
-    // TODO: implement graphs like current frontend, with SyncFusion widgets
+    // TODO: implement graphs like current frontend, with https://pub.dev/packages/syncfusion_flutter_charts
     return const SizedBox.shrink();
   }
 
