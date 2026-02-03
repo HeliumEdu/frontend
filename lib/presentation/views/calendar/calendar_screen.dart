@@ -47,12 +47,12 @@ import 'package:heliumapp/presentation/bloc/category/category_bloc.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
+import 'package:heliumapp/presentation/views/calendar/todos_table_controller.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/shadow_container.dart';
 import 'package:heliumapp/presentation/widgets/todos_table.dart';
-import 'package:heliumapp/presentation/views/calendar/todos_table_controller.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
@@ -608,6 +608,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
     final String headerText = _buildHeaderDate();
 
+    final showNavButtons = _currentView != HeliumView.agenda;
+
     return Expanded(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -615,13 +617,18 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const SizedBox(width: 4),
-          IconButton(
-            icon: Icon(Icons.chevron_left, color: context.colorScheme.primary),
-            onPressed: _calendarController.backward,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-          ),
-          const SizedBox(width: 4),
+          if (showNavButtons) ...[
+            IconButton(
+              icon: Icon(
+                Icons.chevron_left,
+                color: context.colorScheme.primary,
+              ),
+              onPressed: _calendarController.backward,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+            const SizedBox(width: 4),
+          ],
           Material(
             color: Colors.transparent,
             child: InkWell(
@@ -647,13 +654,18 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
               ),
             ),
           ),
-          if (!Responsive.isMobile(context)) const SizedBox(width: 4),
-          IconButton(
-            icon: Icon(Icons.chevron_right, color: context.colorScheme.primary),
-            onPressed: _calendarController.forward,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-          ),
+          if (showNavButtons && !Responsive.isMobile(context))
+            const SizedBox(width: 4),
+          if (showNavButtons)
+            IconButton(
+              icon: Icon(
+                Icons.chevron_right,
+                color: context.colorScheme.primary,
+              ),
+              onPressed: _calendarController.forward,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
         ],
       ),
     );
@@ -2067,7 +2079,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     }
   }
 
-  /// Jump to a specific date. Canonical method for all calendar navigation.
   void _jumpToDate(
     DateTime date, {
     bool setSelectedDate = false,
@@ -2088,6 +2099,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         _calendarController.selectedDate = truncatedDate;
         _storedSelectedDate = truncatedDate;
       }
+
+      // TODO: when jumping that isn't within the loaded data source on "Schedule" view, it doesn't see to trigger the "load more" behavior for that date window
     });
   }
 
