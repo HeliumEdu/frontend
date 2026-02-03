@@ -49,11 +49,30 @@ void main() {
     tz.initializeTimeZones();
   });
 
-  setUp(() {
+  setUp(() async {
     mockEventRepository = MockEventRepository();
     mockHomeworkRepository = MockHomeworkRepository();
     mockCourseScheduleRepository = MockCourseScheduleRepository();
     mockExternalCalendarRepository = MockExternalCalendarRepository();
+
+    // Default mocks for handleLoadMore
+    when(() => mockHomeworkRepository.getHomeworks(
+          from: any(named: 'from'),
+          to: any(named: 'to'),
+          shownOnCalendar: any(named: 'shownOnCalendar'),
+        )).thenAnswer((_) async => []);
+    when(() => mockEventRepository.getEvents(
+          from: any(named: 'from'),
+          to: any(named: 'to'),
+        )).thenAnswer((_) async => []);
+    when(() => mockCourseScheduleRepository.getCourseScheduleEvents(
+          from: any(named: 'from'),
+          to: any(named: 'to'),
+        )).thenAnswer((_) async => []);
+    when(() => mockExternalCalendarRepository.getExternalCalendarEvents(
+          from: any(named: 'from'),
+          to: any(named: 'to'),
+        )).thenAnswer((_) async => []);
 
     userSettings = UserSettingsModel(
       timeZone: tz.getLocation('America/Los_Angeles'),
@@ -77,23 +96,47 @@ void main() {
       externalCalendarRepository: mockExternalCalendarRepository,
       userSettings: userSettings,
     );
+
+    // Initialize cache with a wide date range so addCalendarItem works
+    await dataSource.handleLoadMore(
+      DateTime(2024, 1, 1),
+      DateTime(2026, 12, 31),
+    );
   });
 
   group('CalendarItemDataSource', () {
     group('initialization', () {
       test('initializes with empty appointments', () {
-        expect(dataSource.appointments, isEmpty);
-        expect(dataSource.allCalendarItems, isEmpty);
-        expect(dataSource.hasLoadedInitialData, isFalse);
+        // Create a fresh data source without setUp's handleLoadMore call
+        final freshDataSource = CalendarItemDataSource(
+          eventRepository: mockEventRepository,
+          homeworkRepository: mockHomeworkRepository,
+          courseScheduleRepository: mockCourseScheduleRepository,
+          externalCalendarRepository: mockExternalCalendarRepository,
+          userSettings: userSettings,
+        );
+
+        expect(freshDataSource.appointments, isEmpty);
+        expect(freshDataSource.allCalendarItems, isEmpty);
+        expect(freshDataSource.hasLoadedInitialData, isFalse);
       });
 
       test('initializes with empty filter state', () {
-        expect(dataSource.filteredCourses, isEmpty);
-        expect(dataSource.filterCategories, isEmpty);
-        expect(dataSource.filterTypes, isEmpty);
-        expect(dataSource.filterStatuses, isEmpty);
-        expect(dataSource.searchQuery, isEmpty);
-        expect(dataSource.completedOverrides, isEmpty);
+        // Create a fresh data source without setUp's handleLoadMore call
+        final freshDataSource = CalendarItemDataSource(
+          eventRepository: mockEventRepository,
+          homeworkRepository: mockHomeworkRepository,
+          courseScheduleRepository: mockCourseScheduleRepository,
+          externalCalendarRepository: mockExternalCalendarRepository,
+          userSettings: userSettings,
+        );
+
+        expect(freshDataSource.filteredCourses, isEmpty);
+        expect(freshDataSource.filterCategories, isEmpty);
+        expect(freshDataSource.filterTypes, isEmpty);
+        expect(freshDataSource.filterStatuses, isEmpty);
+        expect(freshDataSource.searchQuery, isEmpty);
+        expect(freshDataSource.completedOverrides, isEmpty);
       });
     });
 
@@ -117,8 +160,8 @@ void main() {
           allDay: false,
         );
 
-        dataSource.allCalendarItems.addAll([homework, event]);
-        dataSource.appointments!.addAll([homework, event]);
+        dataSource.addCalendarItem(homework);
+        dataSource.addCalendarItem(event);
       });
 
       test('getStartTime returns correct DateTime', () {
@@ -292,7 +335,9 @@ void main() {
         homework3 = _createHomeworkModel(id: 3, courseId: 1);
 
         dataSource.courses = [course1, course2];
-        dataSource.allCalendarItems.addAll([homework1, homework2, homework3]);
+        dataSource.addCalendarItem(homework1);
+        dataSource.addCalendarItem(homework2);
+        dataSource.addCalendarItem(homework3);
       });
 
       test('returns all homeworks when no courses selected', () {
@@ -338,9 +383,12 @@ void main() {
       });
 
       test('filters CourseScheduleEventModels by course', () {
-        final scheduleEvent1 = _createCourseScheduleEventModel(ownerId: '1');
-        final scheduleEvent2 = _createCourseScheduleEventModel(ownerId: '2');
-        dataSource.allCalendarItems.addAll([scheduleEvent1, scheduleEvent2]);
+        final scheduleEvent1 =
+            _createCourseScheduleEventModel(id: 10, ownerId: '1');
+        final scheduleEvent2 =
+            _createCourseScheduleEventModel(id: 11, ownerId: '2');
+        dataSource.addCalendarItem(scheduleEvent1);
+        dataSource.addCalendarItem(scheduleEvent2);
 
         dataSource.setFilteredCourses({'Math 101': true});
         dataSource.setFilterTypes(['Class Schedules']);
@@ -367,7 +415,9 @@ void main() {
         homework3 = _createHomeworkModel(id: 3, categoryId: 1);
 
         dataSource.categoriesMap = {1: category1, 2: category2};
-        dataSource.allCalendarItems.addAll([homework1, homework2, homework3]);
+        dataSource.addCalendarItem(homework1);
+        dataSource.addCalendarItem(homework2);
+        dataSource.addCalendarItem(homework3);
       });
 
       test('returns all homeworks when no categories filtered', () {
@@ -401,7 +451,7 @@ void main() {
           id: 4,
           categoryEntity: category1,
         );
-        dataSource.allCalendarItems.add(homeworkWithEntity);
+        dataSource.addCalendarItem(homeworkWithEntity);
 
         dataSource.setFilterCategories(['Assignments']);
         final filtered = dataSource.filteredHomeworks;
@@ -412,9 +462,9 @@ void main() {
 
       test('excludes homework with empty category title', () {
         final emptyCategory = _createCategoryModel(id: 3, title: '  ');
-        final homework = _createHomeworkModel(id: 4, categoryId: 3);
+        final homework = _createHomeworkModel(id: 5, categoryId: 3);
         dataSource.categoriesMap![3] = emptyCategory;
-        dataSource.allCalendarItems.add(homework);
+        dataSource.addCalendarItem(homework);
 
         dataSource.setFilterCategories(['Assignments']);
         final filtered = dataSource.filteredHomeworks;
@@ -447,11 +497,9 @@ void main() {
           start: now.subtract(const Duration(days: 1)).toIso8601String(),
         );
 
-        dataSource.allCalendarItems.addAll([
-          completedHomework,
-          incompleteHomework,
-          overdueHomework,
-        ]);
+        dataSource.addCalendarItem(completedHomework);
+        dataSource.addCalendarItem(incompleteHomework);
+        dataSource.addCalendarItem(overdueHomework);
       });
 
       test('returns all homeworks when no status filter', () {
@@ -495,7 +543,7 @@ void main() {
           completed: true,
           start: now.subtract(const Duration(days: 1)).toIso8601String(),
         );
-        dataSource.allCalendarItems.add(completedOverdue);
+        dataSource.addCalendarItem(completedOverdue);
 
         dataSource.setFilterStatuses({'Overdue'});
         final filtered = dataSource.filteredHomeworks;
@@ -537,7 +585,9 @@ void main() {
           comments: 'Review math notes',
         );
 
-        dataSource.allCalendarItems.addAll([homework1, homework2, event1]);
+        dataSource.addCalendarItem(homework1);
+        dataSource.addCalendarItem(homework2);
+        dataSource.addCalendarItem(event1);
       });
 
       test('returns all items when search query is empty', () {
@@ -598,12 +648,10 @@ void main() {
         scheduleEvent = _createCourseScheduleEventModel(id: 3);
         externalEvent = _createExternalCalendarEventModel(id: 4);
 
-        dataSource.allCalendarItems.addAll([
-          homework,
-          event,
-          scheduleEvent,
-          externalEvent,
-        ]);
+        dataSource.addCalendarItem(homework);
+        dataSource.addCalendarItem(event);
+        dataSource.addCalendarItem(scheduleEvent);
+        dataSource.addCalendarItem(externalEvent);
       });
 
       test('returns all items when no type filter', () {
@@ -673,11 +721,9 @@ void main() {
 
         dataSource.courses = [course1];
         dataSource.categoriesMap = {1: category1};
-        dataSource.allCalendarItems.addAll([
-          matchingHomework,
-          nonMatchingCourse,
-          nonMatchingCategory,
-        ]);
+        dataSource.addCalendarItem(matchingHomework);
+        dataSource.addCalendarItem(nonMatchingCourse);
+        dataSource.addCalendarItem(nonMatchingCategory);
       });
 
       test('applies course and category filters together', () {
@@ -838,7 +884,16 @@ void main() {
     });
 
     group('handleLoadMore', () {
+      late CalendarItemDataSource freshDataSource;
+
       setUp(() {
+        // Reset mocks to clear calls from outer setUp
+        reset(mockHomeworkRepository);
+        reset(mockEventRepository);
+        reset(mockCourseScheduleRepository);
+        reset(mockExternalCalendarRepository);
+
+        // Re-setup default mocks
         when(() => mockHomeworkRepository.getHomeworks(
               from: any(named: 'from'),
               to: any(named: 'to'),
@@ -856,54 +911,95 @@ void main() {
               from: any(named: 'from'),
               to: any(named: 'to'),
             )).thenAnswer((_) async => []);
-      });
 
-      test('sets initial date range', () async {
-        final start = DateTime(2025, 1, 1);
-        final end = DateTime(2025, 1, 31);
-
-        await dataSource.handleLoadMore(start, end);
-
-        expect(dataSource.from, start);
-        expect(dataSource.to, end);
-        expect(dataSource.hasLoadedInitialData, isTrue);
-      });
-
-      test('expands date range when earlier dates requested', () async {
-        await dataSource.handleLoadMore(
-          DateTime(2025, 1, 15),
-          DateTime(2025, 1, 31),
+        // Create a fresh data source without the pre-loaded cache
+        freshDataSource = CalendarItemDataSource(
+          eventRepository: mockEventRepository,
+          homeworkRepository: mockHomeworkRepository,
+          courseScheduleRepository: mockCourseScheduleRepository,
+          externalCalendarRepository: mockExternalCalendarRepository,
+          userSettings: userSettings,
         );
+      });
 
-        await dataSource.handleLoadMore(
+      test('sets hasLoadedInitialData after first load', () async {
+        expect(freshDataSource.hasLoadedInitialData, isFalse);
+
+        await freshDataSource.handleLoadMore(
           DateTime(2025, 1, 1),
           DateTime(2025, 1, 31),
         );
 
-        expect(dataSource.from, DateTime(2025, 1, 1));
-        expect(dataSource.to, DateTime(2025, 1, 31));
+        expect(freshDataSource.hasLoadedInitialData, isTrue);
       });
 
-      test('expands date range when later dates requested', () async {
-        await dataSource.handleLoadMore(
-          DateTime(2025, 1, 1),
-          DateTime(2025, 1, 15),
-        );
-
-        await dataSource.handleLoadMore(
+      test('caches date ranges and skips fetch on repeat', () async {
+        await freshDataSource.handleLoadMore(
           DateTime(2025, 1, 1),
           DateTime(2025, 1, 31),
         );
 
-        expect(dataSource.from, DateTime(2025, 1, 1));
-        expect(dataSource.to, DateTime(2025, 1, 31));
+        // Reset mocks to track new calls
+        reset(mockHomeworkRepository);
+        reset(mockEventRepository);
+        reset(mockCourseScheduleRepository);
+        reset(mockExternalCalendarRepository);
+
+        when(() => mockHomeworkRepository.getHomeworks(
+              from: any(named: 'from'),
+              to: any(named: 'to'),
+              shownOnCalendar: any(named: 'shownOnCalendar'),
+            )).thenAnswer((_) async => []);
+        when(() => mockEventRepository.getEvents(
+              from: any(named: 'from'),
+              to: any(named: 'to'),
+            )).thenAnswer((_) async => []);
+        when(() => mockCourseScheduleRepository.getCourseScheduleEvents(
+              from: any(named: 'from'),
+              to: any(named: 'to'),
+            )).thenAnswer((_) async => []);
+        when(() => mockExternalCalendarRepository.getExternalCalendarEvents(
+              from: any(named: 'from'),
+              to: any(named: 'to'),
+            )).thenAnswer((_) async => []);
+
+        // Same range should use cache
+        await freshDataSource.handleLoadMore(
+          DateTime(2025, 1, 1),
+          DateTime(2025, 1, 31),
+        );
+
+        verifyNever(() => mockHomeworkRepository.getHomeworks(
+              from: any(named: 'from'),
+              to: any(named: 'to'),
+              shownOnCalendar: any(named: 'shownOnCalendar'),
+            ));
+      });
+
+      test('fetches for different date ranges', () async {
+        await freshDataSource.handleLoadMore(
+          DateTime(2025, 1, 1),
+          DateTime(2025, 1, 31),
+        );
+
+        // Different range should fetch
+        await freshDataSource.handleLoadMore(
+          DateTime(2025, 2, 1),
+          DateTime(2025, 2, 28),
+        );
+
+        verify(() => mockHomeworkRepository.getHomeworks(
+              from: any(named: 'from'),
+              to: any(named: 'to'),
+              shownOnCalendar: any(named: 'shownOnCalendar'),
+            )).called(2);
       });
 
       test('fetches calendar items from all repositories', () async {
-        final homework = _createHomeworkModel(id: 1);
-        final event = _createEventModel(id: 2);
-        final scheduleEvent = _createCourseScheduleEventModel(id: 3);
-        final externalEvent = _createExternalCalendarEventModel(id: 4);
+        final homework = _createHomeworkModel(id: 100);
+        final event = _createEventModel(id: 101);
+        final scheduleEvent = _createCourseScheduleEventModel(id: 102);
+        final externalEvent = _createExternalCalendarEventModel(id: 103);
 
         when(() => mockHomeworkRepository.getHomeworks(
               from: any(named: 'from'),
@@ -923,17 +1019,17 @@ void main() {
               to: any(named: 'to'),
             )).thenAnswer((_) async => [externalEvent]);
 
-        await dataSource.handleLoadMore(
+        await freshDataSource.handleLoadMore(
           DateTime(2025, 1, 1),
           DateTime(2025, 1, 31),
         );
 
-        expect(dataSource.allCalendarItems, hasLength(4));
-        expect(dataSource.appointments, hasLength(4));
+        expect(freshDataSource.allCalendarItems, hasLength(4));
+        expect(freshDataSource.appointments, hasLength(4));
       });
 
-      test('does not add duplicate items', () async {
-        final homework = _createHomeworkModel(id: 1);
+      test('deduplicates items across overlapping date ranges', () async {
+        final homework = _createHomeworkModel(id: 100);
 
         when(() => mockHomeworkRepository.getHomeworks(
               from: any(named: 'from'),
@@ -941,21 +1037,22 @@ void main() {
               shownOnCalendar: any(named: 'shownOnCalendar'),
             )).thenAnswer((_) async => [homework]);
 
-        await dataSource.handleLoadMore(
+        // Load two different ranges that both return the same item
+        await freshDataSource.handleLoadMore(
           DateTime(2025, 1, 1),
           DateTime(2025, 1, 31),
         );
-
-        await dataSource.handleLoadMore(
-          DateTime(2025, 1, 1),
-          DateTime(2025, 1, 31),
+        await freshDataSource.handleLoadMore(
+          DateTime(2025, 1, 15),
+          DateTime(2025, 2, 15),
         );
 
-        expect(dataSource.allCalendarItems, hasLength(1));
+        // allCalendarItems should deduplicate
+        expect(freshDataSource.allCalendarItems, hasLength(1));
       });
 
       test('fetches with shownOnCalendar=true for homework', () async {
-        await dataSource.handleLoadMore(
+        await freshDataSource.handleLoadMore(
           DateTime(2025, 1, 1),
           DateTime(2025, 1, 31),
         );
@@ -966,47 +1063,40 @@ void main() {
               shownOnCalendar: true,
             )).called(1);
       });
+
     });
 
     group('typed getters', () {
       test('allHomeworks returns only HomeworkModels', () {
-        dataSource.allCalendarItems.addAll([
-          _createHomeworkModel(id: 1),
-          _createEventModel(id: 2),
-          _createHomeworkModel(id: 3),
-        ]);
+        dataSource.addCalendarItem(_createHomeworkModel(id: 101));
+        dataSource.addCalendarItem(_createEventModel(id: 102));
+        dataSource.addCalendarItem(_createHomeworkModel(id: 103));
 
         expect(dataSource.allHomeworks, hasLength(2));
       });
 
       test('allEvents returns only EventModels', () {
-        dataSource.allCalendarItems.addAll([
-          _createHomeworkModel(id: 1),
-          _createEventModel(id: 2),
-          _createEventModel(id: 3),
-        ]);
+        dataSource.addCalendarItem(_createHomeworkModel(id: 104));
+        dataSource.addCalendarItem(_createEventModel(id: 105));
+        dataSource.addCalendarItem(_createEventModel(id: 106));
 
         expect(dataSource.allEvents, hasLength(2));
       });
 
       test('allCourseScheduleEvents returns only CourseScheduleEventModels',
           () {
-        dataSource.allCalendarItems.addAll([
-          _createCourseScheduleEventModel(id: 1),
-          _createEventModel(id: 2),
-          _createCourseScheduleEventModel(id: 3),
-        ]);
+        dataSource.addCalendarItem(_createCourseScheduleEventModel(id: 107));
+        dataSource.addCalendarItem(_createEventModel(id: 108));
+        dataSource.addCalendarItem(_createCourseScheduleEventModel(id: 109));
 
         expect(dataSource.allCourseScheduleEvents, hasLength(2));
       });
 
       test('allExternalCalendarEvents returns only ExternalCalendarEventModels',
           () {
-        dataSource.allCalendarItems.addAll([
-          _createExternalCalendarEventModel(id: 1),
-          _createEventModel(id: 2),
-          _createExternalCalendarEventModel(id: 3),
-        ]);
+        dataSource.addCalendarItem(_createExternalCalendarEventModel(id: 110));
+        dataSource.addCalendarItem(_createEventModel(id: 111));
+        dataSource.addCalendarItem(_createExternalCalendarEventModel(id: 112));
 
         expect(dataSource.allExternalCalendarEvents, hasLength(2));
       });

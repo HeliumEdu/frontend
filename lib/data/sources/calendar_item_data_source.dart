@@ -32,12 +32,11 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   final ExternalCalendarRepository externalCalendarRepository;
   final UserSettingsModel userSettings;
 
-  final List<CalendarItemBaseModel> allCalendarItems = [];
-
   List<CourseModel>? courses;
   Map<int, CategoryModel>? categoriesMap;
-  DateTime? from;
-  DateTime? to;
+
+  // TODO: Refactor this simple cache approach (which hits API more than necessary to cache on the remote data source layer instead: https://pub.dev/packages/dio_cache_interceptor
+  final Map<String, List<CalendarItemBaseModel>> _dateRangeCache = {};
 
   // State
   bool _hasLoadedInitialData = false;
@@ -81,6 +80,20 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
 
   Map<int, bool> get completedOverrides =>
       Map.unmodifiable(_completedOverrides);
+
+  /// Returns all calendar items from all cached date ranges, deduplicated by id.
+  List<CalendarItemBaseModel> get allCalendarItems {
+    final seen = <int>{};
+    final items = <CalendarItemBaseModel>[];
+    for (final rangeItems in _dateRangeCache.values) {
+      for (final item in rangeItems) {
+        if (seen.add(item.id)) {
+          items.add(item);
+        }
+      }
+    }
+    return items;
+  }
 
   @override
   CalendarItemBaseModel? convertAppointmentToObject(
@@ -136,6 +149,13 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     }
   }
 
+  String _cacheKey(DateTime from, DateTime to) {
+    // API query parameters are date-only, so cache keys can be the same
+    final fromKey = DateTime(from.year, from.month, from.day);
+    final toKey = DateTime(to.year, to.month, to.day);
+    return '${fromKey.toIso8601String()}_${toKey.toIso8601String()}';
+  }
+
   String? getLocationForItem(CalendarItemBaseModel calendarItem) {
     final String? location;
     if (calendarItem is HomeworkModel) {
@@ -155,30 +175,23 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
 
   @override
   Future<void> handleLoadMore(DateTime startDate, DateTime endDate) async {
-    bool windowPushed = false;
-    if (from == null || startDate.isBefore(from!)) {
-      windowPushed = true;
-      from = startDate;
-    }
-    if (to == null || endDate.isAfter(to!)) {
-      windowPushed = true;
-      to = endDate;
-    }
+    final key = _cacheKey(startDate, endDate);
 
-    // Fetch new data if the window expanded
-    if (windowPushed) {
-      _log.info('Data window expanded: $from to $to');
+    if (!_dateRangeCache.containsKey(key)) {
+      _log.info('Fetching data for range: $startDate to $endDate');
+
       final homeworks = await homeworkRepository.getHomeworks(
-        from: from!,
-        to: to!,
+        from: startDate,
+        to: endDate,
         shownOnCalendar: true,
       );
-      final events = await eventRepository.getEvents(from: from, to: to);
-      // TODO: remove this, we can obtains course schedule events by using SfCalendar's native repeating events concept, and reduce backend load (and eliminate the need for this data source function and API endpoint)
+      final events =
+          await eventRepository.getEvents(from: startDate, to: endDate);
+      // TODO: remove this, we can obtain course schedule events by using SfCalendar's native repeating events concept
       final courseScheduleEvents = await courseScheduleRepository
-          .getCourseScheduleEvents(from: from!, to: to!);
+          .getCourseScheduleEvents(from: startDate, to: endDate);
       final externalCalendarEvents = await externalCalendarRepository
-          .getExternalCalendarEvents(from: from!, to: to!);
+          .getExternalCalendarEvents(from: startDate, to: endDate);
 
       final calendarItems = [
         ...events,
@@ -192,15 +205,12 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
         '${externalCalendarEvents.length} external events',
       );
 
-      // Add only new items
-      for (final CalendarItemBaseModel calendarItem in calendarItems) {
-        if (!allCalendarItems.any((ca) => ca.id == calendarItem.id)) {
-          allCalendarItems.add(calendarItem);
-        }
-      }
+      _dateRangeCache[key] = calendarItems;
+    } else {
+      _log.fine('Items for date range already cached: $startDate to $endDate');
     }
 
-    // Always rebuild appointments from filtered items to ensure consistency
+    // Rebuild appointments from filtered items
     appointments!.clear();
     appointments!.addAll(_filteredCalendarItems);
     notifyListeners(CalendarDataSourceAction.reset, appointments!);
@@ -212,7 +222,6 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
           _notifyChangeListeners();
         });
       } catch (_) {
-        // Binding not initialized (e.g., in tests), call directly
         _notifyChangeListeners();
       }
     }
@@ -336,25 +345,51 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   }
 
   void addCalendarItem(CalendarItemBaseModel calendarItem) {
-    if (allCalendarItems.any((existing) => existing.id == calendarItem.id)) {
-      return;
+    // Check if already exists in any cache entry
+    for (final items in _dateRangeCache.values) {
+      if (items.any((existing) => existing.id == calendarItem.id)) {
+        return;
+      }
     }
+
     _log.info(
       'Calendar item added: ${calendarItem.runtimeType} ${calendarItem.id} "${calendarItem.title}"',
     );
-    allCalendarItems.add(calendarItem);
+
+    // Add to all cache entries whose range overlaps with this item's dates
+    final itemStart = DateTime.parse(calendarItem.start);
+    final itemEnd = DateTime.parse(calendarItem.end);
+
+    for (final entry in _dateRangeCache.entries) {
+      final parts = entry.key.split('_');
+      final rangeStart = DateTime.parse(parts[0]);
+      final rangeEnd = DateTime.parse(parts[1]);
+
+      // Check if item overlaps with this cached range
+      if (itemStart.isBefore(rangeEnd) && itemEnd.isAfter(rangeStart)) {
+        entry.value.add(calendarItem);
+      }
+    }
+
     _applyFiltersAndNotify();
   }
 
   void updateCalendarItem(CalendarItemBaseModel calendarItem) {
-    final index = allCalendarItems.indexWhere(
-      (existing) => existing.id == calendarItem.id,
-    );
-    if (index != -1) {
+    bool updated = false;
+
+    // Update in all cache entries where the item exists
+    for (final items in _dateRangeCache.values) {
+      final index = items.indexWhere((existing) => existing.id == calendarItem.id);
+      if (index != -1) {
+        items[index] = calendarItem;
+        updated = true;
+      }
+    }
+
+    if (updated) {
       _log.info(
         'Calendar item updated: ${calendarItem.runtimeType} ${calendarItem.id} "${calendarItem.title}"',
       );
-      allCalendarItems[index] = calendarItem;
     }
 
     // Clear any completed override since we have the real data now
@@ -366,19 +401,24 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   }
 
   void removeCalendarItem(int calendarItemId) {
-    final item = allCalendarItems.cast<CalendarItemBaseModel?>().firstWhere(
-      (existing) => existing?.id == calendarItemId,
-      orElse: () => null,
-    );
+    CalendarItemBaseModel? removedItem;
 
-    if (item != null) {
+    // Remove from all cache entries where the item exists
+    for (final items in _dateRangeCache.values) {
+      final index = items.indexWhere((existing) => existing.id == calendarItemId);
+      if (index != -1) {
+        removedItem ??= items[index];
+        items.removeAt(index);
+      }
+    }
+
+    if (removedItem != null) {
       _log.info(
-        'Calendar item removed: ${item.runtimeType} $calendarItemId "${item.title}"',
+        'Calendar item removed: ${removedItem.runtimeType} $calendarItemId "${removedItem.title}"',
       );
-      allCalendarItems.remove(item);
-      appointments!.remove(item);
+      appointments!.remove(removedItem);
       _completedOverrides.remove(calendarItemId);
-      notifyListeners(CalendarDataSourceAction.remove, [item]);
+      notifyListeners(CalendarDataSourceAction.remove, [removedItem]);
       _notifyChangeListeners();
     }
   }
@@ -408,14 +448,6 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     );
     notifyListeners(CalendarDataSourceAction.reset, appointments!);
     _notifyChangeListeners();
-  }
-
-  /// Force SfCalendar to re-read all appointments, sometimes necessary when
-  /// switching views.
-  void refreshAppointments() {
-    appointments!.clear();
-    appointments!.addAll(_filteredCalendarItems);
-    notifyListeners(CalendarDataSourceAction.reset, appointments!);
   }
 
   bool _hasSelectedCourses() {
