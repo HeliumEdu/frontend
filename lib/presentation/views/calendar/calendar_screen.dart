@@ -197,6 +197,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       if (value == 'calendarView') {
         _calendarViewChanged();
       } else if (value == 'displayDate' && _currentView == HeliumView.agenda) {
+        _log.fine('Display date change: $value');
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
             setState(() {});
@@ -423,7 +424,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           scheduleViewSettings: ScheduleViewSettings(
             hideEmptyScheduleWeek: true,
             appointmentItemHeight: agendaHeight,
-            monthHeaderSettings: const MonthHeaderSettings(height: 0),
+            monthHeaderSettings: MonthHeaderSettings(
+              backgroundColor: context.colorScheme.primary,
+              height: 100
+            ),
           ),
           monthViewSettings: MonthViewSettings(
             appointmentDisplayCount: appointmentDisplayCount,
@@ -448,6 +452,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             if (mounted) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (mounted) {
+                  // Ensure the date header is updated
                   setState(() {});
                 }
               });
@@ -1200,6 +1205,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   void _onCalendarSelectionChanged(CalendarSelectionDetails details) {
     if (details.date == null) return;
+
+    _log.info('Selection changed: ${details.date}');
 
     // User made a manual selection, clear any mobile-specific paths as that
     // logic now follows all standard paths (since a selection can't be undone
