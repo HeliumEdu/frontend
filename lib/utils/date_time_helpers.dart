@@ -50,18 +50,18 @@ class HeliumDateTime {
   }
 
   static String formatDateForDisplay(DateTime date) {
-    return DateFormat('MMM dd, yyyy').format(date);
+    return DateFormat('MMM d, yyyy').format(date);
   }
 
   static String formatDateAndTimeForDisplay(DateTime date) {
     return DateFormat(
-      'MMM dd, yyyy • h:mm a',
+      'MMM d, yyyy • h:mm a',
     ).format(date).replaceAll(':00', '');
   }
 
   static String formatDateAndTimeForTodosDisplay(DateTime date) {
     return DateFormat(
-      'EEE, MMM dd • h:mm a',
+      'EEE, MMM d • h:mm a',
     ).format(date).replaceAll(':00', '');
   }
 

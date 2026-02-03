@@ -8,11 +8,13 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/base_model.dart';
+import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/widgets/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/shadow_container.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/date_time_helpers.dart';
 
 class GroupDropdown<T extends BaseModel> extends StatelessWidget {
   final List<T> groups;
@@ -97,24 +99,55 @@ class GroupDropdown<T extends BaseModel> extends StatelessWidget {
   }
 
   Widget _buildItem(BuildContext context, T item) {
+    String? dateRange;
+    if (item is CourseGroupModel) {
+      final startDate = DateTime.parse(item.startDate);
+      final endDate = DateTime.parse(item.endDate);
+      dateRange =
+          '${HeliumDateTime.formatDateForDisplay(startDate)} to ${HeliumDateTime.formatDateForDisplay(endDate)}';
+    }
+
     return Row(
       children: [
         Expanded(
           child: Row(
             children: [
-              Text(
-                item.title,
-                style: context.formText,
-                overflow: TextOverflow.ellipsis,
-              ),
-              if (!item.shownOnCalendar!) ...[
-                const SizedBox(width: 8),
-                Icon(
-                  Icons.visibility_off,
-                  size: 18,
-                  color: context.colorScheme.primary,
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          item.title,
+                          style: context.formText,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (!item.shownOnCalendar!) ...[
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.visibility_off,
+                            size: 18,
+                            color: context.colorScheme.primary,
+                          ),
+                        ],
+                      ],
+                    ),
+                    if (dateRange != null)
+                      Text(
+                        dateRange,
+                        style: context.calendarData.copyWith(
+                          fontSize: 12,
+                          color: context.colorScheme.onSurface.withValues(
+                            alpha: 0.6,
+                          ),
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                  ],
                 ),
-              ],
+              ),
             ],
           ),
         ),
