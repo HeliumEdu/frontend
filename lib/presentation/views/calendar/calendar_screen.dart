@@ -196,6 +196,12 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     _calendarController.addPropertyChangedListener((value) {
       if (value == 'calendarView') {
         _calendarViewChanged();
+      } else if (value == 'displayDate' && _currentView == HeliumView.agenda) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            setState(() {});
+          }
+        });
       }
     });
 
