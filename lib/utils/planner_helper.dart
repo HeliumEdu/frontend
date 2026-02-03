@@ -11,12 +11,15 @@ import 'package:flutter/foundation.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/notification/notification_model.dart';
 import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
+import 'package:heliumapp/data/models/planner/course_group_model.dart';
+import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
@@ -261,5 +264,27 @@ class PlannerHelper {
 
   static bool shouldShowDeleteButton(CalendarItemBaseModel calendarItem) {
     return calendarItem is HomeworkModel || calendarItem is EventModel;
+  }
+
+  static List<CourseModel> sortByGroupStartThenByTitle(
+    List<CourseModel> courses,
+    List<CourseGroupModel> courseGroups,
+  ) {
+    final sortedGroups = List<CourseGroupModel>.from(courseGroups);
+    Sort.byStartDate(sortedGroups);
+
+    final groupOrder = <int, int>{};
+    for (int i = 0; i < sortedGroups.length; i++) {
+      groupOrder[sortedGroups[i].id] = i;
+    }
+
+    return List<CourseModel>.from(courses)..sort((a, b) {
+      final groupComparison = (groupOrder[a.courseGroup] ?? 0).compareTo(
+        groupOrder[b.courseGroup] ?? 0,
+      );
+      if (groupComparison != 0) return groupComparison;
+
+      return a.title.compareTo(b.title);
+    });
   }
 }

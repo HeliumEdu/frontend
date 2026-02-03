@@ -137,7 +137,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
 
             setState(() {
               _courseGroups.add(state.courseGroup);
-              Sort.byTitle(_courseGroups);
+              Sort.byStartDate(_courseGroups);
               _selectedGroupId = state.courseGroup.id;
               _coursesMap[_selectedGroupId!] = [];
             });
@@ -149,7 +149,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
                     (g) => g.id == _selectedGroupId,
                   )] =
                   state.courseGroup;
-              Sort.byTitle(_courseGroups);
+              Sort.byStartDate(_courseGroups);
             });
           } else if (state is CourseGroupDeleted) {
             showSnackBar(context, 'Class group deleted');
@@ -291,7 +291,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
   void _populateInitialStateData(CoursesScreenDataFetched state) {
     setState(() {
       _courseGroups = state.courseGroups;
-      Sort.byTitle(_courseGroups);
+      Sort.byStartDate(_courseGroups);
 
       for (var group in _courseGroups) {
         _coursesMap[group.id] = state.courses

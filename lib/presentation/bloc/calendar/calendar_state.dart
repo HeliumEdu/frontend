@@ -6,6 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:heliumapp/data/models/planner/category_model.dart';
+import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 
 abstract class CalendarState {
@@ -23,11 +24,13 @@ class CalendarError extends CalendarState {
 }
 
 class CalendarScreenDataFetched extends CalendarState {
+  final List<CourseGroupModel> courseGroups;
   final List<CourseModel> courses;
   final List<CategoryModel> categories;
 
   CalendarScreenDataFetched({
     super.message,
+    required this.courseGroups,
     required this.courses,
     required this.categories,
   });

@@ -9,6 +9,7 @@ import 'package:bloc/bloc.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
+import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/data/models/planner/material_model.dart';
@@ -56,12 +57,14 @@ class CalendarItemBloc extends Bloc<CalendarItemEvent, CalendarItemState> {
     emit(CalendarItemsLoading(origin: event.origin));
     try {
       final CalendarItemBaseModel? calendarItem;
+      final List<CourseGroupModel> courseGroups;
       final List<CourseModel> courses;
       final List<CourseScheduleModel> courseSchedules;
       final List<CategoryModel> categories;
       final List<MaterialModel> materials;
       if (event.eventId != null) {
         calendarItem = await eventRepository.getEvent(id: event.eventId!);
+        courseGroups = [];
         courses = [];
         courseSchedules = [];
         categories = [];
@@ -74,6 +77,9 @@ class CalendarItemBloc extends Bloc<CalendarItemEvent, CalendarItemState> {
         } else {
           calendarItem = null;
         }
+        courseGroups = await courseRepository.getCourseGroups(
+          shownOnCalendar: true,
+        );
         courses = await courseRepository.getCourses(shownOnCalendar: true);
         courseSchedules = await courseScheduleRepository.getCourseSchedules();
         categories = await categoryRepository.getCategories();
@@ -84,6 +90,7 @@ class CalendarItemBloc extends Bloc<CalendarItemEvent, CalendarItemState> {
         CalendarItemScreenDataFetched(
           origin: event.origin,
           calendarItem: calendarItem,
+          courseGroups: courseGroups,
           courses: courses,
           courseSchedules: courseSchedules,
           categories: categories,

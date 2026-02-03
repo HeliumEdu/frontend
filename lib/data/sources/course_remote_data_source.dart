@@ -19,7 +19,7 @@ import 'package:logging/logging.dart';
 final _log = Logger('data.sources');
 
 abstract class CourseRemoteDataSource extends BaseDataSource {
-  Future<List<CourseGroupModel>> getCourseGroups();
+  Future<List<CourseGroupModel>> getCourseGroups({bool? shownOnCalendar});
 
   Future<CourseGroupModel> getCourseGroup(int id);
 
@@ -227,9 +227,17 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
   }
 
   @override
-  Future<List<CourseGroupModel>> getCourseGroups() async {
+  Future<List<CourseGroupModel>> getCourseGroups({
+    bool? shownOnCalendar,
+  }) async {
     try {
       _log.info('Fetching CourseGroups ...');
+
+      final Map<String, dynamic> queryParameters = {};
+      if (shownOnCalendar != null) {
+        queryParameters['shown_on_calendar'] = shownOnCalendar;
+      }
+
       final response = await dioClient.dio.get(
         ApiUrl.plannerCourseGroupsListUrl,
       );

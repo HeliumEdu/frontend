@@ -11,7 +11,7 @@ import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_request_model.dart';
 
 abstract class CourseRepository {
-  Future<List<CourseGroupModel>> getCourseGroups();
+  Future<List<CourseGroupModel>> getCourseGroups({bool? shownOnCalendar});
 
   Future<CourseGroupModel> getCourseGroup(int id);
 

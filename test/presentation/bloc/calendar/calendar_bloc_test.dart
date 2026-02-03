@@ -49,6 +49,9 @@ void main() {
         'emits [CalendarLoading, CalendarScreenDataFetched] when data fetch succeeds',
         build: () {
           when(
+                () => mockCourseRepository.getCourseGroups(shownOnCalendar: true),
+          ).thenAnswer((_) async => MockModels.createCourseGroups());
+          when(
             () => mockCourseRepository.getCourses(shownOnCalendar: true),
           ).thenAnswer((_) async => MockModels.createCourses(count: 2));
           when(() => mockCategoryRepository.getCategories()).thenAnswer(
@@ -78,6 +81,9 @@ void main() {
         'emits [CalendarLoading, CalendarError] when getCourses fails',
         build: () {
           when(
+                () => mockCourseRepository.getCourseGroups(shownOnCalendar: true),
+          ).thenAnswer((_) async => MockModels.createCourseGroups());
+          when(
             () => mockCourseRepository.getCourses(shownOnCalendar: true),
           ).thenThrow(NetworkException(message: 'Network error'));
           return calendarBloc;
@@ -96,6 +102,9 @@ void main() {
       blocTest<CalendarBloc, CalendarState>(
         'emits [CalendarLoading, CalendarError] when getCategories fails',
         build: () {
+          when(
+                () => mockCourseRepository.getCourseGroups(shownOnCalendar: true),
+          ).thenAnswer((_) async => MockModels.createCourseGroups());
           when(
             () => mockCourseRepository.getCourses(shownOnCalendar: true),
           ).thenAnswer((_) async => MockModels.createCourses());
@@ -138,6 +147,9 @@ void main() {
         'handles empty courses and categories',
         build: () {
           when(
+                () => mockCourseRepository.getCourseGroups(shownOnCalendar: true),
+          ).thenAnswer((_) async => []);
+          when(
             () => mockCourseRepository.getCourses(shownOnCalendar: true),
           ).thenAnswer((_) async => []);
           when(
@@ -149,6 +161,7 @@ void main() {
         expect: () => [
           isA<CalendarLoading>(),
           isA<CalendarScreenDataFetched>()
+              .having((s) => s.courseGroups, 'courseGroups', isEmpty)
               .having((s) => s.courses, 'courses', isEmpty)
               .having((s) => s.categories, 'categories', isEmpty),
         ],

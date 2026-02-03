@@ -7,6 +7,7 @@
 
 import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
+import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
@@ -86,6 +87,7 @@ class CalendarItemsFetched extends CalendarItemState {
 
 class CalendarItemScreenDataFetched extends CalendarItemState {
   final CalendarItemBaseModel? calendarItem;
+  final List<CourseGroupModel> courseGroups;
   final List<CourseModel> courses;
   final List<CourseScheduleModel> courseSchedules;
   final List<CategoryModel> categories;
@@ -94,6 +96,7 @@ class CalendarItemScreenDataFetched extends CalendarItemState {
   CalendarItemScreenDataFetched({
     required super.origin,
     required this.calendarItem,
+    required this.courseGroups,
     required this.courses,
     required this.courseSchedules,
     required this.categories,
