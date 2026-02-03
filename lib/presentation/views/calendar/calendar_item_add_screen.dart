@@ -14,6 +14,7 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
+import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/data/models/planner/event_request_model.dart';
@@ -24,9 +25,9 @@ import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart'
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_event.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_state.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
-import 'package:heliumapp/presentation/dialogs/select_dialog.dart';
 import 'package:heliumapp/presentation/controllers/calendar/calendar_item_form_controller.dart';
 import 'package:heliumapp/presentation/controllers/core/basic_form_controller.dart';
+import 'package:heliumapp/presentation/dialogs/select_dialog.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/calendar_item_add_stepper.dart';
 import 'package:heliumapp/presentation/widgets/drop_down.dart';
@@ -36,6 +37,7 @@ import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
+import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:timezone/standalone.dart' as tz;
@@ -95,6 +97,7 @@ class _CalendarItemAddScreenState
 
   // State
   bool _isEvent = false;
+  List<CourseGroupModel> _courseGroups = [];
   List<CourseModel> _courses = [];
   List<DropDownItem<CourseModel>> _courseItems = [];
   List<CourseScheduleModel> _courseSchedules = [];
@@ -225,7 +228,6 @@ class _CalendarItemAddScreenState
               ),
               const SizedBox(height: 14),
               if (!_isEvent) ...[
-                // FIXME: organize the data in this dropdown by group, and sort each collection by its start time
                 DropDown(
                   label: 'Class',
                   initialValue: _courseItems.firstWhere(
@@ -506,7 +508,7 @@ class _CalendarItemAddScreenState
                   items: _categoryItems
                       .where(
                         (category) =>
-                            category.value.course ==
+                            category.value?.course ==
                             _formController.selectedCourse,
                       )
                       .toList(),
@@ -603,7 +605,6 @@ class _CalendarItemAddScreenState
               ],
 
               // TODO: add location field to Event's
-
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [Text('Priority', style: context.formLabel)],
@@ -690,17 +691,27 @@ class _CalendarItemAddScreenState
     CalendarItemScreenDataFetched state,
   ) async {
     setState(() {
+      _courseGroups = state.courseGroups;
       _courses = state.courses;
-      _courseItems = _courses
-          .map(
-            (c) => DropDownItem(
-              id: c.id,
-              value: c,
-              iconData: Icons.school_outlined,
-              iconColor: c.color,
-            ),
-          )
-          .toList();
+      final sortedCourses = PlannerHelper.sortByGroupStartThenByTitle(
+        _courses,
+        _courseGroups,
+      );
+      _courseItems = [];
+      for (int i = 0; i < sortedCourses.length; i++) {
+        final course = sortedCourses[i];
+        if (i > 0 && course.courseGroup != sortedCourses[i - 1].courseGroup) {
+          _courseItems.add(DropDownItem(id: -1, isDivider: true));
+        }
+        _courseItems.add(
+          DropDownItem(
+            id: course.id,
+            value: course,
+            iconData: Icons.school_outlined,
+            iconColor: course.color,
+          ),
+        );
+      }
       _courseSchedules = state.courseSchedules;
       _categories = state.categories;
       _categoryItems = _categories

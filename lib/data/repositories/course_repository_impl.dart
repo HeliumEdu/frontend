@@ -16,8 +16,8 @@ class CourseRepositoryImpl implements CourseRepository {
   final CourseRemoteDataSource remoteDataSource;
 
   @override
-  Future<List<CourseGroupModel>> getCourseGroups() async {
-    return await remoteDataSource.getCourseGroups();
+  Future<List<CourseGroupModel>> getCourseGroups({bool? shownOnCalendar}) async {
+    return await remoteDataSource.getCourseGroups(shownOnCalendar: shownOnCalendar);
   }
 
   @override

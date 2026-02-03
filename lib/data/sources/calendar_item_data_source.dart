@@ -40,7 +40,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
 
   // State
   bool _hasLoadedInitialData = false;
-  Map<String, bool> _filteredCourses = {};
+  Map<int, bool> _filteredCourses = {};
   List<String> _filterCategories = [];
   List<String> _filterTypes = [];
   Set<String> _filterStatuses = {};
@@ -68,7 +68,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
 
   bool get hasLoadedInitialData => _hasLoadedInitialData;
 
-  Map<String, bool> get filteredCourses => _filteredCourses;
+  Map<int, bool> get filteredCourses => _filteredCourses;
 
   List<String> get filterCategories => _filterCategories;
 
@@ -294,7 +294,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     return items.where((item) => _matchesSearch(item, query)).toList();
   }
 
-  void setFilteredCourses(Map<String, bool> courses) {
+  void setFilteredCourses(Map<int, bool> courses) {
     final selectedCourses = courses.entries
         .where((e) => e.value)
         .map((e) => e.key)
@@ -455,31 +455,12 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     return _filteredCourses.values.any((isSelected) => isSelected);
   }
 
-  String _normalizeCourseTitle(String title) {
-    return title.trim().toLowerCase();
-  }
-
-  Set<String> _getSelectedCourseTitleSet() {
+  Set<int> _getSelectedCourseIds() {
     if (_filteredCourses.isEmpty) return {};
     return _filteredCourses.entries
         .where((entry) => entry.value)
-        .map((entry) => _normalizeCourseTitle(entry.key))
+        .map((entry) => entry.key)
         .toSet();
-  }
-
-  Set<int> _getSelectedCourseIds() {
-    if (courses == null) return {};
-    final selectedTitles = _getSelectedCourseTitleSet();
-    if (selectedTitles.isEmpty) return {};
-
-    final ids = <int>{};
-    for (final course in courses!) {
-      final normalized = _normalizeCourseTitle(course.title);
-      if (selectedTitles.contains(normalized)) {
-        ids.add(course.id);
-      }
-    }
-    return ids;
   }
 
   List<HomeworkModel> _applyCourseFilter(List<HomeworkModel> homeworks) {

@@ -346,7 +346,7 @@ void main() {
       });
 
       test('filters by single selected course', () {
-        dataSource.setFilteredCourses({'Math 101': true});
+        dataSource.setFilteredCourses({1: true});
         final filtered = dataSource.filteredHomeworks;
 
         expect(filtered, hasLength(2));
@@ -355,16 +355,16 @@ void main() {
 
       test('filters by multiple selected courses', () {
         dataSource.setFilteredCourses({
-          'Math 101': true,
-          'Physics 201': true,
+          1: true,
+          2: true,
         });
         expect(dataSource.filteredHomeworks, hasLength(3));
       });
 
       test('filters out when course not selected', () {
         dataSource.setFilteredCourses({
-          'Math 101': true,
-          'Physics 201': false,
+          1: true,
+          2: false,
         });
         final filtered = dataSource.filteredHomeworks;
 
@@ -372,10 +372,8 @@ void main() {
         expect(filtered.map((h) => h.id), containsAll([1, 3]));
       });
 
-      test('normalizes course titles for matching', () {
-        dataSource.setFilteredCourses({
-          '  MATH 101  ': true,
-        });
+      test('filters by course ID', () {
+        dataSource.setFilteredCourses({1: true});
         final filtered = dataSource.filteredHomeworks;
 
         expect(filtered, hasLength(2));
@@ -390,7 +388,7 @@ void main() {
         dataSource.addCalendarItem(scheduleEvent1);
         dataSource.addCalendarItem(scheduleEvent2);
 
-        dataSource.setFilteredCourses({'Math 101': true});
+        dataSource.setFilteredCourses({1: true});
         dataSource.setFilterTypes(['Class Schedules']);
 
         expect(dataSource.appointments, hasLength(1));
@@ -727,7 +725,7 @@ void main() {
       });
 
       test('applies course and category filters together', () {
-        dataSource.setFilteredCourses({'Math 101': true});
+        dataSource.setFilteredCourses({1: true});
         dataSource.setFilterCategories(['Assignments']);
 
         final filtered = dataSource.filteredHomeworks;
@@ -736,7 +734,7 @@ void main() {
       });
 
       test('applies all filters together', () {
-        dataSource.setFilteredCourses({'Math 101': true});
+        dataSource.setFilteredCourses({1: true});
         dataSource.setFilterCategories(['Assignments']);
         dataSource.setFilterStatuses({'Incomplete'});
         dataSource.setSearchQuery('Math');
@@ -747,7 +745,7 @@ void main() {
       });
 
       test('returns empty when filters exclude all items', () {
-        dataSource.setFilteredCourses({'Math 101': true});
+        dataSource.setFilteredCourses({1: true});
         dataSource.setSearchQuery('Physics');
 
         expect(dataSource.filteredHomeworks, isEmpty);
@@ -877,7 +875,7 @@ void main() {
       });
 
       test('does not clear filtered courses', () {
-        dataSource.setFilteredCourses({'Math 101': true});
+        dataSource.setFilteredCourses({1: true});
         dataSource.clearFilters();
         expect(dataSource.filteredCourses, isNotEmpty);
       });

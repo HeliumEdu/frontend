@@ -9,14 +9,16 @@ import 'package:flutter/material.dart';
 
 class DropDownItem<T> {
   final int id;
-  final T value;
+  final T? value;
   final IconData? iconData;
   final Color? iconColor;
+  final bool isDivider;
 
   DropDownItem({
     required this.id,
-    required this.value,
+    this.value,
     this.iconData,
     this.iconColor,
+    this.isDivider = false,
   });
 }

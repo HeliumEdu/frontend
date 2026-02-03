@@ -233,7 +233,7 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
                 items: TimeZoneConstants.items,
                 onChanged: (value) {
                   setState(() {
-                    _formController.selectedTimezone = value!.value;
+                    _formController.selectedTimezone = value!.value!;
                   });
                 },
               ),

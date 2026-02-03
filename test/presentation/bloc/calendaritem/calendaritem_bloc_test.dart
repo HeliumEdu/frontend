@@ -78,6 +78,7 @@ void main() {
           isA<CalendarItemsLoading>(),
           isA<CalendarItemScreenDataFetched>()
               .having((s) => s.calendarItem?.id, 'event id', 1)
+              .having((s) => s.courseGroups, 'courseGroups', isEmpty)
               .having((s) => s.courses, 'courses', isEmpty)
               .having((s) => s.categories, 'categories', isEmpty),
         ],
@@ -87,8 +88,8 @@ void main() {
         'emits [CalendarItemsLoading, CalendarItemScreenDataFetched] for homework with related data',
         build: () {
           when(
-            () => mockHomeworkRepository.getHomework(id: 1),
-          ).thenAnswer((_) async => MockModels.createHomework(id: 1));
+                () => mockCourseRepository.getCourseGroups(shownOnCalendar: true),
+          ).thenAnswer((_) async => MockModels.createCourseGroups());
           when(
             () => mockCourseRepository.getCourses(shownOnCalendar: true),
           ).thenAnswer((_) async => MockModels.createCourses());
@@ -98,6 +99,9 @@ void main() {
           when(
             () => mockCategoryRepository.getCategories(),
           ).thenAnswer((_) async => MockModels.createCategories());
+          when(
+                () => mockHomeworkRepository.getHomework(id: 1),
+          ).thenAnswer((_) async => MockModels.createHomework(id: 1));
           when(
             () => mockMaterialRepository.getMaterials(),
           ).thenAnswer((_) async => MockModels.createMaterials());
@@ -113,6 +117,7 @@ void main() {
           isA<CalendarItemsLoading>(),
           isA<CalendarItemScreenDataFetched>()
               .having((s) => s.calendarItem?.id, 'homework id', 1)
+              .having((s) => s.courseGroups.length, 'courseGroups length', 2)
               .having((s) => s.courses.length, 'courses length', 3)
               .having((s) => s.categories.length, 'categories length', 3),
         ],
@@ -121,6 +126,9 @@ void main() {
       blocTest<CalendarItemBloc, CalendarItemState>(
         'emits [CalendarItemsLoading, CalendarItemScreenDataFetched] for new homework (no id)',
         build: () {
+          when(
+                () => mockCourseRepository.getCourseGroups(shownOnCalendar: true),
+          ).thenAnswer((_) async => MockModels.createCourseGroups());
           when(
             () => mockCourseRepository.getCourses(shownOnCalendar: true),
           ).thenAnswer((_) async => MockModels.createCourses());
@@ -142,6 +150,7 @@ void main() {
           isA<CalendarItemsLoading>(),
           isA<CalendarItemScreenDataFetched>()
               .having((s) => s.calendarItem, 'calendar item', isNull)
+              .having((s) => s.courseGroups.length, 'courseGroups length', 2)
               .having((s) => s.courses.length, 'courses length', 3),
         ],
       );

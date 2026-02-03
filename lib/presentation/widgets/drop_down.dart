@@ -75,6 +75,13 @@ class DropDown<T> extends StatelessWidget {
             icon: Icon(Icons.keyboard_arrow_down, color: iconColor),
             isExpanded: true,
             items: items.map((item) {
+              if (item.isDivider) {
+                return DropdownMenuItem<DropDownItem<T>>(
+                  enabled: false,
+                  value: item,
+                  child: const Divider()
+                );
+              }
               return DropdownMenuItem<DropDownItem<T>>(
                 value: item,
                 child: Row(

@@ -644,12 +644,12 @@ class TodosTableState extends State<TodosTable> {
           ),
         ),
         child: InkWell(
-          onTap: Responsive.isMobile(context)
+          onTap: _isCompactActionsMode(context)
               ? () => widget.onTap(homework)
               : () {},
-          mouseCursor: Responsive.isMobile(context)
+          mouseCursor: _isCompactActionsMode(context)
               ? SystemMouseCursors.click
-              : SystemMouseCursors.basic,
+              : MouseCursor.defer,
           splashColor: Responsive.isMobile(context) ? null : Colors.transparent,
           highlightColor: Responsive.isMobile(context)
               ? null

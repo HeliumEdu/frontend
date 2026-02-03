@@ -17,6 +17,7 @@ import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
+import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
@@ -156,6 +157,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   ];
 
   // State
+  List<CourseGroupModel> _courseGroups = [];
   List<CourseModel> _courses = [];
   final Map<int, CategoryModel> _categoriesMap = {};
   final List<CategoryModel> _deduplicatedCategories = [];
@@ -1566,6 +1568,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     VoidCallback? onCheckboxToggled,
     bool? completedOverride,
   }) {
+    // FIXME: when the text wraps before even one letter can fit on the row, the prefix icon/checkbox gets pushed down a few pixels; fix here, and also for the .school icon (same behavior)
     if (PlannerHelper.shouldShowCheckbox(context, calendarItem, _currentView)) {
       return _buildCheckboxWidget(
         homework: calendarItem as HomeworkModel,
@@ -2065,6 +2068,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       '${state.categories.length} categories',
     );
     setState(() {
+      _courseGroups = state.courseGroups;
       _courses = state.courses;
       for (final category in state.categories) {
         _categoriesMap[category.id] = category;
@@ -2163,16 +2167,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       Offset.zero & overlay.size,
     );
 
-    // FIXME: don't group course's by title, instead group them by parent group (and sort that collection by the group's start time)
-
-    final Map<String, CourseModel> uniqueCourseMap = {};
-    for (final course in courses) {
-      final title = course.title.trim();
-      if (title.isEmpty) continue;
-      final normalized = title.toLowerCase();
-      uniqueCourseMap.putIfAbsent(normalized, () => course);
-    }
-    final List<CourseModel> displayCourses = uniqueCourseMap.values.toList();
+    final List<CourseModel> displayCourses =
+        PlannerHelper.sortByGroupStartThenByTitle(courses, _courseGroups);
 
     showMenu(
       context: context,
@@ -2221,13 +2217,21 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                       const Divider(height: 20),
 
                       Column(
-                        children: displayCourses.map((course) {
-                          final isSelected =
-                              _calendarItemDataSource!.filteredCourses[course
-                                  .title] ??
-                              false;
+                        children: [
+                          for (int i = 0; i < displayCourses.length; i++) ...[
+                            if (i > 0 &&
+                                displayCourses[i].courseGroup !=
+                                    displayCourses[i - 1].courseGroup)
+                              const Divider(height: 20),
+                            Builder(
+                              builder: (context) {
+                                final course = displayCourses[i];
+                                final isSelected =
+                                    _calendarItemDataSource!
+                                            .filteredCourses[course.id] ??
+                                        false;
 
-                          return CheckboxListTile(
+                                return CheckboxListTile(
                             title: Row(
                               children: [
                                 Container(
@@ -2267,13 +2271,13 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                             ),
                             value: isSelected,
                             onChanged: (value) {
-                              final currentFilters = Map<String, bool>.from(
+                              final currentFilters = Map<int, bool>.from(
                                 _calendarItemDataSource!.filteredCourses,
                               );
                               if (value == true) {
-                                currentFilters[course.title] = true;
+                                currentFilters[course.id] = true;
                               } else {
-                                currentFilters.remove(course.title);
+                                currentFilters.remove(course.id);
                               }
                               _calendarItemDataSource!.setFilteredCourses(
                                 currentFilters,
@@ -2284,7 +2288,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                             dense: true,
                             contentPadding: EdgeInsets.zero,
                           );
-                        }).toList(),
+                              },
+                            ),
+                          ],
+                        ],
                       ),
                     ],
                   ),
