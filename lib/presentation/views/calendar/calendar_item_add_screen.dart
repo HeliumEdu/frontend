@@ -225,7 +225,7 @@ class _CalendarItemAddScreenState
               ),
               const SizedBox(height: 14),
               if (!_isEvent) ...[
-                // TODO: organize the data in this dropdown by group, and sort each collection by its start time
+                // FIXME: organize the data in this dropdown by group, and sort each collection by its start time
                 DropDown(
                   label: 'Class',
                   initialValue: _courseItems.firstWhere(
