@@ -9,9 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/presentation/bloc/attachment/attachment_event.dart';
 import 'package:heliumapp/presentation/views/core/base_attachment_sub_screen.dart';
 import 'package:heliumapp/presentation/widgets/course_add_stepper.dart';
-import 'package:logging/logging.dart';
-
-final log = Logger('HeliumLogger');
 
 class CourseAddAttachmentScreen extends BaseAttachmentScreen {
   final int courseGroupId;

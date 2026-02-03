@@ -18,9 +18,9 @@ import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/bloc/reminder/reminder_bloc.dart';
 import 'package:heliumapp/presentation/bloc/reminder/reminder_event.dart';
 import 'package:heliumapp/presentation/bloc/reminder/reminder_state.dart';
+import 'package:heliumapp/presentation/controllers/core/reminder_form_controller.dart';
 import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/dialogs/reminder_dialog.dart';
-import 'package:heliumapp/presentation/controllers/core/reminder_form_controller.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/empty_card.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
@@ -32,10 +32,7 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
-import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
-
-final log = Logger('HeliumLogger');
 
 abstract class BaseReminderScreen extends StatelessWidget {
   final DioClient _dioClient = DioClient();

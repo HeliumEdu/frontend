@@ -16,7 +16,7 @@ import 'package:heliumapp/data/sources/base_data_source.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:logging/logging.dart';
 
-final log = Logger('HeliumLogger');
+final _log = Logger('data.sources');
 
 abstract class ExternalCalendarRemoteDataSource extends BaseDataSource {
   Future<List<ExternalCalendarModel>> getExternalCalendars();
@@ -48,7 +48,7 @@ class ExternalCalendarRemoteDataSourceImpl
   @override
   Future<List<ExternalCalendarModel>> getExternalCalendars() async {
     try {
-      log.info('Fetching ExternalCalendars ...');
+      _log.info('Fetching ExternalCalendars ...');
 
       final response = await dioClient.dio.get(
         ApiUrl.feedExternalCalendarsListUrl,
@@ -75,7 +75,7 @@ class ExternalCalendarRemoteDataSourceImpl
             .map((json) => ExternalCalendarModel.fromJson(json))
             .toList();
 
-        log.info('... fetched ${calendars.length} ExternalCalendar(s)');
+        _log.info('... fetched ${calendars.length} ExternalCalendar(s)');
         return calendars;
       } else {
         throw ServerException(message: 'Failed to fetch external calendars');
@@ -83,7 +83,7 @@ class ExternalCalendarRemoteDataSourceImpl
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -98,7 +98,7 @@ class ExternalCalendarRemoteDataSourceImpl
     String? search,
   }) async {
     try {
-      log.info('Fetching ExternalCalendarEvents ...');
+      _log.info('Fetching ExternalCalendarEvents ...');
 
       final Map<String, dynamic> queryParameters = {
         'from': HeliumDateTime.formatDateForApi(from),
@@ -117,7 +117,7 @@ class ExternalCalendarRemoteDataSourceImpl
           final events = data
               .map((json) => ExternalCalendarEventModel.fromJson(json))
               .toList();
-          log.info('... fetched ${events.length} ExternalCalendarEvent(s)');
+          _log.info('... fetched ${events.length} ExternalCalendarEvent(s)');
           return events;
         } else {
           throw ServerException(
@@ -133,7 +133,7 @@ class ExternalCalendarRemoteDataSourceImpl
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -146,7 +146,7 @@ class ExternalCalendarRemoteDataSourceImpl
     required ExternalCalendarRequestModel payload,
   }) async {
     try {
-      log.info('Creating ExternalCalendar ...');
+      _log.info('Creating ExternalCalendar ...');
 
       final response = await dioClient.dio.post(
         ApiUrl.feedExternalCalendarsListUrl,
@@ -155,7 +155,7 @@ class ExternalCalendarRemoteDataSourceImpl
 
       if (response.statusCode == 201) {
         final calendar = ExternalCalendarModel.fromJson(response.data);
-        log.info('... ExternalCalendar ${calendar.id} created');
+        _log.info('... ExternalCalendar ${calendar.id} created');
         return calendar;
       } else {
         throw ServerException(message: 'Failed to add external calendar');
@@ -163,7 +163,7 @@ class ExternalCalendarRemoteDataSourceImpl
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -177,7 +177,7 @@ class ExternalCalendarRemoteDataSourceImpl
     required ExternalCalendarRequestModel payload,
   }) async {
     try {
-      log.info('Updating ExternalCalendar $calendarId ...');
+      _log.info('Updating ExternalCalendar $calendarId ...');
 
       final response = await dioClient.dio.put(
         ApiUrl.feedExternalCalendarDetailUrl(calendarId),
@@ -185,7 +185,7 @@ class ExternalCalendarRemoteDataSourceImpl
       );
 
       if (response.statusCode == 200) {
-        log.info('... ExternalCalendar $calendarId updated');
+        _log.info('... ExternalCalendar $calendarId updated');
         return ExternalCalendarModel.fromJson(response.data);
       } else {
         throw ServerException(message: 'Failed to update external calendar');
@@ -193,7 +193,7 @@ class ExternalCalendarRemoteDataSourceImpl
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: 'An unexpected error occurred: $e');
     }
   }
@@ -201,14 +201,14 @@ class ExternalCalendarRemoteDataSourceImpl
   @override
   Future<void> deleteExternalCalendar({required int calendarId}) async {
     try {
-      log.info('Deleting ExternalCalendar $calendarId ...');
+      _log.info('Deleting ExternalCalendar $calendarId ...');
 
       final response = await dioClient.dio.delete(
         ApiUrl.feedExternalCalendarDetailUrl(calendarId),
       );
 
       if (response.statusCode == 204) {
-        log.info('... ExternalCalendar $calendarId deleted');
+        _log.info('... ExternalCalendar $calendarId deleted');
         return;
       } else {
         throw ServerException(message: 'Failed to delete external calendar');
@@ -216,7 +216,7 @@ class ExternalCalendarRemoteDataSourceImpl
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }

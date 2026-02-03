@@ -14,7 +14,7 @@ import 'package:heliumapp/data/models/planner/category_request_model.dart';
 import 'package:heliumapp/data/sources/base_data_source.dart';
 import 'package:logging/logging.dart';
 
-final log = Logger('HeliumLogger');
+final _log = Logger('data.sources');
 
 abstract class CategoryRemoteDataSource extends BaseDataSource {
   Future<List<CategoryModel>> getCategories({int? courseId, String? title});
@@ -47,7 +47,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
   }) async {
     try {
       final filterInfo = courseId != null ? ' for Course $courseId' : '';
-      log.info('Fetching Categories$filterInfo ...');
+      _log.info('Fetching Categories$filterInfo ...');
 
       final Map<String, dynamic> queryParameters = {};
       if (courseId != null) queryParameters['course'] = courseId;
@@ -64,7 +64,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
             .map((json) => CategoryModel.fromJson(json))
             .toList();
 
-        log.info('... fetched ${categories.length} Category(ies)');
+        _log.info('... fetched ${categories.length} Category(ies)');
         return categories;
       } else {
         throw ServerException(
@@ -75,7 +75,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -90,7 +90,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
     CategoryRequestModel request,
   ) async {
     try {
-      log.info('Creating Category for Course $courseId ...');
+      _log.info('Creating Category for Course $courseId ...');
       final response = await dioClient.dio.post(
         ApiUrl.plannerCourseGroupsCoursesCategoriesListUrl(groupId, courseId),
         data: request.toJson(),
@@ -98,7 +98,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
 
       if (response.statusCode == 201) {
         final category = CategoryModel.fromJson(response.data);
-        log.info('... Category ${category.id} created for Course $courseId');
+        _log.info('... Category ${category.id} created for Course $courseId');
         return category;
       } else {
         throw ServerException(
@@ -109,7 +109,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -125,7 +125,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
     CategoryRequestModel request,
   ) async {
     try {
-      log.info('Updating Category $categoryId for Course $courseId ...');
+      _log.info('Updating Category $categoryId for Course $courseId ...');
 
       final response = await dioClient.dio.put(
         ApiUrl.plannerCourseGroupsCoursesCategoriesDetailsUrl(
@@ -137,7 +137,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
       );
 
       if (response.statusCode == 200) {
-        log.info('... Category $categoryId updated');
+        _log.info('... Category $categoryId updated');
         return CategoryModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -148,7 +148,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -159,7 +159,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
   @override
   Future<void> deleteCategory(int groupId, int courseId, int categoryId) async {
     try {
-      log.info('Deleting Category $categoryId for Course $courseId ...');
+      _log.info('Deleting Category $categoryId for Course $courseId ...');
       final response = await dioClient.dio.delete(
         ApiUrl.plannerCourseGroupsCoursesCategoriesDetailsUrl(
           groupId,
@@ -169,7 +169,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
       );
 
       if (response.statusCode == 204) {
-        log.info('... Category $categoryId deleted');
+        _log.info('... Category $categoryId deleted');
         return;
       } else {
         throw ServerException(
@@ -180,7 +180,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }

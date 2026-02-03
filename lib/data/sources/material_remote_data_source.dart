@@ -16,7 +16,7 @@ import 'package:heliumapp/data/models/planner/material_request_model.dart';
 import 'package:heliumapp/data/sources/base_data_source.dart';
 import 'package:logging/logging.dart';
 
-final log = Logger('HeliumLogger');
+final _log = Logger('data.sources');
 
 abstract class MaterialRemoteDataSource extends BaseDataSource {
   Future<List<MaterialGroupModel>> getMaterialGroups();
@@ -63,7 +63,7 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
   @override
   Future<List<MaterialGroupModel>> getMaterialGroups() async {
     try {
-      log.info('Fetching MaterialGroups ...');
+      _log.info('Fetching MaterialGroups ...');
       final response = await dioClient.dio.get(
         ApiUrl.plannerMaterialGroupsListUrl,
       );
@@ -73,7 +73,7 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
           final groups = (response.data as List)
               .map((group) => MaterialGroupModel.fromJson(group))
               .toList();
-          log.info('... fetched ${groups.length} MaterialGroup(s)');
+          _log.info('... fetched ${groups.length} MaterialGroup(s)');
           return groups;
         } else {
           throw ServerException(
@@ -90,7 +90,7 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -101,13 +101,13 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
   @override
   Future<MaterialGroupModel> getMaterialGroupById(int groupId) async {
     try {
-      log.info('Fetching MaterialGroup $groupId ...');
+      _log.info('Fetching MaterialGroup $groupId ...');
       final response = await dioClient.dio.get(
         ApiUrl.plannerMaterialGroupsDetailsUrl(groupId),
       );
 
       if (response.statusCode == 200) {
-        log.info('... MaterialGroup $groupId fetched');
+        _log.info('... MaterialGroup $groupId fetched');
         return MaterialGroupModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -118,7 +118,7 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -131,7 +131,7 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
     MaterialGroupRequestModel request,
   ) async {
     try {
-      log.info('Creating MaterialGroup ...');
+      _log.info('Creating MaterialGroup ...');
 
       final response = await dioClient.dio.post(
         ApiUrl.plannerMaterialGroupsListUrl,
@@ -140,7 +140,7 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
 
       if (response.statusCode == 201) {
         final group = MaterialGroupModel.fromJson(response.data);
-        log.info('... MaterialGroup ${group.id} created');
+        _log.info('... MaterialGroup ${group.id} created');
         return group;
       } else {
         throw ServerException(
@@ -151,7 +151,7 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -165,7 +165,7 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
     MaterialGroupRequestModel request,
   ) async {
     try {
-      log.info('Updating MaterialGroup $groupId ...');
+      _log.info('Updating MaterialGroup $groupId ...');
 
       final response = await dioClient.dio.put(
         ApiUrl.plannerMaterialGroupsDetailsUrl(groupId),
@@ -173,7 +173,7 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
       );
 
       if (response.statusCode == 200) {
-        log.info('... MaterialGroup $groupId updated');
+        _log.info('... MaterialGroup $groupId updated');
         return MaterialGroupModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -184,7 +184,7 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -195,13 +195,13 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
   @override
   Future<void> deleteMaterialGroup(int groupId) async {
     try {
-      log.info('Deleting MaterialGroup $groupId ...');
+      _log.info('Deleting MaterialGroup $groupId ...');
       final response = await dioClient.dio.delete(
         ApiUrl.plannerMaterialGroupsDetailsUrl(groupId),
       );
 
       if (response.statusCode == 204) {
-        log.info('... MaterialGroup $groupId deleted');
+        _log.info('... MaterialGroup $groupId deleted');
         return;
       } else {
         throw ServerException(
@@ -212,7 +212,7 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -227,7 +227,7 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
   }) async {
     try {
       final filterInfo = groupId != null ? ' for MaterialGroup $groupId' : '';
-      log.info('Fetching Materials$filterInfo ...');
+      _log.info('Fetching Materials$filterInfo ...');
 
       final Map<String, dynamic> queryParameters = {};
       if (groupId != null) {
@@ -247,7 +247,7 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
           final materials = (response.data as List)
               .map((material) => MaterialModel.fromJson(material))
               .toList();
-          log.info('... fetched ${materials.length} Material(s)');
+          _log.info('... fetched ${materials.length} Material(s)');
           return materials;
         } else {
           throw ServerException(
@@ -264,7 +264,7 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -275,13 +275,13 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
   @override
   Future<MaterialModel> getMaterialById(int groupId, int materialId) async {
     try {
-      log.info('Fetching Material $materialId in MaterialGroup $groupId ...');
+      _log.info('Fetching Material $materialId in MaterialGroup $groupId ...');
       final response = await dioClient.dio.get(
         ApiUrl.plannerMaterialGroupsMaterialDetailsUrl(groupId, materialId),
       );
 
       if (response.statusCode == 200) {
-        log.info('... Material $materialId fetched');
+        _log.info('... Material $materialId fetched');
         return MaterialModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -292,7 +292,7 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -306,7 +306,7 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
     MaterialRequestModel request,
   ) async {
     try {
-      log.info('Creating Material in MaterialGroup $groupId ...');
+      _log.info('Creating Material in MaterialGroup $groupId ...');
 
       final response = await dioClient.dio.post(
         ApiUrl.plannerMaterialGroupsMaterialsListUrl(groupId),
@@ -315,7 +315,7 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
 
       if (response.statusCode == 201) {
         final material = MaterialModel.fromJson(response.data);
-        log.info('... Material ${material.id} created in MaterialGroup $groupId');
+        _log.info('... Material ${material.id} created in MaterialGroup $groupId');
         return material;
       } else {
         throw ServerException(
@@ -326,7 +326,7 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -341,14 +341,14 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
     MaterialRequestModel request,
   ) async {
     try {
-      log.info('Updating Material $materialId in MaterialGroup $groupId ...');
+      _log.info('Updating Material $materialId in MaterialGroup $groupId ...');
       final response = await dioClient.dio.put(
         ApiUrl.plannerMaterialGroupsMaterialDetailsUrl(groupId, materialId),
         data: request.toJson(),
       );
 
       if (response.statusCode == 200) {
-        log.info('... Material $materialId updated');
+        _log.info('... Material $materialId updated');
         return MaterialModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -359,7 +359,7 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -370,13 +370,13 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
   @override
   Future<void> deleteMaterial(int groupId, int materialId) async {
     try {
-      log.info('Deleting Material $materialId in MaterialGroup $groupId ...');
+      _log.info('Deleting Material $materialId in MaterialGroup $groupId ...');
       final response = await dioClient.dio.delete(
         ApiUrl.plannerMaterialGroupsMaterialDetailsUrl(groupId, materialId),
       );
 
       if (response.statusCode == 204) {
-        log.info('... Material $materialId deleted');
+        _log.info('... Material $materialId deleted');
         return;
       } else {
         throw ServerException(
@@ -387,7 +387,7 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }

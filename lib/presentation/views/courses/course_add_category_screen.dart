@@ -32,9 +32,6 @@ import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
-import 'package:logging/logging.dart';
-
-final log = Logger('HeliumLogger');
 
 class CourseAddCategoryScreen extends StatelessWidget {
   final DioClient _dioClient = DioClient();

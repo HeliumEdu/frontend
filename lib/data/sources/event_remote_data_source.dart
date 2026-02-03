@@ -14,7 +14,7 @@ import 'package:heliumapp/data/models/planner/event_request_model.dart';
 import 'package:heliumapp/data/sources/base_data_source.dart';
 import 'package:logging/logging.dart';
 
-final log = Logger('HeliumLogger');
+final _log = Logger('data.sources');
 
 abstract class EventRemoteDataSource extends BaseDataSource {
   Future<List<EventModel>> getEvents({
@@ -49,7 +49,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
     String? title,
   }) async {
     try {
-      log.info('Fetching Events ...');
+      _log.info('Fetching Events ...');
 
       final Map<String, dynamic> queryParameters = {};
       if (from != null) queryParameters['from'] = from;
@@ -66,7 +66,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
         if (response.data is List) {
           final List<dynamic> data = response.data;
           final events = data.map((json) => EventModel.fromJson(json)).toList();
-          log.info('... fetched ${events.length} Event(s)');
+          _log.info('... fetched ${events.length} Event(s)');
           return events;
         } else {
           throw ServerException(
@@ -83,7 +83,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -94,13 +94,13 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
   @override
   Future<EventModel> getEvent({required int id}) async {
     try {
-      log.info('Fetching Event $id ...');
+      _log.info('Fetching Event $id ...');
       final response = await dioClient.dio.get(
         ApiUrl.plannerEventsDetailsUrl(id),
       );
 
       if (response.statusCode == 200) {
-        log.info('... Event $id fetched');
+        _log.info('... Event $id fetched');
         return EventModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -110,7 +110,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -121,7 +121,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
   @override
   Future<EventModel> createEvent({required EventRequestModel request}) async {
     try {
-      log.info('Creating Event ...');
+      _log.info('Creating Event ...');
       final response = await dioClient.dio.post(
         ApiUrl.plannerEventsListUrl,
         data: request.toJson(),
@@ -129,7 +129,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
 
       if (response.statusCode == 201) {
         final event = EventModel.fromJson(response.data);
-        log.info('... Event ${event.id} created');
+        _log.info('... Event ${event.id} created');
         return event;
       } else {
         throw ServerException(
@@ -139,7 +139,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -153,14 +153,14 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
     required EventRequestModel request,
   }) async {
     try {
-      log.info('Updating Event $eventId ...');
+      _log.info('Updating Event $eventId ...');
       final response = await dioClient.dio.patch(
         ApiUrl.plannerEventsDetailsUrl(eventId),
         data: request.toJson(),
       );
 
       if (response.statusCode == 200) {
-        log.info('... Event $eventId updated');
+        _log.info('... Event $eventId updated');
         return EventModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -170,7 +170,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -181,13 +181,13 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
   @override
   Future<void> deleteEvent({required int eventId}) async {
     try {
-      log.info('Deleting Event $eventId ...');
+      _log.info('Deleting Event $eventId ...');
       final response = await dioClient.dio.delete(
         ApiUrl.plannerEventsDetailsUrl(eventId),
       );
 
       if (response.statusCode == 204) {
-        log.info('... Event $eventId deleted');
+        _log.info('... Event $eventId deleted');
       } else {
         throw ServerException(
           message: 'Failed to delete event: ${response.statusCode}',
@@ -196,7 +196,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }

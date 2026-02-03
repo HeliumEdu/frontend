@@ -15,7 +15,7 @@ import 'package:heliumapp/data/models/planner/attachment_model.dart';
 import 'package:heliumapp/data/sources/base_data_source.dart';
 import 'package:logging/logging.dart';
 
-final log = Logger('HeliumLogger');
+final _log = Logger('data.sources');
 
 abstract class AttachmentRemoteDataSource extends BaseDataSource {
   Future<List<AttachmentModel>> getAttachments({
@@ -57,7 +57,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
               : course != null
                   ? 'Course $course'
                   : 'unknown';
-      log.info('Creating Attachment "$filename" (${fileSizeKb}KB) for $parentInfo ...');
+      _log.info('Creating Attachment "$filename" (${fileSizeKb}KB) for $parentInfo ...');
 
       // Create FormData for file upload
       final multipart = MultipartFile.fromBytes(
@@ -84,7 +84,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
         }
 
         final attachment = AttachmentModel.fromJson(response.data[0]);
-        log.info('... Attachment ${attachment.id} created');
+        _log.info('... Attachment ${attachment.id} created');
 
         return attachment;
       } else {
@@ -95,7 +95,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -117,7 +117,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
               : courseId != null
                   ? 'Course $courseId'
                   : 'all';
-      log.info('Fetching Attachments for $parentInfo ...');
+      _log.info('Fetching Attachments for $parentInfo ...');
 
       final Map<String, dynamic> queryParameters = {};
       if (homeworkId != null) queryParameters['homework'] = homeworkId;
@@ -133,7 +133,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
         final List<dynamic> data = response.data;
         final attachments =
             data.map((json) => AttachmentModel.fromJson(json)).toList();
-        log.info('... fetched ${attachments.length} Attachment(s)');
+        _log.info('... fetched ${attachments.length} Attachment(s)');
         return attachments;
       } else {
         throw ServerException(
@@ -143,7 +143,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }
@@ -154,13 +154,13 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
   @override
   Future<void> deleteAttachment(int attachmentId) async {
     try {
-      log.info('Deleting Attachment $attachmentId ...');
+      _log.info('Deleting Attachment $attachmentId ...');
       final response = await dioClient.dio.delete(
         ApiUrl.plannerAttachmentsDetailsUrl(attachmentId),
       );
 
       if (response.statusCode == 204) {
-        log.info('... Attachment $attachmentId deleted');
+        _log.info('... Attachment $attachmentId deleted');
       } else {
         throw ServerException(
           message: 'Failed to delete attachment: ${response.statusCode}',
@@ -169,7 +169,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
-      log.severe('An unexpected error occurred', e, s);
+      _log.severe('An unexpected error occurred', e, s);
       if (e is HeliumException) {
         rethrow;
       }

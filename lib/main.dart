@@ -27,27 +27,31 @@ import 'package:timezone/data/latest_all.dart' as tz;
 void main() async {
   // Only print logs in debug mode; rely on Sentry in release
   if (kDebugMode) {
+    // Use --dart-define=LOG_LEVEL=FINE to set a log level in development
+    const logLevelName = String.fromEnvironment('LOG_LEVEL', defaultValue: 'INFO');
+    Logger.root.level = Level.LEVELS.firstWhere(
+      (level) => level.name == logLevelName.toUpperCase(),
+      orElse: () => Level.INFO,
+    );
+
     Logger.root.onRecord.listen((record) {
-      // Color codes for different log levels
-      String colorCode;
-      switch (record.level.name) {
-        case 'WARNING':
-          colorCode = '\x1B[33m'; // Yellow
-          break;
-        case 'SEVERE':
-          colorCode = '\x1B[91m'; // Light red
-          break;
-        case 'SHOUT':
-          colorCode = '\x1B[31m'; // Dark red
-          break;
-        default:
-          colorCode = '\x1B[0m'; // Default (no color)
+      final String colorCode;
+      if (record.level >= Level.SHOUT) {
+        colorCode = '\x1B[31m'; // Dark red
+      } else if (record.level >= Level.SEVERE) {
+        colorCode = '\x1B[91m'; // Light red
+      } else if (record.level >= Level.WARNING) {
+        colorCode = '\x1B[33m'; // Yellow
+      } else if (record.level >= Level.INFO) {
+        colorCode = '\x1B[36m'; // Cyan
+      } else {
+        colorCode = '\x1B[90m'; // Grey
       }
       const resetCode = '\x1B[0m';
 
       // ignore: avoid_print
       print(
-        '$colorCode${record.level.name}$resetCode: ${record.time}: ${record.message}',
+        '$colorCode${record.level.name}$resetCode: ${record.time}: [${record.loggerName}] ${record.message}',
       );
       if (record.error != null) {
         // ignore: avoid_print

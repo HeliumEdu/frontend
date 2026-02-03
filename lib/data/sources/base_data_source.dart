@@ -9,7 +9,7 @@ import 'package:dio/dio.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:logging/logging.dart';
 
-final log = Logger('HeliumLogger');
+final _log = Logger('data.sources');
 
 abstract class BaseDataSource {
   HeliumException handleDioError(DioException e, StackTrace s) {
@@ -17,7 +17,7 @@ abstract class BaseDataSource {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
-        log.severe('DioException occurred', e, s);
+        _log.severe('DioException occurred', e, s);
 
         return NetworkException(
           message: 'Connection timeout. Check your internet connection.',
@@ -28,7 +28,7 @@ abstract class BaseDataSource {
         final statusCode = e.response?.statusCode;
         final responseData = e.response?.data;
 
-        log.info('Dio bad response received, status: $statusCode, data: $responseData');
+        _log.info('Dio bad response received, status: $statusCode, data: $responseData');
 
         if (statusCode == 401) {
           return UnauthorizedException(
@@ -70,7 +70,7 @@ abstract class BaseDataSource {
             }
           }
 
-          log.severe('Error message: ${e.message}', e, s);
+          _log.severe('Error message: ${e.message}', e, s);
 
           return ValidationException(
             message: errorMessage,
@@ -115,7 +115,7 @@ abstract class BaseDataSource {
         }
 
       case DioExceptionType.cancel:
-        log.severe('DioException occurred, cancelled', e, s);
+        _log.severe('DioException occurred, cancelled', e, s);
 
         return NetworkException(
           message: 'Request was cancelled',
@@ -123,7 +123,7 @@ abstract class BaseDataSource {
         );
 
       case DioExceptionType.unknown:
-        log.severe('DioException occurred, unknown', e, s);
+        _log.severe('DioException occurred, unknown', e, s);
 
         if (e.message?.contains('SocketException') ?? false) {
           return NetworkException(
@@ -137,7 +137,7 @@ abstract class BaseDataSource {
         );
 
       default:
-        log.severe('DioException occurred, unknown', e, s);
+        _log.severe('DioException occurred, unknown', e, s);
 
         return NetworkException(
           message: 'Network error: ${e.message}',

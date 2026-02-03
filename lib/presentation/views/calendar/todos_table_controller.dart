@@ -7,6 +7,9 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
+import 'package:logging/logging.dart';
+
+final _log = Logger('presentation.views');
 
 class TodosTableController extends ChangeNotifier {
   String _sortColumn = 'dueDate';
@@ -19,6 +22,7 @@ class TodosTableController extends ChangeNotifier {
   bool get hasInitializedNavigation => _hasInitializedNavigation;
 
   String get sortColumn => _sortColumn;
+
   set sortColumn(String value) {
     if (_sortColumn != value) {
       _sortColumn = value;
@@ -27,6 +31,7 @@ class TodosTableController extends ChangeNotifier {
   }
 
   bool get sortAscending => _sortAscending;
+
   set sortAscending(bool value) {
     if (_sortAscending != value) {
       _sortAscending = value;
@@ -35,6 +40,7 @@ class TodosTableController extends ChangeNotifier {
   }
 
   int get currentPage => _currentPage;
+
   set currentPage(int value) {
     if (_currentPage != value) {
       _currentPage = value;
@@ -43,6 +49,7 @@ class TodosTableController extends ChangeNotifier {
   }
 
   int get itemsPerPage => _itemsPerPage;
+
   set itemsPerPage(int value) {
     if (_itemsPerPage != value) {
       _itemsPerPage = value;
@@ -51,19 +58,25 @@ class TodosTableController extends ChangeNotifier {
   }
 
   void goToToday(List<HomeworkModel> homeworks) {
+    _log.info(
+      "Jump to today's Todos page, calculating with ${homeworks.length} items and $_itemsPerPage items per page",
+    );
     _hasInitializedNavigation = true;
 
     // Reset sort to due date ascending
     _sortColumn = 'dueDate';
     _sortAscending = true;
 
-    // Sort by due date ascending
     final sorted = List<HomeworkModel>.from(homeworks);
     sorted.sort((a, b) => a.start.compareTo(b.start));
 
     if (sorted.isEmpty) {
       _currentPage = 1;
+
+      _log.fine('No items, setting page to 1');
+
       notifyListeners();
+
       return;
     }
 
@@ -83,15 +96,20 @@ class TodosTableController extends ChangeNotifier {
     }
 
     // Calculate effective items per page
-    final effectiveItemsPerPage =
-        _itemsPerPage == -1 ? sorted.length : _itemsPerPage;
+    final effectiveItemsPerPage = _itemsPerPage == -1
+        ? sorted.length
+        : _itemsPerPage;
 
     // If no future items found, show the last page (most recent past items)
     if (targetIndex == -1) {
       _currentPage = (sorted.length / effectiveItemsPerPage).ceil();
+      _log.fine('No future items, showing last page: $_currentPage');
     } else {
       // Calculate which page contains this item
       _currentPage = (targetIndex / effectiveItemsPerPage).floor() + 1;
+      _log.fine(
+        'Found item at index $targetIndex, navigating to page $_currentPage',
+      );
     }
 
     notifyListeners();

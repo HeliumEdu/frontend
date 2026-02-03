@@ -40,7 +40,7 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:timezone/standalone.dart' as tz;
 
-final log = Logger('HeliumLogger');
+final _log = Logger('presentation.views');
 
 // TODO: implement "Clone" button for parity with current frontend
 
@@ -762,7 +762,7 @@ class _CalendarItemAddScreenState
           }
 
           _formController.selectedCategory = calendarItem.category.id;
-          log.info('Category ID set: $_formController.selectedCategory');
+          _log.info('Category ID set: $_formController.selectedCategory');
 
           if (calendarItem.materials.isNotEmpty) {
             _formController.selectedMaterials = calendarItem.materials
@@ -773,10 +773,10 @@ class _CalendarItemAddScreenState
                 })
                 .map((e) => e.id)
                 .toList();
-            log.info('Material IDs set: $_formController.selectedMaterials');
+            _log.info('Material IDs set: $_formController.selectedMaterials');
           } else {
             _formController.selectedMaterials = [];
-            log.info('No materials in homework data');
+            _log.info('No materials in homework data');
           }
         }
       });

@@ -33,9 +33,6 @@ import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
-import 'package:logging/logging.dart';
-
-final log = Logger('HeliumLogger');
 
 class NotificationsScreen extends StatelessWidget {
   final DioClient _dioClient = DioClient();

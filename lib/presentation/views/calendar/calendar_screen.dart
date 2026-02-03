@@ -64,7 +64,7 @@ import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:timezone/standalone.dart' as tz;
 import 'package:url_launcher/url_launcher.dart';
 
-final log = Logger('HeliumLogger');
+final _log = Logger('presentation.views');
 
 class CalendarScreen extends StatelessWidget {
   final DioClient _dioClient = DioClient();
@@ -1118,6 +1118,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   void _changeView(HeliumView newView) {
+    _log.info('View changed: $_currentView -> $newView');
     final isEnteringNonCalendarView = (newView == HeliumView.todos);
     final wasInNonCalendarView =
         _previousView != null && _previousView == HeliumView.todos;
@@ -2051,6 +2052,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   void _populateInitialCalendarStateData(CalendarScreenDataFetched state) {
+    _log.info(
+      'Calendar screen data loaded: ${state.courses.length} courses, '
+      '${state.categories.length} categories',
+    );
     setState(() {
       _courses = state.courses;
       for (final category in state.categories) {
@@ -2076,6 +2081,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   void _goToToday() {
+    _log.info('Today button pressed (view: $_currentView)');
     if (_currentView == HeliumView.todos) {
       if (_calendarItemDataSource != null) {
         _todosController.goToToday(_calendarItemDataSource!.filteredHomeworks);
@@ -2090,6 +2096,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     bool setSelectedDate = false,
     bool offsetForVisibility = false,
   }) {
+    _log.fine('Jumping to date: $date (setSelected: $setSelectedDate)');
     // Truncate to nearest hour (remove minutes/seconds)
     final truncatedDate = DateTime(date.year, date.month, date.day, date.hour);
     // Optionally offset by 2 hours so current time is visible (used for "today")
@@ -2111,6 +2118,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   void _toggleHomeworkCompleted(HomeworkModel homework, bool value) {
+    _log.info('Homework ${homework.id} completion toggled: $value');
     // Set optimistic UI state
     _calendarItemDataSource!.setCompletedOverride(homework.id, value);
 

@@ -9,7 +9,7 @@ import 'dart:convert';
 
 import 'package:logging/logging.dart';
 
-final log = Logger('HeliumLogger');
+final _log = Logger('core');
 
 class JwtUtils {
   static Map<String, dynamic>? decodePayload(String token) {
@@ -30,7 +30,7 @@ class JwtUtils {
 
       return jsonDecode(decoded) as Map<String, dynamic>;
     } catch (e) {
-      log.warning('Failed to decode JWT token: $e');
+      _log.warning('Failed to decode JWT token: $e');
       return null;
     }
   }

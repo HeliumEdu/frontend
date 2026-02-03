@@ -15,7 +15,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:heliumapp/utils/storage_helpers_mobile.dart'
     if (dart.library.js_interop) 'package:heliumapp/utils/storage_helpers_web.dart';
 
-final log = Logger('HeliumLogger');
+final _log = Logger('utils');
 
 class HeliumStorage {
   /// - Android 13+: Requests READ_MEDIA_* permissions for accessing gallery files
@@ -40,7 +40,7 @@ class HeliumStorage {
         // Android <13 uses legacy storage permission for file picking
         final status = await Permission.storage.request();
         if (status.isGranted) {
-          log.info('Storage permission granted for older Android');
+          _log.info('Storage permission granted for older Android');
           return true;
         } else if (status.isPermanentlyDenied) {
           await openAppSettings();
@@ -67,7 +67,7 @@ class HeliumStorage {
       // Android < 10 needs WRITE_EXTERNAL_STORAGE
       final status = await Permission.storage.request();
       if (status.isGranted) {
-        log.info('Write permission granted for downloads');
+        _log.info('Write permission granted for downloads');
         return true;
       } else if (status.isPermanentlyDenied) {
         await openAppSettings();
@@ -86,7 +86,7 @@ class HeliumStorage {
     try {
       return await downloadFilePlatform(url, filename);
     } catch (e) {
-      log.severe('An error occurred during file download: $e');
+      _log.severe('An error occurred during file download: $e');
       return false;
     }
   }

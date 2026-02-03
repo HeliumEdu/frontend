@@ -11,9 +11,6 @@ import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/bloc/reminder/reminder_event.dart';
 import 'package:heliumapp/presentation/views/core/base_reminder_sub_screen.dart';
 import 'package:heliumapp/presentation/widgets/calendar_item_add_stepper.dart';
-import 'package:logging/logging.dart';
-
-final log = Logger('HeliumLogger');
 
 class CalendarItemAddReminderScreen extends BaseReminderScreen {
   final bool isEvent;

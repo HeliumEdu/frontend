@@ -21,7 +21,7 @@ import 'package:heliumapp/presentation/bloc/auth/auth_event.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_state.dart';
 import 'package:logging/logging.dart';
 
-final log = Logger('HeliumLogger');
+final _log = Logger('presentation.bloc');
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository authRepository;
@@ -185,7 +185,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           emit(AuthAuthenticated());
         } catch (e) {
           if (refreshToken?.isNotEmpty ?? false) {
-            log.info('Access token seems expired, will attempt refresh ...');
+            _log.info('Access token seems expired, will attempt refresh ...');
             add(RefreshTokenEvent());
           } else {
             emit(
