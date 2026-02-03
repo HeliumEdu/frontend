@@ -465,6 +465,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   bool _openCalendarItem(CalendarItemBaseModel calendarItem) {
     if (calendarItem is CourseScheduleEventModel) {
+      // TODO: add an action button this snack bar to take the user to the page to edit the course schedule
       showSnackBar(
         context,
         'Items from schedules can\'t be edited on the Calendar',

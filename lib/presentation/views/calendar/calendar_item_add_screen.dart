@@ -602,6 +602,8 @@ class _CalendarItemAddScreenState
                 const SizedBox(height: 14),
               ],
 
+              // TODO: add location field to Event's
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [Text('Priority', style: context.formLabel)],
