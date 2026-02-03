@@ -180,7 +180,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   final ScrollController _monthViewScrollController = ScrollController();
 
   final GlobalKey calendarKey = GlobalKey();
-  final GlobalKey todosTableKey = GlobalKey();
+  final GlobalKey<TodosTableState> todosTableKey = GlobalKey<TodosTableState>();
   final GlobalKey _todayButtonKey = GlobalKey();
   int _scheduleViewRebuildCounter = 0;
   bool _deferredScheduleView = false;
@@ -578,7 +578,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   Widget _buildCalendarHeader() {
     final isMobile = Responsive.isMobile(context);
-    final showTodayButton = _currentView != HeliumView.todos;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -596,12 +595,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // FIXME: actually show this on "Todos" view, and have it jump to today in either the calendar or table (depending on what's currently shown)
-                        if (showTodayButton)
-                          _buildTodayButton(
-                            showLabel: !isMobile,
-                            key: _todayButtonKey,
-                          ),
+                        _buildTodayButton(
+                          showLabel: !isMobile,
+                          key: _todayButtonKey,
+                        ),
                         _buildCalendarDateArea(),
                       ],
                     ),
@@ -2211,7 +2208,13 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   void _goToToday() {
-    _jumpToDate(DateTime.now(), offsetForVisibility: true);
+    if (_currentView == HeliumView.todos) {
+      // Jump to today in the Todos table
+      todosTableKey.currentState?.goToToday();
+    } else {
+      // Jump to today in the calendar
+      _jumpToDate(DateTime.now(), offsetForVisibility: true);
+    }
   }
 
   /// Jump to a specific date. Canonical method for all calendar navigation.
