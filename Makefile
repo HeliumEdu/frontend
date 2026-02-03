@@ -40,7 +40,7 @@ test: install
 
 coverage:
 	dart pub global activate test_cov_console
-	lcov -o coverage/lcov.info --remove coverage/lcov.info 'lib/config/*' 'lib/utils/app_globals.dart' 'lib/utils/app_style.dart' 'lib/utils/color_helpers.dart' 'lib/data/models/*' 'lib/data/repositories/*' 'lib/presentation/dialogs/*' 'lib/presentation/forms/*' 'lib/presentation/views/*' 'lib/presentation/widgets/*'
+	lcov -o coverage/lcov.info --remove coverage/lcov.info 'lib/config/*' 'lib/utils/app_globals.dart' 'lib/utils/app_style.dart' 'lib/utils/color_helpers.dart' 'lib/data/models/*' 'lib/data/repositories/*' 'lib/presentation/dialogs/*' 'lib/presentation/controllers/*' 'lib/presentation/views/*' 'lib/presentation/widgets/*'
 	dart pub global run test_cov_console
 
 run: install
