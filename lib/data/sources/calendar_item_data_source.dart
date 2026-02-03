@@ -170,6 +170,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
         shownOnCalendar: true,
       );
       final events = await eventRepository.getEvents(from: from, to: to);
+      // TODO: remove this, we can obtains course schedule events by using SfCalendar's native repeating events concept, and reduce backend load (and eliminate the need for this data source function and API endpoint)
       final courseScheduleEvents = await courseScheduleRepository
           .getCourseScheduleEvents(from: from!, to: to!);
       final externalCalendarEvents = await externalCalendarRepository

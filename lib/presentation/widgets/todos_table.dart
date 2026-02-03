@@ -41,12 +41,12 @@ class TodosTable extends StatefulWidget {
   });
 
   @override
-  State<TodosTable> createState() => _TodosTableState();
+  State<TodosTable> createState() => TodosTableState();
 }
 
 // TODO: evaluate making columns adjustable in width, how hard?
 
-class _TodosTableState extends State<TodosTable> {
+class TodosTableState extends State<TodosTable> {
   String _sortColumn = 'dueDate';
   bool _sortAscending = true;
   int _currentPage = 1;
@@ -72,7 +72,7 @@ class _TodosTableState extends State<TodosTable> {
     // After expanding data window, check if data is loaded and mark as ready
     if (mounted && widget.dataSource.hasLoadedInitialData && !_hasLoadedData) {
       setState(() {
-        _goToToday();
+        _goToTodayInternal();
         _hasLoadedData = true;
       });
     }
@@ -174,7 +174,7 @@ class _TodosTableState extends State<TodosTable> {
     // Jump to today when initial data finishes loading (for async data loads)
     if (widget.dataSource.hasLoadedInitialData && !_hasLoadedData) {
       setState(() {
-        _goToToday();
+        _goToTodayInternal();
         _hasLoadedData = true;
       });
     }
@@ -215,8 +215,16 @@ class _TodosTableState extends State<TodosTable> {
     }
   }
 
-  void _goToToday() {
-    // Set sort to due date, ascending (caller handles setState)
+  /// Navigate to the page containing today's assignments.
+  /// Can be called externally via GlobalKey<TodosTableState>.
+  void goToToday() {
+    setState(() {
+      _goToTodayInternal();
+    });
+  }
+
+  void _goToTodayInternal() {
+    // Set sort to due date, ascending
     _sortColumn = 'dueDate';
     _sortAscending = true;
 
