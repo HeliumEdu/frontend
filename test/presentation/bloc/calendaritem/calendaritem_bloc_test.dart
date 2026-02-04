@@ -94,7 +94,9 @@ void main() {
             () => mockCourseRepository.getCourses(shownOnCalendar: true),
           ).thenAnswer((_) async => MockModels.createCourses());
           when(
-            () => mockCourseScheduleRepository.getCourseSchedules(),
+            () => mockCourseScheduleRepository.getCourseSchedules(
+              shownOnCalendar: true,
+            ),
           ).thenAnswer((_) async => [MockModels.createCourseSchedule()]);
           when(
             () => mockCategoryRepository.getCategories(),
@@ -103,7 +105,7 @@ void main() {
                 () => mockHomeworkRepository.getHomework(id: 1),
           ).thenAnswer((_) async => MockModels.createHomework(id: 1));
           when(
-            () => mockMaterialRepository.getMaterials(),
+            () => mockMaterialRepository.getMaterials(shownOnCalendar: true),
           ).thenAnswer((_) async => MockModels.createMaterials());
           return calendarItemBloc;
         },
@@ -133,13 +135,15 @@ void main() {
             () => mockCourseRepository.getCourses(shownOnCalendar: true),
           ).thenAnswer((_) async => MockModels.createCourses());
           when(
-            () => mockCourseScheduleRepository.getCourseSchedules(),
+            () => mockCourseScheduleRepository.getCourseSchedules(
+              shownOnCalendar: true,
+            ),
           ).thenAnswer((_) async => [MockModels.createCourseSchedule()]);
           when(
             () => mockCategoryRepository.getCategories(),
           ).thenAnswer((_) async => MockModels.createCategories());
           when(
-            () => mockMaterialRepository.getMaterials(),
+            () => mockMaterialRepository.getMaterials(shownOnCalendar: true),
           ).thenAnswer((_) async => MockModels.createMaterials());
           return calendarItemBloc;
         },
