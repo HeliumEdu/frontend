@@ -466,8 +466,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                   ),
               trailingDatesTextStyle: AppStyles.smallSecondaryText(context)
                   .copyWith(
-                color: context.colorScheme.onSurface.withValues(alpha: 0.5),
-              ),
+                    color: context.colorScheme.onSurface.withValues(alpha: 0.5),
+                  ),
             ),
             agendaStyle: AgendaStyle(
               dateTextStyle: AppStyles.smallSecondaryText(
@@ -1706,20 +1706,30 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         );
       }
 
+      final isCompleted =
+          calendarItem is HomeworkModel && calendarItem.completed;
+
       spans.add(
         TextSpan(
           text: calendarItem.title,
           style: AppStyles.smallSecondaryTextLight(context).copyWith(
             // TODO: Known Issues (4/Medium): Use dynamic text color based on background luminance to prevent visibility issues with light user-selected colors
             color: Colors.white,
+            decoration: isCompleted
+                ? TextDecoration.lineThrough
+                : TextDecoration.none,
+            decorationColor: Colors.white,
+            decorationThickness: 2.0,
           ),
         ),
       );
 
       titleRowWidget = Text.rich(
         TextSpan(children: spans),
-        maxLines: _currentView == HeliumView.month ? 1 : null,
-        overflow: _currentView == HeliumView.month
+        maxLines: _currentView == HeliumView.month || calendarItem.allDay
+            ? 1
+            : null,
+        overflow: _currentView == HeliumView.month || calendarItem.allDay
             ? TextOverflow.ellipsis
             : null,
       );
@@ -1795,6 +1805,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         HeliumIconButton(
           onPressed: () => _openCalendarItem(calendarItem),
           icon: Icons.edit_outlined,
+          // TODO: Known Issues (4/Medium): Use dynamic text color based on background luminance to prevent visibility issues with light user-selected colors
           color: Colors.white,
         ),
       );
@@ -1805,6 +1816,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         HeliumIconButton(
           onPressed: () => _deleteCalendarItem(context, calendarItem),
           icon: Icons.delete_outline,
+          // TODO: Known Issues (4/Medium): Use dynamic text color based on background luminance to prevent visibility issues with light user-selected colors
           color: Colors.white,
         ),
       );
@@ -2730,11 +2742,18 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   Widget _buildCalendarItemTitle(CalendarItemBaseModel calendarItem) {
+    final isCompleted = calendarItem is HomeworkModel && calendarItem.completed;
+
     return Text(
       calendarItem.title,
       style: AppStyles.smallSecondaryTextLight(context).copyWith(
         // TODO: Known Issues (4/Medium): Use dynamic text color based on background luminance to prevent visibility issues with light user-selected colors
         color: Colors.white,
+        decoration: isCompleted
+            ? TextDecoration.lineThrough
+            : TextDecoration.none,
+        decorationColor: Colors.white,
+        decorationThickness: 2.0,
       ),
       maxLines: _currentView == HeliumView.month ? 1 : null,
       overflow: _currentView == HeliumView.month ? TextOverflow.ellipsis : null,
@@ -2778,6 +2797,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         child: Icon(
           Icons.school,
           size: 16,
+          // TODO: Known Issues (4/Medium): Use dynamic text color based on background luminance to prevent visibility issues with light user-selected colors
           color: Colors.white.withValues(alpha: 0.7),
         ),
       ),
@@ -2791,6 +2811,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       ),
       style: AppStyles.smallSecondaryTextLight(
         context,
+        // TODO: Known Issues (4/Medium): Use dynamic text color based on background luminance to prevent visibility issues with light user-selected colors
       ).copyWith(color: Colors.white.withValues(alpha: 0.7)),
     );
   }
@@ -2803,6 +2824,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         Icon(
           Icons.access_time,
           size: 10,
+          // TODO: Known Issues (4/Medium): Use dynamic text color based on background luminance to prevent visibility issues with light user-selected colors
           color: Colors.white.withValues(alpha: 0.4),
         ),
         const SizedBox(width: 2),
@@ -2815,6 +2837,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             ),
             style: AppStyles.smallSecondaryTextLight(
               context,
+              // TODO: Known Issues (4/Medium): Use dynamic text color based on background luminance to prevent visibility issues with light user-selected colors
             ).copyWith(color: Colors.white.withValues(alpha: 0.7)),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -2830,6 +2853,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         Icon(
           Icons.pin_drop_outlined,
           size: 10,
+          // TODO: Known Issues (4/Medium): Use dynamic text color based on background luminance to prevent visibility issues with light user-selected colors
           color: Colors.white.withValues(alpha: 0.4),
         ),
         const SizedBox(width: 2),
@@ -2838,6 +2862,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             location,
             style: AppStyles.smallSecondaryTextLight(
               context,
+              // TODO: Known Issues (4/Medium): Use dynamic text color based on background luminance to prevent visibility issues with light user-selected colors
             ).copyWith(color: Colors.white.withValues(alpha: 0.7)),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

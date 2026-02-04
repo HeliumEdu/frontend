@@ -741,6 +741,8 @@ class TodosTableState extends State<TodosTable> {
                 decoration: isCompleted
                     ? TextDecoration.lineThrough
                     : TextDecoration.none,
+                decorationColor: context.colorScheme.onSurface,
+                decorationThickness: 2.0,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
