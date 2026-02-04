@@ -426,6 +426,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           ).copyWith(color: context.colorScheme.onPrimary),
           viewHeaderStyle: ViewHeaderStyle(
             dayTextStyle: AppStyles.standardBodyText(context),
+            dateTextStyle: AppStyles.standardBodyText(context),
           ),
           weekNumberStyle: WeekNumberStyle(
             textStyle: AppStyles.smallSecondaryTextLight(context),
@@ -433,6 +434,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           scheduleViewSettings: ScheduleViewSettings(
             hideEmptyScheduleWeek: true,
             appointmentItemHeight: agendaHeight,
+            placeholderTextStyle: AppStyles.smallSecondaryText(context),
             monthHeaderSettings: MonthHeaderSettings(
               monthTextStyle: AppStyles.headingText(context),
               backgroundColor: context.colorScheme.primary,
@@ -474,6 +476,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
               dayTextStyle: AppStyles.smallSecondaryText(
                 context,
               ).copyWith(color: context.colorScheme.onSurface),
+              placeholderTextStyle: AppStyles.smallSecondaryText(context),
             ),
             appointmentDisplayMode: Responsive.isMobile(context)
                 ? MonthAppointmentDisplayMode.indicator
