@@ -254,17 +254,16 @@ class _ExternalCalendarsProvidedScreenState
                   children: [
                     Text(
                       externalCalendar.title,
-                      style: AppStyles.headingText(context),
+                      style: AppStyles.standardBodyText(context),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       externalCalendar.url,
-                      style: AppStyles.standardBodyText(context).copyWith(
+                      style: AppStyles.standardBodyTextLight(context).copyWith(
                         color: context.colorScheme.onSurface.withValues(
                           alpha: 0.6,
                         ),
                       ),
-                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],

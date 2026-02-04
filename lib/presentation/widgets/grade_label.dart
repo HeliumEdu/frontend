@@ -66,15 +66,13 @@ class GradeLabel extends StatelessWidget {
               ),
             ),
             child: Center(
-              child: Text(
+              child: SelectableText(
                 grade,
                 style:
                     (compact
                             ? AppStyles.smallSecondaryText(context)
                             : AppStyles.standardBodyText(context))
-                        .copyWith(
-                          color: userSettings.gradeColor,
-                        ),
+                        .copyWith(color: userSettings.gradeColor),
               ),
             ),
           ),

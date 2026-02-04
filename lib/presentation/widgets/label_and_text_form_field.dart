@@ -26,7 +26,7 @@ class LabelAndTextFormField extends StatefulWidget {
   final String? errorText;
   final ValueChanged<String>? onChanged;
   final FocusNode? focusNode;
-  final bool enabled;
+  final bool readOnly;
   final int maxLines;
   final ValueChanged<String>? onFieldSubmitted;
   final GlobalKey<FormFieldState<String>>? fieldKey;
@@ -49,7 +49,7 @@ class LabelAndTextFormField extends StatefulWidget {
     this.errorText,
     this.onChanged,
     this.focusNode,
-    this.enabled = true,
+    this.readOnly = false,
     this.maxLines = 1,
     this.onFieldSubmitted,
     this.fieldKey,
@@ -96,13 +96,14 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
     final formField = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (widget.label != null) Text(widget.label!, style: AppStyles.formLabel(context)),
+        if (widget.label != null)
+          Text(widget.label!, style: AppStyles.formLabel(context)),
         if (widget.label != null) const SizedBox(height: 9),
         Container(
           decoration: BoxDecoration(
-            color: widget.enabled
-                ? context.colorScheme.surface
-                : context.colorScheme.surfaceContainerHighest,
+            color: widget.readOnly
+                ? context.colorScheme.surfaceContainerHighest
+                : context.colorScheme.surface,
             border: Border.all(
               color: context.colorScheme.outline.withValues(alpha: 0.2),
               width: 2,
@@ -118,7 +119,7 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
               controller: widget.controller,
               validator: widget.validator,
               focusNode: widget.focusNode,
-              enabled: widget.enabled,
+              readOnly: widget.readOnly,
               maxLines: widget.maxLines,
               obscureText: widget.obscureText,
               onChanged: widget.onChanged,

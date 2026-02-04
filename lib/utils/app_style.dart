@@ -21,6 +21,7 @@ extension AppStyles on BuildContext {
           desktop: 15,
         ),
         color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.9),
+        fontFeatures: [const FontFeature.tabularFigures()],
       );
 
   // Used for secondary text with a lighter weight (like prominent calendar data)
@@ -30,6 +31,7 @@ extension AppStyles on BuildContext {
       fontWeight: FontWeight.w300,
       fontSize: base.fontSize,
       color: base.color,
+      fontFeatures: base.fontFeatures,
     );
   }
 
@@ -38,14 +40,17 @@ extension AppStyles on BuildContext {
     fontWeight: FontWeight.w600,
     fontSize: Responsive.getFontSize(context, mobile: 15, desktop: 16),
     color: Theme.of(context).colorScheme.onSurface,
+    fontFeatures: [const FontFeature.tabularFigures()],
   );
 
   // Used for large featured text (prominent numbers, key metrics, callouts)
-  static TextStyle featureText(BuildContext context) => GoogleFonts.poppins(
-    fontWeight: FontWeight.w600,
-    fontSize: Responsive.getFontSize(context, mobile: 18, desktop: 19),
-    color: Theme.of(context).colorScheme.onSurface,
-  );
+  static TextStyle featureText(BuildContext context) =>
+      GoogleFonts.dmSerifDisplay(
+        fontWeight: FontWeight.w400,
+        fontSize: Responsive.getFontSize(context, mobile: 18, desktop: 19),
+        color: Theme.of(context).colorScheme.onSurface,
+        fontFeatures: [const FontFeature.tabularFigures()],
+      );
 
   // Used for smaller labels, counts, tertiary info
   static TextStyle smallSecondaryText(BuildContext context) =>
@@ -53,6 +58,7 @@ extension AppStyles on BuildContext {
         fontWeight: FontWeight.w400,
         fontSize: Responsive.getFontSize(context, mobile: 12, desktop: 13),
         color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.9),
+        fontFeatures: [const FontFeature.tabularFigures()],
       );
 
   // Used for secondary text with a lighter weight (like on the calendar)
@@ -62,6 +68,7 @@ extension AppStyles on BuildContext {
       fontWeight: FontWeight.w300,
       fontSize: base.fontSize,
       color: base.color,
+      fontFeatures: base.fontFeatures,
     );
   }
 
@@ -70,25 +77,29 @@ extension AppStyles on BuildContext {
     fontWeight: FontWeight.w600,
     fontSize: Responsive.getFontSize(context, mobile: 15, desktop: 16),
     color: Theme.of(context).colorScheme.onPrimary,
+    fontFeatures: [const FontFeature.tabularFigures()],
   );
 
   // Used for page and dialog titles
-  static TextStyle pageTitle(BuildContext context) => GoogleFonts.poppins(
-    fontWeight: FontWeight.w700,
-    fontSize: Responsive.getFontSize(
-      context,
-      mobile: 18,
-      tablet: 20,
-      desktop: 22,
-    ),
-    color: Theme.of(context).colorScheme.onSurface,
-  );
+  static TextStyle pageTitle(BuildContext context) =>
+      GoogleFonts.dmSerifDisplay(
+        fontWeight: FontWeight.w400,
+        fontSize: Responsive.getFontSize(
+          context,
+          mobile: 18,
+          tablet: 20,
+          desktop: 22,
+        ),
+        color: Theme.of(context).colorScheme.onSurface,
+        fontFeatures: [const FontFeature.tabularFigures()],
+      );
 
   // Used for dropdowns, text fields, and form elements
   static TextStyle formText(BuildContext context) => GoogleFonts.poppins(
     fontSize: Responsive.getFontSize(context, mobile: 14, desktop: 15),
     fontWeight: FontWeight.w400,
     color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.9),
+    fontFeatures: [const FontFeature.tabularFigures()],
   );
 
   // Used for form field labels
@@ -112,13 +123,14 @@ extension AppStyles on BuildContext {
     fontSize: Responsive.getFontSize(context, mobile: 14, desktop: 15),
     fontWeight: FontWeight.w500,
     color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.9),
+    fontFeatures: [const FontFeature.tabularFigures()],
   );
 
   // Used for menu item hints
   static TextStyle menuItemHint(BuildContext context) =>
       menuItem(context).copyWith(
         fontSize: Responsive.getFontSize(context, mobile: 12, desktop: 13),
-        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
       );
 
   // Used for active menu items

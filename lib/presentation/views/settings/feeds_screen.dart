@@ -173,58 +173,59 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
                               ),
                             ),
                           ),
-                          child: Text(
+                          child: SelectableText(
                             url,
-                            style: AppStyles.standardBodyText(
-                              context,
-                            ),
+                            style: AppStyles.standardBodyTextLight(context),
                           ),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: HeliumElevatedButton(
-                          onPressed: () {
-                            Clipboard.setData(ClipboardData(text: url));
-                            showSnackBar(context, '$label URL copied');
-                          },
-                          icon: Icons.copy,
-                          buttonText: 'Copy',
-                          backgroundColor: color,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Builder(
-                        builder: (buttonContext) => SizedBox.square(
-                          dimension: 45,
-                          child: IconButton(
+                  IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(
+                          child: HeliumElevatedButton(
                             onPressed: () {
-                              final box =
-                                  buttonContext.findRenderObject()
-                                      as RenderBox?;
-                              final sharePositionOrigin = box != null
-                                  ? box.localToGlobal(Offset.zero) & box.size
-                                  : null;
-
-                              SharePlus.instance.share(
-                                ShareParams(
-                                  text: url,
-                                  sharePositionOrigin: sharePositionOrigin,
-                                ),
-                              );
+                              Clipboard.setData(ClipboardData(text: url));
+                              showSnackBar(context, '$label URL copied');
                             },
-                            icon: Icon(Icons.share_outlined, color: color),
-                            style: IconButton.styleFrom(
-                              backgroundColor: color.withValues(alpha: 0.12),
+                            icon: Icons.copy,
+                            buttonText: 'Copy',
+                            backgroundColor: color,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Builder(
+                          builder: (buttonContext) => AspectRatio(
+                            aspectRatio: 1,
+                            child: IconButton(
+                              onPressed: () {
+                                final box =
+                                    buttonContext.findRenderObject()
+                                        as RenderBox?;
+                                final sharePositionOrigin = box != null
+                                    ? box.localToGlobal(Offset.zero) & box.size
+                                    : null;
+
+                                SharePlus.instance.share(
+                                  ShareParams(
+                                    text: url,
+                                    sharePositionOrigin: sharePositionOrigin,
+                                  ),
+                                );
+                              },
+                              icon: Icon(Icons.share_outlined, color: color),
+                              style: IconButton.styleFrom(
+                                backgroundColor: color.withValues(alpha: 0.12),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -260,10 +261,7 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              Text(
-                'Feeds are Disabled',
-                style: AppStyles.featureText(context)
-              ),
+              Text('Feeds are Disabled', style: AppStyles.headingText(context)),
               const SizedBox(height: 25),
 
               HeliumElevatedButton(
