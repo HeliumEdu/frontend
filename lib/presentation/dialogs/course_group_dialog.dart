@@ -170,7 +170,7 @@ class _CourseGroupWidgetState
             Expanded(
               child: CheckboxListTile(
                 title: Text(
-                  "Hide this group's classes and assignments from the Calendar",
+                  "Hide this group's classes and assignments from the Planner",
                   style: context.formLabel,
                 ),
                 value: !_formController.shownOnCalendar,
