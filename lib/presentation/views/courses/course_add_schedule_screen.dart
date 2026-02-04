@@ -215,10 +215,7 @@ class _CourseAddScheduleScreenState
                     .toList(),
                 style: ButtonStyle(
                   textStyle: WidgetStateProperty.all(
-                    AppStyles.buttonText(context).copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.onPrimary,
-                    ),
+                    AppStyles.buttonText(context),
                   ),
                 ),
                 selected: _selectedDays,

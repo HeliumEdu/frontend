@@ -390,9 +390,7 @@ class _MaterialsScreenState
                     const SizedBox(width: 12),
                     Text(
                       material.price!,
-                      style: AppStyles.headingText(
-                        context,
-                      ).copyWith(color: context.colorScheme.onSurface),
+                      style: AppStyles.headingText(context),
                     ),
                   ],
                 ],

@@ -50,11 +50,11 @@ class HeliumElevatedButton extends StatelessWidget {
           ? const LoadingIndicator(small: true)
           : Text(
               buttonText,
-              style: AppStyles.buttonText(context).copyWith(
-                color: enabled
-                    ? context.colorScheme.onPrimary
-                    : context.colorScheme.primary.withValues(alpha: 0.4),
-              ),
+              style: enabled
+                  ? AppStyles.buttonText(context)
+                  : AppStyles.buttonText(context).copyWith(
+                      color: context.colorScheme.primary.withValues(alpha: 0.4),
+                    ),
             ),
     );
   }
