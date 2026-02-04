@@ -74,7 +74,6 @@ class GradeLabel extends StatelessWidget {
                             : AppStyles.standardBodyText(context))
                         .copyWith(
                           color: userSettings.gradeColor,
-                          fontWeight: FontWeight.w700,
                         ),
               ),
             ),

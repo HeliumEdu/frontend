@@ -345,7 +345,7 @@ class TodosTableState extends State<TodosTable> {
       children: [
         Text(
           'Show',
-          style: AppStyles.smallSecondaryTextLight(context).copyWith(
+          style: AppStyles.standardBodyTextLight(context).copyWith(
             color: context.colorScheme.onSurface.withValues(alpha: 0.7),
           ),
         ),
@@ -361,9 +361,6 @@ class TodosTableState extends State<TodosTable> {
                 controller.currentPage = 1;
               }
             },
-            style: AppStyles.smallSecondaryTextLight(context).copyWith(
-              color: context.colorScheme.onSurface.withValues(alpha: 0.7),
-            ),
           ),
         ),
       ],
@@ -373,7 +370,7 @@ class TodosTableState extends State<TodosTable> {
   Widget _buildItemsCountText(int startIndex, int endIndex, int totalItems) {
     return Text(
       '${!Responsive.isMobile(context) ? 'Showing ' : ''}${startIndex + 1} to $endIndex of $totalItems',
-      style: AppStyles.smallSecondaryTextLight(
+      style: AppStyles.standardBodyTextLight(
         context,
       ).copyWith(color: context.colorScheme.onSurface.withValues(alpha: 0.7)),
     );
@@ -483,8 +480,7 @@ class TodosTableState extends State<TodosTable> {
         ),
         child: Text(
           pageNumber.toString(),
-          style: AppStyles.smallSecondaryTextLight(context).copyWith(
-            fontWeight: isActive ? FontWeight.w600 : FontWeight.w300,
+          style: AppStyles.standardBodyTextLight(context).copyWith(
             color: isActive
                 ? context.colorScheme.onPrimary
                 : context.colorScheme.onSurface,
@@ -541,7 +537,7 @@ class TodosTableState extends State<TodosTable> {
           else
             Text(
               label,
-              style: AppStyles.smallSecondaryText(
+              style: AppStyles.standardBodyText(
                 context,
               ).copyWith(color: context.colorScheme.onSurface),
             ),

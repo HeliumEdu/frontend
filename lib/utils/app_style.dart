@@ -23,9 +23,19 @@ extension AppStyles on BuildContext {
         color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.9),
       );
 
+  // Used for secondary text with a lighter weight (like prominent calendar data)
+  static TextStyle standardBodyTextLight(BuildContext context) {
+    final base = standardBodyText(context);
+    return GoogleFonts.poppins(
+      fontWeight: FontWeight.w300,
+      fontSize: base.fontSize,
+      color: base.color,
+    );
+  }
+
   // Used for primary headings, important UI text
   static TextStyle headingText(BuildContext context) => GoogleFonts.poppins(
-    fontWeight: FontWeight.w500,
+    fontWeight: FontWeight.w600,
     fontSize: Responsive.getFontSize(context, mobile: 15, desktop: 16),
     color: Theme.of(context).colorScheme.onSurface,
   );
@@ -40,9 +50,9 @@ extension AppStyles on BuildContext {
   // Used for smaller labels, counts, tertiary info
   static TextStyle smallSecondaryText(BuildContext context) =>
       GoogleFonts.poppins(
-        fontWeight: FontWeight.w500,
+        fontWeight: FontWeight.w400,
         fontSize: Responsive.getFontSize(context, mobile: 12, desktop: 13),
-        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.9),
       );
 
   // Used for secondary text with a lighter weight (like on the calendar)
@@ -77,7 +87,7 @@ extension AppStyles on BuildContext {
   // Used for dropdowns, text fields, and form elements
   static TextStyle formText(BuildContext context) => GoogleFonts.poppins(
     fontSize: Responsive.getFontSize(context, mobile: 14, desktop: 15),
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w400,
     color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.9),
   );
 
@@ -93,11 +103,9 @@ extension AppStyles on BuildContext {
   );
 
   // Used for form validation error messages
-  static TextStyle formErrorStyle(BuildContext context) =>
-      formText(context).copyWith(
-        fontSize: 14,
-        color: Theme.of(context).colorScheme.error.withValues(alpha: 0.9),
-      );
+  static TextStyle formErrorStyle(BuildContext context) => formText(
+    context,
+  ).copyWith(color: Theme.of(context).colorScheme.error.withValues(alpha: 0.9));
 
   // Used for menu items and popup menu text
   static TextStyle menuItem(BuildContext context) => GoogleFonts.poppins(

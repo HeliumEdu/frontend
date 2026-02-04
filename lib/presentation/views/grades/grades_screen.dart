@@ -431,10 +431,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                   flex: 2,
                   child: Text(
                     'Category',
-                    style: AppStyles.standardBodyText(context).copyWith(
-                      color: context.colorScheme.onSurface,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: AppStyles.standardBodyText(context),
                   ),
                 ),
                 Expanded(
@@ -442,10 +439,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                   child: Text(
                     'Graded',
                     textAlign: TextAlign.center,
-                    style: AppStyles.standardBodyText(context).copyWith(
-                      color: context.colorScheme.onSurface,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: AppStyles.standardBodyText(context),
                   ),
                 ),
                 Expanded(
@@ -453,10 +447,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                   child: Text(
                     'Average',
                     textAlign: TextAlign.right,
-                    style: AppStyles.standardBodyText(context).copyWith(
-                      color: context.colorScheme.onSurface,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: AppStyles.standardBodyText(context),
                   ),
                 ),
               ],
