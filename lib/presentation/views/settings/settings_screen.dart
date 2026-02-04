@@ -242,7 +242,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
               },
               borderRadius: BorderRadius.circular(16),
               child: Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(10),
                 child: Row(
                   children: [
                     Container(
@@ -269,11 +269,16 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Settings', style: context.settingsMenuItem),
+                          Text(
+                            'Settings',
+                            style: AppStyles.menuItem(
+                              context,
+                            ).copyWith(fontWeight: FontWeight.w600),
+                          ),
                           const SizedBox(height: 2),
                           Text(
                             'Change your preferences',
-                            style: context.settingsMenuItemHint,
+                            style: AppStyles.menuItemHint(context),
                           ),
                         ],
                       ),
@@ -306,7 +311,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
               },
               borderRadius: BorderRadius.circular(16),
               child: Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(10),
                 child: Row(
                   children: [
                     Container(
@@ -335,12 +340,14 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                         children: [
                           Text(
                             'External Calendars',
-                            style: context.settingsMenuItem,
+                            style: AppStyles.menuItem(
+                              context,
+                            ).copyWith(fontWeight: FontWeight.w600),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             'Bring other calendars in to Helium',
-                            style: context.settingsMenuItemHint,
+                            style: AppStyles.menuItemHint(context),
                           ),
                         ],
                       ),
@@ -373,7 +380,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
               },
               borderRadius: BorderRadius.circular(16),
               child: Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(10),
                 child: Row(
                   children: [
                     Container(
@@ -400,11 +407,16 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Feeds', style: context.settingsMenuItem),
+                          Text(
+                            'Feeds',
+                            style: AppStyles.menuItem(
+                              context,
+                            ).copyWith(fontWeight: FontWeight.w600),
+                          ),
                           const SizedBox(height: 2),
                           Text(
                             "Take Helium's calendars elsewhere",
-                            style: context.settingsMenuItemHint,
+                            style: AppStyles.menuItemHint(context),
                           ),
                         ],
                       ),
@@ -437,7 +449,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
               },
               borderRadius: BorderRadius.circular(16),
               child: Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(10),
                 child: Row(
                   children: [
                     Container(
@@ -466,12 +478,14 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                         children: [
                           Text(
                             'Change Password',
-                            style: context.settingsMenuItem,
+                            style: AppStyles.menuItem(
+                              context,
+                            ).copyWith(fontWeight: FontWeight.w600),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             'Update your password',
-                            style: context.settingsMenuItemHint,
+                            style: AppStyles.menuItemHint(context),
                           ),
                         ],
                       ),
@@ -499,8 +513,13 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
   }
 
   Widget _buildDeleteAccountArea() {
-    return ShadowContainer(
-      borderColor: context.colorScheme.error.withValues(alpha: 0.2),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: context.colorScheme.error.withValues(alpha: 0.2),
+        ),
+      ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -528,7 +547,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                   ),
                 ),
 
-                const SizedBox(width: 25),
+                const SizedBox(width: 16),
 
                 Expanded(
                   child: Column(
@@ -536,14 +555,15 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                     children: [
                       Text(
                         'Delete Account',
-                        style: context.settingsMenuItem.copyWith(
+                        style: AppStyles.menuItem(context).copyWith(
+                          fontWeight: FontWeight.w600,
                           color: context.colorScheme.error,
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         'Permanently delete your account',
-                        style: context.settingsMenuItemHint,
+                        style: AppStyles.menuItemHint(context),
                       ),
                     ],
                   ),
@@ -608,9 +628,9 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                 Expanded(
                   child: Text(
                     'Delete Account',
-                    style: AppStyles.featureText(context).copyWith(
-                      color: context.colorScheme.error,
-                    ),
+                    style: AppStyles.featureText(
+                      context,
+                    ).copyWith(color: context.colorScheme.error),
                   ),
                 ),
               ],

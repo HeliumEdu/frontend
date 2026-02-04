@@ -166,7 +166,7 @@ class _CourseAddScheduleScreenState
                         child: CheckboxListTile(
                           title: Text(
                             'Varies by day',
-                            style: context.formLabel,
+                            style: AppStyles.formLabel(context),
                           ),
                           value: _variesByDay,
                           onChanged: (value) {
@@ -262,7 +262,7 @@ class _CourseAddScheduleScreenState
                     children: [
                       Text(
                         CalendarConstants.dayNames[dayIndex],
-                        style: context.formLabel.copyWith(
+                        style: AppStyles.formLabel(context).copyWith(
                           color: context.colorScheme.primary,
                         ),
                       ),
@@ -297,7 +297,7 @@ class _CourseAddScheduleScreenState
                                               _startTimes[dayIndex]!,
                                             )
                                           : '',
-                                      style: context.formText,
+                                      style: AppStyles.formText(context),
                                     ),
                                     Icon(
                                       Icons.access_time,
@@ -343,7 +343,7 @@ class _CourseAddScheduleScreenState
                                               _endTimes[dayIndex]!,
                                             )
                                           : '',
-                                      style: context.formText,
+                                      style: AppStyles.formText(context),
                                     ),
                                     Icon(
                                       Icons.access_time,
@@ -412,7 +412,7 @@ class _CourseAddScheduleScreenState
                             children: [
                               Text(
                                 HeliumTime.formatForDisplay(_singleStartTime),
-                                style: context.formText,
+                                style: AppStyles.formText(context),
                               ),
                               Icon(
                                 Icons.access_time,
@@ -449,7 +449,7 @@ class _CourseAddScheduleScreenState
                             children: [
                               Text(
                                 HeliumTime.formatForDisplay(_singleEndTime),
-                                style: context.formText,
+                                style: AppStyles.formText(context),
                               ),
                               Icon(
                                 Icons.access_time,

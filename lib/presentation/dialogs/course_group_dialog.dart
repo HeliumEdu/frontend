@@ -104,7 +104,7 @@ class _CourseGroupWidgetState
           onFieldSubmitted: (value) => handleSubmit(),
         ),
         const SizedBox(height: 14),
-        Text('From', style: context.formLabel),
+        Text('From', style: AppStyles.formLabel(context)),
         const SizedBox(height: 9),
         GestureDetector(
           onTap: () => _selectDate(context, true),
@@ -123,7 +123,7 @@ class _CourseGroupWidgetState
               children: [
                 Text(
                   HeliumDateTime.formatDateForDisplay(_formController.startDate!),
-                  style: context.formText,
+                  style: AppStyles.formText(context),
                 ),
                 Icon(
                   Icons.calendar_today,
@@ -135,7 +135,7 @@ class _CourseGroupWidgetState
           ),
         ),
         const SizedBox(height: 14),
-        Text('To', style: context.formLabel),
+        Text('To', style: AppStyles.formLabel(context)),
         const SizedBox(height: 9),
         GestureDetector(
           onTap: () => _selectDate(context, false),
@@ -154,7 +154,7 @@ class _CourseGroupWidgetState
               children: [
                 Text(
                   HeliumDateTime.formatDateForDisplay(_formController.endDate!),
-                  style: context.formText,
+                  style: AppStyles.formText(context),
                 ),
                 Icon(
                   Icons.calendar_today,
@@ -172,7 +172,7 @@ class _CourseGroupWidgetState
               child: CheckboxListTile(
                 title: Text(
                   "Hide this group's classes and assignments from the Planner",
-                  style: context.formLabel,
+                  style: AppStyles.formLabel(context),
                 ),
                 value: !_formController.shownOnCalendar,
                 onChanged: (value) {

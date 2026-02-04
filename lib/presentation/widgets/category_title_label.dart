@@ -12,11 +12,13 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 class CategoryTitleLabel extends StatelessWidget {
   final String title;
   final Color color;
+  final bool compact;
 
   const CategoryTitleLabel({
     super.key,
     required this.title,
     required this.color,
+    this.compact = false,
   });
 
   @override
@@ -45,9 +47,11 @@ class CategoryTitleLabel extends StatelessWidget {
           Flexible(
             child: Text(
               title,
-              style: AppStyles.standardBodyText(context).copyWith(
-                color: color
-              ),
+              style:
+                  (compact
+                          ? AppStyles.smallSecondaryText(context)
+                          : AppStyles.standardBodyText(context))
+                      .copyWith(color: color),
               overflow: TextOverflow.ellipsis,
             ),
           ),

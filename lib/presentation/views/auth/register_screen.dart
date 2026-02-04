@@ -252,7 +252,7 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
                         title: RichText(
                           text: TextSpan(
                             text: "I agree to Helium's ",
-                            style: context.formText,
+                            style: AppStyles.formText(context),
                             children: [
                               WidgetSpan(
                                 child: GestureDetector(
@@ -262,13 +262,13 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
                                   ),
                                   child: Text(
                                     'Terms of Service',
-                                    style: context.formText.copyWith(
+                                    style: AppStyles.formText(context).copyWith(
                                       color: context.colorScheme.primary,
                                     ),
                                   ),
                                 ),
                               ),
-                              TextSpan(text: ' and ', style: context.formText),
+                              TextSpan(text: ' and ', style: AppStyles.formText(context)),
                               WidgetSpan(
                                 child: GestureDetector(
                                   onTap: () => launchUrl(
@@ -279,7 +279,7 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
                                   ),
                                   child: Text(
                                     'Privacy Policy',
-                                    style: context.formText.copyWith(
+                                    style: AppStyles.formText(context).copyWith(
                                       color: context.colorScheme.primary,
                                     ),
                                   ),

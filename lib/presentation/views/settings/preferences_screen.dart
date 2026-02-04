@@ -131,7 +131,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
             const SizedBox(height: 14),
             Row(
               children: [
-                Text('Color for Events', style: context.formLabel),
+                Text('Color for Events', style: AppStyles.formLabel(context)),
                 const SizedBox(width: 12),
                 MouseRegion(
                   cursor: SystemMouseCursors.click,
@@ -171,7 +171,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
 
             Row(
               children: [
-                Text('Color for grade badges', style: context.formLabel),
+                Text('Color for grade badges', style: AppStyles.formLabel(context)),
                 const SizedBox(width: 12),
                 MouseRegion(
                   cursor: SystemMouseCursors.click,
@@ -207,7 +207,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
 
             Row(
               children: [
-                Text('Color for resource badges', style: context.formLabel),
+                Text('Color for resource badges', style: AppStyles.formLabel(context)),
                 const SizedBox(width: 12),
                 MouseRegion(
                   cursor: SystemMouseCursors.click,
@@ -246,7 +246,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
               children: [
                 Expanded(
                   child: CheckboxListTile(
-                    title: Text('Color by category', style: context.formLabel),
+                    title: Text('Color by category', style: AppStyles.formLabel(context)),
                     value: _isSelectedColorByCategory,
                     onChanged: (value) {
                       setState(() {

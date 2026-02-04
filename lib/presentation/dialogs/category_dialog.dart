@@ -124,7 +124,7 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget> {
         const SizedBox(height: 14),
         Row(
           children: [
-            Text('Color', style: context.formLabel),
+            Text('Color', style: AppStyles.formLabel(context)),
             const SizedBox(width: 12),
             MouseRegion(
               cursor: SystemMouseCursors.click,

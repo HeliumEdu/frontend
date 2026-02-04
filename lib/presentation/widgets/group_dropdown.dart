@@ -121,7 +121,7 @@ class GroupDropdown<T extends BaseModel> extends StatelessWidget {
                       children: [
                         Text(
                           item.title,
-                          style: context.formText,
+                          style: AppStyles.formText(context),
                           overflow: TextOverflow.ellipsis,
                         ),
                         if (!item.shownOnCalendar!) ...[
@@ -137,12 +137,12 @@ class GroupDropdown<T extends BaseModel> extends StatelessWidget {
                     if (dateRange != null)
                       Text(
                         dateRange,
-                        style: context.calendarData.copyWith(
-                          fontSize: 12,
-                          color: context.colorScheme.onSurface.withValues(
-                            alpha: 0.6,
-                          ),
-                        ),
+                        style: AppStyles.smallSecondaryTextLight(context)
+                            .copyWith(
+                              color: context.colorScheme.onSurface.withValues(
+                                alpha: 0.6,
+                              ),
+                            ),
                         overflow: TextOverflow.ellipsis,
                       ),
                   ],

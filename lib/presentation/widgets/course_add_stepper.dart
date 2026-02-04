@@ -153,8 +153,8 @@ class CourseStepper extends StatelessWidget {
           child: Text(
             CourseAddSteps.details.label,
             style: selectedIndex == CourseAddSteps.details.index
-                ? context.stepperTitleActive
-                : context.stepperTitle,
+                ? AppStyles.menuItemActive(context)
+                : AppStyles.menuItem(context),
           ),
         ),
       ),
@@ -190,8 +190,8 @@ class CourseStepper extends StatelessWidget {
           child: Text(
             CourseAddSteps.schedule.label,
             style: selectedIndex == CourseAddSteps.schedule.index
-                ? context.stepperTitleActive
-                : context.stepperTitle.copyWith(
+                ? AppStyles.menuItemActive(context)
+                : AppStyles.menuItem(context).copyWith(
                     color: context.colorScheme.onSurface.withValues(
                       alpha: isEdit ? 1 : 0.3,
                     ),
@@ -231,8 +231,8 @@ class CourseStepper extends StatelessWidget {
           child: Text(
             CourseAddSteps.categories.label,
             style: selectedIndex == CourseAddSteps.categories.index
-                ? context.stepperTitleActive
-                : context.stepperTitle.copyWith(
+                ? AppStyles.menuItemActive(context)
+                : AppStyles.menuItem(context).copyWith(
                     color: context.colorScheme.onSurface.withValues(
                       alpha: isEdit ? 1 : 0.3,
                     ),
@@ -274,8 +274,8 @@ class CourseStepper extends StatelessWidget {
           child: Text(
             CourseAddSteps.attachments.label,
             style: selectedIndex == CourseAddSteps.attachments.index
-                ? context.stepperTitleActive
-                : context.stepperTitle.copyWith(
+                ? AppStyles.menuItemActive(context)
+                : AppStyles.menuItem(context).copyWith(
                     color: context.colorScheme.onSurface.withValues(
                       alpha: isEdit ? 1 : 0.3,
                     ),
