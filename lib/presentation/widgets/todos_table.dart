@@ -534,9 +534,7 @@ class TodosTableState extends State<TodosTable> {
           else
             Text(
               label,
-              style: context.calendarHeader.copyWith(
-                color: context.colorScheme.onSurface,
-              ),
+              style: context.calendarHeader,
             ),
           if (isActive) ...[
             const SizedBox(width: 4),

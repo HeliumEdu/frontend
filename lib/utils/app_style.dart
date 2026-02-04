@@ -34,27 +34,22 @@ extension AppTextStyles on BuildContext {
     color: Theme.of(this).colorScheme.onSurface,
   );
 
-  TextStyle get formLabel => GoogleFonts.poppins(
-    fontSize: 16,
-    fontWeight: FontWeight.w600,
-    color: Theme.of(this).colorScheme.onSurface.withValues(alpha: 0.7),
-  );
-
   TextStyle get formText => GoogleFonts.poppins(
     fontSize: 16,
     fontWeight: FontWeight.w600,
     color: Theme.of(this).colorScheme.onSurface.withValues(alpha: 0.9),
   );
 
-  TextStyle get formHintStyle => GoogleFonts.poppins(
-    fontSize: 16,
-    fontWeight: FontWeight.w600,
+  TextStyle get formLabel => formText.copyWith(
+    color: Theme.of(this).colorScheme.onSurface.withValues(alpha: 0.7),
+  );
+
+  TextStyle get formHint => formText.copyWith(
     color: Theme.of(this).colorScheme.onSurface.withValues(alpha: 0.5),
   );
 
-  TextStyle get formErrorStyle => GoogleFonts.poppins(
+  TextStyle get formErrorStyle => formText.copyWith(
     fontSize: 14,
-    fontWeight: FontWeight.w500,
     color: Theme.of(this).colorScheme.error.withValues(alpha: 0.9),
   );
 

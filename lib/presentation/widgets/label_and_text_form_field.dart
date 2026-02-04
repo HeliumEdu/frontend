@@ -142,7 +142,7 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
                   bottom: _horizontalPadding(),
                 ),
                 hintText: widget.hintText,
-                hintStyle: context.formHintStyle,
+                hintStyle: context.formHint,
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,

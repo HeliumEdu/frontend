@@ -277,7 +277,6 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
               Text(
                 'Feeds are Disabled',
                 style: context.pageTitle.copyWith(
-                  color: context.colorScheme.onSurface,
                   fontWeight: FontWeight.w600,
                   fontSize: Responsive.getFontSize(
                     context,

@@ -389,10 +389,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
                   children: [
                     Text(
                       course.teacherName,
-                      style: context.paragraphText.copyWith(
-                        color: context.colorScheme.onSurface,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: context.paragraphText
                     ),
                     const SizedBox(height: 8),
                   ],
