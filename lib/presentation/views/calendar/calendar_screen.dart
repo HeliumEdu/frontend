@@ -473,7 +473,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       // TODO: High Value, Low Effort: add an action button this snack bar to take the user to the page to edit the course schedule
       showSnackBar(
         context,
-        'Items from schedules can\'t be edited on the Calendar',
+        'Items from schedules can\'t be edited on the Planner',
         isError: true,
       );
 
@@ -481,7 +481,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     } else if (calendarItem is ExternalCalendarEventModel) {
       showSnackBar(
         context,
-        "Items from external calendars can't be edited on the Calendar",
+        "Items from external calendars can't be edited on the Planner",
         isError: true,
       );
 
@@ -1339,13 +1339,13 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     } else if (calendarItem is CourseScheduleEventModel) {
       showSnackBar(
         context,
-        'Items from schedules can\'t be edited on the Calendar',
+        'Items from schedules can\'t be edited on the Planner',
         isError: true,
       );
     } else if (calendarItem is ExternalCalendarEventModel) {
       showSnackBar(
         context,
-        "Items from external calendars can't be edited on the Calendar",
+        "Items from external calendars can't be edited on the Planner",
         isError: true,
       );
     }
@@ -1441,13 +1441,13 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     } else if (calendarItem is CourseScheduleEventModel) {
       showSnackBar(
         context,
-        'Items from schedules can\'t be edited on the Calendar',
+        'Items from schedules can\'t be edited on the Planner',
         isError: true,
       );
     } else if (calendarItem is ExternalCalendarEventModel) {
       showSnackBar(
         context,
-        "Items from external calendars can't be edited on the Calendar",
+        "Items from external calendars can't be edited on the Planner",
         isError: true,
       );
     }
@@ -2054,7 +2054,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   void _populateInitialCalendarStateData(CalendarScreenDataFetched state) {
     _log.info(
-      'Calendar screen data loaded: ${state.courses.length} courses, '
+      'Planner screen data loaded: ${state.courses.length} courses, '
       '${state.categories.length} categories',
     );
     setState(() {
