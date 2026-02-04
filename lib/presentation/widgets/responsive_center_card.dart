@@ -8,6 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
+// FIXME: adjust this to center vertically too (or scroll if not enough room, but parent widget might take care of that)
 class ResponsiveCenterCard extends StatelessWidget {
   final Widget child;
   final double maxWidth;

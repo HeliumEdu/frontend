@@ -51,6 +51,7 @@ class CourseStepper extends StatelessWidget {
       child: ShadowContainer(
         child: EasyStepper(
           lineStyle: LineStyle(
+            // FIXME: with new fonts, this needs to be reduced further
             lineLength: (MediaQuery.sizeOf(context).width - 275) / 4,
             lineThickness: 3,
             lineSpace: 4,

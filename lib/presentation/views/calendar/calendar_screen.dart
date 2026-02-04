@@ -1576,6 +1576,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }) {
     Widget? iconWidget;
 
+    // FIXME: on mobile, capture a tap anywhere in this "left area" and accept it as a tap on the checkbox
+
     if (PlannerHelper.shouldShowCheckbox(context, calendarItem, _currentView)) {
       iconWidget = _buildCheckboxWidget(
         homework: calendarItem as HomeworkModel,
