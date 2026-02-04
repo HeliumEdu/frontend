@@ -196,7 +196,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                     child: LabelAndTextFormField(
                       label: 'Username',
                       initialValue: _username,
-                      enabled: false,
+                      readOnly: true,
                       prefixIcon: Icons.person_outline,
                     ),
                   ),
@@ -216,7 +216,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                       label: 'Email',
                       initialValue: _email,
                       keyboardType: TextInputType.emailAddress,
-                      enabled: false,
+                      readOnly: true,
                       prefixIcon: Icons.email_outlined,
                     ),
                   ),
@@ -269,12 +269,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Settings',
-                            style: AppStyles.menuItem(
-                              context,
-                            ),
-                          ),
+                          Text('Settings', style: AppStyles.menuItem(context)),
                           const SizedBox(height: 2),
                           Text(
                             'Change your preferences',
@@ -340,9 +335,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                         children: [
                           Text(
                             'External Calendars',
-                            style: AppStyles.menuItem(
-                              context,
-                            ),
+                            style: AppStyles.menuItem(context),
                           ),
                           const SizedBox(height: 2),
                           Text(
@@ -407,12 +400,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Feeds',
-                            style: AppStyles.menuItem(
-                              context,
-                            ),
-                          ),
+                          Text('Feeds', style: AppStyles.menuItem(context)),
                           const SizedBox(height: 2),
                           Text(
                             "Take Helium's calendars elsewhere",
@@ -478,9 +466,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                         children: [
                           Text(
                             'Change Password',
-                            style: AppStyles.menuItem(
-                              context,
-                            ),
+                            style: AppStyles.menuItem(context),
                           ),
                           const SizedBox(height: 2),
                           Text(
@@ -555,9 +541,9 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                     children: [
                       Text(
                         'Delete Account',
-                        style: AppStyles.menuItem(context).copyWith(
-                          color: context.colorScheme.error,
-                        ),
+                        style: AppStyles.menuItem(
+                          context,
+                        ).copyWith(color: context.colorScheme.error),
                       ),
                       const SizedBox(height: 2),
                       Text(

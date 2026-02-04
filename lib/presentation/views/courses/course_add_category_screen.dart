@@ -254,13 +254,14 @@ class _CourseAddCategoryScreenState
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        Text(
+                        SelectableText(
                           'Weight: ${Format.percentForDisplay(category.weight.toString(), true)}',
-                          style: AppStyles.standardBodyText(context).copyWith(
-                            color: context.colorScheme.onSurface.withValues(
-                              alpha: 0.6,
-                            ),
-                          ),
+                          style: AppStyles.standardBodyTextLight(context)
+                              .copyWith(
+                                color: context.colorScheme.onSurface.withValues(
+                                  alpha: 0.6,
+                                ),
+                              ),
                         ),
                       ],
                     ),

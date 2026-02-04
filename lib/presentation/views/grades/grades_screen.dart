@@ -665,7 +665,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
       children: [
         Text(
           selectedGroup.numHomework.toString(),
-          style: AppStyles.featureText(
+          style: AppStyles.headingText(
             context,
           ).copyWith(color: context.colorScheme.onPrimary),
         ),
@@ -688,7 +688,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
       children: [
         Text(
           selectedGroup.numHomeworkGraded.toString(),
-          style: AppStyles.featureText(
+          style: AppStyles.headingText(
             context,
           ).copyWith(color: context.colorScheme.onPrimary),
         ),

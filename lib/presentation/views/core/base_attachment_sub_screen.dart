@@ -312,10 +312,9 @@ abstract class BaseAttachmentScreenState<T>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  SelectableText(
                     file.title,
                     style: AppStyles.standardBodyText(context),
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
@@ -373,10 +372,8 @@ abstract class BaseAttachmentScreenState<T>
             ),
             const SizedBox(width: 10),
             Expanded(
-              child: Text(
+              child: SelectableText(
                 attachment.title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
                 style: AppStyles.standardBodyText(context),
               ),
             ),

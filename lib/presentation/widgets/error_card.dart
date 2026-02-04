@@ -37,7 +37,7 @@ class ErrorCard extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               message,
-              style: AppStyles.featureText(context).copyWith(
+              style: AppStyles.headingText(context).copyWith(
                 color: context.colorScheme.error.withValues(alpha: 0.9),
               ),
             ),

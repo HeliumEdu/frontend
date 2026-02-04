@@ -391,7 +391,10 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(course.teacherName, style: AppStyles.headingText(context)),
+                    SelectableText(
+                      course.teacherName,
+                      style: AppStyles.headingText(context),
+                    ),
                     const SizedBox(height: 8),
                   ],
                 ),
@@ -412,7 +415,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
                       ),
                     ),
                     const SizedBox(width: 4),
-                    Text(
+                    SelectableText(
                       course.room,
                       style: AppStyles.standardBodyText(context).copyWith(
                         color: context.colorScheme.onSurface.withValues(
