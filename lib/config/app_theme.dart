@@ -213,14 +213,7 @@ class AppTheme {
           }),
         ),
       ),
-      sliderTheme: SliderThemeData(
-        valueIndicatorTextStyle: GoogleFonts.poppins(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-          color: colorScheme.onPrimary,
-        ),
-        trackHeight: 6.0,
-      ),
+      sliderTheme: const SliderThemeData(trackHeight: 6.0),
       timePickerTheme: TimePickerThemeData(
         dayPeriodColor: colorScheme.primary.withValues(alpha: 0.3),
       ),

@@ -14,6 +14,7 @@ import 'package:heliumapp/presentation/views/courses/courses_screen.dart';
 import 'package:heliumapp/presentation/views/grades/grades_screen.dart';
 import 'package:heliumapp/presentation/views/materials/materials_screen.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
+import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 /// InheritedWidget to tell child screens to hide their header.
@@ -128,7 +129,10 @@ class _NavigationShellState extends State<NavigationShell> {
                             page.icon,
                             color: context.colorScheme.primary,
                           ),
-                          label: Text(page.label),
+                          label: Text(
+                            page.label,
+                            style: AppStyles.smallSecondaryText(context),
+                          ),
                         ),
                       )
                       .toList(),
