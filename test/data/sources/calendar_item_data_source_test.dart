@@ -68,6 +68,7 @@ void main() {
     when(() => mockCourseScheduleRepository.getCourseScheduleEvents(
           from: any(named: 'from'),
           to: any(named: 'to'),
+          shownOnCalendar: any(named: 'shownOnCalendar'),
         )).thenAnswer((_) async => []);
     when(() => mockExternalCalendarRepository.getExternalCalendarEvents(
           from: any(named: 'from'),
@@ -904,6 +905,7 @@ void main() {
         when(() => mockCourseScheduleRepository.getCourseScheduleEvents(
               from: any(named: 'from'),
               to: any(named: 'to'),
+              shownOnCalendar: any(named: 'shownOnCalendar'),
             )).thenAnswer((_) async => []);
         when(() => mockExternalCalendarRepository.getExternalCalendarEvents(
               from: any(named: 'from'),
@@ -955,6 +957,7 @@ void main() {
         when(() => mockCourseScheduleRepository.getCourseScheduleEvents(
               from: any(named: 'from'),
               to: any(named: 'to'),
+              shownOnCalendar: any(named: 'shownOnCalendar'),
             )).thenAnswer((_) async => []);
         when(() => mockExternalCalendarRepository.getExternalCalendarEvents(
               from: any(named: 'from'),
@@ -1011,6 +1014,7 @@ void main() {
         when(() => mockCourseScheduleRepository.getCourseScheduleEvents(
               from: any(named: 'from'),
               to: any(named: 'to'),
+              shownOnCalendar: any(named: 'shownOnCalendar'),
             )).thenAnswer((_) async => [scheduleEvent]);
         when(() => mockExternalCalendarRepository.getExternalCalendarEvents(
               from: any(named: 'from'),

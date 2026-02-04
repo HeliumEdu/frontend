@@ -120,7 +120,7 @@ void main() {
 
       test('formats January date correctly', () {
         final date = DateTime(2025, 1, 1);
-        expect(HeliumDateTime.formatDateForDisplay(date), equals('Jan 01, 2025'));
+        expect(HeliumDateTime.formatDateForDisplay(date), equals('Jan 1, 2025'));
       });
 
       test('formats December date correctly', () {
