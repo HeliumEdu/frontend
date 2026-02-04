@@ -517,7 +517,6 @@ class _CalendarItemAddScreenState
                   },
                 ),
                 const SizedBox(height: 14),
-                // FIXME: don't show items that are hidden
                 Text('Resources', style: context.formLabel),
                 const SizedBox(height: 9),
                 Container(
