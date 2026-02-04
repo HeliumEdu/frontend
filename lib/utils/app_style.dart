@@ -26,12 +26,14 @@ extension AppStyles on BuildContext {
   // Used for primary headings, important UI text
   static TextStyle headingText(BuildContext context) => GoogleFonts.poppins(
     fontWeight: FontWeight.w500,
-    fontSize: Responsive.getFontSize(
-      context,
-      mobile: 15,
-      tablet: 16,
-      desktop: 17,
-    ),
+    fontSize: Responsive.getFontSize(context, mobile: 15, desktop: 16),
+    color: Theme.of(context).colorScheme.onSurface,
+  );
+
+  // Used for large featured text (prominent numbers, key metrics, callouts)
+  static TextStyle featureText(BuildContext context) => GoogleFonts.poppins(
+    fontWeight: FontWeight.w600,
+    fontSize: Responsive.getFontSize(context, mobile: 18, desktop: 19),
     color: Theme.of(context).colorScheme.onSurface,
   );
 
@@ -39,18 +41,27 @@ extension AppStyles on BuildContext {
   static TextStyle smallSecondaryText(BuildContext context) =>
       GoogleFonts.poppins(
         fontWeight: FontWeight.w500,
-        fontSize: Responsive.getFontSize(
-          context,
-          mobile: 11,
-          tablet: 12,
-          desktop: 13,
-        ),
-        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.9),
+        fontSize: Responsive.getFontSize(context, mobile: 12, desktop: 13),
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
       );
 
-  // Used for large featured text (prominent numbers, key metrics, callouts)
-  static TextStyle featureText(BuildContext context) => GoogleFonts.poppins(
+  // Used for secondary text with a lighter weight (like on the calendar)
+  static TextStyle smallSecondaryTextLight(
+      BuildContext context,
+      ) => smallSecondaryText(context).copyWith(
+    fontWeight: FontWeight.w200,
+  );
+
+  // Used for responsive button text
+  static TextStyle buttonText(BuildContext context) => GoogleFonts.poppins(
     fontWeight: FontWeight.w600,
+    fontSize: Responsive.getFontSize(context, mobile: 15, desktop: 16),
+    color: Theme.of(context).colorScheme.onPrimary,
+  );
+
+  // Used for page and dialog titles
+  static TextStyle pageTitle(BuildContext context) => GoogleFonts.poppins(
+    fontWeight: FontWeight.w700,
     fontSize: Responsive.getFontSize(
       context,
       mobile: 18,
@@ -60,29 +71,48 @@ extension AppStyles on BuildContext {
     color: Theme.of(context).colorScheme.onSurface,
   );
 
-  // Used for responsive button text
-  static TextStyle buttonText(BuildContext context) => GoogleFonts.poppins(
+  // Used for dropdowns, text fields, and form elements
+  static TextStyle formText(BuildContext context) => GoogleFonts.poppins(
+    fontSize: Responsive.getFontSize(context, mobile: 14, desktop: 15),
     fontWeight: FontWeight.w600,
-    fontSize: Responsive.getFontSize(
-      context,
-      mobile: 14,
-      tablet: 16,
-      desktop: 18,
-    ),
-    color: Theme.of(context).colorScheme.onPrimary,
+    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.9),
   );
 
-  // Used for page and dialog titles
-  static TextStyle pageTitle(BuildContext context) => GoogleFonts.poppins(
-    fontWeight: FontWeight.w700,
-    fontSize: Responsive.getFontSize(
-      context,
-      mobile: 20,
-      tablet: 22,
-      desktop: 24,
-    ),
-    color: Theme.of(context).colorScheme.onSurface,
+  // Used for form field labels
+  static TextStyle formLabel(BuildContext context) =>
+      formText(context).copyWith(
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+      );
+
+  // Used for form field placeholder/hint text
+  static TextStyle formHint(BuildContext context) => formText(context).copyWith(
+    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
   );
+
+  // Used for form validation error messages
+  static TextStyle formErrorStyle(BuildContext context) =>
+      formText(context).copyWith(
+        fontSize: 14,
+        color: Theme.of(context).colorScheme.error.withValues(alpha: 0.9),
+      );
+
+  // Used for menu items and popup menu text
+  static TextStyle menuItem(BuildContext context) => GoogleFonts.poppins(
+    fontSize: Responsive.getFontSize(context, mobile: 14, desktop: 15),
+    fontWeight: FontWeight.w500,
+    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.9),
+  );
+
+  // Used for menu item hints
+  static TextStyle menuItemHint(BuildContext context) =>
+      menuItem(context).copyWith(
+        fontSize: Responsive.getFontSize(context, mobile: 12, desktop: 13),
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+      );
+
+  // Used for active menu items
+  static TextStyle menuItemActive(BuildContext context) =>
+      menuItem(context).copyWith(color: Theme.of(context).colorScheme.primary);
 
   // Used for responsive scaling of calendar item prefixes (checkboxes, icons)
   static double calendarItemPrefixScale(BuildContext context) {
@@ -95,81 +125,4 @@ extension AppStyles on BuildContext {
         return 0.8;
     }
   }
-
-  // Used for dropdowns, text fields, and form elements
-  TextStyle get formText => GoogleFonts.poppins(
-    fontSize: 14,
-    fontWeight: FontWeight.w600,
-    color: Theme.of(this).colorScheme.onSurface.withValues(alpha: 0.9),
-  );
-
-  // Used for form field labels
-  TextStyle get formLabel => formText.copyWith(
-    color: Theme.of(this).colorScheme.onSurface.withValues(alpha: 0.7),
-  );
-
-  // Used for form field placeholder/hint text
-  TextStyle get formHint => formText.copyWith(
-    color: Theme.of(this).colorScheme.onSurface.withValues(alpha: 0.5),
-  );
-
-  // Used for form validation error messages
-  TextStyle get formErrorStyle => formText.copyWith(
-    fontSize: 14,
-    color: Theme.of(this).colorScheme.error.withValues(alpha: 0.9),
-  );
-
-  // Used for settings menu item titles
-  TextStyle get settingsMenuItem => GoogleFonts.poppins(
-    fontSize: 15,
-    fontWeight: FontWeight.w700,
-    color: Theme.of(this).colorScheme.onSurface,
-  );
-
-  // Used for descriptive hint text below settings menu items
-  TextStyle get settingsMenuItemHint => GoogleFonts.poppins(
-    fontSize: 13,
-    fontWeight: FontWeight.w500,
-    color: Theme.of(this).colorScheme.onSurface.withValues(alpha: 0.7),
-  );
-
-  // Used for calendar filter menu items and popup menu text
-  TextStyle get calendarMenuItem => GoogleFonts.poppins(
-    fontSize: 14,
-    fontWeight: FontWeight.w500,
-    color: Theme.of(this).colorScheme.onSurface.withValues(alpha: 0.9),
-  );
-
-  // Used for date display in calendar views
-  TextStyle get calendarDate => GoogleFonts.roboto(
-    fontWeight: FontWeight.w600,
-    fontSize: 18,
-    color: Theme.of(this).colorScheme.primary,
-  );
-
-  // Used for calendar item text content
-  TextStyle get calendarData => GoogleFonts.poppins(
-    fontWeight: FontWeight.w300,
-    fontSize: AppStyles.smallSecondaryText(this).fontSize,
-    // TODO: Known Issues (4/Medium): Use dynamic text color based on background luminance to prevent visibility issues with light user-selected colors
-    color: Colors.white,
-  );
-
-  // Used for calendar column headers (days of week, time labels, etc.)
-  TextStyle get calendarHeader => GoogleFonts.poppins(
-    fontSize: 12,
-    fontWeight: FontWeight.w400,
-    color: Theme.of(this).colorScheme.onSurface,
-  );
-
-  // Used for inactive stepper step titles
-  TextStyle get stepperTitle => GoogleFonts.roboto(
-    fontSize: 14,
-    fontWeight: FontWeight.w700,
-    color: Theme.of(this).colorScheme.onSurface,
-  );
-
-  // Used for active stepper step titles
-  TextStyle get stepperTitleActive =>
-      stepperTitle.copyWith(color: Theme.of(this).colorScheme.primary);
 }

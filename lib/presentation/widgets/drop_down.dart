@@ -38,7 +38,7 @@ class DropDown<T> extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (label != null) Text(label!, style: context.formLabel),
+        if (label != null) Text(label!, style: AppStyles.formLabel(context)),
         if (label != null) const SizedBox(height: 9),
         Container(
           decoration: BoxDecoration(
@@ -70,7 +70,7 @@ class DropDown<T> extends StatelessWidget {
                 ),
               ),
             ),
-            style: style ?? context.formText,
+            style: style ?? AppStyles.formText(context),
             dropdownColor: context.colorScheme.surface,
             icon: Icon(Icons.keyboard_arrow_down, color: iconColor),
             isExpanded: true,
@@ -92,7 +92,7 @@ class DropDown<T> extends StatelessWidget {
                     ],
                     Text(
                       item.value.toString(),
-                      style: style ?? context.formText,
+                      style: style ?? AppStyles.formText(context),
                     ),
                   ],
                 ),

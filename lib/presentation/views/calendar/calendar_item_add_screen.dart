@@ -249,7 +249,7 @@ class _CalendarItemAddScreenState
                 children: [
                   Expanded(
                     child: CheckboxListTile(
-                      title: Text('All Day', style: context.formLabel),
+                      title: Text('All Day', style: AppStyles.formLabel(context)),
                       value: _formController.isAllDay,
                       onChanged: (value) {
                         setState(() {
@@ -266,7 +266,7 @@ class _CalendarItemAddScreenState
                 children: [
                   Expanded(
                     child: CheckboxListTile(
-                      title: Text('Show End', style: context.formLabel),
+                      title: Text('Show End', style: AppStyles.formLabel(context)),
                       value: _formController.showEndDateTime,
                       onChanged: (value) {
                         setState(
@@ -289,7 +289,7 @@ class _CalendarItemAddScreenState
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Start Date', style: context.formLabel),
+                        Text('Start Date', style: AppStyles.formLabel(context)),
                         const SizedBox(height: 9),
                         GestureDetector(
                           onTap: () => _selectDate(context, true),
@@ -315,7 +315,7 @@ class _CalendarItemAddScreenState
                                   HeliumDateTime.formatDateForDisplay(
                                     _formController.startDate,
                                   ),
-                                  style: context.formText,
+                                  style: AppStyles.formText(context),
                                 ),
                                 Icon(
                                   Icons.calendar_today,
@@ -340,7 +340,7 @@ class _CalendarItemAddScreenState
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('End Date', style: context.formLabel),
+                          Text('End Date', style: AppStyles.formLabel(context)),
                           const SizedBox(height: 9),
                           GestureDetector(
                             onTap: () => _selectDate(context, false),
@@ -367,7 +367,7 @@ class _CalendarItemAddScreenState
                                     HeliumDateTime.formatDateForDisplay(
                                       _formController.endDate,
                                     ),
-                                    style: context.formText,
+                                    style: AppStyles.formText(context),
                                   ),
                                   Icon(
                                     Icons.calendar_today,
@@ -397,7 +397,7 @@ class _CalendarItemAddScreenState
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Start Time', style: context.formLabel),
+                          Text('Start Time', style: AppStyles.formLabel(context)),
                           const SizedBox(height: 8),
                           GestureDetector(
                             onTap: () => _selectTime(context, true),
@@ -424,7 +424,7 @@ class _CalendarItemAddScreenState
                                     HeliumTime.formatForDisplay(
                                       _formController.startTime,
                                     ),
-                                    style: context.formText,
+                                    style: AppStyles.formText(context),
                                   ),
                                   Icon(
                                     Icons.access_time,
@@ -449,7 +449,7 @@ class _CalendarItemAddScreenState
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('End Time', style: context.formLabel),
+                            Text('End Time', style: AppStyles.formLabel(context)),
                             const SizedBox(height: 9),
                             GestureDetector(
                               onTap: () => _selectTime(context, false),
@@ -475,7 +475,7 @@ class _CalendarItemAddScreenState
                                       HeliumTime.formatForDisplay(
                                         _formController.endTime,
                                       ),
-                                      style: context.formText,
+                                      style: AppStyles.formText(context),
                                     ),
                                     Icon(
                                       Icons.access_time,
@@ -518,7 +518,7 @@ class _CalendarItemAddScreenState
                   },
                 ),
                 const SizedBox(height: 14),
-                Text('Resources', style: context.formLabel),
+                Text('Resources', style: AppStyles.formLabel(context)),
                 const SizedBox(height: 9),
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -546,7 +546,7 @@ class _CalendarItemAddScreenState
                               deleteIconColor: context.colorScheme.surface,
                               label: Text(
                                 _materialTitleById(id),
-                                style: context.formText.copyWith(
+                                style: AppStyles.formText(context).copyWith(
                                   color: context.colorScheme.surface,
                                 ),
                               ),
@@ -591,7 +591,7 @@ class _CalendarItemAddScreenState
                               ),
                               label: Text(
                                 'Select resources',
-                                style: context.formLabel.copyWith(
+                                style: AppStyles.formLabel(context).copyWith(
                                   color: context.colorScheme.primary,
                                 ),
                               ),
@@ -608,7 +608,7 @@ class _CalendarItemAddScreenState
               // TODO: Feature Parity: add location field to Event's
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [Text('Priority', style: context.formLabel)],
+                children: [Text('Priority', style: AppStyles.formLabel(context))],
               ),
               const SizedBox(height: 9),
               SliderTheme(
@@ -644,7 +644,7 @@ class _CalendarItemAddScreenState
                   children: [
                     Expanded(
                       child: CheckboxListTile(
-                        title: Text('Completed', style: context.formLabel),
+                        title: Text('Completed', style: AppStyles.formLabel(context)),
                         value: _formController.isCompleted,
                         onChanged: (value) {
                           setState(() {

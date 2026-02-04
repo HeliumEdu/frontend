@@ -138,7 +138,7 @@ class _MaterialAddScreenState
                 onFieldSubmitted: (value) => _onSubmit(),
               ),
               const SizedBox(height: 14),
-              Text('Classes', style: context.formLabel),
+              Text('Classes', style: AppStyles.formLabel(context)),
               const SizedBox(height: 9),
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -161,7 +161,7 @@ class _MaterialAddScreenState
                         (_courses.isEmpty && _courses.isEmpty)
                             ? 'No classes available'
                             : '',
-                        style: context.formText,
+                        style: AppStyles.formText(context),
                       )
                     else
                       Wrap(
@@ -176,7 +176,7 @@ class _MaterialAddScreenState
                             deleteIconColor: context.colorScheme.surface,
                             label: Text(
                               _courses.firstWhere((c) => c.id == id).title,
-                              style: context.formText.copyWith(
+                              style: AppStyles.formText(context).copyWith(
                                 color: context.colorScheme.surface,
                               ),
                             ),
@@ -214,7 +214,7 @@ class _MaterialAddScreenState
                             ),
                             label: Text(
                               'Select classes',
-                              style: context.formLabel.copyWith(
+                              style: AppStyles.formLabel(context).copyWith(
                                 color: context.colorScheme.primary,
                               ),
                             ),

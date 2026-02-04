@@ -31,7 +31,7 @@ class PillBadge extends StatelessWidget {
       child: Text(
         text,
         style: AppStyles.smallSecondaryText(context).copyWith(
-          color: color ?? context.semanticColors.success,
+          color: color ?? context.semanticColors.success.withValues(alpha: 0.8),
           fontWeight: FontWeight.w600,
         ),
       ),

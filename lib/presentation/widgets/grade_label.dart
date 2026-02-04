@@ -13,11 +13,13 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 class GradeLabel extends StatelessWidget {
   final String grade;
   final UserSettingsModel userSettings;
+  final bool compact;
 
   const GradeLabel({
     super.key,
     required this.grade,
     required this.userSettings,
+    this.compact = false,
   });
 
   @override
@@ -51,7 +53,7 @@ class GradeLabel extends StatelessWidget {
             ),
           ),
           Container(
-            width: 65,
+            width: 68,
             padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
             decoration: BoxDecoration(
               color: userSettings.gradeColor.withValues(alpha: 0.1),
@@ -66,10 +68,14 @@ class GradeLabel extends StatelessWidget {
             child: Center(
               child: Text(
                 grade,
-                style: AppStyles.standardBodyText(context).copyWith(
-                  color: userSettings.gradeColor,
-                  fontWeight: FontWeight.w700,
-                ),
+                style:
+                    (compact
+                            ? AppStyles.smallSecondaryText(context)
+                            : AppStyles.standardBodyText(context))
+                        .copyWith(
+                          color: userSettings.gradeColor,
+                          fontWeight: FontWeight.w700,
+                        ),
               ),
             ),
           ),

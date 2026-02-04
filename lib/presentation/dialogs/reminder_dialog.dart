@@ -132,7 +132,7 @@ class _ReminderWidgetState extends BaseDialogState<_ReminderProvidedWidget> {
           },
         ),
         const SizedBox(height: 12),
-        Text('When', style: context.formLabel),
+        Text('When', style: AppStyles.formLabel(context)),
         const SizedBox(height: 8),
         Row(
           children: [

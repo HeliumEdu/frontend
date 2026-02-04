@@ -163,7 +163,7 @@ class _CourseAddScreenState
                     _onSubmit(advanceNavOnSuccess: !widget.isEdit),
               ),
               const SizedBox(height: 14),
-              Text('From', style: context.formLabel),
+              Text('From', style: AppStyles.formLabel(context)),
               const SizedBox(height: 9),
               GestureDetector(
                 onTap: () => _selectDate(context, true),
@@ -187,7 +187,7 @@ class _CourseAddScreenState
                         HeliumDateTime.formatDateForDisplay(
                           _formController.startDate!,
                         ),
-                        style: context.formText,
+                        style: AppStyles.formText(context),
                       ),
                       Icon(
                         Icons.calendar_today,
@@ -204,7 +204,7 @@ class _CourseAddScreenState
                 ),
               ),
               const SizedBox(height: 14),
-              Text('To', style: context.formLabel),
+              Text('To', style: AppStyles.formLabel(context)),
               const SizedBox(height: 9),
               GestureDetector(
                 onTap: () => _selectDate(context, false),
@@ -228,7 +228,7 @@ class _CourseAddScreenState
                         HeliumDateTime.formatDateForDisplay(
                           _formController.endDate!,
                         ),
-                        style: context.formText,
+                        style: AppStyles.formText(context),
                       ),
                       Icon(
                         Icons.calendar_today,
@@ -376,7 +376,7 @@ class _CourseAddScreenState
                 children: [
                   Expanded(
                     child: CheckboxListTile(
-                      title: Text('Online', style: context.formLabel),
+                      title: Text('Online', style: AppStyles.formLabel(context)),
                       value: _formController.isOnline,
                       onChanged: (value) {
                         setState(() {
@@ -393,7 +393,7 @@ class _CourseAddScreenState
               Row(
                 children: [
                   const SizedBox(width: 12),
-                  Text('Color', style: context.formLabel),
+                  Text('Color', style: AppStyles.formLabel(context)),
                   const SizedBox(width: 12),
                   MouseRegion(
                     cursor: SystemMouseCursors.click,

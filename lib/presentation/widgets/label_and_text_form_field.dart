@@ -96,7 +96,7 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
     final formField = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (widget.label != null) Text(widget.label!, style: context.formLabel),
+        if (widget.label != null) Text(widget.label!, style: AppStyles.formLabel(context)),
         if (widget.label != null) const SizedBox(height: 9),
         Container(
           decoration: BoxDecoration(
@@ -125,7 +125,7 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
               keyboardType: widget.keyboardType,
               inputFormatters: widget.inputFormatters,
               autofillHints: widget.autofillHints,
-              style: context.formText,
+              style: AppStyles.formText(context),
               onFieldSubmitted: widget.onFieldSubmitted,
               decoration: InputDecoration(
                 prefixIcon: widget.prefixIcon != null
@@ -142,7 +142,7 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
                   bottom: _horizontalPadding(),
                 ),
                 hintText: widget.hintText,
-                hintStyle: context.formHint,
+                hintStyle: AppStyles.formHint(context),
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
@@ -151,7 +151,7 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
                 focusedErrorBorder: InputBorder.none,
                 suffixIcon: widget.suffixIcon,
                 errorText: widget.errorText,
-                errorStyle: context.formErrorStyle,
+                errorStyle: AppStyles.formErrorStyle(context),
                 errorMaxLines: 3,
               ),
             ),

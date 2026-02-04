@@ -411,9 +411,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           showWeekNumber: !Responsive.isMobile(context),
           allowDragAndDrop: true,
           dragAndDropSettings: DragAndDropSettings(
-            timeIndicatorStyle: context.formText.copyWith(
-              color: context.colorScheme.primary,
-            ),
+            timeIndicatorStyle: AppStyles.smallSecondaryText(
+              context,
+            ).copyWith(color: context.colorScheme.primary),
           ),
           allowAppointmentResize: true,
           allowedViews: _allowedViews,
@@ -421,31 +421,59 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           timeZone: userSettings!.timeZone.name,
           firstDayOfWeek:
               PlannerHelper.weekStartsOnRemap[userSettings!.weekStartsOn],
+          todayTextStyle: AppStyles.smallSecondaryText(
+            context,
+          ).copyWith(color: context.colorScheme.onPrimary),
           viewHeaderStyle: ViewHeaderStyle(
-            dayTextStyle: context.calendarHeader,
+            dayTextStyle: AppStyles.smallSecondaryText(context),
           ),
           weekNumberStyle: WeekNumberStyle(
-            textStyle: context.calendarHeader.copyWith(fontSize: 10),
+            textStyle: AppStyles.smallSecondaryText(context),
           ),
           scheduleViewSettings: ScheduleViewSettings(
             hideEmptyScheduleWeek: true,
             appointmentItemHeight: agendaHeight,
             monthHeaderSettings: MonthHeaderSettings(
+              monthTextStyle: AppStyles.headingText(context),
               backgroundColor: context.colorScheme.primary,
-              height: 100,
+              height: 90,
+            ),
+            weekHeaderSettings: WeekHeaderSettings(
+              weekTextStyle: AppStyles.standardBodyText(context).copyWith(
+                color: context.colorScheme.onSurface.withValues(alpha: 0.7),
+              ),
+            ),
+            dayHeaderSettings: DayHeaderSettings(
+              dateTextStyle: AppStyles.smallSecondaryText(
+                context,
+              ).copyWith(color: context.colorScheme.onSurface),
+              dayTextStyle: AppStyles.smallSecondaryText(
+                context,
+              ).copyWith(color: context.colorScheme.onSurface),
             ),
           ),
           monthViewSettings: MonthViewSettings(
             appointmentDisplayCount: appointmentDisplayCount,
             showAgenda: Responsive.isMobile(context),
             agendaItemHeight: agendaHeight,
+            agendaStyle: AgendaStyle(
+              dateTextStyle: AppStyles.smallSecondaryText(
+                context,
+              ).copyWith(color: context.colorScheme.onSurface),
+              dayTextStyle: AppStyles.smallSecondaryText(
+                context,
+              ).copyWith(color: context.colorScheme.onSurface),
+            ),
             appointmentDisplayMode: Responsive.isMobile(context)
                 ? MonthAppointmentDisplayMode.indicator
                 : MonthAppointmentDisplayMode.appointment,
             dayFormat: 'EEE',
           ),
-          timeSlotViewSettings: const TimeSlotViewSettings(
-            minimumAppointmentDuration: Duration(minutes: 32),
+          timeSlotViewSettings: TimeSlotViewSettings(
+            minimumAppointmentDuration: const Duration(minutes: 32),
+            timeTextStyle: AppStyles.smallSecondaryText(context).copyWith(
+              color: context.colorScheme.onSurface.withValues(alpha: 0.6),
+            ),
             dayFormat: 'EEE',
             timeIntervalHeight: 50,
             // TODO: Enhancement: use this field and dynamically set it to null (full week), 3, or 1, to enable a new "3-day" view
@@ -589,9 +617,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         ),
         label: Text(
           'Today',
-          style: AppStyles.buttonText(context).copyWith(
-            color: context.colorScheme.primary,
-          ),
+          style: AppStyles.buttonText(
+            context,
+          ).copyWith(color: context.colorScheme.primary),
         ),
       );
     } else {
@@ -620,7 +648,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                   .defaultViews[PlannerHelper.mapHeliumViewToApiView(
                 _currentView,
               )],
-              style: context.calendarDate,
+              style: AppStyles.headingText(
+                context,
+              ).copyWith(color: context.colorScheme.primary),
             ),
           ),
         ),
@@ -663,7 +693,12 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text(headerText, style: context.calendarDate),
+                    Text(
+                      headerText,
+                      style: AppStyles.headingText(
+                        context,
+                      ).copyWith(color: context.colorScheme.primary),
+                    ),
                     const SizedBox(width: 2),
                     Icon(
                       Icons.arrow_drop_down,
@@ -901,7 +936,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                             style: AppStyles.headingText(context),
                             decoration: InputDecoration(
                               hintText: 'Search ...',
-                              hintStyle: context.calendarMenuItem.copyWith(
+                              hintStyle: AppStyles.menuItem(context).copyWith(
                                 color: context.colorScheme.onSurface.withValues(
                                   alpha: 0.6,
                                 ),
@@ -1594,7 +1629,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           true,
           _currentView,
         ))
-          _buildTimeBelowTitleRow(calendarItem),
+          _buildCalendarItemTimeBelowTitleRow(calendarItem),
         if (PlannerHelper.shouldShowLocationBelowTitle(
               context,
               calendarItem,
@@ -1603,7 +1638,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             ) &&
             location != null &&
             location.isNotEmpty)
-          _buildLocationRow(location),
+          _buildCalendarItemLocationRow(location),
       ],
     );
 
@@ -1655,14 +1690,20 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
               padding: EdgeInsets.only(
                 right: Responsive.isMobile(context) ? 2 : 4,
               ),
-              child: _buildTimeText(calendarItem),
+              child: _buildCalendarItemTime(calendarItem),
             ),
           ),
         );
       }
 
       spans.add(
-        TextSpan(text: calendarItem.title, style: context.calendarData),
+        TextSpan(
+          text: calendarItem.title,
+          style: AppStyles.smallSecondaryTextLight(context).copyWith(
+            // TODO: Known Issues (4/Medium): Use dynamic text color based on background luminance to prevent visibility issues with light user-selected colors
+            color: Colors.white,
+          ),
+        ),
       );
 
       titleRowWidget = Text.rich(
@@ -1686,7 +1727,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           false,
           _currentView,
         ))
-          _buildTimeBelowTitleRow(calendarItem),
+          _buildCalendarItemTimeBelowTitleRow(calendarItem),
         if (PlannerHelper.shouldShowLocationBelowTitle(
               context,
               calendarItem,
@@ -1695,7 +1736,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             ) &&
             location != null &&
             location.isNotEmpty)
-          _buildLocationRow(location),
+          _buildCalendarItemLocationRow(location),
       ],
     );
 
@@ -1914,7 +1955,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       onTap: () {
         _showDayAppointmentsDialog(
           details.date,
-          (details.appointments as List<CalendarItemBaseModel>).toList(),
+          (details.appointments.cast<CalendarItemBaseModel>()).toList(),
         );
       },
       child: Container(
@@ -1976,10 +2017,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                       Expanded(
                         child: Text(
                           DateFormat('EEEE, MMMM d').format(date),
-                          style: context.calendarDate.copyWith(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
-                          ),
+                          style: AppStyles.headingText(
+                            context,
+                          ).copyWith(color: context.colorScheme.primary),
                         ),
                       ),
                       IconButton(
@@ -2195,7 +2235,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                 ),
                                 child: Text(
                                   'Show All Classes',
-                                  style: context.calendarMenuItem,
+                                  style: AppStyles.menuItem(context),
                                 ),
                               ),
                             ),
@@ -2240,7 +2280,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                           children: [
                                             Text(
                                               course.title,
-                                              style: context.calendarMenuItem,
+                                              style: AppStyles.menuItem(
+                                                context,
+                                              ),
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
                                             ),
@@ -2334,7 +2376,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                 ),
                                 child: Text(
                                   'Clear Filters',
-                                  style: context.calendarMenuItem,
+                                  style: AppStyles.menuItem(context),
                                 ),
                               ),
                             ),
@@ -2350,7 +2392,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                             CheckboxListTile(
                               title: Text(
                                 'Assignments',
-                                style: context.calendarMenuItem,
+                                style: AppStyles.menuItem(context),
                               ),
                               value: _calendarItemDataSource!.filterTypes
                                   .contains('Assignments'),
@@ -2388,7 +2430,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                   const SizedBox(width: 8),
                                   Text(
                                     'Events',
-                                    style: context.calendarMenuItem,
+                                    style: AppStyles.menuItem(context),
                                   ),
                                 ],
                               ),
@@ -2425,7 +2467,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                   const SizedBox(width: 8),
                                   Text(
                                     'Class Schedules',
-                                    style: context.calendarMenuItem,
+                                    style: AppStyles.menuItem(context),
                                   ),
                                 ],
                               ),
@@ -2456,7 +2498,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                             CheckboxListTile(
                               title: Text(
                                 'External Calendars',
-                                style: context.calendarMenuItem,
+                                style: AppStyles.menuItem(context),
                               ),
                               value: _calendarItemDataSource!.filterTypes
                                   .contains('External Calendars'),
@@ -2497,7 +2539,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                             return CheckboxListTile(
                               title: Text(
                                 label,
-                                style: context.calendarMenuItem,
+                                style: AppStyles.menuItem(context),
                               ),
                               value: isChecked,
                               onChanged: (value) {
@@ -2543,7 +2585,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                       Expanded(
                                         child: Text(
                                           category.title,
-                                          style: context.calendarMenuItem,
+                                          style: AppStyles.menuItem(context),
                                         ),
                                       ),
                                     ],
@@ -2648,7 +2690,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                     .defaultViews[PlannerHelper.mapHeliumViewToApiView(
                                   HeliumView.values[index],
                                 )],
-                                style: context.calendarMenuItem,
+                                style: AppStyles.menuItem(context),
                               ),
                               value: HeliumView.values[index],
                               controlAffinity: ListTileControlAffinity.leading,
@@ -2687,7 +2729,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   Widget _buildCalendarItemTitle(CalendarItemBaseModel calendarItem) {
     return Text(
       calendarItem.title,
-      style: context.calendarData,
+      style: AppStyles.smallSecondaryTextLight(context).copyWith(
+        // TODO: Known Issues (4/Medium): Use dynamic text color based on background luminance to prevent visibility issues with light user-selected colors
+        color: Colors.white,
+      ),
       maxLines: _currentView == HeliumView.month ? 1 : null,
       overflow: _currentView == HeliumView.month ? TextOverflow.ellipsis : null,
     );
@@ -2736,19 +2781,20 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     );
   }
 
-  Widget _buildTimeText(CalendarItemBaseModel calendarItem) {
+  Widget _buildCalendarItemTime(CalendarItemBaseModel calendarItem) {
     return Text(
       HeliumDateTime.formatTimeForDisplay(
         HeliumDateTime.parse(calendarItem.start, userSettings!.timeZone),
       ),
-      style: TextStyle(
-        color: Colors.white.withValues(alpha: 0.6),
-        fontSize: 12.0,
-      ),
+      style: AppStyles.smallSecondaryTextLight(
+        context,
+      ).copyWith(color: Colors.white.withValues(alpha: 0.7)),
     );
   }
 
-  Widget _buildTimeBelowTitleRow(CalendarItemBaseModel calendarItem) {
+  Widget _buildCalendarItemTimeBelowTitleRow(
+    CalendarItemBaseModel calendarItem,
+  ) {
     return Row(
       children: [
         Icon(
@@ -2764,10 +2810,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
               HeliumDateTime.parse(calendarItem.end, userSettings!.timeZone),
               calendarItem.showEndTime,
             ),
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.6),
-              fontSize: 12.0,
-            ),
+            style: AppStyles.smallSecondaryTextLight(
+              context,
+            ).copyWith(color: Colors.white.withValues(alpha: 0.7)),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -2776,7 +2821,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     );
   }
 
-  Widget _buildLocationRow(String location) {
+  Widget _buildCalendarItemLocationRow(String location) {
     return Row(
       children: [
         Icon(
@@ -2788,10 +2833,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         Expanded(
           child: Text(
             location,
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.6),
-              fontSize: 12.0,
-            ),
+            style: AppStyles.smallSecondaryTextLight(
+              context,
+            ).copyWith(color: Colors.white.withValues(alpha: 0.7)),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),

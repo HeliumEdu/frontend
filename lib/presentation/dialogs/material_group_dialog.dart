@@ -107,7 +107,7 @@ class _MaterialGroupWidgetState
               child: CheckboxListTile(
                 title: Text(
                   "Hide this group's resources from Planner",
-                  style: context.formLabel,
+                  style: AppStyles.formLabel(context),
                 ),
                 value: !_formController.shownOnCalendar,
                 onChanged: (value) {

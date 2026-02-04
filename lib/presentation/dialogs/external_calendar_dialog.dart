@@ -123,7 +123,7 @@ class _ExternalCalendarWidgetState
         const SizedBox(height: 14),
         Row(
           children: [
-            Text('Color', style: context.formLabel),
+            Text('Color', style: AppStyles.formLabel(context)),
             const SizedBox(width: 12),
             MouseRegion(
               cursor: SystemMouseCursors.click,
@@ -160,7 +160,7 @@ class _ExternalCalendarWidgetState
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Show on calendar', style: context.formLabel),
+            Text('Show on calendar', style: AppStyles.formLabel(context)),
             Switch.adaptive(
               value: _formController.shownOnCalendar,
               activeTrackColor: context.colorScheme.primary,

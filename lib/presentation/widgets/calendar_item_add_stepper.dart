@@ -157,8 +157,8 @@ class CalendarItemStepper extends StatelessWidget {
           child: Text(
             CalendarItemAddSteps.details.label,
             style: selectedIndex == CalendarItemAddSteps.details.index
-                ? context.stepperTitleActive
-                : context.stepperTitle,
+                ? AppStyles.menuItemActive(context)
+                : AppStyles.menuItem(context),
           ),
         ),
       ),
@@ -192,8 +192,8 @@ class CalendarItemStepper extends StatelessWidget {
           child: Text(
             CalendarItemAddSteps.reminders.label,
             style: selectedIndex == CalendarItemAddSteps.reminders.index
-                ? context.stepperTitleActive
-                : context.stepperTitle.copyWith(
+                ? AppStyles.menuItemActive(context)
+                : AppStyles.menuItem(context).copyWith(
                     color: context.colorScheme.onSurface.withValues(alpha: isEdit ? 1 : 0.3),
                   ),
           ),
@@ -229,8 +229,8 @@ class CalendarItemStepper extends StatelessWidget {
           child: Text(
             CalendarItemAddSteps.attachments.label,
             style: selectedIndex == CalendarItemAddSteps.attachments.index
-                ? context.stepperTitleActive
-                : context.stepperTitle.copyWith(
+                ? AppStyles.menuItemActive(context)
+                : AppStyles.menuItem(context).copyWith(
                     color: context.colorScheme.onSurface.withValues(alpha: isEdit ? 1 : 0.3),
                   ),
           ),

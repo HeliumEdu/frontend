@@ -29,7 +29,7 @@ class LabelAndHtmlEditor extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: context.formLabel),
+        Text(label, style: AppStyles.formLabel(context)),
         const SizedBox(height: 9),
         Container(
           decoration: BoxDecoration(

@@ -74,7 +74,7 @@ class _SelectWidgetState<T extends BaseModel> extends State<_SelectWidget<T>> {
                     ),
                     const SizedBox(width: 8),
                   ],
-                  Expanded(child: Text(item.title, style: context.formText)),
+                  Expanded(child: Text(item.title, style: AppStyles.formText(context))),
                 ],
               ),
               value: checked,

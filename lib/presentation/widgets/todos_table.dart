@@ -276,7 +276,7 @@ class TodosTableState extends State<TodosTable> {
               child: _buildSortableHeader('Priority', 'priority'),
             ),
           if (_shouldShowGradeColumn(context))
-            SizedBox(width: 95, child: _buildSortableHeader('Grade', 'grade')),
+            SizedBox(width: 98, child: _buildSortableHeader('Grade', 'grade')),
           if (_shouldShowResourcesColumn(context))
             const SizedBox(width: 30, child: SizedBox.shrink()),
           SizedBox(
@@ -345,7 +345,7 @@ class TodosTableState extends State<TodosTable> {
       children: [
         Text(
           'Show',
-          style: context.calendarData.copyWith(
+          style: AppStyles.smallSecondaryTextLight(context).copyWith(
             color: context.colorScheme.onSurface.withValues(alpha: 0.7),
           ),
         ),
@@ -361,7 +361,7 @@ class TodosTableState extends State<TodosTable> {
                 controller.currentPage = 1;
               }
             },
-            style: context.calendarData.copyWith(
+            style: AppStyles.smallSecondaryTextLight(context).copyWith(
               color: context.colorScheme.onSurface.withValues(alpha: 0.7),
             ),
           ),
@@ -373,9 +373,9 @@ class TodosTableState extends State<TodosTable> {
   Widget _buildItemsCountText(int startIndex, int endIndex, int totalItems) {
     return Text(
       '${!Responsive.isMobile(context) ? 'Showing ' : ''}${startIndex + 1} to $endIndex of $totalItems',
-      style: context.calendarData.copyWith(
-        color: context.colorScheme.onSurface.withValues(alpha: 0.7),
-      ),
+      style: AppStyles.smallSecondaryTextLight(
+        context,
+      ).copyWith(color: context.colorScheme.onSurface.withValues(alpha: 0.7)),
     );
   }
 
@@ -401,7 +401,7 @@ class TodosTableState extends State<TodosTable> {
         if (isMobile)
           Text(
             'Page $currentPage of $totalPages',
-            style: context.calendarData.copyWith(
+            style: AppStyles.smallSecondaryTextLight(context).copyWith(
               color: context.colorScheme.onSurface.withValues(alpha: 0.7),
             ),
           )
@@ -483,7 +483,7 @@ class TodosTableState extends State<TodosTable> {
         ),
         child: Text(
           pageNumber.toString(),
-          style: context.calendarData.copyWith(
+          style: AppStyles.smallSecondaryTextLight(context).copyWith(
             fontWeight: isActive ? FontWeight.w600 : FontWeight.w300,
             color: isActive
                 ? context.colorScheme.onPrimary
@@ -501,7 +501,7 @@ class TodosTableState extends State<TodosTable> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         child: Text(
           '...',
-          style: context.calendarData.copyWith(
+          style: AppStyles.smallSecondaryTextLight(context).copyWith(
             color: context.colorScheme.onSurface.withValues(alpha: 0.5),
           ),
         ),
@@ -539,7 +539,12 @@ class TodosTableState extends State<TodosTable> {
               color: context.colorScheme.onSurface.withValues(alpha: 0.6),
             )
           else
-            Text(label, style: context.calendarHeader),
+            Text(
+              label,
+              style: AppStyles.smallSecondaryText(
+                context,
+              ).copyWith(color: context.colorScheme.onSurface),
+            ),
           if (isActive) ...[
             const SizedBox(width: 4),
             Icon(
@@ -736,8 +741,7 @@ class TodosTableState extends State<TodosTable> {
           Expanded(
             child: Text(
               homework.title,
-              style: context.calendarData.copyWith(
-                color: context.colorScheme.onSurface,
+              style: AppStyles.smallSecondaryText(context).copyWith(
                 decoration: isCompleted
                     ? TextDecoration.lineThrough
                     : TextDecoration.none,
@@ -761,9 +765,7 @@ class TodosTableState extends State<TodosTable> {
         HeliumDateTime.formatDateAndTimeForTodosDisplay(
           HeliumDateTime.parse(homework.start, userSettings.timeZone),
         ),
-        style: context.calendarData.copyWith(
-          color: context.colorScheme.onSurface.withValues(alpha: 0.8),
-        ),
+        style: AppStyles.smallSecondaryText(context),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
@@ -774,7 +776,7 @@ class TodosTableState extends State<TodosTable> {
   Widget _buildClassColumn(dynamic course) {
     return Expanded(
       flex: 2,
-      child: CourseTitleLabel(title: course.title, color: course.color),
+      child: CourseTitleLabel(title: course.title, color: course.color, compact: true),
     );
   }
 
@@ -782,7 +784,7 @@ class TodosTableState extends State<TodosTable> {
   Widget _buildCategoryColumn(CategoryModel category) {
     return Expanded(
       flex: 2,
-      child: CategoryTitleLabel(title: category.title, color: category.color),
+      child: CategoryTitleLabel(title: category.title, color: category.color, compact: true),
     );
   }
 
@@ -805,10 +807,9 @@ class TodosTableState extends State<TodosTable> {
                 const SizedBox(width: 4),
                 Text(
                   homework.materials.length.toString(),
-                  style: AppStyles.smallSecondaryText(context).copyWith(
-                    color: userSettings.materialColor,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: AppStyles.smallSecondaryTextLight(
+                    context,
+                  ).copyWith(color: userSettings.materialColor),
                 ),
               ],
             )
@@ -825,11 +826,12 @@ class TodosTableState extends State<TodosTable> {
     UserSettingsModel userSettings,
   ) {
     return SizedBox(
-      width: 95,
+      width: 98,
       child: homework.currentGrade != null && homework.currentGrade!.isNotEmpty
           ? GradeLabel(
               grade: Format.gradeForDisplay(homework.currentGrade),
               userSettings: userSettings,
+              compact: true
             )
           : const SizedBox.shrink(),
     );

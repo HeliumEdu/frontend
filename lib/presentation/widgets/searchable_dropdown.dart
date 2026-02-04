@@ -85,7 +85,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (widget.label != null) Text(widget.label!, style: context.formLabel),
+        if (widget.label != null) Text(widget.label!, style: AppStyles.formLabel(context)),
         if (widget.label != null) const SizedBox(height: 9),
         Autocomplete<DropDownItem<T>>(
           key: ValueKey(widget.initialValue.value),
@@ -126,7 +126,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                     controller: textEditingController,
                     focusNode: focusNode,
                     enabled: !isDisabled,
-                    style: context.formText,
+                    style: AppStyles.formText(context),
                     onFieldSubmitted: (_) {
                       if (_filteredOptions.length == 1) {
                         final item = _filteredOptions.first;
@@ -213,7 +213,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                               : null,
                           title: Text(
                             item.value.toString(),
-                            style: context.formText,
+                            style: AppStyles.formText(context),
                           ),
                           onTap: () => onSelected(item),
                         );
