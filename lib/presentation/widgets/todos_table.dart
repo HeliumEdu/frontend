@@ -801,15 +801,9 @@ class TodosTableState extends State<TodosTable> {
                 const SizedBox(width: 4),
                 Text(
                   homework.materials.length.toString(),
-                  style: context.calendarData.copyWith(
+                  style: AppTextStyles.smallSecondaryText(context).copyWith(
                     color: userSettings.materialColor,
                     fontWeight: FontWeight.w600,
-                    fontSize: Responsive.getFontSize(
-                      context,
-                      mobile: 11,
-                      tablet: 12,
-                      desktop: 13,
-                    ),
                   ),
                 ),
               ],

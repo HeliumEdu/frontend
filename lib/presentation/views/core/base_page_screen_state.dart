@@ -207,7 +207,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
             const SizedBox(height: 16),
             Text(
               errorMsg,
-              style: context.paragraphText.copyWith(color: errorColor),
+              style: context.bodyText.copyWith(color: errorColor),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),

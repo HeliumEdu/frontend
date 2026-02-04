@@ -589,7 +589,7 @@ class _CalendarItemAddScreenState
                                 color: context.colorScheme.primary,
                               ),
                               label: Text(
-                                'Select materials',
+                                'Select resources',
                                 style: context.formLabel.copyWith(
                                   color: context.colorScheme.primary,
                                 ),

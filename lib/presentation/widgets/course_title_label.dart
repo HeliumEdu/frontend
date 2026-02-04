@@ -49,15 +49,9 @@ class CourseTitleLabel extends StatelessWidget {
           Flexible(
             child: Text(
               title,
-              style: context.paragraphText.copyWith(
+              style: AppTextStyles.standardBodyText(context).copyWith(
                 color: color,
                 fontWeight: FontWeight.w600,
-                fontSize: Responsive.getFontSize(
-                  context,
-                  mobile: 12,
-                  tablet: 13,
-                  desktop: 14,
-                ),
               ),
               overflow: TextOverflow.ellipsis,
             ),

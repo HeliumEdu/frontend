@@ -178,7 +178,7 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
                           ),
                           child: SelectableText(
                             url,
-                            style: context.paragraphText,
+                            style: context.bodyText,
                           ),
                         ),
                       ),

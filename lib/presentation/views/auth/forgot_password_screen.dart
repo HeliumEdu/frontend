@@ -155,7 +155,7 @@ class _ForgotPasswordScreenState
                     _emailSent
                         ? "You've been emailed a temporary password. Log in to your account using the temporary password, then change it immediately."
                         : 'Enter the email associated with your account. We\'ll reset your password and send a temporary one to you.',
-                    style: context.paragraphText,
+                    style: context.bodyText,
                   ),
 
                   const SizedBox(height: 24),
@@ -173,14 +173,10 @@ class _ForgotPasswordScreenState
 
                     const SizedBox(height: 25),
 
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: HeliumElevatedButton(
-                        buttonText: 'Reset Password',
-                        isLoading: isSubmitting,
-                        onPressed: _onSubmit,
-                      ),
+                    HeliumElevatedButton(
+                      buttonText: 'Reset Password',
+                      isLoading: isSubmitting,
+                      onPressed: _onSubmit,
                     ),
                   ],
 

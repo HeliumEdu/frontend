@@ -169,14 +169,14 @@ class _VerifyScreenState extends BasePageScreenState<VerifyScreen> {
                 ),
               ),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
 
               Text(
                 'Enter the verification code sent to your email address to complete your registration.',
-                style: context.paragraphText,
+                style: context.bodyText,
               ),
 
-              const SizedBox(height: 40),
+              const SizedBox(height: 25),
 
               LabelAndTextFormField(
                 hintText: 'Username',
@@ -202,7 +202,7 @@ class _VerifyScreenState extends BasePageScreenState<VerifyScreen> {
                 ],
               ),
 
-              const SizedBox(height: 44),
+              const SizedBox(height: 25),
 
               BlocBuilder<AuthBloc, AuthState>(
                 builder: (context, state) {

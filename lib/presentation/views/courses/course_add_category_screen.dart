@@ -30,7 +30,6 @@ import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
-import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 
 class CourseAddCategoryScreen extends StatelessWidget {
@@ -253,17 +252,12 @@ class _CourseAddCategoryScreenState
                       children: [
                         Text(
                           'Weight: ${Format.percentForDisplay(category.weight.toString(), true)}',
-                          style: context.paragraphText.copyWith(
-                            color: context.colorScheme.onSurface.withValues(
-                              alpha: 0.6,
-                            ),
-                            fontSize: Responsive.getFontSize(
-                              context,
-                              mobile: 12,
-                              tablet: 13,
-                              desktop: 14,
-                            ),
-                          ),
+                          style: AppTextStyles.standardBodyText(context)
+                              .copyWith(
+                                color: context.colorScheme.onSurface.withValues(
+                                  alpha: 0.6,
+                                ),
+                              ),
                         ),
                       ],
                     ),

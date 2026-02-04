@@ -105,7 +105,7 @@ class _MaterialAddScreenState
             _populateInitialStateData(state);
           } else if (state is material_state.MaterialCreated ||
               state is material_state.MaterialUpdated) {
-            showSnackBar(context, 'Material saved');
+            showSnackBar(context, 'Resource saved');
 
             context.pop();
           }

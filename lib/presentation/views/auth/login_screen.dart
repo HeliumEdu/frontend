@@ -194,13 +194,8 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                       },
                       child: Text(
                         'Forgot your password?',
-                        style: context.formText.copyWith(
-                          fontSize: Responsive.getFontSize(
-                            context,
-                            mobile: 12,
-                            tablet: 13,
-                            desktop: 14,
-                          ),
+                        style: AppTextStyles.standardBodyText(context).copyWith(
+                          fontWeight: FontWeight.w600,
                           color: context.colorScheme.primary,
                         ),
                       ),

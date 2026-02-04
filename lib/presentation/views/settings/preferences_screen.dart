@@ -207,7 +207,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
 
             Row(
               children: [
-                Text('Color for material badges', style: context.formLabel),
+                Text('Color for resource badges', style: context.formLabel),
                 const SizedBox(width: 12),
                 MouseRegion(
                   cursor: SystemMouseCursors.click,

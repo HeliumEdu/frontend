@@ -285,16 +285,10 @@ class _NotificationsScreenState
                             Expanded(
                               child: Text(
                                 notification.title,
-                                style: context.paragraphText.copyWith(
+                                style: AppTextStyles.headingText(context).copyWith(
                                   fontWeight: (notification.isRead == true)
                                       ? FontWeight.w500
                                       : FontWeight.w600,
-                                  fontSize: Responsive.getFontSize(
-                                    context,
-                                    mobile: 14,
-                                    tablet: 15,
-                                    desktop: 16,
-                                  ),
                                 ),
                               ),
                             ),
@@ -326,15 +320,9 @@ class _NotificationsScreenState
                             const SizedBox(width: 8),
                             Text(
                               notification.body,
-                              style: context.paragraphText.copyWith(
+                              style: AppTextStyles.standardBodyText(context).copyWith(
                                 color: context.colorScheme.onSurface.withValues(
                                   alpha: 0.7,
-                                ),
-                                fontSize: Responsive.getFontSize(
-                                  context,
-                                  mobile: 12,
-                                  tablet: 13,
-                                  desktop: 14,
                                 ),
                               ),
                               maxLines: 2,
@@ -371,7 +359,7 @@ class _NotificationsScreenState
                                 calendarItem.showEndTime,
                                 calendarItem.allDay,
                               ),
-                              style: context.paragraphText.copyWith(
+                              style: context.bodyText.copyWith(
                                 color: context.colorScheme.onSurface.withValues(
                                   alpha: 0.5,
                                 ),

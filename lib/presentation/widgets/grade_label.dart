@@ -65,7 +65,7 @@ class GradeLabel extends StatelessWidget {
             child: Center(
               child: Text(
                 grade,
-                style: context.paragraphText.copyWith(
+                style: context.bodyText.copyWith(
                   fontSize: Responsive.getFontSize(
                     context,
                     mobile: 14,

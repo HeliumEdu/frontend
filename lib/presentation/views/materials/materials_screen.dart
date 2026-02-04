@@ -178,7 +178,7 @@ class _MaterialsScreenState
               Sort.byTitle(_materialsMap[_selectedGroupId!]!);
             });
           } else if (state is material_state.MaterialDeleted) {
-            showSnackBar(context, 'Material deleted');
+            showSnackBar(context, 'Resource deleted');
 
             setState(() {
               _materialsMap[_selectedGroupId!]!.removeWhere(
@@ -260,7 +260,7 @@ class _MaterialsScreenState
         if (_materialsMap[_selectedGroupId!]!.isEmpty) {
           return const EmptyCard(
             icon: Icons.book,
-            title: "You haven't added any materials yet",
+            title: "You haven't added any resources yet",
             message: 'Click "+" to get started',
           );
         }
@@ -386,7 +386,7 @@ class _MaterialsScreenState
                     const SizedBox(width: 12),
                     Text(
                       material.price!,
-                      style: context.paragraphText.copyWith(
+                      style: context.bodyText.copyWith(
                         color: context.colorScheme.onSurface,
                         fontWeight: FontWeight.w600,
                         fontSize: Responsive.getFontSize(
@@ -434,12 +434,7 @@ class _MaterialsScreenState
                       margin: Margins.zero,
                       padding: HtmlPaddings.zero,
                       fontSize: FontSize(
-                        Responsive.getFontSize(
-                          context,
-                          mobile: 12,
-                          tablet: 13,
-                          desktop: 14,
-                        ),
+                        AppTextStyles.standardBodyText(context).fontSize!,
                       ),
                       color: context.colorScheme.onSurface.withValues(
                         alpha: 0.6,

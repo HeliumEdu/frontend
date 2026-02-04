@@ -51,7 +51,7 @@ class EmptyCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               message,
-              style: context.paragraphText.copyWith(
+              style: context.bodyText.copyWith(
                 color: onSurface.withValues(alpha: 0.4),
               ),
               textAlign: TextAlign.center,
