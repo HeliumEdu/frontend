@@ -172,7 +172,7 @@ class _CalendarItemAddScreenState
   Widget buildHeaderArea(BuildContext context) {
     return Column(
       children: [
-        if (!widget.isEdit) ...[
+        if (!widget.isEdit && _courses.isNotEmpty) ...[
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
@@ -517,6 +517,7 @@ class _CalendarItemAddScreenState
                   },
                 ),
                 const SizedBox(height: 14),
+                // FIXME: don't show items that are hidden
                 Text('Resources', style: context.formLabel),
                 const SizedBox(height: 9),
                 Container(
@@ -795,7 +796,13 @@ class _CalendarItemAddScreenState
         }
       });
     } else {
-      _selectCourse(_courses.first.id);
+      final now = DateTime.now();
+      _formController.startDate = widget.initialDate ?? now;
+      _formController.endDate = widget.initialDate ?? now;
+
+      if (!_isEvent) {
+        _selectCourse(_courses.first.id);
+      }
 
       // Override time with initialDate if provided, but only when not from
       // month view. Month view only selects a day without a specific time, so
@@ -1050,10 +1057,6 @@ class _CalendarItemAddScreenState
 
       // Only try to auto-populate dates and times for new calendar items
       if (!widget.isEdit) {
-        final now = DateTime.now();
-        _formController.startDate = widget.initialDate ?? now;
-        _formController.endDate = widget.initialDate ?? now;
-
         // Use course schedule time for the selected day, fall back to noon
         final matchingSchedule = _courseSchedules
             .where((cs) => cs.course == _formController.selectedCourse)

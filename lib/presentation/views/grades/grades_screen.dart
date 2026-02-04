@@ -365,7 +365,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                   const SizedBox(width: 8),
                   Text(
                     '${course.numHomeworkGraded} graded',
-                    style: AppTextStyles.standardBodyText(context).copyWith(
+                    style: AppStyles.standardBodyText(context).copyWith(
                       color: context.colorScheme.onSurface.withValues(
                         alpha: 0.6,
                       ),
@@ -427,7 +427,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                   flex: 2,
                   child: Text(
                     'Category',
-                    style: AppTextStyles.standardBodyText(context).copyWith(
+                    style: AppStyles.standardBodyText(context).copyWith(
                       color: context.colorScheme.onSurface,
                       fontWeight: FontWeight.w700,
                     ),
@@ -438,7 +438,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                   child: Text(
                     'Graded',
                     textAlign: TextAlign.center,
-                    style: AppTextStyles.standardBodyText(context).copyWith(
+                    style: AppStyles.standardBodyText(context).copyWith(
                       color: context.colorScheme.onSurface,
                       fontWeight: FontWeight.w700,
                     ),
@@ -449,7 +449,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                   child: Text(
                     'Average',
                     textAlign: TextAlign.right,
-                    style: AppTextStyles.standardBodyText(context).copyWith(
+                    style: AppStyles.standardBodyText(context).copyWith(
                       color: context.colorScheme.onSurface,
                       fontWeight: FontWeight.w700,
                     ),
@@ -581,7 +581,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
           child: Center(
             child: Text(
               '$completionPercentage%',
-              style: AppTextStyles.standardBodyText(context).copyWith(
+              style: AppStyles.standardBodyText(context).copyWith(
                 color: context.colorScheme.onPrimary,
                 fontWeight: FontWeight.w700,
               ),
@@ -605,7 +605,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
         Text(
           '$remainingAssignments ${remainingAssignments.plural('assignment')} left',
           textAlign: TextAlign.center,
-          style: AppTextStyles.smallSecondaryText(context).copyWith(
+          style: AppStyles.smallSecondaryText(context).copyWith(
             color: context.colorScheme.onPrimary.withValues(alpha: 0.9),
           ),
         ),
@@ -641,7 +641,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
           child: Center(
             child: Text(
               '$thruTermPercentage%',
-              style: AppTextStyles.standardBodyText(context).copyWith(
+              style: AppStyles.standardBodyText(context).copyWith(
                 color: context.colorScheme.onPrimary,
                 fontWeight: FontWeight.w700,
               ),
@@ -665,7 +665,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
         Text(
           '$daysLeft ${daysLeft.plural('day')} left',
           textAlign: TextAlign.center,
-          style: AppTextStyles.smallSecondaryText(context).copyWith(
+          style: AppStyles.smallSecondaryText(context).copyWith(
             color: context.colorScheme.onPrimary.withValues(alpha: 0.9),
           ),
         ),
@@ -682,7 +682,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
       children: [
         Text(
           selectedGroup.numHomework.toString(),
-          style: AppTextStyles.featureText(context).copyWith(
+          style: AppStyles.featureText(context).copyWith(
             color: context.colorScheme.onPrimary,
           ),
         ),
@@ -711,7 +711,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
       children: [
         Text(
           selectedGroup.numHomeworkGraded.toString(),
-          style: AppTextStyles.featureText(context).copyWith(
+          style: AppStyles.featureText(context).copyWith(
             color: context.colorScheme.onPrimary,
           ),
         ),

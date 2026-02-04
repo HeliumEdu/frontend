@@ -81,9 +81,13 @@ class CalendarItemBloc extends Bloc<CalendarItemEvent, CalendarItemState> {
           shownOnCalendar: true,
         );
         courses = await courseRepository.getCourses(shownOnCalendar: true);
-        courseSchedules = await courseScheduleRepository.getCourseSchedules();
+        courseSchedules = await courseScheduleRepository.getCourseSchedules(
+          shownOnCalendar: true,
+        );
         categories = await categoryRepository.getCategories();
-        materials = await materialRepository.getMaterials();
+        materials = await materialRepository.getMaterials(
+          shownOnCalendar: true,
+        );
       }
 
       emit(

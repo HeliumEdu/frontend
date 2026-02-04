@@ -21,17 +21,19 @@ class CourseScheduleRepositoryImpl implements CourseScheduleRepository {
     required DateTime from,
     required DateTime to,
     String? search,
+    bool? shownOnCalendar,
   }) async {
     return await remoteDataSource.getCourseScheduleEvents(
       from: from,
       to: to,
       search: search,
+      shownOnCalendar: shownOnCalendar,
     );
   }
 
   @override
-  Future<List<CourseScheduleModel>> getCourseSchedules() async {
-    return await remoteDataSource.getCourseSchedules();
+  Future<List<CourseScheduleModel>> getCourseSchedules({bool? shownOnCalendar}) async {
+    return await remoteDataSource.getCourseSchedules(shownOnCalendar: shownOnCalendar);
   }
 
   @override

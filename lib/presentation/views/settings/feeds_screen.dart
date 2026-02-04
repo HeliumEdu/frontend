@@ -176,10 +176,7 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
                               ),
                             ),
                           ),
-                          child: SelectableText(
-                            url,
-                            style: context.bodyText,
-                          ),
+                          child: SelectableText(url, style: context.bodyText),
                         ),
                       ),
                     ],
@@ -188,27 +185,25 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: SizedBox(
-                          height: 40,
-                          child: HeliumElevatedButton(
-                            onPressed: () {
-                              Clipboard.setData(ClipboardData(text: url));
-                              showSnackBar(context, '$label URL copied');
-                            },
-                            icon: Icons.copy,
-                            buttonText: 'Copy',
-                            backgroundColor: buttonColor,
-                          ),
+                        child: HeliumElevatedButton(
+                          onPressed: () {
+                            Clipboard.setData(ClipboardData(text: url));
+                            showSnackBar(context, '$label URL copied');
+                          },
+                          icon: Icons.copy,
+                          buttonText: 'Copy',
+                          backgroundColor: buttonColor,
                         ),
                       ),
                       const SizedBox(width: 10),
                       Builder(
-                        builder: (buttonContext) => SizedBox(
-                          width: 40,
-                          height: 40,
+                        builder: (buttonContext) => SizedBox.square(
+                          dimension: 37,
                           child: IconButton(
                             onPressed: () {
-                              final box = buttonContext.findRenderObject() as RenderBox?;
+                              final box =
+                                  buttonContext.findRenderObject()
+                                      as RenderBox?;
                               final sharePositionOrigin = box != null
                                   ? box.localToGlobal(Offset.zero) & box.size
                                   : null;
@@ -223,12 +218,7 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
                             icon: Icon(
                               Icons.share_outlined,
                               color: buttonColor,
-                              size: Responsive.getIconSize(
-                                context,
-                                mobile: 18,
-                                tablet: 20,
-                                desktop: 22,
-                              ),
+                              // size: 16,
                             ),
                             style: IconButton.styleFrom(
                               backgroundColor: buttonColor.withValues(
@@ -287,15 +277,12 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
                 ),
               ),
               const SizedBox(height: 25),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: HeliumElevatedButton(
-                  buttonText: 'Enable',
-                  onPressed: () {
-                    context.read<AuthBloc>().add(EnablePrivateFeedsEvent());
-                  },
-                ),
+
+              HeliumElevatedButton(
+                buttonText: 'Enable',
+                onPressed: () {
+                  context.read<AuthBloc>().add(EnablePrivateFeedsEvent());
+                },
               ),
 
               const SizedBox(height: 12),
@@ -317,7 +304,8 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const WarningContainer(
-              text: 'Keep private feed URLs secret. If a feed is compromised, disabling and re-enabling feeds will regenerate URLs.',
+              text:
+                  'Keep private feed URLs secret. If a feed is compromised, disabling and re-enabling feeds will regenerate URLs.',
               icon: Icons.privacy_tip_outlined,
             ),
 
@@ -326,12 +314,12 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
             _buildFeedCard(
               context: context,
               icon: Icons.assignment_outlined,
-              iconColor: Colors.orange[600]!,
-              iconBgColor: Colors.orange,
+              iconColor: context.semanticColors.warning,
+              iconBgColor: context.semanticColors.warning,
               title: 'Assignments',
               url: homeworkUrl,
               label: 'Assignments',
-              buttonColor: Colors.orange,
+              buttonColor: context.semanticColors.warning,
             ),
 
             _buildFeedCard(
@@ -358,15 +346,11 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
 
             const SizedBox(height: 25),
 
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: HeliumElevatedButton(
-                buttonText: 'Disable',
-                onPressed: () async {
-                  context.read<AuthBloc>().add(DisablePrivateFeedsEvent());
-                },
-              ),
+            HeliumElevatedButton(
+              buttonText: 'Disable',
+              onPressed: () async {
+                context.read<AuthBloc>().add(DisablePrivateFeedsEvent());
+              },
             ),
 
             const SizedBox(height: 12),

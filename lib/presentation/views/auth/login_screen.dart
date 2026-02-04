@@ -194,7 +194,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                       },
                       child: Text(
                         'Forgot your password?',
-                        style: AppTextStyles.standardBodyText(context).copyWith(
+                        style: AppStyles.standardBodyText(context).copyWith(
                           fontWeight: FontWeight.w600,
                           color: context.colorScheme.primary,
                         ),

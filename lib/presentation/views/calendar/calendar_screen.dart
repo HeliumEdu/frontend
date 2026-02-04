@@ -894,7 +894,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                             controller: _searchController,
                             focusNode: _searchFocusNode,
                             onChanged: _onSearchTextFieldChanged,
-                            style: AppTextStyles.headingText(context),
+                            style: AppStyles.headingText(context),
                             decoration: InputDecoration(
                               hintText: 'Search ...',
                               hintStyle: context.calendarMenuItem.copyWith(
@@ -2694,7 +2694,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       width: 16,
       height: 16,
       child: Transform.scale(
-        scale: AppTextStyles.calendarItemPrefixScale(context),
+        scale: AppStyles.calendarItemPrefixScale(context),
         child: Checkbox(
           value: completedOverride ?? homework.completed,
           onChanged: (value) {
@@ -2717,7 +2717,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       width: 16,
       height: 16,
       child: Transform.scale(
-        scale: AppTextStyles.calendarItemPrefixScale(context),
+        scale: AppStyles.calendarItemPrefixScale(context),
         child: Icon(
           Icons.school,
           size: 16,

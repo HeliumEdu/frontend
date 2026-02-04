@@ -268,7 +268,7 @@ abstract class BaseReminderScreenState<T>
                     const SizedBox(height: 4),
                     Text(
                       Format.reminderOffset(reminder),
-                      style: AppTextStyles.standardBodyText(context).copyWith(
+                      style: AppStyles.standardBodyText(context).copyWith(
                         color: context.colorScheme.onSurface.withValues(
                           alpha: 0.7,
                         ),
@@ -277,7 +277,7 @@ abstract class BaseReminderScreenState<T>
                     const SizedBox(height: 4),
                     Text(
                       ReminderConstants.types[reminder.type],
-                      style: AppTextStyles.standardBodyText(context).copyWith(
+                      style: AppStyles.standardBodyText(context).copyWith(
                         color: context.colorScheme.onSurface.withValues(
                           alpha: 0.7,
                         ),

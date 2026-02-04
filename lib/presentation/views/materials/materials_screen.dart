@@ -434,7 +434,7 @@ class _MaterialsScreenState
                       margin: Margins.zero,
                       padding: HtmlPaddings.zero,
                       fontSize: FontSize(
-                        AppTextStyles.standardBodyText(context).fontSize!,
+                        AppStyles.standardBodyText(context).fontSize!,
                       ),
                       color: context.colorScheme.onSurface.withValues(
                         alpha: 0.6,
