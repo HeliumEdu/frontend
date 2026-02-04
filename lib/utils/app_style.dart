@@ -46,11 +46,14 @@ extension AppStyles on BuildContext {
       );
 
   // Used for secondary text with a lighter weight (like on the calendar)
-  static TextStyle smallSecondaryTextLight(
-      BuildContext context,
-      ) => smallSecondaryText(context).copyWith(
-    fontWeight: FontWeight.w200,
-  );
+  static TextStyle smallSecondaryTextLight(BuildContext context) {
+    final base = smallSecondaryText(context);
+    return GoogleFonts.poppins(
+      fontWeight: FontWeight.w300,
+      fontSize: base.fontSize,
+      color: base.color,
+    );
+  }
 
   // Used for responsive button text
   static TextStyle buttonText(BuildContext context) => GoogleFonts.poppins(
