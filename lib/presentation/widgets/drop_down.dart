@@ -12,7 +12,6 @@ import 'package:heliumapp/utils/app_style.dart';
 
 class DropDown<T> extends StatelessWidget {
   final String? label;
-  final TextStyle? style;
   final IconData? prefixIcon;
   final DropDownItem<T>? initialValue;
   final List<DropDownItem<T>> items;
@@ -21,7 +20,6 @@ class DropDown<T> extends StatelessWidget {
   const DropDown({
     super.key,
     this.label,
-    this.style,
     this.prefixIcon,
     this.initialValue,
     required this.items,
@@ -70,7 +68,7 @@ class DropDown<T> extends StatelessWidget {
                 ),
               ),
             ),
-            style: style ?? AppStyles.formText(context),
+            style: AppStyles.formText(context),
             dropdownColor: context.colorScheme.surface,
             icon: Icon(Icons.keyboard_arrow_down, color: iconColor),
             isExpanded: true,
@@ -92,7 +90,7 @@ class DropDown<T> extends StatelessWidget {
                     ],
                     Text(
                       item.value.toString(),
-                      style: style ?? AppStyles.formText(context),
+                      style: AppStyles.formText(context),
                     ),
                   ],
                 ),

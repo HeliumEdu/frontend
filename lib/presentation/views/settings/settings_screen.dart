@@ -273,7 +273,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                             'Settings',
                             style: AppStyles.menuItem(
                               context,
-                            ).copyWith(fontWeight: FontWeight.w600),
+                            ),
                           ),
                           const SizedBox(height: 2),
                           Text(
@@ -342,7 +342,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                             'External Calendars',
                             style: AppStyles.menuItem(
                               context,
-                            ).copyWith(fontWeight: FontWeight.w600),
+                            ),
                           ),
                           const SizedBox(height: 2),
                           Text(
@@ -411,7 +411,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                             'Feeds',
                             style: AppStyles.menuItem(
                               context,
-                            ).copyWith(fontWeight: FontWeight.w600),
+                            ),
                           ),
                           const SizedBox(height: 2),
                           Text(
@@ -480,7 +480,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                             'Change Password',
                             style: AppStyles.menuItem(
                               context,
-                            ).copyWith(fontWeight: FontWeight.w600),
+                            ),
                           ),
                           const SizedBox(height: 2),
                           Text(
@@ -556,7 +556,6 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                       Text(
                         'Delete Account',
                         style: AppStyles.menuItem(context).copyWith(
-                          fontWeight: FontWeight.w600,
                           color: context.colorScheme.error,
                         ),
                       ),

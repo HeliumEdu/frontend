@@ -16,6 +16,7 @@ import 'package:heliumapp/presentation/views/core/navigation_shell.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:meta/meta.dart';
 
@@ -229,7 +230,12 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
+        content: Text(
+          message,
+          style: AppStyles.standardBodyText(
+            context,
+          ).copyWith(color: context.colorScheme.onPrimary),
+        ),
         backgroundColor: isError
             ? context.colorScheme.error
             : context.semanticColors.success,

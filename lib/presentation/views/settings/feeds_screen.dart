@@ -177,7 +177,7 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
                             url,
                             style: AppStyles.standardBodyText(
                               context,
-                            ).copyWith(fontWeight: FontWeight.w300),
+                            ),
                           ),
                         ),
                       ),

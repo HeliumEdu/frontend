@@ -401,7 +401,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           constraints.maxHeight,
         );
 
-        final agendaHeight = Responsive.isMobile(context) ? 50.0 : 53.0;
+        final agendaHeight = Responsive.isMobile(context) ? 51.0 : 57.0;
 
         return SfCalendar(
           backgroundColor: context.colorScheme.surface,
@@ -421,14 +421,14 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           timeZone: userSettings!.timeZone.name,
           firstDayOfWeek:
               PlannerHelper.weekStartsOnRemap[userSettings!.weekStartsOn],
-          todayTextStyle: AppStyles.smallSecondaryText(
+          todayTextStyle: AppStyles.standardBodyText(
             context,
           ).copyWith(color: context.colorScheme.onPrimary),
           viewHeaderStyle: ViewHeaderStyle(
-            dayTextStyle: AppStyles.smallSecondaryText(context),
+            dayTextStyle: AppStyles.standardBodyText(context),
           ),
           weekNumberStyle: WeekNumberStyle(
-            textStyle: AppStyles.smallSecondaryText(context),
+            textStyle: AppStyles.smallSecondaryTextLight(context),
           ),
           scheduleViewSettings: ScheduleViewSettings(
             hideEmptyScheduleWeek: true,
@@ -456,6 +456,17 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             appointmentDisplayCount: appointmentDisplayCount,
             showAgenda: Responsive.isMobile(context),
             agendaItemHeight: agendaHeight,
+            monthCellStyle: MonthCellStyle(
+              textStyle: AppStyles.smallSecondaryText(context),
+              leadingDatesTextStyle: AppStyles.smallSecondaryText(context)
+                  .copyWith(
+                    color: context.colorScheme.onSurface.withValues(alpha: 0.5),
+                  ),
+              trailingDatesTextStyle: AppStyles.smallSecondaryText(context)
+                  .copyWith(
+                color: context.colorScheme.onSurface.withValues(alpha: 0.5),
+              ),
+            ),
             agendaStyle: AgendaStyle(
               dateTextStyle: AppStyles.smallSecondaryText(
                 context,
@@ -936,11 +947,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                             style: AppStyles.headingText(context),
                             decoration: InputDecoration(
                               hintText: 'Search ...',
-                              hintStyle: AppStyles.menuItem(context).copyWith(
-                                color: context.colorScheme.onSurface.withValues(
-                                  alpha: 0.6,
-                                ),
-                              ),
+                              hintStyle: AppStyles.formLabel(context),
                               border: InputBorder.none,
                               enabledBorder: InputBorder.none,
                               focusedBorder: InputBorder.none,
@@ -1966,14 +1973,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           color: context.colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(4),
         ),
-        child: Text(
-          '...',
-          style: TextStyle(
-            color: context.colorScheme.onSurfaceVariant,
-            fontSize: 11,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
+        child: Text('...', style: AppStyles.smallSecondaryTextLight(context)),
       ),
     );
   }
@@ -2235,7 +2235,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                 ),
                                 child: Text(
                                   'Show All Classes',
-                                  style: AppStyles.menuItem(context),
+                                  style: AppStyles.formText(context),
                                 ),
                               ),
                             ),
@@ -2280,7 +2280,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                           children: [
                                             Text(
                                               course.title,
-                                              style: AppStyles.menuItem(
+                                              style: AppStyles.formText(
                                                 context,
                                               ),
                                               maxLines: 1,
@@ -2376,7 +2376,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                 ),
                                 child: Text(
                                   'Clear Filters',
-                                  style: AppStyles.menuItem(context),
+                                  style: AppStyles.formText(context),
                                 ),
                               ),
                             ),
@@ -2539,7 +2539,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                             return CheckboxListTile(
                               title: Text(
                                 label,
-                                style: AppStyles.menuItem(context),
+                                style: AppStyles.formText(context),
                               ),
                               value: isChecked,
                               onChanged: (value) {
@@ -2585,7 +2585,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                       Expanded(
                                         child: Text(
                                           category.title,
-                                          style: AppStyles.menuItem(context),
+                                          style: AppStyles.formText(context),
                                         ),
                                       ),
                                     ],
@@ -2690,7 +2690,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                     .defaultViews[PlannerHelper.mapHeliumViewToApiView(
                                   HeliumView.values[index],
                                 )],
-                                style: AppStyles.menuItem(context),
+                                style: AppStyles.formText(context),
                               ),
                               value: HeliumView.values[index],
                               controlAffinity: ListTileControlAffinity.leading,
