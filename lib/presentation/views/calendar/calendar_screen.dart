@@ -894,18 +894,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                             controller: _searchController,
                             focusNode: _searchFocusNode,
                             onChanged: _onSearchTextFieldChanged,
-                            style: TextStyle(
-                              fontSize: Responsive.getFontSize(
-                                context,
-                                mobile: 14,
-                                tablet: 15,
-                                desktop: 16,
-                              ),
-                              color: context.colorScheme.onSurface,
-                            ),
+                            style: AppTextStyles.headingText(context),
                             decoration: InputDecoration(
                               hintText: 'Search ...',
-                              hintStyle: context.menuItem.copyWith(
+                              hintStyle: context.calendarMenuItem.copyWith(
                                 color: context.colorScheme.onSurface.withValues(
                                   alpha: 0.6,
                                 ),
@@ -1668,9 +1660,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       spans.add(
         TextSpan(
           text: calendarItem.title,
-          style: context.calendarData.copyWith(
-            fontSize: AppTextStyles.calendarDataFontSize(context),
-          ),
+          style: context.calendarData,
         ),
       );
 
@@ -2203,7 +2193,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                 ),
                                 child: Text(
                                   'Show All Classes',
-                                  style: context.menuItem,
+                                  style: context.calendarMenuItem,
                                 ),
                               ),
                             ),
@@ -2248,7 +2238,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                           children: [
                                             Text(
                                               course.title,
-                                              style: context.menuItem,
+                                              style: context.calendarMenuItem,
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
                                             ),
@@ -2342,10 +2332,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                 ),
                                 child: Text(
                                   'Clear Filters',
-                                  style: context.formText.copyWith(
-                                    color: context.colorScheme.onSurface,
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                                  style: context.calendarMenuItem,
                                 ),
                               ),
                             ),
@@ -2361,7 +2348,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                             CheckboxListTile(
                               title: Text(
                                 'Assignments',
-                                style: context.menuItem,
+                                style: context.calendarMenuItem,
                               ),
                               value: _calendarItemDataSource!.filterTypes
                                   .contains('Assignments'),
@@ -2397,7 +2384,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                     ),
                                   ),
                                   const SizedBox(width: 8),
-                                  Text('Events', style: context.menuItem),
+                                  Text('Events', style: context.calendarMenuItem),
                                 ],
                               ),
                               value: _calendarItemDataSource!.filterTypes
@@ -2433,7 +2420,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                   const SizedBox(width: 8),
                                   Text(
                                     'Class Schedules',
-                                    style: context.menuItem,
+                                    style: context.calendarMenuItem,
                                   ),
                                 ],
                               ),
@@ -2464,7 +2451,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                             CheckboxListTile(
                               title: Text(
                                 'External Calendars',
-                                style: context.menuItem,
+                                style: context.calendarMenuItem,
                               ),
                               value: _calendarItemDataSource!.filterTypes
                                   .contains('External Calendars'),
@@ -2503,7 +2490,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                 .filterStatuses
                                 .contains(label);
                             return CheckboxListTile(
-                              title: Text(label, style: context.menuItem),
+                              title: Text(label, style: context.calendarMenuItem),
                               value: isChecked,
                               onChanged: (value) {
                                 final currentStatuses = Set<String>.from(
@@ -2548,7 +2535,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                       Expanded(
                                         child: Text(
                                           category.title,
-                                          style: context.menuItem,
+                                          style: context.calendarMenuItem,
                                         ),
                                       ),
                                     ],
@@ -2653,7 +2640,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                     .defaultViews[PlannerHelper.mapHeliumViewToApiView(
                                   HeliumView.values[index],
                                 )],
-                                style: context.menuItem,
+                                style: context.calendarMenuItem,
                               ),
                               value: HeliumView.values[index],
                               controlAffinity: ListTileControlAffinity.leading,
@@ -2692,9 +2679,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   Widget _buildCalendarItemTitle(CalendarItemBaseModel calendarItem) {
     return Text(
       calendarItem.title,
-      style: context.calendarData.copyWith(
-        fontSize: AppTextStyles.calendarDataFontSize(context),
-      ),
+      style: context.calendarData,
       maxLines: _currentView == HeliumView.month ? 1 : null,
       overflow: _currentView == HeliumView.month ? TextOverflow.ellipsis : null,
     );
@@ -2709,7 +2694,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       width: 16,
       height: 16,
       child: Transform.scale(
-        scale: AppTextStyles.calendarCheckboxScale(context),
+        scale: AppTextStyles.calendarItemPrefixScale(context),
         child: Checkbox(
           value: completedOverride ?? homework.completed,
           onChanged: (value) {
@@ -2732,7 +2717,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       width: 16,
       height: 16,
       child: Transform.scale(
-        scale: AppTextStyles.calendarCheckboxScale(context),
+        scale: AppTextStyles.calendarItemPrefixScale(context),
         child: Icon(
           Icons.school,
           size: 16,

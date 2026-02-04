@@ -389,7 +389,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
                   children: [
                     Text(
                       course.teacherName,
-                      style: context.paragraphText
+                      style: context.bodyText
                     ),
                     const SizedBox(height: 8),
                   ],
@@ -413,7 +413,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
                     const SizedBox(width: 4),
                     Text(
                       course.room,
-                      style: context.paragraphText.copyWith(
+                      style: context.bodyText.copyWith(
                         color: context.colorScheme.onSurface.withValues(
                           alpha: 0.5,
                         ),
@@ -449,7 +449,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
                   const SizedBox(width: 4),
                   Text(
                     '${HeliumDateTime.formatDateForDisplay(DateTime.parse(course.startDate))} to ${HeliumDateTime.formatDateForDisplay(DateTime.parse(course.endDate))}',
-                    style: context.paragraphText.copyWith(
+                    style: context.bodyText.copyWith(
                       color: context.colorScheme.onSurface.withValues(
                         alpha: 0.5,
                       ),
@@ -559,14 +559,8 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
               const SizedBox(width: 4),
               Text(
                 timeRange,
-                style: context.paragraphText.copyWith(
+                style: AppTextStyles.standardBodyText(context).copyWith(
                   color: context.colorScheme.onSurface.withValues(alpha: 0.6),
-                  fontSize: Responsive.getFontSize(
-                    context,
-                    mobile: 12,
-                    tablet: 13,
-                    desktop: 14,
-                  ),
                 ),
               ),
             ],

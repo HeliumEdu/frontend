@@ -105,7 +105,7 @@ class _MaterialGroupWidgetState
             Expanded(
               child: CheckboxListTile(
                 title: Text(
-                  "Hide this group's materials from Calendar",
+                  "Hide this group's resources from Calendar",
                   style: context.formLabel,
                 ),
                 value: !_formController.shownOnCalendar,

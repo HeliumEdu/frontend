@@ -8,7 +8,6 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/utils/app_style.dart';
-import 'package:heliumapp/utils/responsive_helpers.dart';
 
 class PillBadge extends StatelessWidget {
   final String text;
@@ -24,20 +23,16 @@ class PillBadge extends StatelessWidget {
         color: (color ?? context.semanticColors.success).withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(2),
         border: Border.all(
-          color: (color ?? context.semanticColors.success).withValues(alpha: 0.2),
+          color: (color ?? context.semanticColors.success).withValues(
+            alpha: 0.2,
+          ),
         ),
       ),
       child: Text(
         text,
-        style: context.paragraphText.copyWith(
+        style: AppTextStyles.smallSecondaryText(context).copyWith(
           color: color ?? context.semanticColors.success,
           fontWeight: FontWeight.w600,
-          fontSize: Responsive.getFontSize(
-            context,
-            mobile: 11,
-            tablet: 12,
-            desktop: 13,
-          ),
         ),
       ),
     );

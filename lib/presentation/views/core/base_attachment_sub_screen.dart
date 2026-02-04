@@ -186,7 +186,7 @@ abstract class BaseAttachmentScreenState<T>
                         const SizedBox(height: 16),
                         Text(
                           state.message!,
-                          style: context.paragraphText.copyWith(
+                          style: context.bodyText.copyWith(
                             color: context.colorScheme.error,
                           ),
                           textAlign: TextAlign.center,
