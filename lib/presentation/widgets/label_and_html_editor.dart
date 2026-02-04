@@ -36,7 +36,6 @@ class LabelAndHtmlEditor extends StatelessWidget {
             color: context.colorScheme.surface,
             border: Border.all(
               color: context.colorScheme.outline.withValues(alpha: 0.2),
-              width: 2,
             ),
             borderRadius: BorderRadius.circular(8),
           ),

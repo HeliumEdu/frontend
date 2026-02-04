@@ -58,13 +58,11 @@ class DropDown<T> extends StatelessWidget {
               enabledBorder: OutlineInputBorder(
                 borderSide: BorderSide(
                   color: context.colorScheme.outline.withValues(alpha: 0.2),
-                  width: 2,
                 ),
               ),
               focusedBorder: OutlineInputBorder(
                 borderSide: BorderSide(
                   color: context.colorScheme.outline.withValues(alpha: 0.2),
-                  width: 2,
                 ),
               ),
             ),

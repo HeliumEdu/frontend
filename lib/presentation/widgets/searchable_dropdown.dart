@@ -148,7 +148,6 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                           color: context.colorScheme.outline.withValues(
                             alpha: 0.2,
                           ),
-                          width: 2,
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
@@ -156,7 +155,6 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                           color: context.colorScheme.outline.withValues(
                             alpha: 0.2,
                           ),
-                          width: 2,
                         ),
                       ),
                     ),
@@ -180,19 +178,16 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                         color: context.colorScheme.outline.withValues(
                           alpha: 0.2,
                         ),
-                        width: 2,
                       ),
                       right: BorderSide(
                         color: context.colorScheme.outline.withValues(
                           alpha: 0.2,
                         ),
-                        width: 2,
                       ),
                       bottom: BorderSide(
                         color: context.colorScheme.outline.withValues(
                           alpha: 0.2,
                         ),
-                        width: 2,
                       ),
                     ),
                   ),
