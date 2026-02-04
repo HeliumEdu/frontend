@@ -202,13 +202,13 @@ jobs:
           git config --global user.name "GitHub Release Bot"
           git config --global user.email "<contact@alexlaird.com>"
 
-          TAG_NAME="v$FULL_VERSION"
+          SEMVER="${FULL_VERSION%%+*}"
 
-          if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
-            echo "Tag $TAG_NAME already exists, skipping tag creation"
+          if git rev-parse "v$SEMVER" >/dev/null 2>&1; then
+            echo "Tag v$SEMVER already exists, skipping tag creation"
           else
-            echo "Creating tag $TAG_NAME"
-            git tag -a "$TAG_NAME" -m "Release $TAG_NAME"
-            git push origin "$TAG_NAME"
-            echo "Successfully created and pushed tag $TAG_NAME"
+            echo "Creating tag v$SEMVER for build $FULL_VERSION"
+            git tag -a "v$SEMVER" -m "Release v$SEMVER (build $FULL_VERSION)"
+            git push origin "v$SEMVER"
+            echo "Successfully created and pushed tag v$SEMVER"
           fi
