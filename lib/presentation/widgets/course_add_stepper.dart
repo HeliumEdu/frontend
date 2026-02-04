@@ -170,7 +170,6 @@ class CourseStepper extends StatelessWidget {
               color: context.colorScheme.primary.withValues(
                 alpha: isEdit ? 1 : 0.3,
               ),
-              width: 2,
             ),
           ),
           child: Center(
@@ -211,7 +210,6 @@ class CourseStepper extends StatelessWidget {
               color: context.colorScheme.primary.withValues(
                 alpha: isEdit ? 1 : 0.3,
               ),
-              width: 2,
             ),
           ),
           child: Center(
@@ -254,7 +252,6 @@ class CourseStepper extends StatelessWidget {
               color: context.colorScheme.primary.withValues(
                 alpha: isEdit ? 1 : 0.3,
               ),
-              width: 2,
             ),
           ),
           child: Center(

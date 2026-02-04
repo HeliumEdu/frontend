@@ -281,7 +281,6 @@ class _CourseAddScheduleScreenState
                                   border: Border.all(
                                     color: context.colorScheme.outline
                                         .withValues(alpha: 0.3),
-                                    width: 2,
                                   ),
                                 ),
                                 child: Row(
@@ -327,7 +326,6 @@ class _CourseAddScheduleScreenState
                                   border: Border.all(
                                     color: context.colorScheme.outline
                                         .withValues(alpha: 0.3),
-                                    width: 2,
                                   ),
                                 ),
                                 child: Row(
@@ -401,7 +399,6 @@ class _CourseAddScheduleScreenState
                               color: context.colorScheme.outline.withValues(
                                 alpha: 0.3,
                               ),
-                              width: 2,
                             ),
                           ),
                           child: Row(
@@ -438,7 +435,6 @@ class _CourseAddScheduleScreenState
                               color: context.colorScheme.outline.withValues(
                                 alpha: 0.3,
                               ),
-                              width: 2,
                             ),
                           ),
                           child: Row(

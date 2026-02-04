@@ -114,7 +114,6 @@ class _CourseGroupWidgetState
               borderRadius: BorderRadius.circular(6),
               border: Border.all(
                 color: context.colorScheme.outline.withValues(alpha: 0.2),
-                width: 2
               ),
               color: context.colorScheme.surface,
             ),
@@ -145,7 +144,6 @@ class _CourseGroupWidgetState
               borderRadius: BorderRadius.circular(6),
               border: Border.all(
                 color: context.colorScheme.outline.withValues(alpha: 0.2),
-                width: 2
               ),
               color: context.colorScheme.surface,
             ),
