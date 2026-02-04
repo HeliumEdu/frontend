@@ -39,7 +39,7 @@ class GradeLabel extends StatelessWidget {
             child: Center(
               child: Icon(
                 Icons.assignment_turned_in_outlined,
-                // TODO: Use dynamic icon color based on gradeColor luminance to prevent visibility issues with light user-selected colors
+                // TODO: Known Issues (6/Low): Use dynamic icon color based on gradeColor luminance to prevent visibility issues with light user-selected colors
                 color: Colors.white,
                 size: Responsive.getIconSize(
                   context,

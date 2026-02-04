@@ -250,7 +250,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
   }
 
   Widget _buildGraphArea() {
-    // TODO: implement graphs like current frontend, with https://pub.dev/packages/syncfusion_flutter_charts
+    // TODO: Feature Parity: implement graphs like current frontend, with https://pub.dev/packages/syncfusion_flutter_charts
     return const SizedBox.shrink();
   }
 
@@ -402,7 +402,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
   }
 
   Widget _buildCourseArea(GradeCourseModel course) {
-    // TODO: implement pie charts like current frontend, with SyncFusion widgets
+    // TODO: Feature Parity: implement pie charts like current frontend, with SyncFusion widgets
 
     return Container(
       margin: const EdgeInsets.only(top: 14),

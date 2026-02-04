@@ -444,7 +444,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             minimumAppointmentDuration: Duration(minutes: 32),
             dayFormat: 'EEE',
             timeIntervalHeight: 50,
-            // TODO: use this field and dynamically set it to null (full week), 3, or 1, to enable a new "3-day" view
+            // TODO: Enhancement: use this field and dynamically set it to null (full week), 3, or 1, to enable a new "3-day" view
             // numberOfDaysInView: 3
           ),
           loadMoreWidgetBuilder: _loadMoreWidgetBuilder,
@@ -470,7 +470,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   bool _openCalendarItem(CalendarItemBaseModel calendarItem) {
     if (calendarItem is CourseScheduleEventModel) {
-      // TODO: add an action button this snack bar to take the user to the page to edit the course schedule
+      // TODO: High Value, Low Effort: add an action button this snack bar to take the user to the page to edit the course schedule
       showSnackBar(
         context,
         'Items from schedules can\'t be edited on the Calendar',
@@ -1559,7 +1559,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     VoidCallback? onCheckboxToggled,
     bool? completedOverride,
   }) {
-    // TODO: when the text wraps before even one letter can fit on the row, the prefix icon/checkbox gets pushed down a few pixels; fix here, and also for the .school icon (same behavior)
+    // TODO: Known Issues (2/Low): when the text wraps before even one letter can fit on the row, the prefix icon/checkbox gets pushed down a few pixels; fix here, and also for the .school icon (same behavior)
     if (PlannerHelper.shouldShowCheckbox(context, calendarItem, _currentView)) {
       return _buildCheckboxWidget(
         homework: calendarItem as HomeworkModel,
@@ -1714,7 +1714,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             launchUrl(Uri.parse('mailto:${course!.teacherEmail}'));
           },
           icon: Icons.email_outlined,
-          // TODO: Use dynamic icon color based on calendar item background luminance to prevent visibility issues with light user-selected colors
+          // TODO: Known Issues (7/Low): Use dynamic icon color based on calendar item background luminance to prevent visibility issues with light user-selected colors
           color: Colors.white,
         ),
       );
@@ -1940,7 +1940,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     DateTime? date,
     List<CalendarItemBaseModel> appointments,
   ) {
-    // TODO: migrate this out to its own file
+    // TODO: Cleanup: migrate this out to its own file
     if (date == null || Responsive.isMobile(context)) return;
 
     showDialog(
@@ -2115,7 +2115,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         _storedSelectedDate = truncatedDate;
       }
 
-      // TODO: when jumping to a date that isn't within the loaded data source on "Schedule" view, it doesn't see to trigger the "load more" behavior for that date window
+      // TODO: Known Issues (1/Medium): when jumping to a date that isn't within the loaded data source on "Schedule" view, the view shows the single specified date, but doesn't also trigger the "load more" behavior for that date window
     });
   }
 
@@ -2705,7 +2705,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           },
           activeColor: context.colorScheme.primary,
           side: BorderSide(
-            // TODO: Use dynamic colors based on calendar item background luminance for checkbox, school icon, time icons, and location icons to prevent visibility issues with light user-selected colors
+            // TODO: Known Issues (8/Low): Use dynamic colors based on calendar item background luminance for checkbox, school icon, time icons, and location icons to prevent visibility issues with light user-selected colors
             color: Colors.white.withValues(alpha: 0.7),
             width: 2.5,
           ),

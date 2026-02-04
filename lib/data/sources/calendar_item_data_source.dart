@@ -35,7 +35,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   List<CourseModel>? courses;
   Map<int, CategoryModel>? categoriesMap;
 
-  // TODO: Refactor this simple cache approach (which hits API more than necessary to cache on the remote data source layer instead: https://pub.dev/packages/dio_cache_interceptor
+  // TODO: Enhancement: Refactor this simple cache approach (which hits API more than necessary to cache on the remote data source layer instead: https://pub.dev/packages/dio_cache_interceptor
   final Map<String, List<CalendarItemBaseModel>> _dateRangeCache = {};
 
   // State
@@ -189,7 +189,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
         from: startDate,
         to: endDate,
       );
-      // TODO: remove this, we can obtain course schedule events by using SfCalendar's native repeating events concept
+      // TODO: Enhancement: remove this, we can obtain course schedule events by using SfCalendar's native repeating events concept
       final courseScheduleEvents = await courseScheduleRepository
           .getCourseScheduleEvents(
             from: startDate,

@@ -44,7 +44,7 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-// TODO: refactor "Materials" to "Resources", update throughout code an backend
+// TODO: Cleanup: refactor "Materials" to "Resources", update throughout code an backend
 
 class MaterialsScreen extends StatelessWidget {
   final DioClient _dioClient = DioClient();

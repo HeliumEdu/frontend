@@ -44,7 +44,7 @@ import 'package:timezone/standalone.dart' as tz;
 
 final _log = Logger('presentation.views');
 
-// TODO: implement "Clone" button for parity with current frontend
+// TODO: Feature Parity: implement "Clone" button for parity with current frontend
 
 class CalendarItemAddProvidedScreen extends StatefulWidget {
   final int? eventId;
@@ -604,7 +604,7 @@ class _CalendarItemAddScreenState
                 const SizedBox(height: 14),
               ],
 
-              // TODO: add location field to Event's
+              // TODO: Feature Parity: add location field to Event's
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [Text('Priority', style: context.formLabel)],
@@ -899,7 +899,7 @@ class _CalendarItemAddScreenState
         _formController.isAllDay ? 0 : _formController.startTime.minute,
       );
 
-      // TODO: evaluate if the "add 30 minutes" logic that was on the legacy frontend is still necessary, SfCalendar might resolve this issue for us
+      // TODO: Feature Parity: evaluate if the "add 30 minutes" logic that was on the legacy frontend is still necessary, SfCalendar might resolve this issue for us
 
       if (endDateTimeUnaware.isAfter(startDateTimeUnaware)) {
         showSnackBar(
@@ -960,7 +960,7 @@ class _CalendarItemAddScreenState
 
         if (mounted) {
           if (widget.isEdit) {
-            // TODO: only submit if actual changes are made
+            // TODO: High Value, Low Effort: only submit if actual changes are made
 
             context.read<CalendarItemBloc>().add(
               UpdateEventEvent(
@@ -1007,7 +1007,7 @@ class _CalendarItemAddScreenState
 
         if (mounted) {
           if (widget.isEdit) {
-            // TODO: only submit if actual changes are made
+            // TODO: High Value, Low Effort: only submit if actual changes are made
             context.read<CalendarItemBloc>().add(
               UpdateHomeworkEvent(
                 origin: EventOrigin.subScreen,
@@ -1043,7 +1043,7 @@ class _CalendarItemAddScreenState
   void _selectCourse(int courseId) {
     setState(() {
       _formController.selectedCourse = courseId;
-      // TODO: store category and material names too, persist across course changes
+      // TODO: Enhancement: store category and material names too, persist across course changes
       if (_categories.isNotEmpty) {
         _formController.selectedCategory = _categories
             .where(

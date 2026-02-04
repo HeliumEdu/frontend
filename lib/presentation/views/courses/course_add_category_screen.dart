@@ -265,7 +265,7 @@ class _CourseAddCategoryScreenState
                 ),
               ),
 
-              // TODO: show count of "homeworks" tied to category in list
+              // TODO: Feature Parity: show count of "homeworks" tied to category in list
               const SizedBox(width: 8),
               if (PlannerHelper.shouldShowEditButton(context)) ...[
                 HeliumIconButton(

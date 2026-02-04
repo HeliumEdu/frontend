@@ -15,7 +15,7 @@ class LoadingIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: not sure the small version is necessary
+    // TODO: Cleanup: not sure the small version is necessary
     if (small) {
       return SizedBox(
         height: 20,

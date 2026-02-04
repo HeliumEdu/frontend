@@ -132,7 +132,7 @@ class _NotificationsScreenState
 
   @override
   Widget buildMainArea(BuildContext context) {
-    // TODO: on larger screens, open notifications as dialog (or preferably sidebar)
+    // TODO: Enhancement: on larger screens, open notifications as dialog (or preferably sidebar)
     return BlocBuilder<ReminderBloc, ReminderState>(
       builder: (context, state) {
         if (state is RemindersLoading) {
@@ -197,8 +197,8 @@ class _NotificationsScreenState
       calendarItem = reminder.homework?.entity;
       final course = reminder.homework?.entity?.course.entity;
 
-      // TODO: refactor to use the CourseTitleLabel
-      // TODO: refactor to add category information (and use label)
+      // TODO: Cleanup: refactor to use the CourseTitleLabel
+      // TODO: Cleanup: refactor to add category information (and use label)
 
       title = '${reminder.homework?.entity?.title} in ${course?.title}';
       color = course?.color;
