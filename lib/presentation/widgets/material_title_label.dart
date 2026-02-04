@@ -39,6 +39,7 @@ class MaterialTitleLabel extends StatelessWidget {
             child: Center(
               child: Icon(
                 Icons.book_outlined,
+                // TODO: Use dynamic icon color based on material color luminance to prevent visibility issues with light user-selected colors
                 color: Colors.white,
                 size: Responsive.getIconSize(
                   context,
