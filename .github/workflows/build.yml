@@ -23,11 +23,18 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
-          version: "3.38.1"
+          version: "3.38.9"
       - name: Add pub cache to PATH
         run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
       - name: Install lcov
@@ -49,11 +56,18 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
-          version: "3.38.1"
+          version: "3.38.9"
       - name: Build Android
         run: make build-android
 
@@ -75,6 +89,6 @@ jobs:
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
-          version: "3.38.1"
+          version: "3.38.9"
       - name: Build iOS
         run: make build-ios
