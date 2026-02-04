@@ -469,18 +469,25 @@ class TodosTableState extends State<TodosTable> {
                 controller.currentPage = pageNumber;
               },
         style: OutlinedButton.styleFrom(
-          backgroundColor: isActive ? context.colorScheme.primary : null,
+          backgroundColor: isActive
+              ? context.colorScheme.primary
+              : context.colorScheme.surface,
           disabledBackgroundColor: isActive
               ? context.colorScheme.primary
               : null,
           minimumSize: const Size(40, 40),
           padding: EdgeInsets.zero,
+          side: BorderSide(
+            color: context.colorScheme.outline.withValues(alpha: 0.8),
+          ),
         ),
         child: Text(
           pageNumber.toString(),
           style: context.calendarData.copyWith(
             fontWeight: isActive ? FontWeight.w600 : FontWeight.w300,
-            color: isActive ? context.colorScheme.onPrimary : null,
+            color: isActive
+                ? context.colorScheme.onPrimary
+                : context.colorScheme.onSurface,
           ),
         ),
       ),
@@ -532,10 +539,7 @@ class TodosTableState extends State<TodosTable> {
               color: context.colorScheme.onSurface.withValues(alpha: 0.6),
             )
           else
-            Text(
-              label,
-              style: context.calendarHeader,
-            ),
+            Text(label, style: context.calendarHeader),
           if (isActive) ...[
             const SizedBox(width: 4),
             Icon(

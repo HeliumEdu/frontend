@@ -574,11 +574,11 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         icon: icon,
         style: ButtonStyle(
           padding: WidgetStateProperty.all(
-            EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: Responsive.isMobile(context) ? 12 : 16,
-            ),
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
           ),
+          // Pin the min/max size to ensure matches filter buttons on other side of header
+          minimumSize: WidgetStateProperty.all(const Size(0, 48)),
+          maximumSize: WidgetStateProperty.all(const Size(double.infinity, 48)),
           side: WidgetStateProperty.all(
             BorderSide(color: context.colorScheme.primary),
           ),
@@ -1658,10 +1658,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       }
 
       spans.add(
-        TextSpan(
-          text: calendarItem.title,
-          style: context.calendarData,
-        ),
+        TextSpan(text: calendarItem.title, style: context.calendarData),
       );
 
       titleRowWidget = Text.rich(
@@ -2385,7 +2382,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                     ),
                                   ),
                                   const SizedBox(width: 8),
-                                  Text('Events', style: context.calendarMenuItem),
+                                  Text(
+                                    'Events',
+                                    style: context.calendarMenuItem,
+                                  ),
                                 ],
                               ),
                               value: _calendarItemDataSource!.filterTypes
@@ -2491,7 +2491,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                 .filterStatuses
                                 .contains(label);
                             return CheckboxListTile(
-                              title: Text(label, style: context.calendarMenuItem),
+                              title: Text(
+                                label,
+                                style: context.calendarMenuItem,
+                              ),
                               value: isChecked,
                               onChanged: (value) {
                                 final currentStatuses = Set<String>.from(
