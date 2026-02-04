@@ -46,8 +46,7 @@ class CategoryTitleLabel extends StatelessWidget {
             child: Text(
               title,
               style: AppStyles.standardBodyText(context).copyWith(
-                color: color,
-                fontWeight: FontWeight.w600,
+                color: color
               ),
               overflow: TextOverflow.ellipsis,
             ),

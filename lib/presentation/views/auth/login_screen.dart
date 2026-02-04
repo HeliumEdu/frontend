@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -150,7 +151,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
 
                 LabelAndTextFormField(
                   hintText: 'Username',
-                  autofocus: true,
+                  autofocus: kIsWeb,
                   prefixIcon: Icons.person,
                   controller: _formController.usernameController,
                   validator: BasicFormController.validateRequiredField,
@@ -231,7 +232,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                       children: [
                         Text(
                           'Need an account?',
-                          style: context.buttonText.copyWith(
+                          style: AppStyles.buttonText(context).copyWith(
                             color: context.colorScheme.primary,
                           ),
                         ),

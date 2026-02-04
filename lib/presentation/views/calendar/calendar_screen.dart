@@ -50,6 +50,7 @@ import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/views/calendar/todos_table_controller.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/widgets/error_card.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/shadow_container.dart';
@@ -317,9 +318,12 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         }
 
         if (state is CalendarError) {
-          return buildReload(state.message!, () {
-            FetchCalendarScreenDataEvent();
-          });
+          return ErrorCard(
+            message: state.message!,
+            onReload: () {
+              FetchCalendarScreenDataEvent();
+            },
+          );
         }
 
         return _buildCalendarPage();
@@ -585,7 +589,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         ),
         label: Text(
           'Today',
-          style: context.buttonText.copyWith(
+          style: AppStyles.buttonText(context).copyWith(
             color: context.colorScheme.primary,
           ),
         ),

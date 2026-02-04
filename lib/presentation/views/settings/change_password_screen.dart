@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -91,7 +92,7 @@ class _ChangePasswordScreenState
             children: [
               LabelAndTextFormField(
                 label: 'Current password',
-                autofocus: true,
+                autofocus: kIsWeb,
                 prefixIcon: Icons.lock,
                 controller: _formController.oldPasswordController,
                 validator: BasicFormController.validatePassword,

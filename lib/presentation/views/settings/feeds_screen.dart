@@ -109,12 +109,9 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
   Widget _buildFeedCard({
     required BuildContext context,
     required IconData icon,
-    required Color iconColor,
-    required Color iconBgColor,
-    required String title,
+    required Color color,
     required String url,
     required String label,
-    required Color buttonColor,
   }) {
     return Card(
       child: Padding(
@@ -122,19 +119,17 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Padding(
-            //   padding: Responsive.getCardPadding(context),
             Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: iconBgColor.withValues(alpha: 0.12),
+                    color: color.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
                     icon,
-                    color: iconColor,
+                    color: color,
                     size: Responsive.getIconSize(
                       context,
                       mobile: 24,
@@ -147,7 +142,9 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [Text(title, style: context.sectionHeading)],
+                    children: [
+                      Text(label, style: AppStyles.featureText(context)),
+                    ],
                   ),
                 ),
               ],
@@ -176,7 +173,12 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
                               ),
                             ),
                           ),
-                          child: SelectableText(url, style: context.bodyText),
+                          child: Text(
+                            url,
+                            style: AppStyles.standardBodyText(
+                              context,
+                            ).copyWith(fontWeight: FontWeight.w300),
+                          ),
                         ),
                       ),
                     ],
@@ -192,13 +194,13 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
                           },
                           icon: Icons.copy,
                           buttonText: 'Copy',
-                          backgroundColor: buttonColor,
+                          backgroundColor: color,
                         ),
                       ),
                       const SizedBox(width: 10),
                       Builder(
                         builder: (buttonContext) => SizedBox.square(
-                          dimension: 37,
+                          dimension: 45,
                           child: IconButton(
                             onPressed: () {
                               final box =
@@ -215,15 +217,9 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
                                 ),
                               );
                             },
-                            icon: Icon(
-                              Icons.share_outlined,
-                              color: buttonColor,
-                              // size: 16,
-                            ),
+                            icon: Icon(Icons.share_outlined, color: color),
                             style: IconButton.styleFrom(
-                              backgroundColor: buttonColor.withValues(
-                                alpha: 0.12,
-                              ),
+                              backgroundColor: color.withValues(alpha: 0.12),
                             ),
                           ),
                         ),
@@ -266,15 +262,7 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
               const SizedBox(height: 20),
               Text(
                 'Feeds are Disabled',
-                style: context.pageTitle.copyWith(
-                  fontWeight: FontWeight.w600,
-                  fontSize: Responsive.getFontSize(
-                    context,
-                    mobile: 18,
-                    tablet: 19,
-                    desktop: 20,
-                  ),
-                ),
+                style: AppStyles.featureText(context)
               ),
               const SizedBox(height: 25),
 
@@ -314,34 +302,25 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
             _buildFeedCard(
               context: context,
               icon: Icons.assignment_outlined,
-              iconColor: context.semanticColors.warning,
-              iconBgColor: context.semanticColors.warning,
-              title: 'Assignments',
+              color: context.semanticColors.warning,
               url: homeworkUrl,
               label: 'Assignments',
-              buttonColor: context.semanticColors.warning,
             ),
 
             _buildFeedCard(
               context: context,
               icon: Icons.date_range_outlined,
-              iconColor: context.colorScheme.primary,
-              iconBgColor: context.colorScheme.primary,
-              title: 'Class Schedules',
+              color: context.colorScheme.primary,
               url: courseScheduleUrl,
               label: 'Class Schedules',
-              buttonColor: context.colorScheme.primary,
             ),
 
             _buildFeedCard(
               context: context,
               icon: Icons.event_outlined,
-              iconColor: context.semanticColors.success,
-              iconBgColor: context.semanticColors.success,
-              title: 'Events',
+              color: context.semanticColors.success,
               url: eventsUrl,
               label: 'Events',
-              buttonColor: context.semanticColors.success,
             ),
 
             const SizedBox(height: 25),

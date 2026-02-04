@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -607,7 +608,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                 Expanded(
                   child: Text(
                     'Delete Account',
-                    style: context.dialogTitle.copyWith(
+                    style: AppStyles.featureText(context).copyWith(
                       color: context.colorScheme.error,
                     ),
                   ),
@@ -625,14 +626,14 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                     children: [
                       Text(
                         'To permanently delete your account—and all data you have stored in Helium—confirm your password below. This action cannot be undone.',
-                        style: context.dialogText,
+                        style: AppStyles.standardBodyText(context),
                       ),
                       const SizedBox(height: 20),
                       Row(
                         children: [
                           Expanded(
                             child: LabelAndTextFormField(
-                              autofocus: true,
+                              autofocus: kIsWeb,
                               controller: _deleteAccountPasswordController,
                               validator:
                                   BasicFormController.validateRequiredField,

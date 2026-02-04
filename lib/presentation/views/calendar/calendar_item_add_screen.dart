@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -220,7 +221,7 @@ class _CalendarItemAddScreenState
             children: [
               LabelAndTextFormField(
                 label: 'Title',
-                autofocus: !widget.isEdit || !Responsive.isMobile(context),
+                autofocus: kIsWeb || !widget.isEdit,
                 controller: _formController.titleController,
                 validator: BasicFormController.validateRequiredField,
                 fieldKey: _formController.getFieldKey('title'),

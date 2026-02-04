@@ -26,6 +26,7 @@ import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/category_title_label.dart';
 import 'package:heliumapp/presentation/widgets/course_title_label.dart';
 import 'package:heliumapp/presentation/widgets/empty_card.dart';
+import 'package:heliumapp/presentation/widgets/error_card.dart';
 import 'package:heliumapp/presentation/widgets/grade_label.dart';
 import 'package:heliumapp/presentation/widgets/group_dropdown.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
@@ -140,9 +141,12 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
         }
 
         if (state is GradesError) {
-          return buildReload(state.message!, () {
-            return context.read<GradeBloc>().add(FetchGradeScreenDataEvent());
-          });
+          return ErrorCard(
+            message: state.message!,
+            onReload: () {
+              return context.read<GradeBloc>().add(FetchGradeScreenDataEvent());
+            },
+          );
         }
 
         final List<GradeCourseModel> courses = _grades.isNotEmpty
@@ -502,7 +506,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
             child: Text(
               '${category.numHomeworkGraded} of ${category.numHomework}',
               textAlign: TextAlign.center,
-              style: context.bodyText.copyWith(
+              style: AppStyles.standardBodyText(context).copyWith(
                 color: context.colorScheme.onSurface.withValues(alpha: 0.7),
               ),
             ),
@@ -592,14 +596,8 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
         Text(
           '${selectedGroup.numHomeworkCompleted} complete',
           textAlign: TextAlign.center,
-          style: context.bodyText.copyWith(
+          style: AppStyles.smallSecondaryText(context).copyWith(
             color: context.colorScheme.onPrimary.withValues(alpha: 0.9),
-            fontSize: Responsive.getFontSize(
-              context,
-              mobile: 11,
-              tablet: 11,
-              desktop: 13,
-            ),
           ),
         ),
         Text(
@@ -652,14 +650,8 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
         Text(
           'through term',
           textAlign: TextAlign.center,
-          style: context.bodyText.copyWith(
+          style: AppStyles.smallSecondaryText(context).copyWith(
             color: context.colorScheme.onPrimary.withValues(alpha: 0.9),
-            fontSize: Responsive.getFontSize(
-              context,
-              mobile: 11,
-              tablet: 11,
-              desktop: 13,
-            ),
           ),
         ),
         Text(
@@ -682,22 +674,16 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
       children: [
         Text(
           selectedGroup.numHomework.toString(),
-          style: AppStyles.featureText(context).copyWith(
-            color: context.colorScheme.onPrimary,
-          ),
+          style: AppStyles.featureText(
+            context,
+          ).copyWith(color: context.colorScheme.onPrimary),
         ),
         Text(
           'total ${selectedGroup.numHomework.plural('assignment')}',
           textAlign: TextAlign.center,
           softWrap: true,
-          style: context.bodyText.copyWith(
+          style: AppStyles.standardBodyText(context).copyWith(
             color: context.colorScheme.onPrimary.withValues(alpha: 0.8),
-            fontSize: Responsive.getFontSize(
-              context,
-              mobile: 11,
-              tablet: 11,
-              desktop: 13,
-            ),
           ),
         ),
       ],
@@ -711,22 +697,16 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
       children: [
         Text(
           selectedGroup.numHomeworkGraded.toString(),
-          style: AppStyles.featureText(context).copyWith(
-            color: context.colorScheme.onPrimary,
-          ),
+          style: AppStyles.featureText(
+            context,
+          ).copyWith(color: context.colorScheme.onPrimary),
         ),
         Text(
           'graded',
           textAlign: TextAlign.center,
           softWrap: true,
-          style: context.bodyText.copyWith(
+          style: AppStyles.standardBodyText(context).copyWith(
             color: context.colorScheme.onPrimary.withValues(alpha: 0.8),
-            fontSize: Responsive.getFontSize(
-              context,
-              mobile: 11,
-              tablet: 11,
-              desktop: 13,
-            ),
           ),
         ),
       ],

@@ -45,7 +45,7 @@ class _ExternalCalendarWidgetState
   @override
   String get dialogTitle => 'External Calendar';
 
-  static const String _defaultTitle = 'Holidays';
+  static const String _defaultTitle = 'U.S. Holidays';
   static const String _defaultUrl =
       'https://calendar.google.com/calendar/ical/en.usa%23holiday%40group.v.calendar.google.com/public/basic.ics';
 

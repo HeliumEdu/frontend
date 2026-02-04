@@ -24,16 +24,14 @@ class ErrorContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final errorColor = context.colorScheme.error;
+    final errorColor = context.colorScheme.error.withValues(alpha: 0.7);
 
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: errorColor.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: errorColor.withValues(alpha: 0.2),
-        ),
+        border: Border.all(color: errorColor.withValues(alpha: 0.2)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,9 +50,9 @@ class ErrorContainer extends StatelessWidget {
           Expanded(
             child: Text(
               text,
-              style: context.settingsMenuItemHint.copyWith(
-                height: 1.4,
-              ),
+              style: AppStyles.standardBodyText(
+                context,
+              ).copyWith(color: errorColor),
             ),
           ),
           if (onDismiss != null) ...[

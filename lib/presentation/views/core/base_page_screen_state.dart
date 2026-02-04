@@ -13,11 +13,9 @@ import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/presentation/views/core/navigation_shell.dart';
-import 'package:heliumapp/presentation/widgets/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
-import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:meta/meta.dart';
 
@@ -186,40 +184,6 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
   @mustBeOverridden
   Widget buildMainArea(BuildContext context);
-
-  Widget buildReload(String errorMsg, VoidCallback retryCallback) {
-    final errorColor = context.colorScheme.error;
-    return Expanded(
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: Responsive.getIconSize(
-                context,
-                mobile: 60,
-                tablet: 64,
-                desktop: 68,
-              ),
-              color: errorColor,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              errorMsg,
-              style: context.bodyText.copyWith(color: errorColor),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            HeliumElevatedButton(
-              buttonText: 'Reload',
-              onPressed: retryCallback,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget buildFloatingActionButton() {
     return Container(

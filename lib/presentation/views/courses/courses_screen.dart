@@ -32,6 +32,7 @@ import 'package:heliumapp/presentation/dialogs/course_group_dialog.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/course_title_label.dart';
 import 'package:heliumapp/presentation/widgets/empty_card.dart';
+import 'package:heliumapp/presentation/widgets/error_card.dart';
 import 'package:heliumapp/presentation/widgets/group_dropdown.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
@@ -251,11 +252,14 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
         }
 
         if (state is CoursesError && state.origin == EventOrigin.screen) {
-          return buildReload(state.message!, () {
-            context.read<CourseBloc>().add(
-              FetchCoursesScreenDataEvent(origin: EventOrigin.screen),
-            );
-          });
+          return ErrorCard(
+            message: state.message!,
+            onReload: () {
+              context.read<CourseBloc>().add(
+                FetchCoursesScreenDataEvent(origin: EventOrigin.screen),
+              );
+            },
+          );
         }
 
         if (_courseGroups.isEmpty) {
@@ -387,10 +391,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      course.teacherName,
-                      style: context.bodyText
-                    ),
+                    Text(course.teacherName, style: AppStyles.headingText(context)),
                     const SizedBox(height: 8),
                   ],
                 ),
@@ -413,7 +414,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
                     const SizedBox(width: 4),
                     Text(
                       course.room,
-                      style: context.bodyText.copyWith(
+                      style: AppStyles.standardBodyText(context).copyWith(
                         color: context.colorScheme.onSurface.withValues(
                           alpha: 0.5,
                         ),
@@ -449,7 +450,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
                   const SizedBox(width: 4),
                   Text(
                     '${HeliumDateTime.formatDateForDisplay(DateTime.parse(course.startDate))} to ${HeliumDateTime.formatDateForDisplay(DateTime.parse(course.endDate))}',
-                    style: context.bodyText.copyWith(
+                    style: AppStyles.standardBodyText(context).copyWith(
                       color: context.colorScheme.onSurface.withValues(
                         alpha: 0.5,
                       ),

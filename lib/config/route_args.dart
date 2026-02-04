@@ -88,10 +88,3 @@ class MaterialAddArgs {
     required this.isEdit,
   });
 }
-
-class VerifyScreenArgs {
-  final String? username;
-  final String? code;
-
-  const VerifyScreenArgs({this.username, this.code});
-}

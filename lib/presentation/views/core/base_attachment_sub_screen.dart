@@ -20,8 +20,10 @@ import 'package:heliumapp/presentation/bloc/attachment/attachment_state.dart';
 import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/empty_card.dart';
+import 'package:heliumapp/presentation/widgets/error_card.dart';
 import 'package:heliumapp/presentation/widgets/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
+import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
@@ -158,50 +160,24 @@ abstract class BaseAttachmentScreenState<T>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Attachments', style: context.sectionHeading),
+          Text('Attachments', style: AppStyles.featureText(context)),
 
           const SizedBox(height: 12),
           Expanded(
             child: BlocBuilder<AttachmentBloc, AttachmentState>(
               builder: (context, state) {
                 if (state is AttachmentsLoading) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const LoadingIndicator();
                 }
 
                 if (state is AttachmentsError) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          size: Responsive.getIconSize(
-                            context,
-                            mobile: 60,
-                            tablet: 64,
-                            desktop: 68,
-                          ),
-                          color: context.colorScheme.error,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          state.message!,
-                          style: context.bodyText.copyWith(
-                            color: context.colorScheme.error,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 16),
-                        HeliumElevatedButton(
-                          buttonText: 'Reload',
-                          onPressed: () {
-                            context.read<AttachmentBloc>().add(
-                              createFetchAttachmentsEvent(),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
+                  return ErrorCard(
+                    message: state.message!,
+                    onReload: () {
+                      context.read<AttachmentBloc>().add(
+                        createFetchAttachmentsEvent(),
+                      );
+                    },
                   );
                 }
 
@@ -338,7 +314,7 @@ abstract class BaseAttachmentScreenState<T>
                 children: [
                   Text(
                     file.title,
-                    style: context.formText,
+                    style: AppStyles.standardBodyText(context),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
@@ -401,7 +377,7 @@ abstract class BaseAttachmentScreenState<T>
                 attachment.title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: context.formText,
+                style: AppStyles.standardBodyText(context),
               ),
             ),
             HeliumIconButton(

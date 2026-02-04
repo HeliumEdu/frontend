@@ -201,7 +201,7 @@ class _CourseAddScheduleScreenState
             ),
             const SizedBox(height: 25),
 
-            Text('Class Days', style: context.sectionHeading),
+            Text('Class Days', style: AppStyles.featureText(context)),
             const SizedBox(height: 16),
             Center(
               child: SegmentedButton<int>(
@@ -215,7 +215,7 @@ class _CourseAddScheduleScreenState
                     .toList(),
                 style: ButtonStyle(
                   textStyle: WidgetStateProperty.all(
-                    AppStyles.scheduleButtonText(context).copyWith(
+                    AppStyles.buttonText(context).copyWith(
                       fontWeight: FontWeight.w600,
                       color: Theme.of(context).colorScheme.onPrimary,
                     ),
@@ -235,7 +235,7 @@ class _CourseAddScheduleScreenState
             ),
             const SizedBox(height: 25),
             if (_variesByDay) ...[
-              Text('Class Times', style: context.sectionHeading),
+              Text('Class Times', style: AppStyles.featureText(context)),
               const SizedBox(height: 16),
               ..._selectedDays.map((dayIndex) {
                 return Container(
@@ -367,7 +367,7 @@ class _CourseAddScheduleScreenState
                 );
               }),
             ] else ...[
-              Text('Class Time', style: context.sectionHeading),
+              Text('Class Time', style: AppStyles.featureText(context)),
               const SizedBox(height: 16),
               Container(
                 margin: const EdgeInsets.only(bottom: 12),

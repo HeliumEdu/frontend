@@ -83,7 +83,7 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
   Widget buildDialogHeader() {
     return Column(
       children: [
-        Center(child: Text(dialogTitle, style: context.dialogTitle)),
+        Center(child: Text(dialogTitle, style: AppStyles.pageTitle(context))),
         const SizedBox(height: 12),
       ],
     );

@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -106,7 +107,7 @@ class _ForgotPasswordScreenState
             ),
             onPressed: () {},
           ),
-          title: Text(screenTitle, style: context.pageTitle),
+          title: Text(screenTitle, style: AppStyles.pageTitle(context)),
         ),
         body: SafeArea(child: buildMainArea(context)),
       ),
@@ -155,7 +156,7 @@ class _ForgotPasswordScreenState
                     _emailSent
                         ? "You've been emailed a temporary password. Log in to your account using the temporary password, then change it immediately."
                         : 'Enter the email associated with your account. We\'ll reset your password and send a temporary one to you.',
-                    style: context.bodyText,
+                    style: AppStyles.headingText(context),
                   ),
 
                   const SizedBox(height: 24),
@@ -163,7 +164,7 @@ class _ForgotPasswordScreenState
                   if (!_emailSent) ...[
                     LabelAndTextFormField(
                       hintText: 'Email',
-                      autofocus: true,
+                      autofocus: kIsWeb,
                       prefixIcon: Icons.email_outlined,
                       controller: _emailController,
                       onFieldSubmitted: (value) => _onSubmit(),
@@ -203,7 +204,7 @@ class _ForgotPasswordScreenState
                           const SizedBox(width: 8),
                           Text(
                             'Back to login',
-                            style: context.buttonText.copyWith(
+                            style: AppStyles.buttonText(context).copyWith(
                               color: context.colorScheme.primary,
                             ),
                           ),

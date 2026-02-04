@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -109,7 +110,7 @@ class _ReminderWidgetState extends BaseDialogState<_ReminderProvidedWidget> {
       children: [
         LabelAndTextFormField(
           label: 'Message',
-          autofocus: true,
+          autofocus: kIsWeb || !widget.isEdit,
           maxLines: 3,
           controller: _formController.messageController,
           validator: BasicFormController.validateRequiredField,

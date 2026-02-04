@@ -52,9 +52,7 @@ class InfoContainer extends StatelessWidget {
           Expanded(
             child: Text(
               text,
-              style: context.settingsMenuItemHint.copyWith(
-                height: 1.4,
-              ),
+              style: AppStyles.standardBodyText(context),
             ),
           ),
           if (onDismiss != null) ...[
