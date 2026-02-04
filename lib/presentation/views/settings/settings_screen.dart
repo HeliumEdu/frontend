@@ -241,10 +241,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
               },
               borderRadius: BorderRadius.circular(16),
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 16,
-                ),
+                padding: const EdgeInsets.all(12),
                 child: Row(
                   children: [
                     Container(
@@ -308,10 +305,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
               },
               borderRadius: BorderRadius.circular(16),
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 16,
-                ),
+                padding: const EdgeInsets.all(12),
                 child: Row(
                   children: [
                     Container(
@@ -378,10 +372,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
               },
               borderRadius: BorderRadius.circular(16),
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 16,
-                ),
+                padding: const EdgeInsets.all(12),
                 child: Row(
                   children: [
                     Container(
@@ -445,10 +436,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
               },
               borderRadius: BorderRadius.circular(16),
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 16,
-                ),
+                padding: const EdgeInsets.all(12),
                 child: Row(
                   children: [
                     Container(
@@ -518,7 +506,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
           onTap: () => _showDeleteAccountDialog(context),
           borderRadius: BorderRadius.circular(16),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            padding: const EdgeInsets.all(10),
             child: Row(
               children: [
                 Container(

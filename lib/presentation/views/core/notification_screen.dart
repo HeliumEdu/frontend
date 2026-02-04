@@ -285,8 +285,7 @@ class _NotificationsScreenState
                             Expanded(
                               child: Text(
                                 notification.title,
-                                style: context.eTextStyle.copyWith(
-                                  color: context.colorScheme.onSurface,
+                                style: context.paragraphText.copyWith(
                                   fontWeight: (notification.isRead == true)
                                       ? FontWeight.w500
                                       : FontWeight.w600,
@@ -327,7 +326,7 @@ class _NotificationsScreenState
                             const SizedBox(width: 8),
                             Text(
                               notification.body,
-                              style: context.fTextStyle.copyWith(
+                              style: context.paragraphText.copyWith(
                                 color: context.colorScheme.onSurface.withValues(
                                   alpha: 0.7,
                                 ),
@@ -372,7 +371,7 @@ class _NotificationsScreenState
                                 calendarItem.showEndTime,
                                 calendarItem.allDay,
                               ),
-                              style: context.fTextStyle.copyWith(
+                              style: context.paragraphText.copyWith(
                                 color: context.colorScheme.onSurface.withValues(
                                   alpha: 0.5,
                                 ),

@@ -428,7 +428,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             appointmentItemHeight: agendaHeight,
             monthHeaderSettings: MonthHeaderSettings(
               backgroundColor: context.colorScheme.primary,
-              height: 100
+              height: 100,
             ),
           ),
           monthViewSettings: MonthViewSettings(
@@ -443,6 +443,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           timeSlotViewSettings: const TimeSlotViewSettings(
             minimumAppointmentDuration: Duration(minutes: 32),
             dayFormat: 'EEE',
+            timeIntervalHeight: 50,
+            // TODO: use this field and dynamically set it to null (full week), 3, or 1, to enable a new "3-day" view
+            // numberOfDaysInView: 3
           ),
           loadMoreWidgetBuilder: _loadMoreWidgetBuilder,
           appointmentBuilder: _buildCalendarItem,
@@ -902,13 +905,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                             ),
                             decoration: InputDecoration(
                               hintText: 'Search ...',
-                              hintStyle: TextStyle(
-                                color: context.colorScheme.outline,
-                                fontSize: Responsive.getFontSize(
-                                  context,
-                                  mobile: 14,
-                                  tablet: 15,
-                                  desktop: 16,
+                              hintStyle: context.menuItem.copyWith(
+                                color: context.colorScheme.onSurface.withValues(
+                                  alpha: 0.6,
                                 ),
                               ),
                               border: InputBorder.none,
@@ -2199,14 +2198,12 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                               },
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
                                   vertical: 8,
                                 ),
                                 child: Text(
                                   'Show All Classes',
-                                  style: context.cTextStyle.copyWith(
-                                    color: context.colorScheme.onSurface,
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                                  style: context.menuItem,
                                 ),
                               ),
                             ),
@@ -2228,66 +2225,58 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                 final course = displayCourses[i];
                                 final isSelected =
                                     _calendarItemDataSource!
-                                            .filteredCourses[course.id] ??
-                                        false;
+                                        .filteredCourses[course.id] ??
+                                    false;
 
                                 return CheckboxListTile(
-                            title: Row(
-                              children: [
-                                Container(
-                                  width: 12,
-                                  height: 12,
-                                  decoration: BoxDecoration(
-                                    color: course.color,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
+                                  title: Row(
                                     children: [
-                                      Text(
-                                        course.title,
-                                        style: context.cTextStyle.copyWith(
-                                          color: context.colorScheme.onSurface,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: Responsive.getFontSize(
-                                            context,
-                                            mobile: 13,
-                                            tablet: 14,
-                                            desktop: 15,
-                                          ),
+                                      Container(
+                                        width: 12,
+                                        height: 12,
+                                        decoration: BoxDecoration(
+                                          color: course.color,
+                                          shape: BoxShape.circle,
                                         ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              course.title,
+                                              style: context.menuItem,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ],
                                   ),
-                                ),
-                              ],
-                            ),
-                            value: isSelected,
-                            onChanged: (value) {
-                              final currentFilters = Map<int, bool>.from(
-                                _calendarItemDataSource!.filteredCourses,
-                              );
-                              if (value == true) {
-                                currentFilters[course.id] = true;
-                              } else {
-                                currentFilters.remove(course.id);
-                              }
-                              _calendarItemDataSource!.setFilteredCourses(
-                                currentFilters,
-                              );
-                              setMenuState(() {});
-                            },
-                            controlAffinity: ListTileControlAffinity.leading,
-                            dense: true,
-                            contentPadding: EdgeInsets.zero,
-                          );
+                                  value: isSelected,
+                                  onChanged: (value) {
+                                    final currentFilters = Map<int, bool>.from(
+                                      _calendarItemDataSource!.filteredCourses,
+                                    );
+                                    if (value == true) {
+                                      currentFilters[course.id] = true;
+                                    } else {
+                                      currentFilters.remove(course.id);
+                                    }
+                                    _calendarItemDataSource!.setFilteredCourses(
+                                      currentFilters,
+                                    );
+                                    setMenuState(() {});
+                                  },
+                                  controlAffinity:
+                                      ListTileControlAffinity.leading,
+                                  dense: true,
+                                  contentPadding: EdgeInsets.zero,
+                                );
                               },
                             ),
                           ],
@@ -2348,11 +2337,12 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                               },
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
                                   vertical: 8,
                                 ),
                                 child: Text(
                                   'Clear Filters',
-                                  style: context.cTextStyle.copyWith(
+                                  style: context.formText.copyWith(
                                     color: context.colorScheme.onSurface,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -2371,9 +2361,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                             CheckboxListTile(
                               title: Text(
                                 'Assignments',
-                                style: context.eTextStyle.copyWith(
-                                  color: context.colorScheme.onSurface,
-                                ),
+                                style: context.menuItem,
                               ),
                               value: _calendarItemDataSource!.filterTypes
                                   .contains('Assignments'),
@@ -2409,12 +2397,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                     ),
                                   ),
                                   const SizedBox(width: 8),
-                                  Text(
-                                    'Events',
-                                    style: context.eTextStyle.copyWith(
-                                      color: context.colorScheme.onSurface,
-                                    ),
-                                  ),
+                                  Text('Events', style: context.menuItem),
                                 ],
                               ),
                               value: _calendarItemDataSource!.filterTypes
@@ -2450,9 +2433,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                   const SizedBox(width: 8),
                                   Text(
                                     'Class Schedules',
-                                    style: context.eTextStyle.copyWith(
-                                      color: context.colorScheme.onSurface,
-                                    ),
+                                    style: context.menuItem,
                                   ),
                                 ],
                               ),
@@ -2483,9 +2464,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                             CheckboxListTile(
                               title: Text(
                                 'External Calendars',
-                                style: context.eTextStyle.copyWith(
-                                  color: context.colorScheme.onSurface,
-                                ),
+                                style: context.menuItem,
                               ),
                               value: _calendarItemDataSource!.filterTypes
                                   .contains('External Calendars'),
@@ -2524,12 +2503,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                 .filterStatuses
                                 .contains(label);
                             return CheckboxListTile(
-                              title: Text(
-                                label,
-                                style: context.eTextStyle.copyWith(
-                                  color: context.colorScheme.onSurface,
-                                ),
-                              ),
+                              title: Text(label, style: context.menuItem),
                               value: isChecked,
                               onChanged: (value) {
                                 final currentStatuses = Set<String>.from(
@@ -2574,10 +2548,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                       Expanded(
                                         child: Text(
                                           category.title,
-                                          style: context.eTextStyle.copyWith(
-                                            color:
-                                                context.colorScheme.onSurface,
-                                          ),
+                                          style: context.menuItem,
                                         ),
                                       ),
                                     ],
@@ -2682,16 +2653,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                     .defaultViews[PlannerHelper.mapHeliumViewToApiView(
                                   HeliumView.values[index],
                                 )],
-                                style: context.cTextStyle.copyWith(
-                                  color: context.colorScheme.onSurface,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: Responsive.getFontSize(
-                                    context,
-                                    mobile: 13,
-                                    tablet: 14,
-                                    desktop: 15,
-                                  ),
-                                ),
+                                style: context.menuItem,
                               ),
                               value: HeliumView.values[index],
                               controlAffinity: ListTileControlAffinity.leading,

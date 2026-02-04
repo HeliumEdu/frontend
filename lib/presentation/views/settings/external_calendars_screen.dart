@@ -250,7 +250,7 @@ class _ExternalCalendarsProvidedScreenState
                   children: [
                     Text(
                       externalCalendar.title,
-                      style: context.cTextStyle.copyWith(
+                      style: context.paragraphText.copyWith(
                         color: context.colorScheme.onSurface,
                         fontWeight: FontWeight.w600,
                       ),
@@ -258,7 +258,7 @@ class _ExternalCalendarsProvidedScreenState
                     const SizedBox(height: 4),
                     Text(
                       externalCalendar.url,
-                      style: context.iTextStyle.copyWith(
+                      style: context.paragraphText.copyWith(
                         color: context.colorScheme.onSurface.withValues(
                           alpha: 0.6,
                         ),

@@ -19,6 +19,7 @@ import 'package:heliumapp/presentation/bloc/attachment/attachment_event.dart';
 import 'package:heliumapp/presentation/bloc/attachment/attachment_state.dart';
 import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/widgets/empty_card.dart';
 import 'package:heliumapp/presentation/widgets/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
@@ -205,38 +206,9 @@ abstract class BaseAttachmentScreenState<T>
                 }
 
                 if (attachments.isEmpty) {
-                  final onSurface = context.colorScheme.onSurface;
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.attachment_outlined,
-                          size: Responsive.getIconSize(
-                            context,
-                            mobile: 60,
-                            tablet: 64,
-                            desktop: 68,
-                          ),
-                          color: onSurface.withValues(alpha: 0.3),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Nothing to see here',
-                          style: context.bTextStyle.copyWith(
-                            color: onSurface.withValues(alpha: 0.6),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Click "Choose Files" to add attachments',
-                          style: context.cTextStyle.copyWith(
-                            color: onSurface.withValues(alpha: 0.4),
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
+                  return const EmptyCard(
+                    icon: Icons.attachment_outlined,
+                    message: 'Click "Choose Files" to add attachments',
                   );
                 }
 
@@ -366,10 +338,7 @@ abstract class BaseAttachmentScreenState<T>
                 children: [
                   Text(
                     file.title,
-                    style: context.eTextStyle.copyWith(
-                      color: context.colorScheme.onSurface,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    style: context.formText,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
@@ -432,9 +401,7 @@ abstract class BaseAttachmentScreenState<T>
                 attachment.title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: context.eTextStyle.copyWith(
-                  color: context.colorScheme.onSurface,
-                ),
+                style: context.formText,
               ),
             ),
             HeliumIconButton(

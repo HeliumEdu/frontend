@@ -66,7 +66,7 @@ class MaterialTitleLabel extends StatelessWidget {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   title,
-                  style: context.cTextStyle.copyWith(
+                  style: context.paragraphText.copyWith(
                     color: userSettings.materialColor,
                     fontWeight: FontWeight.w600,
                     fontSize: Responsive.getFontSize(

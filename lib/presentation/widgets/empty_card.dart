@@ -44,14 +44,14 @@ class EmptyCard extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               title,
-              style: context.bTextStyle.copyWith(
+              style: context.pageTitle.copyWith(
                 color: onSurface.withValues(alpha: 0.6),
               ),
             ),
             const SizedBox(height: 8),
             Text(
               message,
-              style: context.cTextStyle.copyWith(
+              style: context.paragraphText.copyWith(
                 color: onSurface.withValues(alpha: 0.4),
               ),
               textAlign: TextAlign.center,

@@ -64,6 +64,12 @@ extension AppTextStyles on BuildContext {
     color: Theme.of(this).colorScheme.onPrimary,
   );
 
+  TextStyle get menuItem => GoogleFonts.poppins(
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+    color: Theme.of(this).colorScheme.onSurface.withValues(alpha: 0.9),
+  );
+
   TextStyle get settingsMenuItem => GoogleFonts.poppins(
     fontSize: 16,
     fontWeight: FontWeight.w700,
@@ -77,7 +83,7 @@ extension AppTextStyles on BuildContext {
   );
 
   TextStyle get paragraphText => GoogleFonts.poppins(
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: FontWeight.w500,
     color: Theme.of(this).colorScheme.onSurface.withValues(alpha: 0.9),
   );
@@ -127,41 +133,5 @@ extension AppTextStyles on BuildContext {
     fontSize: 14,
     fontWeight: FontWeight.w700,
     color: Theme.of(this).colorScheme.primary,
-  );
-
-  TextStyle get aTextStyle => GoogleFonts.poppins(
-    fontWeight: FontWeight.w700,
-    fontSize: 18,
-    color: Theme.of(this).colorScheme.onSurface,
-  );
-
-  TextStyle get bTextStyle => GoogleFonts.roboto(
-    fontWeight: FontWeight.w700,
-    fontSize: 22,
-    color: Theme.of(this).colorScheme.onSurface,
-  );
-
-  TextStyle get cTextStyle => GoogleFonts.poppins(
-    fontWeight: FontWeight.w500,
-    fontSize: 16,
-    color: Theme.of(this).colorScheme.onSurface,
-  );
-
-  TextStyle get eTextStyle => GoogleFonts.poppins(
-    fontSize: 14,
-    fontWeight: FontWeight.w600,
-    color: Theme.of(this).colorScheme.onSurface,
-  );
-
-  TextStyle get fTextStyle => GoogleFonts.poppins(
-    fontSize: 13,
-    fontWeight: FontWeight.w400,
-    color: Theme.of(this).colorScheme.onSurface,
-  );
-
-  TextStyle get iTextStyle => GoogleFonts.poppins(
-    fontSize: 15,
-    fontWeight: FontWeight.w400,
-    color: Theme.of(this).colorScheme.onSurface,
   );
 }
