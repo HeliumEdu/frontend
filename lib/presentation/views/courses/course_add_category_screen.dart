@@ -252,7 +252,7 @@ class _CourseAddCategoryScreenState
                       children: [
                         Text(
                           'Weight: ${Format.percentForDisplay(category.weight.toString(), true)}',
-                          style: AppTextStyles.standardBodyText(context)
+                          style: AppStyles.standardBodyText(context)
                               .copyWith(
                                 color: context.colorScheme.onSurface.withValues(
                                   alpha: 0.6,

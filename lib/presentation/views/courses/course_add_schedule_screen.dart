@@ -215,7 +215,7 @@ class _CourseAddScheduleScreenState
                     .toList(),
                 style: ButtonStyle(
                   textStyle: WidgetStateProperty.all(
-                    AppTextStyles.scheduleButtonText(context).copyWith(
+                    AppStyles.scheduleButtonText(context).copyWith(
                       fontWeight: FontWeight.w600,
                       color: Theme.of(context).colorScheme.onPrimary,
                     ),

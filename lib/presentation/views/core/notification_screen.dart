@@ -285,7 +285,7 @@ class _NotificationsScreenState
                             Expanded(
                               child: Text(
                                 notification.title,
-                                style: AppTextStyles.headingText(context).copyWith(
+                                style: AppStyles.headingText(context).copyWith(
                                   fontWeight: (notification.isRead == true)
                                       ? FontWeight.w500
                                       : FontWeight.w600,
@@ -320,7 +320,7 @@ class _NotificationsScreenState
                             const SizedBox(width: 8),
                             Text(
                               notification.body,
-                              style: AppTextStyles.standardBodyText(context).copyWith(
+                              style: AppStyles.standardBodyText(context).copyWith(
                                 color: context.colorScheme.onSurface.withValues(
                                   alpha: 0.7,
                                 ),

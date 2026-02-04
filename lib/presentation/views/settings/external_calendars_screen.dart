@@ -258,7 +258,7 @@ class _ExternalCalendarsProvidedScreenState
                     const SizedBox(height: 4),
                     Text(
                       externalCalendar.url,
-                      style: AppTextStyles.standardBodyText(context).copyWith(
+                      style: AppStyles.standardBodyText(context).copyWith(
                         color: context.colorScheme.onSurface.withValues(
                           alpha: 0.6,
                         ),

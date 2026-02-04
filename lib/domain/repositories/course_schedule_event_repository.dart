@@ -14,9 +14,10 @@ abstract class CourseScheduleRepository {
     required DateTime from,
     required DateTime to,
     String? search,
+    bool? shownOnCalendar,
   });
 
-  Future<List<CourseScheduleModel>> getCourseSchedules();
+  Future<List<CourseScheduleModel>> getCourseSchedules({bool? shownOnCalendar});
 
   Future<CourseScheduleModel> getCourseScheduleForCourse(
     int groupId,

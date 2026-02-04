@@ -30,7 +30,7 @@ class PillBadge extends StatelessWidget {
       ),
       child: Text(
         text,
-        style: AppTextStyles.smallSecondaryText(context).copyWith(
+        style: AppStyles.smallSecondaryText(context).copyWith(
           color: color ?? context.semanticColors.success,
           fontWeight: FontWeight.w600,
         ),

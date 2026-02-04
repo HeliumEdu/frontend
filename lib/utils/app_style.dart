@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
-extension AppTextStyles on BuildContext {
+extension AppStyles on BuildContext {
   // Used for smaller labels, counts, secondary info
   static TextStyle smallSecondaryText(BuildContext context) =>
       GoogleFonts.poppins(
@@ -120,25 +120,24 @@ extension AppTextStyles on BuildContext {
     color: Theme.of(this).colorScheme.onSurface,
   );
 
-  // Base style for form input text (parent for formLabel, formHint, formErrorStyle)
-  // Also used directly in dropdowns, text fields, and form elements
+  // Used for dropdowns, text fields, and form elements
   TextStyle get formText => GoogleFonts.poppins(
     fontSize: 16,
     fontWeight: FontWeight.w600,
     color: Theme.of(this).colorScheme.onSurface.withValues(alpha: 0.9),
   );
 
-  // Used for form field labels (derived from formText with reduced opacity)
+  // Used for form field labels
   TextStyle get formLabel => formText.copyWith(
     color: Theme.of(this).colorScheme.onSurface.withValues(alpha: 0.7),
   );
 
-  // Used for form field placeholder/hint text (derived from formText with minimal opacity)
+  // Used for form field placeholder/hint text
   TextStyle get formHint => formText.copyWith(
     color: Theme.of(this).colorScheme.onSurface.withValues(alpha: 0.5),
   );
 
-  // Used for form validation error messages (derived from formText with error color)
+  // Used for form validation error messages
   TextStyle get formErrorStyle => formText.copyWith(
     fontSize: 14,
     color: Theme.of(this).colorScheme.error.withValues(alpha: 0.9),
@@ -179,10 +178,10 @@ extension AppTextStyles on BuildContext {
     color: Theme.of(this).colorScheme.primary,
   );
 
-  // Used for calendar item text content (uses responsive sizing from smallSecondaryText)
+  // Used for calendar item text content
   TextStyle get calendarData => GoogleFonts.poppins(
     fontWeight: FontWeight.w300,
-    fontSize: AppTextStyles.smallSecondaryText(this).fontSize,
+    fontSize: AppStyles.smallSecondaryText(this).fontSize,
     color: Colors.white,
   );
 
@@ -200,7 +199,7 @@ extension AppTextStyles on BuildContext {
     color: Theme.of(this).colorScheme.onSurface,
   );
 
-  // Used for active stepper step titles (derives from stepperTitle with primary color)
+  // Used for active stepper step titles
   TextStyle get stepperTitleActive =>
       stepperTitle.copyWith(color: Theme.of(this).colorScheme.primary);
 }

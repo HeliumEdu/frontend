@@ -159,13 +159,13 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   String? getLocationForItem(CalendarItemBaseModel calendarItem) {
     final String? location;
     if (calendarItem is HomeworkModel) {
-      location = courses!
-          .firstWhere((c) => c.id == calendarItem.course.id)
-          .room;
+      final course = courses!.firstWhere((c) => c.id == calendarItem.course.id);
+      location = course.room;
     } else if (calendarItem is CourseScheduleEventModel) {
-      location = courses!
-          .firstWhere((c) => c.id.toString() == calendarItem.ownerId)
-          .room;
+      final course = courses!.firstWhere(
+        (c) => c.id.toString() == calendarItem.ownerId,
+      );
+      location = course.room;
     } else {
       location = calendarItem.location;
     }
@@ -185,11 +185,17 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
         to: endDate,
         shownOnCalendar: true,
       );
-      final events =
-          await eventRepository.getEvents(from: startDate, to: endDate);
+      final events = await eventRepository.getEvents(
+        from: startDate,
+        to: endDate,
+      );
       // TODO: remove this, we can obtain course schedule events by using SfCalendar's native repeating events concept
       final courseScheduleEvents = await courseScheduleRepository
-          .getCourseScheduleEvents(from: startDate, to: endDate);
+          .getCourseScheduleEvents(
+            from: startDate,
+            to: endDate,
+            shownOnCalendar: true,
+          );
       final externalCalendarEvents = await externalCalendarRepository
           .getExternalCalendarEvents(from: startDate, to: endDate);
 
@@ -379,7 +385,9 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
 
     // Update in all cache entries where the item exists
     for (final items in _dateRangeCache.values) {
-      final index = items.indexWhere((existing) => existing.id == calendarItem.id);
+      final index = items.indexWhere(
+        (existing) => existing.id == calendarItem.id,
+      );
       if (index != -1) {
         items[index] = calendarItem;
         updated = true;
@@ -405,7 +413,9 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
 
     // Remove from all cache entries where the item exists
     for (final items in _dateRangeCache.values) {
-      final index = items.indexWhere((existing) => existing.id == calendarItemId);
+      final index = items.indexWhere(
+        (existing) => existing.id == calendarItemId,
+      );
       if (index != -1) {
         removedItem ??= items[index];
         items.removeAt(index);

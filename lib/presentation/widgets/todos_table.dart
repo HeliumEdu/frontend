@@ -801,7 +801,7 @@ class TodosTableState extends State<TodosTable> {
                 const SizedBox(width: 4),
                 Text(
                   homework.materials.length.toString(),
-                  style: AppTextStyles.smallSecondaryText(context).copyWith(
+                  style: AppStyles.smallSecondaryText(context).copyWith(
                     color: userSettings.materialColor,
                     fontWeight: FontWeight.w600,
                   ),

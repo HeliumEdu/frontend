@@ -559,7 +559,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
               const SizedBox(width: 4),
               Text(
                 timeRange,
-                style: AppTextStyles.standardBodyText(context).copyWith(
+                style: AppStyles.standardBodyText(context).copyWith(
                   color: context.colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
               ),

@@ -23,9 +23,10 @@ abstract class CourseScheduleRemoteDataSource extends BaseDataSource {
     required DateTime from,
     required DateTime to,
     String? search,
+    bool? shownOnCalendar,
   });
 
-  Future<List<CourseScheduleModel>> getCourseSchedules();
+  Future<List<CourseScheduleModel>> getCourseSchedules({bool? shownOnCalendar});
 
   Future<CourseScheduleModel> getCourseScheduleForCourse(
     int groupId,
@@ -57,6 +58,7 @@ class CourseScheduleRemoteDataSourceImpl
     required DateTime from,
     required DateTime to,
     String? search,
+    bool? shownOnCalendar,
   }) async {
     try {
       _log.info('Fetching CourseScheduleEvents ...');
@@ -66,6 +68,9 @@ class CourseScheduleRemoteDataSourceImpl
         'to': HeliumDateTime.formatDateForApi(to),
       };
       if (search != null) queryParameters['search'] = search;
+      if (shownOnCalendar != null) {
+        queryParameters['shown_on_calendar'] = shownOnCalendar;
+      }
 
       final response = await dioClient.dio.get(
         ApiUrl.plannerSchedulesEvents,
@@ -103,9 +108,17 @@ class CourseScheduleRemoteDataSourceImpl
   }
 
   @override
-  Future<List<CourseScheduleModel>> getCourseSchedules() async {
+  Future<List<CourseScheduleModel>> getCourseSchedules({
+    bool? shownOnCalendar,
+  }) async {
     try {
       _log.info('Fetching CourseSchedules ...');
+
+      final Map<String, dynamic> queryParameters = {};
+      if (shownOnCalendar != null) {
+        queryParameters['shown_on_calendar'] = shownOnCalendar;
+      }
+
       final response = await dioClient.dio.get(
         ApiUrl.plannerCourseSchedulesUrl,
       );
@@ -166,7 +179,9 @@ class CourseScheduleRemoteDataSourceImpl
       );
 
       if (response.statusCode == 200) {
-        _log.info('... CourseSchedule $scheduleId fetched for Course $courseId');
+        _log.info(
+          '... CourseSchedule $scheduleId fetched for Course $courseId',
+        );
         return CourseScheduleModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -200,7 +215,9 @@ class CourseScheduleRemoteDataSourceImpl
 
       if (response.statusCode == 201) {
         final schedule = CourseScheduleModel.fromJson(response.data);
-        _log.info('... CourseSchedule ${schedule.id} created for Course $courseId');
+        _log.info(
+          '... CourseSchedule ${schedule.id} created for Course $courseId',
+        );
         return schedule;
       } else {
         throw ServerException(
