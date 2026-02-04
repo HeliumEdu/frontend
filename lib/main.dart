@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
@@ -70,6 +71,8 @@ void main() async {
   }
 
   WidgetsFlutterBinding.ensureInitialized();
+
+  GoogleFonts.config.allowRuntimeFetching = false;
 
   tz.initializeTimeZones();
 
