@@ -10,6 +10,14 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 extension AppStyles on BuildContext {
+  static TextTheme defaultTextTheme(ColorScheme colorScheme) {
+    final base = GoogleFonts.poppinsTextTheme();
+    return base.apply(
+      bodyColor: colorScheme.onSurface,
+      displayColor: colorScheme.onSurface,
+    );
+  }
+
   // Used for body text, descriptions, secondary info
   static TextStyle standardBodyText(BuildContext context) =>
       GoogleFonts.poppins(

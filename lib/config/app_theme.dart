@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:heliumapp/utils/app_style.dart';
 
 const Color _seedColor = Color(0xff428bca);
 
@@ -120,6 +121,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
+      textTheme: AppStyles.defaultTextTheme(colorScheme),
       scaffoldBackgroundColor: isLight
           ? const Color(0xFFF7F7F7)
           : colorScheme.surface,
@@ -216,6 +218,51 @@ class AppTheme {
       sliderTheme: const SliderThemeData(trackHeight: 6.0),
       timePickerTheme: TimePickerThemeData(
         dayPeriodColor: colorScheme.primary.withValues(alpha: 0.3),
+        hourMinuteTextStyle: GoogleFonts.poppins(
+          fontSize: 56,
+          fontWeight: FontWeight.w400,
+        ),
+        dayPeriodTextStyle: GoogleFonts.poppins(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
+        helpTextStyle: GoogleFonts.poppins(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          color: colorScheme.onSurface.withValues(alpha: 0.6),
+        ),
+      ),
+      datePickerTheme: DatePickerThemeData(
+        headerHelpStyle: GoogleFonts.poppins(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          color: colorScheme.onSurface.withValues(alpha: 0.6),
+        ),
+        headerHeadlineStyle: GoogleFonts.poppins(
+          fontSize: 32,
+          fontWeight: FontWeight.w400,
+        ),
+        weekdayStyle: GoogleFonts.poppins(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          color: colorScheme.onSurface.withValues(alpha: 0.6),
+        ),
+        dayStyle: GoogleFonts.poppins(
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
+        ),
+        yearStyle: GoogleFonts.poppins(
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        contentTextStyle: GoogleFonts.poppins(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
       dividerTheme: DividerThemeData(
         color: colorScheme.outline.withValues(alpha: 0.2),
