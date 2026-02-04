@@ -146,7 +146,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                     width: 600,
                   ),
                 ),
-                const SizedBox(height: 140),
+                const SizedBox(height: 100),
 
                 LabelAndTextFormField(
                   hintText: 'Username',
@@ -207,7 +207,8 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 44),
+
+                const SizedBox(height: 25),
 
                 BlocBuilder<AuthBloc, AuthState>(
                   builder: (context, state) {
@@ -218,13 +219,12 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                           isLoading: isSubmitting,
                           onPressed: _onSubmit,
                         ),
-                        const SizedBox(height: 16),
                       ],
                     );
                   },
                 ),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 25),
 
                 Center(
                   child: TextButton(

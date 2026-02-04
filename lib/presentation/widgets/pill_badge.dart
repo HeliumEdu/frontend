@@ -29,7 +29,7 @@ class PillBadge extends StatelessWidget {
       ),
       child: Text(
         text,
-        style: context.cTextStyle.copyWith(
+        style: context.paragraphText.copyWith(
           color: color ?? context.semanticColors.success,
           fontWeight: FontWeight.w600,
           fontSize: Responsive.getFontSize(

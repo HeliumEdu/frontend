@@ -260,7 +260,7 @@ abstract class BaseReminderScreenState<T>
                   children: [
                     Text(
                       reminder.message,
-                      style: context.cTextStyle.copyWith(
+                      style: context.paragraphText.copyWith(
                         color: context.colorScheme.onSurface,
                         fontWeight: FontWeight.w600,
                       ),
@@ -268,7 +268,7 @@ abstract class BaseReminderScreenState<T>
                     const SizedBox(height: 4),
                     Text(
                       Format.reminderOffset(reminder),
-                      style: context.iTextStyle.copyWith(
+                      style: context.paragraphText.copyWith(
                         color: context.colorScheme.onSurface.withValues(
                           alpha: 0.7,
                         ),
@@ -283,7 +283,7 @@ abstract class BaseReminderScreenState<T>
                     const SizedBox(height: 4),
                     Text(
                       ReminderConstants.types[reminder.type],
-                      style: context.iTextStyle.copyWith(
+                      style: context.paragraphText.copyWith(
                         color: context.colorScheme.onSurface.withValues(
                           alpha: 0.7,
                         ),

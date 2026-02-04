@@ -389,7 +389,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
                   children: [
                     Text(
                       course.teacherName,
-                      style: context.aTextStyle.copyWith(
+                      style: context.paragraphText.copyWith(
                         color: context.colorScheme.onSurface,
                         fontWeight: FontWeight.w600,
                       ),
@@ -416,7 +416,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
                     const SizedBox(width: 4),
                     Text(
                       course.room,
-                      style: context.cTextStyle.copyWith(
+                      style: context.paragraphText.copyWith(
                         color: context.colorScheme.onSurface.withValues(
                           alpha: 0.5,
                         ),
@@ -452,7 +452,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
                   const SizedBox(width: 4),
                   Text(
                     '${HeliumDateTime.formatDateForDisplay(DateTime.parse(course.startDate))} to ${HeliumDateTime.formatDateForDisplay(DateTime.parse(course.endDate))}',
-                    style: context.cTextStyle.copyWith(
+                    style: context.paragraphText.copyWith(
                       color: context.colorScheme.onSurface.withValues(
                         alpha: 0.5,
                       ),
@@ -562,7 +562,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
               const SizedBox(width: 4),
               Text(
                 timeRange,
-                style: context.cTextStyle.copyWith(
+                style: context.paragraphText.copyWith(
                   color: context.colorScheme.onSurface.withValues(alpha: 0.6),
                   fontSize: Responsive.getFontSize(
                     context,

@@ -386,7 +386,7 @@ class _MaterialsScreenState
                     const SizedBox(width: 12),
                     Text(
                       material.price!,
-                      style: context.cTextStyle.copyWith(
+                      style: context.paragraphText.copyWith(
                         color: context.colorScheme.onSurface,
                         fontWeight: FontWeight.w600,
                         fontSize: Responsive.getFontSize(

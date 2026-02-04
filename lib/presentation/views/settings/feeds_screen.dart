@@ -178,19 +178,7 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
                           ),
                           child: SelectableText(
                             url,
-                            style: context.fTextStyle.copyWith(
-                              color: context.colorScheme.onSurface.withValues(
-                                alpha: 0.7,
-                              ),
-                              fontSize: Responsive.getFontSize(
-                                context,
-                                mobile: 11,
-                                tablet: 12,
-                                desktop: 13,
-                              ),
-                              height: 1.5,
-                            ),
-                            maxLines: 2,
+                            style: context.paragraphText,
                           ),
                         ),
                       ),
@@ -288,7 +276,7 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
               const SizedBox(height: 20),
               Text(
                 'Feeds are Disabled',
-                style: context.bTextStyle.copyWith(
+                style: context.pageTitle.copyWith(
                   color: context.colorScheme.onSurface,
                   fontWeight: FontWeight.w600,
                   fontSize: Responsive.getFontSize(

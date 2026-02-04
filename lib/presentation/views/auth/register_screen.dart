@@ -18,9 +18,9 @@ import 'package:heliumapp/presentation/controllers/auth/register_form_controller
 import 'package:heliumapp/presentation/controllers/core/basic_form_controller.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/helium_elevated_button.dart';
-import 'package:heliumapp/presentation/widgets/searchable_dropdown.dart';
 import 'package:heliumapp/presentation/widgets/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/widgets/responsive_center_card.dart';
+import 'package:heliumapp/presentation/widgets/searchable_dropdown.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -159,7 +159,7 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
                 ),
               ),
 
-              const SizedBox(height: 44),
+              const SizedBox(height: 24),
 
               LabelAndTextFormField(
                 hintText: 'Username',
@@ -258,7 +258,6 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
                                   'Terms of Service',
                                   style: context.formText.copyWith(
                                     color: context.colorScheme.primary,
-                                    decoration: TextDecoration.underline,
                                   ),
                                 ),
                               ),
@@ -276,7 +275,6 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
                                   'Privacy Policy',
                                   style: context.formText.copyWith(
                                     color: context.colorScheme.primary,
-                                    decoration: TextDecoration.underline,
                                   ),
                                 ),
                               ),
@@ -297,7 +295,8 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 44),
+
+              const SizedBox(height: 25),
 
               BlocBuilder<AuthBloc, AuthState>(
                 builder: (context, state) {
@@ -308,7 +307,8 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
                   );
                 },
               ),
-              const SizedBox(height: 20),
+
+              const SizedBox(height: 25),
 
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,

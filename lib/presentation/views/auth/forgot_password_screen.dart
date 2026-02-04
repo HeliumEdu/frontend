@@ -149,28 +149,16 @@ class _ForgotPasswordScreenState
                     ),
                   ),
 
-                  const SizedBox(height: 32),
-
-                  if (_emailSent)
-                    Text(
-                      'Check Your Email',
-                      style: context.sectionHeading.copyWith(
-                        color: context.colorScheme.onSurface,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 24),
 
                   Text(
                     _emailSent
-                        ? "You've been emailed a temporary password. Log in to your account immediately using the temporary password, then change your password."
+                        ? "You've been emailed a temporary password. Log in to your account using the temporary password, then change it immediately."
                         : 'Enter the email associated with your account. We\'ll reset your password and send a temporary one to you.',
                     style: context.paragraphText,
                   ),
 
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 24),
 
                   if (!_emailSent) ...[
                     LabelAndTextFormField(
@@ -183,7 +171,7 @@ class _ForgotPasswordScreenState
                       keyboardType: TextInputType.emailAddress,
                     ),
 
-                    const SizedBox(height: 44),
+                    const SizedBox(height: 25),
 
                     SizedBox(
                       width: double.infinity,
