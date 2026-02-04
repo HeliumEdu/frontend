@@ -23,7 +23,7 @@ class RegisterRequestModel {
       'username': username,
       'email': email,
       'password': password,
-      'timezone': timezone,
+      'time_zone': timezone,
     };
   }
 }

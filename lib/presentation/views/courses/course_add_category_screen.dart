@@ -23,6 +23,7 @@ import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/category_title_label.dart';
 import 'package:heliumapp/presentation/widgets/course_add_stepper.dart';
 import 'package:heliumapp/presentation/widgets/empty_card.dart';
+import 'package:heliumapp/presentation/widgets/error_card.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/mobile_gesture_detector.dart';
@@ -169,7 +170,7 @@ class _CourseAddCategoryScreenState
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Categories', style: context.sectionHeading),
+              Text('Categories', style: AppStyles.featureText(context)),
               HeliumIconButton(
                 onPressed: () {
                   showCategoryDialog(
@@ -194,14 +195,17 @@ class _CourseAddCategoryScreenState
 
               if (state is CategoriesError &&
                   state.origin == EventOrigin.screen) {
-                return buildReload(state.message!, () {
-                  context.read<CategoryBloc>().add(
-                    FetchCategoriesEvent(
-                      origin: EventOrigin.screen,
-                      courseId: widget.courseId,
-                    ),
-                  );
-                });
+                return ErrorCard(
+                  message: state.message!,
+                  onReload: () {
+                    context.read<CategoryBloc>().add(
+                      FetchCategoriesEvent(
+                        origin: EventOrigin.screen,
+                        courseId: widget.courseId,
+                      ),
+                    );
+                  },
+                );
               }
 
               if (_categories.isEmpty) {
@@ -247,17 +251,16 @@ class _CourseAddCategoryScreenState
                       title: category.title,
                       color: category.color,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Row(
                       children: [
                         Text(
                           'Weight: ${Format.percentForDisplay(category.weight.toString(), true)}',
-                          style: AppStyles.standardBodyText(context)
-                              .copyWith(
-                                color: context.colorScheme.onSurface.withValues(
-                                  alpha: 0.6,
-                                ),
-                              ),
+                          style: AppStyles.standardBodyText(context).copyWith(
+                            color: context.colorScheme.onSurface.withValues(
+                              alpha: 0.6,
+                            ),
+                          ),
                         ),
                       ],
                     ),

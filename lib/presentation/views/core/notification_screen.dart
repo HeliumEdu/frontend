@@ -26,6 +26,7 @@ import 'package:heliumapp/presentation/bloc/reminder/reminder_event.dart';
 import 'package:heliumapp/presentation/bloc/reminder/reminder_state.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/empty_card.dart';
+import 'package:heliumapp/presentation/widgets/error_card.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -140,16 +141,19 @@ class _NotificationsScreenState
         }
 
         if (state is RemindersError) {
-          return buildReload(state.message!, () {
-            context.read<ReminderBloc>().add(
-              FetchRemindersEvent(
-                origin: EventOrigin.subScreen,
-                sent: true,
-                dismissed: false,
-                type: 3,
-              ),
-            );
-          });
+          return ErrorCard(
+            message: state.message!,
+            onReload: () {
+              context.read<ReminderBloc>().add(
+                FetchRemindersEvent(
+                  origin: EventOrigin.subScreen,
+                  sent: true,
+                  dismissed: false,
+                  type: 3,
+                ),
+              );
+            },
+          );
         }
 
         if (_notifications.isEmpty) {
@@ -320,11 +324,11 @@ class _NotificationsScreenState
                             const SizedBox(width: 8),
                             Text(
                               notification.body,
-                              style: AppStyles.standardBodyText(context).copyWith(
-                                color: context.colorScheme.onSurface.withValues(
-                                  alpha: 0.7,
-                                ),
-                              ),
+                              style: AppStyles.standardBodyText(context)
+                                  .copyWith(
+                                    color: context.colorScheme.onSurface
+                                        .withValues(alpha: 0.7),
+                                  ),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -359,15 +363,9 @@ class _NotificationsScreenState
                                 calendarItem.showEndTime,
                                 calendarItem.allDay,
                               ),
-                              style: context.bodyText.copyWith(
+                              style: AppStyles.standardBodyText(context).copyWith(
                                 color: context.colorScheme.onSurface.withValues(
                                   alpha: 0.5,
-                                ),
-                                fontSize: Responsive.getFontSize(
-                                  context,
-                                  mobile: 10,
-                                  tablet: 11,
-                                  desktop: 12,
                                 ),
                               ),
                             ),

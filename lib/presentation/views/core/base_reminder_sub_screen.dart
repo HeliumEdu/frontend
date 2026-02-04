@@ -23,6 +23,7 @@ import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/dialogs/reminder_dialog.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/empty_card.dart';
+import 'package:heliumapp/presentation/widgets/error_card.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/mobile_gesture_detector.dart';
@@ -178,7 +179,7 @@ abstract class BaseReminderScreenState<T>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Reminders', style: context.sectionHeading),
+              Text('Reminders', style: AppStyles.featureText(context)),
               HeliumIconButton(
                 onPressed: () {
                   showReminderDialog(
@@ -203,9 +204,14 @@ abstract class BaseReminderScreenState<T>
 
               if (state is RemindersError &&
                   state.origin == EventOrigin.subScreen) {
-                return buildReload(state.message!, () {
-                  context.read<ReminderBloc>().add(createFetchRemindersEvent());
-                });
+                return ErrorCard(
+                  message: state.message!,
+                  onReload: () {
+                    context.read<ReminderBloc>().add(
+                      createFetchRemindersEvent(),
+                    );
+                  },
+                );
               }
 
               if (_reminders.isEmpty) {
@@ -260,10 +266,7 @@ abstract class BaseReminderScreenState<T>
                   children: [
                     Text(
                       reminder.message,
-                      style: context.bodyText.copyWith(
-                        color: context.colorScheme.onSurface,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: AppStyles.headingText(context),
                     ),
                     const SizedBox(height: 4),
                     Text(

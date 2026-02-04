@@ -17,11 +17,12 @@ import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_bloc.dart';
 import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_event.dart';
 import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_state.dart';
+import 'package:heliumapp/presentation/controllers/settings/external_calendar_form_controller.dart';
 import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/dialogs/external_calendar_dialog.dart';
-import 'package:heliumapp/presentation/controllers/settings/external_calendar_form_controller.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/empty_card.dart';
+import 'package:heliumapp/presentation/widgets/error_card.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/info_container.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
@@ -161,11 +162,14 @@ class _ExternalCalendarsProvidedScreenState
 
         if (state is ExternalCalendarsError &&
             state.origin == EventOrigin.screen) {
-          return buildReload(state.message!, () {
-            context.read<ExternalCalendarBloc>().add(
-              FetchExternalCalendarsEvent(origin: EventOrigin.screen),
-            );
-          });
+          return ErrorCard(
+            message: state.message!,
+            onReload: () {
+              context.read<ExternalCalendarBloc>().add(
+                FetchExternalCalendarsEvent(origin: EventOrigin.screen),
+              );
+            },
+          );
         }
 
         if (_externalCalendars.isEmpty) {
@@ -250,10 +254,7 @@ class _ExternalCalendarsProvidedScreenState
                   children: [
                     Text(
                       externalCalendar.title,
-                      style: context.bodyText.copyWith(
-                        color: context.colorScheme.onSurface,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: AppStyles.headingText(context),
                     ),
                     const SizedBox(height: 4),
                     Text(

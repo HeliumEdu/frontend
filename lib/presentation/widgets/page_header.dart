@@ -86,7 +86,7 @@ class PageHeader extends StatelessWidget {
               ),
             ),
 
-          Text(title, style: context.pageTitle),
+          Text(title, style: AppStyles.pageTitle(context)),
 
           if (screenType == ScreenType.page)
             IconButton(
@@ -158,14 +158,14 @@ class PageHeader extends StatelessWidget {
                   size: 24,
                 ),
                 const SizedBox(width: 12),
-                Text('Logout', style: context.dialogTitle),
+                Text('Logout', style: AppStyles.pageTitle(context)),
               ],
             ),
             content: SizedBox(
               width: Responsive.getDialogWidth(context),
               child: Text(
                 'Are you sure you want to logout?',
-                style: context.dialogText,
+                style: AppStyles.standardBodyText(context),
               ),
             ),
             actions: [

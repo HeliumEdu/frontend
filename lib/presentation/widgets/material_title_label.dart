@@ -67,10 +67,9 @@ class MaterialTitleLabel extends StatelessWidget {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   title,
-                  style: AppStyles.standardBodyText(context).copyWith(
-                    color: userSettings.materialColor,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: AppStyles.standardBodyText(
+                    context,
+                  ).copyWith(color: userSettings.materialColor),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),

@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -16,9 +17,9 @@ import 'package:heliumapp/presentation/bloc/material/material_bloc.dart';
 import 'package:heliumapp/presentation/bloc/material/material_event.dart';
 import 'package:heliumapp/presentation/bloc/material/material_state.dart'
     as material_state;
-import 'package:heliumapp/presentation/dialogs/select_dialog.dart';
 import 'package:heliumapp/presentation/controllers/core/basic_form_controller.dart';
 import 'package:heliumapp/presentation/controllers/materials/material_form_controller.dart';
+import 'package:heliumapp/presentation/dialogs/select_dialog.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/drop_down.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
@@ -27,7 +28,6 @@ import 'package:heliumapp/presentation/widgets/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
-import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -131,7 +131,7 @@ class _MaterialAddScreenState
             children: [
               LabelAndTextFormField(
                 label: 'Title',
-                autofocus: !widget.isEdit || !Responsive.isMobile(context),
+                autofocus: kIsWeb || !widget.isEdit,
                 controller: _formController.titleController,
                 validator: BasicFormController.validateRequiredField,
                 fieldKey: _formController.getFieldKey('title'),

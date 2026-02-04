@@ -5,12 +5,13 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_bloc.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_event.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_state.dart';
@@ -79,6 +80,7 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
       BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthRegistered) {
+            TextInput.finishAutofillContext();
             showSnackBar(
               context,
               'Almost there! Check your email for a verification code.',
@@ -87,8 +89,7 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
 
             if (context.mounted) {
               context.go(
-                AppRoutes.verifyScreen,
-                extra: VerifyScreenArgs(username: state.username),
+                '${AppRoutes.verifyScreen}?username=${Uri.encodeComponent(state.username!)}',
               );
             }
           } else if (state is AuthError) {
@@ -121,7 +122,7 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
             ),
             onPressed: () {},
           ),
-          title: Text(screenTitle, style: context.pageTitle),
+          title: Text(screenTitle, style: AppStyles.pageTitle(context)),
         ),
         body: SafeArea(child: buildMainArea(context)),
       ),
@@ -132,217 +133,223 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
   Widget buildMainArea(BuildContext context) {
     return SingleChildScrollView(
       child: ResponsiveCenterCard(
-        child: Form(
-          key: _formController.formKey,
-          child: Column(
-            children: [
-              const SizedBox(height: 12),
+        child: AutofillGroup(
+          child: Form(
+            key: _formController.formKey,
+            child: Column(
+              children: [
+                const SizedBox(height: 12),
 
-              Center(
-                child: Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    color: context.colorScheme.primary.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.school,
-                    size: Responsive.getIconSize(
-                      context,
-                      mobile: 60,
-                      tablet: 64,
-                      desktop: 68,
+                Center(
+                  child: Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: context.colorScheme.primary.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
                     ),
-                    color: context.colorScheme.primary,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              LabelAndTextFormField(
-                hintText: 'Username',
-                autofocus: true,
-                prefixIcon: Icons.person_outline,
-                controller: _formController.usernameController,
-                validator: BasicFormController.validateUsername,
-                keyboardType: TextInputType.text,
-              ),
-              const SizedBox(height: 12),
-
-              LabelAndTextFormField(
-                hintText: 'Email',
-                prefixIcon: Icons.email_outlined,
-                controller: _formController.emailController,
-                validator: BasicFormController.validateRequiredEmail,
-                keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 12),
-
-              LabelAndTextFormField(
-                hintText: 'Password',
-                prefixIcon: Icons.lock_outline,
-                controller: _formController.passwordController,
-                validator: BasicFormController.validatePassword,
-                obscureText: !_formController.isPasswordVisible,
-                suffixIcon: IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _formController.isPasswordVisible =
-                          !_formController.isPasswordVisible;
-                    });
-                  },
-                  icon: Icon(
-                    _formController.isPasswordVisible
-                        ? Icons.visibility_off_outlined
-                        : Icons.visibility_outlined,
-                    color: context.colorScheme.onSurface,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              LabelAndTextFormField(
-                hintText: 'Confirm password',
-                prefixIcon: Icons.repeat,
-                controller: _formController.confirmPasswordController,
-                validator: _formController.validateConfirmPassword,
-                obscureText: !_formController.isConfirmPasswordVisible,
-                suffixIcon: IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _formController.isConfirmPasswordVisible =
-                          !_formController.isConfirmPasswordVisible;
-                    });
-                  },
-                  icon: Icon(
-                    _formController.isConfirmPasswordVisible
-                        ? Icons.visibility_off_outlined
-                        : Icons.visibility_outlined,
-                    color: context.colorScheme.onSurface,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              SearchableDropdown(
-                initialValue: TimeZoneConstants.items.firstWhere(
-                  (tz) => tz.value == _formController.selectedTimezone,
-                ),
-                items: TimeZoneConstants.items,
-                onChanged: (value) {
-                  setState(() {
-                    _formController.selectedTimezone = value!.value!;
-                  });
-                },
-              ),
-              const SizedBox(height: 22),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: CheckboxListTile(
-                      title: RichText(
-                        text: TextSpan(
-                          text: "I agree to Helium's ",
-                          style: context.formText,
-                          children: [
-                            WidgetSpan(
-                              child: GestureDetector(
-                                onTap: () => launchUrl(
-                                  Uri.parse('https://www.heliumedu.com/terms'),
-                                  mode: LaunchMode.externalApplication,
-                                ),
-                                child: Text(
-                                  'Terms of Service',
-                                  style: context.formText.copyWith(
-                                    color: context.colorScheme.primary,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            TextSpan(text: ' and ', style: context.formText),
-                            WidgetSpan(
-                              child: GestureDetector(
-                                onTap: () => launchUrl(
-                                  Uri.parse(
-                                    'https://www.heliumedu.com/privacy',
-                                  ),
-                                  mode: LaunchMode.externalApplication,
-                                ),
-                                child: Text(
-                                  'Privacy Policy',
-                                  style: context.formText.copyWith(
-                                    color: context.colorScheme.primary,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                    child: Icon(
+                      Icons.school,
+                      size: Responsive.getIconSize(
+                        context,
+                        mobile: 60,
+                        tablet: 64,
+                        desktop: 68,
                       ),
-                      value: _formController.agreeToTerms,
-                      onChanged: (value) {
-                        setState(() {
-                          _formController.agreeToTerms =
-                              !_formController.agreeToTerms;
-                        });
-                      },
-                      controlAffinity: ListTileControlAffinity.leading,
-                      contentPadding: EdgeInsets.zero,
+                      color: context.colorScheme.primary,
                     ),
                   ),
-                ],
-              ),
+                ),
 
-              const SizedBox(height: 25),
+                const SizedBox(height: 24),
 
-              BlocBuilder<AuthBloc, AuthState>(
-                builder: (context, state) {
-                  return HeliumElevatedButton(
-                    buttonText: 'Sign Up',
-                    isLoading: isSubmitting,
-                    onPressed: _onSubmit,
-                  );
-                },
-              ),
+                LabelAndTextFormField(
+                  hintText: 'Username',
+                  autofocus: kIsWeb,
+                  prefixIcon: Icons.person_outline,
+                  controller: _formController.usernameController,
+                  validator: BasicFormController.validateUsername,
+                  keyboardType: TextInputType.text,
+                  autofillHints: const [AutofillHints.newUsername],
+                ),
+                const SizedBox(height: 12),
 
-              const SizedBox(height: 25),
+                LabelAndTextFormField(
+                  hintText: 'Email',
+                  prefixIcon: Icons.email_outlined,
+                  controller: _formController.emailController,
+                  validator: BasicFormController.validateRequiredEmail,
+                  keyboardType: TextInputType.emailAddress,
+                  autofillHints: const [AutofillHints.email],
+                ),
+                const SizedBox(height: 12),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextButton(
+                LabelAndTextFormField(
+                  hintText: 'Password',
+                  prefixIcon: Icons.lock_outline,
+                  controller: _formController.passwordController,
+                  validator: BasicFormController.validatePassword,
+                  obscureText: !_formController.isPasswordVisible,
+                  autofillHints: const [AutofillHints.newPassword],
+                  suffixIcon: IconButton(
                     onPressed: () {
-                      context.replace(AppRoutes.loginScreen);
+                      setState(() {
+                        _formController.isPasswordVisible =
+                            !_formController.isPasswordVisible;
+                      });
                     },
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.arrow_back,
-                          size: Responsive.getIconSize(
-                            context,
-                            mobile: 18,
-                            tablet: 20,
-                            desktop: 22,
+                    icon: Icon(
+                      _formController.isPasswordVisible
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      color: context.colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                LabelAndTextFormField(
+                  hintText: 'Confirm password',
+                  prefixIcon: Icons.repeat,
+                  controller: _formController.confirmPasswordController,
+                  validator: _formController.validateConfirmPassword,
+                  obscureText: !_formController.isConfirmPasswordVisible,
+                  autofillHints: const [AutofillHints.newPassword],
+                  suffixIcon: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _formController.isConfirmPasswordVisible =
+                            !_formController.isConfirmPasswordVisible;
+                      });
+                    },
+                    icon: Icon(
+                      _formController.isConfirmPasswordVisible
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      color: context.colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                SearchableDropdown(
+                  initialValue: TimeZoneConstants.items.firstWhere(
+                    (tz) => tz.value == _formController.selectedTimezone,
+                  ),
+                  items: TimeZoneConstants.items,
+                  onChanged: (value) {
+                    setState(() {
+                      _formController.selectedTimezone = value!.value!;
+                    });
+                  },
+                ),
+                const SizedBox(height: 22),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: CheckboxListTile(
+                        title: RichText(
+                          text: TextSpan(
+                            text: "I agree to Helium's ",
+                            style: context.formText,
+                            children: [
+                              WidgetSpan(
+                                child: GestureDetector(
+                                  onTap: () => launchUrl(
+                                    Uri.parse('https://www.heliumedu.com/terms'),
+                                    mode: LaunchMode.externalApplication,
+                                  ),
+                                  child: Text(
+                                    'Terms of Service',
+                                    style: context.formText.copyWith(
+                                      color: context.colorScheme.primary,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              TextSpan(text: ' and ', style: context.formText),
+                              WidgetSpan(
+                                child: GestureDetector(
+                                  onTap: () => launchUrl(
+                                    Uri.parse(
+                                      'https://www.heliumedu.com/privacy',
+                                    ),
+                                    mode: LaunchMode.externalApplication,
+                                  ),
+                                  child: Text(
+                                    'Privacy Policy',
+                                    style: context.formText.copyWith(
+                                      color: context.colorScheme.primary,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                          color: context.colorScheme.primary,
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Back to login',
-                          style: context.buttonText.copyWith(
+                        value: _formController.agreeToTerms,
+                        onChanged: (value) {
+                          setState(() {
+                            _formController.agreeToTerms =
+                                !_formController.agreeToTerms;
+                          });
+                        },
+                        controlAffinity: ListTileControlAffinity.leading,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 25),
+
+                BlocBuilder<AuthBloc, AuthState>(
+                  builder: (context, state) {
+                    return HeliumElevatedButton(
+                      buttonText: 'Sign Up',
+                      isLoading: isSubmitting,
+                      onPressed: _onSubmit,
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 25),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        context.replace(AppRoutes.loginScreen);
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.arrow_back,
+                            size: Responsive.getIconSize(
+                              context,
+                              mobile: 18,
+                              tablet: 20,
+                              desktop: 22,
+                            ),
                             color: context.colorScheme.primary,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 8),
+                          Text(
+                            'Back to login',
+                            style: AppStyles.buttonText(context).copyWith(
+                              color: context.colorScheme.primary,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

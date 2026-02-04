@@ -26,38 +26,33 @@ class EmptyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final onSurface = context.colorScheme.onSurface;
+    final onSurface = context.colorScheme.onSurface.withValues(alpha: 0.5);
     final content = Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: Responsive.getIconSize(
-                context,
-                mobile: 60,
-                tablet: 64,
-                desktop: 68,
-              ),
-              color: onSurface.withValues(alpha: 0.3),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            size: Responsive.getIconSize(
+              context,
+              mobile: 60,
+              tablet: 64,
+              desktop: 68,
             ),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: context.pageTitle.copyWith(
-                color: onSurface.withValues(alpha: 0.6),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: context.bodyText.copyWith(
-                color: onSurface.withValues(alpha: 0.4),
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
+            color: onSurface,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            style: AppStyles.featureText(context).copyWith(color: onSurface),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            message,
+            style: AppStyles.headingText(context).copyWith(color: onSurface),
+          ),
+        ],
+      ),
     );
 
     return expanded ? Expanded(child: content) : content;

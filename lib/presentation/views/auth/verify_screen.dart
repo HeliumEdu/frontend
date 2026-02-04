@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -130,7 +131,7 @@ class _VerifyScreenState extends BasePageScreenState<VerifyScreen> {
             ),
             onPressed: () {},
           ),
-          title: Text(screenTitle, style: context.pageTitle),
+          title: Text(screenTitle, style: AppStyles.pageTitle(context)),
         ),
         body: SafeArea(child: buildMainArea(context)),
       ),
@@ -173,14 +174,14 @@ class _VerifyScreenState extends BasePageScreenState<VerifyScreen> {
 
               Text(
                 'Enter the verification code sent to your email address to complete your registration.',
-                style: context.bodyText,
+                style: AppStyles.headingText(context),
               ),
 
               const SizedBox(height: 25),
 
               LabelAndTextFormField(
                 hintText: 'Username',
-                autofocus: widget.username == null,
+                autofocus: kIsWeb && widget.username == null,
                 prefixIcon: Icons.person_outline,
                 controller: _usernameController,
                 validator: BasicFormController.validateRequiredField,
@@ -189,7 +190,7 @@ class _VerifyScreenState extends BasePageScreenState<VerifyScreen> {
               const SizedBox(height: 12),
 
               LabelAndTextFormField(
-                hintText: 'Verification Code',
+                hintText: 'Verification code',
                 autofocus: widget.username != null && widget.code == null,
                 prefixIcon: Icons.pin,
                 controller: _codeController,
@@ -237,7 +238,7 @@ class _VerifyScreenState extends BasePageScreenState<VerifyScreen> {
                       const SizedBox(width: 8),
                       Text(
                         'Back to login',
-                        style: context.buttonText.copyWith(
+                        style: AppStyles.buttonText(context).copyWith(
                           color: context.colorScheme.primary,
                         ),
                       ),

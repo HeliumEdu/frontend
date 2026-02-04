@@ -66,11 +66,8 @@ void initializeRouter() {
       GoRoute(
         path: AppRoutes.verifyScreen,
         builder: (context, state) {
-          final args = state.extra as VerifyScreenArgs?;
-          // Support both route args and query parameters (from email link)
-          final username =
-              args?.username ?? state.uri.queryParameters['username'];
-          final code = args?.code ?? state.uri.queryParameters['code'];
+          final username = state.uri.queryParameters['username'];
+          final code = state.uri.queryParameters['code'];
           return VerifyScreen(username: username, code: code);
         },
       ),

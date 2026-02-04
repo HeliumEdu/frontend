@@ -31,6 +31,7 @@ import 'package:heliumapp/presentation/dialogs/material_group_dialog.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/course_title_label.dart';
 import 'package:heliumapp/presentation/widgets/empty_card.dart';
+import 'package:heliumapp/presentation/widgets/error_card.dart';
 import 'package:heliumapp/presentation/widgets/group_dropdown.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
@@ -242,11 +243,14 @@ class _MaterialsScreenState
 
         if (state is material_state.MaterialsError &&
             state.origin == EventOrigin.screen) {
-          return buildReload(state.message!, () {
-            context.read<MaterialBloc>().add(
-              FetchMaterialsScreenDataEvent(origin: EventOrigin.screen),
-            );
-          });
+          return ErrorCard(
+            message: state.message!,
+            onReload: () {
+              context.read<MaterialBloc>().add(
+                FetchMaterialsScreenDataEvent(origin: EventOrigin.screen),
+              );
+            },
+          );
         }
 
         if (_materialGroups.isEmpty) {
@@ -386,16 +390,9 @@ class _MaterialsScreenState
                     const SizedBox(width: 12),
                     Text(
                       material.price!,
-                      style: context.bodyText.copyWith(
-                        color: context.colorScheme.onSurface,
-                        fontWeight: FontWeight.w600,
-                        fontSize: Responsive.getFontSize(
-                          context,
-                          mobile: 11,
-                          tablet: 13,
-                          desktop: 15,
-                        ),
-                      ),
+                      style: AppStyles.headingText(
+                        context,
+                      ).copyWith(color: context.colorScheme.onSurface),
                     ),
                   ],
                 ],
