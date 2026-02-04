@@ -1559,7 +1559,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     VoidCallback? onCheckboxToggled,
     bool? completedOverride,
   }) {
-    // FIXME: when the text wraps before even one letter can fit on the row, the prefix icon/checkbox gets pushed down a few pixels; fix here, and also for the .school icon (same behavior)
+    // TODO: when the text wraps before even one letter can fit on the row, the prefix icon/checkbox gets pushed down a few pixels; fix here, and also for the .school icon (same behavior)
     if (PlannerHelper.shouldShowCheckbox(context, calendarItem, _currentView)) {
       return _buildCheckboxWidget(
         homework: calendarItem as HomeworkModel,
@@ -1714,6 +1714,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             launchUrl(Uri.parse('mailto:${course!.teacherEmail}'));
           },
           icon: Icons.email_outlined,
+          // TODO: Use dynamic icon color based on calendar item background luminance to prevent visibility issues with light user-selected colors
           color: Colors.white,
         ),
       );
@@ -2704,6 +2705,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           },
           activeColor: context.colorScheme.primary,
           side: BorderSide(
+            // TODO: Use dynamic colors based on calendar item background luminance for checkbox, school icon, time icons, and location icons to prevent visibility issues with light user-selected colors
             color: Colors.white.withValues(alpha: 0.7),
             width: 2.5,
           ),
