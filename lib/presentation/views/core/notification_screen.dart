@@ -269,7 +269,9 @@ class _NotificationsScreenState
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
-                      Icons.notifications_active,
+                      notification.isRead
+                          ? Icons.notifications
+                          : Icons.notifications_active,
                       color: context.colorScheme.primary,
                       size: Responsive.getIconSize(
                         context,
@@ -363,11 +365,11 @@ class _NotificationsScreenState
                                 calendarItem.showEndTime,
                                 calendarItem.allDay,
                               ),
-                              style: AppStyles.standardBodyText(context).copyWith(
-                                color: context.colorScheme.onSurface.withValues(
-                                  alpha: 0.5,
-                                ),
-                              ),
+                              style: AppStyles.standardBodyText(context)
+                                  .copyWith(
+                                    color: context.colorScheme.onSurface
+                                        .withValues(alpha: 0.5),
+                                  ),
                             ),
                             const Spacer(),
 

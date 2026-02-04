@@ -622,6 +622,7 @@ class _CalendarItemAddScreenState
                   overlayColor: (HeliumColors.getColorForPriority(
                     _formController.priorityValue,
                   )).withValues(alpha: 0.2),
+                  valueIndicatorTextStyle: AppStyles.buttonText(context),
                 ),
                 child: Slider(
                   value: _formController.priorityValue,
