@@ -182,7 +182,7 @@ extension AppStyles on BuildContext {
   TextStyle get calendarData => GoogleFonts.poppins(
     fontWeight: FontWeight.w300,
     fontSize: AppStyles.smallSecondaryText(this).fontSize,
-    // TODO: Use dynamic text color based on background luminance to prevent visibility issues with light user-selected colors
+    // TODO: Known Issues (4/Medium): Use dynamic text color based on background luminance to prevent visibility issues with light user-selected colors
     color: Colors.white,
   );
 

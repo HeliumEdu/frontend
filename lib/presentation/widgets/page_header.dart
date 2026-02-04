@@ -141,7 +141,7 @@ class PageHeader extends StatelessWidget {
   void _showLogoutDialog(BuildContext parentContext) {
     bool isSubmitting = false;
 
-    // TODO: refactor to a separate class
+    // TODO: Cleanup: refactor to a separate class
     showDialog(
       context: parentContext,
       builder: (dialogContext) => StatefulBuilder(

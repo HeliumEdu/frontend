@@ -522,7 +522,7 @@ class _CourseAddScreenState
       );
 
       if (widget.isEdit && widget.courseId != null) {
-        // TODO: only submit if actual changes are made
+        // TODO: High Value, Low Effort: only submit if actual changes are made
         context.read<CourseBloc>().add(
           UpdateCourseEvent(
             origin: EventOrigin.subScreen,

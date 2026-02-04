@@ -10,7 +10,7 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 
-// TODO: refactor to a full color picker
+// TODO: Enhancement: refactor to a full color picker
 class _ColorPickerWidget extends StatefulWidget {
   final Color initialColor;
   final Function(Color) onSelect;

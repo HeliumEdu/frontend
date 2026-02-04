@@ -50,7 +50,7 @@ class TodosTable extends StatefulWidget {
   State<TodosTable> createState() => TodosTableState();
 }
 
-// TODO: consider migrating to https://pub.dev/packages/syncfusion_flutter_datagrid, gives us ability for adjustable column widths easily
+// TODO: Enhancement: consider migrating to https://pub.dev/packages/syncfusion_flutter_datagrid, gives us ability for adjustable column widths easily
 
 class TodosTableState extends State<TodosTable> {
   static const List<int> _itemsPerPageOptions = [5, 10, 25, 50, 100, -1];
@@ -203,7 +203,7 @@ class TodosTableState extends State<TodosTable> {
       }
     }
 
-    // TODO: within the data source, we should have a separate from/to window for homework only, since this page only renders homework; would load quicker; (separate so we know in calendar-based views, the from/to for non-homework items still needs to be expanded on date change)
+    // TODO: Enhancement: within the data source, we should have a separate from/to window for homework only, since this page only renders homework; would load quicker; (separate so we know in calendar-based views, the from/to for non-homework items still needs to be expanded on date change)
 
     // Trigger data source to expand its window
     if (from != null && to != null) {
@@ -687,7 +687,7 @@ class TodosTableState extends State<TodosTable> {
                   const SizedBox(width: 4),
                   _buildResourcesColumn(homework, userSettings),
                 ],
-                // TODO: show attachments in a similar way to resources, with attachment icon, when clicked open a menu and list as rows with titles and download buttons
+                // TODO: Enhancement: show attachments in a similar way to resources, with attachment icon, when clicked open a menu and list as rows with titles and download buttons
                 const SizedBox(width: 4),
                 _buildActionsColumn(actionButtons, isCompact),
               ],
@@ -766,7 +766,7 @@ class TodosTableState extends State<TodosTable> {
     );
   }
 
-  // TODO: the CourseTitleLabel should shrink-to-fix its text rather than expanding to fill the entire row
+  // TODO: Enhancement: the CourseTitleLabel should shrink-to-fix its text rather than expanding to fill the entire row
   Widget _buildClassColumn(dynamic course) {
     return Expanded(
       flex: 2,
@@ -774,7 +774,7 @@ class TodosTableState extends State<TodosTable> {
     );
   }
 
-  // TODO: the CategoryTitleLabel should shrink-to-fix its text rather than expanding to fill the entire row
+  // TODO: Enhancement: the CategoryTitleLabel should shrink-to-fix its text rather than expanding to fill the entire row
   Widget _buildCategoryColumn(CategoryModel category) {
     return Expanded(
       flex: 2,
@@ -782,7 +782,7 @@ class TodosTableState extends State<TodosTable> {
     );
   }
 
-  // TODO: implement where if the user clicks on this, a menu appears with the full resource names / links
+  // TODO: Enhancement: implement where if the user clicks on this, a menu appears with the full resource names / links
   Widget _buildResourcesColumn(
     HomeworkModel homework,
     UserSettingsModel userSettings,
