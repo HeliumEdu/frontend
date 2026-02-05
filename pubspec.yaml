@@ -50,6 +50,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_launcher_icons: ^0.14.0
+  flutter_native_splash: ^2.4.0
   flutter_lints: ^6.0.0
   shared_preferences_platform_interface: ^2.4.0
   firebase_core_platform_interface: ^6.0.0
@@ -80,3 +81,12 @@ flutter:
       fonts:
         - asset: fonts/NotoSans-Regular.ttf
           weight: 400
+
+flutter_native_splash:
+  color: "#418eb9"
+  color_dark: "#418eb9"
+  image: assets/img/icon.png
+  image_dark: assets/img/icon.png
+  android: true
+  ios: true
+  web: true
