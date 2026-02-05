@@ -1576,9 +1576,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }) {
     Widget? iconWidget;
 
-    // FIXME: on mobile, capture a tap anywhere in this "left area" and accept it as a tap on the checkbox
+    final isCheckbox = PlannerHelper.shouldShowCheckbox(context, calendarItem, _currentView);
 
-    if (PlannerHelper.shouldShowCheckbox(context, calendarItem, _currentView)) {
+    if (isCheckbox) {
       iconWidget = _buildCheckboxWidget(
         homework: calendarItem as HomeworkModel,
         onCheckboxToggled: onCheckboxToggled,
@@ -1596,13 +1596,29 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       return const SizedBox.shrink();
     }
 
-    return Row(
+    final rowWidget = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Center(child: iconWidget),
         const SizedBox(width: 8),
       ],
     );
+
+    // On mobile, make the entire left area tappable for checkboxes
+    if (Responsive.isMobile(context) && isCheckbox) {
+      final homework = calendarItem as HomeworkModel;
+      return GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          final newValue = !(completedOverride ?? homework.completed);
+          _toggleHomeworkCompleted(homework, newValue);
+          onCheckboxToggled?.call();
+        },
+        child: rowWidget,
+      );
+    }
+
+    return rowWidget;
   }
 
   Widget? _getInlineIconWidget({
@@ -2178,6 +2194,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   void _toggleHomeworkCompleted(HomeworkModel homework, bool value) {
+    // FIXME: consolidate the three calls to this method in to one
+    Feedback.forTap(context);
     _log.info('Homework ${homework.id} completion toggled: $value');
     // Set optimistic UI state
     _calendarItemDataSource!.setCompletedOverride(homework.id, value);
@@ -2775,7 +2793,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         child: Checkbox(
           value: completedOverride ?? homework.completed,
           onChanged: (value) {
-            Feedback.forTap(context);
             _toggleHomeworkCompleted(homework, value!);
             onCheckboxToggled?.call();
           },
