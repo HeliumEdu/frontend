@@ -136,8 +136,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
           response.data['refresh'],
         );
 
-        final user = await getUser();
-        await dioClient.saveSettings(user.settings!);
+        await dioClient.fetchSettings();
 
         final loginResponse = TokenResponseModel.fromJson(response.data);
 

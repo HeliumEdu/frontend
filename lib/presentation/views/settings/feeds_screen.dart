@@ -150,85 +150,82 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
               ],
               // ),
             ),
-            const Divider(),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            color: context.colorScheme.surfaceContainerHighest,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: context.colorScheme.outline.withValues(
-                                alpha: 0.2,
-                              ),
+            const Divider(height: 24),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: context.colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: context.colorScheme.outline.withValues(
+                              alpha: 0.2,
                             ),
                           ),
-                          child: SelectableText(
-                            url,
-                            style: AppStyles.standardBodyTextLight(context),
+                        ),
+                        child: SelectableText(
+                          url,
+                          style: AppStyles.standardBodyTextLight(context),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        child: HeliumElevatedButton(
+                          onPressed: () {
+                            Clipboard.setData(ClipboardData(text: url));
+                            showSnackBar(context, '$label URL copied');
+                          },
+                          icon: Icons.copy,
+                          buttonText: 'Copy',
+                          backgroundColor: color,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Builder(
+                        builder: (buttonContext) => AspectRatio(
+                          aspectRatio: 1,
+                          child: IconButton(
+                            onPressed: () {
+                              final box =
+                                  buttonContext.findRenderObject()
+                                      as RenderBox?;
+                              final sharePositionOrigin = box != null
+                                  ? box.localToGlobal(Offset.zero) & box.size
+                                  : null;
+
+                              SharePlus.instance.share(
+                                ShareParams(
+                                  text: url,
+                                  sharePositionOrigin: sharePositionOrigin,
+                                ),
+                              );
+                            },
+                            icon: Icon(Icons.share_outlined, color: color),
+                            style: IconButton.styleFrom(
+                              backgroundColor: color.withValues(alpha: 0.12),
+                            ),
                           ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  IntrinsicHeight(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Expanded(
-                          child: HeliumElevatedButton(
-                            onPressed: () {
-                              Clipboard.setData(ClipboardData(text: url));
-                              showSnackBar(context, '$label URL copied');
-                            },
-                            icon: Icons.copy,
-                            buttonText: 'Copy',
-                            backgroundColor: color,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Builder(
-                          builder: (buttonContext) => AspectRatio(
-                            aspectRatio: 1,
-                            child: IconButton(
-                              onPressed: () {
-                                final box =
-                                    buttonContext.findRenderObject()
-                                        as RenderBox?;
-                                final sharePositionOrigin = box != null
-                                    ? box.localToGlobal(Offset.zero) & box.size
-                                    : null;
-
-                                SharePlus.instance.share(
-                                  ShareParams(
-                                    text: url,
-                                    sharePositionOrigin: sharePositionOrigin,
-                                  ),
-                                );
-                              },
-                              icon: Icon(Icons.share_outlined, color: color),
-                              style: IconButton.styleFrom(
-                                backgroundColor: color.withValues(alpha: 0.12),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ],
         ),

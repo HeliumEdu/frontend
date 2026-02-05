@@ -217,7 +217,14 @@ class _CourseAddScheduleScreenState
                     .toList(),
                 style: ButtonStyle(
                   textStyle: WidgetStateProperty.all(
-                    AppStyles.buttonText(context),
+                    AppStyles.buttonText(context).copyWith(
+                      fontSize: Responsive.getFontSize(
+                        context,
+                        mobile: 12,
+                        desktop: 13,
+                      ),
+                      color: context.colorScheme.onPrimaryFixed,
+                    ),
                   ),
                 ),
                 selected: _selectedDays,

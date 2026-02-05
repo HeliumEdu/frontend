@@ -42,18 +42,21 @@ class HeliumElevatedButton extends StatelessWidget {
       style: ElevatedButton.styleFrom(
         backgroundColor: !isLoading && enabled
             ? backgroundColor ?? context.colorScheme.primary
-            : context.colorScheme.surfaceContainerHighest,
+            : context.colorScheme.onSurface.withValues(alpha: 0.12),
         minimumSize: const Size(double.infinity, 45),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
       label: isLoading
-          ? const LoadingIndicator(small: true)
+          ? LoadingIndicator(
+              small: true,
+              color: context.colorScheme.onSurface.withValues(alpha: 0.38),
+            )
           : Text(
               buttonText,
               style: enabled
                   ? AppStyles.buttonText(context)
                   : AppStyles.buttonText(context).copyWith(
-                      color: context.colorScheme.primary.withValues(alpha: 0.4),
+                      color: context.colorScheme.onSurface.withValues(alpha: 0.38),
                     ),
             ),
     );

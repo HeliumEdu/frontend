@@ -10,8 +10,9 @@ import 'package:heliumapp/config/app_theme.dart';
 
 class LoadingIndicator extends StatelessWidget {
   final bool small;
+  final Color? color;
 
-  const LoadingIndicator({super.key, this.small = false});
+  const LoadingIndicator({super.key, this.small = false, this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +24,7 @@ class LoadingIndicator extends StatelessWidget {
         child: CircularProgressIndicator(
           strokeWidth: 2.5,
           valueColor: AlwaysStoppedAnimation<Color>(
-            context.colorScheme.onPrimary,
+            color ?? context.colorScheme.onPrimary,
           ),
         ),
       );
