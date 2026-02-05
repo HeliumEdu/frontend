@@ -2129,11 +2129,16 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                             Navigator.of(context).pop();
                           }
                         },
-                        child: _buildCalendarItemWidget(
-                          calendarItem: calendarItem,
-                          width: double.infinity,
-                          isInAgenda: true,
-                          completedOverride: completedOverride,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxHeight: _kAgendaHeightDesktop,
+                          ),
+                          child: _buildCalendarItemWidget(
+                            calendarItem: calendarItem,
+                            width: double.infinity,
+                            isInAgenda: true,
+                            completedOverride: completedOverride,
+                          ),
                         ),
                       );
                     },
