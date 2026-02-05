@@ -20,6 +20,8 @@ import 'package:heliumapp/domain/repositories/course_schedule_event_repository.d
 import 'package:heliumapp/domain/repositories/event_repository.dart';
 import 'package:heliumapp/domain/repositories/external_calendar_repository.dart';
 import 'package:heliumapp/domain/repositories/homework_repository.dart';
+import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
@@ -103,9 +105,33 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     return customData;
   }
 
+  /// Priority order for calendar item types when times are equal.
+  /// Lower values appear first: Homework → ClassSchedule → Event → External
+  static const _typeSortPriority = {
+    CalendarItemType.homework: 0,
+    CalendarItemType.courseSchedule: 1,
+    CalendarItemType.event: 2,
+    CalendarItemType.external: 3,
+  };
+
   @override
   DateTime getStartTime(int index) {
-    return DateTime.parse(_getData(index).start);
+    final item = _getData(index);
+    final baseTime = DateTime.parse(item.start);
+
+    // Don't adjust all-day events - they start at midnight and subtracting
+    // seconds would push them to the previous day
+    if (item.allDay) {
+      return baseTime;
+    }
+
+    // Subtract seconds based on type priority to enforce sort order in SfCalendar.
+    // Higher priority items (lower number) get more seconds subtracted, making
+    // them appear "earlier" and thus sort first. Using seconds instead of
+    // microseconds because SfCalendar truncates sub-second precision.
+    final priority = _typeSortPriority[item.calendarItemType] ?? 0;
+    final secondsToSubtract = 3 - priority; // 3, 2, 1, 0
+    return baseTime.subtract(Duration(seconds: secondsToSubtract));
   }
 
   @override
@@ -113,13 +139,20 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     final calendarItem = _getData(index);
     final startTime = DateTime.parse(calendarItem.start);
     final endTime = DateTime.parse(calendarItem.end);
+    final priority = _typeSortPriority[calendarItem.calendarItemType] ?? 0;
 
     if (calendarItem.allDay) {
       final adjustedEnd = endTime.subtract(const Duration(days: 1));
-      return adjustedEnd.isBefore(startTime) ? startTime : adjustedEnd;
+      final baseEnd = adjustedEnd.isBefore(startTime) ? startTime : adjustedEnd;
+      return baseEnd.add(Duration(microseconds: priority));
     }
 
-    return endTime;
+    // SfCalendar sorts by duration (shorter first) when start times match.
+    // Subtract minutes based on priority to make higher priority items appear
+    // "shorter" and thus sort first. Applied unconditionally since the small
+    // time adjustment doesn't visibly affect week/day view rendering.
+    final minutesToSubtract = 3 - priority;
+    return endTime.subtract(Duration(minutes: minutesToSubtract));
   }
 
   @override
@@ -288,6 +321,9 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
       items.addAll(_applySearchFilterToItems(allExternalCalendarEvents));
     }
 
+    // Sort using the same logic as getEndTime adjustments so our order
+    // matches what SfCalendar will produce with our fake end times
+    Sort.byStartThenTitle(items);
     return items;
   }
 
@@ -405,7 +441,27 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
       _completedOverrides.remove(calendarItem.id);
     }
 
-    _applyFiltersAndNotify();
+    // Find and update the item in appointments list directly, using targeted
+    // remove/add instead of full reset to avoid checkbox flicker on other items
+    final oldIndex = appointments!.indexWhere(
+      (item) => (item as CalendarItemBaseModel).id == calendarItem.id,
+    );
+
+    if (oldIndex != -1) {
+      final oldItem = appointments![oldIndex];
+      appointments!.removeAt(oldIndex);
+      notifyListeners(CalendarDataSourceAction.remove, [oldItem]);
+
+      // Re-add at correct sorted position
+      appointments!.add(calendarItem);
+      Sort.byStartThenTitle(appointments!.cast<CalendarItemBaseModel>());
+      notifyListeners(CalendarDataSourceAction.add, [calendarItem]);
+    } else {
+      // Item not in current view, do full refresh
+      _applyFiltersAndNotify();
+    }
+
+    _notifyChangeListeners();
   }
 
   void removeCalendarItem(int calendarItemId) {
@@ -445,9 +501,19 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   }
 
   bool isHomeworkCompleted(HomeworkModel homework) {
-    return _completedOverrides.containsKey(homework.id)
-        ? _completedOverrides[homework.id]!
-        : homework.completed;
+    // Check override first
+    if (_completedOverrides.containsKey(homework.id)) {
+      return _completedOverrides[homework.id]!;
+    }
+
+    // Look up from cache to get freshest value, avoiding stale data that
+    // SfCalendar might pass during drag-drop rebuilds
+    final cachedHomework = allHomeworks.cast<HomeworkModel?>().firstWhere(
+      (h) => h?.id == homework.id,
+      orElse: () => null,
+    );
+
+    return cachedHomework?.completed ?? homework.completed;
   }
 
   void _applyFiltersAndNotify() {

@@ -6,7 +6,6 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:heliumapp/utils/app_style.dart';
 
 const Color _seedColor = Color(0xff428bca);
@@ -218,46 +217,46 @@ class AppTheme {
       sliderTheme: const SliderThemeData(trackHeight: 6.0),
       timePickerTheme: TimePickerThemeData(
         dayPeriodColor: colorScheme.primary.withValues(alpha: 0.3),
-        hourMinuteTextStyle: GoogleFonts.poppins(
+        hourMinuteTextStyle: AppStyles.poppins(
           fontSize: 56,
           fontWeight: FontWeight.w400,
         ),
-        dayPeriodTextStyle: GoogleFonts.poppins(
+        dayPeriodTextStyle: AppStyles.poppins(
           fontSize: 14,
           fontWeight: FontWeight.w500,
         ),
-        helpTextStyle: GoogleFonts.poppins(
+        helpTextStyle: AppStyles.poppins(
           fontSize: 12,
           fontWeight: FontWeight.w500,
           color: colorScheme.onSurface.withValues(alpha: 0.6),
         ),
       ),
       datePickerTheme: DatePickerThemeData(
-        headerHelpStyle: GoogleFonts.poppins(
+        headerHelpStyle: AppStyles.poppins(
           fontSize: 14,
           fontWeight: FontWeight.w500,
           color: colorScheme.onSurface.withValues(alpha: 0.6),
         ),
-        headerHeadlineStyle: GoogleFonts.poppins(
+        headerHeadlineStyle: AppStyles.poppins(
           fontSize: 32,
           fontWeight: FontWeight.w400,
         ),
-        weekdayStyle: GoogleFonts.poppins(
+        weekdayStyle: AppStyles.poppins(
           fontSize: 12,
           fontWeight: FontWeight.w500,
           color: colorScheme.onSurface.withValues(alpha: 0.6),
         ),
-        dayStyle: GoogleFonts.poppins(
+        dayStyle: AppStyles.poppins(
           fontSize: 14,
           fontWeight: FontWeight.w400,
         ),
-        yearStyle: GoogleFonts.poppins(
+        yearStyle: AppStyles.poppins(
           fontSize: 14,
           fontWeight: FontWeight.w400,
         ),
       ),
       snackBarTheme: SnackBarThemeData(
-        contentTextStyle: GoogleFonts.poppins(
+        contentTextStyle: AppStyles.poppins(
           fontSize: 14,
           fontWeight: FontWeight.w500,
         ),

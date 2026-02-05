@@ -119,8 +119,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   static const _kAgendaHeightDesktop = 57.0;
 
   @override
-  // This is set from the shell
-  String get screenTitle => '';
+  // TODO: have the shell pass down its label here instead
+  String get screenTitle => 'Planner';
 
   @override
   NotificationArgs? get notificationNavArgs =>
@@ -523,7 +523,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       // TODO: High Value, Low Effort: add an action button this snack bar to take the user to the page to edit the course schedule
       showSnackBar(
         context,
-        'Items from schedules can\'t be edited on the Planner',
+        "You can't edit this on the Planner",
         isError: true,
       );
 
@@ -531,7 +531,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     } else if (calendarItem is ExternalCalendarEventModel) {
       showSnackBar(
         context,
-        "Items from external calendars can't be edited on the Planner",
+        "You can't edit this on the Planner",
         isError: true,
       );
 
@@ -1335,8 +1335,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       return;
     }
 
-    // FIXME: check sortable order of items on month, when dropped, things (that weren't dragged) switch order briefly and then switch back (probably going to time and then alphabetical)
-
     final CalendarItemBaseModel calendarItem =
         dropDetails.appointment as CalendarItemBaseModel;
 
@@ -1400,13 +1398,13 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     } else if (calendarItem is CourseScheduleEventModel) {
       showSnackBar(
         context,
-        'Items from schedules can\'t be edited on the Planner',
+        "You can't edit this on the Planner",
         isError: true,
       );
     } else if (calendarItem is ExternalCalendarEventModel) {
       showSnackBar(
         context,
-        "Items from external calendars can't be edited on the Planner",
+        "You can't edit this on the Planner",
         isError: true,
       );
     }
@@ -1570,14 +1568,19 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                 (Responsive.isMobile(context) && calendarItem.allDay)));
     final homeworkId = calendarItem is HomeworkModel ? calendarItem.id : null;
 
-    return _buildCalendarItemWidget(
-      calendarItem: calendarItem,
-      width: details.bounds.width,
-      height: details.bounds.height,
-      isInAgenda: isInAgenda,
-      completedOverride: homeworkId != null
-          ? _calendarItemDataSource!.completedOverrides[homeworkId]
-          : null,
+    // Use KeyedSubtree to help Flutter preserve widget state across rebuilds
+    // during SfCalendar drag-drop operations
+    return KeyedSubtree(
+      key: ValueKey('calendar_item_${calendarItem.id}'),
+      child: _buildCalendarItemWidget(
+        calendarItem: calendarItem,
+        width: details.bounds.width,
+        height: details.bounds.height,
+        isInAgenda: isInAgenda,
+        completedOverride: homeworkId != null
+            ? _calendarItemDataSource!.completedOverrides[homeworkId]
+            : null,
+      ),
     );
   }
 
@@ -2818,13 +2821,20 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     required HomeworkModel homework,
     bool? completedOverride,
   }) {
+    // Look up the freshest completed state from data source to avoid flash
+    // during SfCalendar rebuilds when it might pass stale appointment data
+    final isCompleted =
+        _calendarItemDataSource?.isHomeworkCompleted(homework) ??
+        completedOverride ??
+        homework.completed;
+
     return SizedBox(
       width: 16,
       height: 16,
       child: Transform.scale(
         scale: AppStyles.calendarItemPrefixScale(context),
         child: Checkbox(
-          value: completedOverride ?? homework.completed,
+          value: isCompleted,
           onChanged: (value) {
             _onToggleCompleted(homework, value!);
           },

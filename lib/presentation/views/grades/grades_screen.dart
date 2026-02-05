@@ -74,8 +74,8 @@ class GradesProvidedScreen extends StatefulWidget {
 
 class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
   @override
-  // This is set from the shell
-  String get screenTitle => '';
+  // TODO: have the shell pass down its label here instead
+  String get screenTitle => 'Grades';
 
   // State
   List<CourseGroupModel> _courseGroups = [];
