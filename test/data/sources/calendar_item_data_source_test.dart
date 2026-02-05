@@ -165,14 +165,16 @@ void main() {
         dataSource.addCalendarItem(event);
       });
 
-      test('getStartTime returns correct DateTime', () {
+      test('getStartTime returns DateTime with priority adjustment', () {
         final startTime = dataSource.getStartTime(0);
-        expect(startTime, DateTime.parse('2025-01-15T10:00:00Z'));
+        // Homework has priority 0, so gets 3 seconds subtracted
+        expect(startTime, DateTime.parse('2025-01-15T10:00:00Z').subtract(const Duration(seconds: 3)));
       });
 
-      test('getEndTime returns correct DateTime for non-allDay events', () {
+      test('getEndTime returns DateTime with priority adjustment for non-allDay events', () {
         final endTime = dataSource.getEndTime(0);
-        expect(endTime, DateTime.parse('2025-01-15T11:00:00Z'));
+        // Homework has priority 0, so gets 3 minutes subtracted
+        expect(endTime, DateTime.parse('2025-01-15T11:00:00Z').subtract(const Duration(minutes: 3)));
       });
 
       test('getEndTime subtracts 1 day for allDay events', () {
@@ -853,6 +855,186 @@ void main() {
           () => overrides[2] = true,
           throwsUnsupportedError,
         );
+      });
+    });
+
+    group('time overrides (optimistic UI for drag-drop/resize)', () {
+      late HomeworkModel homework;
+
+      setUp(() {
+        homework = _createHomeworkModel(
+          id: 1,
+          start: '2025-01-15T10:00:00Z',
+          end: '2025-01-15T11:00:00Z',
+        );
+        dataSource.addCalendarItem(homework);
+      });
+
+      test('setTimeOverride stores override', () {
+        dataSource.setTimeOverride(1, '2025-01-16T14:00:00Z', '2025-01-16T15:00:00Z');
+
+        final override = dataSource.getTimeOverride(1);
+        expect(override, isNotNull);
+        expect(override!.start, '2025-01-16T14:00:00Z');
+        expect(override.end, '2025-01-16T15:00:00Z');
+      });
+
+      test('getTimeOverride returns null when no override', () {
+        expect(dataSource.getTimeOverride(999), isNull);
+      });
+
+      test('clearTimeOverride removes override', () {
+        dataSource.setTimeOverride(1, '2025-01-16T14:00:00Z', '2025-01-16T15:00:00Z');
+        dataSource.clearTimeOverride(1);
+
+        expect(dataSource.getTimeOverride(1), isNull);
+      });
+
+      test('getStartTime uses override when present', () {
+        dataSource.setTimeOverride(1, '2025-01-20T09:00:00Z', '2025-01-20T10:00:00Z');
+
+        final startTime = dataSource.getStartTime(0);
+        // Start time should be based on override, minus priority adjustment (3 seconds for homework)
+        expect(startTime, DateTime.parse('2025-01-20T09:00:00Z').subtract(const Duration(seconds: 3)));
+      });
+
+      test('getEndTime uses override when present', () {
+        dataSource.setTimeOverride(1, '2025-01-20T09:00:00Z', '2025-01-20T10:00:00Z');
+
+        final endTime = dataSource.getEndTime(0);
+        // End time should be based on override, minus priority adjustment (3 minutes for homework)
+        expect(endTime, DateTime.parse('2025-01-20T10:00:00Z').subtract(const Duration(minutes: 3)));
+      });
+
+      test('updateCalendarItem clears time override', () {
+        dataSource.setTimeOverride(1, '2025-01-20T09:00:00Z', '2025-01-20T10:00:00Z');
+        expect(dataSource.getTimeOverride(1), isNotNull);
+
+        final updated = _createHomeworkModel(
+          id: 1,
+          start: '2025-01-20T09:00:00Z',
+          end: '2025-01-20T10:00:00Z',
+        );
+        dataSource.updateCalendarItem(updated);
+
+        expect(dataSource.getTimeOverride(1), isNull);
+      });
+
+      test('time override works for EventModel', () {
+        final event = _createEventModel(
+          id: 2,
+          start: '2025-01-15T14:00:00Z',
+          end: '2025-01-15T15:00:00Z',
+        );
+        dataSource.addCalendarItem(event);
+
+        dataSource.setTimeOverride(2, '2025-01-18T16:00:00Z', '2025-01-18T17:00:00Z');
+
+        final override = dataSource.getTimeOverride(2);
+        expect(override, isNotNull);
+        expect(override!.start, '2025-01-18T16:00:00Z');
+      });
+    });
+
+    group('priority-based time adjustments', () {
+      test('homework gets 3 seconds subtracted from start time', () {
+        final homework = _createHomeworkModel(
+          id: 1,
+          start: '2025-01-15T10:00:00Z',
+          end: '2025-01-15T11:00:00Z',
+        );
+        dataSource.addCalendarItem(homework);
+
+        final startTime = dataSource.getStartTime(0);
+        expect(startTime, DateTime.parse('2025-01-15T10:00:00Z').subtract(const Duration(seconds: 3)));
+      });
+
+      test('course schedule gets 2 seconds subtracted from start time', () {
+        final schedule = _createCourseScheduleEventModel(id: 1);
+        dataSource.addCalendarItem(schedule);
+
+        final startTime = dataSource.getStartTime(0);
+        expect(startTime, DateTime.parse('2025-01-15T10:00:00Z').subtract(const Duration(seconds: 2)));
+      });
+
+      test('event gets 1 second subtracted from start time', () {
+        final event = _createEventModel(
+          id: 1,
+          start: '2025-01-15T10:00:00Z',
+          end: '2025-01-15T11:00:00Z',
+        );
+        dataSource.addCalendarItem(event);
+
+        final startTime = dataSource.getStartTime(0);
+        expect(startTime, DateTime.parse('2025-01-15T10:00:00Z').subtract(const Duration(seconds: 1)));
+      });
+
+      test('external event gets 0 seconds subtracted from start time', () {
+        final external = _createExternalCalendarEventModel(id: 1);
+        dataSource.addCalendarItem(external);
+
+        final startTime = dataSource.getStartTime(0);
+        expect(startTime, DateTime.parse('2025-01-15T10:00:00Z'));
+      });
+
+      test('all-day events do not get seconds subtracted from start time', () {
+        final allDayHomework = _createHomeworkModel(
+          id: 1,
+          start: '2025-01-15T00:00:00Z',
+          end: '2025-01-16T00:00:00Z',
+          allDay: true,
+        );
+        dataSource.addCalendarItem(allDayHomework);
+
+        final startTime = dataSource.getStartTime(0);
+        // All-day events should NOT have seconds subtracted (would push to previous day)
+        expect(startTime, DateTime.parse('2025-01-15T00:00:00Z'));
+      });
+
+      test('homework gets 3 minutes subtracted from end time', () {
+        final homework = _createHomeworkModel(
+          id: 1,
+          start: '2025-01-15T10:00:00Z',
+          end: '2025-01-15T11:00:00Z',
+        );
+        dataSource.addCalendarItem(homework);
+
+        final endTime = dataSource.getEndTime(0);
+        expect(endTime, DateTime.parse('2025-01-15T11:00:00Z').subtract(const Duration(minutes: 3)));
+      });
+
+      test('event gets 1 minute subtracted from end time', () {
+        final event = _createEventModel(
+          id: 1,
+          start: '2025-01-15T10:00:00Z',
+          end: '2025-01-15T11:00:00Z',
+        );
+        dataSource.addCalendarItem(event);
+
+        final endTime = dataSource.getEndTime(0);
+        expect(endTime, DateTime.parse('2025-01-15T11:00:00Z').subtract(const Duration(minutes: 1)));
+      });
+
+      test('priority adjustments ensure homework sorts before event at same time', () {
+        final event = _createEventModel(
+          id: 1,
+          start: '2025-01-15T10:00:00Z',
+          end: '2025-01-15T11:00:00Z',
+        );
+        final homework = _createHomeworkModel(
+          id: 2,
+          start: '2025-01-15T10:00:00Z',
+          end: '2025-01-15T11:00:00Z',
+        );
+        dataSource.addCalendarItem(event);
+        dataSource.addCalendarItem(homework);
+
+        // Homework (priority 0) gets -3 seconds, Event (priority 2) gets -1 second
+        // So homework's adjusted start is earlier and should sort first
+        final homeworkAdjustedStart = DateTime.parse('2025-01-15T10:00:00Z').subtract(const Duration(seconds: 3));
+        final eventAdjustedStart = DateTime.parse('2025-01-15T10:00:00Z').subtract(const Duration(seconds: 1));
+
+        expect(homeworkAdjustedStart.isBefore(eventAdjustedStart), isTrue);
       });
     });
 

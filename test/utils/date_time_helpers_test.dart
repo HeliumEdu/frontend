@@ -68,24 +68,47 @@ void main() {
     });
 
     group('formatForApi', () {
+      test('returns DateTime with correct hour and minute', () {
+        const time = TimeOfDay(hour: 14, minute: 30);
+        final result = HeliumTime.formatForApi(time);
+        expect(result.hour, equals(14));
+        expect(result.minute, equals(30));
+      });
+
+      test('handles single digit hours', () {
+        const time = TimeOfDay(hour: 9, minute: 15);
+        final result = HeliumTime.formatForApi(time);
+        expect(result.hour, equals(9));
+        expect(result.minute, equals(15));
+      });
+
+      test('handles midnight', () {
+        const time = TimeOfDay(hour: 0, minute: 0);
+        final result = HeliumTime.formatForApi(time);
+        expect(result.hour, equals(0));
+        expect(result.minute, equals(0));
+      });
+    });
+
+    group('formatForApiAsString', () {
       test('formats time with seconds for API', () {
         const time = TimeOfDay(hour: 14, minute: 30);
-        expect(HeliumTime.formatForApi(time), equals('14:30:00'));
+        expect(HeliumTime.formatForApiAsString(time), equals('14:30:00'));
       });
 
       test('pads single digit hours', () {
         const time = TimeOfDay(hour: 9, minute: 15);
-        expect(HeliumTime.formatForApi(time), equals('09:15:00'));
+        expect(HeliumTime.formatForApiAsString(time), equals('09:15:00'));
       });
 
       test('pads single digit minutes', () {
         const time = TimeOfDay(hour: 10, minute: 5);
-        expect(HeliumTime.formatForApi(time), equals('10:05:00'));
+        expect(HeliumTime.formatForApiAsString(time), equals('10:05:00'));
       });
 
       test('formats midnight correctly', () {
         const time = TimeOfDay(hour: 0, minute: 0);
-        expect(HeliumTime.formatForApi(time), equals('00:00:00'));
+        expect(HeliumTime.formatForApiAsString(time), equals('00:00:00'));
       });
     });
   });

@@ -2147,7 +2147,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                           }
                         },
                         child: ConstrainedBox(
-                          constraints: BoxConstraints(
+                          constraints: const BoxConstraints(
                             maxHeight: _kAgendaHeightDesktop,
                           ),
                           child: _buildCalendarItemWidget(
