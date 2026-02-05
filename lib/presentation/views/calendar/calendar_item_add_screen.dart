@@ -219,6 +219,8 @@ class _CalendarItemAddScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Text('Details', style: AppStyles.featureText(context)),
+              const SizedBox(height: 14),
               LabelAndTextFormField(
                 label: 'Title',
                 autofocus: kIsWeb || !widget.isEdit,
@@ -239,17 +241,18 @@ class _CalendarItemAddScreenState
                     _selectCourse(value!.id);
                   },
                 ),
-                const SizedBox(height: 25),
+                const SizedBox(height: 14),
               ],
               const Divider(),
-
-              const SizedBox(height: 1),
 
               Row(
                 children: [
                   Expanded(
                     child: CheckboxListTile(
-                      title: Text('All Day', style: AppStyles.formLabel(context)),
+                      title: Text(
+                        'All Day',
+                        style: AppStyles.formLabel(context),
+                      ),
                       value: _formController.isAllDay,
                       onChanged: (value) {
                         setState(() {
@@ -266,7 +269,10 @@ class _CalendarItemAddScreenState
                 children: [
                   Expanded(
                     child: CheckboxListTile(
-                      title: Text('Show End', style: AppStyles.formLabel(context)),
+                      title: Text(
+                        'Show End',
+                        style: AppStyles.formLabel(context),
+                      ),
                       value: _formController.showEndDateTime,
                       onChanged: (value) {
                         setState(
@@ -395,7 +401,10 @@ class _CalendarItemAddScreenState
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Start Time', style: AppStyles.formLabel(context)),
+                          Text(
+                            'Start Time',
+                            style: AppStyles.formLabel(context),
+                          ),
                           const SizedBox(height: 8),
                           GestureDetector(
                             onTap: () => _selectTime(context, true),
@@ -446,7 +455,10 @@ class _CalendarItemAddScreenState
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('End Time', style: AppStyles.formLabel(context)),
+                            Text(
+                              'End Time',
+                              style: AppStyles.formLabel(context),
+                            ),
                             const SizedBox(height: 9),
                             GestureDetector(
                               onTap: () => _selectTime(context, false),
@@ -490,9 +502,9 @@ class _CalendarItemAddScreenState
                 ),
               ],
 
-              const SizedBox(height: 25),
+              const SizedBox(height: 16),
               const Divider(),
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
 
               if (!_isEvent) ...[
                 DropDown(
@@ -533,7 +545,7 @@ class _CalendarItemAddScreenState
                     children: [
                       if (_formController.selectedMaterials.isNotEmpty)
                         Wrap(
-                          spacing: 6,
+                          spacing: 4,
                           runSpacing: 2,
                           children: _formController.selectedMaterials.map((id) {
                             return Chip(
@@ -541,9 +553,9 @@ class _CalendarItemAddScreenState
                               deleteIconColor: context.colorScheme.surface,
                               label: Text(
                                 _materialTitleById(id),
-                                style: AppStyles.formText(context).copyWith(
-                                  color: context.colorScheme.surface,
-                                ),
+                                style: AppStyles.formText(
+                                  context,
+                                ).copyWith(color: context.colorScheme.surface),
                               ),
                               onDeleted: () {
                                 setState(() {
@@ -553,7 +565,7 @@ class _CalendarItemAddScreenState
                             );
                           }).toList(),
                         ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 2),
                       Align(
                         alignment: Alignment.centerLeft,
                         child: AbsorbPointer(
@@ -586,9 +598,9 @@ class _CalendarItemAddScreenState
                               ),
                               label: Text(
                                 'Select resources',
-                                style: AppStyles.formLabel(context).copyWith(
-                                  color: context.colorScheme.primary,
-                                ),
+                                style: AppStyles.formLabel(
+                                  context,
+                                ).copyWith(color: context.colorScheme.primary),
                               ),
                             ),
                           ),
@@ -603,7 +615,9 @@ class _CalendarItemAddScreenState
               // TODO: Feature Parity: add location field to Event's
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [Text('Priority', style: AppStyles.formLabel(context))],
+                children: [
+                  Text('Priority', style: AppStyles.formLabel(context)),
+                ],
               ),
               const SizedBox(height: 9),
               SliderTheme(
@@ -640,7 +654,10 @@ class _CalendarItemAddScreenState
                   children: [
                     Expanded(
                       child: CheckboxListTile(
-                        title: Text('Completed', style: AppStyles.formLabel(context)),
+                        title: Text(
+                          'Completed',
+                          style: AppStyles.formLabel(context),
+                        ),
                         value: _formController.isCompleted,
                         onChanged: (value) {
                           setState(() {
@@ -654,8 +671,7 @@ class _CalendarItemAddScreenState
                   ],
                 ),
               ],
-              if (_formController.isCompleted) ...[
-                const SizedBox(height: 14),
+              if (!_isEvent && _formController.isCompleted) ...[
                 LabelAndTextFormField(
                   label: 'Grade',
                   controller: _formController.gradeController,
@@ -664,9 +680,10 @@ class _CalendarItemAddScreenState
                   ],
                   focusNode: _formController.gradeFocusNode,
                 ),
+                const SizedBox(height: 8),
               ],
 
-              const SizedBox(height: 25),
+              const SizedBox(height: 8),
               const Divider(),
               const SizedBox(height: 14),
 
