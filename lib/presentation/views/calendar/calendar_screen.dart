@@ -2189,8 +2189,12 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   void _onToggleCompleted(HomeworkModel homework, bool value) {
+    // TODO: show confetti when Homework is completed
+
     Feedback.forTap(context);
+
     _log.info('Homework ${homework.id} completion toggled: $value');
+
     // Set optimistic UI state
     _calendarItemDataSource!.setCompletedOverride(homework.id, value);
 

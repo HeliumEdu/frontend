@@ -68,17 +68,20 @@ class _LandingScreenState extends State<LandingScreen> {
       _log.info('Checking access token validity ...');
 
       // Set up listener before dispatching event to avoid race condition
-      _authSubscription = context.read<AuthBloc>().stream.listen((state) {
+      _authSubscription = context.read<AuthBloc>().stream.listen((state) async {
         _log.info('Auth state received: ${state.runtimeType}');
         if (state is AuthAuthenticated || state is AuthTokenRefreshed) {
           _log.info('Access token is valid, navigating to home');
-          _authSubscription?.cancel();
+
+          await _dioClient.fetchSettings();
+
+          await _authSubscription?.cancel();
           _navigateToTarget();
         } else if (state is AuthUnauthenticated || state is AuthError) {
           _log.info(
             'Access and refresh tokens missing or invalid, navigating to login',
           );
-          _authSubscription?.cancel();
+          await _authSubscription?.cancel();
           _navigateToLogin();
         }
       });

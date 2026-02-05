@@ -179,8 +179,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       if (accessToken?.isNotEmpty ?? false) {
         try {
-          final user = await authRepository.getUser();
-          await dioClient.saveSettings(user.settings!);
+          await dioClient.fetchSettings();
 
           emit(AuthAuthenticated());
         } catch (e) {

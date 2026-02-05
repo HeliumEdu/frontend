@@ -10,7 +10,6 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/app_theme.dart';
@@ -22,6 +21,7 @@ import 'package:heliumapp/data/models/auth/token_response_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:logging/logging.dart';
+import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
 final _log = Logger('core');
 
@@ -34,11 +34,9 @@ class DioClient {
   late final PrefService _prefService;
 
   @visibleForTesting
-  DioClient.forTesting({
-    required Dio dio,
-    required PrefService prefService,
-  })  : _dio = dio,
-        _prefService = prefService;
+  DioClient.forTesting({required Dio dio, required PrefService prefService})
+    : _dio = dio,
+      _prefService = prefService;
 
   @visibleForTesting
   static void resetForTesting() {
@@ -60,18 +58,18 @@ class DioClient {
   Dio get dio => _dio;
 
   DioClient._internal()
-      : _dio = Dio(
-          BaseOptions(
-            baseUrl: ApiUrl.baseUrl,
-            connectTimeout: const Duration(seconds: 30),
-            receiveTimeout: const Duration(seconds: 30),
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-            },
-          ),
+    : _dio = Dio(
+        BaseOptions(
+          baseUrl: ApiUrl.baseUrl,
+          connectTimeout: const Duration(seconds: 30),
+          receiveTimeout: const Duration(seconds: 30),
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
         ),
-        _prefService = PrefService() {
+      ),
+      _prefService = PrefService() {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
@@ -214,7 +212,9 @@ class DioClient {
               bool shouldLogout = false;
               if (e is DioException) {
                 if (e.response?.statusCode == 403) {
-                  _log.info('Got 403 during token refresh, account may not exist');
+                  _log.info(
+                    'Got 403 during token refresh, account may not exist',
+                  );
                   shouldLogout = true;
                 } else if (_isInvalidTokenError(e.response?.data)) {
                   _log.info('Refresh token is invalid/expired');
@@ -287,29 +287,65 @@ class DioClient {
     return token?.isNotEmpty ?? false;
   }
 
+  Future<UserSettingsModel?> fetchSettings() async {
+    try {
+      _log.info('Fetching settings from API...');
+      final response = await _dio.get(ApiUrl.authUserUrl);
+
+      if (response.statusCode == 200) {
+        final user = UserModel.fromJson(response.data);
+
+        if (user.settings != null) {
+          await saveSettings(user.settings!);
+
+          return user.settings;
+        } else {
+          _log.warning('User fetched but settings are null');
+          return null;
+        }
+      } else {
+        _log.severe(
+          'Failed to fetch settings from API: ${response.statusCode}',
+        );
+        return null;
+      }
+    } catch (apiError) {
+      _log.severe('Error fetching settings from API: $apiError', apiError);
+
+      return null;
+    }
+  }
+
   Future<UserSettingsModel?> getSettings() async {
     // Ensure PrefService is initialized
     await _prefService.init();
 
-    return UserSettingsModel.fromJson({
-      'time_zone': _prefService.getString('time_zone'),
-      'color_by_category': _prefService.getBool('color_by_category'),
-      'default_view': _prefService.getInt('default_view'),
-      'color_scheme_theme': _prefService.getInt('color_scheme_theme'),
-      'week_starts_on': _prefService.getInt('week_starts_on'),
-      'all_day_offset': _prefService.getInt('all_day_offset'),
-      'events_color': _prefService.getString('events_color'),
-      'material_color': _prefService.getString('material_color'),
-      'grade_color': _prefService.getString('grade_color'),
-      'default_reminder_type': _prefService.getInt('default_reminder_type'),
-      'default_reminder_offset': _prefService.getInt('default_reminder_offset'),
-      'default_reminder_offset_type': _prefService.getInt(
-        'default_reminder_offset_type',
-      ),
-      'calendar_use_category_colors': _prefService.getBool(
-        'calendar_use_category_colors',
-      ),
-    });
+    try {
+      return UserSettingsModel.fromJson({
+        'time_zone': _prefService.getString('time_zone'),
+        'color_by_category': _prefService.getBool('color_by_category'),
+        'default_view': _prefService.getInt('default_view'),
+        'color_scheme_theme': _prefService.getInt('color_scheme_theme'),
+        'week_starts_on': _prefService.getInt('week_starts_on'),
+        'all_day_offset': _prefService.getInt('all_day_offset'),
+        'events_color': _prefService.getString('events_color'),
+        'material_color': _prefService.getString('material_color'),
+        'grade_color': _prefService.getString('grade_color'),
+        'default_reminder_type': _prefService.getInt('default_reminder_type'),
+        'default_reminder_offset': _prefService.getInt(
+          'default_reminder_offset',
+        ),
+        'default_reminder_offset_type': _prefService.getInt(
+          'default_reminder_offset_type',
+        ),
+        'calendar_use_category_colors': _prefService.getBool(
+          'calendar_use_category_colors',
+        ),
+      });
+    } catch (parseError) {
+      _log.info('Failed to parse cached settings: $parseError');
+      return await fetchSettings();
+    }
   }
 
   Future<List<void>> saveSettings(UserSettingsModel settings) async {

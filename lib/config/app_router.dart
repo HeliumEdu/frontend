@@ -11,6 +11,7 @@ import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/config/route_args.dart';
+import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
 import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/bloc/course/course_bloc.dart';
@@ -315,6 +316,8 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
 
   // If logged in and trying to access a public route, redirect to calendar
   if (isLoggedIn && publicRoutes.contains(matchedLocation)) {
+    await DioClient().fetchSettings();
+
     return AppRoutes.plannerScreen;
   }
 

@@ -232,11 +232,8 @@ void main() {
             () => mockDioClient.getRefreshToken(),
           ).thenAnswer((_) async => 'valid_refresh_token');
           when(
-            () => mockAuthRepository.getUser(),
-          ).thenAnswer((_) async => MockModels.createUser());
-          when(
-            () => mockDioClient.saveSettings(any()),
-          ).thenAnswer((_) async => <void>[]);
+            () => mockDioClient.fetchSettings(),
+          ).thenAnswer((_) async => MockModels.createUser().settings);
           return authBloc;
         },
         act: (bloc) => bloc.add(CheckAuthEvent()),
