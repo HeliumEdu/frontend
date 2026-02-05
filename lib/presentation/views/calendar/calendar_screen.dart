@@ -1571,17 +1571,19 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   Widget _buildCalendarItemLeftForAgenda({
     required CalendarItemBaseModel calendarItem,
-    VoidCallback? onCheckboxToggled,
     bool? completedOverride,
   }) {
     Widget? iconWidget;
 
-    final isCheckbox = PlannerHelper.shouldShowCheckbox(context, calendarItem, _currentView);
+    final isCheckbox = PlannerHelper.shouldShowCheckbox(
+      context,
+      calendarItem,
+      _currentView,
+    );
 
     if (isCheckbox) {
       iconWidget = _buildCheckboxWidget(
         homework: calendarItem as HomeworkModel,
-        onCheckboxToggled: onCheckboxToggled,
         completedOverride: completedOverride,
       );
     } else if (PlannerHelper.shouldShowSchoolIcon(
@@ -1607,14 +1609,16 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     // On mobile, make the entire left area tappable for checkboxes
     if (Responsive.isMobile(context) && isCheckbox) {
       final homework = calendarItem as HomeworkModel;
-      return GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () {
-          final newValue = !(completedOverride ?? homework.completed);
-          _toggleHomeworkCompleted(homework, newValue);
-          onCheckboxToggled?.call();
-        },
-        child: rowWidget,
+      return MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            final newValue = !(completedOverride ?? homework.completed);
+            _onToggleCompleted(homework, newValue);
+          },
+          child: rowWidget,
+        ),
       );
     }
 
@@ -1623,14 +1627,12 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   Widget? _getInlineIconWidget({
     required CalendarItemBaseModel calendarItem,
-    VoidCallback? onCheckboxToggled,
     bool? completedOverride,
   }) {
     // TODO: Known Issues (2/Low): when the text wraps before even one letter can fit on the row, the prefix icon/checkbox gets pushed down a few pixels; fix here, and also for the .school icon (same behavior)
     if (PlannerHelper.shouldShowCheckbox(context, calendarItem, _currentView)) {
       return _buildCheckboxWidget(
         homework: calendarItem as HomeworkModel,
-        onCheckboxToggled: onCheckboxToggled,
         completedOverride: completedOverride,
       );
     } else if (PlannerHelper.shouldShowSchoolIcon(
@@ -1861,14 +1863,12 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     required double width,
     double? height,
     required bool isInAgenda,
-    VoidCallback? onCheckboxToggled,
     bool? completedOverride,
   }) {
     if (isInAgenda) {
       return _buildCalendarItemWidgetForAgenda(
         calendarItem: calendarItem,
         width: width,
-        onCheckboxToggled: onCheckboxToggled,
         completedOverride: completedOverride,
       );
     } else {
@@ -1876,7 +1876,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         calendarItem: calendarItem,
         width: width,
         height: height,
-        onCheckboxToggled: onCheckboxToggled,
         completedOverride: completedOverride,
       );
     }
@@ -1885,7 +1884,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   Widget _buildCalendarItemWidgetForAgenda({
     required CalendarItemBaseModel calendarItem,
     required double width,
-    VoidCallback? onCheckboxToggled,
     bool? completedOverride,
   }) {
     final color = _calendarItemDataSource!.getColorForItem(calendarItem);
@@ -1894,7 +1892,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
     final leftWidget = _buildCalendarItemLeftForAgenda(
       calendarItem: calendarItem,
-      onCheckboxToggled: onCheckboxToggled,
       completedOverride: completedOverride,
     );
 
@@ -1934,7 +1931,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     required CalendarItemBaseModel calendarItem,
     required double width,
     double? height,
-    VoidCallback? onCheckboxToggled,
     bool? completedOverride,
   }) {
     final color = _calendarItemDataSource!.getColorForItem(calendarItem);
@@ -1942,7 +1938,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
     final inlineIcon = _getInlineIconWidget(
       calendarItem: calendarItem,
-      onCheckboxToggled: onCheckboxToggled,
       completedOverride: completedOverride,
     );
 
@@ -2193,8 +2188,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     });
   }
 
-  void _toggleHomeworkCompleted(HomeworkModel homework, bool value) {
-    // FIXME: consolidate the three calls to this method in to one
+  void _onToggleCompleted(HomeworkModel homework, bool value) {
     Feedback.forTap(context);
     _log.info('Homework ${homework.id} completion toggled: $value');
     // Set optimistic UI state
@@ -2754,7 +2748,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           dataSource: _calendarItemDataSource!,
           controller: _todosController,
           onTap: _openCalendarItem,
-          onToggleCompleted: _toggleHomeworkCompleted,
+          onToggleCompleted: _onToggleCompleted,
           onDelete: _deleteCalendarItem,
         );
       },
@@ -2782,7 +2776,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   Widget _buildCheckboxWidget({
     required HomeworkModel homework,
-    required VoidCallback? onCheckboxToggled,
     bool? completedOverride,
   }) {
     return SizedBox(
@@ -2793,8 +2786,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         child: Checkbox(
           value: completedOverride ?? homework.completed,
           onChanged: (value) {
-            _toggleHomeworkCompleted(homework, value!);
-            onCheckboxToggled?.call();
+            _onToggleCompleted(homework, value!);
           },
           activeColor: context.colorScheme.primary,
           side: BorderSide(
