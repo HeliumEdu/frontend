@@ -36,7 +36,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
   @override
-  String get screenTitle => '';
+  String get screenTitle => 'Settings';
 
   @override
   ScreenType get screenType => ScreenType.subPage;

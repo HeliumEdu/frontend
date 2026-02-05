@@ -10,32 +10,51 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 extension AppStyles on BuildContext {
+  // Fallback font for characters not in Poppins (e.g., bullet •)
+  static const fallbackFonts = ['Noto Sans'];
+
+  /// Creates a Poppins TextStyle with Noto Sans fallback for missing characters.
+  /// Use this instead of GoogleFonts.poppins() throughout the app.
+  static TextStyle poppins({
+    FontWeight? fontWeight,
+    double? fontSize,
+    Color? color,
+    List<FontFeature>? fontFeatures,
+  }) {
+    return GoogleFonts.poppins(
+      fontWeight: fontWeight,
+      fontSize: fontSize,
+      color: color,
+      fontFeatures: fontFeatures,
+    ).copyWith(fontFamilyFallback: fallbackFonts);
+  }
+
   static TextTheme defaultTextTheme(ColorScheme colorScheme) {
     final base = GoogleFonts.poppinsTextTheme();
     return base.apply(
       bodyColor: colorScheme.onSurface,
       displayColor: colorScheme.onSurface,
+      fontFamilyFallback: fallbackFonts,
     );
   }
 
   // Used for body text, descriptions, secondary info
-  static TextStyle standardBodyText(BuildContext context) =>
-      GoogleFonts.poppins(
-        fontWeight: FontWeight.w500,
-        fontSize: Responsive.getFontSize(
-          context,
-          mobile: 13,
-          tablet: 14,
-          desktop: 15,
-        ),
-        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.9),
-        fontFeatures: [const FontFeature.tabularFigures()],
-      );
+  static TextStyle standardBodyText(BuildContext context) => poppins(
+    fontWeight: FontWeight.w500,
+    fontSize: Responsive.getFontSize(
+      context,
+      mobile: 13,
+      tablet: 14,
+      desktop: 15,
+    ),
+    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.9),
+    fontFeatures: [const FontFeature.tabularFigures()],
+  );
 
   // Used for secondary text with a lighter weight (like prominent calendar data)
   static TextStyle standardBodyTextLight(BuildContext context) {
     final base = standardBodyText(context);
-    return GoogleFonts.poppins(
+    return poppins(
       fontWeight: FontWeight.w300,
       fontSize: base.fontSize,
       color: base.color,
@@ -44,7 +63,7 @@ extension AppStyles on BuildContext {
   }
 
   // Used for primary headings, important UI text
-  static TextStyle headingText(BuildContext context) => GoogleFonts.poppins(
+  static TextStyle headingText(BuildContext context) => poppins(
     fontWeight: FontWeight.w600,
     fontSize: Responsive.getFontSize(context, mobile: 15, desktop: 16),
     color: Theme.of(context).colorScheme.onSurface,
@@ -58,21 +77,20 @@ extension AppStyles on BuildContext {
         fontSize: Responsive.getFontSize(context, mobile: 18, desktop: 19),
         color: Theme.of(context).colorScheme.onSurface,
         fontFeatures: [const FontFeature.tabularFigures()],
-      );
+      ).copyWith(fontFamilyFallback: fallbackFonts);
 
   // Used for smaller labels, counts, tertiary info
-  static TextStyle smallSecondaryText(BuildContext context) =>
-      GoogleFonts.poppins(
-        fontWeight: FontWeight.w400,
-        fontSize: Responsive.getFontSize(context, mobile: 12, desktop: 13),
-        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.9),
-        fontFeatures: [const FontFeature.tabularFigures()],
-      );
+  static TextStyle smallSecondaryText(BuildContext context) => poppins(
+    fontWeight: FontWeight.w400,
+    fontSize: Responsive.getFontSize(context, mobile: 12, desktop: 13),
+    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.9),
+    fontFeatures: [const FontFeature.tabularFigures()],
+  );
 
   // Used for secondary text with a lighter weight (like on the calendar)
   static TextStyle smallSecondaryTextLight(BuildContext context) {
     final base = smallSecondaryText(context);
-    return GoogleFonts.poppins(
+    return poppins(
       fontWeight: FontWeight.w300,
       fontSize: base.fontSize,
       color: base.color,
@@ -81,7 +99,7 @@ extension AppStyles on BuildContext {
   }
 
   // Used for responsive button text
-  static TextStyle buttonText(BuildContext context) => GoogleFonts.poppins(
+  static TextStyle buttonText(BuildContext context) => poppins(
     fontWeight: FontWeight.w600,
     fontSize: Responsive.getFontSize(context, mobile: 15, desktop: 16),
     color: Theme.of(context).colorScheme.onPrimary,
@@ -100,10 +118,10 @@ extension AppStyles on BuildContext {
         ),
         color: Theme.of(context).colorScheme.onSurface,
         fontFeatures: [const FontFeature.tabularFigures()],
-      );
+      ).copyWith(fontFamilyFallback: fallbackFonts);
 
   // Used for dropdowns, text fields, and form elements
-  static TextStyle formText(BuildContext context) => GoogleFonts.poppins(
+  static TextStyle formText(BuildContext context) => poppins(
     fontSize: Responsive.getFontSize(context, mobile: 14, desktop: 15),
     fontWeight: FontWeight.w400,
     color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.9),
@@ -127,7 +145,7 @@ extension AppStyles on BuildContext {
   ).copyWith(color: Theme.of(context).colorScheme.error.withValues(alpha: 0.9));
 
   // Used for menu items and popup menu text
-  static TextStyle menuItem(BuildContext context) => GoogleFonts.poppins(
+  static TextStyle menuItem(BuildContext context) => poppins(
     fontSize: Responsive.getFontSize(context, mobile: 14, desktop: 15),
     fontWeight: FontWeight.w500,
     color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.9),
