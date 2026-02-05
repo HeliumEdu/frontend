@@ -331,9 +331,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
                             tablet: 22,
                             desktop: 24,
                           ),
-                          color: context.colorScheme.onSurface.withValues(
-                            alpha: 0.6,
-                          ),
+                          color: context.colorScheme.primary,
                         ),
                       ),
                       InkWell(
@@ -353,9 +351,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
                             tablet: 22,
                             desktop: 24,
                           ),
-                          color: context.colorScheme.onSurface.withValues(
-                            alpha: 0.6,
-                          ),
+                          color: context.colorScheme.primary,
                         ),
                       ),
                     ],

@@ -336,9 +336,7 @@ class _CourseAddScreenState
                               tablet: 22,
                               desktop: 24,
                             ),
-                            color: context.colorScheme.onSurface.withValues(
-                              alpha: 0.6,
-                            ),
+                            color: context.colorScheme.primary,
                           ),
                         ),
                         InkWell(
@@ -360,9 +358,7 @@ class _CourseAddScreenState
                               tablet: 22,
                               desktop: 24,
                             ),
-                            color: context.colorScheme.onSurface.withValues(
-                              alpha: 0.6,
-                            ),
+                            color: context.colorScheme.primary,
                           ),
                         ),
                       ],

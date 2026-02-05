@@ -391,7 +391,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
             ),
             child: Icon(
               Icons.keyboard_arrow_down,
-              color: context.colorScheme.onSurface,
+              color: context.colorScheme.primary,
               size: Responsive.getIconSize(
                 context,
                 mobile: 20,

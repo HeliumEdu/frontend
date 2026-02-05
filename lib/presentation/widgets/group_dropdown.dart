@@ -78,7 +78,7 @@ class GroupDropdown<T extends BaseModel> extends StatelessWidget {
         child: ButtonTheme(
           alignedDropdown: true,
           child: DropdownButton<T>(
-            icon: const Icon(Icons.keyboard_arrow_down),
+            icon: Icon(Icons.keyboard_arrow_down, color: context.colorScheme.primary),
             dropdownColor: context.colorScheme.surface,
             isExpanded: true,
             underline: const SizedBox(),

@@ -10,8 +10,8 @@ import 'package:intl/intl.dart';
 import 'package:timezone/standalone.dart' as tz;
 
 class HeliumTime {
-  static TimeOfDay? parse(String timeString) {
-    final parts = timeString.split(':');
+  static TimeOfDay? parse(String time) {
+    final parts = time.split(':');
     return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
   }
 
@@ -27,16 +27,14 @@ class HeliumTime {
     return DateFormat('h:mm a').format(dateTime);
   }
 
-  static String formatForApi(TimeOfDay time) {
+  static String formatForApiAsString(TimeOfDay time) {
+    return DateFormat('HH:mm:00').format(formatForApi(time));
+  }
+
+  static DateTime formatForApi(TimeOfDay time) {
+    formatForApiAsString(time);
     final now = DateTime.now();
-    final dateTime = DateTime(
-      now.year,
-      now.month,
-      now.day,
-      time.hour,
-      time.minute,
-    );
-    return DateFormat('HH:mm:00').format(dateTime);
+    return DateTime(now.year, now.month, now.day, time.hour, time.minute);
   }
 }
 
@@ -49,8 +47,24 @@ class HeliumDateTime {
     return DateFormat('EEE').format(date);
   }
 
-  static String formatDateForDisplay(DateTime date) {
-    return DateFormat('MMM d, yyyy').format(date);
+  static String formatMonthAndYearForDisplay(
+    DateTime date, {
+    bool abbreviateMonth = true,
+  }) {
+    final format = abbreviateMonth ? 'MMM yyyy' : 'MMMM yyyy';
+    return DateFormat(format).format(date);
+  }
+
+  static String formatDateWithDayForDisplay(DateTime date) {
+    return DateFormat('EEEE, MMMM d').format(date);
+  }
+
+  static String formatDateForDisplay(
+    DateTime date, {
+    bool abbreviateMonth = true,
+  }) {
+    final format = abbreviateMonth ? 'MMM d, yyyy' : 'MMMM d, yyyy';
+    return DateFormat(format).format(date);
   }
 
   static String formatDateAndTimeForDisplay(DateTime date) {
@@ -60,9 +74,7 @@ class HeliumDateTime {
   }
 
   static String formatDateAndTimeForTodosDisplay(DateTime date) {
-    return DateFormat(
-      'EEE, MMM d • h:mm a',
-    ).format(date).replaceAll(':00', '');
+    return DateFormat('EEE, MMM d • h:mm a').format(date).replaceAll(':00', '');
   }
 
   static String formatTimeForDisplay(DateTime date) {

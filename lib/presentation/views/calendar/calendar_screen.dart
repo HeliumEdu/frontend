@@ -60,7 +60,6 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
-import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:timezone/standalone.dart' as tz;
@@ -116,6 +115,9 @@ class CalendarProvidedScreen extends StatefulWidget {
 }
 
 class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
+  static const _kAgendaHeightMobile = 51.0;
+  static const _kAgendaHeightDesktop = 57.0;
+
   @override
   // This is set from the shell
   String get screenTitle => '';
@@ -375,16 +377,16 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     );
   }
 
-  int _calculateAppointmentDisplayCount(double availableHeight) {
+  int _calculateCalendarItemDisplayCount(double availableHeight) {
     const double dayHeaderHeight = 45;
     const double dayNumberHeight = 30;
-    const double appointmentHeight = 21;
+    const double calendarItemHeight = 21;
     const int monthRows = 6;
     const int minCount = 3;
 
     final cellHeight = (availableHeight - dayHeaderHeight) / monthRows;
-    final availableForAppointments = cellHeight - dayNumberHeight;
-    final count = (availableForAppointments / appointmentHeight).floor();
+    final availableForCalendarItems = cellHeight - dayNumberHeight;
+    final count = (availableForCalendarItems / calendarItemHeight).floor();
 
     return count.clamp(minCount, 10);
   }
@@ -397,11 +399,13 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   Widget _buildCalendar() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final appointmentDisplayCount = _calculateAppointmentDisplayCount(
+        final calendarItemsDisplayCount = _calculateCalendarItemDisplayCount(
           constraints.maxHeight,
         );
 
-        final agendaHeight = Responsive.isMobile(context) ? 51.0 : 57.0;
+        final agendaHeight = Responsive.isMobile(context)
+            ? _kAgendaHeightMobile
+            : _kAgendaHeightDesktop;
 
         return SfCalendar(
           backgroundColor: context.colorScheme.surface,
@@ -455,7 +459,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             ),
           ),
           monthViewSettings: MonthViewSettings(
-            appointmentDisplayCount: appointmentDisplayCount,
+            appointmentDisplayCount: calendarItemsDisplayCount,
             showAgenda: Responsive.isMobile(context),
             agendaItemHeight: agendaHeight,
             monthCellStyle: MonthCellStyle(
@@ -664,7 +668,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
               )],
               style: AppStyles.headingText(
                 context,
-              ).copyWith(color: context.colorScheme.primary),
+              ).copyWith(color: context.colorScheme.onSurface),
             ),
           ),
         ),
@@ -711,7 +715,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                       headerText,
                       style: AppStyles.headingText(
                         context,
-                      ).copyWith(color: context.colorScheme.primary),
+                      ).copyWith(color: context.colorScheme.onSurface),
                     ),
                     const SizedBox(width: 2),
                     Icon(
@@ -1106,16 +1110,22 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   String _buildHeaderDate() {
     final displayDate = _calendarController.displayDate!;
-    final monthFormat = Responsive.isMobile(context) ? 'MMM' : 'MMMM';
+    final abbreviateMonth = Responsive.isMobile(context);
 
     switch (_calendarController.view) {
       case CalendarView.day:
-        return DateFormat('$monthFormat d, yyyy').format(displayDate);
+        return HeliumDateTime.formatDateForDisplay(
+          displayDate,
+          abbreviateMonth: abbreviateMonth,
+        );
       case CalendarView.month:
       case CalendarView.week:
       case CalendarView.schedule:
       default:
-        return DateFormat('$monthFormat yyyy').format(displayDate);
+        return HeliumDateTime.formatMonthAndYearForDisplay(
+          displayDate,
+          abbreviateMonth: abbreviateMonth,
+        );
     }
   }
 
@@ -1275,10 +1285,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   FutureBuilder<void> _loadMoreWidgetBuilder(
     BuildContext context,
-    LoadMoreCallback loadMoreAppointments,
+    LoadMoreCallback loadMoreCalendarItems,
   ) {
     return FutureBuilder<void>(
-      future: loadMoreAppointments(),
+      future: loadMoreCalendarItems(),
       builder: (context, snapShot) {
         return Container(
           height: double.infinity,
@@ -1324,6 +1334,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     if (dropDetails.appointment == null || dropDetails.droppingTime == null) {
       return;
     }
+
+    // FIXME: check sortable order of items on month, when dropped, things (that weren't dragged) switch order briefly and then switch back (probably going to time and then alphabetical)
 
     final CalendarItemBaseModel calendarItem =
         dropDetails.appointment as CalendarItemBaseModel;
@@ -1547,7 +1559,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     CalendarAppointmentDetails details,
   ) {
     if (details.isMoreAppointmentRegion) {
-      return _buildMoreAppointmentsIndicator(context, details);
+      return _buildMoreIndicator(context, details);
     }
 
     final calendarItem = details.appointments.first as CalendarItemBaseModel;
@@ -1648,11 +1660,15 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   Widget _buildCalendarItemCenterForAgenda({
     required CalendarItemBaseModel calendarItem,
     String? location,
+    bool? completedOverride,
   }) {
     final contentColumn = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildCalendarItemTitle(calendarItem),
+        _buildCalendarItemTitle(
+          calendarItem,
+          completedOverride: completedOverride,
+        ),
         if (PlannerHelper.shouldShowTimeBelowTitle(
           context,
           calendarItem,
@@ -1672,22 +1688,14 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       ],
     );
 
-    return Flexible(
-      child: Align(
-        alignment: Alignment.topLeft,
-        child: OverflowBox(
-          alignment: Alignment.topLeft,
-          maxHeight: double.infinity,
-          child: contentColumn,
-        ),
-      ),
-    );
+    return Flexible(child: contentColumn);
   }
 
   Widget _buildCalendarItemCenterForTimeline({
     required CalendarItemBaseModel calendarItem,
     String? location,
     Widget? inlineIcon,
+    bool? completedOverride,
   }) {
     final showTimeBeforeTitle = PlannerHelper.shouldShowTimeBeforeTitle(
       context,
@@ -1727,7 +1735,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       }
 
       final isCompleted =
-          calendarItem is HomeworkModel && calendarItem.completed;
+          completedOverride ??
+          (calendarItem is HomeworkModel && calendarItem.completed);
 
       spans.add(
         TextSpan(
@@ -1754,7 +1763,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             : null,
       );
     } else {
-      titleRowWidget = _buildCalendarItemTitle(calendarItem);
+      titleRowWidget = _buildCalendarItemTitle(
+        calendarItem,
+        completedOverride: completedOverride,
+      );
     }
 
     final contentColumn = Column(
@@ -1898,6 +1910,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     final centerWidget = _buildCalendarItemCenterForAgenda(
       calendarItem: calendarItem,
       location: location,
+      completedOverride: completedOverride,
     );
 
     final rightWidget = _buildCalendarItemRight(
@@ -1907,6 +1920,11 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
     return Container(
       width: width,
+      constraints: BoxConstraints(
+        minHeight: Responsive.isMobile(context)
+            ? _kAgendaHeightMobile
+            : _kAgendaHeightDesktop,
+      ),
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(4),
@@ -1945,6 +1963,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       calendarItem: calendarItem,
       location: location,
       inlineIcon: inlineIcon,
+      completedOverride: completedOverride,
     );
 
     return Container(
@@ -1982,13 +2001,13 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     return null;
   }
 
-  Widget _buildMoreAppointmentsIndicator(
+  Widget _buildMoreIndicator(
     BuildContext context,
     CalendarAppointmentDetails details,
   ) {
     return GestureDetector(
       onTap: () {
-        _showDayAppointmentsDialog(
+        _openDayPopOutDialog(
           details.date,
           (details.appointments.cast<CalendarItemBaseModel>()).toList(),
         );
@@ -1998,17 +2017,24 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         height: details.bounds.height,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: context.colorScheme.surfaceContainerHighest,
+          color: context.colorScheme.primaryContainer,
           borderRadius: BorderRadius.circular(4),
         ),
-        child: Text('...', style: AppStyles.smallSecondaryTextLight(context)),
+        child: Text(
+          '...',
+          style: AppStyles.standardBodyTextLight(context).copyWith(
+            color: context.colorScheme.onPrimaryContainer.withValues(
+              alpha: 0.9,
+            ),
+          ),
+        ),
       ),
     );
   }
 
-  void _showDayAppointmentsDialog(
+  void _openDayPopOutDialog(
     DateTime? date,
-    List<CalendarItemBaseModel> appointments,
+    List<CalendarItemBaseModel> calendarItems,
   ) {
     // TODO: Cleanup: migrate this out to its own file
     if (date == null || Responsive.isMobile(context)) return;
@@ -2016,14 +2042,14 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     showDialog(
       context: context,
       builder: (dialogContext) =>
-          _buildDayAppointmentsDialog(dialogContext, date, appointments),
+          _buildDayPopOut(dialogContext, date, calendarItems),
     );
   }
 
-  Widget _buildDayAppointmentsDialog(
+  Widget _buildDayPopOut(
     BuildContext dialogContext,
     DateTime date,
-    List<CalendarItemBaseModel> appointments,
+    List<CalendarItemBaseModel> calendarItems,
   ) {
     return ListenableBuilder(
       listenable: _calendarItemDataSource!.changeNotifier,
@@ -2044,10 +2070,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                     children: [
                       Expanded(
                         child: Text(
-                          DateFormat('EEEE, MMMM d').format(date),
+                          HeliumDateTime.formatDateWithDayForDisplay(date),
                           style: AppStyles.headingText(
                             context,
-                          ).copyWith(color: context.colorScheme.primary),
+                          ).copyWith(color: context.colorScheme.onSurface),
                         ),
                       ),
                       IconButton(
@@ -2068,21 +2094,21 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                   child: ListView.separated(
                     shrinkWrap: true,
                     padding: const EdgeInsets.all(8),
-                    itemCount: appointments.length,
+                    itemCount: calendarItems.length,
                     separatorBuilder: (context, index) =>
                         const SizedBox(height: 6),
                     itemBuilder: (_, index) {
-                      final staleAppointment = appointments[index];
-                      final appointment =
+                      final staleCalendarItems = calendarItems[index];
+                      final calendarItem =
                           _calendarItemDataSource!.allCalendarItems
                               .cast<CalendarItemBaseModel?>()
                               .firstWhere(
-                                (item) => item?.id == staleAppointment.id,
+                                (item) => item?.id == staleCalendarItems.id,
                                 orElse: () => null,
                               ) ??
-                          staleAppointment;
-                      final homeworkId = appointment is HomeworkModel
-                          ? appointment.id
+                          staleCalendarItems;
+                      final homeworkId = calendarItem is HomeworkModel
+                          ? calendarItem.id
                           : null;
                       final completedOverride = homeworkId != null
                           ? _calendarItemDataSource!
@@ -2093,18 +2119,18 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                         onTap: () {
                           if (PlannerHelper.shouldShowEditButtonForCalendarItem(
                             context,
-                            appointment,
+                            calendarItem,
                           )) {
                             return;
                           }
 
                           Feedback.forTap(context);
-                          if (_openCalendarItem(appointment)) {
+                          if (_openCalendarItem(calendarItem)) {
                             Navigator.of(context).pop();
                           }
                         },
                         child: _buildCalendarItemWidget(
-                          calendarItem: appointment,
+                          calendarItem: calendarItem,
                           width: double.infinity,
                           isInAgenda: true,
                           completedOverride: completedOverride,
@@ -2759,8 +2785,13 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     );
   }
 
-  Widget _buildCalendarItemTitle(CalendarItemBaseModel calendarItem) {
-    final isCompleted = calendarItem is HomeworkModel && calendarItem.completed;
+  Widget _buildCalendarItemTitle(
+    CalendarItemBaseModel calendarItem, {
+    bool? completedOverride,
+  }) {
+    final isCompleted =
+        completedOverride ??
+        (calendarItem is HomeworkModel && calendarItem.completed);
 
     return Text(
       calendarItem.title,
