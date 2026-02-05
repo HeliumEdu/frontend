@@ -25,6 +25,7 @@ import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/presentation/widgets/shadow_container.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -53,6 +54,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
   // State
   late String _username;
   late String _email;
+  late String _version;
 
   @override
   void initState() {
@@ -72,13 +74,18 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
   List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
     return [
       BlocListener<AuthBloc, AuthState>(
-        listener: (context, state) {
+        listener: (context, state) async {
           if (state is AuthError) {
             showSnackBar(context, state.message!, isError: true);
           } else if (state is AuthProfileFetched) {
+            final platform = await PackageInfo.fromPlatform();
+
             setState(() {
+              _version = 'v${platform.version}';
+
               _username = state.user.username;
               _email = state.user.email;
+
               isLoading = false;
             });
           } else if (state is AuthLoggedOut) {
@@ -133,6 +140,19 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
 
             // TODO: Enhancement: implement ability to delete all events
             _buildDeleteAccountArea(),
+
+            const SizedBox(height: 12),
+
+            if (_version.isNotEmpty)
+              Center(
+                child: Text(
+                  _version,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: context.colorScheme.onSurface.withValues(alpha: 0.2),
+                  ),
+                ),
+              ),
 
             const SizedBox(height: 12),
           ],
