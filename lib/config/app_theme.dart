@@ -115,15 +115,11 @@ class AppTheme {
     ColorScheme colorScheme,
     SemanticColors semantic,
   ) {
-    final isLight = colorScheme.brightness == Brightness.light;
-
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
       textTheme: AppStyles.defaultTextTheme(colorScheme),
-      scaffoldBackgroundColor: isLight
-          ? const Color(0xFFF7F7F7)
-          : colorScheme.surface,
+      scaffoldBackgroundColor: colorScheme.surface,
       appBarTheme: AppBarTheme(
         centerTitle: true,
         backgroundColor: colorScheme.surface,
