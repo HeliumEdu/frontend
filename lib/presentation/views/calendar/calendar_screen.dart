@@ -523,7 +523,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       // TODO: High Value, Low Effort: add an action button this snack bar to take the user to the page to edit the course schedule
       showSnackBar(
         context,
-        "You can't edit this on the Planner",
+        "You can't open this on the Planner",
         isError: true,
       );
 
@@ -531,7 +531,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     } else if (calendarItem is ExternalCalendarEventModel) {
       showSnackBar(
         context,
-        "You can't edit this on the Planner",
+        "You can't open this on the Planner",
         isError: true,
       );
 
@@ -1363,6 +1363,13 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       );
       final DateTime end = start.add(duration);
 
+      // Set optimistic override immediately for instant visual feedback
+      _calendarItemDataSource!.setTimeOverride(
+        calendarItem.id,
+        start.toIso8601String(),
+        end.toIso8601String(),
+      );
+
       if (calendarItem is HomeworkModel) {
         final request = HomeworkRequestModel(
           start: start.toIso8601String(),
@@ -1465,6 +1472,13 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         end = end.add(const Duration(days: 1));
       }
 
+      // Set optimistic override immediately for instant visual feedback
+      _calendarItemDataSource!.setTimeOverride(
+        calendarItem.id,
+        start.toIso8601String(),
+        end.toIso8601String(),
+      );
+
       if (calendarItem is HomeworkModel) {
         final request = HomeworkRequestModel(
           start: start.toIso8601String(),
@@ -1500,13 +1514,13 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     } else if (calendarItem is CourseScheduleEventModel) {
       showSnackBar(
         context,
-        'Items from schedules can\'t be edited on the Planner',
+        "You can't edit this on the Planner",
         isError: true,
       );
     } else if (calendarItem is ExternalCalendarEventModel) {
       showSnackBar(
         context,
-        "Items from external calendars can't be edited on the Planner",
+        "You can't edit this on the Planner",
         isError: true,
       );
     }
