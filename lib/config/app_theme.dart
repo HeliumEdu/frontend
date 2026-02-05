@@ -8,7 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/utils/app_style.dart';
 
-const Color _seedColor = Color(0xff428bca);
+const Color _seedColor = Color(0xff418eb9);
 
 /// Theme extension for semantic colors (success, warning, info)
 @immutable
@@ -32,19 +32,19 @@ class SemanticColors extends ThemeExtension<SemanticColors> {
   static const light = SemanticColors(
     success: Color(0xff049f71),
     warning: Color(0xffc48d3b),
-    info: Color(0xff428bca),
+    info: Color(0xff418eb9),
     successContainer: Color(0xffE8F5E9),
     warningContainer: Color(0xffFFF8E1),
-    infoContainer: Color(0xffE3F2FD),
+    infoContainer: Color(0xffdff7e7),
   );
 
   static const dark = SemanticColors(
     success: Color(0xff33fabe),
     warning: Color(0xfffbc313),
-    info: Color(0xff5c9fd4),
+    info: Color(0xff5aa2c2),
     successContainer: Color(0xff1B3D2F),
     warningContainer: Color(0xff3D3520),
-    infoContainer: Color(0xff1A2F3D),
+    infoContainer: Color(0xff192f37),
   );
 
   @override
@@ -96,7 +96,7 @@ class AppTheme {
       seedColor: _seedColor,
       brightness: Brightness.light,
       primary: _seedColor,
-      error: const Color(0xffe21d55),
+      error: const Color(0xffc51d4b),
     );
     return _buildTheme(colorScheme, SemanticColors.light);
   }
@@ -105,8 +105,8 @@ class AppTheme {
     final colorScheme = ColorScheme.fromSeed(
       seedColor: _seedColor,
       brightness: Brightness.dark,
-      primary: const Color(0xff5c9fd4),
-      error: const Color(0xffff6b8a),
+      primary: const Color(0xff5aa2c2),
+      error: const Color(0xffe15c7b),
     );
     return _buildTheme(colorScheme, SemanticColors.dark);
   }
