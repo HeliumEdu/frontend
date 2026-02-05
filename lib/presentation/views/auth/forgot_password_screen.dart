@@ -120,6 +120,7 @@ class _ForgotPasswordScreenState
       builder: (context, state) {
         return SingleChildScrollView(
           child: ResponsiveCenterCard(
+            hasAppBar: true,
             child: Form(
               key: _formController.formKey,
               child: Column(

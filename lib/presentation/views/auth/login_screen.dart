@@ -143,8 +143,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                 Center(
                   child: Image.asset(
                     AppAssets.logoImagePath,
-                    height: 88,
-                    width: 600,
+                    height: 120,
                   ),
                 ),
                 const SizedBox(height: 100),
