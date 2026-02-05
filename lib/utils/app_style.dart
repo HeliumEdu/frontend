@@ -10,11 +10,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 extension AppStyles on BuildContext {
-  // Fallback font for characters not in Poppins (e.g., bullet •)
+  // Fallback font for characters not in Poppins
   static const fallbackFonts = ['Noto Sans'];
 
-  /// Creates a Poppins TextStyle with Noto Sans fallback for missing characters.
-  /// Use this instead of GoogleFonts.poppins() throughout the app.
   static TextStyle poppins({
     FontWeight? fontWeight,
     double? fontSize,

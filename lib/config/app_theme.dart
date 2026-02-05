@@ -272,7 +272,6 @@ class AppTheme {
   }
 }
 
-// Helper extensions for easy access
 extension ThemeContextExtension on BuildContext {
   ThemeData get theme => Theme.of(this);
 

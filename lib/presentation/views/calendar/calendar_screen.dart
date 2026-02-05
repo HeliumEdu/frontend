@@ -1582,8 +1582,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                 (Responsive.isMobile(context) && calendarItem.allDay)));
     final homeworkId = calendarItem is HomeworkModel ? calendarItem.id : null;
 
-    // Use KeyedSubtree to help Flutter preserve widget state across rebuilds
-    // during SfCalendar drag-drop operations
+    // Use KeyedSubtree to help preserve widget state across rebuilds, prevents
+    // flickers for drag-and-drop and similar operations
     return KeyedSubtree(
       key: ValueKey('calendar_item_${calendarItem.id}'),
       child: _buildCalendarItemWidget(
@@ -2243,7 +2243,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
     _log.info('Homework ${homework.id} completion toggled: $value');
 
-    // Set optimistic UI state
+    // Set optimistic override immediately for instant visual feedback
     _calendarItemDataSource!.setCompletedOverride(homework.id, value);
 
     final request = HomeworkRequestModel(
@@ -2835,8 +2835,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     required HomeworkModel homework,
     bool? completedOverride,
   }) {
-    // Look up the freshest completed state from data source to avoid flash
-    // during SfCalendar rebuilds when it might pass stale appointment data
+    // If UI override exists, use that, to avoid a flicker
     final isCompleted =
         _calendarItemDataSource?.isHomeworkCompleted(homework) ??
         completedOverride ??

@@ -54,9 +54,17 @@
       opacity: 0;
       pointer-events: none;
     }
+    /* Preload emoji font by rendering emojis off-screen during page load */
+    .emoji-preload {
+      position: absolute;
+      left: -9999px;
+      font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Android Emoji", sans-serif;
+    }
   </style>
 </head>
 <body>
+  <!-- Preload emoji font by rendering emojis from various Unicode blocks off-screen -->
+  <div class="emoji-preload" aria-hidden="true">😀🎓📚✅🔴🏠🎨🔢</div>
   <div class="loading" id="loading-overlay"></div>
   <script>
     // Remove loading overlay when Flutter is ready
