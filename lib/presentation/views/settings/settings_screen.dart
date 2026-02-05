@@ -242,7 +242,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
               },
               borderRadius: BorderRadius.circular(16),
               child: Padding(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(14),
                 child: Row(
                   children: [
                     Container(
@@ -306,7 +306,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
               },
               borderRadius: BorderRadius.circular(16),
               child: Padding(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(14),
                 child: Row(
                   children: [
                     Container(
@@ -373,7 +373,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
               },
               borderRadius: BorderRadius.circular(16),
               child: Padding(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(14),
                 child: Row(
                   children: [
                     Container(
@@ -437,7 +437,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
               },
               borderRadius: BorderRadius.circular(16),
               child: Padding(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(14),
                 child: Row(
                   children: [
                     Container(
@@ -512,7 +512,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
           onTap: () => _showDeleteAccountDialog(context),
           borderRadius: BorderRadius.circular(16),
           child: Padding(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(14),
             child: Row(
               children: [
                 Container(

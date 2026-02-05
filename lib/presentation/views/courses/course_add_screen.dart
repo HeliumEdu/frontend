@@ -18,9 +18,9 @@ import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/bloc/course/course_bloc.dart';
 import 'package:heliumapp/presentation/bloc/course/course_event.dart';
 import 'package:heliumapp/presentation/bloc/course/course_state.dart';
-import 'package:heliumapp/presentation/dialogs/color_picker_dialog.dart';
 import 'package:heliumapp/presentation/controllers/core/basic_form_controller.dart';
 import 'package:heliumapp/presentation/controllers/courses/course_form_controller.dart';
+import 'package:heliumapp/presentation/dialogs/color_picker_dialog.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/course_add_stepper.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
@@ -153,6 +153,8 @@ class _CourseAddScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Text('Details', style: AppStyles.featureText(context)),
+              const SizedBox(height: 14),
               LabelAndTextFormField(
                 label: 'Title',
                 autofocus: kIsWeb || !widget.isEdit,
@@ -374,7 +376,10 @@ class _CourseAddScreenState
                 children: [
                   Expanded(
                     child: CheckboxListTile(
-                      title: Text('Online', style: AppStyles.formLabel(context)),
+                      title: Text(
+                        'Online',
+                        style: AppStyles.formLabel(context),
+                      ),
                       value: _formController.isOnline,
                       onChanged: (value) {
                         setState(() {

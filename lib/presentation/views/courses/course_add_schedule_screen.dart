@@ -141,6 +141,8 @@ class _CourseAddScheduleScreenState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text('Schedule', style: AppStyles.featureText(context)),
+            const SizedBox(height: 14),
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
@@ -259,9 +261,9 @@ class _CourseAddScheduleScreenState
                     children: [
                       Text(
                         CalendarConstants.dayNames[dayIndex],
-                        style: AppStyles.formLabel(context).copyWith(
-                          color: context.colorScheme.primary,
-                        ),
+                        style: AppStyles.formLabel(
+                          context,
+                        ).copyWith(color: context.colorScheme.primary),
                       ),
                       const SizedBox(height: 12),
                       Row(

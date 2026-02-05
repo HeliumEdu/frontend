@@ -155,16 +155,9 @@ class _MaterialAddScreenState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (_formController.selectedCourses.isEmpty)
-                      Text(
-                        (_courses.isEmpty && _courses.isEmpty)
-                            ? 'No classes available'
-                            : '',
-                        style: AppStyles.formText(context),
-                      )
-                    else
+                    if (_formController.selectedCourses.isNotEmpty)
                       Wrap(
-                        spacing: 6,
+                        spacing: 4,
                         runSpacing: 2,
                         children: _formController.selectedCourses.map((id) {
                           return Chip(
@@ -175,9 +168,9 @@ class _MaterialAddScreenState
                             deleteIconColor: context.colorScheme.surface,
                             label: Text(
                               _courses.firstWhere((c) => c.id == id).title,
-                              style: AppStyles.formText(context).copyWith(
-                                color: context.colorScheme.surface,
-                              ),
+                              style: AppStyles.formText(
+                                context,
+                              ).copyWith(color: context.colorScheme.surface),
                             ),
                             onDeleted: () {
                               setState(() {
@@ -187,7 +180,7 @@ class _MaterialAddScreenState
                           );
                         }).toList(),
                       ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 2),
                     Align(
                       alignment: Alignment.centerLeft,
                       child: AbsorbPointer(
@@ -213,9 +206,9 @@ class _MaterialAddScreenState
                             ),
                             label: Text(
                               'Select classes',
-                              style: AppStyles.formLabel(context).copyWith(
-                                color: context.colorScheme.primary,
-                              ),
+                              style: AppStyles.formLabel(
+                                context,
+                              ).copyWith(color: context.colorScheme.primary),
                             ),
                           ),
                         ),

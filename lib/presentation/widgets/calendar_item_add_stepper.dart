@@ -10,21 +10,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_routes.dart';
+import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
 import 'package:heliumapp/presentation/widgets/shadow_container.dart';
-import 'package:heliumapp/utils/app_style.dart';
-import 'package:heliumapp/config/app_theme.dart';
 
 enum CalendarItemAddSteps {
-  details('Details', Icons.list),
-  reminders('Reminders', Icons.notifications_active_outlined),
-  attachments('Attachments', Icons.attachment_outlined);
+  details(Icons.list),
+  reminders(Icons.notifications_active_outlined),
+  attachments(Icons.attachment_outlined);
 
-  final String label;
   final IconData icon;
 
-  const CalendarItemAddSteps(this.label, this.icon);
+  const CalendarItemAddSteps(this.icon);
 }
 
 class CalendarItemStepper extends StatelessWidget {
@@ -49,27 +47,38 @@ class CalendarItemStepper extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 12),
       child: ShadowContainer(
         child: EasyStepper(
+          showTitle: false,
           lineStyle: LineStyle(
             lineLength: (MediaQuery.sizeOf(context).width - 275) / 3,
             lineThickness: 3,
             lineSpace: 4,
             lineType: LineType.normal,
-            defaultLineColor: context.colorScheme.outline.withValues(alpha: 0.1),
+            defaultLineColor: context.colorScheme.outline.withValues(
+              alpha: 0.1,
+            ),
             finishedLineColor: context.colorScheme.primary,
             activeLineColor: context.colorScheme.primary.withValues(alpha: 0.5),
           ),
           activeStepIconColor: context.colorScheme.surface,
           activeStepTextColor: context.colorScheme.primary,
           finishedStepBorderColor: context.colorScheme.primary,
-          finishedStepBackgroundColor: context.colorScheme.primary.withValues(alpha: 0.1),
+          finishedStepBackgroundColor: context.colorScheme.primary.withValues(
+            alpha: 0.1,
+          ),
           finishedStepIconColor: context.colorScheme.primary,
-          unreachedStepBorderColor: context.colorScheme.outline.withValues(alpha: 0.1),
-          unreachedStepBackgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          unreachedStepBorderColor: context.colorScheme.outline.withValues(
+            alpha: 0.1,
+          ),
+          unreachedStepBackgroundColor: Theme.of(
+            context,
+          ).scaffoldBackgroundColor,
           unreachedStepIconColor: context.colorScheme.outline,
-          unreachedStepTextColor: context.colorScheme.onSurface.withValues(alpha: 0.1),
+          unreachedStepTextColor: context.colorScheme.onSurface.withValues(
+            alpha: 0.1,
+          ),
           internalPadding: 12,
           showLoadingAnimation: false,
-          stepRadius: 24,
+          stepRadius: 30,
           showStepBorder: true,
           disableScroll: true,
           activeStep: selectedIndex,
@@ -148,17 +157,8 @@ class CalendarItemStepper extends StatelessWidget {
               color: selectedIndex == CalendarItemAddSteps.details.index
                   ? context.colorScheme.surface
                   : context.colorScheme.primary,
-              size: 20,
+              size: 30,
             ),
-          ),
-        ),
-        customTitle: Padding(
-          padding: const EdgeInsets.only(top: 8),
-          child: Text(
-            CalendarItemAddSteps.details.label,
-            style: selectedIndex == CalendarItemAddSteps.details.index
-                ? AppStyles.menuItemActive(context)
-                : AppStyles.menuItem(context),
           ),
         ),
       ),
@@ -173,7 +173,9 @@ class CalendarItemStepper extends StatelessWidget {
                   : 0.1,
             ),
             border: Border.all(
-              color: context.colorScheme.primary.withValues(alpha: isEdit ? 1 : 0.3),
+              color: context.colorScheme.primary.withValues(
+                alpha: isEdit ? 1 : 0.3,
+              ),
               width: 2,
             ),
           ),
@@ -182,20 +184,11 @@ class CalendarItemStepper extends StatelessWidget {
               CalendarItemAddSteps.reminders.icon,
               color: selectedIndex == CalendarItemAddSteps.reminders.index
                   ? context.colorScheme.surface
-                  : context.colorScheme.primary.withValues(alpha: isEdit ? 1 : 0.3),
+                  : context.colorScheme.primary.withValues(
+                      alpha: isEdit ? 1 : 0.3,
+                    ),
               size: 20,
             ),
-          ),
-        ),
-        customTitle: Padding(
-          padding: const EdgeInsets.only(top: 8),
-          child: Text(
-            CalendarItemAddSteps.reminders.label,
-            style: selectedIndex == CalendarItemAddSteps.reminders.index
-                ? AppStyles.menuItemActive(context)
-                : AppStyles.menuItem(context).copyWith(
-                    color: context.colorScheme.onSurface.withValues(alpha: isEdit ? 1 : 0.3),
-                  ),
           ),
         ),
       ),
@@ -210,7 +203,9 @@ class CalendarItemStepper extends StatelessWidget {
                   : 0.1,
             ),
             border: Border.all(
-              color: context.colorScheme.primary.withValues(alpha: isEdit ? 1 : 0.3),
+              color: context.colorScheme.primary.withValues(
+                alpha: isEdit ? 1 : 0.3,
+              ),
               width: 2,
             ),
           ),
@@ -219,20 +214,11 @@ class CalendarItemStepper extends StatelessWidget {
               CalendarItemAddSteps.attachments.icon,
               color: selectedIndex == CalendarItemAddSteps.attachments.index
                   ? context.colorScheme.surface
-                  : context.colorScheme.primary.withValues(alpha: isEdit ? 1 : 0.3),
+                  : context.colorScheme.primary.withValues(
+                      alpha: isEdit ? 1 : 0.3,
+                    ),
               size: 20,
             ),
-          ),
-        ),
-        customTitle: Padding(
-          padding: const EdgeInsets.only(top: 8),
-          child: Text(
-            CalendarItemAddSteps.attachments.label,
-            style: selectedIndex == CalendarItemAddSteps.attachments.index
-                ? AppStyles.menuItemActive(context)
-                : AppStyles.menuItem(context).copyWith(
-                    color: context.colorScheme.onSurface.withValues(alpha: isEdit ? 1 : 0.3),
-                  ),
           ),
         ),
       ),

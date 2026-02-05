@@ -14,18 +14,16 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/presentation/bloc/course/course_bloc.dart';
 import 'package:heliumapp/presentation/widgets/shadow_container.dart';
-import 'package:heliumapp/utils/app_style.dart';
 
 enum CourseAddSteps {
-  details('Details', Icons.list),
-  schedule('Schedule', Icons.calendar_month),
-  categories('Categories', Icons.category),
-  attachments('Attachments', Icons.attachment);
+  details(Icons.list),
+  schedule(Icons.calendar_month),
+  categories(Icons.category),
+  attachments(Icons.attachment);
 
-  final String label;
   final IconData icon;
 
-  const CourseAddSteps(this.label, this.icon);
+  const CourseAddSteps(this.icon);
 }
 
 class CourseStepper extends StatelessWidget {
@@ -50,8 +48,8 @@ class CourseStepper extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 12),
       child: ShadowContainer(
         child: EasyStepper(
+          showTitle: false,
           lineStyle: LineStyle(
-            // FIXME: with new fonts, this needs to be reduced further
             lineLength: (MediaQuery.sizeOf(context).width - 275) / 4,
             lineThickness: 3,
             lineSpace: 4,
@@ -81,7 +79,7 @@ class CourseStepper extends StatelessWidget {
           ),
           internalPadding: 12,
           showLoadingAnimation: false,
-          stepRadius: 24,
+          stepRadius: 30,
           showStepBorder: true,
           disableScroll: true,
           activeStep: selectedIndex,
@@ -149,15 +147,6 @@ class CourseStepper extends StatelessWidget {
             ),
           ),
         ),
-        customTitle: Padding(
-          padding: const EdgeInsets.only(top: 8),
-          child: Text(
-            CourseAddSteps.details.label,
-            style: selectedIndex == CourseAddSteps.details.index
-                ? AppStyles.menuItemActive(context)
-                : AppStyles.menuItem(context),
-          ),
-        ),
       ),
       EasyStep(
         enabled: isEdit,
@@ -183,19 +172,6 @@ class CourseStepper extends StatelessWidget {
                     ),
               size: 20,
             ),
-          ),
-        ),
-        customTitle: Padding(
-          padding: const EdgeInsets.only(top: 8),
-          child: Text(
-            CourseAddSteps.schedule.label,
-            style: selectedIndex == CourseAddSteps.schedule.index
-                ? AppStyles.menuItemActive(context)
-                : AppStyles.menuItem(context).copyWith(
-                    color: context.colorScheme.onSurface.withValues(
-                      alpha: isEdit ? 1 : 0.3,
-                    ),
-                  ),
           ),
         ),
       ),
@@ -225,19 +201,6 @@ class CourseStepper extends StatelessWidget {
             ),
           ),
         ),
-        customTitle: Padding(
-          padding: const EdgeInsets.only(top: 8),
-          child: Text(
-            CourseAddSteps.categories.label,
-            style: selectedIndex == CourseAddSteps.categories.index
-                ? AppStyles.menuItemActive(context)
-                : AppStyles.menuItem(context).copyWith(
-                    color: context.colorScheme.onSurface.withValues(
-                      alpha: isEdit ? 1 : 0.3,
-                    ),
-                  ),
-          ),
-        ),
       ),
       EasyStep(
         enabled: isEdit,
@@ -265,19 +228,6 @@ class CourseStepper extends StatelessWidget {
                     ),
               size: 20,
             ),
-          ),
-        ),
-        customTitle: Padding(
-          padding: const EdgeInsets.only(top: 8),
-          child: Text(
-            CourseAddSteps.attachments.label,
-            style: selectedIndex == CourseAddSteps.attachments.index
-                ? AppStyles.menuItemActive(context)
-                : AppStyles.menuItem(context).copyWith(
-                    color: context.colorScheme.onSurface.withValues(
-                      alpha: isEdit ? 1 : 0.3,
-                    ),
-                  ),
           ),
         ),
       ),
