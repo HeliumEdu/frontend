@@ -80,6 +80,7 @@ jobs:
           SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
           SIGNING_STORE_FILE: ${{ github.workspace }}/android/helium-release-key.jks
           SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: make build-android-release
 
       - name: Upload AAB artifact
@@ -163,6 +164,8 @@ jobs:
           sed -i '' 's/DEVELOPMENT_TEAM = SHY4MCK827;/CODE_SIGN_STYLE = Manual; DEVELOPMENT_TEAM = SHY4MCK827; PROVISIONING_PROFILE_SPECIFIER = "Helium";/g' ios/Runner.xcodeproj/project.pbxproj
 
       - name: Build iOS IPA
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: make build-ios-release
 
       - name: Upload IPA artifact

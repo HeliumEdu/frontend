@@ -23,7 +23,7 @@ build-android: install
 	flutter build apk --debug
 
 build-android-release: install
-	flutter build appbundle --release
+	flutter build appbundle --release --obfuscate --split-debug-info=build/symbols
 
 build-ios-dev: install
 	flutter build ios
@@ -32,7 +32,7 @@ build-ios: install
 	flutter build ios --debug --no-codesign
 
 build-ios-release: install
-	flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
+	flutter build ipa --release --export-options-plist=ios/ExportOptions.plist --obfuscate --split-debug-info=build/symbols
 
 test: install
 	flutter analyze --no-pub --no-fatal-infos --no-fatal-warnings
