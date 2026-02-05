@@ -115,8 +115,8 @@ class CalendarProvidedScreen extends StatefulWidget {
 }
 
 class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
-  static const _kAgendaHeightMobile = 51.0;
-  static const _kAgendaHeightDesktop = 57.0;
+  static const _agendaHeightMobile = 51.0;
+  static const _agendaHeightDesktop = 57.0;
 
   @override
   // TODO: have the shell pass down its label here instead
@@ -404,8 +404,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         );
 
         final agendaHeight = Responsive.isMobile(context)
-            ? _kAgendaHeightMobile
-            : _kAgendaHeightDesktop;
+            ? _agendaHeightMobile
+            : _agendaHeightDesktop;
 
         return SfCalendar(
           backgroundColor: context.colorScheme.surface,
@@ -1939,8 +1939,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       width: width,
       constraints: BoxConstraints(
         minHeight: Responsive.isMobile(context)
-            ? _kAgendaHeightMobile
-            : _kAgendaHeightDesktop,
+            ? _agendaHeightMobile
+            : _agendaHeightDesktop,
       ),
       decoration: BoxDecoration(
         color: color,
@@ -2148,7 +2148,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                         },
                         child: ConstrainedBox(
                           constraints: const BoxConstraints(
-                            maxHeight: _kAgendaHeightDesktop,
+                            maxHeight: _agendaHeightDesktop,
                           ),
                           child: _buildCalendarItemWidget(
                             calendarItem: calendarItem,
