@@ -27,6 +27,13 @@ import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 final _log = Logger('data.sources');
 
+/// Optimistic override for calendar item start/end times during drag-drop/resize.
+class CalendarItemTimeOverride {
+  final String start;
+  final String end;
+  const CalendarItemTimeOverride({required this.start, required this.end});
+}
+
 class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   final EventRepository eventRepository;
   final HomeworkRepository homeworkRepository;
@@ -48,6 +55,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   Set<String> _filterStatuses = {};
   String _searchQuery = '';
   final Map<int, bool> _completedOverrides = {};
+  final Map<int, CalendarItemTimeOverride> _timeOverrides = {};
 
   CalendarItemDataSource({
     required this.eventRepository,
@@ -117,7 +125,12 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   @override
   DateTime getStartTime(int index) {
     final item = _getData(index);
-    final baseTime = DateTime.parse(item.start);
+
+    // Check for optimistic override first (drag-drop/resize)
+    final override = _timeOverrides[item.id];
+    final baseTime = override != null
+        ? DateTime.parse(override.start)
+        : DateTime.parse(item.start);
 
     // Don't adjust all-day events - they start at midnight and subtracting
     // seconds would push them to the previous day
@@ -137,8 +150,15 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   @override
   DateTime getEndTime(int index) {
     final calendarItem = _getData(index);
-    final startTime = DateTime.parse(calendarItem.start);
-    final endTime = DateTime.parse(calendarItem.end);
+
+    // Check for optimistic override first (drag-drop/resize)
+    final override = _timeOverrides[calendarItem.id];
+    final startTime = override != null
+        ? DateTime.parse(override.start)
+        : DateTime.parse(calendarItem.start);
+    final endTime = override != null
+        ? DateTime.parse(override.end)
+        : DateTime.parse(calendarItem.end);
     final priority = _typeSortPriority[calendarItem.calendarItemType] ?? 0;
 
     if (calendarItem.allDay) {
@@ -436,10 +456,11 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
       );
     }
 
-    // Clear any completed override since we have the real data now
+    // Clear any overrides since we have the real data now
     if (calendarItem is HomeworkModel) {
       _completedOverrides.remove(calendarItem.id);
     }
+    _timeOverrides.remove(calendarItem.id);
 
     // Find and update the item in appointments list directly, using targeted
     // remove/add instead of full reset to avoid checkbox flicker on other items
@@ -499,6 +520,21 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     _completedOverrides.remove(homeworkId);
     _notifyChangeListeners();
   }
+
+  // Optimistic UI methods for drag-drop/resize
+  void setTimeOverride(int itemId, String start, String end) {
+    _timeOverrides[itemId] = CalendarItemTimeOverride(start: start, end: end);
+
+    // Notify SfCalendar to re-render appointments with updated times
+    notifyListeners(CalendarDataSourceAction.reset, appointments!);
+    _notifyChangeListeners();
+  }
+
+  void clearTimeOverride(int itemId) {
+    _timeOverrides.remove(itemId);
+  }
+
+  CalendarItemTimeOverride? getTimeOverride(int itemId) => _timeOverrides[itemId];
 
   bool isHomeworkCompleted(HomeworkModel homework) {
     // Check override first
