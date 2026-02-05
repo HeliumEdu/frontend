@@ -715,7 +715,6 @@ class TodosTableState extends State<TodosTable> {
       child: Checkbox(
         value: isCompleted,
         onChanged: (value) {
-          Feedback.forTap(context);
           widget.onToggleCompleted(homework, value!);
         },
         activeColor: userSettings.colorByCategory
