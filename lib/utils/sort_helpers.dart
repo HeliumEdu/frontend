@@ -29,14 +29,7 @@ class Sort {
     });
   }
 
-  /// Sorts calendar items to match SfCalendar's ordering:
-  /// 1. Start date
-  /// 2. If end dates on same day: all-day first, then start time
-  /// 3. If end dates on different days: shorter duration first
-  /// 4. Type priority as final tiebreaker (Homework → ClassSchedule → Event → External)
-  ///
-  /// Applies the same fake duration adjustments as getEndTime() to ensure our
-  /// sort matches SfCalendar's internal sort exactly.
+  /// When multiple items at the same time, opt for this priority
   static const _typeSortPriority = {
     CalendarItemType.homework: 0,
     CalendarItemType.courseSchedule: 1,
@@ -49,8 +42,10 @@ class Sort {
       final aPriority = _typeSortPriority[a.calendarItemType] ?? 0;
       final bPriority = _typeSortPriority[b.calendarItemType] ?? 0;
 
-      // Apply same fake time adjustments as getStartTime()/getEndTime()
-      // Don't adjust all-day events - they start at midnight
+      // To ensure SfCalendar sorts as we expected, we add a "fake" second to
+      // start/end times based on priority; SfCalendar's internal sort logic
+      // also dates duration in to account, so we "fake" the end-time to ensure
+      // our desired sort order overrides
       final aSecondsToSubtract = a.allDay ? 0 : 3 - aPriority;
       final bSecondsToSubtract = b.allDay ? 0 : 3 - bPriority;
       final aStart = DateTime.parse(a.start).subtract(
@@ -66,30 +61,25 @@ class Sort {
         Duration(minutes: b.allDay ? 0 : 3 - bPriority),
       );
 
-      // Compare start dates first (date only, ignoring time)
       final startDateCompare = _compareDatesOnly(aStart, bStart);
       if (startDateCompare != 0) return startDateCompare;
 
-      // Same start date - check if end dates are on the same day
       final sameEndDate = _isSameDate(aEnd, bEnd);
 
+      // Before consider type-based priorities, all-day events always shown first
       if (sameEndDate) {
-        // All-day appointments first
         if (a.allDay != b.allDay) {
           return a.allDay ? -1 : 1;
         }
-        // Then by adjusted start time (includes priority offset)
         final startTimeCompare = aStart.compareTo(bStart);
         if (startTimeCompare != 0) return startTimeCompare;
       } else {
-        // Different end dates - shorter duration first
         final aDuration = aEnd.difference(aStart).inMinutes;
         final bDuration = bEnd.difference(bStart).inMinutes;
         final durationCompare = aDuration.compareTo(bDuration);
         if (durationCompare != 0) return durationCompare;
       }
 
-      // Type priority as final tiebreaker
       return aPriority.compareTo(bPriority);
     });
   }

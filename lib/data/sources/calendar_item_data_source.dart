@@ -269,7 +269,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
       _log.fine('Items for date range already cached: $startDate to $endDate');
     }
 
-    // Rebuild appointments from filtered items
+    // Rebuild calendar items from filters
     appointments!.clear();
     appointments!.addAll(_filteredCalendarItems);
     notifyListeners(CalendarDataSourceAction.reset, appointments!);
@@ -456,14 +456,14 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
       );
     }
 
-    // Clear any overrides since we have the real data now
+    // Clear any overrides since we have real data now
     if (calendarItem is HomeworkModel) {
       _completedOverrides.remove(calendarItem.id);
     }
     _timeOverrides.remove(calendarItem.id);
 
-    // Find and update the item in appointments list directly, using targeted
-    // remove/add instead of full reset to avoid checkbox flicker on other items
+    // Find and update the item directly, using targeted, to reduce unnecessary
+    // rebuilds and reduce the potential for UI flickers
     final oldIndex = appointments!.indexWhere(
       (item) => (item as CalendarItemBaseModel).id == calendarItem.id,
     );
@@ -525,7 +525,6 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   void setTimeOverride(int itemId, String start, String end) {
     _timeOverrides[itemId] = CalendarItemTimeOverride(start: start, end: end);
 
-    // Notify SfCalendar to re-render appointments with updated times
     notifyListeners(CalendarDataSourceAction.reset, appointments!);
     _notifyChangeListeners();
   }
