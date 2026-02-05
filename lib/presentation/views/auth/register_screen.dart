@@ -133,6 +133,7 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
   Widget buildMainArea(BuildContext context) {
     return SingleChildScrollView(
       child: ResponsiveCenterCard(
+        hasAppBar: true,
         child: AutofillGroup(
           child: Form(
             key: _formController.formKey,

@@ -8,15 +8,16 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
-// FIXME: adjust this to center vertically too (or scroll if not enough room, but parent widget might take care of that)
 class ResponsiveCenterCard extends StatelessWidget {
   final Widget child;
   final double maxWidth;
+  final bool hasAppBar;
 
   const ResponsiveCenterCard({
     super.key,
     required this.child,
     this.maxWidth = 450,
+    this.hasAppBar = false,
   });
 
   @override
@@ -27,12 +28,25 @@ class ResponsiveCenterCard extends StatelessWidget {
       return Padding(padding: const EdgeInsets.all(16), child: child);
     }
 
-    return Center(
-      child: Container(
-        constraints: BoxConstraints(maxWidth: maxWidth),
-        margin: const EdgeInsets.symmetric(vertical: 25),
-        child: Card(
-          child: Padding(padding: const EdgeInsets.all(16), child: child),
+    final mediaQuery = MediaQuery.of(context);
+    final screenHeight = mediaQuery.size.height;
+    final topPadding = mediaQuery.padding.top;
+    final bottomPadding = mediaQuery.padding.bottom;
+
+    final appBarHeight = hasAppBar ? kToolbarHeight : 0;
+    final availableHeight = screenHeight - topPadding - bottomPadding - appBarHeight;
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        minHeight: availableHeight,
+      ),
+      child: Center(
+        child: Container(
+          constraints: BoxConstraints(maxWidth: maxWidth),
+          margin: const EdgeInsets.symmetric(vertical: 25),
+          child: Card(
+            child: Padding(padding: const EdgeInsets.all(16), child: child),
+          ),
         ),
       ),
     );
