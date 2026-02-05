@@ -79,8 +79,8 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
   Widget build(BuildContext context) {
     final isDisabled = widget.onChanged == null;
     final iconColor = isDisabled
-        ? context.colorScheme.onSurface.withValues(alpha: 0.4)
-        : context.colorScheme.onSurface;
+        ? context.colorScheme.primary.withValues(alpha: 0.4)
+        : context.colorScheme.primary;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

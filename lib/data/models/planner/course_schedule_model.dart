@@ -7,7 +7,6 @@
 
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
-import 'package:intl/intl.dart';
 
 class CourseScheduleModel {
   final int id;
@@ -27,7 +26,6 @@ class CourseScheduleModel {
   final String satStartTime;
   final String satEndTime;
   final int course;
-  final serverTimeFormat = DateFormat('HH:mm:ss');
 
   CourseScheduleModel({
     required this.id,
@@ -159,7 +157,7 @@ class CourseScheduleModel {
         break;
     }
 
-    return serverTimeFormat.parse(startTime);
+    return HeliumTime.formatForApi(HeliumTime.parse(startTime)!);
   }
 
   DateTime getEndTimeForDay(String day) {
@@ -196,11 +194,13 @@ class CourseScheduleModel {
         break;
     }
 
-    return serverTimeFormat.parse(endTime);
+    return HeliumTime.formatForApi(HeliumTime.parse(endTime)!);
   }
 
   String getDateTimeRangeForDisplay(String day) {
-    final startTime = HeliumDateTime.formatTimeForDisplay(getStartTimeForDay(day));
+    final startTime = HeliumDateTime.formatTimeForDisplay(
+      getStartTimeForDay(day),
+    );
     final endTime = HeliumDateTime.formatTimeForDisplay(getEndTimeForDay(day));
 
     return '$startTime - $endTime';

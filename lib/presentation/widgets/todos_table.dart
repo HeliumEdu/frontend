@@ -475,15 +475,15 @@ class TodosTableState extends State<TodosTable> {
           minimumSize: const Size(40, 40),
           padding: EdgeInsets.zero,
           side: BorderSide(
-            color: context.colorScheme.outline.withValues(alpha: 0.8),
+            color: context.colorScheme.primary,
           ),
         ),
         child: Text(
           pageNumber.toString(),
-          style: AppStyles.standardBodyTextLight(context).copyWith(
+          style: AppStyles.buttonText(context).copyWith(
             color: isActive
                 ? context.colorScheme.onPrimary
-                : context.colorScheme.onSurface,
+                : context.colorScheme.primary,
           ),
         ),
       ),
@@ -497,8 +497,8 @@ class TodosTableState extends State<TodosTable> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         child: Text(
           '...',
-          style: AppStyles.smallSecondaryTextLight(context).copyWith(
-            color: context.colorScheme.onSurface.withValues(alpha: 0.5),
+          style: AppStyles.standardBodyTextLight(context).copyWith(
+            color: context.colorScheme.onSurface.withValues(alpha: 0.7),
           ),
         ),
       ),

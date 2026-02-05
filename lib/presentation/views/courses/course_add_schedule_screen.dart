@@ -625,57 +625,57 @@ class _CourseAddScheduleScreenState
 
     if (_variesByDay) {
       sunStart = _selectedDays.contains(0) && _startTimes[0] != null
-          ? HeliumTime.formatForApi(_startTimes[0]!)
+          ? HeliumTime.formatForApiAsString(_startTimes[0]!)
           : defaultTime;
       sunEnd = _selectedDays.contains(0) && _endTimes[0] != null
-          ? HeliumTime.formatForApi(_endTimes[0]!)
+          ? HeliumTime.formatForApiAsString(_endTimes[0]!)
           : defaultTime;
 
       monStart = _selectedDays.contains(1) && _startTimes[1] != null
-          ? HeliumTime.formatForApi(_startTimes[1]!)
+          ? HeliumTime.formatForApiAsString(_startTimes[1]!)
           : defaultTime;
       monEnd = _selectedDays.contains(1) && _endTimes[1] != null
-          ? HeliumTime.formatForApi(_endTimes[1]!)
+          ? HeliumTime.formatForApiAsString(_endTimes[1]!)
           : defaultTime;
 
       tueStart = _selectedDays.contains(2) && _startTimes[2] != null
-          ? HeliumTime.formatForApi(_startTimes[2]!)
+          ? HeliumTime.formatForApiAsString(_startTimes[2]!)
           : defaultTime;
       tueEnd = _selectedDays.contains(2) && _endTimes[2] != null
-          ? HeliumTime.formatForApi(_endTimes[2]!)
+          ? HeliumTime.formatForApiAsString(_endTimes[2]!)
           : defaultTime;
 
       wedStart = _selectedDays.contains(3) && _startTimes[3] != null
-          ? HeliumTime.formatForApi(_startTimes[3]!)
+          ? HeliumTime.formatForApiAsString(_startTimes[3]!)
           : defaultTime;
       wedEnd = _selectedDays.contains(3) && _endTimes[3] != null
-          ? HeliumTime.formatForApi(_endTimes[3]!)
+          ? HeliumTime.formatForApiAsString(_endTimes[3]!)
           : defaultTime;
 
       thuStart = _selectedDays.contains(4) && _startTimes[4] != null
-          ? HeliumTime.formatForApi(_startTimes[4]!)
+          ? HeliumTime.formatForApiAsString(_startTimes[4]!)
           : defaultTime;
       thuEnd = _selectedDays.contains(4) && _endTimes[4] != null
-          ? HeliumTime.formatForApi(_endTimes[4]!)
+          ? HeliumTime.formatForApiAsString(_endTimes[4]!)
           : defaultTime;
 
       friStart = _selectedDays.contains(5) && _startTimes[5] != null
-          ? HeliumTime.formatForApi(_startTimes[5]!)
+          ? HeliumTime.formatForApiAsString(_startTimes[5]!)
           : defaultTime;
       friEnd = _selectedDays.contains(5) && _endTimes[5] != null
-          ? HeliumTime.formatForApi(_endTimes[5]!)
+          ? HeliumTime.formatForApiAsString(_endTimes[5]!)
           : defaultTime;
 
       satStart = _selectedDays.contains(6) && _startTimes[6] != null
-          ? HeliumTime.formatForApi(_startTimes[6]!)
+          ? HeliumTime.formatForApiAsString(_startTimes[6]!)
           : defaultTime;
       satEnd = _selectedDays.contains(6) && _endTimes[6] != null
-          ? HeliumTime.formatForApi(_endTimes[6]!)
+          ? HeliumTime.formatForApiAsString(_endTimes[6]!)
           : defaultTime;
     } else {
       // Same time for all days
-      final startTimeStr = HeliumTime.formatForApi(_singleStartTime);
-      final endTimeStr = HeliumTime.formatForApi(_singleEndTime);
+      final startTimeStr = HeliumTime.formatForApiAsString(_singleStartTime);
+      final endTimeStr = HeliumTime.formatForApiAsString(_singleEndTime);
 
       sunStart = startTimeStr;
       sunEnd = endTimeStr;

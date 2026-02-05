@@ -398,7 +398,7 @@ class _NotificationsScreenState
                                         ),
                                       ),
                                       const SizedBox(width: 8),
-                                      const Text('Dismiss'),
+                                      Text('Dismiss', style: AppStyles.formText(context)),
                                     ],
                                   ),
                                 ),
@@ -414,8 +414,7 @@ class _NotificationsScreenState
                                 ),
                                 child: Icon(
                                   Icons.more_vert,
-                                  color: context.colorScheme.onSurface
-                                      .withValues(alpha: 0.6),
+                                  color: context.colorScheme.primary,
                                   size: Responsive.getIconSize(
                                     context,
                                     mobile: 16,

@@ -163,7 +163,7 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
                           vertical: 12,
                         ),
                         decoration: BoxDecoration(
-                          color: context.colorScheme.surfaceContainerHighest,
+                          color: context.colorScheme.surfaceContainer,
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
                             color: context.colorScheme.outline.withValues(
