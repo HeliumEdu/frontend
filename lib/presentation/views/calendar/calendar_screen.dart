@@ -1828,7 +1828,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             launchUrl(Uri.parse('mailto:${course!.teacherEmail}'));
           },
           icon: Icons.email_outlined,
-          tooltip: "Email teacher",
+          tooltip: 'Email teacher',
           // TODO: Known Issues (7/Low): Use dynamic icon color based on calendar item background luminance to prevent visibility issues with light user-selected colors
           color: Colors.white,
         ),

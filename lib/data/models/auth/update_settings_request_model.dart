@@ -10,6 +10,7 @@ class UpdateSettingsRequestModel {
   final int? defaultView;
   final int? weekStartsOn;
   final int? colorSchemeTheme;
+  final int? whatsNewVersionSeen;
   final bool? colorByCategory;
   final String? eventsColor;
   final String? materialColor;
@@ -23,6 +24,7 @@ class UpdateSettingsRequestModel {
     this.defaultView,
     this.weekStartsOn,
     this.colorSchemeTheme,
+    this.whatsNewVersionSeen,
     this.colorByCategory,
     this.eventsColor,
     this.materialColor,
@@ -38,6 +40,7 @@ class UpdateSettingsRequestModel {
     if (defaultView != null) json['default_view'] = defaultView;
     if (weekStartsOn != null) json['week_starts_on'] = weekStartsOn;
     if (colorSchemeTheme != null) json['color_scheme_theme'] = colorSchemeTheme;
+    if (whatsNewVersionSeen != null) json['whats_new_version_seen'] = whatsNewVersionSeen;
     if (colorByCategory != null) json['calendar_use_category_colors'] = colorByCategory;
     if (timeZone != null) json['time_zone'] = timeZone;
     if (eventsColor != null) json['events_color'] = eventsColor;
