@@ -86,7 +86,7 @@ class HeliumStorage {
     try {
       return await downloadFilePlatform(url, filename);
     } catch (e) {
-      _log.severe('An error occurred during file download: $e');
+      _log.severe('An error occurred during file download', e);
       return false;
     }
   }

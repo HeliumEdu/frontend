@@ -459,7 +459,7 @@ class _CourseAddScreenState
         try {
           _formController.selectedColor = state.course!.color;
         } catch (e) {
-          _log.info('Error parsing color: $e');
+          _log.info('Error parsing color', e);
         }
       } else {
         _formController.startDate = DateTime.parse(state.courseGroup.startDate);
