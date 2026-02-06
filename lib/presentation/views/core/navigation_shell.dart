@@ -136,6 +136,8 @@ class _NavigationShellState extends State<NavigationShell> {
                         ),
                       )
                       .toList(),
+                  // TODO: to bottom of NavigationRail, add FreshDesk widget, as Android / iOS buttons (only on web)
+                  // TODO: on web, move settings out of header and to bottom of NavigationRail
                 ),
               Expanded(
                 child: SafeArea(

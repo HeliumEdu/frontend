@@ -106,6 +106,8 @@ class ExternalCalendarRemoteDataSourceImpl
       };
       if (search != null) queryParameters['search'] = search;
 
+      // TODO: consider just hitting iCal directly for a better path, and to reduce load on our backend
+
       final response = await dioClient.dio.get(
         ApiUrl.feedExternalCalendarsEventsListUrl,
         queryParameters: queryParameters.isEmpty ? null : queryParameters,
