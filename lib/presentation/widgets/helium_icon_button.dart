@@ -12,6 +12,7 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 class HeliumIconButton extends StatelessWidget {
   final VoidCallback onPressed;
   final IconData icon;
+  final String? tooltip;
   final Color? color;
   final double? size;
 
@@ -19,6 +20,7 @@ class HeliumIconButton extends StatelessWidget {
     super.key,
     required this.onPressed,
     required this.icon,
+    this.tooltip,
     this.color,
     this.size,
   });
@@ -45,6 +47,7 @@ class HeliumIconButton extends StatelessWidget {
       ),
       onPressed: onPressed,
       icon: Icon(icon, color: useColor, size: useSize),
+      tooltip: tooltip,
       padding: const EdgeInsets.all(6),
       constraints: const BoxConstraints(),
     );

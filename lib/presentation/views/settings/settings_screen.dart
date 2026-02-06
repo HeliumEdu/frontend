@@ -26,6 +26,7 @@ import 'package:heliumapp/presentation/widgets/shadow_container.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -170,6 +171,16 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
+              IconButton(
+                onPressed: () =>
+                    launchUrl(Uri.parse('https://support.heliumedu.com')),
+                icon: Icon(
+                  Icons.support_agent,
+                  color: context.colorScheme.primary,
+                ),
+                tooltip: 'Get support',
+              ),
+              const SizedBox(width: 8),
               SegmentedButton<ThemeMode>(
                 segments: const [
                   ButtonSegment<ThemeMode>(
@@ -289,10 +300,10 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Settings', style: AppStyles.menuItem(context)),
+                          Text('Preferences', style: AppStyles.menuItem(context)),
                           const SizedBox(height: 2),
                           Text(
-                            'Change your preferences',
+                            'Tailor Helium to your tastes',
                             style: AppStyles.menuItemHint(context),
                           ),
                         ],

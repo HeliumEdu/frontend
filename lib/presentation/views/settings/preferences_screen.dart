@@ -49,7 +49,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
   bool _isSelectedColorByCategory = false;
 
   @override
-  String get screenTitle => 'Settings';
+  String get screenTitle => 'Preferences';
 
   @override
   ScreenType get screenType => ScreenType.entityPage;

@@ -265,6 +265,7 @@ class _CourseAddScreenState
                     launchUrl(Uri.parse(_formController.urlController.text));
                   },
                   icon: Icons.link_outlined,
+                  tooltip: "Launch class's website",
                   color: context.semanticColors.success,
                 ),
               ),
@@ -288,6 +289,7 @@ class _CourseAddScreenState
                     );
                   },
                   icon: Icons.email_outlined,
+                  tooltip: 'Email teacher',
                   color: context.semanticColors.info,
                 ),
               ),

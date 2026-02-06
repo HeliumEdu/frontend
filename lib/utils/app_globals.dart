@@ -23,6 +23,8 @@ class AppConstants {
   static const appName = 'Helium';
 
   static const appTagline = 'Student Planner & Academic Calendar App';
+
+  static const minHeightForTrailingNav = 500.0;
 }
 
 class CalendarConstants {

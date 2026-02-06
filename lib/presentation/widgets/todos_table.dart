@@ -864,6 +864,7 @@ class TodosTableState extends State<TodosTable> {
             onPressed: () {
               launchUrl(Uri.parse('mailto:${course!.teacherEmail}'));
             },
+            tooltip: 'Email teacher',
             icon: Icons.email_outlined,
             color: context.colorScheme.onSurface,
           ),
@@ -879,6 +880,7 @@ class TodosTableState extends State<TodosTable> {
                 mode: LaunchMode.externalApplication,
               );
             },
+            tooltip: "Launch class's website",
             icon: Icons.link_outlined,
             color: context.colorScheme.onSurface,
           ),

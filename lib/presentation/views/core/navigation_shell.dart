@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_routes.dart';
@@ -14,8 +15,11 @@ import 'package:heliumapp/presentation/views/courses/courses_screen.dart';
 import 'package:heliumapp/presentation/views/grades/grades_screen.dart';
 import 'package:heliumapp/presentation/views/materials/materials_screen.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
+import 'package:heliumapp/presentation/widgets/settings_button.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// InheritedWidget to tell child screens to hide their header.
 class NavigationShellProvider extends InheritedWidget {
@@ -107,10 +111,7 @@ class _NavigationShellState extends State<NavigationShell> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final deviceType = Responsive.getDeviceTypeFromSize(
-          constraints.biggest,
-        );
-        final useNavigationRail = deviceType == DeviceType.desktop;
+        final useNavigationRail = !Responsive.isMobile(context);
 
         return Scaffold(
           body: Row(
@@ -136,8 +137,8 @@ class _NavigationShellState extends State<NavigationShell> {
                         ),
                       )
                       .toList(),
-                  // TODO: to bottom of NavigationRail, add FreshDesk widget, as Android / iOS buttons (only on web)
-                  // TODO: on web, move settings out of header and to bottom of NavigationRail
+                  trailing: _buildTrailing(context, constraints.maxHeight),
+                  trailingAtBottom: true,
                 ),
               Expanded(
                 child: SafeArea(
@@ -205,7 +206,10 @@ class _NavigationShellState extends State<NavigationShell> {
                   selectedIndex: currentPage.index,
                   onDestinationSelected: (index) =>
                       _onDestinationSelected(context, index),
-                  labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
+                  labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+                  labelTextStyle: WidgetStateProperty.all(
+                    AppStyles.smallSecondaryText(context),
+                  ),
                   destinations: NavigationPage.values
                       .map(
                         (page) => NavigationDestination(
@@ -221,6 +225,52 @@ class _NavigationShellState extends State<NavigationShell> {
                 ),
         );
       },
+    );
+  }
+
+  Widget? _buildTrailing(BuildContext context, double availableHeight) {
+    if (availableHeight < AppConstants.minHeightForTrailingNav) {
+      return null;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildAppStoreButton(
+            context: context,
+            icon: Icons.apple,
+            tooltip: 'Download on the App Store',
+            url: 'https://apps.apple.com/app/helium/id1469085853',
+          ),
+          const SizedBox(height: 8),
+          _buildAppStoreButton(
+            context: context,
+            icon: Icons.android,
+            tooltip: 'Get it on Google Play',
+            url:
+                'https://play.google.com/store/apps/details?id=com.heliumedu.heliumapp',
+          ),
+          if (kIsWeb) const SizedBox(width: 40, child: Divider()),
+          if (kIsWeb) const SettingsButton(compact: false),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppStoreButton({
+    required BuildContext context,
+    required IconData icon,
+    required String tooltip,
+    required String url,
+  }) {
+    return IconButton(
+      onPressed: () {
+        launchUrl(Uri.parse(url));
+      },
+      icon: Icon(icon, color: context.colorScheme.primary),
+      tooltip: tooltip,
     );
   }
 }

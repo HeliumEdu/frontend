@@ -255,6 +255,7 @@ class _MaterialAddScreenState
                     launchUrl(Uri.parse(_formController.urlController.text));
                   },
                   icon: Icons.link_outlined,
+                  tooltip: "Launch resource's website",
                   color: context.semanticColors.success,
                 ),
               ),

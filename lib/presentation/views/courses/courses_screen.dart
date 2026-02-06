@@ -337,6 +337,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
                         launchUrl(Uri.parse('mailto:${course.teacherEmail}'));
                       },
                       icon: Icons.email_outlined,
+                      tooltip: 'Email teacher',
                       color: context.semanticColors.info,
                     ),
                     const SizedBox(width: 8),
@@ -350,6 +351,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
                         );
                       },
                       icon: Icons.link_outlined,
+                      tooltip: "Launch class's website",
                       color: context.semanticColors.success,
                     ),
                     const SizedBox(width: 8),

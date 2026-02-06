@@ -1026,6 +1026,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           builder: (context) {
             return IconButton.outlined(
               onPressed: () => _openViewMenu(context),
+              tooltip: 'Change view',
               icon: const Icon(Icons.calendar_month),
               style: ButtonStyle(
                 side: WidgetStateProperty.all(
@@ -1043,6 +1044,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
               onPressed: _courses.isEmpty
                   ? null
                   : () => _openCoursesMenu(context, _courses),
+              tooltip: 'Filter by class',
               icon: const Icon(Icons.school),
               style: IconButton.styleFrom(
                 backgroundColor: hasCoursesFilter
@@ -1064,6 +1066,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
               onPressed: _courses.isEmpty
                   ? null
                   : () => _openFilterMenu(context),
+              tooltip: 'Filter by category and status',
               icon: const Icon(Icons.filter_alt),
               style: IconButton.styleFrom(
                 backgroundColor: hasStatusFilters
@@ -1825,6 +1828,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             launchUrl(Uri.parse('mailto:${course!.teacherEmail}'));
           },
           icon: Icons.email_outlined,
+          tooltip: "Email teacher",
           // TODO: Known Issues (7/Low): Use dynamic icon color based on calendar item background luminance to prevent visibility issues with light user-selected colors
           color: Colors.white,
         ),
@@ -1841,6 +1845,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             );
           },
           icon: Icons.link_outlined,
+          tooltip: "Launch class's website",
           color: Colors.white,
         ),
       );
