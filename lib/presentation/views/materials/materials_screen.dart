@@ -337,6 +337,7 @@ class _MaterialsScreenState
                         );
                       },
                       icon: Icons.link_outlined,
+                      tooltip: "Launch resource's website",
                       color: context.semanticColors.success,
                     ),
                     const SizedBox(width: 8),

@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -15,6 +16,8 @@ import 'package:heliumapp/presentation/bloc/auth/auth_bloc.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_event.dart';
 import 'package:heliumapp/presentation/widgets/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
+import 'package:heliumapp/presentation/widgets/settings_button.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
@@ -72,19 +75,13 @@ class PageHeader extends StatelessWidget {
               },
               icon: Icon(Icons.cancel, color: context.colorScheme.primary),
             )
+          else if (!kIsWeb ||
+              Responsive.isMobile(context) ||
+              MediaQuery.of(context).size.height <
+                  AppConstants.minHeightForTrailingNav)
+            const SettingsButton()
           else
-            IconButton(
-              visualDensity: VisualDensity.compact,
-              onPressed: () async {
-                if (context.mounted) {
-                  context.go(AppRoutes.settingScreen);
-                }
-              },
-              icon: Icon(
-                Icons.settings_outlined,
-                color: context.colorScheme.primary,
-              ),
-            ),
+            const Icon(Icons.space_bar, color: Colors.transparent),
 
           Text(title, style: AppStyles.pageTitle(context)),
 
