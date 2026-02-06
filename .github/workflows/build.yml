@@ -94,3 +94,19 @@ jobs:
           version: "3.38.9"
       - name: Build iOS
         run: make build-ios
+
+  build-web:
+    name: Build web
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Flutter SDK
+        uses: flutter-actions/setup-flutter@v4
+        with:
+          channel: stable
+          version: "3.38.9"
+      - name: Build iOS
+        run: make build-web
