@@ -10,6 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/core/whats_new_service.dart';
+import 'package:heliumapp/presentation/dialogs/whats_new_dialog.dart';
 import 'package:heliumapp/presentation/views/calendar/calendar_screen.dart';
 import 'package:heliumapp/presentation/views/courses/courses_screen.dart';
 import 'package:heliumapp/presentation/views/grades/grades_screen.dart';
@@ -89,6 +91,18 @@ class _NavigationShellState extends State<NavigationShell> {
     // Pre-build all screens to cache them
     for (final page in NavigationPage.values) {
       _screenCache[page] = page.buildScreen();
+    }
+
+    _checkWhatsNew();
+  }
+
+  Future<void> _checkWhatsNew() async {
+    if (await WhatsNewService().shouldShowWhatsNew()) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          showWhatsNewDialog(context: context);
+        }
+      });
     }
   }
 
@@ -250,7 +264,7 @@ class _NavigationShellState extends State<NavigationShell> {
             icon: Icons.android,
             tooltip: 'Get it on Google Play',
             url:
-                'https://play.google.com/store/apps/details?id=com.heliumedu.heliumapp',
+                'https://play.google.com/store/apps/details?id=com.heliumedu.heliumapp&pli=1',
           ),
           if (kIsWeb) const SizedBox(width: 40, child: Divider()),
           if (kIsWeb) const SettingsButton(compact: false),

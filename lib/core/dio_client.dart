@@ -18,6 +18,7 @@ import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/data/models/auth/refresh_token_request_model.dart';
 import 'package:heliumapp/data/models/auth/token_response_model.dart';
+import 'package:heliumapp/data/models/auth/update_settings_request_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:logging/logging.dart';
@@ -392,7 +393,28 @@ class DioClient {
         'calendar_use_category_colors',
         settings.colorByCategory,
       ),
+      ?_prefService.setInt(
+        'whats_new_version_seen',
+        settings.whatsNewVersionSeen,
+      ),
     ]);
+  }
+
+  Future<void> updateSettings(UpdateSettingsRequestModel request) async {
+    try {
+      final response = await _dio.put(
+        ApiUrl.authUserSettingsUrl,
+        data: request.toJson(),
+      );
+
+      if (response.statusCode == 200) {
+        final settings = UserSettingsModel.fromJson(response.data);
+        await saveSettings(settings);
+      }
+    } catch (e) {
+      _log.severe('Failed to update settings: $e');
+      rethrow;
+    }
   }
 
   bool _isInvalidTokenError(dynamic responseData) {
