@@ -162,7 +162,9 @@ class FcmService {
       sound: true,
     );
 
-    _log.info('Notification permission status: ${settings.authorizationStatus}');
+    _log.info(
+      'Notification permission status: ${settings.authorizationStatus}',
+    );
   }
 
   Future<void> _getFCMToken() async {
@@ -179,7 +181,7 @@ class FcmService {
             );
           }
         } catch (e) {
-          _log.warning('Failed to get APN token: $e');
+          _log.warning('Failed to get APN token', e);
         }
       }
 
@@ -189,7 +191,7 @@ class FcmService {
         _log.info('FCM token retrieved successfully');
       }
     } catch (e) {
-      _log.info('FCM token not available: $e');
+      _log.fine('FCM token not available', e);
     }
   }
 
@@ -257,11 +259,11 @@ class FcmService {
                 'Removed stale push token ID: ${token.id} from this device',
               );
             } catch (e) {
-              _log.warning('Failed to delete stale push token ${token.id}: $e');
+              _log.warning('Failed to delete stale push token ${token.id}', e);
             }
           }
         } catch (e) {
-          _log.warning('Failed to sweep existing push tokens: $e');
+          _log.warning('Failed to sweep existing push tokens', e);
         }
         return hasCurrent;
       }
@@ -505,16 +507,30 @@ class FcmService {
 
 @pragma('vm:entry-point')
 Future<void> _onBackgroundMessage(RemoteMessage message) async {
-  await Firebase.initializeApp();
-  final messageId = message.messageId ?? 'unknown';
-  _log.info('Background message $messageId received from FCM');
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    _log.severe('Fireback may fail on devices without Google Play Service', e);
+    // Firebase may fail on devices without Google Play Services
+    return;
+  }
 
-  // Parse the reminder data from the message
-  final payload = json.decode(message.data['json_payload']);
+  try {
+    final messageId = message.messageId ?? 'unknown';
+    _log.info('Background message $messageId received from FCM');
 
-  final notification = PlannerHelper.mapPayloadToNotification(message, payload);
+    // Parse the reminder data from the message
+    final payload = json.decode(message.data['json_payload']);
 
-  final fcmService = FcmService();
-  await fcmService.showLocalNotification(notification);
-  _log.info('Background message $messageId notification displayed');
+    final notification = PlannerHelper.mapPayloadToNotification(
+      message,
+      payload,
+    );
+
+    final fcmService = FcmService();
+    await fcmService.showLocalNotification(notification);
+    _log.info('Background message $messageId notification displayed');
+  } catch (e) {
+    _log.severe('Background message processing failed', e);
+  }
 }

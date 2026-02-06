@@ -27,7 +27,7 @@ Future<bool> requestWebNotificationPermission() async {
 
     return false;
   } catch (e) {
-    _log.warning('Failed to request web notification permission: $e');
+    _log.warning('Failed to request web notification permission', e);
     return false;
   }
 }
@@ -52,6 +52,6 @@ void showWebNotification(
 
     _log.info('Web notification displayed: ${notification.title}');
   } catch (e) {
-    _log.warning('Failed to show web notification: $e');
+    _log.warning('Failed to show web notification', e);
   }
 }

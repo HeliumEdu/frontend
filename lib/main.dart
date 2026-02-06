@@ -82,13 +82,13 @@ void main() async {
   try {
     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   } catch (e) {
-    _log.severe('Firebase initialization failed: $e');
+    _log.severe('Firebase initialization failed', e);
   }
 
   try {
     await FcmService().init();
   } catch (e) {
-    _log.severe('FCM initialization failed: $e');
+    _log.severe('FCM initialization failed', e);
   }
 
   await PrefService().init();

@@ -30,7 +30,7 @@ class JwtUtils {
 
       return jsonDecode(decoded) as Map<String, dynamic>;
     } catch (e) {
-      _log.warning('Failed to decode JWT token: $e');
+      _log.warning('Failed to decode JWT token', e);
       return null;
     }
   }
