@@ -201,7 +201,7 @@ class DioClient {
                 return handler.next(error);
               }
             } catch (e) {
-              _log.severe('Error during token refresh: $e');
+              _log.severe('Error during token refresh', e);
               _isRefreshing = false;
               if (_refreshCompleter != null) {
                 _refreshCompleter!.completeError(e);
@@ -413,7 +413,7 @@ class DioClient {
         await saveSettings(settings);
       }
     } catch (e) {
-      _log.severe('Failed to update settings: $e');
+      _log.severe('Failed to update settings', e);
       rethrow;
     }
   }

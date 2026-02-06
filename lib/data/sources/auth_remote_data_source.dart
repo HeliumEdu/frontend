@@ -148,7 +148,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
             _log.warning('FCM token not yet available after login');
           }
         } catch (e) {
-          _log.warning('Failed to register FCM token after login: $e');
+          _log.warning('Failed to register FCM token after login', e);
         }
 
         return loginResponse;
@@ -223,7 +223,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
         await fcmService.unregisterToken();
       } catch (e) {
         // If FCM cleanup fails, we still want to logout
-        _log.warning('Failed to unregister FCM token: $e');
+        _log.warning('Failed to unregister FCM token', e);
       }
 
       await dioClient.clearStorage();
@@ -234,7 +234,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
           await _blacklistRefreshToken(refreshToken!);
         } catch (e) {
           // If blacklisting fails, we still want to logout locally
-          _log.warning('Failed to blacklist token on server: $e');
+          _log.warning('Failed to blacklist token on server', e);
         }
       }
     } catch (e) {

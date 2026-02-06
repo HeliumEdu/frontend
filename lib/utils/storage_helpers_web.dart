@@ -49,7 +49,7 @@ Future<bool> downloadFilePlatform(String url, String filename) async {
     _log.info('Web download triggered for: $filename');
     return true;
   } catch (e) {
-    _log.severe('Web download failed: $e');
+    _log.severe('Web download failed', e);
     return false;
   }
 }
