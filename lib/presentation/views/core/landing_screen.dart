@@ -20,6 +20,8 @@ import 'package:logging/logging.dart';
 
 final _log = Logger('presentation.views');
 
+// FIXME: add a "what's new" screen for first downloads / major updates
+
 class LandingScreen extends StatefulWidget {
   const LandingScreen({super.key});
 
