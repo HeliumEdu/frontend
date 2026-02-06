@@ -65,21 +65,21 @@ flutter:
   fonts:
     - family: Poppins
       fonts:
-        - asset: fonts/Poppins-Light.ttf
+        - asset: assets/fonts/Poppins-Light.ttf
           weight: 300
-        - asset: fonts/Poppins-Regular.ttf
+        - asset: assets/fonts/Poppins-Regular.ttf
           weight: 400
-        - asset: fonts/Poppins-Medium.ttf
+        - asset: assets/fonts/Poppins-Medium.ttf
           weight: 500
-        - asset: fonts/Poppins-SemiBold.ttf
+        - asset: assets/fonts/Poppins-SemiBold.ttf
           weight: 600
     - family: DM Serif Display
       fonts:
-        - asset: fonts/DMSerifDisplay-Regular.ttf
+        - asset: assets/fonts/DMSerifDisplay-Regular.ttf
           weight: 400
     - family: Noto Sans
       fonts:
-        - asset: fonts/NotoSans-Regular.ttf
+        - asset: assets/fonts/NotoSans-Regular.ttf
           weight: 400
 
 flutter_native_splash:
