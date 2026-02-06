@@ -19,7 +19,7 @@ jobs:
   test:
     name: Test
 
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v5
@@ -52,7 +52,7 @@ jobs:
   build-android:
     name: Build Android
 
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v5
