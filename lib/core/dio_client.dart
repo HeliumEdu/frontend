@@ -329,6 +329,7 @@ class DioClient {
         'color_scheme_theme': _prefService.getInt('color_scheme_theme'),
         'week_starts_on': _prefService.getInt('week_starts_on'),
         'all_day_offset': _prefService.getInt('all_day_offset'),
+        'whats_new_version_seen': _prefService.getInt('whats_new_version_seen'),
         'events_color': _prefService.getString('events_color'),
         'material_color': _prefService.getString('material_color'),
         'grade_color': _prefService.getString('grade_color'),

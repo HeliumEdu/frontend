@@ -215,6 +215,7 @@ void main() {
         when(() => mockPrefService.getInt('color_scheme_theme')).thenReturn(1);
         when(() => mockPrefService.getInt('week_starts_on')).thenReturn(0);
         when(() => mockPrefService.getInt('all_day_offset')).thenReturn(0);
+        when(() => mockPrefService.getInt('whats_new_version_seen')).thenReturn(0);
         when(() => mockPrefService.getString('events_color'))
             .thenReturn('#FF0000');
         when(() => mockPrefService.getString('material_color'))
