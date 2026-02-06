@@ -256,7 +256,7 @@ class _NavigationShellState extends State<NavigationShell> {
             context: context,
             icon: Icons.apple,
             tooltip: 'Download on the App Store',
-            url: 'https://apps.apple.com/app/helium/id1469085853',
+            url: 'https://apps.apple.com/app/app-name/id6758323154',
           ),
           const SizedBox(height: 8),
           _buildAppStoreButton(
@@ -264,7 +264,7 @@ class _NavigationShellState extends State<NavigationShell> {
             icon: Icons.android,
             tooltip: 'Get it on Google Play',
             url:
-                'https://play.google.com/store/apps/details?id=com.heliumedu.heliumapp&pli=1',
+                'https://play.google.com/store/apps/details?id=com.heliumedu.heliumapp',
           ),
           if (kIsWeb) const SizedBox(width: 40, child: Divider()),
           if (kIsWeb) const SettingsButton(compact: false),
