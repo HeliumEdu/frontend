@@ -1,4 +1,4 @@
-.PHONY: all env install clean build-android build-android-release build-ios-dev build-ios build-ios-release test coverage run
+.PHONY: all env install clean build-android build-android-release build-ios-dev build-ios build-ios-release build-web test coverage run
 
 SHELL := /usr/bin/env bash
 
@@ -33,6 +33,9 @@ build-ios: install
 
 build-ios-release: install
 	flutter build ipa --release --export-options-plist=ios/ExportOptions.plist --obfuscate --split-debug-info=build/symbols
+
+build-web: install
+	flutter build web --release
 
 test: install
 	flutter analyze --no-pub --no-fatal-infos --no-fatal-warnings

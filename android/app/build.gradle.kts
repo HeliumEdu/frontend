@@ -33,15 +33,13 @@ android {
     // applicationId was moved from here into defaultConfig below.
 
     defaultConfig {
-        // FIX: This line was moved here from outside the defaultConfig block.
         applicationId = "com.heliumedu.heliumapp"
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         
-        // FIX: The syntax in KTS requires property assignment using 'minSdk = value'.
-        // I've set it to the Flutter-defined minimum SDK version, which is the standard approach.
-        // If you need to hardcode it to 30, use: minSdk = 30
         minSdk = flutter.minSdkVersion
 
         targetSdk = flutter.targetSdkVersion
