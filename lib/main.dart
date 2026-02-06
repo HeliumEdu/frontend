@@ -25,7 +25,12 @@ import 'package:logging/logging.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 
+final _log = Logger('main');
+
 void main() async {
+  // Always ensure this is the first thing initialized
+  WidgetsFlutterBinding.ensureInitialized();
+
   // Only print logs in debug mode; rely on Sentry in release
   if (kDebugMode) {
     // Use --dart-define=LOG_LEVEL=FINE to set a log level in development
@@ -70,15 +75,21 @@ void main() async {
     });
   }
 
-  WidgetsFlutterBinding.ensureInitialized();
-
   GoogleFonts.config.allowRuntimeFetching = false;
 
   tz.initializeTimeZones();
 
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  try {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  } catch (e) {
+    _log.severe('Firebase initialization failed: $e');
+  }
 
-  await FcmService().init();
+  try {
+    await FcmService().init();
+  } catch (e) {
+    _log.severe('FCM initialization failed: $e');
+  }
 
   await PrefService().init();
 
