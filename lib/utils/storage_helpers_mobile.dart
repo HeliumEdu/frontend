@@ -31,7 +31,7 @@ Future<bool> downloadFilePlatform(String url, String filename) async {
       return false;
     }
   } catch (e) {
-    _log.severe('Mobile download failed: $e');
+    _log.severe('Mobile download failed', e);
     return false;
   }
 }
@@ -65,7 +65,7 @@ Future<bool> _downloadFileAndroid(String url, String filename) async {
       try {
         await downloadsDir.create(recursive: true);
       } catch (e) {
-        _log.warning('Could not create public Downloads directory: $e');
+        _log.warning('Could not create public Downloads directory', e);
         _log.warning('This may require storage permissions');
         return false;
       }
@@ -103,7 +103,7 @@ Future<bool> _downloadFileAndroid(String url, String filename) async {
 
     return exists;
   } catch (e) {
-    _log.severe('Android download failed: $e');
+    _log.severe('Android download failed', e);
     return false;
   }
 }
@@ -148,7 +148,7 @@ Future<bool> _downloadFileIOS(String url, String filename) async {
     _log.info('iOS share sheet result: ${result.status}');
     return true;
   } catch (e) {
-    _log.severe('iOS download failed: $e');
+    _log.severe('iOS download failed', e);
     return false;
   }
 }
