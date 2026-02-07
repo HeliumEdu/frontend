@@ -719,7 +719,7 @@ class TodosTableState extends State<TodosTable> {
           alignment: Alignment.centerRight,
           padding: const EdgeInsets.only(right: 20),
           color: context.colorScheme.error,
-          child: Icon(Icons.delete, color: context.colorScheme.onError),
+          child: Icon(Icons.delete_outline, color: context.colorScheme.onError),
         ),
         confirmDismiss: (direction) async {
           widget.onDelete(context, homework);
