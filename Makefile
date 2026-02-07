@@ -8,6 +8,12 @@ else
     RUN_ARGS :=
 endif
 
+ifdef SENTRY_RELEASE
+    WEB_ARGS := --dart-define=SENTRY_RELEASE=$(SENTRY_RELEASE)
+else
+    WEB_ARGS :=
+endif
+
 all: test
 
 env:
@@ -35,7 +41,7 @@ build-ios-release: install
 	flutter build ipa --release --export-options-plist=ios/ExportOptions.plist --obfuscate --split-debug-info=build/symbols
 
 build-web: install
-	flutter build web --release
+	flutter build web --release --source-maps $(WEB_ARGS)
 
 test: install
 	flutter analyze --no-pub --no-fatal-infos --no-fatal-warnings
