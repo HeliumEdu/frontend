@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class ResponsiveBreakpoints {
@@ -31,6 +32,22 @@ class Responsive {
 
   static bool isDesktop(BuildContext context) {
     return MediaQuery.of(context).size.width >= ResponsiveBreakpoints.tablet;
+  }
+
+  /// - Native iOS/Android → true
+  /// - Web on mobile/tablet browser → true (Flutter detects the platform)
+  /// - Desktop (native or web) → false
+  static bool isTouchDevice(BuildContext context) {
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.iOS:
+      case TargetPlatform.android:
+        return true;
+      case TargetPlatform.macOS:
+      case TargetPlatform.windows:
+      case TargetPlatform.linux:
+      case TargetPlatform.fuchsia:
+        return false;
+    }
   }
 
   static DeviceType getDeviceType(BuildContext context) {
