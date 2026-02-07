@@ -10,6 +10,7 @@ on:
         required: true
         type: choice
         options:
+          - all
           - web
           - android
           - ios
@@ -105,7 +106,7 @@ jobs:
   build-android-release:
     name: Build Android Release AAB
     needs: [bump-version, test]
-    if: ${{ github.event.inputs.platform == 'android' }}
+    if: ${{ github.event.inputs.platform == 'android' || github.event.inputs.platform == 'all' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -152,7 +153,7 @@ jobs:
   build-ios-release:
     name: Build iOS Release IPA
     needs: [bump-version, test]
-    if: ${{ github.event.inputs.platform == 'ios' }}
+    if: ${{ github.event.inputs.platform == 'ios' || github.event.inputs.platform == 'all' }}
     runs-on: macos-latest
 
     steps:
@@ -241,7 +242,7 @@ jobs:
   build-web-release:
     name: Build Web
     needs: [bump-version, test]
-    if: ${{ github.event.inputs.platform == 'web' }}
+    if: ${{ github.event.inputs.platform == 'web' || github.event.inputs.platform == 'all' }}
     runs-on: ubuntu-latest
 
     steps:
