@@ -236,6 +236,10 @@ class TodosTableState extends State<TodosTable> {
     return MediaQuery.of(context).size.width >= 850;
   }
 
+  bool _shouldHideActionsColumn(BuildContext context) {
+    return Responsive.isTouchDevice(context);
+  }
+
   bool _isCompactActionsMode(BuildContext context) {
     return MediaQuery.of(context).size.width < 800;
   }
@@ -279,10 +283,11 @@ class TodosTableState extends State<TodosTable> {
             SizedBox(width: 98, child: _buildSortableHeader('Grade', 'grade')),
           if (_shouldShowResourcesColumn(context))
             const SizedBox(width: 30, child: SizedBox.shrink()),
-          SizedBox(
-            width: _isCompactActionsMode(context) ? 48 : 170,
-            child: const SizedBox.shrink(),
-          ),
+          if (!_shouldHideActionsColumn(context))
+            SizedBox(
+              width: _isCompactActionsMode(context) ? 48 : 170,
+              child: const SizedBox.shrink(),
+            ),
         ],
       ),
     );
@@ -636,10 +641,12 @@ class TodosTableState extends State<TodosTable> {
     final bool isCompleted = dataSource.isHomeworkCompleted(homework);
 
     final category = categoriesMap[homework.category.id]!;
+    final hideActions = _shouldHideActionsColumn(context);
     final isCompact = _isCompactActionsMode(context);
-    final actionButtons = _buildActionButtons(homework, course, isCompact);
+    final actionButtons =
+        hideActions ? <Widget>[] : _buildActionButtons(homework, course, isCompact);
 
-    return Material(
+    final rowContent = Material(
       child: Ink(
         decoration: BoxDecoration(
           border: Border(
@@ -649,10 +656,8 @@ class TodosTableState extends State<TodosTable> {
           ),
         ),
         child: InkWell(
-          onTap: _isCompactActionsMode(context)
-              ? () => widget.onTap(homework)
-              : () {},
-          mouseCursor: _isCompactActionsMode(context)
+          onTap: (hideActions || isCompact) ? () => widget.onTap(homework) : () {},
+          mouseCursor: (hideActions || isCompact)
               ? SystemMouseCursors.click
               : MouseCursor.defer,
           splashColor: Responsive.isMobile(context) ? null : Colors.transparent,
@@ -695,14 +700,36 @@ class TodosTableState extends State<TodosTable> {
                   _buildResourcesColumn(homework, userSettings),
                 ],
                 // TODO: Enhancement: show attachments in a similar way to resources, with attachment icon, when clicked open a menu and list as rows with titles and download buttons
-                const SizedBox(width: 4),
-                _buildActionsColumn(actionButtons, isCompact),
+                if (!hideActions) ...[
+                  const SizedBox(width: 4),
+                  _buildActionsColumn(actionButtons, isCompact),
+                ],
               ],
             ),
           ),
         ),
       ),
     );
+
+    if (hideActions && PlannerHelper.shouldShowDeleteButton(homework)) {
+      return Dismissible(
+        key: Key('todo_${homework.id}'),
+        direction: DismissDirection.endToStart,
+        background: Container(
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.only(right: 20),
+          color: context.colorScheme.error,
+          child: Icon(Icons.delete, color: context.colorScheme.onError),
+        ),
+        confirmDismiss: (direction) async {
+          widget.onDelete(context, homework);
+          return false;
+        },
+        child: rowContent,
+      );
+    }
+
+    return rowContent;
   }
 
   Widget _buildCheckboxColumn(
