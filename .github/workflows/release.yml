@@ -293,12 +293,12 @@ jobs:
           fi
 
           # Create build number tag
-          if git rev-parse "build$BUILD_NUMBER" >/dev/null 2>&1; then
-            echo "Tag build$BUILD_NUMBER already exists, skipping"
+          if git rev-parse "b$BUILD_NUMBER" >/dev/null 2>&1; then
+            echo "Tag b$BUILD_NUMBER already exists, skipping"
           else
-            echo "Creating tag build$BUILD_NUMBER"
-            git tag -a "build$BUILD_NUMBER" -m "Build $BUILD_NUMBER (v$SEMVER)"
+            echo "Creating tag b$BUILD_NUMBER"
+            git tag -a "b$BUILD_NUMBER" -m "Build $BUILD_NUMBER (v$SEMVER)"
           fi
 
           # Push both tags
-          git push origin "v$SEMVER" "build$BUILD_NUMBER"
+          git push origin "v$SEMVER" "b$BUILD_NUMBER"
