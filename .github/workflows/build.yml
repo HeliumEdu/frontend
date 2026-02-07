@@ -35,6 +35,8 @@ jobs:
         with:
           channel: stable
           version: "3.38.9"
+          cache: true
+
       - name: Add pub cache to PATH
         run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
       - name: Install lcov
@@ -64,12 +66,16 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+          cache: 'gradle'
+          cache-dependency-path: android/*.gradle*
 
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
           version: "3.38.9"
+          cache: true
+
       - name: Build Android
         run: make build-android
 
@@ -92,6 +98,8 @@ jobs:
         with:
           channel: stable
           version: "3.38.9"
+          cache: true
+
       - name: Build iOS
         run: make build-ios
 
@@ -108,5 +116,7 @@ jobs:
         with:
           channel: stable
           version: "3.38.9"
-      - name: Build iOS
+          cache: true
+
+      - name: Build web
         run: make build-web
