@@ -20,6 +20,7 @@ import 'package:heliumapp/presentation/widgets/settings_button.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:nested/nested.dart';
 
 enum ScreenType { page, subPage, entityPage }
 
@@ -30,8 +31,8 @@ class PageHeader extends StatelessWidget {
   final bool isLoading;
   final Function? cancelAction;
   final Function? saveAction;
-
   final bool showLogout;
+  final List<SingleChildWidget>? inheritableProviders;
 
   const PageHeader({
     super.key,
@@ -42,6 +43,7 @@ class PageHeader extends StatelessWidget {
     this.cancelAction,
     this.saveAction,
     this.showLogout = false,
+    this.inheritableProviders,
   });
 
   @override
@@ -98,7 +100,7 @@ class PageHeader extends StatelessWidget {
             IconButton(
               visualDensity: VisualDensity.compact,
               onPressed: () {
-                showNotifications(context);
+                showNotifications(context, providers: inheritableProviders);
               },
               icon: Icon(
                 Icons.notifications,

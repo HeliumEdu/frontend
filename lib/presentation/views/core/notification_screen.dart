@@ -34,29 +34,26 @@ import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
+import 'package:nested/nested.dart';
 
 /// Shows notifications as a dialog on desktop, or navigates on mobile.
-void showNotifications(BuildContext context) {
-  // Try to get CalendarItemBloc from the calling context
-  CalendarItemBloc? calendarItemBloc;
-  try {
-    calendarItemBloc = context.read<CalendarItemBloc>();
-  } catch (_) {
-    // Not available in this context
-  }
-
+///
+/// Pass [providers] to share Blocs from the parent screen with the notifications
+/// dialog/screen, ensuring state changes are reflected in both.
+void showNotifications(
+  BuildContext context, {
+  List<SingleChildWidget>? providers,
+}) {
   if (Responsive.isMobile(context)) {
     context.push(
       AppRoutes.notificationsScreen,
-      extra: NotificationArgs(calendarItemBloc: calendarItemBloc),
+      extra: NotificationArgs(providers: providers),
     );
   } else {
     showScreenAsDialog(
       context,
       child: NotificationsScreen(),
-      providers: calendarItemBloc != null
-          ? [BlocProvider<CalendarItemBloc>.value(value: calendarItemBloc)]
-          : null,
+      providers: providers,
       width: 420,
       alignment: Alignment.centerRight,
       insetPadding: const EdgeInsets.only(

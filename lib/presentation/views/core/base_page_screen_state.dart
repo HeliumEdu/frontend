@@ -49,8 +49,8 @@ class DialogModeProvider extends InheritedWidget {
   }
 }
 
-/// Shows any widget as a dialog with standard dialog chrome.
-/// The widget should use [BasePageScreenState] to automatically adapt its layout.
+/// Shows any widget using [BasePageScreenState] as a dialog with standard
+/// dialog chrome.
 ///
 /// Pass [providers] to share existing Blocs with the dialog, ensuring state
 /// changes in the dialog are reflected in the parent screen:
@@ -132,6 +132,8 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
   bool get showActionButton => false;
 
+  List<SingleChildWidget>? get inheritableProviders => null;
+
   // State
   UserSettingsModel? userSettings;
   bool settingsLoaded = false;
@@ -150,6 +152,24 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       });
 
       loadSettings();
+    }
+  }
+
+  @override
+  @protected
+  @mustCallSuper
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Register inheritable providers with NavigationShell if we're inside one
+    final notifier = InheritableProvidersScope.of(context);
+    if (notifier != null) {
+      // Use post-frame callback to avoid updating during build
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          notifier.setProviders(inheritableProviders);
+        }
+      });
     }
   }
 
@@ -308,6 +328,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       cancelAction: cancelAction,
       saveAction: saveAction,
       showLogout: showLogout,
+      inheritableProviders: inheritableProviders,
     );
   }
 
