@@ -32,7 +32,7 @@ final _log = Logger('core');
 
 class FcmService {
   late final DioClient _dioClient;
-  late final FirebaseMessaging _firebaseMessaging;
+  FirebaseMessaging? _firebaseMessaging;
   late final FlutterLocalNotificationsPlugin _localNotifications;
   late final PrefService _prefService;
 
@@ -40,6 +40,7 @@ class FcmService {
   static const Duration _dedupeWindow = Duration(seconds: 30);
 
   bool _isInitialized = false;
+  bool _isSupported = true;
 
   bool _handlersConfigured = false;
   String? _fcmToken;
@@ -48,6 +49,7 @@ class FcmService {
 
   // Getters
   String? get fcmToken => _fcmToken;
+  bool get isSupported => _isSupported;
 
   static FcmService _instance = FcmService._internal();
 
@@ -55,14 +57,13 @@ class FcmService {
 
   FcmService._internal()
     : _dioClient = DioClient(),
-      _firebaseMessaging = FirebaseMessaging.instance,
       _localNotifications = FlutterLocalNotificationsPlugin(),
       _prefService = PrefService();
 
   @visibleForTesting
   FcmService.forTesting({
     required DioClient dioClient,
-    required FirebaseMessaging firebaseMessaging,
+    FirebaseMessaging? firebaseMessaging,
     required FlutterLocalNotificationsPlugin localNotifications,
     required PrefService prefService,
   }) : _dioClient = dioClient,
@@ -89,17 +90,25 @@ class FcmService {
   Future<void> init() async {
     if (isInitialized) return;
 
-    // Check browser support on web before attempting initialization
+    // Check browser support on web BEFORE accessing FirebaseMessaging.instance
     if (kIsWeb) {
       // First check basic browser APIs
       if (!web_notifications.isMessagingSupported()) {
         _log.info('FCM not supported in this browser (missing APIs), skipping initialization');
+        _isSupported = false;
         return;
       }
-      // Then use Firebase's official support check
-      final isSupported = await _firebaseMessaging.isSupported();
+    }
+
+    // Now safe to access FirebaseMessaging.instance
+    _firebaseMessaging = FirebaseMessaging.instance;
+
+    // Additional Firebase-level support check for web
+    if (kIsWeb) {
+      final isSupported = await _firebaseMessaging!.isSupported();
       if (!isSupported) {
         _log.info('FCM not supported in this browser (Firebase check), skipping initialization');
+        _isSupported = false;
         return;
       }
     }
@@ -167,7 +176,9 @@ class FcmService {
   }
 
   Future<void> _requestPermission() async {
-    final settings = await _firebaseMessaging.requestPermission(
+    if (_firebaseMessaging == null) return;
+
+    final settings = await _firebaseMessaging!.requestPermission(
       alert: true,
       announcement: false,
       badge: true,
@@ -183,11 +194,13 @@ class FcmService {
   }
 
   Future<void> _getFCMToken() async {
+    if (_firebaseMessaging == null) return;
+
     try {
       // On iOS, ensure APN token is available before getting FCM token
       if (!kIsWeb && Platform.isIOS) {
         try {
-          final apnsToken = await _firebaseMessaging.getAPNSToken();
+          final apnsToken = await _firebaseMessaging!.getAPNSToken();
           if (apnsToken != null) {
             _log.info('APN token retrieved successfully');
           } else {
@@ -200,7 +213,7 @@ class FcmService {
         }
       }
 
-      _fcmToken = await _firebaseMessaging.getToken();
+      _fcmToken = await _firebaseMessaging!.getToken();
 
       if (_fcmToken != null) {
         _log.info('FCM token retrieved successfully');
@@ -317,7 +330,7 @@ class FcmService {
   }
 
   void _configureMessageHandlers() {
-    if (_handlersConfigured) return;
+    if (_handlersConfigured || _firebaseMessaging == null) return;
     _handlersConfigured = true;
 
     FirebaseMessaging.onBackgroundMessage(_onBackgroundMessage);
@@ -331,7 +344,7 @@ class FcmService {
     _handleInitialMessage();
 
     // Listen for token refreshes (important for iOS when APN token becomes available)
-    _firebaseMessaging.onTokenRefresh.listen((newToken) {
+    _firebaseMessaging!.onTokenRefresh.listen((newToken) {
       _log.info('FCM token refreshed');
       _fcmToken = newToken;
       _registerToken();
@@ -378,7 +391,9 @@ class FcmService {
   }
 
   Future<void> _handleInitialMessage() async {
-    final RemoteMessage? initialMessage = await _firebaseMessaging
+    if (_firebaseMessaging == null) return;
+
+    final RemoteMessage? initialMessage = await _firebaseMessaging!
         .getInitialMessage();
 
     if (initialMessage != null) {
