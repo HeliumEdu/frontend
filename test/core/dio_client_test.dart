@@ -230,6 +230,8 @@ void main() {
             .thenReturn(0);
         when(() => mockPrefService.getBool('calendar_use_category_colors'))
             .thenReturn(true);
+        when(() => mockPrefService.getBool('remember_filter_state'))
+            .thenReturn(false);
 
         // WHEN
         final settings = await dioClient.getSettings();
