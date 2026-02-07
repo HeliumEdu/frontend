@@ -8,11 +8,12 @@
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
 import 'package:heliumapp/presentation/bloc/course/course_bloc.dart';
 import 'package:heliumapp/presentation/bloc/material/material_bloc.dart';
+import 'package:nested/nested.dart';
 
 class NotificationArgs {
-  final CalendarItemBloc? calendarItemBloc;
+  final List<SingleChildWidget>? providers;
 
-  const NotificationArgs({this.calendarItemBloc});
+  const NotificationArgs({this.providers});
 }
 
 class CalendarItemAddArgs {

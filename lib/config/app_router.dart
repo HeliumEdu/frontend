@@ -112,9 +112,9 @@ void initializeRouter() {
         path: AppRoutes.notificationsScreen,
         builder: (context, state) {
           final args = state.extra as NotificationArgs?;
-          if (args?.calendarItemBloc != null) {
-            return BlocProvider<CalendarItemBloc>.value(
-              value: args!.calendarItemBloc!,
+          if (args?.providers != null && args!.providers!.isNotEmpty) {
+            return MultiBlocProvider(
+              providers: args.providers!,
               child: NotificationsScreen(),
             );
           }

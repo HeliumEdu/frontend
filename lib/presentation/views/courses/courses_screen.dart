@@ -351,7 +351,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
                         );
                       },
                       icon: Icons.link_outlined,
-                      tooltip: "Launch class website",
+                      tooltip: 'Launch class website',
                       color: context.semanticColors.success,
                     ),
                     const SizedBox(width: 8),

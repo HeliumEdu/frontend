@@ -61,6 +61,7 @@ import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
+import 'package:nested/nested.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:timezone/standalone.dart' as tz;
 import 'package:url_launcher/url_launcher.dart';
@@ -121,6 +122,13 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   @override
   // TODO: Cleanup: have the shell pass down its label here instead
   String get screenTitle => 'Planner';
+
+  @override
+  List<SingleChildWidget>? get inheritableProviders => [
+    BlocProvider<CalendarItemBloc>.value(
+      value: context.read<CalendarItemBloc>(),
+    ),
+  ];
 
   @override
   VoidCallback get actionButtonCallback => () {
@@ -1844,7 +1852,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             );
           },
           icon: Icons.link_outlined,
-          tooltip: "Launch class website",
+          tooltip: 'Launch class website',
           color: Colors.white,
         ),
       );

@@ -21,7 +21,41 @@ import 'package:heliumapp/presentation/widgets/settings_button.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:nested/nested.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+/// Notifier for screens to share their inheritable providers with NavigationShell.
+class InheritableProvidersNotifier extends ChangeNotifier {
+  List<SingleChildWidget>? _providers;
+
+  List<SingleChildWidget>? get providers => _providers;
+
+  void setProviders(List<SingleChildWidget>? providers) {
+    _providers = providers;
+    notifyListeners();
+  }
+}
+
+/// InheritedWidget to share the InheritableProvidersNotifier with child screens.
+class InheritableProvidersScope extends InheritedWidget {
+  final InheritableProvidersNotifier notifier;
+
+  const InheritableProvidersScope({
+    super.key,
+    required this.notifier,
+    required super.child,
+  });
+
+  static InheritableProvidersNotifier? of(BuildContext context) {
+    return context
+        .dependOnInheritedWidgetOfExactType<InheritableProvidersScope>()
+        ?.notifier;
+  }
+
+  @override
+  bool updateShouldNotify(InheritableProvidersScope oldWidget) =>
+      notifier != oldWidget.notifier;
+}
 
 /// InheritedWidget to tell child screens to hide their header.
 class NavigationShellProvider extends InheritedWidget {
@@ -84,6 +118,8 @@ class NavigationShell extends StatefulWidget {
 class _NavigationShellState extends State<NavigationShell> {
   // Cache screen widgets to prevent recreation on every build/resize
   final Map<NavigationPage, Widget> _screenCache = {};
+  final InheritableProvidersNotifier _inheritableProvidersNotifier =
+      InheritableProvidersNotifier();
 
   @override
   void initState() {
@@ -94,6 +130,12 @@ class _NavigationShellState extends State<NavigationShell> {
     }
 
     _checkWhatsNew();
+  }
+
+  @override
+  void dispose() {
+    _inheritableProvidersNotifier.dispose();
+    super.dispose();
   }
 
   Future<void> _checkWhatsNew() async {
@@ -157,57 +199,64 @@ class _NavigationShellState extends State<NavigationShell> {
               Expanded(
                 child: SafeArea(
                   bottom: false,
-                  child: Column(
-                    children: [
-                      // Static PageHeader that doesn't animate
-                      PageHeader(
-                        title: currentPage.label,
-                        screenType: ScreenType.page,
-                      ),
-                      // Only the content area animates
-                      Expanded(
-                        child: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 300),
-                          switchInCurve: Curves.easeInOut,
-                          switchOutCurve: Curves.easeInOut,
-                          transitionBuilder: (child, animation) {
-                            // Vertical slide for NavigationRail
-                            // Horizontal slide for NavigationBar
-                            if (useNavigationRail) {
-                              return SlideTransition(
-                                position: Tween<Offset>(
-                                  begin: const Offset(0, 0.1),
-                                  end: Offset.zero,
-                                ).animate(animation),
-                                child: FadeTransition(
-                                  opacity: animation,
-                                  child: child,
-                                ),
-                              );
-                            } else {
-                              return SlideTransition(
-                                position: Tween<Offset>(
-                                  begin: const Offset(0.1, 0),
-                                  end: Offset.zero,
-                                ).animate(animation),
-                                child: FadeTransition(
-                                  opacity: animation,
-                                  child: child,
-                                ),
-                              );
-                            }
-                          },
-                          child: KeyedSubtree(
-                            key: ValueKey(currentPage),
-                            child: NavigationShellProvider(
-                              child:
-                                  _screenCache[currentPage] ??
-                                  currentPage.buildScreen(),
+                  child: InheritableProvidersScope(
+                    notifier: _inheritableProvidersNotifier,
+                    child: Column(
+                      children: [
+                        // Static PageHeader that doesn't animate
+                        ListenableBuilder(
+                          listenable: _inheritableProvidersNotifier,
+                          builder: (context, _) => PageHeader(
+                            title: currentPage.label,
+                            screenType: ScreenType.page,
+                            inheritableProviders: _inheritableProvidersNotifier.providers,
+                          ),
+                        ),
+                        // Only the content area animates
+                        Expanded(
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            switchInCurve: Curves.easeInOut,
+                            switchOutCurve: Curves.easeInOut,
+                            transitionBuilder: (child, animation) {
+                              // Vertical slide for NavigationRail
+                              // Horizontal slide for NavigationBar
+                              if (useNavigationRail) {
+                                return SlideTransition(
+                                  position: Tween<Offset>(
+                                    begin: const Offset(0, 0.1),
+                                    end: Offset.zero,
+                                  ).animate(animation),
+                                  child: FadeTransition(
+                                    opacity: animation,
+                                    child: child,
+                                  ),
+                                );
+                              } else {
+                                return SlideTransition(
+                                  position: Tween<Offset>(
+                                    begin: const Offset(0.1, 0),
+                                    end: Offset.zero,
+                                  ).animate(animation),
+                                  child: FadeTransition(
+                                    opacity: animation,
+                                    child: child,
+                                  ),
+                                );
+                              }
+                            },
+                            child: KeyedSubtree(
+                              key: ValueKey(currentPage),
+                              child: NavigationShellProvider(
+                                child:
+                                    _screenCache[currentPage] ??
+                                    currentPage.buildScreen(),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
