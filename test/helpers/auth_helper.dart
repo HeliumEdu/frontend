@@ -25,6 +25,7 @@ Map<String, dynamic> givenUserSettingsJson({
   int defaultReminderOffset = 15,
   int defaultReminderOffsetType = 0,
   bool colorByCategory = false,
+  bool rememberFilterState = false,
   String? privateSlug,
 }) {
   return {
@@ -41,6 +42,7 @@ Map<String, dynamic> givenUserSettingsJson({
     'default_reminder_offset': defaultReminderOffset,
     'default_reminder_offset_type': defaultReminderOffsetType,
     'calendar_use_category_colors': colorByCategory,
+    'remember_filter_state': rememberFilterState,
     'private_slug': privateSlug,
   };
 }
@@ -142,6 +144,10 @@ void verifyUserSettingsMatchesJson(
   expect(
     settings.colorByCategory,
     equals(json['calendar_use_category_colors']),
+  );
+  expect(
+    settings.rememberFilterState,
+    equals(json['remember_filter_state']),
   );
   expect(settings.privateSlug, equals(json['private_slug']));
 }
