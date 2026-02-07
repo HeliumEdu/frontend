@@ -90,9 +90,18 @@ class FcmService {
     if (isInitialized) return;
 
     // Check browser support on web before attempting initialization
-    if (kIsWeb && !web_notifications.isMessagingSupported()) {
-      _log.info('FCM not supported in this browser, skipping initialization');
-      return;
+    if (kIsWeb) {
+      // First check basic browser APIs
+      if (!web_notifications.isMessagingSupported()) {
+        _log.info('FCM not supported in this browser (missing APIs), skipping initialization');
+        return;
+      }
+      // Then use Firebase's official support check
+      final isSupported = await _firebaseMessaging.isSupported();
+      if (!isSupported) {
+        _log.info('FCM not supported in this browser (Firebase check), skipping initialization');
+        return;
+      }
     }
 
     try {

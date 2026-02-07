@@ -250,7 +250,18 @@ jobs:
           version: "3.38.9"
 
       - name: Build web release bundle
+        env:
+          SENTRY_RELEASE: ${{ needs.bump-version.outputs.version }}
         run: make build-web
+
+      - name: Upload source maps to Sentry
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: |
+          npm install -g @sentry/cli
+          sentry-cli releases new ${{ needs.bump-version.outputs.version }}
+          sentry-cli releases files ${{ needs.bump-version.outputs.version }} upload-sourcemaps build/web --ext map --ext js
+          sentry-cli releases finalize ${{ needs.bump-version.outputs.version }}
 
       - name: Upload web artifact
         uses: actions/upload-artifact@v4
