@@ -274,7 +274,6 @@ jobs:
       - name: Display release info
         run: |
           echo "### Release v${{ needs.bump-version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Platform:** ${{ github.event.inputs.platform }}" >> $GITHUB_STEP_SUMMARY
 
       - name: Create and push tags
         env:
