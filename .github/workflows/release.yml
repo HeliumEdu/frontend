@@ -257,6 +257,7 @@ jobs:
       - name: Upload source maps to Sentry
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_PROPERTIES: sentry.properties
         run: |
           npm install -g @sentry/cli
           sentry-cli releases new ${{ needs.bump-version.outputs.version }}
