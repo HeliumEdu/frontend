@@ -34,6 +34,37 @@ import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
+import 'package:nested/nested.dart';
+
+/// Shows notifications as a dialog on desktop, or navigates on mobile.
+///
+/// Pass [providers] to share Blocs from the parent screen with the notifications
+/// dialog/screen, ensuring state changes are reflected in both.
+void showNotifications(
+  BuildContext context, {
+  List<SingleChildWidget>? providers,
+}) {
+  if (Responsive.isMobile(context)) {
+    context.push(
+      AppRoutes.notificationsScreen,
+      extra: NotificationArgs(providers: providers),
+    );
+  } else {
+    showScreenAsDialog(
+      context,
+      child: NotificationsScreen(),
+      providers: providers,
+      width: 420,
+      alignment: Alignment.centerRight,
+      insetPadding: const EdgeInsets.only(
+        top: 16,
+        bottom: 16,
+        right: 16,
+        left: 100,
+      ),
+    );
+  }
+}
 
 class NotificationsScreen extends StatelessWidget {
   final DioClient _dioClient = DioClient();
@@ -73,6 +104,9 @@ class _NotificationsScreenState
     extends BasePageScreenState<NotificationsProvidedScreen> {
   @override
   String get screenTitle => 'Notifications';
+
+  @override
+  IconData? get icon => Icons.notifications;
 
   @override
   ScreenType get screenType => ScreenType.subPage;
@@ -173,7 +207,7 @@ class _NotificationsScreenState
         itemCount: _notifications.length,
         itemBuilder: (context, index) {
           final notification = _notifications[index];
-          return _buildNotificationCard(notification);
+          return _buildNotificationRow(notification);
         },
       ),
     );
@@ -222,7 +256,7 @@ class _NotificationsScreenState
     );
   }
 
-  Widget _buildNotificationCard(NotificationModel notification) {
+  Widget _buildNotificationRow(NotificationModel notification) {
     final CalendarItemBaseModel calendarItem;
     if (notification.reminder.homework != null) {
       calendarItem =
@@ -232,211 +266,134 @@ class _NotificationsScreenState
           notification.reminder.event?.entity as CalendarItemBaseModel;
     }
 
-    return Column(
-      children: [
-        MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: GestureDetector(
-            onTap: () {
-              Feedback.forTap(context);
-              _openNotification(notification);
-            },
-            child: Container(
-              padding: const EdgeInsets.all(14.0),
-              decoration: BoxDecoration(
-                color: context.colorScheme.surface,
-                borderRadius: BorderRadius.circular(12),
-                border: (notification.isRead == true)
-                    ? Border.all(
-                        color: context.colorScheme.outline.withValues(
-                          alpha: 0.2,
-                        ),
-                      )
-                    : Border.all(
-                        color: context.colorScheme.primary.withValues(
-                          alpha: 0.2,
-                        ),
-                      ),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: context.colorScheme.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      notification.isRead
-                          ? Icons.notifications
-                          : Icons.notifications_active,
-                      color: context.colorScheme.primary,
-                      size: Responsive.getIconSize(
-                        context,
-                        mobile: 20,
-                        tablet: 22,
-                        desktop: 24,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                notification.title,
-                                style: AppStyles.standardBodyText(context).copyWith(
-                                  fontWeight: (notification.isRead == true)
-                                      ? FontWeight.w500
-                                      : FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                            if (!notification.isRead)
-                              Container(
-                                width: 8,
-                                height: 8,
-                                decoration: BoxDecoration(
-                                  color: context.colorScheme.primary,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                          ],
-                        ),
+    final isTouchDevice = Responsive.isTouchDevice(context);
 
-                        const SizedBox(height: 12),
-
-                        Row(
-                          children: [
-                            if (notification.color != null)
-                              Container(
-                                width: 12,
-                                height: 12,
-                                decoration: BoxDecoration(
-                                  color: notification.color,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                            const SizedBox(width: 8),
-                            Text(
-                              notification.body,
-                              style: AppStyles.standardBodyTextLight(context)
-                                  .copyWith(
-                                    color: context.colorScheme.onSurface
-                                        .withValues(alpha: 0.7),
-                                  ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.access_time,
-                              size: Responsive.getIconSize(
-                                context,
-                                mobile: 12,
-                                tablet: 14,
-                                desktop: 16,
-                              ),
-                              color: context.colorScheme.onSurface.withValues(
-                                alpha: 0.5,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              HeliumDateTime.formatDateTimeRangeForDisplay(
-                                HeliumDateTime.parse(
-                                  calendarItem.start,
-                                  userSettings!.timeZone,
-                                ),
-                                HeliumDateTime.parse(
-                                  calendarItem.end,
-                                  userSettings!.timeZone,
-                                ),
-                                calendarItem.showEndTime,
-                                calendarItem.allDay,
-                              ),
-                              style: AppStyles.smallSecondaryText(context)
-                                  .copyWith(
-                                    color: context.colorScheme.onSurface
-                                        .withValues(alpha: 0.5),
-                                  ),
-                            ),
-                            const Spacer(),
-
-                            const SizedBox(width: 8),
-
-                            PopupMenuButton<String>(
-                              onSelected: (value) {
-                                if (value == 'dismiss') {
-                                  _dismissReminder(notification);
-                                }
-                              },
-                              itemBuilder: (context) => [
-                                PopupMenuItem(
-                                  value: 'dismiss',
-                                  height: 30,
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.close,
-                                        color: context.colorScheme.error,
-                                        size: Responsive.getIconSize(
-                                          context,
-                                          mobile: 16,
-                                          tablet: 18,
-                                          desktop: 20,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text('Dismiss', style: AppStyles.formText(context)),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                              tooltip: '',
-                              child: Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color: context.colorScheme.outline.withValues(
-                                    alpha: 0.2,
-                                  ),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Icon(
-                                  Icons.more_vert,
-                                  color: context.colorScheme.primary,
-                                  size: Responsive.getIconSize(
-                                    context,
-                                    mobile: 16,
-                                    tablet: 18,
-                                    desktop: 20,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+    final rowContent = Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _openNotification(notification),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: context.colorScheme.outline.withValues(alpha: 0.1),
               ),
             ),
           ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                margin: const EdgeInsets.only(top: 6, right: 12),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: notification.isRead
+                      ? Colors.transparent
+                      : context.colorScheme.primary,
+                ),
+              ),
+              if (notification.color != null)
+                Container(
+                  width: 4,
+                  height: 48,
+                  margin: const EdgeInsets.only(right: 12),
+                  decoration: BoxDecoration(
+                    color: notification.color,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      notification.title,
+                      style: AppStyles.standardBodyText(context).copyWith(
+                        fontWeight: notification.isRead
+                            ? FontWeight.normal
+                            : FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      notification.body,
+                      style: AppStyles.standardBodyTextLight(context).copyWith(
+                        color: context.colorScheme.onSurface.withValues(
+                          alpha: 0.7,
+                        ),
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      HeliumDateTime.formatDateTimeRangeForDisplay(
+                        HeliumDateTime.parse(
+                          calendarItem.start,
+                          userSettings!.timeZone,
+                        ),
+                        HeliumDateTime.parse(
+                          calendarItem.end,
+                          userSettings!.timeZone,
+                        ),
+                        calendarItem.showEndTime,
+                        calendarItem.allDay,
+                      ),
+                      style: AppStyles.standardBodyTextLight(context).copyWith(
+                        fontSize: 12,
+                        color: context.colorScheme.onSurface.withValues(
+                          alpha: 0.5,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (!isTouchDevice)
+                IconButton(
+                  onPressed: () => _dismissReminder(notification),
+                  icon: Icon(
+                    Icons.close,
+                    color: context.colorScheme.secondary.withValues(alpha: 0.7),
+                    size: Responsive.getIconSize(
+                      context,
+                      mobile: 20,
+                      tablet: 22,
+                      desktop: 24,
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
-
-        const SizedBox(height: 12),
-      ],
+      ),
     );
+
+    if (isTouchDevice) {
+      return Dismissible(
+        key: Key('notification_${notification.id}'),
+        direction: DismissDirection.endToStart,
+        background: Container(
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.only(right: 20),
+          color: context.colorScheme.secondary,
+          child: Icon(
+            Icons.archive_outlined,
+            color: context.colorScheme.onSecondary,
+          ),
+        ),
+        confirmDismiss: (direction) async {
+          await _dismissReminder(notification);
+          return false;
+        },
+        child: rowContent,
+      );
+    }
+
+    return rowContent;
   }
 
   Future<void> _openNotification(NotificationModel notification) async {
@@ -462,18 +419,38 @@ class _NotificationsScreenState
     });
 
     if (mounted) {
-      final int? eventId = notification.reminder.event?.id;
-      final int? homeworkId = notification.reminder.homework?.id;
+      // Close the dialog first if we're in dialog mode
+      if (DialogModeProvider.isDialogMode(context)) {
+        Navigator.of(context).pop();
+      }
 
-      await context.push(
-        AppRoutes.plannerItemAddScreen,
-        extra: CalendarItemAddArgs(
-          calendarItemBloc: context.read<CalendarItemBloc>(),
-          eventId: eventId,
-          homeworkId: homeworkId,
+      // Try to get CalendarItemBloc from context
+      CalendarItemBloc? calendarItemBloc;
+      try {
+        calendarItemBloc = context.read<CalendarItemBloc>();
+      } catch (_) {
+        // CalendarItemBloc not available
+      }
+
+
+      // Navigate to item edit screen if bloc available, otherwise back to notifications
+      final String route;
+      final Object? extra;
+
+      if (calendarItemBloc != null) {
+        route = AppRoutes.plannerItemAddScreen;
+        extra = CalendarItemAddArgs(
+          calendarItemBloc: calendarItemBloc,
+          eventId: notification.reminder.event?.id,
+          homeworkId: notification.reminder.homework?.id,
           isEdit: true,
-        ),
-      );
+        );
+      } else {
+        route = AppRoutes.notificationsScreen;
+        extra = null;
+      }
+
+      await context.push(route, extra: extra);
     }
   }
 

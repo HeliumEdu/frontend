@@ -52,6 +52,7 @@ class CategoryTitleLabel extends StatelessWidget {
                           ? AppStyles.smallSecondaryText(context)
                           : AppStyles.standardBodyText(context))
                       .copyWith(color: color),
+              maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
           ),

@@ -70,6 +70,7 @@ class MaterialTitleLabel extends StatelessWidget {
                   style: AppStyles.standardBodyText(
                     context,
                   ).copyWith(color: userSettings.materialColor),
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
