@@ -1,4 +1,4 @@
-.PHONY: all env install clean build-android build-android-release build-ios-dev build-ios build-ios-release build-web test coverage run
+.PHONY: all env install clean build-android build-android-release build-ios-dev build-ios build-ios-release build-web upload-web-sourcemaps test coverage run
 
 SHELL := /usr/bin/env bash
 
@@ -42,6 +42,14 @@ build-ios-release: install
 
 build-web: install
 	flutter build web --release --source-maps $(WEB_ARGS)
+
+upload-web-sourcemaps:
+ifndef SENTRY_RELEASE
+	$(error SENTRY_RELEASE is required)
+endif
+	SENTRY_PROPERTIES=sentry.properties sentry-cli releases new $(SENTRY_RELEASE)
+	SENTRY_PROPERTIES=sentry.properties sentry-cli sourcemaps upload --release $(SENTRY_RELEASE) build/web
+	SENTRY_PROPERTIES=sentry.properties sentry-cli releases finalize $(SENTRY_RELEASE)
 
 test: install
 	flutter analyze --no-pub --no-fatal-infos --no-fatal-warnings
