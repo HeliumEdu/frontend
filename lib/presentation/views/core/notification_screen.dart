@@ -432,24 +432,25 @@ class _NotificationsScreenState
         // CalendarItemBloc not available
       }
 
-      // If no CalendarItemBloc available, navigate to notifications screen
-      if (calendarItemBloc == null) {
-        await context.push(AppRoutes.notificationsScreen);
-        return;
+
+      // Navigate to item edit screen if bloc available, otherwise back to notifications
+      final String route;
+      final Object? extra;
+
+      if (calendarItemBloc != null) {
+        route = AppRoutes.plannerItemAddScreen;
+        extra = CalendarItemAddArgs(
+          calendarItemBloc: calendarItemBloc,
+          eventId: notification.reminder.event?.id,
+          homeworkId: notification.reminder.homework?.id,
+          isEdit: true,
+        );
+      } else {
+        route = AppRoutes.notificationsScreen;
+        extra = null;
       }
 
-      final int? eventId = notification.reminder.event?.id;
-      final int? homeworkId = notification.reminder.homework?.id;
-
-      await context.push(
-        AppRoutes.plannerItemAddScreen,
-        extra: CalendarItemAddArgs(
-          calendarItemBloc: calendarItemBloc,
-          eventId: eventId,
-          homeworkId: homeworkId,
-          isEdit: true,
-        ),
-      );
+      await context.push(route, extra: extra);
     }
   }
 

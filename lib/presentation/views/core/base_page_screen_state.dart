@@ -87,7 +87,7 @@ void showScreenAsDialog(
 
       if (providers != null && providers.isNotEmpty) {
         _log.info(
-          'Dialog using ${providers.length} inherited provider(s): '
+          'Using ${providers.length} inherited provider(s): '
           '${providers.map((p) => p.runtimeType).join(', ')}',
         );
         dialogContent = MultiBlocProvider(
