@@ -264,6 +264,7 @@ class _ExternalCalendarsProvidedScreenState
                           alpha: 0.6,
                         ),
                       ),
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],

@@ -122,6 +122,7 @@ class GroupDropdown<T extends BaseModel> extends StatelessWidget {
                         Text(
                           item.title,
                           style: AppStyles.formText(context),
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         if (!item.shownOnCalendar!) ...[
@@ -143,6 +144,7 @@ class GroupDropdown<T extends BaseModel> extends StatelessWidget {
                                 alpha: 0.6,
                               ),
                             ),
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                   ],
