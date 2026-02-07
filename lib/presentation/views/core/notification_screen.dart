@@ -133,7 +133,6 @@ class _NotificationsScreenState
 
   @override
   Widget buildMainArea(BuildContext context) {
-    // TODO: Blocker for Web: on larger screens, open notifications as dialog (or preferably sidebar)
     return BlocBuilder<ReminderBloc, ReminderState>(
       builder: (context, state) {
         if (state is RemindersLoading) {
@@ -291,7 +290,7 @@ class _NotificationsScreenState
                             Expanded(
                               child: Text(
                                 notification.title,
-                                style: AppStyles.headingText(context).copyWith(
+                                style: AppStyles.standardBodyText(context).copyWith(
                                   fontWeight: (notification.isRead == true)
                                       ? FontWeight.w500
                                       : FontWeight.w600,
@@ -326,7 +325,7 @@ class _NotificationsScreenState
                             const SizedBox(width: 8),
                             Text(
                               notification.body,
-                              style: AppStyles.standardBodyText(context)
+                              style: AppStyles.standardBodyTextLight(context)
                                   .copyWith(
                                     color: context.colorScheme.onSurface
                                         .withValues(alpha: 0.7),
@@ -365,7 +364,7 @@ class _NotificationsScreenState
                                 calendarItem.showEndTime,
                                 calendarItem.allDay,
                               ),
-                              style: AppStyles.standardBodyText(context)
+                              style: AppStyles.smallSecondaryText(context)
                                   .copyWith(
                                     color: context.colorScheme.onSurface
                                         .withValues(alpha: 0.5),
