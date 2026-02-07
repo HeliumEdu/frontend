@@ -5,11 +5,16 @@ run-name: "Release"
 on:
   workflow_dispatch:
     inputs:
-      bump_version:
-        description: 'Bump version before build'
+      bump_type:
+        description: 'Version bump type'
         required: true
-        type: boolean
-        default: true
+        type: choice
+        default: patch
+        options:
+          - patch
+          - minor
+          - major
+          - none
 
 permissions:
   contents: write
@@ -29,32 +34,32 @@ jobs:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
       - name: Setup Flutter SDK
-        if: ${{ github.event.inputs.bump_version == 'true' }}
+        if: ${{ github.event.inputs.bump_type != 'none' }}
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
           version: "3.38.9"
 
       - name: Install dependencies
-        if: ${{ github.event.inputs.bump_version == 'true' }}
+        if: ${{ github.event.inputs.bump_type != 'none' }}
         run: make install
 
       - name: Bump version
-        if: ${{ github.event.inputs.bump_version == 'true' }}
+        if: ${{ github.event.inputs.bump_type != 'none' }}
         run: |
           dart run cider bump build
-          dart run cider bump minor --keep-build
+          dart run cider bump ${{ github.event.inputs.bump_type }} --keep-build
 
       - name: Commit version bump
-        if: ${{ github.event.inputs.bump_version == 'true' }}
+        if: ${{ github.event.inputs.bump_type != 'none' }}
         run: |
           git config --global user.name "GitHub Release Bot"
           git config --global user.email "<contact@alexlaird.com>"
-          
+
           git add pubspec.yaml
-          
+
           git commit -m "Bump version to $(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' \r\n')"
-          
+
           git push
 
       - name: Get version from pubspec.yaml
