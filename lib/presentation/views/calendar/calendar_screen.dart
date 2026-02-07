@@ -61,6 +61,7 @@ import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
+import 'package:nested/nested.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:timezone/standalone.dart' as tz;
 import 'package:url_launcher/url_launcher.dart';
@@ -123,8 +124,11 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   String get screenTitle => 'Planner';
 
   @override
-  NotificationArgs? get notificationNavArgs =>
-      NotificationArgs(calendarItemBloc: context.read<CalendarItemBloc>());
+  List<SingleChildWidget>? get inheritableProviders => [
+    BlocProvider<CalendarItemBloc>.value(
+      value: context.read<CalendarItemBloc>(),
+    ),
+  ];
 
   @override
   VoidCallback get actionButtonCallback => () {
@@ -1848,7 +1852,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             );
           },
           icon: Icons.link_outlined,
-          tooltip: "Launch class's website",
+          tooltip: 'Launch class website',
           color: Colors.white,
         ),
       );
@@ -2904,13 +2908,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   ) {
     return Row(
       children: [
-        Icon(
-          Icons.access_time,
-          size: 10,
-          // TODO: Known Issues (4/Medium): Use dynamic text color based on background luminance to prevent visibility issues with light user-selected colors
-          color: Colors.white.withValues(alpha: 0.4),
-        ),
-        const SizedBox(width: 2),
         Expanded(
           child: Text(
             HeliumDateTime.formatTimeRangeForDisplay(
