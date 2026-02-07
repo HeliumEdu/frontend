@@ -288,88 +288,83 @@ class _NotificationsDialogContentState
   }
 
   Widget _buildNotificationCard(NotificationModel notification) {
-    return Dismissible(
-      key: Key('notification_${notification.id}'),
-      direction: DismissDirection.endToStart,
-      onDismissed: (direction) {
-        _dismissNotification(notification);
-      },
-      background: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        color: context.colorScheme.error,
-        child: const Icon(Icons.delete, color: Colors.white),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            _openNotification(notification);
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: context.colorScheme.outline.withValues(alpha: 0.1),
-                ),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          _openNotification(notification);
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: context.colorScheme.outline.withValues(alpha: 0.1),
               ),
             ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                margin: const EdgeInsets.only(top: 6, right: 12),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: notification.isRead
+                      ? Colors.transparent
+                      : context.colorScheme.primary,
+                ),
+              ),
+              if (notification.color != null)
                 Container(
-                  width: 8,
-                  height: 8,
-                  margin: const EdgeInsets.only(top: 6, right: 12),
+                  width: 4,
+                  height: 48,
+                  margin: const EdgeInsets.only(right: 12),
                   decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: notification.isRead
-                        ? Colors.transparent
-                        : context.colorScheme.primary,
+                    color: notification.color,
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                if (notification.color != null)
-                  Container(
-                    width: 4,
-                    height: 40,
-                    margin: const EdgeInsets.only(right: 12),
-                    decoration: BoxDecoration(
-                      color: notification.color,
-                      borderRadius: BorderRadius.circular(2),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      notification.title,
+                      style: AppStyles.standardBodyText(context).copyWith(
+                        fontWeight: notification.isRead
+                            ? FontWeight.normal
+                            : FontWeight.w600,
+                      ),
                     ),
-                  ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        notification.title,
-                        style: AppStyles.standardBodyText(context).copyWith(
-                          fontWeight: notification.isRead
-                              ? FontWeight.normal
-                              : FontWeight.w600,
-                        ),
+                    const SizedBox(height: 4),
+                    Text(
+                      notification.body,
+                      style: AppStyles.standardBodyTextLight(context),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _formatTimestamp(notification.timestamp),
+                      style: AppStyles.standardBodyTextLight(context).copyWith(
+                        fontSize: 12,
+                        color: context.colorScheme.onSurface
+                            .withValues(alpha: 0.5),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        notification.body,
-                        style: AppStyles.standardBodyTextLight(context),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _formatTimestamp(notification.timestamp),
-                        style: AppStyles.standardBodyTextLight(context).copyWith(
-                          fontSize: 12,
-                          color: context.colorScheme.onSurface
-                              .withValues(alpha: 0.5),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              IconButton(
+                onPressed: () => _dismissNotification(notification),
+                icon: Icon(
+                  Icons.archive_outlined,
+                  color: context.colorScheme.onSurface.withValues(alpha: 0.5),
+                ),
+                tooltip: 'Dismiss',
+              ),
+            ],
           ),
         ),
       ),
