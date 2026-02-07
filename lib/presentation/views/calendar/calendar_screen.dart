@@ -119,7 +119,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   static const _agendaHeightDesktop = 57.0;
 
   @override
-  // TODO: have the shell pass down its label here instead
+  // TODO: Cleanup: have the shell pass down its label here instead
   String get screenTitle => 'Planner';
 
   @override
@@ -264,6 +264,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             ),
             userSettings: settings,
           );
+          _calendarItemDataSource!.restoreFiltersIfEnabled();
+          _todosController.itemsPerPage =
+              _calendarItemDataSource!.todosItemsPerPage;
         });
       }
 
@@ -1865,6 +1868,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       );
     }
 
+    // FIXME: on mobile, instead of still showing the delete button, utilize Dismissable for swip-to-delete; trigger same logic
     if (PlannerHelper.shouldShowDeleteButton(calendarItem)) {
       buttons.add(
         HeliumIconButton(
@@ -2242,7 +2246,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   void _onToggleCompleted(HomeworkModel homework, bool value) {
-    // TODO: show confetti when Homework is completed
+    // TODO: Enhancement: show confetti when Homework is completed
 
     Feedback.forTap(context);
 

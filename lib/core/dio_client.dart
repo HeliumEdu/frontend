@@ -344,6 +344,9 @@ class DioClient {
         'calendar_use_category_colors': _prefService.getBool(
           'calendar_use_category_colors',
         ),
+        'remember_filter_state': _prefService.getBool(
+          'remember_filter_state',
+        ),
       });
     } catch (parseError) {
       _log.info('Failed to parse cached settings: $parseError');
@@ -398,6 +401,10 @@ class DioClient {
       ?_prefService.setInt(
         'whats_new_version_seen',
         settings.whatsNewVersionSeen,
+      ),
+      ?_prefService.setBool(
+        'remember_filter_state',
+        settings.rememberFilterState,
       ),
     ]);
   }

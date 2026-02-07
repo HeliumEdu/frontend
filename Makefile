@@ -1,4 +1,4 @@
-.PHONY: all env install clean build-android build-android-release build-ios-dev build-ios build-ios-release build-web test coverage run
+.PHONY: all env install clean build-android build-android-release build-ios-dev build-ios build-ios-release build-web upload-web-sourcemaps test coverage run
 
 SHELL := /usr/bin/env bash
 
@@ -6,6 +6,12 @@ ifdef PROJECT_API_HOST
     RUN_ARGS := --dart-define=PROJECT_API_HOST=$(PROJECT_API_HOST)
 else
     RUN_ARGS :=
+endif
+
+ifdef SENTRY_RELEASE
+    WEB_ARGS := --dart-define=SENTRY_RELEASE=$(SENTRY_RELEASE)
+else
+    WEB_ARGS :=
 endif
 
 all: test
@@ -35,7 +41,15 @@ build-ios-release: install
 	flutter build ipa --release --export-options-plist=ios/ExportOptions.plist --obfuscate --split-debug-info=build/symbols
 
 build-web: install
-	flutter build web --release
+	flutter build web --release --source-maps $(WEB_ARGS)
+
+upload-web-sourcemaps:
+ifndef SENTRY_RELEASE
+	$(error SENTRY_RELEASE is required)
+endif
+	SENTRY_PROPERTIES=sentry.properties sentry-cli releases new $(SENTRY_RELEASE)
+	SENTRY_PROPERTIES=sentry.properties sentry-cli sourcemaps upload --release $(SENTRY_RELEASE) build/web
+	SENTRY_PROPERTIES=sentry.properties sentry-cli releases finalize $(SENTRY_RELEASE)
 
 test: install
 	flutter analyze --no-pub --no-fatal-infos --no-fatal-warnings
