@@ -11,9 +11,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_bloc.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_event.dart';
+import 'package:heliumapp/presentation/views/core/notification_screen.dart';
 import 'package:heliumapp/presentation/widgets/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/settings_button.dart';
@@ -25,23 +25,23 @@ enum ScreenType { page, subPage, entityPage }
 
 class PageHeader extends StatelessWidget {
   final String title;
+  final IconData? icon;
   final ScreenType screenType;
   final bool isLoading;
   final Function? cancelAction;
   final Function? saveAction;
-  final NotificationArgs? notificationNavArgs;
 
   final bool showLogout;
 
   const PageHeader({
     super.key,
     required this.title,
+    this.icon,
     required this.screenType,
     this.isLoading = false,
     this.cancelAction,
     this.saveAction,
     this.showLogout = false,
-    this.notificationNavArgs,
   });
 
   @override
@@ -83,16 +83,22 @@ class PageHeader extends StatelessWidget {
           else
             const Icon(Icons.space_bar, color: Colors.transparent),
 
-          Text(title, style: AppStyles.pageTitle(context)),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (icon != null) ...[
+                Icon(icon, color: context.colorScheme.primary),
+                const SizedBox(width: 8),
+              ],
+              Text(title, style: AppStyles.pageTitle(context)),
+            ],
+          ),
 
           if (screenType == ScreenType.page)
             IconButton(
               visualDensity: VisualDensity.compact,
               onPressed: () {
-                context.push(
-                  AppRoutes.notificationsScreen,
-                  extra: notificationNavArgs,
-                );
+                showNotifications(context);
               },
               icon: Icon(
                 Icons.notifications,

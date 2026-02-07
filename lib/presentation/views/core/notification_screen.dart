@@ -35,6 +35,40 @@ import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 
+/// Shows notifications as a dialog on desktop, or navigates on mobile.
+void showNotifications(BuildContext context) {
+  // Try to get CalendarItemBloc from the calling context
+  CalendarItemBloc? calendarItemBloc;
+  try {
+    calendarItemBloc = context.read<CalendarItemBloc>();
+  } catch (_) {
+    // Not available in this context
+  }
+
+  if (Responsive.isMobile(context)) {
+    context.push(
+      AppRoutes.notificationsScreen,
+      extra: NotificationArgs(calendarItemBloc: calendarItemBloc),
+    );
+  } else {
+    showScreenAsDialog(
+      context,
+      child: NotificationsScreen(),
+      providers: calendarItemBloc != null
+          ? [BlocProvider<CalendarItemBloc>.value(value: calendarItemBloc)]
+          : null,
+      width: 420,
+      alignment: Alignment.centerRight,
+      insetPadding: const EdgeInsets.only(
+        top: 16,
+        bottom: 16,
+        right: 16,
+        left: 100,
+      ),
+    );
+  }
+}
+
 class NotificationsScreen extends StatelessWidget {
   final DioClient _dioClient = DioClient();
 
@@ -73,6 +107,9 @@ class _NotificationsScreenState
     extends BasePageScreenState<NotificationsProvidedScreen> {
   @override
   String get screenTitle => 'Notifications';
+
+  @override
+  IconData? get icon => Icons.notifications;
 
   @override
   ScreenType get screenType => ScreenType.subPage;
@@ -170,7 +207,6 @@ class _NotificationsScreenState
   Widget _buildNotificationsList() {
     return Expanded(
       child: ListView.builder(
-        // padding: const EdgeInsets.symmetric(vertical: 8),
         itemCount: _notifications.length,
         itemBuilder: (context, index) {
           final notification = _notifications[index];
@@ -323,8 +359,8 @@ class _NotificationsScreenState
                 IconButton(
                   onPressed: () => _dismissReminder(notification),
                   icon: Icon(
-                    Icons.archive_outlined,
-                    color: context.colorScheme.onSurface.withValues(alpha: 0.5),
+                    Icons.close,
+                    color: context.colorScheme.secondary.withValues(alpha: 0.7),
                     size: Responsive.getIconSize(
                       context,
                       mobile: 20,
@@ -332,7 +368,6 @@ class _NotificationsScreenState
                       desktop: 24,
                     ),
                   ),
-                  tooltip: 'Dismiss',
                 ),
             ],
           ),
@@ -348,7 +383,10 @@ class _NotificationsScreenState
           alignment: Alignment.centerRight,
           padding: const EdgeInsets.only(right: 20),
           color: context.colorScheme.secondary,
-          child: Icon(Icons.archive_outlined, color: context.colorScheme.onSecondary),
+          child: Icon(
+            Icons.archive_outlined,
+            color: context.colorScheme.onSecondary,
+          ),
         ),
         confirmDismiss: (direction) async {
           await _dismissReminder(notification);
@@ -384,13 +422,32 @@ class _NotificationsScreenState
     });
 
     if (mounted) {
+      // Close the dialog first if we're in dialog mode
+      if (DialogModeProvider.isDialogMode(context)) {
+        Navigator.of(context).pop();
+      }
+
+      // Try to get CalendarItemBloc from context
+      CalendarItemBloc? calendarItemBloc;
+      try {
+        calendarItemBloc = context.read<CalendarItemBloc>();
+      } catch (_) {
+        // CalendarItemBloc not available
+      }
+
+      // If no CalendarItemBloc available, navigate to notifications screen
+      if (calendarItemBloc == null) {
+        await context.push(AppRoutes.notificationsScreen);
+        return;
+      }
+
       final int? eventId = notification.reminder.event?.id;
       final int? homeworkId = notification.reminder.homework?.id;
 
       await context.push(
         AppRoutes.plannerItemAddScreen,
         extra: CalendarItemAddArgs(
-          calendarItemBloc: context.read<CalendarItemBloc>(),
+          calendarItemBloc: calendarItemBloc,
           eventId: eventId,
           homeworkId: homeworkId,
           isEdit: true,

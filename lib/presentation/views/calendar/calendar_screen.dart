@@ -123,10 +123,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   String get screenTitle => 'Planner';
 
   @override
-  NotificationArgs? get notificationNavArgs =>
-      NotificationArgs(calendarItemBloc: context.read<CalendarItemBloc>());
-
-  @override
   VoidCallback get actionButtonCallback => () {
     // For Todos and Schedule views, use today as initial date since we don't
     // have a confident selection. For calendar views, use the selected date.
@@ -1848,7 +1844,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             );
           },
           icon: Icons.link_outlined,
-          tooltip: "Launch class's website",
+          tooltip: "Launch class website",
           color: Colors.white,
         ),
       );
@@ -2904,13 +2900,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   ) {
     return Row(
       children: [
-        Icon(
-          Icons.access_time,
-          size: 10,
-          // TODO: Known Issues (4/Medium): Use dynamic text color based on background luminance to prevent visibility issues with light user-selected colors
-          color: Colors.white.withValues(alpha: 0.4),
-        ),
-        const SizedBox(width: 2),
         Expanded(
           child: Text(
             HeliumDateTime.formatTimeRangeForDisplay(

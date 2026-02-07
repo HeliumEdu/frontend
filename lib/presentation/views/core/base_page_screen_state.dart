@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/presentation/views/core/navigation_shell.dart';
@@ -18,7 +17,96 @@ import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:nested/nested.dart';
+
+final _log = Logger('presentation.views');
+
+/// Provider to indicate that a screen is being displayed as a dialog.
+class DialogModeProvider extends InheritedWidget {
+  final double? width;
+  final double? height;
+
+  const DialogModeProvider({
+    super.key,
+    required super.child,
+    this.width,
+    this.height,
+  });
+
+  static DialogModeProvider? maybeOf(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<DialogModeProvider>();
+  }
+
+  static bool isDialogMode(BuildContext context) {
+    return maybeOf(context) != null;
+  }
+
+  @override
+  bool updateShouldNotify(DialogModeProvider oldWidget) {
+    return width != oldWidget.width || height != oldWidget.height;
+  }
+}
+
+/// Shows any widget as a dialog with standard dialog chrome.
+/// The widget should use [BasePageScreenState] to automatically adapt its layout.
+///
+/// Pass [providers] to share existing Blocs with the dialog, ensuring state
+/// changes in the dialog are reflected in the parent screen:
+/// ```dart
+/// showScreenAsDialog(
+///   context,
+///   child: MyScreen(),
+///   providers: [
+///     BlocProvider<MyBloc>.value(value: existingBloc),
+///   ],
+/// );
+/// ```
+void showScreenAsDialog(
+  BuildContext context, {
+  required Widget child,
+  List<SingleChildWidget>? providers,
+  double width = 500,
+  double? height,
+  AlignmentGeometry alignment = Alignment.center,
+  EdgeInsets insetPadding = const EdgeInsets.all(16),
+}) {
+  showDialog(
+    context: context,
+    barrierColor: Colors.black54,
+    builder: (dialogContext) {
+      final screenHeight = MediaQuery.of(dialogContext).size.height;
+      final effectiveHeight = height ?? screenHeight - 32;
+
+      Widget dialogContent = DialogModeProvider(
+        width: width,
+        height: effectiveHeight,
+        child: SizedBox(width: width, height: effectiveHeight, child: child),
+      );
+
+      if (providers != null && providers.isNotEmpty) {
+        _log.info(
+          'Dialog using ${providers.length} inherited provider(s): '
+          '${providers.map((p) => p.runtimeType).join(', ')}',
+        );
+        dialogContent = MultiBlocProvider(
+          providers: providers,
+          child: dialogContent,
+        );
+      }
+
+      return Dialog(
+        alignment: alignment,
+        insetPadding: insetPadding,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: dialogContent,
+        ),
+      );
+    },
+  );
+}
 
 abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   final DioClient dioClient = DioClient();
@@ -28,6 +116,9 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   @mustBeOverridden
   String get screenTitle;
 
+  // FIXME: currently only Notifications page has an icon, define one for other pages
+  IconData? get icon => null;
+
   ScreenType get screenType => ScreenType.page;
 
   Function get cancelAction =>
@@ -36,8 +127,6 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   Function? get saveAction => null;
 
   bool get showLogout => false;
-
-  NotificationArgs? get notificationNavArgs => null;
 
   VoidCallback? get actionButtonCallback => null;
 
@@ -106,6 +195,9 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     // Check if we're inside a NavigationShell (which has its own Scaffold)
     final bool hasNavigationShell = NavigationShellProvider.of(context);
 
+    // Check if we're being displayed as a dialog
+    final bool isDialogMode = DialogModeProvider.isDialogMode(context);
+
     // Build the main content
     final Widget content = Padding(
       padding: const EdgeInsets.only(left: 12, right: 12, top: 8, bottom: 0),
@@ -122,6 +214,46 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
         ],
       ),
     );
+
+    // When displayed as a dialog, wrap as such
+    if (isDialogMode) {
+      return Container(
+        decoration: BoxDecoration(
+          color: context.colorScheme.surface,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          children: [
+            // Dialog header
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: context.colorScheme.outline.withValues(alpha: 0.2),
+                  ),
+                ),
+              ),
+              child: Row(
+                children: [
+                  if (icon != null) ...[
+                    Icon(icon, color: context.colorScheme.primary),
+                    const SizedBox(width: 12),
+                  ],
+                  Text(screenTitle, style: AppStyles.pageTitle(context)),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(child: content),
+          ],
+        ),
+      );
+    }
 
     // When inside NavigationScaffold, don't wrap in another Scaffold
     // The NavigationScaffold already provides the Scaffold with navigation
@@ -170,12 +302,12 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   Widget buildPageHeader() {
     return PageHeader(
       title: screenTitle,
+      icon: icon,
       screenType: screenType,
       isLoading: isSubmitting,
       cancelAction: cancelAction,
       saveAction: saveAction,
       showLogout: showLogout,
-      notificationNavArgs: notificationNavArgs,
     );
   }
 

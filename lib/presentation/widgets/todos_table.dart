@@ -909,7 +909,7 @@ class TodosTableState extends State<TodosTable> {
                 mode: LaunchMode.externalApplication,
               );
             },
-            tooltip: "Launch class's website",
+            tooltip: "Launch class website",
             icon: Icons.link_outlined,
             color: context.colorScheme.onSurface,
           ),
