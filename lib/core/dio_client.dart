@@ -20,6 +20,7 @@ import 'package:heliumapp/data/models/auth/refresh_token_request_model.dart';
 import 'package:heliumapp/data/models/auth/token_response_model.dart';
 import 'package:heliumapp/data/models/auth/update_settings_request_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
@@ -438,7 +439,12 @@ class DioClient {
       if (context != null && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(message),
+            content: SelectableText(
+              message,
+              style: AppStyles.standardBodyText(
+                context,
+              ).copyWith(color: context.colorScheme.onPrimary),
+            ),
             backgroundColor: context.colorScheme.error,
             duration: const Duration(seconds: 4),
             behavior: SnackBarBehavior.floating,
