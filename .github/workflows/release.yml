@@ -10,29 +10,82 @@ on:
         required: true
         type: choice
         options:
+          - web
           - android
           - ios
-          - web
+      bump_version:
+        description: 'Bump version before build'
+        required: true
+        type: boolean
+        default: true
 
 permissions:
   contents: write
 
 jobs:
-  test:
-    name: Test
+  bump-version:
+    name: Bump Version
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.get_version.outputs.version }}
+      semver: ${{ steps.get_version.outputs.semver }}
+      build_number: ${{ steps.get_version.outputs.build_number }}
 
     steps:
       - uses: actions/checkout@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Flutter SDK
+        if: ${{ github.event.inputs.bump_version == 'true' }}
+        uses: flutter-actions/setup-flutter@v4
+        with:
+          channel: stable
+          version: "3.38.9"
+
+      - name: Install dependencies
+        if: ${{ github.event.inputs.bump_version == 'true' }}
+        run: make install
+
+      - name: Bump version
+        if: ${{ github.event.inputs.bump_version == 'true' }}
+        run: |
+          dart run cider bump build
+          dart run cider bump minor --keep-build
+
+      - name: Commit version bump
+        if: ${{ github.event.inputs.bump_version == 'true' }}
+        run: |
+          git config --global user.name "GitHub Release Bot"
+          git config --global user.email "<contact@alexlaird.com>"
+          
+          git add pubspec.yaml
+          
+          git commit -m "Bump version to $(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' \r\n')"
+          
+          git push
 
       - name: Get version from pubspec.yaml
         id: get_version
         run: |
           VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' \r\n')
+          SEMVER="${VERSION%%+*}"
+          BUILD_NUMBER="${VERSION##*+}"
+          
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "semver=$SEMVER" >> $GITHUB_OUTPUT
+          echo "build_number=$BUILD_NUMBER" >> $GITHUB_OUTPUT
           echo "Version: $VERSION"
+
+  test:
+    name: Test
+    needs: bump-version
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.ref }}
 
       - name: Setup Java 17
         uses: actions/setup-java@v4
@@ -51,12 +104,14 @@ jobs:
 
   build-android-release:
     name: Build Android Release AAB
-    needs: test
+    needs: [bump-version, test]
     if: ${{ github.event.inputs.platform == 'android' }}
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.ref }}
 
       - name: Setup Java 17
         uses: actions/setup-java@v4
@@ -86,7 +141,7 @@ jobs:
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
         with:
-          name: helium-${{ needs.test.outputs.version }}-android.aab
+          name: helium-${{ needs.bump-version.outputs.version }}-android.aab
           path: build/app/outputs/bundle/release/app-release.aab
           retention-days: 30
 
@@ -96,12 +151,14 @@ jobs:
 
   build-ios-release:
     name: Build iOS Release IPA
-    needs: test
+    needs: [bump-version, test]
     if: ${{ github.event.inputs.platform == 'ios' }}
     runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.ref }}
 
       - name: Select latest Xcode
         run: |
@@ -171,7 +228,7 @@ jobs:
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
-          name: helium-${{ needs.test.outputs.version }}-ios.ipa
+          name: helium-${{ needs.bump-version.outputs.version }}-ios.ipa
           path: build/ios/ipa/*.ipa
           retention-days: 30
 
@@ -183,12 +240,14 @@ jobs:
 
   build-web-release:
     name: Build Web
-    needs: test
+    needs: [bump-version, test]
     if: ${{ github.event.inputs.platform == 'web' }}
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.ref }}
 
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v4
@@ -202,41 +261,51 @@ jobs:
       - name: Upload web artifact
         uses: actions/upload-artifact@v4
         with:
-          name: helium-${{ needs.test.outputs.version }}-web
+          name: helium-${{ needs.bump-version.outputs.version }}-web
           path: build/web
           retention-days: 30
 
   create-release-tag:
     name: Create Release Tag
-    needs: [test, build-android-release, build-ios-release, build-web-release]
+    needs: [bump-version, test, build-android-release, build-ios-release, build-web-release]
     if: always() && needs.test.result == 'success' && (needs.build-android-release.result == 'success' || needs.build-android-release.result == 'skipped') && (needs.build-ios-release.result == 'success' || needs.build-ios-release.result == 'skipped') && (needs.build-web-release.result == 'success' || needs.build-web-release.result == 'skipped')
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v5
         with:
+          ref: ${{ github.ref }}
           fetch-depth: 0
 
       - name: Display release info
         run: |
-          FULL_VERSION="${{ needs.test.outputs.version }}"
-          echo "### 🚀 Release v$FULL_VERSION" >> $GITHUB_STEP_SUMMARY
+          echo "### Release v${{ needs.bump-version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "**Platform:** ${{ github.event.inputs.platform }}" >> $GITHUB_STEP_SUMMARY
 
-      - name: Create and push tag
+      - name: Create and push tags
         env:
-          FULL_VERSION: ${{ needs.test.outputs.version }}
+          SEMVER: ${{ needs.bump-version.outputs.semver }}
+          BUILD_NUMBER: ${{ needs.bump-version.outputs.build_number }}
+          FULL_VERSION: ${{ needs.bump-version.outputs.version }}
         run: |
           git config --global user.name "GitHub Release Bot"
           git config --global user.email "<contact@alexlaird.com>"
 
-          SEMVER="${FULL_VERSION%%+*}"
-
+          # Create semantic version tag
           if git rev-parse "v$SEMVER" >/dev/null 2>&1; then
-            echo "Tag v$SEMVER already exists, skipping tag creation"
+            echo "Tag v$SEMVER already exists, skipping"
           else
-            echo "Creating tag v$SEMVER for build $FULL_VERSION"
+            echo "Creating tag v$SEMVER"
             git tag -a "v$SEMVER" -m "Release v$SEMVER (build $FULL_VERSION)"
-            git push origin "v$SEMVER"
-            echo "Successfully created and pushed tag v$SEMVER"
           fi
+
+          # Create build number tag
+          if git rev-parse "build$BUILD_NUMBER" >/dev/null 2>&1; then
+            echo "Tag build$BUILD_NUMBER already exists, skipping"
+          else
+            echo "Creating tag build$BUILD_NUMBER"
+            git tag -a "build$BUILD_NUMBER" -m "Build $BUILD_NUMBER (v$SEMVER)"
+          fi
+
+          # Push both tags
+          git push origin "v$SEMVER" "build$BUILD_NUMBER"
