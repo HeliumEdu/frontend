@@ -7,6 +7,9 @@
 	<key>com.apple.developer.associated-domains</key>
 	<array>
 		<string>webcredentials:api.heliumedu.com</string>
+		<string>webcredentials:app.heliumedu.com</string>
+		<string>webcredentials:heliumedu.com</string>
+		<string>webcredentials:www.heliumedu.com</string>
 	</array>
 </dict>
 </plist>
