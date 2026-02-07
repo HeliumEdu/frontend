@@ -88,7 +88,7 @@ class MaterialsProvidedScreen extends StatefulWidget {
 class _MaterialsScreenState
     extends BasePageScreenState<MaterialsProvidedScreen> {
   @override
-  // TODO: have the shell pass down its label here instead
+  // TODO: Cleanup: have the shell pass down its label here instead
   String get screenTitle => 'Resources';
 
   @override

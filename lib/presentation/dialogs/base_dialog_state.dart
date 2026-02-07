@@ -43,7 +43,7 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
     return [];
   }
 
-  // TODO: there's a keyboard gap on iOS (at the bottom) on taller dialogs, fix
+  // TODO: Cleanup: there's a keyboard gap on iOS (at the bottom) on taller dialogs, fix
   Dialog buildDialog(BuildContext context) {
     return Dialog(
       backgroundColor: Colors.transparent,

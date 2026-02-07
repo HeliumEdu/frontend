@@ -90,7 +90,7 @@ class CoursesProvidedScreen extends StatefulWidget {
 
 class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
   @override
-  // TODO: have the shell pass down its label here instead
+  // TODO: Cleanup: have the shell pass down its label here instead
   String get screenTitle => 'Classes';
 
   @override

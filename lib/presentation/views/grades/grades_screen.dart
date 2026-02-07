@@ -74,7 +74,7 @@ class GradesProvidedScreen extends StatefulWidget {
 
 class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
   @override
-  // TODO: have the shell pass down its label here instead
+  // TODO: Cleanup: have the shell pass down its label here instead
   String get screenTitle => 'Grades';
 
   // State
