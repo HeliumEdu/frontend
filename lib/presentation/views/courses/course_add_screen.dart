@@ -265,7 +265,7 @@ class _CourseAddScreenState
                     launchUrl(Uri.parse(_formController.urlController.text));
                   },
                   icon: Icons.link_outlined,
-                  tooltip: "Launch class's website",
+                  tooltip: 'Launch class website',
                   color: context.semanticColors.success,
                 ),
               ),
