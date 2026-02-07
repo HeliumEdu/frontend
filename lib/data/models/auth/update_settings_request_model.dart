@@ -18,6 +18,7 @@ class UpdateSettingsRequestModel {
   final int? defaultReminderType;
   final int? defaultReminderOffset;
   final int? defaultReminderOffsetType;
+  final bool? rememberFilterState;
 
   UpdateSettingsRequestModel({
     this.timeZone,
@@ -32,6 +33,7 @@ class UpdateSettingsRequestModel {
     this.defaultReminderType,
     this.defaultReminderOffset,
     this.defaultReminderOffsetType,
+    this.rememberFilterState,
   });
 
   Map<String, dynamic> toJson() {
@@ -49,6 +51,7 @@ class UpdateSettingsRequestModel {
     if (defaultReminderType != null) json['default_reminder_type'] = defaultReminderType;
     if (defaultReminderOffset != null) json['default_reminder_offset'] = defaultReminderOffset;
     if (defaultReminderOffsetType != null) json['default_reminder_offset_type'] = defaultReminderOffsetType;
+    if (rememberFilterState != null) json['remember_filter_state'] = rememberFilterState;
 
     return json;
   }

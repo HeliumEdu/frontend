@@ -111,7 +111,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
 
   @override
   Widget buildMainArea(BuildContext context) {
-    // TODO: Enhancement: on larger screens, open settings as dialog instead of nav (ensure sub-pages also navigate within the popped up dialog)
+    // TODO: Blocker for Web: on larger screens, open settings as dialog instead of nav (ensure sub-pages also navigate within the popped up dialog)
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
         if (state is AuthLoading) {
@@ -128,7 +128,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
       child: SingleChildScrollView(
         child: Column(
           children: [
-            // TODO: Enhancement: implement ability to change username, email
+            // TODO: Feature Parity: implement ability to change username, email
             _buildProfileArea(),
 
             const SizedBox(height: 12),
@@ -137,9 +137,9 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
 
             const SizedBox(height: 12),
 
-            // TODO: Enhancement: implement section for import/export, re-importing example schedule
+            // TODO: Feature Parity: implement section for import/export, re-importing example schedule
 
-            // TODO: Enhancement: implement ability to delete all events
+            // TODO: Feature Parity: implement ability to delete all events
             _buildDeleteAccountArea(),
 
             const SizedBox(height: 12),

@@ -359,6 +359,8 @@ class TodosTableState extends State<TodosTable> {
               if (newItem != null) {
                 controller.itemsPerPage = newItem.id;
                 controller.currentPage = 1;
+                // Save to data source for persistence
+                widget.dataSource.todosItemsPerPage = newItem.id;
               }
             },
           ),

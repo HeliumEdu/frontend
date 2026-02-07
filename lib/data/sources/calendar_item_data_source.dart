@@ -6,8 +6,10 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/widgets.dart';
+import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
@@ -54,6 +56,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   List<String> _filterTypes = [];
   Set<String> _filterStatuses = {};
   String _searchQuery = '';
+  int _todosItemsPerPage = 10;
   final Map<int, bool> _completedOverrides = {};
   final Map<int, CalendarItemTimeOverride> _timeOverrides = {};
 
@@ -87,6 +90,15 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   Set<String> get filterStatuses => _filterStatuses;
 
   String get searchQuery => _searchQuery;
+
+  int get todosItemsPerPage => _todosItemsPerPage;
+
+  set todosItemsPerPage(int value) {
+    if (_todosItemsPerPage != value) {
+      _todosItemsPerPage = value;
+      _saveFiltersIfEnabled();
+    }
+  }
 
   Map<int, bool> get completedOverrides =>
       Map.unmodifiable(_completedOverrides);
@@ -365,6 +377,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
       'Course filter changed: ${selectedCourses.isEmpty ? "all" : selectedCourses.join(", ")}',
     );
     _filteredCourses = courses;
+    _saveFiltersIfEnabled();
     _applyFiltersAndNotify();
   }
 
@@ -373,6 +386,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
       'Category filter changed: ${categories.isEmpty ? "all" : categories.join(", ")}',
     );
     _filterCategories = categories;
+    _saveFiltersIfEnabled();
     _applyFiltersAndNotify();
   }
 
@@ -381,6 +395,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
       'Type filter changed: ${types.isEmpty ? "all" : types.join(", ")}',
     );
     _filterTypes = types;
+    _saveFiltersIfEnabled();
     _applyFiltersAndNotify();
   }
 
@@ -389,6 +404,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
       'Status filter changed: ${statuses.isEmpty ? "all" : statuses.join(", ")}',
     );
     _filterStatuses = statuses;
+    _saveFiltersIfEnabled();
     _applyFiltersAndNotify();
   }
 
@@ -403,7 +419,68 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     _filterCategories = [];
     _filterTypes = [];
     _filterStatuses = {};
+    _saveFiltersIfEnabled();
     _applyFiltersAndNotify();
+  }
+
+  /// Saves current filter state to local storage if "remember filter selection" is enabled.
+  void _saveFiltersIfEnabled() {
+    if (!userSettings.rememberFilterState) return;
+
+    final filterState = {
+      'filteredCourses': _filteredCourses.map(
+        (key, value) => MapEntry(key.toString(), value),
+      ),
+      'filterCategories': _filterCategories,
+      'filterTypes': _filterTypes,
+      'filterStatuses': _filterStatuses.toList(),
+      'todosItemsPerPage': _todosItemsPerPage,
+    };
+
+    PrefService().setString('saved_filter_state', jsonEncode(filterState));
+    _log.fine('Filter state saved');
+  }
+
+  void restoreFiltersIfEnabled() {
+    if (!userSettings.rememberFilterState) return;
+
+    final savedState = PrefService().getString('saved_filter_state');
+    if (savedState == null) return;
+
+    try {
+      final filterState = jsonDecode(savedState) as Map<String, dynamic>;
+
+      final savedCourses = filterState['filteredCourses'] as Map<String, dynamic>?;
+      if (savedCourses != null) {
+        _filteredCourses = savedCourses.map(
+          (key, value) => MapEntry(int.parse(key), value as bool),
+        );
+      }
+
+      final savedCategories = filterState['filterCategories'] as List<dynamic>?;
+      if (savedCategories != null) {
+        _filterCategories = savedCategories.cast<String>();
+      }
+
+      final savedTypes = filterState['filterTypes'] as List<dynamic>?;
+      if (savedTypes != null) {
+        _filterTypes = savedTypes.cast<String>();
+      }
+
+      final savedStatuses = filterState['filterStatuses'] as List<dynamic>?;
+      if (savedStatuses != null) {
+        _filterStatuses = savedStatuses.cast<String>().toSet();
+      }
+
+      final savedItemsPerPage = filterState['todosItemsPerPage'] as int?;
+      if (savedItemsPerPage != null) {
+        _todosItemsPerPage = savedItemsPerPage;
+      }
+
+      _log.info('Filter state restored');
+    } catch (e) {
+      _log.warning('Failed to restore filter state', e);
+    }
   }
 
   void addCalendarItem(CalendarItemBaseModel calendarItem) {

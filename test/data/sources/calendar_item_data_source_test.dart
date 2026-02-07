@@ -89,6 +89,7 @@ void main() {
       defaultReminderOffset: 0,
       defaultReminderOffsetType: 0,
       colorByCategory: false,
+      rememberFilterState: false,
     );
 
     dataSource = CalendarItemDataSource(
@@ -252,6 +253,7 @@ void main() {
           defaultReminderOffset: 0,
           defaultReminderOffsetType: 0,
           colorByCategory: true,
+          rememberFilterState: false,
         );
 
         final colorByCategoryDataSource = CalendarItemDataSource(

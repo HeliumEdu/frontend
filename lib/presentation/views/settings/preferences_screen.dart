@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/data/models/auth/update_settings_request_model.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_bloc.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_event.dart';
@@ -47,6 +48,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
   String? _selectedReminderOffsetType;
   String? _selectedReminderType;
   bool _isSelectedColorByCategory = false;
+  bool _isRememberFilterSelection = false;
 
   @override
   String get screenTitle => 'Preferences';
@@ -81,6 +83,10 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
           } else if (state is AuthProfileFetched) {
             _populateInitialStateData(state);
           } else if (state is AuthProfileUpdated) {
+            if (!_isRememberFilterSelection) {
+              PrefService().setString('saved_filter_state', '');
+            }
+
             showSnackBar(context, 'Preferences saved');
 
             context.pop();
@@ -260,7 +266,27 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
               ],
             ),
 
-            // TODO: Feature Parity: implement "remember filter selection", make it apply to "show X on page" in todos view as well
+            Row(
+              children: [
+                Expanded(
+                  child: CheckboxListTile(
+                    title: Text(
+                      'Remember filter selections',
+                      style: AppStyles.formLabel(context),
+                    ),
+                    value: _isRememberFilterSelection,
+                    onChanged: (value) {
+                      setState(() {
+                        _isRememberFilterSelection = value!;
+                      });
+                    },
+                    controlAffinity: ListTileControlAffinity.leading,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ],
+            ),
+
             const SizedBox(height: 14),
 
             SearchableDropdown(
@@ -404,6 +430,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
             .toString();
       }
       _isSelectedColorByCategory = state.user.settings!.colorByCategory;
+      _isRememberFilterSelection = state.user.settings!.rememberFilterState;
 
       isLoading = false;
     });
@@ -440,6 +467,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
         ReminderConstants.offsetTypes.indexOf(_selectedReminderOffsetType!);
     final reminderOffset = int.parse(_reminderOffsetController.text);
     final colorByCategory = _isSelectedColorByCategory;
+    final rememberFilterState = _isRememberFilterSelection;
 
     context.read<AuthBloc>().add(
       UpdateProfileEvent(
@@ -454,6 +482,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
           defaultReminderType: reminderType,
           defaultReminderOffset: reminderOffset,
           defaultReminderOffsetType: reminderOffsetType,
+          rememberFilterState: rememberFilterState,
         ),
       ),
     );

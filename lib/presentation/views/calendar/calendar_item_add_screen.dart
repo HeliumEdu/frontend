@@ -612,7 +612,7 @@ class _CalendarItemAddScreenState
                 const SizedBox(height: 14),
               ],
 
-              // TODO: Feature Parity: add location field to Event's
+              // TODO: Enhacnement: add location field to Event's
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -1057,7 +1057,7 @@ class _CalendarItemAddScreenState
   void _selectCourse(int courseId) {
     setState(() {
       _formController.selectedCourse = courseId;
-      // TODO: Enhancement: store category and material names too, persist across course changes
+      // TODO: Feature Parity: store category and material names too, persist across course changes
       if (_categories.isNotEmpty) {
         _formController.selectedCategory = _categories
             .where(

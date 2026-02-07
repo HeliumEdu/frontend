@@ -74,6 +74,7 @@ class MockModels {
     int defaultReminderOffset = 15,
     int defaultReminderOffsetType = 0,
     bool colorByCategory = false,
+    bool rememberFilterState = false,
     String? privateSlug,
   }) {
     _ensureTzInitialized();
@@ -91,6 +92,7 @@ class MockModels {
       defaultReminderOffset: defaultReminderOffset,
       defaultReminderOffsetType: defaultReminderOffsetType,
       colorByCategory: colorByCategory,
+      rememberFilterState: rememberFilterState,
       privateSlug: privateSlug,
     );
   }

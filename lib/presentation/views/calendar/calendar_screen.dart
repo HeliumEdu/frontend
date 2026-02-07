@@ -264,6 +264,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             ),
             userSettings: settings,
           );
+          _calendarItemDataSource!.restoreFiltersIfEnabled();
+          _todosController.itemsPerPage =
+              _calendarItemDataSource!.todosItemsPerPage;
         });
       }
 

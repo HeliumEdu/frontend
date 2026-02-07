@@ -133,7 +133,7 @@ class _NotificationsScreenState
 
   @override
   Widget buildMainArea(BuildContext context) {
-    // TODO: Enhancement: on larger screens, open notifications as dialog (or preferably sidebar)
+    // TODO: Blocker for Web: on larger screens, open notifications as dialog (or preferably sidebar)
     return BlocBuilder<ReminderBloc, ReminderState>(
       builder: (context, state) {
         if (state is RemindersLoading) {
