@@ -230,7 +230,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
+        content: SelectableText(
           message,
           style: AppStyles.standardBodyText(
             context,
