@@ -10,6 +10,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/pref_service.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
@@ -46,6 +47,7 @@ void initializeRouter() {
     navigatorKey: rootNavigatorKey,
     initialLocation: AppRoutes.landingScreen,
     redirect: _authRedirect,
+    observers: [AnalyticsService().observer],
     routes: [
       // Public routes (no shell)
       GoRoute(

@@ -89,6 +89,12 @@ class FcmService {
   Future<void> init() async {
     if (isInitialized) return;
 
+    // Check browser support on web before attempting initialization
+    if (kIsWeb && !web_notifications.isMessagingSupported()) {
+      _log.info('FCM not supported in this browser, skipping initialization');
+      return;
+    }
+
     try {
       await _initializeNotifications();
 

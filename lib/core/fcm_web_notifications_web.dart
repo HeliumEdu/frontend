@@ -13,6 +13,18 @@ import 'package:web/web.dart' as web;
 
 final _log = Logger('core');
 
+bool isMessagingSupported() {
+  try {
+    // Check for required APIs: Service Worker, Push API, Notification API
+    final hasServiceWorker = web.window.navigator.serviceWorker != null;
+    final hasNotification = web.Notification.permission.isNotEmpty;
+    return hasServiceWorker && hasNotification;
+  } catch (e) {
+    _log.warning('Browser does not support messaging APIs', e);
+    return false;
+  }
+}
+
 Future<bool> requestWebNotificationPermission() async {
   try {
     final permission = web.Notification.permission;

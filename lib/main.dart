@@ -14,6 +14,7 @@ import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/pref_service.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/fcm_service.dart';
 import 'package:heliumapp/data/repositories/auth_repository_impl.dart';
@@ -83,6 +84,12 @@ void main() async {
     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   } catch (e) {
     _log.severe('Firebase initialization failed', e);
+  }
+
+  try {
+    await AnalyticsService().init();
+  } catch (e) {
+    _log.severe('Analytics initialization failed', e);
   }
 
   try {
