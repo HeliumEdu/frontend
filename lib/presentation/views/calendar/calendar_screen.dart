@@ -1149,6 +1149,34 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     return filteredCourses.values.any((isSelected) => isSelected);
   }
 
+  List<CategoryModel> _deduplicateCategoriesByTitle(
+    Iterable<CategoryModel> categories,
+  ) {
+    final uniqueCategories = <String, CategoryModel>{};
+    for (final category in categories) {
+      if (!uniqueCategories.containsKey(category.title)) {
+        uniqueCategories[category.title] = category;
+      }
+    }
+    return uniqueCategories.values.toList();
+  }
+
+  List<CategoryModel> _getVisibleCategories() {
+    if (!_hasCoursesFilter()) {
+      return _deduplicatedCategories;
+    }
+
+    final filteredCourseIds = _calendarItemDataSource!.filteredCourses.entries
+        .where((e) => e.value)
+        .map((e) => e.key)
+        .toSet();
+
+    final filteredCategories = _categoriesMap.values
+        .where((cat) => filteredCourseIds.contains(cat.course));
+
+    return _deduplicateCategoriesByTitle(filteredCategories);
+  }
+
   bool _hasStatusFilters() {
     if (_calendarItemDataSource == null) return false;
 
@@ -2198,14 +2226,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         _calendarItemDataSource!.categoriesMap = _categoriesMap;
       }
 
-      final uniqueCategories = <String, CategoryModel>{};
-      for (var category in state.categories) {
-        if (!uniqueCategories.containsKey(category.title)) {
-          uniqueCategories[category.title] = category;
-        }
-      }
-
-      _deduplicatedCategories.addAll(uniqueCategories.values.toList());
+      _deduplicatedCategories.addAll(
+        _deduplicateCategoriesByTitle(state.categories),
+      );
 
       isLoading = false;
     });
@@ -2277,6 +2300,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   void _openCoursesMenu(BuildContext context, List<CourseModel> courses) {
+    // TODO: Enhancement: consider migrating this in to the "Filters" menu, but cleaning it up (maybe making sections collapsible)
     final RenderBox button = context.findRenderObject() as RenderBox;
     final RenderBox overlay =
         Overlay.of(context).context.findRenderObject() as RenderBox;
@@ -2657,6 +2681,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
                           return Column(
                             children: [
+                              // TODO: Enhancement: add another filter state called "Graded"
+                              // TODO: Enhancement: ensure mutually exclusive filter states can't be checked at the same time (complete/incomplete, graded/ungraded)
+                              // TODO: Enhancement: Combine opposite filter states (complete/incomplete, graded/ungraded) in to one, and put a switch toggle to the right of them—so checkbox "enables" the filter, switch toggle determines their true/false status when applying the filter
                               buildStatusTile('Complete'),
                               buildStatusTile('Incomplete'),
                               buildStatusTile('Overdue'),
@@ -2664,13 +2691,14 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                           );
                         },
                       ),
-                      if (_deduplicatedCategories.isNotEmpty) ...[
+                      if (_getVisibleCategories().isNotEmpty) ...[
                         const Divider(height: 20),
 
                         StatefulBuilder(
                           builder: (context, setCategoryMenuState) {
+                            final visibleCategories = _getVisibleCategories();
                             return Column(
-                              children: _deduplicatedCategories.map((category) {
+                              children: visibleCategories.map((category) {
                                 return CheckboxListTile(
                                   title: Row(
                                     children: [
