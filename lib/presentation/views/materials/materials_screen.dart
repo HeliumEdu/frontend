@@ -166,26 +166,32 @@ class _MaterialsScreenState
               }
             });
           } else if (state is material_state.MaterialCreated) {
+            if (_selectedGroupId == null) return;
+
             setState(() {
               _materialsMap[_selectedGroupId]!.add(state.material);
-              Sort.byTitle(_materialsMap[_selectedGroupId!]!);
+              Sort.byTitle(_materialsMap[_selectedGroupId]!);
             });
           } else if (state is material_state.MaterialUpdated) {
+            if (_selectedGroupId == null) return;
+
             setState(() {
               final index = _materialsMap[_selectedGroupId]!.indexWhere(
                 (m) => m.id == state.material.id,
               );
               _materialsMap[_selectedGroupId]![index] = state.material;
-              Sort.byTitle(_materialsMap[_selectedGroupId!]!);
+              Sort.byTitle(_materialsMap[_selectedGroupId]!);
             });
           } else if (state is material_state.MaterialDeleted) {
+            if (_selectedGroupId == null) return;
+
             showSnackBar(context, 'Resource deleted');
 
             setState(() {
-              _materialsMap[_selectedGroupId!]!.removeWhere(
+              _materialsMap[_selectedGroupId]!.removeWhere(
                 (m) => m.id == state.id,
               );
-              Sort.byTitle(_materialsMap[_selectedGroupId!]!);
+              Sort.byTitle(_materialsMap[_selectedGroupId]!);
             });
           }
         },
@@ -261,7 +267,8 @@ class _MaterialsScreenState
           );
         }
 
-        if (_materialsMap[_selectedGroupId!]!.isEmpty) {
+        if (_selectedGroupId == null ||
+            (_materialsMap[_selectedGroupId]?.isEmpty ?? true)) {
           return const EmptyCard(
             icon: Icons.book,
             title: "You haven't added any resources yet",
@@ -275,9 +282,13 @@ class _MaterialsScreenState
   }
 
   Widget _buildMaterialsList() {
+    if (_selectedGroupId == null) {
+      return const SizedBox.shrink();
+    }
+
     return Expanded(
       child: ResponsiveCardGrid<MaterialModel>(
-        items: _materialsMap[_selectedGroupId!]!,
+        items: _materialsMap[_selectedGroupId]!,
         itemBuilder: (context, material) =>
             _buildMaterialCard(context, material),
       ),

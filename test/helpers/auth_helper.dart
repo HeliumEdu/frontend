@@ -116,8 +116,8 @@ void verifyUserMatchesJson(UserModel user, Map<String, dynamic> json) {
   expect(user.email, equals(json['email']));
   expect(user.emailChanging, equals(json['email_changing']));
 
-  if (json['settings'] != null && user.settings != null) {
-    verifyUserSettingsMatchesJson(user.settings!, json['settings']);
+  if (json['settings'] != null) {
+    verifyUserSettingsMatchesJson(user.settings, json['settings']);
   }
 }
 

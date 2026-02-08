@@ -8,7 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/utils/app_style.dart';
 
-const Color _seedColor = Color(0xff418eb9);
+const Color seedColor = Color(0xff418eb9);
 
 /// Theme extension for semantic colors (success, warning, info)
 @immutable
@@ -93,9 +93,9 @@ class AppTheme {
 
   static ThemeData get light {
     final colorScheme = ColorScheme.fromSeed(
-      seedColor: _seedColor,
+      seedColor: seedColor,
       brightness: Brightness.light,
-      primary: _seedColor,
+      primary: seedColor,
       error: const Color(0xffc51d4b),
     );
     return _buildTheme(colorScheme, SemanticColors.light);
@@ -103,7 +103,7 @@ class AppTheme {
 
   static ThemeData get dark {
     final colorScheme = ColorScheme.fromSeed(
-      seedColor: _seedColor,
+      seedColor: seedColor,
       brightness: Brightness.dark,
       primary: const Color(0xff5aa2c2),
       error: const Color(0xffe15c7b),
@@ -242,14 +242,8 @@ class AppTheme {
           fontWeight: FontWeight.w500,
           color: colorScheme.onSurface.withValues(alpha: 0.6),
         ),
-        dayStyle: AppStyles.poppins(
-          fontSize: 14,
-          fontWeight: FontWeight.w400,
-        ),
-        yearStyle: AppStyles.poppins(
-          fontSize: 14,
-          fontWeight: FontWeight.w400,
-        ),
+        dayStyle: AppStyles.poppins(fontSize: 14, fontWeight: FontWeight.w400),
+        yearStyle: AppStyles.poppins(fontSize: 14, fontWeight: FontWeight.w400),
       ),
       snackBarTheme: SnackBarThemeData(
         contentTextStyle: AppStyles.poppins(

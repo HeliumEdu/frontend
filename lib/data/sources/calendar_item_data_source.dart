@@ -8,6 +8,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
@@ -33,6 +34,7 @@ final _log = Logger('data.sources');
 class CalendarItemTimeOverride {
   final String start;
   final String end;
+
   const CalendarItemTimeOverride({required this.start, required this.end});
 }
 
@@ -77,6 +79,12 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   void _notifyChangeListeners() {
     // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
     _changeNotifier.notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _changeNotifier.dispose();
+    super.dispose();
   }
 
   bool get hasLoadedInitialData => _hasLoadedInitialData;
@@ -206,11 +214,20 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     if (calendarItem is EventModel) {
       return userSettings.eventsColor;
     } else if (calendarItem is HomeworkModel) {
-      return userSettings.colorByCategory
-          ? categoriesMap![calendarItem.category.id]!.color
-          : courses!.firstWhere((c) => c.id == calendarItem.course.id).color;
+      if (userSettings.colorByCategory) {
+        final category = categoriesMap?[calendarItem.category.id];
+        if (category != null) {
+          return category.color;
+        }
+      }
+
+      // Get course color, or fallback
+      final course = courses?.firstWhereOrNull(
+        (c) => c.id == calendarItem.course.id,
+      );
+      return course?.color ?? FallbackConstants.fallbackColor;
     } else {
-      return calendarItem.color!;
+      return calendarItem.color ?? FallbackConstants.fallbackColor;
     }
   }
 
@@ -222,20 +239,19 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   }
 
   String? getLocationForItem(CalendarItemBaseModel calendarItem) {
-    final String? location;
     if (calendarItem is HomeworkModel) {
-      final course = courses!.firstWhere((c) => c.id == calendarItem.course.id);
-      location = course.room;
+      final course = courses?.firstWhereOrNull(
+        (c) => c.id == calendarItem.course.id,
+      );
+      return course?.room;
     } else if (calendarItem is CourseScheduleEventModel) {
-      final course = courses!.firstWhere(
+      final course = courses?.firstWhereOrNull(
         (c) => c.id.toString() == calendarItem.ownerId,
       );
-      location = course.room;
+      return course?.room;
     } else {
-      location = calendarItem.location;
+      return calendarItem.location;
     }
-
-    return location;
   }
 
   @override
@@ -450,7 +466,8 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     try {
       final filterState = jsonDecode(savedState) as Map<String, dynamic>;
 
-      final savedCourses = filterState['filteredCourses'] as Map<String, dynamic>?;
+      final savedCourses =
+          filterState['filteredCourses'] as Map<String, dynamic>?;
       if (savedCourses != null) {
         _filteredCourses = savedCourses.map(
           (key, value) => MapEntry(int.parse(key), value as bool),
@@ -610,7 +627,8 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     _timeOverrides.remove(itemId);
   }
 
-  CalendarItemTimeOverride? getTimeOverride(int itemId) => _timeOverrides[itemId];
+  CalendarItemTimeOverride? getTimeOverride(int itemId) =>
+      _timeOverrides[itemId];
 
   bool isHomeworkCompleted(HomeworkModel homework) {
     // Check override first
@@ -620,9 +638,8 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
 
     // Look up from cache to get freshest value, avoiding stale data that
     // SfCalendar might pass during drag-drop rebuilds
-    final cachedHomework = allHomeworks.cast<HomeworkModel?>().firstWhere(
-      (h) => h?.id == homework.id,
-      orElse: () => null,
+    final cachedHomework = allHomeworks.firstWhereOrNull(
+      (h) => h.id == homework.id,
     );
 
     return cachedHomework?.completed ?? homework.completed;

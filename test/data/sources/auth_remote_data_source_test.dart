@@ -169,8 +169,8 @@ void main() {
 
         // THEN
         expect(result.settings, isNotNull);
-        expect(result.settings!.timeZone.name, equals('Europe/London'));
-        expect(result.settings!.colorByCategory, isTrue);
+        expect(result.settings.timeZone.name, equals('Europe/London'));
+        expect(result.settings.colorByCategory, isTrue);
       });
 
       test('throws UnauthorizedException on 401 response', () async {

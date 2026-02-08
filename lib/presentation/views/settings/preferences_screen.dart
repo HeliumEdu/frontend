@@ -19,8 +19,8 @@ import 'package:heliumapp/presentation/dialogs/color_picker_dialog.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/drop_down.dart';
 import 'package:heliumapp/presentation/widgets/label_and_text_form_field.dart';
-import 'package:heliumapp/presentation/widgets/searchable_dropdown.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
+import 'package:heliumapp/presentation/widgets/searchable_dropdown.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
@@ -42,11 +42,15 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
   Color _selectedEventColor = const Color(0xffe74674);
   Color _selectedMaterialColor = const Color(0xffdc7d50);
   Color _selectedGradeColor = const Color(0xff9d629d);
-  String? _selectedDefaultView;
-  String? _selectedWeekStartsOn;
-  String? _selectedTimezone;
-  String? _selectedReminderOffsetType;
-  String? _selectedReminderType;
+  String _selectedDefaultView =
+      CalendarConstants.defaultViews[FallbackConstants.defaultViewIndex];
+  String _selectedWeekStartsOn =
+      CalendarConstants.dayNames[FallbackConstants.defaultWeekStartsOn];
+  String _selectedTimezone = FallbackConstants.defaultTimezone;
+  String _selectedReminderOffsetType = ReminderConstants
+      .offsetTypes[FallbackConstants.defaultReminderOffsetType];
+  String _selectedReminderType =
+      ReminderConstants.types[FallbackConstants.defaultReminderType];
   bool _isSelectedColorByCategory = false;
   bool _isRememberFilterSelection = false;
 
@@ -117,7 +121,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
               items: CalendarConstants.defaultViewItems,
               onChanged: (value) {
                 setState(() {
-                  _selectedDefaultView = value!.value;
+                  _selectedDefaultView = value!.value!;
                 });
               },
             ),
@@ -130,7 +134,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
               items: CalendarConstants.dayNamesItems,
               onChanged: (value) {
                 setState(() {
-                  _selectedWeekStartsOn = value!.value;
+                  _selectedWeekStartsOn = value!.value!;
                 });
               },
             ),
@@ -177,7 +181,10 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
 
             Row(
               children: [
-                Text('Color for grade badges', style: AppStyles.formLabel(context)),
+                Text(
+                  'Color for grade badges',
+                  style: AppStyles.formLabel(context),
+                ),
                 const SizedBox(width: 12),
                 MouseRegion(
                   cursor: SystemMouseCursors.click,
@@ -213,7 +220,10 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
 
             Row(
               children: [
-                Text('Color for resource badges', style: AppStyles.formLabel(context)),
+                Text(
+                  'Color for resource badges',
+                  style: AppStyles.formLabel(context),
+                ),
                 const SizedBox(width: 12),
                 MouseRegion(
                   cursor: SystemMouseCursors.click,
@@ -252,7 +262,10 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
               children: [
                 Expanded(
                   child: CheckboxListTile(
-                    title: Text('Color by category', style: AppStyles.formLabel(context)),
+                    title: Text(
+                      'Color by category',
+                      style: AppStyles.formLabel(context),
+                    ),
                     value: _isSelectedColorByCategory,
                     onChanged: (value) {
                       setState(() {
@@ -297,7 +310,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
               items: TimeZoneConstants.items,
               onChanged: (value) {
                 setState(() {
-                  _selectedTimezone = value!.value;
+                  _selectedTimezone = value!.value!;
                 });
               },
             ),
@@ -315,7 +328,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
                   .toList(),
               onChanged: (value) {
                 setState(() {
-                  _selectedReminderType = value!.value;
+                  _selectedReminderType = value!.value!;
                 });
               },
             ),
@@ -395,7 +408,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
               items: ReminderConstants.offsetTypeItems,
               onChanged: (value) {
                 setState(() {
-                  _selectedReminderOffsetType = value!.value;
+                  _selectedReminderOffsetType = value!.value!;
                 });
               },
             ),
@@ -410,27 +423,27 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
   void _populateInitialStateData(AuthProfileFetched state) {
     setState(() {
       _selectedDefaultView =
-          CalendarConstants.defaultViews[state.user.settings!.defaultView];
+          CalendarConstants.defaultViews[state.user.settings.defaultView];
       _selectedWeekStartsOn =
-          CalendarConstants.dayNames[state.user.settings!.weekStartsOn];
-      _selectedTimezone = state.user.settings!.timeZone.toString();
+          CalendarConstants.dayNames[state.user.settings.weekStartsOn];
+      _selectedTimezone = state.user.settings.timeZone.toString();
       _selectedReminderOffsetType = ReminderConstants
-          .offsetTypes[state.user.settings!.defaultReminderOffsetType];
+          .offsetTypes[state.user.settings.defaultReminderOffsetType];
       _selectedReminderType =
-          ReminderConstants.types[state.user.settings!.defaultReminderType];
-      _selectedEventColor = state.user.settings!.eventsColor;
-      _selectedGradeColor = state.user.settings!.gradeColor;
-      _selectedMaterialColor = state.user.settings!.materialColor;
+          ReminderConstants.types[state.user.settings.defaultReminderType];
+      _selectedEventColor = state.user.settings.eventsColor;
+      _selectedGradeColor = state.user.settings.gradeColor;
+      _selectedMaterialColor = state.user.settings.materialColor;
       if (_reminderOffsetController.text !=
-          state.user.settings!.defaultReminderOffset.toString()) {
+          state.user.settings.defaultReminderOffset.toString()) {
         _reminderOffsetController.text = state
             .user
-            .settings!
+            .settings
             .defaultReminderOffset
             .toString();
       }
-      _isSelectedColorByCategory = state.user.settings!.colorByCategory;
-      _isRememberFilterSelection = state.user.settings!.rememberFilterState;
+      _isSelectedColorByCategory = state.user.settings.colorByCategory;
+      _isRememberFilterSelection = state.user.settings.rememberFilterState;
 
       isLoading = false;
     });
@@ -441,11 +454,13 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
       isSubmitting = true;
     });
 
-    final timeZone = _selectedTimezone!;
-    final defaultView =
-        CalendarConstants.defaultViews.indexOf(_selectedDefaultView!);
-    final weekStartsOn =
-        CalendarConstants.dayNames.indexOf(_selectedWeekStartsOn!);
+    final timeZone = _selectedTimezone;
+    final defaultView = CalendarConstants.defaultViews.indexOf(
+      _selectedDefaultView,
+    );
+    final weekStartsOn = CalendarConstants.dayNames.indexOf(
+      _selectedWeekStartsOn,
+    );
     String eventsColor = HeliumColors.colorToHex(_selectedEventColor);
     if (eventsColor.length == 9) {
       eventsColor = '#${eventsColor.substring(3)}';
@@ -461,10 +476,10 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
       gradeColor = '#${gradeColor.substring(3)}';
     }
     gradeColor = gradeColor.toLowerCase();
-    final reminderType =
-        ReminderConstants.types.indexOf(_selectedReminderType!);
-    final reminderOffsetType =
-        ReminderConstants.offsetTypes.indexOf(_selectedReminderOffsetType!);
+    final reminderType = ReminderConstants.types.indexOf(_selectedReminderType);
+    final reminderOffsetType = ReminderConstants.offsetTypes.indexOf(
+      _selectedReminderOffsetType,
+    );
     final reminderOffset = int.parse(_reminderOffsetController.text);
     final colorByCategory = _isSelectedColorByCategory;
     final rememberFilterState = _isRememberFilterSelection;

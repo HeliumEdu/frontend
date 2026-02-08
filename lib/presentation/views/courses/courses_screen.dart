@@ -167,35 +167,43 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
               }
             });
           } else if (state is CourseCreated) {
+            if (_selectedGroupId == null) return;
+
             setState(() {
               _coursesMap[_selectedGroupId]!.add(state.course);
-              Sort.byTitle(_coursesMap[_selectedGroupId!]!);
+              Sort.byTitle(_coursesMap[_selectedGroupId]!);
             });
           } else if (state is CourseUpdated) {
+            if (_selectedGroupId == null) return;
+
             setState(() {
-              final index = _coursesMap[_selectedGroupId!]!.indexWhere(
+              final index = _coursesMap[_selectedGroupId]!.indexWhere(
                 (c) => c.id == state.course.id,
               );
               _coursesMap[_selectedGroupId]![index] = state.course;
-              Sort.byTitle(_coursesMap[_selectedGroupId!]!);
+              Sort.byTitle(_coursesMap[_selectedGroupId]!);
             });
           } else if (state is CourseDeleted) {
+            if (_selectedGroupId == null) return;
+
             showSnackBar(context, 'Class deleted');
 
             setState(() {
-              _coursesMap[_selectedGroupId!]!.removeWhere(
+              _coursesMap[_selectedGroupId]!.removeWhere(
                 (c) => c.id == state.id,
               );
-              Sort.byTitle(_coursesMap[_selectedGroupId!]!);
+              Sort.byTitle(_coursesMap[_selectedGroupId]!);
             });
           } else if (state is CourseScheduleUpdated) {
+            if (_selectedGroupId == null) return;
+
             setState(() {
-              final index = _coursesMap[_selectedGroupId!]!.indexWhere(
+              final index = _coursesMap[_selectedGroupId]!.indexWhere(
                 (c) => c.id == state.schedule.course,
               );
               _coursesMap[_selectedGroupId]![index].schedules[0] =
                   state.schedule;
-              Sort.byTitle(_coursesMap[_selectedGroupId!]!);
+              Sort.byTitle(_coursesMap[_selectedGroupId]!);
             });
           }
         },
@@ -270,7 +278,8 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
           );
         }
 
-        if (_coursesMap[_selectedGroupId!]!.isEmpty) {
+        if (_selectedGroupId == null ||
+            (_coursesMap[_selectedGroupId]?.isEmpty ?? true)) {
           return const EmptyCard(
             icon: Icons.school,
             title: "You haven't added any classes yet",
@@ -284,9 +293,13 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
   }
 
   Widget _buildCoursesList() {
+    if (_selectedGroupId == null) {
+      return const SizedBox.shrink();
+    }
+
     return Expanded(
       child: ResponsiveCardGrid<CourseModel>(
-        items: _coursesMap[_selectedGroupId!]!,
+        items: _coursesMap[_selectedGroupId]!,
         itemBuilder: (context, course) => _buildCoursesCard(context, course),
       ),
     );

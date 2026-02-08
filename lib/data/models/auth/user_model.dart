@@ -14,15 +14,15 @@ import 'package:timezone/standalone.dart' as tz;
 class UserModel extends BaseModel {
   final String username;
   final String email;
+  final UserSettingsModel settings;
   final String? emailChanging;
-  final UserSettingsModel? settings;
 
   UserModel({
     required super.id,
     required this.username,
     required this.email,
+    required this.settings,
     this.emailChanging,
-    this.settings,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -31,9 +31,7 @@ class UserModel extends BaseModel {
       username: json['username'],
       email: json['email'],
       emailChanging: json['email_changing'],
-      settings: json['settings'] != null
-          ? UserSettingsModel.fromJson(json['settings'])
-          : null,
+      settings: UserSettingsModel.fromJson(json['settings']),
     );
   }
 
@@ -43,7 +41,7 @@ class UserModel extends BaseModel {
       'username': username,
       'email': email,
       'email_changing': emailChanging,
-      'settings': settings?.toJson(),
+      'settings': settings.toJson(),
     };
   }
 }

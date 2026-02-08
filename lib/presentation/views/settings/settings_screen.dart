@@ -53,9 +53,9 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
   final themeNotifier = ThemeNotifier();
 
   // State
-  late String _username;
-  late String _email;
-  late String _version;
+  String _username = '';
+  String _email = '';
+  String _version = '';
 
   @override
   void initState() {
