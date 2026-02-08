@@ -111,6 +111,7 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget> {
           autofocus: kIsWeb || !widget.isEdit,
           controller: _formController.titleController,
           validator: BasicFormController.validateRequiredField,
+          onFieldSubmitted: (value) => handleSubmit(),
         ),
         const SizedBox(height: 14),
         LabelAndTextFormField(

@@ -167,7 +167,7 @@ abstract class BaseAttachmentScreenState<T>
             child: BlocBuilder<AttachmentBloc, AttachmentState>(
               builder: (context, state) {
                 if (state is AttachmentsLoading) {
-                  return const LoadingIndicator();
+                  return const LoadingIndicator(expanded: false);
                 }
 
                 if (state is AttachmentsError) {
@@ -178,6 +178,7 @@ abstract class BaseAttachmentScreenState<T>
                         createFetchAttachmentsEvent(),
                       );
                     },
+                    expanded: false,
                   );
                 }
 
@@ -185,6 +186,7 @@ abstract class BaseAttachmentScreenState<T>
                   return const EmptyCard(
                     icon: Icons.attachment_outlined,
                     message: 'Click "Choose Files" to add attachments',
+                    expanded: false,
                   );
                 }
 

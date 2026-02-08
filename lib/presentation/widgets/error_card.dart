@@ -14,38 +14,44 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 class ErrorCard extends StatelessWidget {
   final String message;
   final Function onReload;
+  final bool expanded;
 
-  const ErrorCard({super.key, required this.message, required this.onReload});
+  const ErrorCard({
+    super.key,
+    required this.message,
+    required this.onReload,
+    this.expanded = true,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
+    final content = Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.error_outline,
+            color: context.colorScheme.error.withValues(alpha: 0.9),
+            size: Responsive.getIconSize(
+              context,
+              mobile: 60,
+              tablet: 64,
+              desktop: 68,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            message,
+            style: AppStyles.headingText(context).copyWith(
               color: context.colorScheme.error.withValues(alpha: 0.9),
-              size: Responsive.getIconSize(
-                context,
-                mobile: 60,
-                tablet: 64,
-                desktop: 68,
-              ),
             ),
-            const SizedBox(height: 16),
-            Text(
-              message,
-              style: AppStyles.headingText(context).copyWith(
-                color: context.colorScheme.error.withValues(alpha: 0.9),
-              ),
-            ),
-            const SizedBox(height: 16),
-            HeliumElevatedButton(buttonText: 'Reload', onPressed: onReload),
-          ],
-        ),
+          ),
+          const SizedBox(height: 16),
+          HeliumElevatedButton(buttonText: 'Reload', onPressed: onReload),
+        ],
       ),
     );
+
+    return expanded ? Expanded(child: content) : content;
   }
 }
