@@ -7,6 +7,7 @@
 
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -156,6 +157,14 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   bool get showActionButton => true;
 
   late final CalendarController _calendarController;
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+  Timer? _searchTypingTimer;
+  final ScrollController _monthViewScrollController = ScrollController();
+
+  final GlobalKey _todayButtonKey = GlobalKey();
+  late final TodosTableController _todosController;
+
   final List<CalendarView> _allowedViews = [
     CalendarView.month,
     CalendarView.week,
@@ -170,27 +179,21 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   final List<CategoryModel> _deduplicatedCategories = [];
   bool _isSearchExpanded = false;
   bool _isFilterExpanded = false;
-  HeliumView _currentView = HeliumView.day;
+  HeliumView _currentView = PlannerHelper.mapApiViewToHeliumView(
+    FallbackConstants.defaultViewIndex,
+  );
   HeliumView? _previousView;
 
   // Stored calendar state for when user is in Todos view
   DateTime? _storedSelectedDate;
   DateTime? _storedDisplayDate;
 
-  // Stored selectedDate before mobile month auto-selection was applied
+  // Stored selectedDate before mobile month auto-selection is applied
   // (allows restoring null selection when leaving month view on mobile)
   DateTime? _selectedDateBeforeMobileMonth;
   bool _mobileMonthAutoSelectApplied = false;
 
   CalendarItemDataSource? _calendarItemDataSource;
-
-  final TextEditingController _searchController = TextEditingController();
-  final FocusNode _searchFocusNode = FocusNode();
-  Timer? _searchTypingTimer;
-  final ScrollController _monthViewScrollController = ScrollController();
-
-  final GlobalKey _todayButtonKey = GlobalKey();
-  late final TodosTableController _todosController;
 
   @override
   void initState() {
@@ -229,6 +232,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   @override
   void dispose() {
+    _calendarItemDataSource?.dispose();
     _todosController.dispose();
     _searchController.dispose();
     _searchFocusNode.dispose();
@@ -1172,8 +1176,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         .map((e) => e.key)
         .toSet();
 
-    final filteredCategories = _categoriesMap.values
-        .where((cat) => filteredCourseIds.contains(cat.course));
+    final filteredCategories = _categoriesMap.values.where(
+      (cat) => filteredCourseIds.contains(cat.course),
+    );
 
     return _deduplicateCategoriesByTitle(filteredCategories);
   }
@@ -2159,10 +2164,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                       final staleCalendarItems = calendarItems[index];
                       final calendarItem =
                           _calendarItemDataSource!.allCalendarItems
-                              .cast<CalendarItemBaseModel?>()
-                              .firstWhere(
-                                (item) => item?.id == staleCalendarItems.id,
-                                orElse: () => null,
+                              .firstWhereOrNull(
+                                (item) => item.id == staleCalendarItems.id,
                               ) ??
                           staleCalendarItems;
                       final homeworkId = calendarItem is HomeworkModel

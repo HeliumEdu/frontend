@@ -82,8 +82,8 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
         if (state is AuthProfileFetched) {
-          if (state.user.settings?.privateSlug != null) {
-            final privateSlug = state.user.settings?.privateSlug;
+          if (state.user.settings.privateSlug != null) {
+            final privateSlug = state.user.settings.privateSlug;
 
             _feedUrls = PrivateFeedModel(
               eventsPrivateUrl:

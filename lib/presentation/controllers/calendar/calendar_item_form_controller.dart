@@ -20,10 +20,10 @@ class CalendarItemFormController extends BasicFormController {
   bool isAllDay = false;
   bool isCompleted = false;
   bool showEndDateTime = false;
-  late DateTime startDate;
-  late DateTime endDate;
-  late TimeOfDay startTime = const TimeOfDay(hour: 12, minute: 0);
-  late TimeOfDay endTime = const TimeOfDay(hour: 12, minute: 50);
+  DateTime startDate = DateTime.now();
+  DateTime endDate = DateTime.now();
+  TimeOfDay startTime = const TimeOfDay(hour: 12, minute: 0);
+  TimeOfDay endTime = const TimeOfDay(hour: 12, minute: 50);
   double priorityValue = 50.0;
   String initialNotes = '';
 

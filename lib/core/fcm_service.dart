@@ -27,6 +27,7 @@ import 'package:heliumapp/data/repositories/push_notification_repository_impl.da
 import 'package:heliumapp/data/sources/push_notification_remote_data_source.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:logging/logging.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 final _log = Logger('core');
 
@@ -105,7 +106,7 @@ class FcmService {
 
     // Additional Firebase-level support check for web
     if (kIsWeb) {
-      final isSupported = await _firebaseMessaging!.isSupported();
+      final isSupported = await _firebaseMessaging?.isSupported() ?? false;
       if (!isSupported) {
         _log.info('FCM not supported in this browser (Firebase check), skipping initialization');
         _isSupported = false;
@@ -225,12 +226,12 @@ class FcmService {
 
   Future<void> _registerToken({bool force = false}) async {
     // If token is null, try to get it (especially important on iOS where APN may be delayed)
-    if (_fcmToken == null || _fcmToken!.isEmpty) {
+    if (_fcmToken?.isEmpty ?? true) {
       _log.info('FCM token not available, attempting to retrieve it now ...');
       await _getFCMToken();
 
       // If still null after retry, give up
-      if (_fcmToken == null || _fcmToken!.isEmpty) {
+      if (_fcmToken?.isEmpty ?? true) {
         _log.warning(
           'FCM token still not available after retry, skipping registration',
         );
@@ -244,7 +245,7 @@ class FcmService {
       );
       final storedToken = await _prefService.getSecure('last_pushtoken');
 
-      _deviceId = storedDeviceId ?? _fcmToken!.substring(0, 30);
+      _deviceId = storedDeviceId ?? _fcmToken?.substring(0, 30) ?? '';
 
       final pushTokenRepo = PushTokenRepositoryImpl(
         remoteDataSource: PushTokenRemoteDataSourceImpl(dioClient: _dioClient),
@@ -344,7 +345,7 @@ class FcmService {
     _handleInitialMessage();
 
     // Listen for token refreshes (important for iOS when APN token becomes available)
-    _firebaseMessaging!.onTokenRefresh.listen((newToken) {
+    _firebaseMessaging?.onTokenRefresh.listen((newToken) {
       _log.info('FCM token refreshed');
       _fcmToken = newToken;
       _registerToken();
@@ -500,7 +501,22 @@ class FcmService {
           'Displaying notification from Firebase console: ${message.toMap()}',
         );
 
-        final title = message.notification!.title ?? message.notification!.body;
+        final title = message.notification?.title ??
+                      message.notification?.body ??
+                      'Notification';
+
+        final body = message.notification?.body ?? '';
+
+        // Log to Sentry if we had to use fallback values
+        if (message.notification?.title == null && message.notification?.body == null) {
+          const msg = 'FCM notification has null title and body in test message handler';
+          _log.severe(msg);
+          await Sentry.captureException(
+            Exception(msg),
+            stackTrace: StackTrace.current,
+            hint: Hint.withMap({'message_id': messageId, 'message_data': message.data}),
+          );
+        }
 
         final messageMap = message.toMap();
         messageMap['notification']['title'] = title;
@@ -510,7 +526,7 @@ class FcmService {
         final payload = {
           'id': 1,
           'title': title,
-          'message': message.notification!.body,
+          'message': body,
           'start_of_range': DateTime.now().toString(),
           'offset': 30,
           'offset_type': 0,

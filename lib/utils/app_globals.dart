@@ -6,6 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 
@@ -25,6 +26,26 @@ class AppConstants {
   static const appTagline = 'Student Planner & Academic Calendar App';
 
   static const minHeightForTrailingNav = 500.0;
+}
+
+class FallbackConstants {
+  static const fallbackColor = seedColor;
+
+  static const defaultViewIndex = 2; // Day view
+  static const defaultWeekStartsOn = 0; // Sunday
+  static const defaultTimezone = 'Etc/UTC';
+  static const defaultReminderType = 0; // Popup
+  static const defaultReminderOffset = 30; // 30 minutes
+  static const defaultReminderOffsetType = 0; // Minutes
+  static const defaultColorByCategory = false;
+  static const defaultColorSchemeTheme = 2; // System
+  static const defaultAllDayOffset = 0;
+  static const defaultWhatsNewVersionSeen = 0;
+  static const defaultEventsColor = '#418eb9'; // seedColor hex
+  static const defaultMaterialColor = '#418eb9'; // seedColor hex
+  static const defaultGradeColor = '#418eb9'; // seedColor hex
+  static const defaultCalendarUseCategoryColors = false;
+  static const defaultRememberFilterState = false;
 }
 
 class CalendarConstants {

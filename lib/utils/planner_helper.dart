@@ -21,12 +21,26 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:logging/logging.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 final _log = Logger('utils');
 
 class PlannerHelper {
   static final List<int> weekStartsOnRemap = [7, 1, 2, 3, 4, 5, 6];
+
+  static void _logMissingEntity(int reminderId, String entityType, int entityId) {
+    final msg = 'Reminder $reminderId has $entityType ID $entityId but entity is null';
+    _log.severe(msg);
+    Sentry.captureException(
+      Exception(msg),
+      stackTrace: StackTrace.current,
+      hint: Hint.withMap({
+        'reminder_id': reminderId,
+        '${entityType.toLowerCase()}_id': entityId,
+      }),
+    );
+  }
 
   static NotificationModel mapPayloadToNotification(
     RemoteMessage message,
@@ -36,9 +50,19 @@ class PlannerHelper {
 
     final String start;
     if (reminder.homework != null) {
-      start = reminder.homework!.entity!.start;
+      if (reminder.homework!.entity == null) {
+        _logMissingEntity(reminder.id, 'homework', reminder.homework!.id);
+        start = reminder.startOfRange;
+      } else {
+        start = reminder.homework!.entity!.start;
+      }
     } else if (reminder.event != null) {
-      start = reminder.event!.entity!.start;
+      if (reminder.event!.entity == null) {
+        _logMissingEntity(reminder.id, 'event', reminder.event!.id);
+        start = reminder.startOfRange;
+      } else {
+        start = reminder.event!.entity!.start;
+      }
     } else {
       if (!kDebugMode) {
         throw ArgumentError.notNull(

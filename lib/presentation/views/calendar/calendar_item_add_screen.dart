@@ -812,9 +812,10 @@ class _CalendarItemAddScreenState
         }
       });
     } else {
-      final now = DateTime.now();
-      _formController.startDate = widget.initialDate ?? now;
-      _formController.endDate = widget.initialDate ?? now;
+      if (widget.initialDate != null) {
+        _formController.startDate = widget.initialDate!;
+        _formController.endDate = widget.initialDate!;
+      }
 
       if (!_isEvent) {
         _selectCourse(_courses.first.id);
