@@ -63,6 +63,7 @@ class DialogModeProvider extends InheritedWidget {
 ///   ],
 /// );
 /// ```
+// TODO: Blocker for Web: update settings, sub screens to use this as Notifications does, except for Settings it should be pinned left (instead of right like Notifications), and for all others it should be centered.
 void showScreenAsDialog(
   BuildContext context, {
   required Widget child,
