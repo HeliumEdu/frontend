@@ -77,6 +77,9 @@ class _CalendarItemAddScreenState
             (_isEvent ? 'Event' : 'Assignment');
 
   @override
+  IconData? get icon => isLoading ? null : Icons.calendar_month;
+
+  @override
   ScreenType get screenType => ScreenType.entityPage;
 
   @override

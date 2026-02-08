@@ -52,6 +52,9 @@ class _CourseAddAttachmentScreenState
   String get screenTitle => widget.isEdit ? 'Edit Class' : 'Add Class';
 
   @override
+  IconData? get icon => Icons.school;
+
+  @override
   StatelessWidget buildStepper() {
     return CourseStepper(
       selectedIndex: 3,

@@ -71,6 +71,9 @@ class _ExternalCalendarsProvidedScreenState
   String get screenTitle => 'External Calendars';
 
   @override
+  IconData? get icon => Icons.cloud_download;
+
+  @override
   ScreenType get screenType => ScreenType.subPage;
 
   @override
