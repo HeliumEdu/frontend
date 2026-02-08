@@ -289,6 +289,7 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // TODO: Cleanup: might need to re-evaluate web issue with this icon
             const WarningContainer(
               text:
                   'Keep private feed URLs secret. If a feed is compromised, disabling and re-enabling feeds will regenerate URLs.',

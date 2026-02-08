@@ -21,6 +21,7 @@ class _WhatsNewDialogWidget extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Row(
         children: [
+          // TODO: Cleanup: might need to re-evaluate web issue with this icon
           Icon(
             Icons.auto_awesome,
             color: context.colorScheme.primary,
