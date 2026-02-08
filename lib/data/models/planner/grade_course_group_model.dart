@@ -9,7 +9,7 @@ import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/planner/grade_course_model.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 
-class GradeCourseGroupModel extends BaseModel {
+class GradeCourseGroupModel extends BaseTitledModel {
   final double overallGrade;
   final List<List<dynamic>> gradePoints;
   final List<GradeCourseModel> courses;

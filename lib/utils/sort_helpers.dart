@@ -13,7 +13,7 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 
 class Sort {
-  static void byTitle(List<BaseModel> list) {
+  static void byTitle(List<BaseTitledModel> list) {
     list.sort((a, b) => a.title.compareTo(b.title));
   }
 

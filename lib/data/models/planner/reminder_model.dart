@@ -11,7 +11,7 @@ import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 
-class ReminderModel extends BaseModel {
+class ReminderModel extends BaseTitledModel {
   final String message;
   final String startOfRange;
   final int offset;

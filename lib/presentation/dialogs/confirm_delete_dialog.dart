@@ -12,7 +12,7 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/config/app_theme.dart';
 
-class _ConfirmDeleteWidget<T extends BaseModel> extends StatefulWidget {
+class _ConfirmDeleteWidget<T extends BaseTitledModel> extends StatefulWidget {
   final T item;
   final Function(T) onDelete;
   final String? additionalWarning;
@@ -28,7 +28,7 @@ class _ConfirmDeleteWidget<T extends BaseModel> extends StatefulWidget {
   State<_ConfirmDeleteWidget<T>> createState() => _ConfirmDeleteWidgetState<T>();
 }
 
-class _ConfirmDeleteWidgetState<T extends BaseModel> extends State<_ConfirmDeleteWidget<T>> {
+class _ConfirmDeleteWidgetState<T extends BaseTitledModel> extends State<_ConfirmDeleteWidget<T>> {
   bool _isSubmitting = false;
 
   static String _withTrailingSpace(String? additionalWarning) {
@@ -88,7 +88,7 @@ class _ConfirmDeleteWidgetState<T extends BaseModel> extends State<_ConfirmDelet
   }
 }
 
-Future<void> showConfirmDeleteDialog<T extends BaseModel>({
+Future<void> showConfirmDeleteDialog<T extends BaseTitledModel>({
   required BuildContext parentContext,
   required T item,
   required Function(T) onDelete,

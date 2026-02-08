@@ -7,7 +7,7 @@
 
 import 'package:heliumapp/data/models/base_model.dart';
 
-class AttachmentModel extends BaseModel {
+class AttachmentModel extends BaseTitledModel {
   final String attachment;
   final int size;
   final int user;
