@@ -19,10 +19,12 @@ class CategoryRepositoryImpl implements CategoryRepository {
   Future<List<CategoryModel>> getCategories({
     int? courseId,
     String? title,
+    bool? shownOnCalendar,
   }) async {
     return await remoteDataSource.getCategories(
       courseId: courseId,
       title: title,
+      shownOnCalendar: shownOnCalendar
     );
   }
 
