@@ -73,7 +73,6 @@ void main() async {
     await SentryFlutter.init((options) {
       options.dsn =
           'https://d6522731f64a56983e3504ed78390601@o4510767194570752.ingest.us.sentry.io/4510767197519872';
-      // Release version is set via --dart-define during build for source map matching
       const release = String.fromEnvironment('SENTRY_RELEASE');
       if (release.isNotEmpty) {
         options.release = release;
