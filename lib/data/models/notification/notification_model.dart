@@ -7,10 +7,10 @@
 
 import 'dart:ui';
 
+import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 
-class NotificationModel {
-  final int id;
+class NotificationModel extends BaseModel {
   final String title;
   final String body;
   final String timestamp;
@@ -19,7 +19,7 @@ class NotificationModel {
   final Color? color;
 
   NotificationModel({
-    required this.id,
+    required super.id,
     required this.title,
     required this.body,
     required this.timestamp,

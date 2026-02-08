@@ -13,7 +13,7 @@ import 'package:heliumapp/presentation/widgets/helium_elevated_button.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
-class _SelectWidget<T extends BaseModel> extends StatefulWidget {
+class _SelectWidget<T extends BaseTitledModel> extends StatefulWidget {
   final List<T> items;
   final Set<int> initialSelected;
   final Function(Set<int>) onConfirm;
@@ -30,7 +30,7 @@ class _SelectWidget<T extends BaseModel> extends StatefulWidget {
   State<_SelectWidget<T>> createState() => _SelectWidgetState<T>();
 }
 
-class _SelectWidgetState<T extends BaseModel> extends State<_SelectWidget<T>> {
+class _SelectWidgetState<T extends BaseTitledModel> extends State<_SelectWidget<T>> {
   // State
   final Set<int> selected = <int>{};
   bool _isSubmitting = false;
@@ -126,7 +126,7 @@ class _SelectWidgetState<T extends BaseModel> extends State<_SelectWidget<T>> {
   }
 }
 
-Future<void> showSelectDialog<T extends BaseModel>({
+Future<void> showSelectDialog<T extends BaseTitledModel>({
   required BuildContext parentContext,
   required List<T> items,
   required Function(Set<int>) onConfirm,

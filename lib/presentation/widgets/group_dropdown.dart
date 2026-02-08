@@ -16,7 +16,7 @@ import 'package:heliumapp/presentation/widgets/shadow_container.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 
-class GroupDropdown<T extends BaseModel> extends StatelessWidget {
+class GroupDropdown<T extends BaseTitledModel> extends StatelessWidget {
   final List<T> groups;
   final ValueChanged<T?> onChanged;
   final bool isReadOnly;

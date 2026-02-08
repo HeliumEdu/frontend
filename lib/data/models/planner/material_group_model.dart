@@ -7,7 +7,7 @@
 
 import 'package:heliumapp/data/models/base_model.dart';
 
-class MaterialGroupModel extends BaseModel {
+class MaterialGroupModel extends BaseTitledModel {
   MaterialGroupModel({
     required super.id,
     required super.title,

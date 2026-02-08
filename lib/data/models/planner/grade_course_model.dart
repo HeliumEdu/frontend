@@ -12,7 +12,7 @@ import 'package:heliumapp/data/models/planner/grade_category_model.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 
-class GradeCourseModel extends BaseModel {
+class GradeCourseModel extends BaseTitledModel {
   final double overallGrade;
   final Color color;
   final double? trend;

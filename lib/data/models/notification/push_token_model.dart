@@ -5,15 +5,16 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-class PushTokenModel {
-  final int id;
+import 'package:heliumapp/data/models/base_model.dart';
+
+class PushTokenModel extends BaseModel {
   final String deviceId;
   final String token;
   final int user;
   final String createdAt;
 
   PushTokenModel({
-    required this.id,
+    required super.id,
     required this.deviceId,
     required this.token,
     required this.user,

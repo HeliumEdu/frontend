@@ -11,7 +11,7 @@ import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 
-class GradeCategoryModel extends BaseModel {
+class GradeCategoryModel extends BaseTitledModel {
   final double overallGrade;
   final double weight;
   final Color color;

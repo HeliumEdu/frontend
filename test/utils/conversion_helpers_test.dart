@@ -11,7 +11,7 @@ import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 
 /// Test model implementing BaseModel for IdOrEntity tests.
-class TestModel extends BaseModel {
+class TestModel extends BaseTitledModel {
   final String description;
 
   TestModel({required super.id, required super.title, this.description = ''});

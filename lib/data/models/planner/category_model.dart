@@ -11,7 +11,7 @@ import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 
-class CategoryModel extends BaseModel {
+class CategoryModel extends BaseTitledModel {
   final Color color;
   final int course;
   final double weight;

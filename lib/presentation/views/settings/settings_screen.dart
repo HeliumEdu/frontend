@@ -175,7 +175,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                 onPressed: () =>
                     launchUrl(Uri.parse('https://support.heliumedu.com')),
                 icon: Icon(
-                  Icons.help_outline,
+                  Icons.help_center,
                   color: context.colorScheme.primary,
                   size: 30,
                 ),
