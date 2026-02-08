@@ -13,7 +13,7 @@ import 'package:heliumapp/data/models/planner/attachment_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 
-abstract class CalendarItemBaseModel extends BaseModel {
+abstract class CalendarItemBaseModel extends BaseTitledModel {
   final bool allDay;
   final bool showEndTime;
   final String start;

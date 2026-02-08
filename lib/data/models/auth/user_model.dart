@@ -7,18 +7,18 @@
 
 import 'dart:ui';
 
+import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:timezone/standalone.dart' as tz;
 
-class UserModel {
-  final int id;
+class UserModel extends BaseModel {
   final String username;
   final String email;
   final String? emailChanging;
   final UserSettingsModel? settings;
 
   UserModel({
-    required this.id,
+    required super.id,
     required this.username,
     required this.email,
     this.emailChanging,

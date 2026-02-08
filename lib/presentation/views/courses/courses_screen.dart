@@ -147,7 +147,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
 
             setState(() {
               _courseGroups[_courseGroups.indexWhere(
-                    (g) => g.id == _selectedGroupId,
+                    (g) => g.id == state.courseGroup.id,
                   )] =
                   state.courseGroup;
               Sort.byStartDate(_courseGroups);

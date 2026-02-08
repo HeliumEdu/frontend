@@ -8,7 +8,7 @@
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 
-class CourseGroupModel extends BaseModel {
+class CourseGroupModel extends BaseTitledModel {
   final String startDate;
   final String endDate;
   final double? averageGrade;

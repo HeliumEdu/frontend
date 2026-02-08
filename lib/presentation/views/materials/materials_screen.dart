@@ -146,7 +146,7 @@ class _MaterialsScreenState
 
             setState(() {
               _materialGroups[_materialGroups.indexWhere(
-                    (g) => g.id == _selectedGroupId,
+                    (g) => g.id == state.materialGroup.id,
                   )] =
                   state.materialGroup;
               Sort.byTitle(_materialGroups);

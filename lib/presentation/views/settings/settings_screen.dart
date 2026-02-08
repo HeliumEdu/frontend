@@ -192,6 +192,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                     value: ThemeMode.dark,
                     icon: Icon(Icons.dark_mode),
                   ),
+                  // TODO: Cleanup: might need to re-evaluate web issue with this icon
                   ButtonSegment<ThemeMode>(
                     value: ThemeMode.system,
                     icon: Icon(Icons.settings_brightness),

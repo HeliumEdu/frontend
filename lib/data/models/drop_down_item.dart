@@ -6,16 +6,16 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:heliumapp/data/models/base_model.dart';
 
-class DropDownItem<T> {
-  final int id;
+class DropDownItem<T> extends BaseModel {
   final T? value;
   final IconData? iconData;
   final Color? iconColor;
   final bool isDivider;
 
   DropDownItem({
-    required this.id,
+    required super.id,
     this.value,
     this.iconData,
     this.iconColor,

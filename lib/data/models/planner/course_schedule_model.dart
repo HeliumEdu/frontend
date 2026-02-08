@@ -5,11 +5,11 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 
-class CourseScheduleModel {
-  final int id;
+class CourseScheduleModel extends BaseModel {
   final String daysOfWeek;
   final String sunStartTime;
   final String sunEndTime;
@@ -28,7 +28,7 @@ class CourseScheduleModel {
   final int course;
 
   CourseScheduleModel({
-    required this.id,
+    required super.id,
     required this.daysOfWeek,
     required this.sunStartTime,
     required this.sunEndTime,

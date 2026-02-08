@@ -7,7 +7,7 @@
 
 import 'package:heliumapp/data/models/base_model.dart';
 
-class MaterialModel extends BaseModel {
+class MaterialModel extends BaseTitledModel {
   final int status;
   final int condition;
   final String website;

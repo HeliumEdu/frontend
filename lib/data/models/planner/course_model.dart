@@ -12,7 +12,7 @@ import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 
-class CourseModel extends BaseModel {
+class CourseModel extends BaseTitledModel {
   final String startDate;
   final String endDate;
   final String room;

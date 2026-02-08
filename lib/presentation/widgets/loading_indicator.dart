@@ -11,8 +11,14 @@ import 'package:heliumapp/config/app_theme.dart';
 class LoadingIndicator extends StatelessWidget {
   final bool small;
   final Color? color;
+  final bool expanded;
 
-  const LoadingIndicator({super.key, this.small = false, this.color});
+  const LoadingIndicator({
+    super.key,
+    this.small = false,
+    this.color,
+    this.expanded = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -30,10 +36,10 @@ class LoadingIndicator extends StatelessWidget {
       );
     }
 
-    return const Expanded(
-      child: Center(
-        child: CircularProgressIndicator(),
-      ),
+    const content = Center(
+      child: CircularProgressIndicator(),
     );
+
+    return expanded ? const Expanded(child: content) : content;
   }
 }

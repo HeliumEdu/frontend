@@ -10,7 +10,7 @@ import 'dart:ui';
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 
-class ExternalCalendarModel extends BaseModel {
+class ExternalCalendarModel extends BaseTitledModel {
   final String url;
   final Color color;
 
