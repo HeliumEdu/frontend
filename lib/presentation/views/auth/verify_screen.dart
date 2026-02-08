@@ -122,17 +122,19 @@ class _VerifyScreenState extends BasePageScreenState<VerifyScreen> {
       color: context.colorScheme.primary,
       child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back_ios,
-              color: Colors.transparent,
-              size: 20,
-            ),
-            onPressed: () {},
-          ),
-          title: Text(screenTitle, style: AppStyles.pageTitle(context)),
-        ),
+        appBar: kIsWeb
+            ? null
+            : AppBar(
+                leading: IconButton(
+                  icon: const Icon(
+                    Icons.arrow_back_ios,
+                    color: Colors.transparent,
+                    size: 20,
+                  ),
+                  onPressed: () {},
+                ),
+                title: Text(screenTitle, style: AppStyles.pageTitle(context)),
+              ),
         body: SafeArea(child: buildMainArea(context)),
       ),
     );
@@ -158,7 +160,6 @@ class _VerifyScreenState extends BasePageScreenState<VerifyScreen> {
                     color: context.colorScheme.primary.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  // TODO: Cleanup: might need to re-evaluate web issue with this icon
                   child: Icon(
                     Icons.mark_email_read,
                     size: Responsive.getIconSize(
@@ -222,7 +223,7 @@ class _VerifyScreenState extends BasePageScreenState<VerifyScreen> {
               Center(
                 child: TextButton(
                   onPressed: () {
-                    context.replace(AppRoutes.loginScreen);
+                    context.go(AppRoutes.loginScreen);
                   },
                   child: Row(
                     mainAxisSize: MainAxisSize.min,

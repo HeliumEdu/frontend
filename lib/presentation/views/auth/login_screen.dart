@@ -138,7 +138,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
             key: _formController.formKey,
             child: Column(
               children: [
-                const SizedBox(height: 100),
+                const SizedBox(height: 25),
 
                 Center(
                   child: Image.asset(
@@ -146,7 +146,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                     height: 120,
                   ),
                 ),
-                const SizedBox(height: 100),
+                const SizedBox(height: 80),
 
                 LabelAndTextFormField(
                   hintText: 'Username',

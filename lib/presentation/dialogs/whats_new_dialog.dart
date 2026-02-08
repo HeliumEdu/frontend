@@ -21,14 +21,15 @@ class _WhatsNewDialogWidget extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Row(
         children: [
-          // TODO: Cleanup: might need to re-evaluate web issue with this icon
           Icon(
             Icons.auto_awesome,
             color: context.colorScheme.primary,
             size: 28,
           ),
           const SizedBox(width: 12),
-          Text("What's New", style: AppStyles.pageTitle(context)),
+          Text('Welcome to the new Helium!', style: AppStyles.pageTitle(context)),
+          // TODO: we'll change it to this after initial release, for now
+          // Text("What's New", style: AppStyles.pageTitle(context)),
         ],
       ),
       content: SizedBox(
@@ -38,11 +39,6 @@ class _WhatsNewDialogWidget extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Welcome to the new Helium!',
-                style: AppStyles.featureText(context),
-              ),
-              const SizedBox(height: 12),
               Text(
                 "We've completely rebuilt Helium from the ground up with a fresh, modern design, improved performance, and room to grow.",
                 style: AppStyles.standardBodyText(context),
