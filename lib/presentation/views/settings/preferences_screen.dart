@@ -321,9 +321,13 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
               initialValue: ReminderConstants.typeItems.firstWhere(
                 (rt) => rt.value == _selectedReminderType,
               ),
+              // TODO: Remove deprecated type filtering once legacy 'Popup' and 'Text' reminder types are removed from backend
               items: ReminderConstants.typeItems
                   .where(
-                    (t) => _selectedReminderType != 'Text' && t.value != 'Text',
+                    (t) => _selectedReminderType != 'Text' &&
+                           t.value != 'Text' &&
+                           _selectedReminderType != 'Popup' &&
+                           t.value != 'Popup',
                   )
                   .toList(),
               onChanged: (value) {
