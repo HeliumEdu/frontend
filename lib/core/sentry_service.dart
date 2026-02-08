@@ -39,14 +39,29 @@ class SentryService {
       final exceptionValue = exceptions.first.value;
 
       if (exceptionType == 'DioException' && exceptionValue != null) {
-        // Don't send expected user authentication errors to Sentry
+        // Filter expected user authentication errors (not bugs)
+
+        // 401 on login endpoint = wrong credentials (expected user error)
+        if (exceptionValue.contains('status code of 401') &&
+            exceptionValue.contains('/auth/token/')) {
+          _log.info('Filtered login failure from Sentry');
+          return null;
+        }
+
+        // 401/403 on account deletion = wrong password (expected user error)
         if ((exceptionValue.contains('status code of 401') ||
                 exceptionValue.contains('status code of 403')) &&
-            (exceptionValue.contains('/auth/token') ||
-                exceptionValue.contains('/auth/user/verify') ||
-                exceptionValue.contains('/auth/user/delete'))) {
-          _log.info('Filtered auth error from Sentry: $exceptionValue');
-          return null; // Don't send to Sentry
+            exceptionValue.contains('/auth/user/delete/')) {
+          _log.info('Filtered account deletion auth error from Sentry');
+          return null;
+        }
+
+        // 400/401 on email verification = wrong/expired code (expected user error)
+        if ((exceptionValue.contains('status code of 400') ||
+                exceptionValue.contains('status code of 401')) &&
+            exceptionValue.contains('/auth/user/verify/')) {
+          _log.info('Filtered verification error from Sentry');
+          return null;
         }
       }
     }
