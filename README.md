@@ -6,8 +6,6 @@
 
 # Helium Frontend
 
-**NOTE: This is the new Helium frontend. It is still under active development.**
-
 The `frontend` for [Helium](https://www.heliumedu.com/), including mobile and web deployments.
 
 ## Prerequisites
@@ -46,7 +44,7 @@ disabled.
 ### Platform
 
 The backend `platform` is served from a separate repository and can be found [here](https://github.com/HeliumEdu/platform#readme).
-If `platform` has been provisioned and is running locally, and you would like to run the frontend against the local
-backend instead of production, set the environment variable `PROJECT_API_HOST` before executing `make run`.
+If `platform` has been provisioned and is running locally and you would like to run the frontend against the local
+backend instead of production, run with `--dart-define PROJECT_API_HOST=http://localhost:8000`, or use `PROJECT_API_HOST=http://localhost:8000 make run`.
 
-Note that to reach `localhost` from within an Android emulator, use `10.0.2.2` instead of `127.0.0.1`.
+Note that to reach `localhost` from within an Android emulator, use `10.0.2.2` instead.
