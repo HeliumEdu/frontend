@@ -20,10 +20,12 @@ import 'package:heliumapp/data/models/auth/refresh_token_request_model.dart';
 import 'package:heliumapp/data/models/auth/token_response_model.dart';
 import 'package:heliumapp/data/models/auth/update_settings_request_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 final _log = Logger('core');
 
@@ -297,14 +299,9 @@ class DioClient {
       if (response.statusCode == 200) {
         final user = UserModel.fromJson(response.data);
 
-        if (user.settings != null) {
-          await saveSettings(user.settings!);
+        await saveSettings(user.settings);
 
-          return user.settings;
-        } else {
-          _log.warning('User fetched but settings are null');
-          return null;
-        }
+        return user.settings;
       } else {
         _log.severe(
           'Failed to fetch settings from API: ${response.statusCode}',
@@ -323,30 +320,62 @@ class DioClient {
     await _prefService.init();
 
     try {
+      // Check for critical field to detect race conditions
+      final timeZone = _prefService.getString('time_zone');
+      if (timeZone == null) {
+        const msg =
+            'Race condition detected: time_zone is null in getSettings(), _prefService may not be fully populated';
+        _log.severe(msg);
+        await Sentry.captureException(
+          Exception(msg),
+          stackTrace: StackTrace.current,
+        );
+      }
+
       return UserSettingsModel.fromJson({
-        'time_zone': _prefService.getString('time_zone'),
-        'color_by_category': _prefService.getBool('color_by_category'),
-        'default_view': _prefService.getInt('default_view'),
-        'color_scheme_theme': _prefService.getInt('color_scheme_theme'),
-        'week_starts_on': _prefService.getInt('week_starts_on'),
-        'all_day_offset': _prefService.getInt('all_day_offset'),
-        'whats_new_version_seen': _prefService.getInt('whats_new_version_seen'),
-        'events_color': _prefService.getString('events_color'),
-        'material_color': _prefService.getString('material_color'),
-        'grade_color': _prefService.getString('grade_color'),
-        'default_reminder_type': _prefService.getInt('default_reminder_type'),
-        'default_reminder_offset': _prefService.getInt(
-          'default_reminder_offset',
-        ),
-        'default_reminder_offset_type': _prefService.getInt(
-          'default_reminder_offset_type',
-        ),
-        'calendar_use_category_colors': _prefService.getBool(
-          'calendar_use_category_colors',
-        ),
-        'remember_filter_state': _prefService.getBool(
-          'remember_filter_state',
-        ),
+        'time_zone': timeZone ?? FallbackConstants.defaultTimezone,
+        'color_by_category':
+            _prefService.getBool('color_by_category') ??
+            FallbackConstants.defaultColorByCategory,
+        'default_view':
+            _prefService.getInt('default_view') ??
+            FallbackConstants.defaultViewIndex,
+        'color_scheme_theme':
+            _prefService.getInt('color_scheme_theme') ??
+            FallbackConstants.defaultColorSchemeTheme,
+        'week_starts_on':
+            _prefService.getInt('week_starts_on') ??
+            FallbackConstants.defaultWeekStartsOn,
+        'all_day_offset':
+            _prefService.getInt('all_day_offset') ??
+            FallbackConstants.defaultAllDayOffset,
+        'whats_new_version_seen':
+            _prefService.getInt('whats_new_version_seen') ??
+            FallbackConstants.defaultWhatsNewVersionSeen,
+        'events_color':
+            _prefService.getString('events_color') ??
+            FallbackConstants.defaultEventsColor,
+        'material_color':
+            _prefService.getString('material_color') ??
+            FallbackConstants.defaultMaterialColor,
+        'grade_color':
+            _prefService.getString('grade_color') ??
+            FallbackConstants.defaultGradeColor,
+        'default_reminder_type':
+            _prefService.getInt('default_reminder_type') ??
+            FallbackConstants.defaultReminderType,
+        'default_reminder_offset':
+            _prefService.getInt('default_reminder_offset') ??
+            FallbackConstants.defaultReminderOffset,
+        'default_reminder_offset_type':
+            _prefService.getInt('default_reminder_offset_type') ??
+            FallbackConstants.defaultReminderOffsetType,
+        'calendar_use_category_colors':
+            _prefService.getBool('calendar_use_category_colors') ??
+            FallbackConstants.defaultCalendarUseCategoryColors,
+        'remember_filter_state':
+            _prefService.getBool('remember_filter_state') ??
+            FallbackConstants.defaultRememberFilterState,
       });
     } catch (parseError) {
       _log.info('Failed to parse cached settings: $parseError');

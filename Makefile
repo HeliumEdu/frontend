@@ -2,10 +2,22 @@
 
 SHELL := /usr/bin/env bash
 
-ifdef PROJECT_API_HOST
-    RUN_ARGS := --dart-define=PROJECT_API_HOST=$(PROJECT_API_HOST)
+RUN_ARGS :=
+
+ifneq ($(HEADLESS),false)
+    RUN_ARGS += -d web-server
 else
-    RUN_ARGS :=
+	RUN_ARGS += --web-browser-flag=--disable-web-security
+endif
+
+ifdef PROJECT_API_HOST
+    RUN_ARGS += --dart-define=PROJECT_API_HOST=$(PROJECT_API_HOST)
+endif
+
+ifdef PORT
+    RUN_ARGS += --web-port=$(PORT)
+else
+    RUN_ARGS += --web-port=8080
 endif
 
 ifdef SENTRY_RELEASE
@@ -61,4 +73,11 @@ coverage:
 	dart pub global run test_cov_console
 
 run: install
+ifeq ($(USE_NGROK),true)
+	$(eval RUN_ARGS += --release)
+	@( \
+		python3 -m pip install pyngrok; \
+		ngrok start heliumedu --log stdout & \
+	)
+endif
 	flutter run $(RUN_ARGS)

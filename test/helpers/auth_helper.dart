@@ -21,7 +21,7 @@ Map<String, dynamic> givenUserSettingsJson({
   String eventsColor = '#4CAF50',
   String materialColor = '#2196F3',
   String gradeColor = '#FF9800',
-  int defaultReminderType = 0,
+  int defaultReminderType = 3,
   int defaultReminderOffset = 15,
   int defaultReminderOffsetType = 0,
   bool colorByCategory = false,
@@ -116,8 +116,8 @@ void verifyUserMatchesJson(UserModel user, Map<String, dynamic> json) {
   expect(user.email, equals(json['email']));
   expect(user.emailChanging, equals(json['email_changing']));
 
-  if (json['settings'] != null && user.settings != null) {
-    verifyUserSettingsMatchesJson(user.settings!, json['settings']);
+  if (json['settings'] != null) {
+    verifyUserSettingsMatchesJson(user.settings, json['settings']);
   }
 }
 

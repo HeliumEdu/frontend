@@ -5,8 +5,6 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-/// Base model that provides identity and equality based on ID.
-/// All models with an ID field should extend this class.
 abstract class BaseModel {
   final int id;
 
@@ -23,8 +21,6 @@ abstract class BaseModel {
   int get hashCode => id.hashCode;
 }
 
-/// Base model for entities that have a title and calendar visibility.
-/// Extends BaseModel to inherit ID-based equality.
 abstract class BaseTitledModel extends BaseModel {
   final String title;
   final bool? shownOnCalendar;

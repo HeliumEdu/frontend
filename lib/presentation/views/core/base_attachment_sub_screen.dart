@@ -241,6 +241,13 @@ abstract class BaseAttachmentScreenState<T>
 
         for (var platFile in result.files) {
           if (platFile.bytes == null) {
+            if (mounted) {
+              showSnackBar(
+                context,
+                'An error occurred while reading the file: ${platFile.name}',
+                isError: true,
+              );
+            }
             continue;
           }
 

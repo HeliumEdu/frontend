@@ -573,6 +573,11 @@ class _CourseAddScheduleScreenState
   bool _onSubmit({bool advanceNavOnSuccess = true}) {
     // TODO: High Value, Low Effort: only submit if actual changes are made
 
+    // Silently ignore if schedule data not loaded yet (user should see loading indicator)
+    if (_scheduleId == null) {
+      return false;
+    }
+
     if (_variesByDay) {
       if (_selectedDays.isEmpty) {
         showSnackBar(context, 'Select at least one day', isError: true);

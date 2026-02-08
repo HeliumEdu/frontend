@@ -52,26 +52,36 @@ void initializeRouter() {
       // Public routes (no shell)
       GoRoute(
         path: AppRoutes.landingScreen,
-        builder: (context, state) => const LandingScreen(),
+        pageBuilder: (context, state) => const MaterialPage(
+          child: LandingScreen(),
+        ),
       ),
       GoRoute(
         path: AppRoutes.loginScreen,
-        builder: (context, state) => const LoginScreen(),
+        pageBuilder: (context, state) => const MaterialPage(
+          child: LoginScreen(),
+        ),
       ),
       GoRoute(
         path: AppRoutes.registerScreen,
-        builder: (context, state) => const RegisterScreen(),
+        pageBuilder: (context, state) => const MaterialPage(
+          child: RegisterScreen(),
+        ),
       ),
       GoRoute(
         path: AppRoutes.forgotPasswordScreen,
-        builder: (context, state) => const ForgotPasswordScreen(),
+        pageBuilder: (context, state) => const MaterialPage(
+          child: ForgotPasswordScreen(),
+        ),
       ),
       GoRoute(
         path: AppRoutes.verifyScreen,
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final username = state.uri.queryParameters['username'];
           final code = state.uri.queryParameters['code'];
-          return VerifyScreen(username: username, code: code);
+          return MaterialPage(
+            child: VerifyScreen(username: username, code: code),
+          );
         },
       ),
 
@@ -110,71 +120,83 @@ void initializeRouter() {
       // Protected full-screen routes (outside shell)
       GoRoute(
         path: AppRoutes.notificationsScreen,
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final args = state.extra as NotificationArgs?;
-          if (args?.providers != null && args!.providers!.isNotEmpty) {
-            return MultiBlocProvider(
-              providers: args.providers!,
-              child: NotificationsScreen(),
-            );
-          }
-          return BlocProvider<CalendarItemBloc>(
-            create: ProviderHelpers().createCalendarItemBloc(),
-            child: NotificationsScreen(),
-          );
+          final child = (args?.providers != null && args!.providers!.isNotEmpty)
+              ? MultiBlocProvider(
+                  providers: args.providers!,
+                  child: NotificationsScreen(),
+                )
+              : BlocProvider<CalendarItemBloc>(
+                  create: ProviderHelpers().createCalendarItemBloc(),
+                  child: NotificationsScreen(),
+                );
+          return MaterialPage(child: child);
         },
       ),
 
       // Calendar item add flow
       GoRoute(
         path: AppRoutes.plannerItemAddScreen,
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final args = state.extra as CalendarItemAddArgs?;
           if (args == null) {
-            return const _RouteRedirect(redirectTo: AppRoutes.plannerScreen);
+            return const MaterialPage(
+              child: _RouteRedirect(redirectTo: AppRoutes.plannerScreen),
+            );
           }
-          return BlocProvider<CalendarItemBloc>.value(
-            value: args.calendarItemBloc,
-            child: CalendarItemAddProvidedScreen(
-              eventId: args.eventId,
-              homeworkId: args.homeworkId,
-              initialDate: args.initialDate,
-              isFromMonthView: args.isFromMonthView,
-              isEdit: args.isEdit,
+          return MaterialPage(
+            child: BlocProvider<CalendarItemBloc>.value(
+              value: args.calendarItemBloc,
+              child: CalendarItemAddProvidedScreen(
+                eventId: args.eventId,
+                homeworkId: args.homeworkId,
+                initialDate: args.initialDate,
+                isFromMonthView: args.isFromMonthView,
+                isEdit: args.isEdit,
+              ),
             ),
           );
         },
       ),
       GoRoute(
         path: AppRoutes.plannerItemAddRemindersScreen,
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final args = state.extra as CalendarItemReminderArgs?;
           if (args == null) {
-            return const _RouteRedirect(redirectTo: AppRoutes.plannerScreen);
+            return const MaterialPage(
+              child: _RouteRedirect(redirectTo: AppRoutes.plannerScreen),
+            );
           }
-          return BlocProvider<CalendarItemBloc>.value(
-            value: args.calendarItemBloc,
-            child: CalendarItemAddReminderScreen(
-              isEvent: args.isEvent,
-              entityId: args.entityId,
-              isEdit: args.isEdit,
+          return MaterialPage(
+            child: BlocProvider<CalendarItemBloc>.value(
+              value: args.calendarItemBloc,
+              child: CalendarItemAddReminderScreen(
+                isEvent: args.isEvent,
+                entityId: args.entityId,
+                isEdit: args.isEdit,
+              ),
             ),
           );
         },
       ),
       GoRoute(
         path: AppRoutes.plannerItemAddAttachmentsScreen,
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final args = state.extra as CalendarItemAttachmentArgs?;
           if (args == null) {
-            return const _RouteRedirect(redirectTo: AppRoutes.plannerScreen);
+            return const MaterialPage(
+              child: _RouteRedirect(redirectTo: AppRoutes.plannerScreen),
+            );
           }
-          return BlocProvider<CalendarItemBloc>.value(
-            value: args.calendarItemBloc,
-            child: CalendarItemAddAttachmentScreen(
-              isEvent: args.isEvent,
-              entityId: args.entityId,
-              isEdit: args.isEdit,
+          return MaterialPage(
+            child: BlocProvider<CalendarItemBloc>.value(
+              value: args.calendarItemBloc,
+              child: CalendarItemAddAttachmentScreen(
+                isEvent: args.isEvent,
+                entityId: args.entityId,
+                isEdit: args.isEdit,
+              ),
             ),
           );
         },
@@ -183,68 +205,84 @@ void initializeRouter() {
       // Course add flow
       GoRoute(
         path: AppRoutes.courseAddScreen,
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final args = state.extra as CourseAddArgs?;
           if (args == null) {
-            return const _RouteRedirect(redirectTo: AppRoutes.coursesScreen);
+            return const MaterialPage(
+              child: _RouteRedirect(redirectTo: AppRoutes.coursesScreen),
+            );
           }
-          return BlocProvider<CourseBloc>.value(
-            value: args.courseBloc,
-            child: CourseAddProvidedScreen(
-              courseGroupId: args.courseGroupId,
-              courseId: args.courseId,
-              isEdit: args.isEdit,
+          return MaterialPage(
+            child: BlocProvider<CourseBloc>.value(
+              value: args.courseBloc,
+              child: CourseAddProvidedScreen(
+                courseGroupId: args.courseGroupId,
+                courseId: args.courseId,
+                isEdit: args.isEdit,
+              ),
             ),
           );
         },
       ),
       GoRoute(
         path: AppRoutes.courseAddScheduleScreen,
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final args = state.extra as CourseAddArgs?;
           if (args == null) {
-            return const _RouteRedirect(redirectTo: AppRoutes.coursesScreen);
+            return const MaterialPage(
+              child: _RouteRedirect(redirectTo: AppRoutes.coursesScreen),
+            );
           }
-          return BlocProvider<CourseBloc>.value(
-            value: args.courseBloc,
-            child: CourseAddScheduleProvidedScreen(
-              courseGroupId: args.courseGroupId,
-              courseId: args.courseId!,
-              isEdit: args.isEdit,
+          return MaterialPage(
+            child: BlocProvider<CourseBloc>.value(
+              value: args.courseBloc,
+              child: CourseAddScheduleProvidedScreen(
+                courseGroupId: args.courseGroupId,
+                courseId: args.courseId!,
+                isEdit: args.isEdit,
+              ),
             ),
           );
         },
       ),
       GoRoute(
         path: AppRoutes.courseAddCategoriesScreen,
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final args = state.extra as CourseAddArgs?;
           if (args == null) {
-            return const _RouteRedirect(redirectTo: AppRoutes.coursesScreen);
+            return const MaterialPage(
+              child: _RouteRedirect(redirectTo: AppRoutes.coursesScreen),
+            );
           }
-          return BlocProvider<CourseBloc>.value(
-            value: args.courseBloc,
-            child: CourseAddCategoryScreen(
-              courseGroupId: args.courseGroupId,
-              courseId: args.courseId!,
-              isEdit: args.isEdit,
+          return MaterialPage(
+            child: BlocProvider<CourseBloc>.value(
+              value: args.courseBloc,
+              child: CourseAddCategoryScreen(
+                courseGroupId: args.courseGroupId,
+                courseId: args.courseId!,
+                isEdit: args.isEdit,
+              ),
             ),
           );
         },
       ),
       GoRoute(
         path: AppRoutes.courseAddAttachmentsScreen,
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final args = state.extra as CourseAddArgs?;
           if (args == null) {
-            return const _RouteRedirect(redirectTo: AppRoutes.coursesScreen);
+            return const MaterialPage(
+              child: _RouteRedirect(redirectTo: AppRoutes.coursesScreen),
+            );
           }
-          return BlocProvider<CourseBloc>.value(
-            value: args.courseBloc,
-            child: CourseAddAttachmentScreen(
-              courseGroupId: args.courseGroupId,
-              entityId: args.courseId!,
-              isEdit: args.isEdit,
+          return MaterialPage(
+            child: BlocProvider<CourseBloc>.value(
+              value: args.courseBloc,
+              child: CourseAddAttachmentScreen(
+                courseGroupId: args.courseGroupId,
+                entityId: args.courseId!,
+                isEdit: args.isEdit,
+              ),
             ),
           );
         },
@@ -253,17 +291,21 @@ void initializeRouter() {
       // Material add flow
       GoRoute(
         path: AppRoutes.resourcesAddScreen,
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final args = state.extra as MaterialAddArgs?;
           if (args == null) {
-            return const _RouteRedirect(redirectTo: AppRoutes.resourcesScreen);
+            return const MaterialPage(
+              child: _RouteRedirect(redirectTo: AppRoutes.resourcesScreen),
+            );
           }
-          return BlocProvider<MaterialBloc>.value(
-            value: args.materialBloc,
-            child: MaterialAddProvidedScreen(
-              materialGroupId: args.materialGroupId,
-              materialId: args.materialId,
-              isEdit: args.isEdit,
+          return MaterialPage(
+            child: BlocProvider<MaterialBloc>.value(
+              value: args.materialBloc,
+              child: MaterialAddProvidedScreen(
+                materialGroupId: args.materialGroupId,
+                materialId: args.materialId,
+                isEdit: args.isEdit,
+              ),
             ),
           );
         },
@@ -272,23 +314,33 @@ void initializeRouter() {
       // Settings routes
       GoRoute(
         path: AppRoutes.settingScreen,
-        builder: (context, state) => const SettingsScreen(),
+        pageBuilder: (context, state) => const MaterialPage(
+          child: SettingsScreen(),
+        ),
       ),
       GoRoute(
         path: AppRoutes.preferencesScreen,
-        builder: (context, state) => const PreferencesScreen(),
+        pageBuilder: (context, state) => const MaterialPage(
+          child: PreferencesScreen(),
+        ),
       ),
       GoRoute(
         path: AppRoutes.feedsScreen,
-        builder: (context, state) => const FeedsScreen(),
+        pageBuilder: (context, state) => const MaterialPage(
+          child: FeedsScreen(),
+        ),
       ),
       GoRoute(
         path: AppRoutes.externalCalendarsScreen,
-        builder: (context, state) => ExternalCalendarsScreen(),
+        pageBuilder: (context, state) => MaterialPage(
+          child: ExternalCalendarsScreen(),
+        ),
       ),
       GoRoute(
         path: AppRoutes.changePasswordScreen,
-        builder: (context, state) => const ChangePasswordScreen(),
+        pageBuilder: (context, state) => const MaterialPage(
+          child: ChangePasswordScreen(),
+        ),
       ),
     ],
   );

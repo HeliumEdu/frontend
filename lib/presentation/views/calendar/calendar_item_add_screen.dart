@@ -615,7 +615,7 @@ class _CalendarItemAddScreenState
                 const SizedBox(height: 14),
               ],
 
-              // TODO: Enhacnement: add location field to Event's
+              // TODO: Enhancement: add location field to Event's
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -812,9 +812,10 @@ class _CalendarItemAddScreenState
         }
       });
     } else {
-      final now = DateTime.now();
-      _formController.startDate = widget.initialDate ?? now;
-      _formController.endDate = widget.initialDate ?? now;
+      if (widget.initialDate != null) {
+        _formController.startDate = widget.initialDate!;
+        _formController.endDate = widget.initialDate!;
+      }
 
       if (!_isEvent) {
         _selectCourse(_courses.first.id);

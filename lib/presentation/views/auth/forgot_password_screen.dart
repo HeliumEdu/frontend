@@ -98,17 +98,19 @@ class _ForgotPasswordScreenState
       color: context.colorScheme.primary,
       child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back_ios,
-              color: Colors.transparent,
-              size: 20,
-            ),
-            onPressed: () {},
-          ),
-          title: Text(screenTitle, style: AppStyles.pageTitle(context)),
-        ),
+        appBar: kIsWeb
+            ? null
+            : AppBar(
+                leading: IconButton(
+                  icon: const Icon(
+                    Icons.arrow_back_ios,
+                    color: Colors.transparent,
+                    size: 20,
+                  ),
+                  onPressed: () {},
+                ),
+                title: Text(screenTitle, style: AppStyles.pageTitle(context)),
+              ),
         body: SafeArea(child: buildMainArea(context)),
       ),
     );
@@ -187,7 +189,7 @@ class _ForgotPasswordScreenState
                   Center(
                     child: TextButton(
                       onPressed: () {
-                        context.replace(AppRoutes.loginScreen);
+                        context.go(AppRoutes.loginScreen);
                       },
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -205,9 +207,9 @@ class _ForgotPasswordScreenState
                           const SizedBox(width: 8),
                           Text(
                             'Back to login',
-                            style: AppStyles.buttonText(context).copyWith(
-                              color: context.colorScheme.primary,
-                            ),
+                            style: AppStyles.buttonText(
+                              context,
+                            ).copyWith(color: context.colorScheme.primary),
                           ),
                         ],
                       ),
