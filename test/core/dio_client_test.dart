@@ -223,7 +223,7 @@ void main() {
         when(() => mockPrefService.getString('grade_color'))
             .thenReturn('#0000FF');
         when(() => mockPrefService.getInt('default_reminder_type'))
-            .thenReturn(0);
+            .thenReturn(3);
         when(() => mockPrefService.getInt('default_reminder_offset'))
             .thenReturn(15);
         when(() => mockPrefService.getInt('default_reminder_offset_type'))

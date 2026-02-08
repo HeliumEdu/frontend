@@ -21,7 +21,7 @@ Map<String, dynamic> givenUserSettingsJson({
   String eventsColor = '#4CAF50',
   String materialColor = '#2196F3',
   String gradeColor = '#FF9800',
-  int defaultReminderType = 0,
+  int defaultReminderType = 3,
   int defaultReminderOffset = 15,
   int defaultReminderOffsetType = 0,
   bool colorByCategory = false,

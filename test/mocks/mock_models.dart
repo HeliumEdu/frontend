@@ -70,7 +70,7 @@ class MockModels {
     Color eventsColor = const Color(0xFF4CAF50),
     Color materialColor = const Color(0xFF2196F3),
     Color gradeColor = const Color(0xFFFF9800),
-    int defaultReminderType = 0,
+    int defaultReminderType = 3,
     int defaultReminderOffset = 15,
     int defaultReminderOffsetType = 0,
     bool colorByCategory = false,
