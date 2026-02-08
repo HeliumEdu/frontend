@@ -691,6 +691,7 @@ class TodosTableState extends State<TodosTable> {
                   const SizedBox(width: 4),
                   _buildPriorityColumn(homework),
                 ],
+                // TODO: on mobile, when delete button isn't shown (since we swipe), show grade again
                 if (_shouldShowGradeColumn(context)) ...[
                   const SizedBox(width: 4),
                   _buildGradeColumn(homework, userSettings),

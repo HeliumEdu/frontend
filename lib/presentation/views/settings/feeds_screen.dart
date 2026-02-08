@@ -36,6 +36,9 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
   String get screenTitle => 'Feeds';
 
   @override
+  IconData? get icon => Icons.rss_feed;
+
+  @override
   ScreenType get screenType => ScreenType.subPage;
 
   PrivateFeedModel? _feedUrls;

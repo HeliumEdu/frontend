@@ -17,7 +17,11 @@ import 'package:logging/logging.dart';
 final _log = Logger('data.sources');
 
 abstract class CategoryRemoteDataSource extends BaseDataSource {
-  Future<List<CategoryModel>> getCategories({int? courseId, String? title});
+  Future<List<CategoryModel>> getCategories({
+    int? courseId,
+    String? title,
+    bool? shownOnCalendar,
+  });
 
   Future<CategoryModel> createCategory(
     int groupId,
@@ -44,6 +48,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
   Future<List<CategoryModel>> getCategories({
     int? courseId,
     String? title,
+    bool? shownOnCalendar,
   }) async {
     try {
       final filterInfo = courseId != null ? ' for Course $courseId' : '';
@@ -52,6 +57,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
       final Map<String, dynamic> queryParameters = {};
       if (courseId != null) queryParameters['course'] = courseId;
       if (title?.isNotEmpty ?? false) queryParameters['title'] = title;
+      if (shownOnCalendar != null) queryParameters['shown_on_calendar'] = shownOnCalendar;
 
       final response = await dioClient.dio.get(
         ApiUrl.plannerCategoriesListUrl,

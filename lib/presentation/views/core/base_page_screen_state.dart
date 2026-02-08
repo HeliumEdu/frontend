@@ -116,7 +116,6 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   @mustBeOverridden
   String get screenTitle;
 
-  // FIXME: currently only Notifications page has an icon, define one for other pages
   IconData? get icon => null;
 
   ScreenType get screenType => ScreenType.page;

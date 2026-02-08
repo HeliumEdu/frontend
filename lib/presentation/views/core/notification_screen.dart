@@ -424,16 +424,13 @@ class _NotificationsScreenState
         Navigator.of(context).pop();
       }
 
-      // Try to get CalendarItemBloc from context
       CalendarItemBloc? calendarItemBloc;
       try {
         calendarItemBloc = context.read<CalendarItemBloc>();
       } catch (_) {
-        // CalendarItemBloc not available
+        // No existing CalendarItemBloc, so next screen will initialize it
       }
 
-
-      // Navigate to item edit screen if bloc available, otherwise back to notifications
       final String route;
       final Object? extra;
 

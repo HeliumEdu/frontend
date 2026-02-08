@@ -31,7 +31,7 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
     try {
       final courseGroups = await courseRepository.getCourseGroups(shownOnCalendar: true);
       final courses = await courseRepository.getCourses(shownOnCalendar: true);
-      final categories = await categoryRepository.getCategories();
+      final categories = await categoryRepository.getCategories(shownOnCalendar: true);
 
       emit(CalendarScreenDataFetched(courseGroups: courseGroups, courses: courses, categories: categories));
     } on HeliumException catch (e) {
