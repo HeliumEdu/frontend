@@ -1872,7 +1872,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       );
     }
 
-    // FIXME: on mobile, instead of still showing the delete button, utilize Dismissable for swip-to-delete; trigger same logic
     if (PlannerHelper.shouldShowDeleteButton(calendarItem)) {
       buttons.add(
         HeliumIconButton(

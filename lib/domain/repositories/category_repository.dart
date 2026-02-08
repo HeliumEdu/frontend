@@ -9,7 +9,7 @@ import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/category_request_model.dart';
 
 abstract class CategoryRepository {
-  Future<List<CategoryModel>> getCategories({int? courseId, String? title});
+  Future<List<CategoryModel>> getCategories({int? courseId, String? title, bool? shownOnCalendar});
 
   Future<CategoryModel> createCategory(
     int groupId,
