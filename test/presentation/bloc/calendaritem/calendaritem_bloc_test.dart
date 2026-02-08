@@ -99,7 +99,7 @@ void main() {
             ),
           ).thenAnswer((_) async => [MockModels.createCourseSchedule()]);
           when(
-            () => mockCategoryRepository.getCategories(),
+            () => mockCategoryRepository.getCategories(shownOnCalendar: true),
           ).thenAnswer((_) async => MockModels.createCategories());
           when(
                 () => mockHomeworkRepository.getHomework(id: 1),
@@ -140,7 +140,7 @@ void main() {
             ),
           ).thenAnswer((_) async => [MockModels.createCourseSchedule()]);
           when(
-            () => mockCategoryRepository.getCategories(),
+            () => mockCategoryRepository.getCategories(shownOnCalendar: true),
           ).thenAnswer((_) async => MockModels.createCategories());
           when(
             () => mockMaterialRepository.getMaterials(shownOnCalendar: true),
