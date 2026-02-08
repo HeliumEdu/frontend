@@ -125,6 +125,9 @@ jobs:
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > $GITHUB_WORKSPACE/android/helium-release-key.jks
 
+      - name: Clean build artifacts
+        run: flutter clean
+
       - name: Build Android release AAB
         env:
           SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
@@ -215,6 +218,9 @@ jobs:
           # Inject manual signing settings alongside DEVELOPMENT_TEAM
           sed -i '' 's/DEVELOPMENT_TEAM = SHY4MCK827;/CODE_SIGN_STYLE = Manual; DEVELOPMENT_TEAM = SHY4MCK827; PROVISIONING_PROFILE_SPECIFIER = "Helium";/g' ios/Runner.xcodeproj/project.pbxproj
 
+      - name: Clean build artifacts
+        run: flutter clean
+
       - name: Build iOS release IPA
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -224,7 +230,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: helium-${{ needs.bump-version.outputs.version }}-ios.ipa
-          path: build/ios/ipa/*.ipa
+          path: build/ios/ipa/heliumedu.ipa
           retention-days: 30
 
       - name: Cleanup keychain and provisioning profile
@@ -248,6 +254,9 @@ jobs:
         with:
           channel: stable
           version: "3.38.9"
+
+      - name: Clean build artifacts
+        run: flutter clean
 
       - name: Build web release bundle
         env:
