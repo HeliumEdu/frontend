@@ -861,6 +861,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           _isFilterExpanded = true;
         });
       },
+      // TODO: Cleanup: might need to re-evaluate web issue with this icon
       icon: const Icon(Icons.menu_open),
       style: ButtonStyle(
         side: WidgetStateProperty.all(

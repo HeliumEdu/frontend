@@ -175,7 +175,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                 onPressed: () =>
                     launchUrl(Uri.parse('https://support.heliumedu.com')),
                 icon: Icon(
-                  Icons.help_center,
+                  Icons.help_outline,
                   color: context.colorScheme.primary,
                   size: 30,
                 ),
@@ -192,6 +192,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                     value: ThemeMode.dark,
                     icon: Icon(Icons.dark_mode),
                   ),
+                  // TODO: Cleanup: might need to re-evaluate web issue with this icon
                   ButtonSegment<ThemeMode>(
                     value: ThemeMode.system,
                     icon: Icon(Icons.settings_brightness),

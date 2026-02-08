@@ -158,6 +158,7 @@ class _VerifyScreenState extends BasePageScreenState<VerifyScreen> {
                     color: context.colorScheme.primary.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
+                  // TODO: Cleanup: might need to re-evaluate web issue with this icon
                   child: Icon(
                     Icons.mark_email_read,
                     size: Responsive.getIconSize(
