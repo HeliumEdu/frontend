@@ -58,6 +58,9 @@ class _CalendarItemAddAttachmentScreenState
                 : 'Assignment');
 
   @override
+  IconData? get icon => isLoading ? null : Icons.calendar_month;
+
+  @override
   StatelessWidget buildStepper() {
     return CalendarItemStepper(
       selectedIndex: 2,

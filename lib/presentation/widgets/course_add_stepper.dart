@@ -17,7 +17,7 @@ import 'package:heliumapp/presentation/widgets/shadow_container.dart';
 
 enum CourseAddSteps {
   details(Icons.list),
-  schedule(Icons.calendar_month),
+  schedule(Icons.date_range_outlined),
   categories(Icons.category),
   attachments(Icons.attachment);
 

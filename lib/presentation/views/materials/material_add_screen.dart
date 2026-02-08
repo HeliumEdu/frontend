@@ -53,6 +53,9 @@ class _MaterialAddScreenState
   String get screenTitle => widget.isEdit ? 'Edit Resource' : 'Add Resource';
 
   @override
+  IconData? get icon => Icons.book;
+
+  @override
   ScreenType get screenType => ScreenType.entityPage;
 
   @override

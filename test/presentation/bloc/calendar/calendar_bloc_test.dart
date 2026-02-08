@@ -54,7 +54,7 @@ void main() {
           when(
             () => mockCourseRepository.getCourses(shownOnCalendar: true),
           ).thenAnswer((_) async => MockModels.createCourses(count: 2));
-          when(() => mockCategoryRepository.getCategories()).thenAnswer(
+          when(() => mockCategoryRepository.getCategories(shownOnCalendar: true)).thenAnswer(
             (_) async => [
               MockModels.createCategory(id: 1, title: 'Homework'),
               MockModels.createCategory(id: 2, title: 'Exam'),
@@ -73,7 +73,7 @@ void main() {
           verify(
             () => mockCourseRepository.getCourses(shownOnCalendar: true),
           ).called(1);
-          verify(() => mockCategoryRepository.getCategories()).called(1);
+          verify(() => mockCategoryRepository.getCategories(shownOnCalendar: true)).called(1);
         },
       );
 
@@ -109,7 +109,7 @@ void main() {
             () => mockCourseRepository.getCourses(shownOnCalendar: true),
           ).thenAnswer((_) async => MockModels.createCourses());
           when(
-            () => mockCategoryRepository.getCategories(),
+            () => mockCategoryRepository.getCategories(shownOnCalendar: true),
           ).thenThrow(ServerException(message: 'Server unavailable'));
           return calendarBloc;
         },
@@ -153,7 +153,7 @@ void main() {
             () => mockCourseRepository.getCourses(shownOnCalendar: true),
           ).thenAnswer((_) async => []);
           when(
-            () => mockCategoryRepository.getCategories(),
+            () => mockCategoryRepository.getCategories(shownOnCalendar: true),
           ).thenAnswer((_) async => []);
           return calendarBloc;
         },
