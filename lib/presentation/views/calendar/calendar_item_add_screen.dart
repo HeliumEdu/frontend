@@ -615,7 +615,7 @@ class _CalendarItemAddScreenState
                 const SizedBox(height: 14),
               ],
 
-              // TODO: Enhacnement: add location field to Event's
+              // TODO: Enhancement: add location field to Event's
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [

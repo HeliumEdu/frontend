@@ -5,7 +5,6 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-/// Route path constants for the application.
 class AppRoutes {
   // Unauthenticated routes
   static const String landingScreen = '/';

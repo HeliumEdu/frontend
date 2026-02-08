@@ -324,15 +324,19 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
               // TODO: Remove deprecated type filtering once legacy 'Popup' and 'Text' reminder types are removed from backend
               items: ReminderConstants.typeItems
                   .where(
-                    (t) => _selectedReminderType != 'Text' &&
-                           t.value != 'Text' &&
-                           _selectedReminderType != 'Popup' &&
-                           t.value != 'Popup',
+                    (t) => t.value == _selectedReminderType ||
+                           (t.value != 'Text' && t.value != 'Popup'),
                   )
                   .toList(),
               onChanged: (value) {
-                setState(() {
-                  _selectedReminderType = value!.value!;
+                // TODO: Remove this workaround once legacy 'Popup' and 'Text' reminder types are removed from backend
+                // Delay state update to avoid layout exception when items list changes
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) {
+                    setState(() {
+                      _selectedReminderType = value!.value!;
+                    });
+                  }
                 });
               },
             ),

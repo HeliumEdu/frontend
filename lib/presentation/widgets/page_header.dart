@@ -195,6 +195,9 @@ class PageHeader extends StatelessWidget {
                           setState(() {
                             isSubmitting = true;
                           });
+
+                          dialogContext.pop();
+
                           context.read<AuthBloc>().add(LogoutEvent());
                         },
                       ),
