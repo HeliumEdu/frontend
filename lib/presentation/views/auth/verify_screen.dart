@@ -144,7 +144,7 @@ class _VerifyScreenState extends BasePageScreenState<VerifyScreen> {
   Widget buildMainArea(BuildContext context) {
     return SingleChildScrollView(
       child: ResponsiveCenterCard(
-        hasAppBar: true,
+        hasAppBar: !kIsWeb,
         child: Form(
           key: _formController.formKey,
           child: Column(

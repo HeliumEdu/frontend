@@ -184,12 +184,12 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   );
   HeliumView? _previousView;
 
-  // Stored calendar state for when user is in Todos view
+  // Remember state when user switches to Todos view
   DateTime? _storedSelectedDate;
   DateTime? _storedDisplayDate;
 
-  // Stored selectedDate before mobile month auto-selection is applied
-  // (allows restoring null selection when leaving month view on mobile)
+  // Remember selectedDate on mobile (allows restoring null selection when
+  // leaving month view on mobile)
   DateTime? _selectedDateBeforeMobileMonth;
   bool _mobileMonthAutoSelectApplied = false;
 
