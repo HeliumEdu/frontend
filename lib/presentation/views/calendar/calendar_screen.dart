@@ -22,9 +22,9 @@ import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
-import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
+import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
 import 'package:heliumapp/data/repositories/category_repository_impl.dart';
 import 'package:heliumapp/data/repositories/course_repository_impl.dart';
@@ -962,10 +962,14 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                             controller: _searchController,
                             focusNode: _searchFocusNode,
                             onChanged: _onSearchTextFieldChanged,
-                            style: AppStyles.headingText(context),
+                            style: AppStyles.formText(context),
                             decoration: InputDecoration(
                               hintText: 'Search ...',
-                              hintStyle: AppStyles.formLabel(context),
+                              hintStyle: AppStyles.formLabel(context).copyWith(
+                                color: context.colorScheme.onSurface.withValues(
+                                  alpha: 0.3,
+                                ),
+                              ),
                               border: InputBorder.none,
                               enabledBorder: InputBorder.none,
                               focusedBorder: InputBorder.none,
@@ -2869,8 +2873,14 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         decorationColor: Colors.white,
         decorationThickness: 2.0,
       ),
-      maxLines: _currentView == HeliumView.month || _currentView == HeliumView.agenda ? 1 : null,
-      overflow: _currentView == HeliumView.month || _currentView == HeliumView.agenda ? TextOverflow.ellipsis : null,
+      maxLines:
+          _currentView == HeliumView.month || _currentView == HeliumView.agenda
+          ? 1
+          : null,
+      overflow:
+          _currentView == HeliumView.month || _currentView == HeliumView.agenda
+          ? TextOverflow.ellipsis
+          : null,
     );
   }
 
@@ -2941,7 +2951,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         Expanded(
           child: Text(
             HeliumDateTime.formatTimeRange(
-              HeliumDateTime.toLocal(calendarItem.start, userSettings!.timeZone),
+              HeliumDateTime.toLocal(
+                calendarItem.start,
+                userSettings!.timeZone,
+              ),
               HeliumDateTime.toLocal(calendarItem.end, userSettings!.timeZone),
               calendarItem.showEndTime,
             ),

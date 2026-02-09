@@ -194,6 +194,7 @@ bool _passesFilters(FilterableItem item, FilterParams params) {
   return true;
 }
 
+// TODO: can we re-use CalendarItemBaseModel, and then use Sort.sortByStartThenTitle?
 void _sortByStartThenTitle(List<FilterableItem> list) {
   list.sort((a, b) {
     final aPriority = _typeSortPriority[a.type] ?? 0;

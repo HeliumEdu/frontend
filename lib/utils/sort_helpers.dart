@@ -32,6 +32,7 @@ class Sort {
     CalendarItemType.external: 3,
   };
 
+  // TODO: let's also sort by course, that way items of the same course are grouped when time is the same
   static void byStartThenTitle(List<CalendarItemBaseModel> list) {
     list.sort((a, b) {
       final aPriority = _typeSortPriority[a.calendarItemType] ?? 0;
