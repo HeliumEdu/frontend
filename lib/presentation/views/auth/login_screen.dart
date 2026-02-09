@@ -131,8 +131,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
 
   @override
   Widget buildMainArea(BuildContext context) {
-    return SingleChildScrollView(
-      child: ResponsiveCenterCard(
+    return ResponsiveCenterCard(
         child: AutofillGroup(
           child: Form(
             key: _formController.formKey,
@@ -253,7 +252,6 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
             ),
           ),
         ),
-      ),
     );
   }
 
