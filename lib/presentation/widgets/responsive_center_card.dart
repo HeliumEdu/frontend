@@ -24,22 +24,26 @@ class ResponsiveCenterCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isMobile = Responsive.isMobile(context);
 
-    if (isMobile) {
-      return Padding(padding: const EdgeInsets.all(16), child: child);
-    }
-
     final mediaQuery = MediaQuery.of(context);
     final screenHeight = mediaQuery.size.height;
-    final topPadding = mediaQuery.padding.top;
-    final bottomPadding = mediaQuery.padding.bottom;
-
+    // Use viewPadding for raw device insets (not consumed by Scaffold/AppBar)
+    final topPadding = mediaQuery.viewPadding.top;
+    final bottomPadding = mediaQuery.viewPadding.bottom;
     final appBarHeight = hasAppBar ? kToolbarHeight : 0;
-    final availableHeight = screenHeight - topPadding - bottomPadding - appBarHeight;
+    final availableHeight =
+        screenHeight - topPadding - bottomPadding - appBarHeight;
+
+    if (isMobile) {
+      return ConstrainedBox(
+        constraints: BoxConstraints(minHeight: availableHeight),
+        child: Center(
+          child: Padding(padding: const EdgeInsets.all(16), child: child),
+        ),
+      );
+    }
 
     return ConstrainedBox(
-      constraints: BoxConstraints(
-        minHeight: availableHeight,
-      ),
+      constraints: BoxConstraints(minHeight: availableHeight),
       child: Center(
         child: Container(
           constraints: BoxConstraints(maxWidth: maxWidth),
