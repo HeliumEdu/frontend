@@ -12,6 +12,7 @@ import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/planner/request/course_group_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/course_request_model.dart';
 import 'package:heliumapp/data/sources/course_remote_data_source.dart';
+import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/planner_helper.dart';
@@ -338,7 +339,7 @@ void main() {
         // THEN
         expect(result.schedules.length, equals(1));
         expect(result.schedules[0].daysOfWeek, equals('1010100'));
-        expect(result.schedules[0].monStartTime, equals('09:00:00'));
+        expect(result.schedules[0].monStartTime, equals(HeliumTime.parse('09:00:00')));
       });
     });
 
