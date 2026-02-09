@@ -47,6 +47,14 @@ void main() {
   setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();
     tz.initializeTimeZones();
+    // Use synchronous filtering in tests
+    CalendarItemDataSource.filterDebounceDuration = Duration.zero;
+  });
+
+  tearDownAll(() {
+    // Restore default debounce duration
+    CalendarItemDataSource.filterDebounceDuration =
+        const Duration(milliseconds: 16);
   });
 
   setUp(() async {

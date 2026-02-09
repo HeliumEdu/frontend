@@ -130,7 +130,6 @@ class _VerifyScreenState extends BasePageScreenState<VerifyScreen> {
       child: Form(
         key: _formController.formKey,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 12),
 
