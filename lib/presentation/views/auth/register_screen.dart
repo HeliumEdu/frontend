@@ -111,31 +111,13 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
     return Title(
       title: '$screenTitle | ${AppConstants.appName}',
       color: context.colorScheme.primary,
-      child: Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        appBar: kIsWeb
-            ? null
-            : AppBar(
-                leading: IconButton(
-                  icon: const Icon(
-                    Icons.arrow_back_ios,
-                    color: Colors.transparent,
-                    size: 20,
-                  ),
-                  onPressed: () {},
-                ),
-                title: Text(screenTitle, style: AppStyles.pageTitle(context)),
-              ),
-        body: SafeArea(child: buildMainArea(context)),
-      ),
+      child: Scaffold(body: SafeArea(child: buildMainArea(context))),
     );
   }
 
   @override
   Widget buildMainArea(BuildContext context) {
-    return SingleChildScrollView(
-      child: ResponsiveCenterCard(
-        hasAppBar: !kIsWeb,
+    return ResponsiveCenterCard(
         child: AutofillGroup(
           child: Form(
             key: _formController.formKey,
@@ -355,7 +337,6 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
             ),
           ),
         ),
-      ),
     );
   }
 
