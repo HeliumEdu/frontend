@@ -132,126 +132,122 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
   @override
   Widget buildMainArea(BuildContext context) {
     return ResponsiveCenterCard(
-        child: AutofillGroup(
-          child: Form(
-            key: _formController.formKey,
-            child: Column(
-              children: [
-                const SizedBox(height: 25),
+      child: AutofillGroup(
+        child: Form(
+          key: _formController.formKey,
+          child: Column(
+            children: [
+              const SizedBox(height: 50),
 
-                Center(
-                  child: Image.asset(
-                    AppAssets.logoImagePath,
-                    height: 120,
-                  ),
-                ),
-                const SizedBox(height: 80),
+              Center(child: Image.asset(AppAssets.logoImagePath, height: 120)),
 
-                LabelAndTextFormField(
-                  hintText: 'Username',
-                  autofocus: kIsWeb,
-                  prefixIcon: Icons.person,
-                  controller: _formController.usernameController,
-                  validator: BasicFormController.validateRequiredField,
-                  keyboardType: TextInputType.text,
-                  autofillHints: const [AutofillHints.username],
-                ),
-                const SizedBox(height: 32),
+              const SizedBox(height: 50),
 
-                LabelAndTextFormField(
-                  hintText: 'Password',
-                  prefixIcon: Icons.lock,
-                  controller: _formController.passwordController,
-                  validator: BasicFormController.validateRequiredField,
-                  onFieldSubmitted: (value) => _onSubmit(),
-                  obscureText: !_formController.isPasswordVisible,
-                  autofillHints: const [AutofillHints.password],
-                  suffixIcon: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        _formController.isPasswordVisible =
-                            !_formController.isPasswordVisible;
-                      });
-                    },
-                    icon: Icon(
-                      _formController.isPasswordVisible
-                          ? Icons.visibility
-                          : Icons.visibility_off,
-                      color: context.colorScheme.onSurface,
-                    ),
-                  ),
-                ),
+              LabelAndTextFormField(
+                hintText: 'Username',
+                autofocus: kIsWeb,
+                prefixIcon: Icons.person,
+                controller: _formController.usernameController,
+                validator: BasicFormController.validateRequiredField,
+                keyboardType: TextInputType.text,
+                autofillHints: const [AutofillHints.username],
+              ),
+              const SizedBox(height: 32),
 
-                const SizedBox(height: 12),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                        context.go(AppRoutes.forgotPasswordScreen);
-                      },
-                      child: Text(
-                        'Forgot your password?',
-                        style: AppStyles.standardBodyText(context).copyWith(
-                          color: context.colorScheme.primary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 25),
-
-                BlocBuilder<AuthBloc, AuthState>(
-                  builder: (context, state) {
-                    return Column(
-                      children: [
-                        HeliumElevatedButton(
-                          buttonText: 'Sign In',
-                          isLoading: isSubmitting,
-                          onPressed: _onSubmit,
-                        ),
-                      ],
-                    );
+              LabelAndTextFormField(
+                hintText: 'Password',
+                prefixIcon: Icons.lock,
+                controller: _formController.passwordController,
+                validator: BasicFormController.validateRequiredField,
+                onFieldSubmitted: (value) => _onSubmit(),
+                obscureText: !_formController.isPasswordVisible,
+                autofillHints: const [AutofillHints.password],
+                suffixIcon: IconButton(
+                  onPressed: () {
+                    setState(() {
+                      _formController.isPasswordVisible =
+                          !_formController.isPasswordVisible;
+                    });
                   },
-                ),
-
-                const SizedBox(height: 25),
-
-                Center(
-                  child: TextButton(
-                    onPressed: () {
-                      context.go(AppRoutes.registerScreen);
-                    },
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Need an account?',
-                          style: AppStyles.buttonText(context).copyWith(
-                            color: context.colorScheme.primary,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Icon(
-                          Icons.arrow_forward,
-                          size: Responsive.getIconSize(
-                            context,
-                            mobile: 18,
-                            tablet: 20,
-                            desktop: 22,
-                          ),
-                          color: context.colorScheme.primary,
-                        ),
-                      ],
-                    ),
+                  icon: Icon(
+                    _formController.isPasswordVisible
+                        ? Icons.visibility
+                        : Icons.visibility_off,
+                    color: context.colorScheme.onSurface,
                   ),
                 ),
-              ],
-            ),
+              ),
+
+              const SizedBox(height: 12),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      context.go(AppRoutes.forgotPasswordScreen);
+                    },
+                    child: Text(
+                      'Forgot your password?',
+                      style: AppStyles.standardBodyText(
+                        context,
+                      ).copyWith(color: context.colorScheme.primary),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 25),
+
+              BlocBuilder<AuthBloc, AuthState>(
+                builder: (context, state) {
+                  return Column(
+                    children: [
+                      HeliumElevatedButton(
+                        buttonText: 'Sign In',
+                        isLoading: isSubmitting,
+                        onPressed: _onSubmit,
+                      ),
+                    ],
+                  );
+                },
+              ),
+
+              const SizedBox(height: 25),
+
+              Center(
+                child: TextButton(
+                  onPressed: () {
+                    context.go(AppRoutes.registerScreen);
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Need an account?',
+                        style: AppStyles.buttonText(
+                          context,
+                        ).copyWith(color: context.colorScheme.primary),
+                      ),
+                      const SizedBox(width: 8),
+                      Icon(
+                        Icons.arrow_forward,
+                        size: Responsive.getIconSize(
+                          context,
+                          mobile: 18,
+                          tablet: 20,
+                          desktop: 22,
+                        ),
+                        color: context.colorScheme.primary,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
+      ),
     );
   }
 
