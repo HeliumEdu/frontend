@@ -151,15 +151,15 @@ void main() {
         homework = _createHomeworkModel(
           id: 1,
           title: 'Test Homework',
-          start: '2025-01-15T10:00:00Z',
-          end: '2025-01-15T11:00:00Z',
+          start: DateTime.parse('2025-01-15T10:00:00Z'),
+          end: DateTime.parse('2025-01-15T11:00:00Z'),
           allDay: false,
         );
         event = _createEventModel(
           id: 2,
           title: 'Test Event',
-          start: '2025-01-15T14:00:00Z',
-          end: '2025-01-15T15:00:00Z',
+          start: DateTime.parse('2025-01-15T14:00:00Z'),
+          end: DateTime.parse('2025-01-15T15:00:00Z'),
           allDay: false,
         );
 
@@ -183,8 +183,8 @@ void main() {
         final allDayHomework = _createHomeworkModel(
           id: 3,
           title: 'All Day',
-          start: '2025-01-15T00:00:00Z',
-          end: '2025-01-16T00:00:00Z',
+          start: DateTime.parse('2025-01-15T00:00:00Z'),
+          end: DateTime.parse('2025-01-16T00:00:00Z'),
           allDay: true,
         );
         dataSource.appointments!.insert(0, allDayHomework);
@@ -199,8 +199,8 @@ void main() {
         final allDayHomework = _createHomeworkModel(
           id: 3,
           title: 'All Day',
-          start: '2025-01-15T00:00:00Z',
-          end: '2025-01-16T00:00:00Z',
+          start: DateTime.parse('2025-01-15T00:00:00Z'),
+          end: DateTime.parse('2025-01-16T00:00:00Z'),
           allDay: true,
         );
         dataSource.appointments!.insert(0, allDayHomework);
@@ -489,17 +489,17 @@ void main() {
         completedHomework = _createHomeworkModel(
           id: 1,
           completed: true,
-          start: now.add(const Duration(days: 1)).toIso8601String(),
+          start: now.add(const Duration(days: 1)),
         );
         incompleteHomework = _createHomeworkModel(
           id: 2,
           completed: false,
-          start: now.add(const Duration(days: 1)).toIso8601String(),
+          start: now.add(const Duration(days: 1)),
         );
         overdueHomework = _createHomeworkModel(
           id: 3,
           completed: false,
-          start: now.subtract(const Duration(days: 1)).toIso8601String(),
+          start: now.subtract(const Duration(days: 1)),
         );
 
         dataSource.addCalendarItem(completedHomework);
@@ -546,7 +546,7 @@ void main() {
         final completedOverdue = _createHomeworkModel(
           id: 4,
           completed: true,
-          start: now.subtract(const Duration(days: 1)).toIso8601String(),
+          start: now.subtract(const Duration(days: 1)),
         );
         dataSource.addCalendarItem(completedOverdue);
 
@@ -711,7 +711,7 @@ void main() {
           courseId: 1,
           categoryId: 1,
           completed: false,
-          start: DateTime.now().add(const Duration(days: 1)).toIso8601String(),
+          start: DateTime.now().add(const Duration(days: 1)),
         );
         nonMatchingCourse = _createHomeworkModel(
           id: 2,
@@ -868,8 +868,8 @@ void main() {
       setUp(() {
         homework = _createHomeworkModel(
           id: 1,
-          start: '2025-01-15T10:00:00Z',
-          end: '2025-01-15T11:00:00Z',
+          start: DateTime.parse('2025-01-15T10:00:00Z'),
+          end: DateTime.parse('2025-01-15T11:00:00Z'),
         );
         dataSource.addCalendarItem(homework);
       });
@@ -916,8 +916,8 @@ void main() {
 
         final updated = _createHomeworkModel(
           id: 1,
-          start: '2025-01-20T09:00:00Z',
-          end: '2025-01-20T10:00:00Z',
+          start: DateTime.parse('2025-01-20T09:00:00Z'),
+          end: DateTime.parse('2025-01-20T10:00:00Z'),
         );
         dataSource.updateCalendarItem(updated);
 
@@ -927,8 +927,8 @@ void main() {
       test('time override works for EventModel', () {
         final event = _createEventModel(
           id: 2,
-          start: '2025-01-15T14:00:00Z',
-          end: '2025-01-15T15:00:00Z',
+          start: DateTime.parse('2025-01-15T14:00:00Z'),
+          end: DateTime.parse('2025-01-15T15:00:00Z'),
         );
         dataSource.addCalendarItem(event);
 
@@ -944,8 +944,8 @@ void main() {
       test('homework gets 3 seconds subtracted from start time', () {
         final homework = _createHomeworkModel(
           id: 1,
-          start: '2025-01-15T10:00:00Z',
-          end: '2025-01-15T11:00:00Z',
+          start: DateTime.parse('2025-01-15T10:00:00Z'),
+          end: DateTime.parse('2025-01-15T11:00:00Z'),
         );
         dataSource.addCalendarItem(homework);
 
@@ -964,8 +964,8 @@ void main() {
       test('event gets 1 second subtracted from start time', () {
         final event = _createEventModel(
           id: 1,
-          start: '2025-01-15T10:00:00Z',
-          end: '2025-01-15T11:00:00Z',
+          start: DateTime.parse('2025-01-15T10:00:00Z'),
+          end: DateTime.parse('2025-01-15T11:00:00Z'),
         );
         dataSource.addCalendarItem(event);
 
@@ -984,8 +984,8 @@ void main() {
       test('all-day events do not get seconds subtracted from start time', () {
         final allDayHomework = _createHomeworkModel(
           id: 1,
-          start: '2025-01-15T00:00:00Z',
-          end: '2025-01-16T00:00:00Z',
+          start: DateTime.parse('2025-01-15T00:00:00Z'),
+          end: DateTime.parse('2025-01-16T00:00:00Z'),
           allDay: true,
         );
         dataSource.addCalendarItem(allDayHomework);
@@ -998,8 +998,8 @@ void main() {
       test('homework gets 3 minutes subtracted from end time', () {
         final homework = _createHomeworkModel(
           id: 1,
-          start: '2025-01-15T10:00:00Z',
-          end: '2025-01-15T11:00:00Z',
+          start: DateTime.parse('2025-01-15T10:00:00Z'),
+          end: DateTime.parse('2025-01-15T11:00:00Z'),
         );
         dataSource.addCalendarItem(homework);
 
@@ -1010,8 +1010,8 @@ void main() {
       test('event gets 1 minute subtracted from end time', () {
         final event = _createEventModel(
           id: 1,
-          start: '2025-01-15T10:00:00Z',
-          end: '2025-01-15T11:00:00Z',
+          start: DateTime.parse('2025-01-15T10:00:00Z'),
+          end: DateTime.parse('2025-01-15T11:00:00Z'),
         );
         dataSource.addCalendarItem(event);
 
@@ -1022,13 +1022,13 @@ void main() {
       test('priority adjustments ensure homework sorts before event at same time', () {
         final event = _createEventModel(
           id: 1,
-          start: '2025-01-15T10:00:00Z',
-          end: '2025-01-15T11:00:00Z',
+          start: DateTime.parse('2025-01-15T10:00:00Z'),
+          end: DateTime.parse('2025-01-15T11:00:00Z'),
         );
         final homework = _createHomeworkModel(
           id: 2,
-          start: '2025-01-15T10:00:00Z',
-          end: '2025-01-15T11:00:00Z',
+          start: DateTime.parse('2025-01-15T10:00:00Z'),
+          end: DateTime.parse('2025-01-15T11:00:00Z'),
         );
         dataSource.addCalendarItem(event);
         dataSource.addCalendarItem(homework);
@@ -1328,8 +1328,8 @@ void main() {
 HomeworkModel _createHomeworkModel({
   int id = 1,
   String title = 'Test Homework',
-  String start = '2025-01-15T10:00:00Z',
-  String end = '2025-01-15T11:00:00Z',
+  DateTime? start,
+  DateTime? end,
   bool allDay = false,
   int courseId = 1,
   int categoryId = 1,
@@ -1342,8 +1342,8 @@ HomeworkModel _createHomeworkModel({
     title: title,
     allDay: allDay,
     showEndTime: true,
-    start: start,
-    end: end,
+    start: start ?? DateTime.parse('2025-01-15T10:00:00Z'),
+    end: end ?? DateTime.parse('2025-01-15T11:00:00Z'),
     priority: 50,
     comments: comments,
     attachments: [],
@@ -1361,8 +1361,8 @@ HomeworkModel _createHomeworkModel({
 EventModel _createEventModel({
   int id = 1,
   String title = 'Test Event',
-  String start = '2025-01-15T14:00:00Z',
-  String end = '2025-01-15T15:00:00Z',
+  DateTime? start,
+  DateTime? end,
   bool allDay = false,
   String comments = '',
 }) {
@@ -1371,8 +1371,8 @@ EventModel _createEventModel({
     title: title,
     allDay: allDay,
     showEndTime: true,
-    start: start,
-    end: end,
+    start: start ?? DateTime.parse('2025-01-15T14:00:00Z'),
+    end: end ?? DateTime.parse('2025-01-15T15:00:00Z'),
     priority: 50,
     url: null,
     comments: comments,
@@ -1393,8 +1393,8 @@ CourseScheduleEventModel _createCourseScheduleEventModel({
     title: title,
     allDay: false,
     showEndTime: true,
-    start: '2025-01-15T10:00:00Z',
-    end: '2025-01-15T11:00:00Z',
+    start: DateTime.parse('2025-01-15T10:00:00Z'),
+    end: DateTime.parse('2025-01-15T11:00:00Z'),
     priority: 50,
     url: null,
     comments: '',
@@ -1415,8 +1415,8 @@ ExternalCalendarEventModel _createExternalCalendarEventModel({
     title: title,
     allDay: false,
     showEndTime: true,
-    start: '2025-01-15T10:00:00Z',
-    end: '2025-01-15T11:00:00Z',
+    start: DateTime.parse('2025-01-15T10:00:00Z'),
+    end: DateTime.parse('2025-01-15T11:00:00Z'),
     priority: 50,
     url: null,
     comments: '',
@@ -1436,8 +1436,8 @@ CourseModel _createCourseModel({
   return CourseModel(
     id: id,
     title: title,
-    startDate: '2025-01-01',
-    endDate: '2025-05-31',
+    startDate: DateTime.parse('2025-01-01'),
+    endDate: DateTime.parse('2025-05-31'),
     room: room ?? '',
     credits: 3,
     color: color,

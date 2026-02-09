@@ -12,7 +12,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
-import 'package:heliumapp/data/models/planner/category_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/category_request_model.dart';
 import 'package:heliumapp/presentation/bloc/category/category_bloc.dart';
 import 'package:heliumapp/presentation/bloc/category/category_event.dart';
 import 'package:heliumapp/presentation/bloc/category/category_state.dart';

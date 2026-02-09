@@ -7,7 +7,7 @@
 
 import 'package:heliumapp/data/models/planner/external_calendar_event_model.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_model.dart';
-import 'package:heliumapp/data/models/planner/external_calendar_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/external_calendar_request_model.dart';
 
 abstract class ExternalCalendarRepository {
   Future<List<ExternalCalendarModel>> getExternalCalendars();

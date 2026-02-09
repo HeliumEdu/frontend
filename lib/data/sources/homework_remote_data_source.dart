@@ -10,7 +10,7 @@ import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
-import 'package:heliumapp/data/models/planner/homework_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
 import 'package:heliumapp/data/sources/base_data_source.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:logging/logging.dart';

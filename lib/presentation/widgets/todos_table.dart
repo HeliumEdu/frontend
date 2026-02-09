@@ -189,11 +189,9 @@ class TodosTableState extends State<TodosTable> {
     DateTime? to;
 
     for (final course in courses) {
-      final startDate = DateTime.parse(course.startDate);
+      final startDate = course.startDate;
 
-      final endDate = DateTime.parse(
-        course.endDate,
-      ).add(const Duration(days: 1));
+      final endDate = course.endDate.add(const Duration(days: 1));
 
       if (from == null || startDate.isBefore(from)) {
         from = startDate;
@@ -789,8 +787,8 @@ class TodosTableState extends State<TodosTable> {
     return SizedBox(
       width: 155,
       child: Text(
-        HeliumDateTime.formatDateAndTimeForTodosDisplay(
-          HeliumDateTime.parse(homework.start, userSettings.timeZone),
+        HeliumDateTime.formatDateAndTimeForTodos(
+          HeliumDateTime.toLocal(homework.start, userSettings.timeZone),
         ),
         style: AppStyles.smallSecondaryText(context),
         maxLines: 1,

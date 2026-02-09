@@ -7,24 +7,24 @@
 
 import 'dart:typed_data';
 
-import 'package:heliumapp/data/models/auth/change_password_request_model.dart';
-import 'package:heliumapp/data/models/auth/delete_account_request_model.dart';
-import 'package:heliumapp/data/models/auth/forgot_password_request_model.dart';
+import 'package:heliumapp/data/models/auth/request/change_password_request_model.dart';
+import 'package:heliumapp/data/models/auth/request/delete_account_request_model.dart';
+import 'package:heliumapp/data/models/auth/request/forgot_password_request_model.dart';
 import 'package:heliumapp/data/models/auth/login_request_model.dart';
-import 'package:heliumapp/data/models/auth/refresh_token_request_model.dart';
+import 'package:heliumapp/data/models/auth/request/refresh_token_request_model.dart';
 import 'package:heliumapp/data/models/auth/register_request_model.dart';
-import 'package:heliumapp/data/models/auth/update_settings_request_model.dart';
+import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
-import 'package:heliumapp/data/models/planner/category_request_model.dart';
-import 'package:heliumapp/data/models/planner/course_group_request_model.dart';
-import 'package:heliumapp/data/models/planner/course_request_model.dart';
-import 'package:heliumapp/data/models/planner/course_schedule_request_model.dart';
-import 'package:heliumapp/data/models/planner/event_request_model.dart';
-import 'package:heliumapp/data/models/planner/external_calendar_request_model.dart';
-import 'package:heliumapp/data/models/planner/homework_request_model.dart';
-import 'package:heliumapp/data/models/planner/material_group_request_model.dart';
-import 'package:heliumapp/data/models/planner/material_request_model.dart';
-import 'package:heliumapp/data/models/planner/reminder_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/category_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/course_group_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/course_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/course_schedule_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/external_calendar_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/material_group_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/material_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/reminder_request_model.dart';
 import 'package:mocktail/mocktail.dart';
 
 /// Register all fallback values for mocktail.

@@ -5,9 +5,9 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:heliumapp/data/models/planner/course_group_request_model.dart';
-import 'package:heliumapp/data/models/planner/course_request_model.dart';
-import 'package:heliumapp/data/models/planner/course_schedule_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/course_group_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/course_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/course_schedule_request_model.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 
 abstract class CourseEvent extends BaseEvent {

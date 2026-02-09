@@ -86,7 +86,7 @@ class TodosTableController extends ChangeNotifier {
 
     int targetIndex = -1;
     for (int i = 0; i < sorted.length; i++) {
-      final dueDate = DateTime.parse(sorted[i].start);
+      final dueDate = sorted[i].start;
       final dueDateOnly = DateTime(dueDate.year, dueDate.month, dueDate.day);
 
       if (dueDateOnly.isAtSameMomentAs(today) || dueDateOnly.isAfter(today)) {

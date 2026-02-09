@@ -177,7 +177,7 @@ ReminderModel _createReminder({
     id: 1,
     title: 'Test Reminder',
     message: 'Test message',
-    startOfRange: '2025-01-01T10:00:00Z',
+    startOfRange: DateTime.parse('2025-01-01T10:00:00Z'),
     offset: offset,
     offsetType: offsetType,
     type: 0,

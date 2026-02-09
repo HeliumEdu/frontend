@@ -6,7 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:heliumapp/data/models/planner/category_model.dart';
-import 'package:heliumapp/data/models/planner/category_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/category_request_model.dart';
 import 'package:heliumapp/data/sources/category_remote_data_source.dart';
 import 'package:heliumapp/domain/repositories/category_repository.dart';
 

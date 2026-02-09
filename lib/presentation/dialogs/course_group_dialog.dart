@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
-import 'package:heliumapp/data/models/planner/course_group_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/course_group_request_model.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/bloc/course/course_bloc.dart';
 import 'package:heliumapp/presentation/bloc/course/course_event.dart';
@@ -49,8 +49,8 @@ class _CourseGroupWidgetState
 
     if (widget.isEdit) {
       _formController.titleController.text = widget.group!.title;
-      _formController.startDate = DateTime.parse(widget.group!.startDate);
-      _formController.endDate = DateTime.parse(widget.group!.endDate);
+      _formController.startDate = widget.group!.startDate;
+      _formController.endDate = widget.group!.endDate;
       _formController.shownOnCalendar = widget.group!.shownOnCalendar!;
     } else {
       _formController.titleController.clear();
@@ -121,7 +121,7 @@ class _CourseGroupWidgetState
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  HeliumDateTime.formatDateForDisplay(_formController.startDate!),
+                  HeliumDateTime.formatDate(_formController.startDate!),
                   style: AppStyles.formText(context),
                 ),
                 Icon(
@@ -151,7 +151,7 @@ class _CourseGroupWidgetState
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  HeliumDateTime.formatDateForDisplay(_formController.endDate!),
+                  HeliumDateTime.formatDate(_formController.endDate!),
                   style: AppStyles.formText(context),
                 ),
                 Icon(

@@ -12,7 +12,7 @@ import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
-import 'package:heliumapp/data/models/auth/update_settings_request_model.dart';
+import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_bloc.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_event.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_state.dart';

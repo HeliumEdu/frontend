@@ -46,8 +46,8 @@ class HomeworkModel extends CalendarItemBaseModel {
       title: json['title'],
       allDay: json['all_day'],
       showEndTime: json['show_end_time'],
-      start: json['start'],
-      end: json['end'],
+      start: DateTime.parse(json['start']),
+      end: DateTime.parse(json['end']),
       priority: json['priority'],
       comments: json['comments'],
       attachments: json['attachments'] != null

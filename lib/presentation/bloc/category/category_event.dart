@@ -5,7 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:heliumapp/data/models/planner/category_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/category_request_model.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 
 abstract class CategoryEvent extends BaseEvent {

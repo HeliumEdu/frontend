@@ -13,7 +13,7 @@ import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/route_args.dart';
-import 'package:heliumapp/data/models/planner/course_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/course_request_model.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/bloc/course/course_bloc.dart';
 import 'package:heliumapp/presentation/bloc/course/course_event.dart';
@@ -188,7 +188,7 @@ class _CourseAddScreenState
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        HeliumDateTime.formatDateForDisplay(
+                        HeliumDateTime.formatDate(
                           _formController.startDate!,
                         ),
                         style: AppStyles.formText(context),
@@ -228,7 +228,7 @@ class _CourseAddScreenState
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        HeliumDateTime.formatDateForDisplay(
+                        HeliumDateTime.formatDate(
                           _formController.endDate!,
                         ),
                         style: AppStyles.formText(context),
@@ -453,8 +453,8 @@ class _CourseAddScreenState
         _formController.creditsController.text = state.course!.credits
             .toString();
 
-        _formController.startDate = DateTime.parse(state.course!.startDate);
-        _formController.endDate = DateTime.parse(state.course!.endDate);
+        _formController.startDate = state.course!.startDate;
+        _formController.endDate = state.course!.endDate;
 
         _formController.isOnline = state.course!.isOnline;
 
@@ -465,8 +465,8 @@ class _CourseAddScreenState
           _log.info('Error parsing color', e);
         }
       } else {
-        _formController.startDate = DateTime.parse(state.courseGroup.startDate);
-        _formController.endDate = DateTime.parse(state.courseGroup.endDate);
+        _formController.startDate = state.courseGroup.startDate;
+        _formController.endDate = state.courseGroup.endDate;
       }
 
       isLoading = false;
