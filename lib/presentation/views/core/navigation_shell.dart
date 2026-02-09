@@ -5,7 +5,6 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_routes.dart';
@@ -209,7 +208,8 @@ class _NavigationShellState extends State<NavigationShell> {
                           builder: (context, _) => PageHeader(
                             title: currentPage.label,
                             screenType: ScreenType.page,
-                            inheritableProviders: _inheritableProvidersNotifier.providers,
+                            inheritableProviders:
+                                _inheritableProvidersNotifier.providers,
                           ),
                         ),
                         // Only the content area animates
@@ -292,31 +292,30 @@ class _NavigationShellState extends State<NavigationShell> {
   }
 
   Widget? _buildTrailing(BuildContext context, double availableHeight) {
-    if (availableHeight < AppConstants.minHeightForTrailingNav) {
-      return null;
-    }
-
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildAppStoreButton(
-            context: context,
-            icon: Icons.apple,
-            tooltip: 'Download on the App Store',
-            url: 'https://apps.apple.com/app/app-name/id6758323154',
-          ),
-          const SizedBox(height: 8),
-          _buildAppStoreButton(
-            context: context,
-            icon: Icons.android,
-            tooltip: 'Get it on Google Play',
-            url:
-                'https://play.google.com/store/apps/details?id=com.heliumedu.heliumapp',
-          ),
-          if (kIsWeb) const SizedBox(width: 40, child: Divider()),
-          if (kIsWeb) const SettingsButton(compact: false),
+          if (!Responsive.isTouchDevice(context) &&
+              availableHeight > AppConstants.minHeightForTrailingNav) ...[
+            _buildAppStoreButton(
+              context: context,
+              icon: Icons.apple,
+              tooltip: 'Download on the App Store',
+              url: 'https://apps.apple.com/app/app-name/id6758323154',
+            ),
+            const SizedBox(height: 8),
+            _buildAppStoreButton(
+              context: context,
+              icon: Icons.android,
+              tooltip: 'Get it on Google Play',
+              url:
+                  'https://play.google.com/store/apps/details?id=com.heliumedu.heliumapp',
+            ),
+          ],
+          const SizedBox(width: 40, child: Divider()),
+          const SettingsButton(compact: false),
         ],
       ),
     );
