@@ -78,7 +78,7 @@ class PageHeader extends StatelessWidget {
             )
           else if (Responsive.isMobile(context) ||
               (!Responsive.isTouchDevice(context) &&
-                  MediaQuery.of(context).size.height >
+                  MediaQuery.of(context).size.height <
                       AppConstants.minHeightForTrailingNav))
             const SettingsButton()
           else
