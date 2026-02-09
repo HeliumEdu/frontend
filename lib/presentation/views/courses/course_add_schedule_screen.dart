@@ -11,7 +11,7 @@ import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/route_args.dart';
-import 'package:heliumapp/data/models/planner/course_schedule_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/course_schedule_request_model.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/bloc/course/course_bloc.dart';
 import 'package:heliumapp/presentation/bloc/course/course_event.dart';
@@ -301,7 +301,7 @@ class _CourseAddScheduleScreenState
                                   children: [
                                     Text(
                                       _startTimes[dayIndex] != null
-                                          ? HeliumTime.formatForDisplay(
+                                          ? HeliumTime.format(
                                               _startTimes[dayIndex]!,
                                             )
                                           : '',
@@ -346,7 +346,7 @@ class _CourseAddScheduleScreenState
                                   children: [
                                     Text(
                                       _endTimes[dayIndex] != null
-                                          ? HeliumTime.formatForDisplay(
+                                          ? HeliumTime.format(
                                               _endTimes[dayIndex]!,
                                             )
                                           : '',
@@ -417,7 +417,7 @@ class _CourseAddScheduleScreenState
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                HeliumTime.formatForDisplay(_singleStartTime),
+                                HeliumTime.format(_singleStartTime),
                                 style: AppStyles.formText(context),
                               ),
                               Icon(
@@ -453,7 +453,7 @@ class _CourseAddScheduleScreenState
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                HeliumTime.formatForDisplay(_singleEndTime),
+                                HeliumTime.format(_singleEndTime),
                                 style: AppStyles.formText(context),
                               ),
                               Icon(
@@ -486,56 +486,41 @@ class _CourseAddScheduleScreenState
       }
     }
 
-    final sunStart = HeliumTime.parse(state.schedule.sunStartTime);
-    final sunEnd = HeliumTime.parse(state.schedule.sunEndTime);
-    final monStart = HeliumTime.parse(state.schedule.monStartTime);
-    final monEnd = HeliumTime.parse(state.schedule.monEndTime);
-    final tueStart = HeliumTime.parse(state.schedule.tueStartTime);
-    final tueEnd = HeliumTime.parse(state.schedule.tueEndTime);
-    final wedStart = HeliumTime.parse(state.schedule.wedStartTime);
-    final wedEnd = HeliumTime.parse(state.schedule.wedEndTime);
-    final thuStart = HeliumTime.parse(state.schedule.thuStartTime);
-    final thuEnd = HeliumTime.parse(state.schedule.thuEndTime);
-    final friStart = HeliumTime.parse(state.schedule.friStartTime);
-    final friEnd = HeliumTime.parse(state.schedule.friEndTime);
-    final satStart = HeliumTime.parse(state.schedule.satStartTime);
-    final satEnd = HeliumTime.parse(state.schedule.satEndTime);
-
     setState(() {
       _scheduleId = state.schedule.id;
 
       _selectedDays = activeDays;
-      _singleStartTime = sunStart ?? _singleStartTime;
-      _singleEndTime = sunEnd ?? _singleEndTime;
+      _singleStartTime = state.schedule.sunStartTime;
+      _singleEndTime = state.schedule.sunEndTime;
       _variesByDay = !state.schedule.allDaysSameTime();
       if (_variesByDay) {
         if (activeDays.contains(0)) {
-          _startTimes[0] = sunStart;
-          _endTimes[0] = sunEnd;
+          _startTimes[0] = state.schedule.sunStartTime;
+          _endTimes[0] = state.schedule.sunEndTime;
         }
-        if (activeDays.contains(1) && monStart != null && monEnd != null) {
-          _startTimes[1] = monStart;
-          _endTimes[1] = monEnd;
+        if (activeDays.contains(1)) {
+          _startTimes[1] = state.schedule.monStartTime;
+          _endTimes[1] = state.schedule.monEndTime;
         }
-        if (activeDays.contains(2) && tueStart != null && tueEnd != null) {
-          _startTimes[2] = tueStart;
-          _endTimes[2] = tueEnd;
+        if (activeDays.contains(2)) {
+          _startTimes[2] = state.schedule.tueStartTime;
+          _endTimes[2] = state.schedule.tueEndTime;
         }
-        if (activeDays.contains(3) && wedStart != null && wedEnd != null) {
-          _startTimes[3] = wedStart;
-          _endTimes[3] = wedEnd;
+        if (activeDays.contains(3)) {
+          _startTimes[3] = state.schedule.wedStartTime;
+          _endTimes[3] = state.schedule.wedEndTime;
         }
-        if (activeDays.contains(4) && thuStart != null && thuEnd != null) {
-          _startTimes[4] = thuStart;
-          _endTimes[4] = thuEnd;
+        if (activeDays.contains(4)) {
+          _startTimes[4] = state.schedule.thuStartTime;
+          _endTimes[4] = state.schedule.thuEndTime;
         }
-        if (activeDays.contains(5) && friStart != null && friEnd != null) {
-          _startTimes[5] = friStart;
-          _endTimes[5] = friEnd;
+        if (activeDays.contains(5)) {
+          _startTimes[5] = state.schedule.friStartTime;
+          _endTimes[5] = state.schedule.friEndTime;
         }
-        if (activeDays.contains(6) && satStart != null && satEnd != null) {
-          _startTimes[6] = satStart;
-          _endTimes[6] = satEnd;
+        if (activeDays.contains(6)) {
+          _startTimes[6] = state.schedule.satStartTime;
+          _endTimes[6] = state.schedule.satEndTime;
         }
       }
 
@@ -621,84 +606,81 @@ class _CourseAddScheduleScreenState
     final String daysOfWeek = _generateDaysOfWeek();
 
     // Default time for days that aren't used
-    const String defaultTime = '00:00:00';
+    const TimeOfDay defaultTime = TimeOfDay(hour: 0, minute: 0);
 
-    String sunStart, sunEnd;
-    String monStart, monEnd;
-    String tueStart, tueEnd;
-    String wedStart, wedEnd;
-    String thuStart, thuEnd;
-    String friStart, friEnd;
-    String satStart, satEnd;
+    TimeOfDay sunStart, sunEnd;
+    TimeOfDay monStart, monEnd;
+    TimeOfDay tueStart, tueEnd;
+    TimeOfDay wedStart, wedEnd;
+    TimeOfDay thuStart, thuEnd;
+    TimeOfDay friStart, friEnd;
+    TimeOfDay satStart, satEnd;
 
     if (_variesByDay) {
       sunStart = _selectedDays.contains(0) && _startTimes[0] != null
-          ? HeliumTime.formatForApiAsString(_startTimes[0]!)
+          ? _startTimes[0]!
           : defaultTime;
       sunEnd = _selectedDays.contains(0) && _endTimes[0] != null
-          ? HeliumTime.formatForApiAsString(_endTimes[0]!)
+          ? _endTimes[0]!
           : defaultTime;
 
       monStart = _selectedDays.contains(1) && _startTimes[1] != null
-          ? HeliumTime.formatForApiAsString(_startTimes[1]!)
+          ? _startTimes[1]!
           : defaultTime;
       monEnd = _selectedDays.contains(1) && _endTimes[1] != null
-          ? HeliumTime.formatForApiAsString(_endTimes[1]!)
+          ? _endTimes[1]!
           : defaultTime;
 
       tueStart = _selectedDays.contains(2) && _startTimes[2] != null
-          ? HeliumTime.formatForApiAsString(_startTimes[2]!)
+          ? _startTimes[2]!
           : defaultTime;
       tueEnd = _selectedDays.contains(2) && _endTimes[2] != null
-          ? HeliumTime.formatForApiAsString(_endTimes[2]!)
+          ? _endTimes[2]!
           : defaultTime;
 
       wedStart = _selectedDays.contains(3) && _startTimes[3] != null
-          ? HeliumTime.formatForApiAsString(_startTimes[3]!)
+          ? _startTimes[3]!
           : defaultTime;
       wedEnd = _selectedDays.contains(3) && _endTimes[3] != null
-          ? HeliumTime.formatForApiAsString(_endTimes[3]!)
+          ? _endTimes[3]!
           : defaultTime;
 
       thuStart = _selectedDays.contains(4) && _startTimes[4] != null
-          ? HeliumTime.formatForApiAsString(_startTimes[4]!)
+          ? _startTimes[4]!
           : defaultTime;
       thuEnd = _selectedDays.contains(4) && _endTimes[4] != null
-          ? HeliumTime.formatForApiAsString(_endTimes[4]!)
+          ? _endTimes[4]!
           : defaultTime;
 
       friStart = _selectedDays.contains(5) && _startTimes[5] != null
-          ? HeliumTime.formatForApiAsString(_startTimes[5]!)
+          ? _startTimes[5]!
           : defaultTime;
       friEnd = _selectedDays.contains(5) && _endTimes[5] != null
-          ? HeliumTime.formatForApiAsString(_endTimes[5]!)
+          ? _endTimes[5]!
           : defaultTime;
 
       satStart = _selectedDays.contains(6) && _startTimes[6] != null
-          ? HeliumTime.formatForApiAsString(_startTimes[6]!)
+          ? _startTimes[6]!
           : defaultTime;
       satEnd = _selectedDays.contains(6) && _endTimes[6] != null
-          ? HeliumTime.formatForApiAsString(_endTimes[6]!)
+          ? _endTimes[6]!
           : defaultTime;
     } else {
       // Same time for all days
-      final startTimeStr = HeliumTime.formatForApiAsString(_singleStartTime);
-      final endTimeStr = HeliumTime.formatForApiAsString(_singleEndTime);
-
-      sunStart = startTimeStr;
-      sunEnd = endTimeStr;
-      monStart = startTimeStr;
-      monEnd = endTimeStr;
-      tueStart = startTimeStr;
-      tueEnd = endTimeStr;
-      wedStart = startTimeStr;
-      wedEnd = endTimeStr;
-      thuStart = startTimeStr;
-      thuEnd = endTimeStr;
-      friStart = startTimeStr;
-      friEnd = endTimeStr;
-      satStart = startTimeStr;
-      satEnd = endTimeStr;
+      sunStart = _singleStartTime;
+      sunEnd = _singleEndTime;
+      monStart = _singleStartTime;
+      monEnd = _singleEndTime;
+      tueStart = _singleStartTime;
+      tueEnd = _singleEndTime;
+      wedStart = _singleStartTime;
+      wedEnd = _singleEndTime;
+      thuStart = _singleStartTime;
+      thuEnd = _singleEndTime;
+      friStart = _singleStartTime;
+      friEnd = _singleEndTime;
+      satStart = _singleStartTime;
+      satEnd = _singleEndTime;
     }
 
     final request = CourseScheduleRequestModel(

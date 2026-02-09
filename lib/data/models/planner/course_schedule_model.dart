@@ -5,26 +5,27 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:flutter/material.dart';
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 
 class CourseScheduleModel extends BaseModel {
   final String daysOfWeek;
-  final String sunStartTime;
-  final String sunEndTime;
-  final String monStartTime;
-  final String monEndTime;
-  final String tueStartTime;
-  final String tueEndTime;
-  final String wedStartTime;
-  final String wedEndTime;
-  final String thuStartTime;
-  final String thuEndTime;
-  final String friStartTime;
-  final String friEndTime;
-  final String satStartTime;
-  final String satEndTime;
+  final TimeOfDay sunStartTime;
+  final TimeOfDay sunEndTime;
+  final TimeOfDay monStartTime;
+  final TimeOfDay monEndTime;
+  final TimeOfDay tueStartTime;
+  final TimeOfDay tueEndTime;
+  final TimeOfDay wedStartTime;
+  final TimeOfDay wedEndTime;
+  final TimeOfDay thuStartTime;
+  final TimeOfDay thuEndTime;
+  final TimeOfDay friStartTime;
+  final TimeOfDay friEndTime;
+  final TimeOfDay satStartTime;
+  final TimeOfDay satEndTime;
   final int course;
 
   CourseScheduleModel({
@@ -51,20 +52,20 @@ class CourseScheduleModel extends BaseModel {
     return CourseScheduleModel(
       id: json['id'],
       daysOfWeek: json['days_of_week'],
-      sunStartTime: json['sun_start_time'],
-      sunEndTime: json['sun_end_time'],
-      monStartTime: json['mon_start_time'],
-      monEndTime: json['mon_end_time'],
-      tueStartTime: json['tue_start_time'],
-      tueEndTime: json['tue_end_time'],
-      wedStartTime: json['wed_start_time'],
-      wedEndTime: json['wed_end_time'],
-      thuStartTime: json['thu_start_time'],
-      thuEndTime: json['thu_end_time'],
-      friStartTime: json['fri_start_time'],
-      friEndTime: json['fri_end_time'],
-      satStartTime: json['sat_start_time'],
-      satEndTime: json['sat_end_time'],
+      sunStartTime: HeliumTime.parse(json['sun_start_time'] as String)!,
+      sunEndTime: HeliumTime.parse(json['sun_end_time'] as String)!,
+      monStartTime: HeliumTime.parse(json['mon_start_time'] as String)!,
+      monEndTime: HeliumTime.parse(json['mon_end_time'] as String)!,
+      tueStartTime: HeliumTime.parse(json['tue_start_time'] as String)!,
+      tueEndTime: HeliumTime.parse(json['tue_end_time'] as String)!,
+      wedStartTime: HeliumTime.parse(json['wed_start_time'] as String)!,
+      wedEndTime: HeliumTime.parse(json['wed_end_time'] as String)!,
+      thuStartTime: HeliumTime.parse(json['thu_start_time'] as String)!,
+      thuEndTime: HeliumTime.parse(json['thu_end_time'] as String)!,
+      friStartTime: HeliumTime.parse(json['fri_start_time'] as String)!,
+      friEndTime: HeliumTime.parse(json['fri_end_time'] as String)!,
+      satStartTime: HeliumTime.parse(json['sat_start_time'] as String)!,
+      satEndTime: HeliumTime.parse(json['sat_end_time'] as String)!,
       course: json['course'],
     );
   }
@@ -73,37 +74,41 @@ class CourseScheduleModel extends BaseModel {
     return {
       'id': id,
       'days_of_week': daysOfWeek,
-      'sun_start_time': sunStartTime,
-      'sun_end_time': sunEndTime,
-      'mon_start_time': monStartTime,
-      'mon_end_time': monEndTime,
-      'tue_start_time': tueStartTime,
-      'tue_end_time': tueEndTime,
-      'wed_start_time': wedStartTime,
-      'wed_end_time': wedEndTime,
-      'thu_start_time': thuStartTime,
-      'thu_end_time': thuEndTime,
-      'fri_start_time': friStartTime,
-      'fri_end_time': friEndTime,
-      'sat_start_time': satStartTime,
-      'sat_end_time': satEndTime,
+      'sun_start_time': HeliumTime.formatForApi(sunStartTime),
+      'sun_end_time': HeliumTime.formatForApi(sunEndTime),
+      'mon_start_time': HeliumTime.formatForApi(monStartTime),
+      'mon_end_time': HeliumTime.formatForApi(monEndTime),
+      'tue_start_time': HeliumTime.formatForApi(tueStartTime),
+      'tue_end_time': HeliumTime.formatForApi(tueEndTime),
+      'wed_start_time': HeliumTime.formatForApi(wedStartTime),
+      'wed_end_time': HeliumTime.formatForApi(wedEndTime),
+      'thu_start_time': HeliumTime.formatForApi(thuStartTime),
+      'thu_end_time': HeliumTime.formatForApi(thuEndTime),
+      'fri_start_time': HeliumTime.formatForApi(friStartTime),
+      'fri_end_time': HeliumTime.formatForApi(friEndTime),
+      'sat_start_time': HeliumTime.formatForApi(satStartTime),
+      'sat_end_time': HeliumTime.formatForApi(satEndTime),
       'course': course,
     };
   }
 
   bool allDaysSameTime() {
-    return (sunStartTime == monStartTime &&
-            sunStartTime == tueStartTime &&
-            sunStartTime == wedStartTime &&
-            sunStartTime == thuStartTime &&
-            sunStartTime == friStartTime &&
-            sunStartTime == satStartTime) &&
-        (sunEndTime == monEndTime &&
-            sunEndTime == tueEndTime &&
-            sunEndTime == wedEndTime &&
-            sunEndTime == thuEndTime &&
-            sunEndTime == friEndTime &&
-            sunEndTime == satEndTime);
+    return (_timeEquals(sunStartTime, monStartTime) &&
+            _timeEquals(sunStartTime, tueStartTime) &&
+            _timeEquals(sunStartTime, wedStartTime) &&
+            _timeEquals(sunStartTime, thuStartTime) &&
+            _timeEquals(sunStartTime, friStartTime) &&
+            _timeEquals(sunStartTime, satStartTime)) &&
+        (_timeEquals(sunEndTime, monEndTime) &&
+            _timeEquals(sunEndTime, tueEndTime) &&
+            _timeEquals(sunEndTime, wedEndTime) &&
+            _timeEquals(sunEndTime, thuEndTime) &&
+            _timeEquals(sunEndTime, friEndTime) &&
+            _timeEquals(sunEndTime, satEndTime));
+  }
+
+  bool _timeEquals(TimeOfDay a, TimeOfDay b) {
+    return a.hour == b.hour && a.minute == b.minute;
   }
 
   // Helper method to get active days
@@ -123,8 +128,8 @@ class CourseScheduleModel extends BaseModel {
     return activeDays;
   }
 
-  DateTime getStartTimeForDay(String day) {
-    String startTime = '';
+  TimeOfDay getStartTimeForDay(String day) {
+    TimeOfDay startTime;
 
     switch (day.toLowerCase()) {
       case 'sun':
@@ -155,13 +160,15 @@ class CourseScheduleModel extends BaseModel {
       case 'saturday':
         startTime = satStartTime;
         break;
+      default:
+        startTime = sunStartTime;
     }
 
-    return HeliumTime.formatForApi(HeliumTime.parse(startTime)!);
+    return startTime;
   }
 
-  DateTime getEndTimeForDay(String day) {
-    String endTime = '';
+  TimeOfDay getEndTimeForDay(String day) {
+    TimeOfDay endTime;
 
     switch (day.toLowerCase()) {
       case 'sun':
@@ -192,17 +199,10 @@ class CourseScheduleModel extends BaseModel {
       case 'saturday':
         endTime = satEndTime;
         break;
+      default:
+        endTime = sunEndTime;
     }
 
-    return HeliumTime.formatForApi(HeliumTime.parse(endTime)!);
-  }
-
-  String getDateTimeRangeForDisplay(String day) {
-    final startTime = HeliumDateTime.formatTimeForDisplay(
-      getStartTimeForDay(day),
-    );
-    final endTime = HeliumDateTime.formatTimeForDisplay(getEndTimeForDay(day));
-
-    return '$startTime - $endTime';
+    return endTime;
   }
 }

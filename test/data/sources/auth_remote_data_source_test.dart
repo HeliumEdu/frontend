@@ -8,10 +8,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/helium_exception.dart';
-import 'package:heliumapp/data/models/auth/change_password_request_model.dart';
-import 'package:heliumapp/data/models/auth/delete_account_request_model.dart';
-import 'package:heliumapp/data/models/auth/forgot_password_request_model.dart';
-import 'package:heliumapp/data/models/auth/refresh_token_request_model.dart';
+import 'package:heliumapp/data/models/auth/request/change_password_request_model.dart';
+import 'package:heliumapp/data/models/auth/request/delete_account_request_model.dart';
+import 'package:heliumapp/data/models/auth/request/forgot_password_request_model.dart';
+import 'package:heliumapp/data/models/auth/request/refresh_token_request_model.dart';
 import 'package:heliumapp/data/models/auth/register_request_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/sources/auth_remote_data_source.dart';

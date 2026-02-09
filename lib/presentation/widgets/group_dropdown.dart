@@ -101,10 +101,8 @@ class GroupDropdown<T extends BaseTitledModel> extends StatelessWidget {
   Widget _buildItem(BuildContext context, T item) {
     String? dateRange;
     if (item is CourseGroupModel) {
-      final startDate = DateTime.parse(item.startDate);
-      final endDate = DateTime.parse(item.endDate);
       dateRange =
-          '${HeliumDateTime.formatDateForDisplay(startDate)} to ${HeliumDateTime.formatDateForDisplay(endDate)}';
+          '${HeliumDateTime.formatDate(item.startDate)} to ${HeliumDateTime.formatDate(item.endDate)}';
     }
 
     return Row(

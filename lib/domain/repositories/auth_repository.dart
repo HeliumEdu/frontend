@@ -5,15 +5,15 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:heliumapp/data/models/auth/change_password_request_model.dart';
-import 'package:heliumapp/data/models/auth/delete_account_request_model.dart';
-import 'package:heliumapp/data/models/auth/forgot_password_request_model.dart';
+import 'package:heliumapp/data/models/auth/request/change_password_request_model.dart';
+import 'package:heliumapp/data/models/auth/request/delete_account_request_model.dart';
+import 'package:heliumapp/data/models/auth/request/forgot_password_request_model.dart';
 import 'package:heliumapp/data/models/auth/login_request_model.dart';
 import 'package:heliumapp/data/models/auth/private_feed_model.dart';
-import 'package:heliumapp/data/models/auth/refresh_token_request_model.dart';
+import 'package:heliumapp/data/models/auth/request/refresh_token_request_model.dart';
 import 'package:heliumapp/data/models/auth/register_request_model.dart';
 import 'package:heliumapp/data/models/auth/token_response_model.dart';
-import 'package:heliumapp/data/models/auth/update_settings_request_model.dart';
+import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/no_content_response_model.dart';
 

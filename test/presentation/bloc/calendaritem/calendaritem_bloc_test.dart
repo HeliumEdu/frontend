@@ -8,8 +8,8 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/core/helium_exception.dart';
-import 'package:heliumapp/data/models/planner/event_request_model.dart';
-import 'package:heliumapp/data/models/planner/homework_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_event.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_state.dart';

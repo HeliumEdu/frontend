@@ -123,7 +123,7 @@ void main() {
           id: 1,
           title: 'Test Reminder',
           message: 'Reminder message',
-          startOfRange: '2025-01-15T10:00:00Z',
+          startOfRange: DateTime.parse('2025-01-15T10:00:00Z'),
           type: 0,
           offset: 30,
           offsetType: 0,

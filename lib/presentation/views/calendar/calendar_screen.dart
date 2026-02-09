@@ -22,10 +22,10 @@ import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
-import 'package:heliumapp/data/models/planner/event_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
-import 'package:heliumapp/data/models/planner/homework_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
 import 'package:heliumapp/data/repositories/category_repository_impl.dart';
 import 'package:heliumapp/data/repositories/course_repository_impl.dart';
 import 'package:heliumapp/data/repositories/course_schedule_event_repository_impl.dart';
@@ -1128,7 +1128,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
     switch (_calendarController.view) {
       case CalendarView.day:
-        return HeliumDateTime.formatDateForDisplay(
+        return HeliumDateTime.formatDate(
           displayDate,
           abbreviateMonth: abbreviateMonth,
         );
@@ -1136,7 +1136,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       case CalendarView.week:
       case CalendarView.schedule:
       default:
-        return HeliumDateTime.formatMonthAndYearForDisplay(
+        return HeliumDateTime.formatMonthAndYear(
           displayDate,
           abbreviateMonth: abbreviateMonth,
         );
@@ -1383,11 +1383,11 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
     if (calendarItem is HomeworkModel || calendarItem is EventModel) {
       final startDateTime = tz.TZDateTime.from(
-        DateTime.parse(calendarItem.start),
+        calendarItem.start,
         userSettings!.timeZone,
       );
       final Duration duration = tz.TZDateTime.from(
-        DateTime.parse(calendarItem.end),
+        calendarItem.end,
         userSettings!.timeZone,
       ).difference(startDateTime);
 
@@ -1474,7 +1474,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
     if (calendarItem is HomeworkModel || calendarItem is EventModel) {
       final originalStart = tz.TZDateTime.from(
-        DateTime.parse(calendarItem.start),
+        calendarItem.start,
         userSettings!.timeZone,
       );
 
@@ -2132,7 +2132,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                     children: [
                       Expanded(
                         child: Text(
-                          HeliumDateTime.formatDateWithDayForDisplay(date),
+                          HeliumDateTime.formatDateWithDay(date),
                           style: AppStyles.headingText(
                             context,
                           ).copyWith(color: context.colorScheme.onSurface),
@@ -2923,8 +2923,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   Widget _buildCalendarItemTime(CalendarItemBaseModel calendarItem) {
     return Text(
-      HeliumDateTime.formatTimeForDisplay(
-        HeliumDateTime.parse(calendarItem.start, userSettings!.timeZone),
+      HeliumDateTime.formatTime(
+        HeliumDateTime.toLocal(calendarItem.start, userSettings!.timeZone),
       ),
       style: AppStyles.smallSecondaryTextLight(
         context,
@@ -2940,9 +2940,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       children: [
         Expanded(
           child: Text(
-            HeliumDateTime.formatTimeRangeForDisplay(
-              HeliumDateTime.parse(calendarItem.start, userSettings!.timeZone),
-              HeliumDateTime.parse(calendarItem.end, userSettings!.timeZone),
+            HeliumDateTime.formatTimeRange(
+              HeliumDateTime.toLocal(calendarItem.start, userSettings!.timeZone),
+              HeliumDateTime.toLocal(calendarItem.end, userSettings!.timeZone),
               calendarItem.showEndTime,
             ),
             style: AppStyles.smallSecondaryTextLight(

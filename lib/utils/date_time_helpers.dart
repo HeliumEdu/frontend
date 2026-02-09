@@ -15,7 +15,7 @@ class HeliumTime {
     return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
   }
 
-  static String formatForDisplay(TimeOfDay time) {
+  static String format(TimeOfDay time) {
     final now = DateTime.now();
     final dateTime = DateTime(
       now.year,
@@ -27,13 +27,15 @@ class HeliumTime {
     return DateFormat('h:mm a').format(dateTime);
   }
 
-  static String formatForApiAsString(TimeOfDay time) {
-    return DateFormat('HH:mm:00').format(formatForApi(time));
+  static String formatTimeRange(TimeOfDay startTime, TimeOfDay endTime) {
+    return '${format(startTime)} - ${format(endTime)}';
   }
 
-  static DateTime formatForApi(TimeOfDay time) {
+  static String formatForApi(TimeOfDay time) {
     final now = DateTime.now();
-    return DateTime(now.year, now.month, now.day, time.hour, time.minute);
+    return DateFormat(
+      'HH:mm:00',
+    ).format(DateTime(now.year, now.month, now.day, time.hour, time.minute));
   }
 }
 
@@ -42,11 +44,15 @@ class HeliumDateTime {
     return tz.TZDateTime.from(DateTime.parse(isoString), timeZone);
   }
 
+  static DateTime toLocal(DateTime utc, tz.Location timeZone) {
+    return tz.TZDateTime.from(utc, timeZone);
+  }
+
   static String formatDayNameShort(DateTime date) {
     return DateFormat('EEE').format(date);
   }
 
-  static String formatMonthAndYearForDisplay(
+  static String formatMonthAndYear(
     DateTime date, {
     bool abbreviateMonth = true,
   }) {
@@ -54,55 +60,52 @@ class HeliumDateTime {
     return DateFormat(format).format(date);
   }
 
-  static String formatDateWithDayForDisplay(DateTime date) {
+  static String formatDateWithDay(DateTime date) {
     return DateFormat('EEEE, MMMM d').format(date);
   }
 
-  static String formatDateForDisplay(
-    DateTime date, {
-    bool abbreviateMonth = true,
-  }) {
+  static String formatDate(DateTime date, {bool abbreviateMonth = true}) {
     final format = abbreviateMonth ? 'MMM d, yyyy' : 'MMMM d, yyyy';
     return DateFormat(format).format(date);
   }
 
-  static String formatDateAndTimeForDisplay(DateTime date) {
+  static String formatDateAndTime(DateTime date) {
     return DateFormat(
       'MMM d, yyyy • h:mm a',
     ).format(date).replaceAll(':00', '');
   }
 
-  static String formatDateAndTimeForTodosDisplay(DateTime date) {
+  static String formatDateAndTimeForTodos(DateTime date) {
     return DateFormat('EEE, MMM d • h:mm a').format(date).replaceAll(':00', '');
   }
 
-  static String formatTimeForDisplay(DateTime date) {
+  static String formatTime(DateTime date) {
     return DateFormat('h:mm a').format(date).replaceAll(':00', '');
   }
 
-  static String formatDateTimeRangeForDisplay(
+  static String formatDateTimeRange(
     DateTime startDate,
     DateTime endDate,
     bool showEndTime,
     bool isAllDay,
   ) {
-    final String dateDisplay = HeliumDateTime.formatDateForDisplay(startDate);
+    final String dateDisplay = HeliumDateTime.formatDate(startDate);
 
     if (!isAllDay) {
-      return '$dateDisplay • ${HeliumDateTime.formatTimeRangeForDisplay(startDate, endDate, showEndTime)}';
+      return '$dateDisplay • ${HeliumDateTime.formatTimeRange(startDate, endDate, showEndTime)}';
     } else {
       return dateDisplay;
     }
   }
 
-  static String formatTimeRangeForDisplay(
+  static String formatTimeRange(
     DateTime startDate,
     DateTime endDate,
     bool showEndTime,
   ) {
-    final formattedTime = HeliumDateTime.formatTimeForDisplay(startDate);
+    final formattedTime = HeliumDateTime.formatTime(startDate);
     if (showEndTime && startDate != endDate) {
-      final formattedEndTime = HeliumDateTime.formatTimeForDisplay(endDate);
+      final formattedEndTime = HeliumDateTime.formatTime(endDate);
       return '$formattedTime - $formattedEndTime';
     } else {
       return formattedTime;
@@ -129,60 +132,48 @@ class HeliumDateTime {
     return dateTime.toIso8601String();
   }
 
-  static int getDaysBetween(String startDate, String endDate) {
-    if (startDate.isEmpty || endDate.isEmpty) {
-      return 0;
-    }
-
-    final start = DateTime.parse(startDate);
-    final end = DateTime.parse(endDate);
+  static int getDaysBetween(DateTime startDate, DateTime endDate) {
     final now = DateTime.now();
 
     // If before start date, return 0%
-    if (now.isBefore(start)) {
+    if (now.isBefore(startDate)) {
       return 0;
     }
 
     // If after end date, return 100%
-    if (now.isAfter(end)) {
+    if (now.isAfter(endDate)) {
       return 100;
     }
 
     // Calculate percentage
-    final totalDays = end.difference(start).inDays;
+    final totalDays = endDate.difference(startDate).inDays;
     if (totalDays <= 0) {
       return 0;
     }
 
-    return now.difference(start).inDays;
+    return now.difference(startDate).inDays;
   }
 
-  static int getPercentDiffBetween(String startDate, String endDate) {
-    if (startDate.isEmpty || endDate.isEmpty) {
-      return 0;
-    }
-
-    final start = DateTime.parse(startDate);
-    final end = DateTime.parse(endDate);
+  static int getPercentDiffBetween(DateTime startDate, DateTime endDate) {
     final now = DateTime.now();
 
     // If before start date, return 0%
-    if (now.isBefore(start)) {
+    if (now.isBefore(startDate)) {
       return 0;
     }
 
     // If after end date, return 100%
-    if (now.isAfter(end)) {
+    if (now.isAfter(endDate)) {
       return 100;
     }
 
     // Calculate percentage
-    final totalDays = end.difference(start).inDays;
+    final totalDays = endDate.difference(startDate).inDays;
     if (totalDays <= 0) {
       return 0;
     }
 
-    final daysElapsed = now.difference(start).inDays;
+    final daysElapsed = now.difference(startDate).inDays;
     final percentage = (daysElapsed / totalDays * 100).round();
 
     // Clamp between 0 and 100

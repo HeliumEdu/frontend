@@ -10,7 +10,6 @@ import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/utils/app_globals.dart';
-import 'package:heliumapp/utils/date_time_helpers.dart';
 
 class Sort {
   static void byTitle(List<BaseTitledModel> list) {
@@ -22,11 +21,7 @@ class Sort {
   }
 
   static void byStartOfRange(List<ReminderModel> list, timeZone) {
-    list.sort((a, b) {
-      final aDate = HeliumDateTime.parse(a.startOfRange, timeZone);
-      final bDate = HeliumDateTime.parse(b.startOfRange, timeZone);
-      return bDate.compareTo(aDate);
-    });
+    list.sort((a, b) => b.startOfRange.compareTo(a.startOfRange));
   }
 
   /// When multiple items at the same time, opt for this priority
@@ -48,16 +43,16 @@ class Sort {
       // our desired sort order overrides
       final aSecondsToSubtract = a.allDay ? 0 : 3 - aPriority;
       final bSecondsToSubtract = b.allDay ? 0 : 3 - bPriority;
-      final aStart = DateTime.parse(a.start).subtract(
+      final aStart = a.start.subtract(
         Duration(seconds: aSecondsToSubtract),
       );
-      final bStart = DateTime.parse(b.start).subtract(
+      final bStart = b.start.subtract(
         Duration(seconds: bSecondsToSubtract),
       );
-      final aEnd = DateTime.parse(a.end).subtract(
+      final aEnd = a.end.subtract(
         Duration(minutes: a.allDay ? 0 : 3 - aPriority),
       );
-      final bEnd = DateTime.parse(b.end).subtract(
+      final bEnd = b.end.subtract(
         Duration(minutes: b.allDay ? 0 : 3 - bPriority),
       );
 

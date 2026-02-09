@@ -16,7 +16,7 @@ import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/notification/notification_model.dart';
 import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
-import 'package:heliumapp/data/models/planner/reminder_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/reminder_request_model.dart';
 import 'package:heliumapp/data/repositories/reminder_repository_impl.dart';
 import 'package:heliumapp/data/sources/reminder_remote_data_source.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
@@ -250,7 +250,7 @@ class _NotificationsScreenState
       title: title,
       body: reminder.title,
       color: color,
-      timestamp: calendarItem!.start,
+      timestamp: calendarItem!.start.toIso8601String(),
       isRead: _readNotificationIds.contains(reminder.id),
       reminder: reminder,
     );
@@ -330,12 +330,12 @@ class _NotificationsScreenState
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      HeliumDateTime.formatDateTimeRangeForDisplay(
-                        HeliumDateTime.parse(
+                      HeliumDateTime.formatDateTimeRange(
+                        HeliumDateTime.toLocal(
                           calendarItem.start,
                           userSettings!.timeZone,
                         ),
-                        HeliumDateTime.parse(
+                        HeliumDateTime.toLocal(
                           calendarItem.end,
                           userSettings!.timeZone,
                         ),

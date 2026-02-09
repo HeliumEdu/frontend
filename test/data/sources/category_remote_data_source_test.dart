@@ -8,7 +8,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/helium_exception.dart';
-import 'package:heliumapp/data/models/planner/category_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/category_request_model.dart';
 import 'package:heliumapp/data/sources/category_remote_data_source.dart';
 import 'package:mocktail/mocktail.dart';
 

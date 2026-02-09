@@ -10,7 +10,7 @@ import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/notification/push_token_model.dart';
-import 'package:heliumapp/data/models/notification/push_token_request_model.dart';
+import 'package:heliumapp/data/models/notification/request/push_token_request_model.dart';
 import 'package:heliumapp/data/sources/base_data_source.dart';
 import 'package:logging/logging.dart';
 

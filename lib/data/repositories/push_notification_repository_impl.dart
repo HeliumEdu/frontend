@@ -7,7 +7,7 @@
 
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/notification/push_token_model.dart';
-import 'package:heliumapp/data/models/notification/push_token_request_model.dart';
+import 'package:heliumapp/data/models/notification/request/push_token_request_model.dart';
 import 'package:heliumapp/data/sources/push_notification_remote_data_source.dart';
 import 'package:heliumapp/domain/repositories/push_notification_repository.dart';
 

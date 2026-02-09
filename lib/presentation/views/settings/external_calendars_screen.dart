@@ -10,7 +10,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_model.dart';
-import 'package:heliumapp/data/models/planner/external_calendar_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/external_calendar_request_model.dart';
 import 'package:heliumapp/data/repositories/external_calendar_repository_impl.dart';
 import 'package:heliumapp/data/sources/external_calendar_remote_data_source.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';

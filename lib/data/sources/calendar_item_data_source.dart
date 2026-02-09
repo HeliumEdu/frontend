@@ -146,11 +146,11 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   DateTime getStartTime(int index) {
     final item = _getData(index);
 
-    // Check for optimistic override first (drag-drop/resize)
+    // Check for optimistic override first (drag-drop/resize - still strings)
     final override = _timeOverrides[item.id];
     final baseTime = override != null
         ? DateTime.parse(override.start)
-        : DateTime.parse(item.start);
+        : item.start;
 
     // Don't adjust all-day events - they start at midnight and subtracting
     // seconds would push them to the previous day
@@ -171,14 +171,14 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   DateTime getEndTime(int index) {
     final calendarItem = _getData(index);
 
-    // Check for optimistic override first (drag-drop/resize)
+    // Check for optimistic override first (drag-drop/resize - still strings)
     final override = _timeOverrides[calendarItem.id];
     final startTime = override != null
         ? DateTime.parse(override.start)
-        : DateTime.parse(calendarItem.start);
+        : calendarItem.start;
     final endTime = override != null
         ? DateTime.parse(override.end)
-        : DateTime.parse(calendarItem.end);
+        : calendarItem.end;
     final priority = _typeSortPriority[calendarItem.calendarItemType] ?? 0;
 
     if (calendarItem.allDay) {
@@ -513,8 +513,8 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     );
 
     // Add to all cache entries whose range overlaps with this item's dates
-    final itemStart = DateTime.parse(calendarItem.start);
-    final itemEnd = DateTime.parse(calendarItem.end);
+    final itemStart = calendarItem.start;
+    final itemEnd = calendarItem.end;
 
     for (final entry in _dateRangeCache.entries) {
       final parts = entry.key.split('_');
@@ -730,8 +730,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
       }
       if (_filterStatuses.contains('Overdue')) {
         final bool isOverdue =
-            !isCompleted &&
-            DateTime.parse(homework.start).isBefore(DateTime.now());
+            !isCompleted && homework.start.isBefore(DateTime.now());
         matches = matches || isOverdue;
       }
       return matches;

@@ -13,11 +13,12 @@ import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 
 class CourseModel extends BaseTitledModel {
-  final String startDate;
-  final String endDate;
+  final DateTime startDate;
+  final DateTime endDate;
   final String room;
   final double credits;
   final Color color;
+  // TODO: Cleanup: change this to a URL
   final String website;
   final bool isOnline;
   final int courseGroup;
@@ -61,8 +62,8 @@ class CourseModel extends BaseTitledModel {
     return CourseModel(
       id: json['id'],
       title: json['title'],
-      startDate: json['start_date'],
-      endDate: json['end_date'],
+      startDate: DateTime.parse(json['start_date']),
+      endDate: DateTime.parse(json['end_date']),
       room: json['room'],
       credits: HeliumConversion.toDouble(json['credits'])!,
       color: HeliumColors.hexToColor(json['color']),
@@ -91,8 +92,8 @@ class CourseModel extends BaseTitledModel {
     return {
       'id': id,
       'title': title,
-      'start_date': startDate,
-      'end_date': endDate,
+      'start_date': startDate.toIso8601String(),
+      'end_date': endDate.toIso8601String(),
       'room': room,
       'credits': credits,
       'color': color,

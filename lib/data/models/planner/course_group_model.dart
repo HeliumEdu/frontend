@@ -9,8 +9,8 @@ import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 
 class CourseGroupModel extends BaseTitledModel {
-  final String startDate;
-  final String endDate;
+  final DateTime startDate;
+  final DateTime endDate;
   final double? averageGrade;
   final int? numDays;
   final int? numDaysCompleted;
@@ -30,8 +30,8 @@ class CourseGroupModel extends BaseTitledModel {
     return CourseGroupModel(
       id: json['id'],
       title: json['title'],
-      startDate: json['start_date'],
-      endDate: json['end_date'],
+      startDate: DateTime.parse(json['start_date']),
+      endDate: DateTime.parse(json['end_date']),
       shownOnCalendar: json['shown_on_calendar'],
       averageGrade: HeliumConversion.toDouble(json['average_grade']),
       numDays: json['num_days'],
@@ -43,8 +43,8 @@ class CourseGroupModel extends BaseTitledModel {
     return {
       'id': id,
       'title': title,
-      'start_date': startDate,
-      'end_date': endDate,
+      'start_date': startDate.toIso8601String(),
+      'end_date': endDate.toIso8601String(),
       'shown_on_calendar': shownOnCalendar,
       'average_grade': averageGrade,
       'num_days': numDays,

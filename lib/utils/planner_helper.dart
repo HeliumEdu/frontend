@@ -48,20 +48,20 @@ class PlannerHelper {
   ) {
     final reminder = ReminderModel.fromJson(payload);
 
-    final String start;
+    final DateTime startDt;
     if (reminder.homework != null) {
       if (reminder.homework!.entity == null) {
         _logMissingEntity(reminder.id, 'homework', reminder.homework!.id);
-        start = reminder.startOfRange;
+        startDt = reminder.startOfRange;
       } else {
-        start = reminder.homework!.entity!.start;
+        startDt = reminder.homework!.entity!.start;
       }
     } else if (reminder.event != null) {
       if (reminder.event!.entity == null) {
         _logMissingEntity(reminder.id, 'event', reminder.event!.id);
-        start = reminder.startOfRange;
+        startDt = reminder.startOfRange;
       } else {
-        start = reminder.event!.entity!.start;
+        startDt = reminder.event!.entity!.start;
       }
     } else {
       if (!kDebugMode) {
@@ -72,9 +72,10 @@ class PlannerHelper {
         _log.warning(
           'Both homework and event are null on Reminder ${reminder.id}, using now as "start"',
         );
-        start = DateTime.now().toString();
+        startDt = DateTime.now();
       }
     }
+    final String start = startDt.toIso8601String();
 
     return NotificationModel(
       id: reminder.id,
