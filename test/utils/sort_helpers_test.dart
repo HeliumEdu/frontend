@@ -79,9 +79,9 @@ void main() {
           () {
         final timeZone = tz.getLocation('America/New_York');
         final reminders = [
-          _createReminder(id: 1, startOfRange: '2025-01-01T10:00:00Z'),
-          _createReminder(id: 2, startOfRange: '2025-01-15T10:00:00Z'),
-          _createReminder(id: 3, startOfRange: '2025-01-10T10:00:00Z'),
+          _createReminder(id: 1, startOfRange: DateTime.parse('2025-01-01T10:00:00Z')),
+          _createReminder(id: 2, startOfRange: DateTime.parse('2025-01-15T10:00:00Z')),
+          _createReminder(id: 3, startOfRange: DateTime.parse('2025-01-10T10:00:00Z')),
         ];
 
         Sort.byStartOfRange(reminders, timeZone);
@@ -94,8 +94,8 @@ void main() {
       test('handles same date reminders', () {
         final timeZone = tz.getLocation('America/New_York');
         final reminders = [
-          _createReminder(id: 1, startOfRange: '2025-01-10T10:00:00Z'),
-          _createReminder(id: 2, startOfRange: '2025-01-10T10:00:00Z'),
+          _createReminder(id: 1, startOfRange: DateTime.parse('2025-01-10T10:00:00Z')),
+          _createReminder(id: 2, startOfRange: DateTime.parse('2025-01-10T10:00:00Z')),
         ];
 
         Sort.byStartOfRange(reminders, timeZone);
@@ -106,8 +106,8 @@ void main() {
       test('works with different time zones', () {
         final utcZone = tz.getLocation('UTC');
         final reminders = [
-          _createReminder(id: 1, startOfRange: '2025-01-01T00:00:00Z'),
-          _createReminder(id: 2, startOfRange: '2025-01-02T00:00:00Z'),
+          _createReminder(id: 1, startOfRange: DateTime.parse('2025-01-01T00:00:00Z')),
+          _createReminder(id: 2, startOfRange: DateTime.parse('2025-01-02T00:00:00Z')),
         ];
 
         Sort.byStartOfRange(reminders, utcZone);
@@ -120,9 +120,9 @@ void main() {
     group('byStartDate', () {
       test('sorts course groups by start date ascending', () {
         final groups = [
-          _createCourseGroup(id: 1, startDate: '2025-09-01'),
-          _createCourseGroup(id: 2, startDate: '2025-01-15'),
-          _createCourseGroup(id: 3, startDate: '2025-06-01'),
+          _createCourseGroup(id: 1, startDate: DateTime.parse('2025-09-01')),
+          _createCourseGroup(id: 2, startDate: DateTime.parse('2025-01-15')),
+          _createCourseGroup(id: 3, startDate: DateTime.parse('2025-06-01')),
         ];
 
         Sort.byStartDate(groups);
@@ -136,9 +136,9 @@ void main() {
     group('byStartThenTitle', () {
       test('sorts by date first', () {
         final items = [
-          _createHomework(id: 1, start: '2025-01-20T10:00:00Z'),
-          _createHomework(id: 2, start: '2025-01-10T10:00:00Z'),
-          _createHomework(id: 3, start: '2025-01-15T10:00:00Z'),
+          _createHomework(id: 1, start: DateTime.parse('2025-01-20T10:00:00Z')),
+          _createHomework(id: 2, start: DateTime.parse('2025-01-10T10:00:00Z')),
+          _createHomework(id: 3, start: DateTime.parse('2025-01-15T10:00:00Z')),
         ];
 
         Sort.byStartThenTitle(items);
@@ -153,14 +153,14 @@ void main() {
         final items = [
           _createHomework(
             id: 1,
-            start: '2025-01-15T10:00:00Z',
-            end: '2025-01-15T11:00:00Z',
+            start: DateTime.parse('2025-01-15T10:00:00Z'),
+            end: DateTime.parse('2025-01-15T11:00:00Z'),
             allDay: false,
           ),
           _createHomework(
             id: 2,
-            start: '2025-01-15T00:00:00Z',
-            end: '2025-01-15T00:00:00Z', // Same end date as item 1
+            start: DateTime.parse('2025-01-15T00:00:00Z'),
+            end: DateTime.parse('2025-01-15T00:00:00Z'), // Same end date as item 1
             allDay: true,
           ),
         ];
@@ -173,9 +173,9 @@ void main() {
 
       test('sorts by start time when on same day', () {
         final items = [
-          _createHomework(id: 1, start: '2025-01-15T14:00:00Z'),
-          _createHomework(id: 2, start: '2025-01-15T09:00:00Z'),
-          _createHomework(id: 3, start: '2025-01-15T11:00:00Z'),
+          _createHomework(id: 1, start: DateTime.parse('2025-01-15T14:00:00Z')),
+          _createHomework(id: 2, start: DateTime.parse('2025-01-15T09:00:00Z')),
+          _createHomework(id: 3, start: DateTime.parse('2025-01-15T11:00:00Z')),
         ];
 
         Sort.byStartThenTitle(items);
@@ -187,8 +187,8 @@ void main() {
 
       test('type priority: homework before event at same time', () {
         final items = [
-          _createEvent(id: 1, start: '2025-01-15T10:00:00Z'),
-          _createHomework(id: 2, start: '2025-01-15T10:00:00Z'),
+          _createEvent(id: 1, start: DateTime.parse('2025-01-15T10:00:00Z')),
+          _createHomework(id: 2, start: DateTime.parse('2025-01-15T10:00:00Z')),
         ];
 
         Sort.byStartThenTitle(items);
@@ -199,8 +199,8 @@ void main() {
 
       test('type priority: homework before course schedule at same time', () {
         final items = [
-          _createCourseScheduleEvent(id: 1, start: '2025-01-15T10:00:00Z'),
-          _createHomework(id: 2, start: '2025-01-15T10:00:00Z'),
+          _createCourseScheduleEvent(id: 1, start: DateTime.parse('2025-01-15T10:00:00Z')),
+          _createHomework(id: 2, start: DateTime.parse('2025-01-15T10:00:00Z')),
         ];
 
         Sort.byStartThenTitle(items);
@@ -211,8 +211,8 @@ void main() {
 
       test('type priority: course schedule before event at same time', () {
         final items = [
-          _createEvent(id: 1, start: '2025-01-15T10:00:00Z'),
-          _createCourseScheduleEvent(id: 2, start: '2025-01-15T10:00:00Z'),
+          _createEvent(id: 1, start: DateTime.parse('2025-01-15T10:00:00Z')),
+          _createCourseScheduleEvent(id: 2, start: DateTime.parse('2025-01-15T10:00:00Z')),
         ];
 
         Sort.byStartThenTitle(items);
@@ -223,8 +223,8 @@ void main() {
 
       test('type priority: event before external at same time', () {
         final items = [
-          _createExternalEvent(id: 1, start: '2025-01-15T10:00:00Z'),
-          _createEvent(id: 2, start: '2025-01-15T10:00:00Z'),
+          _createExternalEvent(id: 1, start: DateTime.parse('2025-01-15T10:00:00Z')),
+          _createEvent(id: 2, start: DateTime.parse('2025-01-15T10:00:00Z')),
         ];
 
         Sort.byStartThenTitle(items);
@@ -235,10 +235,10 @@ void main() {
 
       test('full priority order: homework → schedule → event → external', () {
         final items = [
-          _createExternalEvent(id: 1, start: '2025-01-15T10:00:00Z'),
-          _createEvent(id: 2, start: '2025-01-15T10:00:00Z'),
-          _createCourseScheduleEvent(id: 3, start: '2025-01-15T10:00:00Z'),
-          _createHomework(id: 4, start: '2025-01-15T10:00:00Z'),
+          _createExternalEvent(id: 1, start: DateTime.parse('2025-01-15T10:00:00Z')),
+          _createEvent(id: 2, start: DateTime.parse('2025-01-15T10:00:00Z')),
+          _createCourseScheduleEvent(id: 3, start: DateTime.parse('2025-01-15T10:00:00Z')),
+          _createHomework(id: 4, start: DateTime.parse('2025-01-15T10:00:00Z')),
         ];
 
         Sort.byStartThenTitle(items);
@@ -253,13 +253,13 @@ void main() {
         final items = [
           _createHomework(
             id: 1,
-            start: '2025-01-15T10:00:00Z',
-            end: '2025-01-17T10:00:00Z', // 2 days
+            start: DateTime.parse('2025-01-15T10:00:00Z'),
+            end: DateTime.parse('2025-01-17T10:00:00Z'), // 2 days
           ),
           _createHomework(
             id: 2,
-            start: '2025-01-15T10:00:00Z',
-            end: '2025-01-16T10:00:00Z', // 1 day
+            start: DateTime.parse('2025-01-15T10:00:00Z'),
+            end: DateTime.parse('2025-01-16T10:00:00Z'), // 1 day
           ),
         ];
 
@@ -274,7 +274,7 @@ void main() {
 
 ReminderModel _createReminder({
   required int id,
-  required String startOfRange,
+  required DateTime startOfRange,
 }) {
   return ReminderModel(
     id: id,
@@ -291,22 +291,22 @@ ReminderModel _createReminder({
 
 CourseGroupModel _createCourseGroup({
   required int id,
-  required String startDate,
+  required DateTime startDate,
 }) {
   return CourseGroupModel(
     id: id,
     title: 'Course Group $id',
     shownOnCalendar: true,
     startDate: startDate,
-    endDate: '2025-12-31',
+    endDate: DateTime.parse('2025-12-31'),
     averageGrade: null,
   );
 }
 
 HomeworkModel _createHomework({
   required int id,
-  String start = '2025-01-15T10:00:00Z',
-  String end = '2025-01-15T11:00:00Z',
+  DateTime? start,
+  DateTime? end,
   bool allDay = false,
 }) {
   return HomeworkModel(
@@ -314,8 +314,8 @@ HomeworkModel _createHomework({
     title: 'Homework $id',
     allDay: allDay,
     showEndTime: true,
-    start: start,
-    end: end,
+    start: start ?? DateTime.parse('2025-01-15T10:00:00Z'),
+    end: end ?? DateTime.parse('2025-01-15T11:00:00Z'),
     priority: 50,
     comments: '',
     attachments: [],
@@ -330,8 +330,8 @@ HomeworkModel _createHomework({
 
 EventModel _createEvent({
   required int id,
-  String start = '2025-01-15T10:00:00Z',
-  String end = '2025-01-15T11:00:00Z',
+  DateTime? start,
+  DateTime? end,
   bool allDay = false,
 }) {
   return EventModel(
@@ -339,8 +339,8 @@ EventModel _createEvent({
     title: 'Event $id',
     allDay: allDay,
     showEndTime: true,
-    start: start,
-    end: end,
+    start: start ?? DateTime.parse('2025-01-15T10:00:00Z'),
+    end: end ?? DateTime.parse('2025-01-15T11:00:00Z'),
     priority: 50,
     url: null,
     comments: '',
@@ -352,16 +352,16 @@ EventModel _createEvent({
 
 CourseScheduleEventModel _createCourseScheduleEvent({
   required int id,
-  String start = '2025-01-15T10:00:00Z',
-  String end = '2025-01-15T11:00:00Z',
+  DateTime? start,
+  DateTime? end,
 }) {
   return CourseScheduleEventModel(
     id: id,
     title: 'Class $id',
     allDay: false,
     showEndTime: true,
-    start: start,
-    end: end,
+    start: start ?? DateTime.parse('2025-01-15T10:00:00Z'),
+    end: end ?? DateTime.parse('2025-01-15T11:00:00Z'),
     priority: 50,
     url: null,
     comments: '',
@@ -374,16 +374,16 @@ CourseScheduleEventModel _createCourseScheduleEvent({
 
 ExternalCalendarEventModel _createExternalEvent({
   required int id,
-  String start = '2025-01-15T10:00:00Z',
-  String end = '2025-01-15T11:00:00Z',
+  DateTime? start,
+  DateTime? end,
 }) {
   return ExternalCalendarEventModel(
     id: id,
     title: 'External $id',
     allDay: false,
     showEndTime: true,
-    start: start,
-    end: end,
+    start: start ?? DateTime.parse('2025-01-15T10:00:00Z'),
+    end: end ?? DateTime.parse('2025-01-15T11:00:00Z'),
     priority: 50,
     url: null,
     comments: '',

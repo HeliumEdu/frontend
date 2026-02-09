@@ -18,10 +18,10 @@ import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
-import 'package:heliumapp/data/models/planner/event_request_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
-import 'package:heliumapp/data/models/planner/homework_request_model.dart';
 import 'package:heliumapp/data/models/planner/material_model.dart';
+import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_event.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_state.dart';
@@ -323,7 +323,7 @@ class _CalendarItemAddScreenState
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  HeliumDateTime.formatDateForDisplay(
+                                  HeliumDateTime.formatDate(
                                     _formController.startDate,
                                   ),
                                   style: AppStyles.formText(context),
@@ -374,7 +374,7 @@ class _CalendarItemAddScreenState
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    HeliumDateTime.formatDateForDisplay(
+                                    HeliumDateTime.formatDate(
                                       _formController.endDate,
                                     ),
                                     style: AppStyles.formText(context),
@@ -433,7 +433,7 @@ class _CalendarItemAddScreenState
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    HeliumTime.formatForDisplay(
+                                    HeliumTime.format(
                                       _formController.startTime,
                                     ),
                                     style: AppStyles.formText(context),
@@ -486,7 +486,7 @@ class _CalendarItemAddScreenState
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      HeliumTime.formatForDisplay(
+                                      HeliumTime.format(
                                         _formController.endTime,
                                       ),
                                       style: AppStyles.formText(context),
@@ -753,7 +753,7 @@ class _CalendarItemAddScreenState
         _formController.priorityValue = calendarItem.priority.toDouble();
         _formController.initialNotes = calendarItem.comments;
 
-        final startDateTime = HeliumDateTime.parse(
+        final startDateTime = HeliumDateTime.toLocal(
           calendarItem.start,
           userSettings!.timeZone,
         );
@@ -762,7 +762,7 @@ class _CalendarItemAddScreenState
           _formController.startTime = TimeOfDay.fromDateTime(startDateTime);
         }
 
-        final endDateTime = HeliumDateTime.parse(
+        final endDateTime = HeliumDateTime.toLocal(
           calendarItem.end,
           userSettings!.timeZone,
         );
@@ -1080,8 +1080,8 @@ class _CalendarItemAddScreenState
 
         final matchingCategory = _preferredCategoryName != null
             ? categoriesForCourse
-                .where((c) => c.title == _preferredCategoryName)
-                .firstOrNull
+                  .where((c) => c.title == _preferredCategoryName)
+                  .firstOrNull
             : null;
 
         _formController.selectedCategory =
@@ -1106,15 +1106,11 @@ class _CalendarItemAddScreenState
             .firstOrNull;
 
         if (matchingSchedule != null) {
-          _formController.startTime = TimeOfDay.fromDateTime(
-            matchingSchedule.getStartTimeForDay(
-              HeliumDateTime.formatDayNameShort(_formController.startDate),
-            ),
+          _formController.startTime = matchingSchedule.getStartTimeForDay(
+            HeliumDateTime.formatDayNameShort(_formController.startDate),
           );
-          _formController.endTime = TimeOfDay.fromDateTime(
-            matchingSchedule.getEndTimeForDay(
-              HeliumDateTime.formatDayNameShort(_formController.endDate),
-            ),
+          _formController.endTime = matchingSchedule.getEndTimeForDay(
+            HeliumDateTime.formatDayNameShort(_formController.endDate),
           );
         } else {
           const noon = TimeOfDay(hour: 12, minute: 0);
@@ -1129,21 +1125,25 @@ class _CalendarItemAddScreenState
     setState(() {
       _formController.selectedCategory = categoryId;
       // Update preference when user explicitly selects a category
-      _preferredCategoryName =
-          _categories.where((c) => c.id == categoryId).firstOrNull?.title;
+      _preferredCategoryName = _categories
+          .where((c) => c.id == categoryId)
+          .firstOrNull
+          ?.title;
     });
   }
 
   void _updateSelectedMaterials(List<int> materialIds) {
     setState(() {
       _formController.selectedMaterials = materialIds;
-      _preferredMaterialNames =
-          materialIds.map((id) => _materialTitleById(id)).toList();
+      _preferredMaterialNames = materialIds
+          .map((id) => _materialTitleById(id))
+          .toList();
     });
   }
 
   void _removeMaterial(int id) {
-    final updated = List<int>.from(_formController.selectedMaterials)..remove(id);
+    final updated = List<int>.from(_formController.selectedMaterials)
+      ..remove(id);
     _updateSelectedMaterials(updated);
   }
 }

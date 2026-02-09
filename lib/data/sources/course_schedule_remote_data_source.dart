@@ -11,7 +11,7 @@ import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
-import 'package:heliumapp/data/models/planner/course_schedule_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/course_schedule_request_model.dart';
 import 'package:heliumapp/data/sources/base_data_source.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:logging/logging.dart';

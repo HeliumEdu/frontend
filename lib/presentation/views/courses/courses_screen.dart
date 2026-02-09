@@ -467,7 +467,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    '${HeliumDateTime.formatDateForDisplay(DateTime.parse(course.startDate))} to ${HeliumDateTime.formatDateForDisplay(DateTime.parse(course.endDate))}',
+                    '${HeliumDateTime.formatDate(course.startDate)} to ${HeliumDateTime.formatDate(course.endDate)}',
                     style: AppStyles.standardBodyText(context).copyWith(
                       color: context.colorScheme.onSurface.withValues(
                         alpha: 0.5,
@@ -523,12 +523,18 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
       if (schedule.allDaysSameTime()) {
         final activeDays = schedule.getActiveDays();
         if (activeDays.isNotEmpty) {
-          final timeKey = schedule.getDateTimeRangeForDisplay(activeDays[0]);
+          final timeKey = HeliumTime.formatTimeRange(
+            schedule.getStartTimeForDay(activeDays[0]),
+            schedule.getEndTimeForDay(activeDays[0]),
+          );
           schedulesByTime.putIfAbsent(timeKey, () => []).addAll(activeDays);
         }
       } else {
         for (final day in schedule.getActiveDays()) {
-          final timeKey = schedule.getDateTimeRangeForDisplay(day);
+          final timeKey = HeliumTime.formatTimeRange(
+            schedule.getStartTimeForDay(day),
+            schedule.getEndTimeForDay(day),
+          );
           schedulesByTime.putIfAbsent(timeKey, () => []).add(day);
         }
       }

@@ -7,7 +7,7 @@
 
 import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
-import 'package:heliumapp/data/models/planner/course_schedule_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/course_schedule_request_model.dart';
 
 abstract class CourseScheduleRepository {
   Future<List<CourseScheduleEventModel>> getCourseScheduleEvents({

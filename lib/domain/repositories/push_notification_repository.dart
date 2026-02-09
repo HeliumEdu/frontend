@@ -6,7 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:heliumapp/data/models/notification/push_token_model.dart';
-import 'package:heliumapp/data/models/notification/push_token_request_model.dart';
+import 'package:heliumapp/data/models/notification/request/push_token_request_model.dart';
 
 abstract class PushNotificationRepository {
   Future<PushTokenModel> registerPushToken(PushTokenRequestModel request);

@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/planner/material_group_model.dart';
-import 'package:heliumapp/data/models/planner/material_group_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/material_group_request_model.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/bloc/material/material_bloc.dart';
 import 'package:heliumapp/presentation/bloc/material/material_event.dart';

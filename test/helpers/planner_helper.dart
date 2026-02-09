@@ -5,15 +5,17 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/data/models/planner/attachment_model.dart';
+import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
-import 'package:heliumapp/data/models/planner/course_schedule_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/course_schedule_request_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
-import 'package:heliumapp/data/models/planner/external_calendar_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/external_calendar_request_model.dart';
 import 'package:heliumapp/data/models/planner/grade_course_group_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/material_group_model.dart';
@@ -55,8 +57,8 @@ void verifyCourseGroupMatchesJson(
 ) {
   expect(courseGroup.id, equals(json['id']));
   expect(courseGroup.title, equals(json['title']));
-  expect(courseGroup.startDate, equals(json['start_date']));
-  expect(courseGroup.endDate, equals(json['end_date']));
+  expect(courseGroup.startDate, equals(DateTime.parse(json['start_date'] as String)));
+  expect(courseGroup.endDate, equals(DateTime.parse(json['end_date'] as String)));
   expect(courseGroup.shownOnCalendar, equals(json['shown_on_calendar']));
   expect(courseGroup.averageGrade, equals(json['average_grade']));
   expect(courseGroup.numDays, equals(json['num_days']));
@@ -115,20 +117,20 @@ void verifyCourseScheduleMatchesJson(
 ) {
   expect(schedule.id, equals(json['id']));
   expect(schedule.daysOfWeek, equals(json['days_of_week']));
-  expect(schedule.sunStartTime, equals(json['sun_start_time']));
-  expect(schedule.sunEndTime, equals(json['sun_end_time']));
-  expect(schedule.monStartTime, equals(json['mon_start_time']));
-  expect(schedule.monEndTime, equals(json['mon_end_time']));
-  expect(schedule.tueStartTime, equals(json['tue_start_time']));
-  expect(schedule.tueEndTime, equals(json['tue_end_time']));
-  expect(schedule.wedStartTime, equals(json['wed_start_time']));
-  expect(schedule.wedEndTime, equals(json['wed_end_time']));
-  expect(schedule.thuStartTime, equals(json['thu_start_time']));
-  expect(schedule.thuEndTime, equals(json['thu_end_time']));
-  expect(schedule.friStartTime, equals(json['fri_start_time']));
-  expect(schedule.friEndTime, equals(json['fri_end_time']));
-  expect(schedule.satStartTime, equals(json['sat_start_time']));
-  expect(schedule.satEndTime, equals(json['sat_end_time']));
+  expect(schedule.sunStartTime, equals(HeliumTime.parse(json['sun_start_time'] as String)));
+  expect(schedule.sunEndTime, equals(HeliumTime.parse(json['sun_end_time'] as String)));
+  expect(schedule.monStartTime, equals(HeliumTime.parse(json['mon_start_time'] as String)));
+  expect(schedule.monEndTime, equals(HeliumTime.parse(json['mon_end_time'] as String)));
+  expect(schedule.tueStartTime, equals(HeliumTime.parse(json['tue_start_time'] as String)));
+  expect(schedule.tueEndTime, equals(HeliumTime.parse(json['tue_end_time'] as String)));
+  expect(schedule.wedStartTime, equals(HeliumTime.parse(json['wed_start_time'] as String)));
+  expect(schedule.wedEndTime, equals(HeliumTime.parse(json['wed_end_time'] as String)));
+  expect(schedule.thuStartTime, equals(HeliumTime.parse(json['thu_start_time'] as String)));
+  expect(schedule.thuEndTime, equals(HeliumTime.parse(json['thu_end_time'] as String)));
+  expect(schedule.friStartTime, equals(HeliumTime.parse(json['fri_start_time'] as String)));
+  expect(schedule.friEndTime, equals(HeliumTime.parse(json['fri_end_time'] as String)));
+  expect(schedule.satStartTime, equals(HeliumTime.parse(json['sat_start_time'] as String)));
+  expect(schedule.satEndTime, equals(HeliumTime.parse(json['sat_end_time'] as String)));
   expect(schedule.course, equals(json['course']));
 }
 
@@ -175,8 +177,8 @@ Map<String, dynamic> givenCourseJson({
 void verifyCourseMatchesJson(CourseModel course, Map<String, dynamic> json) {
   expect(course.id, equals(json['id']));
   expect(course.title, equals(json['title']));
-  expect(course.startDate, equals(json['start_date']));
-  expect(course.endDate, equals(json['end_date']));
+  expect(course.startDate, equals(DateTime.parse(json['start_date'] as String)));
+  expect(course.endDate, equals(DateTime.parse(json['end_date'] as String)));
   expect(course.room, equals(json['room']));
   expect(course.credits, equals(json['credits']));
   expect(
@@ -331,7 +333,7 @@ void verifyReminderMatchesJson(
   expect(reminder.id, equals(json['id']));
   expect(reminder.title, equals(json['title']));
   expect(reminder.message, equals(json['message']));
-  expect(reminder.startOfRange, equals(json['start_of_range']));
+  expect(reminder.startOfRange, equals(DateTime.parse(json['start_of_range'] as String)));
   expect(reminder.offset, equals(json['offset']));
   expect(reminder.offsetType, equals(json['offset_type']));
   expect(reminder.type, equals(json['type']));
@@ -382,8 +384,8 @@ void verifyEventMatchesJson(EventModel event, Map<String, dynamic> json) {
   expect(event.title, equals(json['title']));
   expect(event.allDay, equals(json['all_day']));
   expect(event.showEndTime, equals(json['show_end_time']));
-  expect(event.start, equals(json['start']));
-  expect(event.end, equals(json['end']));
+  expect(event.start, equals(DateTime.parse(json['start'] as String)));
+  expect(event.end, equals(DateTime.parse(json['end'] as String)));
   expect(event.priority, equals(json['priority']));
   expect(event.url, equals(json['url']));
   expect(event.comments, equals(json['comments']));
@@ -449,8 +451,8 @@ void verifyHomeworkMatchesJson(
   expect(homework.title, equals(json['title']));
   expect(homework.allDay, equals(json['all_day']));
   expect(homework.showEndTime, equals(json['show_end_time']));
-  expect(homework.start, equals(json['start']));
-  expect(homework.end, equals(json['end']));
+  expect(homework.start, equals(DateTime.parse(json['start'] as String)));
+  expect(homework.end, equals(DateTime.parse(json['end'] as String)));
   expect(homework.priority, equals(json['priority']));
   expect(homework.comments, equals(json['comments']));
   expect(homework.completed, equals(json['completed']));
@@ -682,37 +684,37 @@ Map<String, dynamic> givenCourseScheduleEventJson({
 /// Creates a CourseScheduleRequestModel for testing.
 CourseScheduleRequestModel givenCourseScheduleRequestModel({
   String daysOfWeek = '0101010',
-  String sunStartTime = '00:00:00',
-  String sunEndTime = '00:00:00',
-  String monStartTime = '09:00:00',
-  String monEndTime = '10:30:00',
-  String tueStartTime = '00:00:00',
-  String tueEndTime = '00:00:00',
-  String wedStartTime = '09:00:00',
-  String wedEndTime = '10:30:00',
-  String thuStartTime = '00:00:00',
-  String thuEndTime = '00:00:00',
-  String friStartTime = '09:00:00',
-  String friEndTime = '10:30:00',
-  String satStartTime = '00:00:00',
-  String satEndTime = '00:00:00',
+  TimeOfDay? sunStartTime,
+  TimeOfDay? sunEndTime,
+  TimeOfDay? monStartTime,
+  TimeOfDay? monEndTime,
+  TimeOfDay? tueStartTime,
+  TimeOfDay? tueEndTime,
+  TimeOfDay? wedStartTime,
+  TimeOfDay? wedEndTime,
+  TimeOfDay? thuStartTime,
+  TimeOfDay? thuEndTime,
+  TimeOfDay? friStartTime,
+  TimeOfDay? friEndTime,
+  TimeOfDay? satStartTime,
+  TimeOfDay? satEndTime,
 }) {
   return CourseScheduleRequestModel(
     daysOfWeek: daysOfWeek,
-    sunStartTime: sunStartTime,
-    sunEndTime: sunEndTime,
-    monStartTime: monStartTime,
-    monEndTime: monEndTime,
-    tueStartTime: tueStartTime,
-    tueEndTime: tueEndTime,
-    wedStartTime: wedStartTime,
-    wedEndTime: wedEndTime,
-    thuStartTime: thuStartTime,
-    thuEndTime: thuEndTime,
-    friStartTime: friStartTime,
-    friEndTime: friEndTime,
-    satStartTime: satStartTime,
-    satEndTime: satEndTime,
+    sunStartTime: sunStartTime ?? const TimeOfDay(hour: 0, minute: 0),
+    sunEndTime: sunEndTime ?? const TimeOfDay(hour: 0, minute: 0),
+    monStartTime: monStartTime ?? const TimeOfDay(hour: 9, minute: 0),
+    monEndTime: monEndTime ?? const TimeOfDay(hour: 10, minute: 30),
+    tueStartTime: tueStartTime ?? const TimeOfDay(hour: 0, minute: 0),
+    tueEndTime: tueEndTime ?? const TimeOfDay(hour: 0, minute: 0),
+    wedStartTime: wedStartTime ?? const TimeOfDay(hour: 9, minute: 0),
+    wedEndTime: wedEndTime ?? const TimeOfDay(hour: 10, minute: 30),
+    thuStartTime: thuStartTime ?? const TimeOfDay(hour: 0, minute: 0),
+    thuEndTime: thuEndTime ?? const TimeOfDay(hour: 0, minute: 0),
+    friStartTime: friStartTime ?? const TimeOfDay(hour: 9, minute: 0),
+    friEndTime: friEndTime ?? const TimeOfDay(hour: 10, minute: 30),
+    satStartTime: satStartTime ?? const TimeOfDay(hour: 0, minute: 0),
+    satEndTime: satEndTime ?? const TimeOfDay(hour: 0, minute: 0),
   );
 }
 

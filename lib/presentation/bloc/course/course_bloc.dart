@@ -5,11 +5,12 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/core/helium_exception.dart';
-import 'package:heliumapp/data/models/planner/category_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/category_request_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
-import 'package:heliumapp/data/models/planner/course_schedule_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/course_schedule_request_model.dart';
 import 'package:heliumapp/domain/repositories/category_repository.dart';
 import 'package:heliumapp/domain/repositories/course_repository.dart';
 import 'package:heliumapp/domain/repositories/course_schedule_event_repository.dart';
@@ -280,22 +281,24 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
         event.request,
       );
 
+      const defaultStart = TimeOfDay(hour: 12, minute: 0);
+      const defaultEnd = TimeOfDay(hour: 12, minute: 50);
       final createEmptyCourseScheduleRequest = CourseScheduleRequestModel(
         daysOfWeek: '0000000',
-        sunStartTime: '12:00:00',
-        sunEndTime: '12:50:00',
-        monStartTime: '12:00:00',
-        monEndTime: '12:50:00',
-        tueStartTime: '12:00:00',
-        tueEndTime: '12:50:00',
-        wedStartTime: '12:00:00',
-        wedEndTime: '12:50:00',
-        thuStartTime: '12:00:00',
-        thuEndTime: '12:50:00',
-        friStartTime: '12:00:00',
-        friEndTime: '12:50:00',
-        satStartTime: '12:00:00',
-        satEndTime: '12:50:00',
+        sunStartTime: defaultStart,
+        sunEndTime: defaultEnd,
+        monStartTime: defaultStart,
+        monEndTime: defaultEnd,
+        tueStartTime: defaultStart,
+        tueEndTime: defaultEnd,
+        wedStartTime: defaultStart,
+        wedEndTime: defaultEnd,
+        thuStartTime: defaultStart,
+        thuEndTime: defaultEnd,
+        friStartTime: defaultStart,
+        friEndTime: defaultEnd,
+        satStartTime: defaultStart,
+        satEndTime: defaultEnd,
       );
 
       await courseScheduleRepository.createCourseSchedule(

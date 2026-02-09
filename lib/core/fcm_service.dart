@@ -22,7 +22,7 @@ import 'package:heliumapp/core/fcm_web_notifications_stub.dart'
     as web_notifications;
 import 'package:heliumapp/core/jwt_utils.dart';
 import 'package:heliumapp/data/models/notification/notification_model.dart';
-import 'package:heliumapp/data/models/notification/push_token_request_model.dart';
+import 'package:heliumapp/data/models/notification/request/push_token_request_model.dart';
 import 'package:heliumapp/data/repositories/push_notification_repository_impl.dart';
 import 'package:heliumapp/data/sources/push_notification_remote_data_source.dart';
 import 'package:heliumapp/utils/planner_helper.dart';

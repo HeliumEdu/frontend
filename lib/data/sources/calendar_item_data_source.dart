@@ -9,7 +9,9 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:heliumapp/data/sources/calendar_item_filter_compute.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
@@ -48,7 +50,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   List<CourseModel>? courses;
   Map<int, CategoryModel>? categoriesMap;
 
-  // TODO: Enhancement: Refactor this simple cache approach (which hits API more than necessary to cache on the remote data source layer instead: https://pub.dev/packages/dio_cache_interceptor
+  // TODO: Enhancement: Refactor this simple cache approach (which hits API more than necessary) to cache on the remote data source layer instead (implement "pull to force re-fetch from API" as well on all screens): https://pub.dev/packages/dio_cache_interceptor
   final Map<String, List<CalendarItemBaseModel>> _dateRangeCache = {};
 
   // State
@@ -61,6 +63,14 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   int _todosItemsPerPage = 10;
   final Map<int, bool> _completedOverrides = {};
   final Map<int, CalendarItemTimeOverride> _timeOverrides = {};
+  Timer? _filterDebounceTimer;
+  bool _isFilteringInProgress = false;
+  Completer<void>? _filterCompleter;
+
+  /// Duration for filter debouncing. Set to Duration.zero in tests for
+  /// synchronous behavior.
+  @visibleForTesting
+  static Duration filterDebounceDuration = const Duration(milliseconds: 16);
 
   CalendarItemDataSource({
     required this.eventRepository,
@@ -83,6 +93,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
 
   @override
   void dispose() {
+    _filterDebounceTimer?.cancel();
     _changeNotifier.dispose();
     super.dispose();
   }
@@ -146,11 +157,11 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   DateTime getStartTime(int index) {
     final item = _getData(index);
 
-    // Check for optimistic override first (drag-drop/resize)
+    // Check for optimistic override first (drag-drop/resize - still strings)
     final override = _timeOverrides[item.id];
     final baseTime = override != null
         ? DateTime.parse(override.start)
-        : DateTime.parse(item.start);
+        : item.start;
 
     // Don't adjust all-day events - they start at midnight and subtracting
     // seconds would push them to the previous day
@@ -171,14 +182,14 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   DateTime getEndTime(int index) {
     final calendarItem = _getData(index);
 
-    // Check for optimistic override first (drag-drop/resize)
+    // Check for optimistic override first (drag-drop/resize - still strings)
     final override = _timeOverrides[calendarItem.id];
     final startTime = override != null
         ? DateTime.parse(override.start)
-        : DateTime.parse(calendarItem.start);
+        : calendarItem.start;
     final endTime = override != null
         ? DateTime.parse(override.end)
-        : DateTime.parse(calendarItem.end);
+        : calendarItem.end;
     final priority = _typeSortPriority[calendarItem.calendarItemType] ?? 0;
 
     if (calendarItem.allDay) {
@@ -298,9 +309,11 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     }
 
     // Rebuild calendar items from filters
-    appointments!.clear();
-    appointments!.addAll(_filteredCalendarItems);
-    notifyListeners(CalendarDataSourceAction.reset, appointments!);
+    if (filterDebounceDuration == Duration.zero) {
+      _applyFiltersSynchronously();
+    } else {
+      await _applyFiltersAsync();
+    }
 
     if (!_hasLoadedInitialData) {
       _hasLoadedInitialData = true;
@@ -439,7 +452,6 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     _applyFiltersAndNotify();
   }
 
-  /// Saves current filter state to local storage if "remember filter selection" is enabled.
   void _saveFiltersIfEnabled() {
     if (!userSettings.rememberFilterState) return;
 
@@ -513,8 +525,8 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     );
 
     // Add to all cache entries whose range overlaps with this item's dates
-    final itemStart = DateTime.parse(calendarItem.start);
-    final itemEnd = DateTime.parse(calendarItem.end);
+    final itemStart = calendarItem.start;
+    final itemEnd = calendarItem.end;
 
     for (final entry in _dateRangeCache.entries) {
       final parts = entry.key.split('_');
@@ -525,6 +537,16 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
       if (itemStart.isBefore(rangeEnd) && itemEnd.isAfter(rangeStart)) {
         entry.value.add(calendarItem);
       }
+    }
+
+    // Add directly to appointments for immediate visibility, then schedule
+    // async refilter for proper sorting. This provides better UX as users
+    // see their added items immediately.
+    if (!appointments!.any((item) =>
+        (item as CalendarItemBaseModel).id == calendarItem.id)) {
+      appointments!.add(calendarItem);
+      Sort.byStartThenTitle(appointments!.cast<CalendarItemBaseModel>());
+      notifyListeners(CalendarDataSourceAction.add, [calendarItem]);
     }
 
     _applyFiltersAndNotify();
@@ -645,14 +667,140 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     return cachedHomework?.completed ?? homework.completed;
   }
 
+  /// Schedules filter application with debouncing to prevent the UI from
+  /// hanging. Use compute() to run filtering on a background isolate.
   void _applyFiltersAndNotify() {
+    _filterDebounceTimer?.cancel();
+
+    if (filterDebounceDuration == Duration.zero) {
+      // Synchronous mode (for testing) - skip compute() overhead
+      _applyFiltersSynchronously();
+    } else {
+      _filterCompleter ??= Completer<void>();
+      _filterDebounceTimer = Timer(filterDebounceDuration, () {
+        _applyFiltersAsync();
+      });
+    }
+  }
+
+  /// Synchronous filtering for tests. Uses the same logic as async version
+  /// but runs on the main thread without compute().
+  void _applyFiltersSynchronously() {
     appointments!.clear();
     appointments!.addAll(_filteredCalendarItems);
     _log.fine(
-      'Filters applied: ${appointments!.length} of ${allCalendarItems.length} items visible',
+      'Filters applied (sync): ${appointments!.length} of ${allCalendarItems.length} items visible',
     );
     notifyListeners(CalendarDataSourceAction.reset, appointments!);
     _notifyChangeListeners();
+  }
+
+  /// Waits for any pending filter operations to complete.
+  Future<void> waitForFilters() async {
+    _filterDebounceTimer?.cancel();
+    _filterDebounceTimer = null;
+    if (_filterCompleter != null && !_filterCompleter!.isCompleted) {
+      await _applyFiltersAsync();
+    }
+  }
+
+  Future<void> _applyFiltersAsync() async {
+    if (_isFilteringInProgress) return;
+    _isFilteringInProgress = true;
+
+    final completer = _filterCompleter;
+    _filterCompleter = null;
+
+    try {
+      final items = allCalendarItems;
+      final filterableItems = _convertToFilterableItems(items);
+
+      final params = FilterParams(
+        filterTypes: _filterTypes,
+        filterCategories: _filterCategories,
+        selectedCourseIds: _getSelectedCourseIds(),
+        filterStatuses: _filterStatuses,
+        searchQuery: _searchQuery,
+        categoryIdToTitle: _buildCategoryIdToTitleMap(),
+        completedOverrides: Map.from(_completedOverrides),
+      );
+
+      final input = FilterComputeInput(items: filterableItems, params: params);
+
+      // Run filtering and sorting on background isolate
+      final filteredIndices = await compute(computeFilteredItems, input);
+
+      // Map indices back to original items
+      final filteredItems = filteredIndices
+          .map((index) => items[index])
+          .toList();
+
+      appointments!.clear();
+      appointments!.addAll(filteredItems);
+      _log.fine(
+        'Filters applied: ${appointments!.length} of ${items.length} items visible',
+      );
+      notifyListeners(CalendarDataSourceAction.reset, appointments!);
+      _notifyChangeListeners();
+      completer?.complete();
+    } catch (e) {
+      completer?.completeError(e);
+      rethrow;
+    } finally {
+      _isFilteringInProgress = false;
+    }
+  }
+
+  List<FilterableItem> _convertToFilterableItems(
+    List<CalendarItemBaseModel> items,
+  ) {
+    return items.asMap().entries.map((entry) {
+      final index = entry.key;
+      final item = entry.value;
+
+      CalendarItemType type;
+      int? courseId;
+      int? categoryId;
+      String? ownerId;
+      bool completed = false;
+
+      if (item is HomeworkModel) {
+        type = CalendarItemType.homework;
+        courseId = item.course.id;
+        categoryId = item.category.id;
+        completed = item.completed;
+      } else if (item is EventModel) {
+        type = CalendarItemType.event;
+      } else if (item is CourseScheduleEventModel) {
+        type = CalendarItemType.courseSchedule;
+        ownerId = item.ownerId;
+      } else if (item is ExternalCalendarEventModel) {
+        type = CalendarItemType.external;
+        ownerId = item.ownerId;
+      } else {
+        type = CalendarItemType.event;
+      }
+
+      return FilterableItem(
+        id: item.id,
+        index: index,
+        type: type,
+        title: item.title,
+        comments: item.comments,
+        start: item.start,
+        end: item.end,
+        allDay: item.allDay,
+        completed: completed,
+        courseId: courseId,
+        categoryId: categoryId,
+        ownerId: ownerId,
+      );
+    }).toList();
+  }
+
+  Map<int, String> _buildCategoryIdToTitleMap() {
+    if (categoriesMap == null) return {};
+    return categoriesMap!.map((id, category) => MapEntry(id, category.title));
   }
 
   bool _hasSelectedCourses() {
@@ -730,8 +878,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
       }
       if (_filterStatuses.contains('Overdue')) {
         final bool isOverdue =
-            !isCompleted &&
-            DateTime.parse(homework.start).isBefore(DateTime.now());
+            !isCompleted && homework.start.isBefore(DateTime.now());
         matches = matches || isOverdue;
       }
       return matches;

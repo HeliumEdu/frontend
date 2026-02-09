@@ -6,14 +6,14 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'dart:typed_data';
-import 'dart:ui';
 
+import 'package:flutter/material.dart';
 import 'package:heliumapp/data/models/attachment_file.dart';
 import 'package:heliumapp/data/models/auth/private_feed_model.dart';
 import 'package:heliumapp/data/models/auth/token_response_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
-import 'package:heliumapp/data/models/no_content_response_model.dart';
 import 'package:heliumapp/data/models/id_or_entity.dart';
+import 'package:heliumapp/data/models/no_content_response_model.dart';
 import 'package:heliumapp/data/models/planner/attachment_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
@@ -130,8 +130,8 @@ class MockModels {
   static CourseGroupModel createCourseGroup({
     int id = 1,
     String title = 'Fall 2025',
-    String startDate = '2025-08-25',
-    String endDate = '2025-12-15',
+    DateTime? startDate,
+    DateTime? endDate,
     bool shownOnCalendar = true,
     double? averageGrade,
     int? numDays = 112,
@@ -140,8 +140,8 @@ class MockModels {
     return CourseGroupModel(
       id: id,
       title: title,
-      startDate: startDate,
-      endDate: endDate,
+      startDate: startDate ?? DateTime.parse('2025-08-25'),
+      endDate: endDate ?? DateTime.parse('2025-12-15'),
       shownOnCalendar: shownOnCalendar,
       averageGrade: averageGrade,
       numDays: numDays,
@@ -153,39 +153,39 @@ class MockModels {
   static CourseScheduleModel createCourseSchedule({
     int id = 1,
     String daysOfWeek = '0101010',
-    String sunStartTime = '00:00:00',
-    String sunEndTime = '00:00:00',
-    String monStartTime = '09:00:00',
-    String monEndTime = '10:00:00',
-    String tueStartTime = '00:00:00',
-    String tueEndTime = '00:00:00',
-    String wedStartTime = '09:00:00',
-    String wedEndTime = '10:00:00',
-    String thuStartTime = '00:00:00',
-    String thuEndTime = '00:00:00',
-    String friStartTime = '09:00:00',
-    String friEndTime = '10:00:00',
-    String satStartTime = '00:00:00',
-    String satEndTime = '00:00:00',
+    TimeOfDay? sunStartTime,
+    TimeOfDay? sunEndTime,
+    TimeOfDay? monStartTime,
+    TimeOfDay? monEndTime,
+    TimeOfDay? tueStartTime,
+    TimeOfDay? tueEndTime,
+    TimeOfDay? wedStartTime,
+    TimeOfDay? wedEndTime,
+    TimeOfDay? thuStartTime,
+    TimeOfDay? thuEndTime,
+    TimeOfDay? friStartTime,
+    TimeOfDay? friEndTime,
+    TimeOfDay? satStartTime,
+    TimeOfDay? satEndTime,
     int course = 1,
   }) {
     return CourseScheduleModel(
       id: id,
       daysOfWeek: daysOfWeek,
-      sunStartTime: sunStartTime,
-      sunEndTime: sunEndTime,
-      monStartTime: monStartTime,
-      monEndTime: monEndTime,
-      tueStartTime: tueStartTime,
-      tueEndTime: tueEndTime,
-      wedStartTime: wedStartTime,
-      wedEndTime: wedEndTime,
-      thuStartTime: thuStartTime,
-      thuEndTime: thuEndTime,
-      friStartTime: friStartTime,
-      friEndTime: friEndTime,
-      satStartTime: satStartTime,
-      satEndTime: satEndTime,
+      sunStartTime: sunStartTime ?? const TimeOfDay(hour: 0, minute: 0),
+      sunEndTime: sunEndTime ?? const TimeOfDay(hour: 0, minute: 0),
+      monStartTime: monStartTime ?? const TimeOfDay(hour: 9, minute: 0),
+      monEndTime: monEndTime ?? const TimeOfDay(hour: 10, minute: 0),
+      tueStartTime: tueStartTime ?? const TimeOfDay(hour: 0, minute: 0),
+      tueEndTime: tueEndTime ?? const TimeOfDay(hour: 0, minute: 0),
+      wedStartTime: wedStartTime ?? const TimeOfDay(hour: 9, minute: 0),
+      wedEndTime: wedEndTime ?? const TimeOfDay(hour: 10, minute: 0),
+      thuStartTime: thuStartTime ?? const TimeOfDay(hour: 0, minute: 0),
+      thuEndTime: thuEndTime ?? const TimeOfDay(hour: 0, minute: 0),
+      friStartTime: friStartTime ?? const TimeOfDay(hour: 9, minute: 0),
+      friEndTime: friEndTime ?? const TimeOfDay(hour: 10, minute: 0),
+      satStartTime: satStartTime ?? const TimeOfDay(hour: 0, minute: 0),
+      satEndTime: satEndTime ?? const TimeOfDay(hour: 0, minute: 0),
       course: course,
     );
   }
@@ -194,8 +194,8 @@ class MockModels {
   static CourseModel createCourse({
     int id = 1,
     String title = 'Introduction to Computer Science',
-    String startDate = '2025-08-25',
-    String endDate = '2025-12-15',
+    DateTime? startDate,
+    DateTime? endDate,
     String room = 'Room 101',
     double credits = 3.0,
     Color color = const Color(0xFF4CAF50),
@@ -210,8 +210,8 @@ class MockModels {
     return CourseModel(
       id: id,
       title: title,
-      startDate: startDate,
-      endDate: endDate,
+      startDate: startDate ?? DateTime.parse('2025-08-25'),
+      endDate: endDate ?? DateTime.parse('2025-12-15'),
       room: room,
       credits: credits,
       color: color,
@@ -383,7 +383,7 @@ class MockModels {
     int id = 1,
     String title = 'Test Reminder',
     String message = 'This is a test reminder',
-    String startOfRange = '2025-01-15T10:00:00Z',
+    DateTime? startOfRange,
     int offset = 15,
     int offsetType = 0,
     int type = 0,
@@ -396,7 +396,7 @@ class MockModels {
       id: id,
       title: title,
       message: message,
-      startOfRange: startOfRange,
+      startOfRange: startOfRange ?? DateTime.parse('2025-01-15T10:00:00Z'),
       offset: offset,
       offsetType: offsetType,
       type: type,
@@ -486,8 +486,8 @@ class MockModels {
     String title = 'Test Event',
     bool allDay = false,
     bool showEndTime = true,
-    String start = '2025-01-15T10:00:00Z',
-    String end = '2025-01-15T11:00:00Z',
+    DateTime? start,
+    DateTime? end,
     int priority = 50,
     String? url,
     String comments = '',
@@ -498,8 +498,8 @@ class MockModels {
       title: title,
       allDay: allDay,
       showEndTime: showEndTime,
-      start: start,
-      end: end,
+      start: start ?? DateTime.parse('2025-01-15T10:00:00Z'),
+      end: end ?? DateTime.parse('2025-01-15T11:00:00Z'),
       priority: priority,
       url: url,
       comments: comments,
@@ -514,10 +514,8 @@ class MockModels {
     final titles = ['Meeting', 'Appointment', 'Deadline'];
     return List.generate(
       count,
-      (index) => createEvent(
-        id: index + 1,
-        title: titles[index % titles.length],
-      ),
+      (index) =>
+          createEvent(id: index + 1, title: titles[index % titles.length]),
     );
   }
 
@@ -527,8 +525,8 @@ class MockModels {
     String title = 'Test Homework',
     bool allDay = false,
     bool showEndTime = true,
-    String start = '2025-01-15T10:00:00Z',
-    String end = '2025-01-15T11:00:00Z',
+    DateTime? start,
+    DateTime? end,
     int priority = 50,
     String comments = '',
     bool completed = false,
@@ -541,8 +539,8 @@ class MockModels {
       title: title,
       allDay: allDay,
       showEndTime: showEndTime,
-      start: start,
-      end: end,
+      start: start ?? DateTime.parse('2025-01-15T10:00:00Z'),
+      end: end ?? DateTime.parse('2025-01-15T11:00:00Z'),
       priority: priority,
       comments: comments,
       attachments: [],
@@ -560,10 +558,8 @@ class MockModels {
     final titles = ['Assignment 1', 'Lab Report', 'Essay'];
     return List.generate(
       count,
-      (index) => createHomework(
-        id: index + 1,
-        title: titles[index % titles.length],
-      ),
+      (index) =>
+          createHomework(id: index + 1, title: titles[index % titles.length]),
     );
   }
 
@@ -602,8 +598,8 @@ class MockModels {
     String title = 'External Event',
     bool allDay = false,
     bool showEndTime = true,
-    String start = '2025-01-15T10:00:00Z',
-    String end = '2025-01-15T11:00:00Z',
+    DateTime? start,
+    DateTime? end,
     int priority = 50,
     String? url,
     String comments = '',
@@ -615,8 +611,8 @@ class MockModels {
       title: title,
       allDay: allDay,
       showEndTime: showEndTime,
-      start: start,
-      end: end,
+      start: start ?? DateTime.parse('2025-01-15T10:00:00Z'),
+      end: end ?? DateTime.parse('2025-01-15T11:00:00Z'),
       priority: priority,
       url: url,
       comments: comments,
@@ -642,7 +638,10 @@ class MockModels {
   }
 
   /// Creates a list of mock [CategoryModel] instances.
-  static List<CategoryModel> createCategories({int count = 3, int courseId = 1}) {
+  static List<CategoryModel> createCategories({
+    int count = 3,
+    int courseId = 1,
+  }) {
     final titles = ['Homework', 'Exams', 'Projects'];
     return List.generate(
       count,

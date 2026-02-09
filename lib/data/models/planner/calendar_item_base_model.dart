@@ -16,9 +16,10 @@ import 'package:heliumapp/utils/app_globals.dart';
 abstract class CalendarItemBaseModel extends BaseTitledModel {
   final bool allDay;
   final bool showEndTime;
-  final String start;
-  final String end;
+  final DateTime start;
+  final DateTime end;
   final int priority;
+  // TODO: Cleanup: change this to a URL
   final String? url;
   final String comments;
   final Color? color;
@@ -50,8 +51,8 @@ abstract class CalendarItemBaseModel extends BaseTitledModel {
       'title': title,
       'all_day': allDay,
       'show_end_time': showEndTime,
-      'start': start,
-      'end': end,
+      'start': start.toIso8601String(),
+      'end': end.toIso8601String(),
       'priority': priority,
       'url': url,
       'comments': comments,

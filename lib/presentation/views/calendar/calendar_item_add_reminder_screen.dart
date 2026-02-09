@@ -6,7 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:heliumapp/data/models/planner/reminder_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/reminder_request_model.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/bloc/reminder/reminder_event.dart';
 import 'package:heliumapp/presentation/views/core/base_reminder_sub_screen.dart';
