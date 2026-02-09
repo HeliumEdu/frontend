@@ -109,6 +109,9 @@ class _CalendarItemAddScreenState
   List<DropDownItem<CategoryModel>> _categoryItems = [];
   List<MaterialModel> _materials = [];
 
+  String? _preferredCategoryName;
+  List<String> _preferredMaterialNames = [];
+
   @override
   void initState() {
     super.initState();
@@ -560,11 +563,7 @@ class _CalendarItemAddScreenState
                                   context,
                                 ).copyWith(color: context.colorScheme.surface),
                               ),
-                              onDeleted: () {
-                                setState(() {
-                                  _formController.selectedMaterials.remove(id);
-                                });
-                              },
+                              onDeleted: () => _removeMaterial(id),
                             );
                           }).toList(),
                         ),
@@ -588,12 +587,8 @@ class _CalendarItemAddScreenState
                                 initialSelected: _formController
                                     .selectedMaterials
                                     .toSet(),
-                                onConfirm: (selected) {
-                                  setState(() {
-                                    _formController.selectedMaterials = selected
-                                        .toList();
-                                  });
-                                },
+                                onConfirm: (selected) =>
+                                    _updateSelectedMaterials(selected.toList()),
                               ),
                               icon: Icon(
                                 Icons.add,
@@ -1060,17 +1055,48 @@ class _CalendarItemAddScreenState
 
   void _selectCourse(int courseId) {
     setState(() {
-      _formController.selectedCourse = courseId;
-      // TODO: Feature Parity: store category and material names too, persist across course changes
-      if (_categories.isNotEmpty) {
-        _formController.selectedCategory = _categories
-            .where(
-              (category) => category.course == _formController.selectedCourse,
-            )
-            .first
-            .id;
+      if (_preferredCategoryName == null &&
+          _formController.selectedCategory != null) {
+        _preferredCategoryName = _categories
+            .where((c) => c.id == _formController.selectedCategory)
+            .firstOrNull
+            ?.title;
       }
-      _formController.selectedMaterials = [];
+      if (_preferredMaterialNames.isEmpty &&
+          _formController.selectedMaterials.isNotEmpty) {
+        _preferredMaterialNames = _formController.selectedMaterials
+            .map((id) => _materials.where((m) => m.id == id).firstOrNull?.title)
+            .whereType<String>()
+            .toList();
+      }
+
+      _formController.selectedCourse = courseId;
+
+      // Try to match category by preferred name, otherwise fallback to first
+      if (_categories.isNotEmpty) {
+        final categoriesForCourse = _categories
+            .where((c) => c.course == _formController.selectedCourse)
+            .toList();
+
+        final matchingCategory = _preferredCategoryName != null
+            ? categoriesForCourse
+                .where((c) => c.title == _preferredCategoryName)
+                .firstOrNull
+            : null;
+
+        _formController.selectedCategory =
+            matchingCategory?.id ?? categoriesForCourse.first.id;
+      }
+
+      // Try to match materials by preferred names, otherwise clear
+      final materialsForCourse = _materials
+          .where((m) => m.courses.contains(_formController.selectedCourse))
+          .toList();
+
+      _formController.selectedMaterials = materialsForCourse
+          .where((m) => _preferredMaterialNames.contains(m.title))
+          .map((m) => m.id)
+          .toList();
 
       // Only try to auto-populate dates and times for new calendar items
       if (!widget.isEdit) {
@@ -1102,6 +1128,22 @@ class _CalendarItemAddScreenState
   void _selectCategory(int categoryId) {
     setState(() {
       _formController.selectedCategory = categoryId;
+      // Update preference when user explicitly selects a category
+      _preferredCategoryName =
+          _categories.where((c) => c.id == categoryId).firstOrNull?.title;
     });
+  }
+
+  void _updateSelectedMaterials(List<int> materialIds) {
+    setState(() {
+      _formController.selectedMaterials = materialIds;
+      _preferredMaterialNames =
+          materialIds.map((id) => _materialTitleById(id)).toList();
+    });
+  }
+
+  void _removeMaterial(int id) {
+    final updated = List<int>.from(_formController.selectedMaterials)..remove(id);
+    _updateSelectedMaterials(updated);
   }
 }
