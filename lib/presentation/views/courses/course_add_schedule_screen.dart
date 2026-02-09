@@ -24,6 +24,8 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
+// TODO: Enhancement: Let user add reminders for class schedule events (re-use existing reminders sub-screen)
+
 class CourseAddScheduleProvidedScreen extends StatefulWidget {
   final int courseGroupId;
   final int courseId;
