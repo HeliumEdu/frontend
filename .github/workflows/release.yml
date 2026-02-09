@@ -20,8 +20,33 @@ permissions:
   contents: write
 
 jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter SDK
+        uses: flutter-actions/setup-flutter@v4
+        with:
+          channel: stable
+          version: "3.38.9"
+
+      - name: Test
+        run: make test
+
   bump-version:
     name: Bump Version
+    needs: test
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.get_version.outputs.version }}
@@ -68,40 +93,15 @@ jobs:
           VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' \r\n')
           SEMVER="${VERSION%%+*}"
           BUILD_NUMBER="${VERSION##*+}"
-          
+
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "semver=$SEMVER" >> $GITHUB_OUTPUT
           echo "build_number=$BUILD_NUMBER" >> $GITHUB_OUTPUT
           echo "Version: $VERSION"
 
-  test:
-    name: Test
-    needs: bump-version
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          ref: ${{ github.ref }}
-
-      - name: Setup Java 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Setup Flutter SDK
-        uses: flutter-actions/setup-flutter@v4
-        with:
-          channel: stable
-          version: "3.38.9"
-
-      - name: Test
-        run: make test
-
   build-android-release:
     name: Build Android Release AAB
-    needs: [bump-version, test]
+    needs: [test, bump-version]
     runs-on: ubuntu-latest
 
     steps:
@@ -150,7 +150,7 @@ jobs:
 
   build-ios-release:
     name: Build iOS Release IPA
-    needs: [bump-version, test]
+    needs: [test, bump-version]
     runs-on: macos-latest
 
     steps:
@@ -241,7 +241,7 @@ jobs:
 
   build-web-release:
     name: Build Web
-    needs: [bump-version, test]
+    needs: [test, bump-version]
     runs-on: ubuntu-latest
 
     steps:
@@ -280,7 +280,7 @@ jobs:
 
   create-release-tag:
     name: Create Release Tag
-    needs: [bump-version, test, build-android-release, build-ios-release, build-web-release]
+    needs: [test, bump-version, build-android-release, build-ios-release, build-web-release]
     if: always() && needs.test.result == 'success' && (needs.build-android-release.result == 'success' || needs.build-android-release.result == 'skipped') && (needs.build-ios-release.result == 'success' || needs.build-ios-release.result == 'skipped') && (needs.build-web-release.result == 'success' || needs.build-web-release.result == 'skipped')
     runs-on: ubuntu-latest
 

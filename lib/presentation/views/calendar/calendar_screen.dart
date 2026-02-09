@@ -117,7 +117,7 @@ class CalendarProvidedScreen extends StatefulWidget {
 }
 
 class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
-  static const _agendaHeightMobile = 51.0;
+  static const _agendaHeightMobile = 53.0;
   static const _agendaHeightDesktop = 57.0;
 
   @override
@@ -2869,8 +2869,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         decorationColor: Colors.white,
         decorationThickness: 2.0,
       ),
-      maxLines: _currentView == HeliumView.month ? 1 : null,
-      overflow: _currentView == HeliumView.month ? TextOverflow.ellipsis : null,
+      maxLines: _currentView == HeliumView.month || _currentView == HeliumView.agenda ? 1 : null,
+      overflow: _currentView == HeliumView.month || _currentView == HeliumView.agenda ? TextOverflow.ellipsis : null,
     );
   }
 
