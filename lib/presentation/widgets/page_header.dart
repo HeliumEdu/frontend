@@ -47,25 +47,23 @@ class PageHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: context.colorScheme.surface,
-      padding: const EdgeInsets.only(top: 6, bottom: 2, left: 12, right: 12),
-      child: Row(
+    Widget buildContent(BuildContext ctx) {
+      return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           if (screenType == ScreenType.subPage)
             IconButton(
               visualDensity: VisualDensity.compact,
               onPressed: () {
-                if (Navigator.canPop(context)) {
-                  context.pop();
+                if (Navigator.canPop(ctx)) {
+                  ctx.pop();
                 } else {
-                  context.go(AppRoutes.plannerScreen);
+                  ctx.go(AppRoutes.plannerScreen);
                 }
               },
               icon: Icon(
                 Icons.keyboard_arrow_left,
-                color: context.colorScheme.onSurface,
+                color: ctx.colorScheme.onSurface,
               ),
             )
           else if (screenType == ScreenType.entityPage)
@@ -74,11 +72,11 @@ class PageHeader extends StatelessWidget {
               onPressed: () {
                 cancelAction?.call();
               },
-              icon: Icon(Icons.cancel, color: context.colorScheme.primary),
+              icon: Icon(Icons.cancel, color: ctx.colorScheme.primary),
             )
-          else if (Responsive.isMobile(context) ||
-              (!Responsive.isTouchDevice(context) &&
-                  MediaQuery.of(context).size.height <
+          else if (Responsive.isMobile(ctx) ||
+              (!Responsive.isTouchDevice(ctx) &&
+                  MediaQuery.of(ctx).size.height <
                       AppConstants.minHeightForTrailingNav))
             const SettingsButton()
           else
@@ -88,10 +86,10 @@ class PageHeader extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (icon != null) ...[
-                Icon(icon, color: context.colorScheme.primary),
+                Icon(icon, color: ctx.colorScheme.primary),
                 const SizedBox(width: 8),
               ],
-              Text(title, style: AppStyles.pageTitle(context)),
+              Text(title, style: AppStyles.pageTitle(ctx)),
             ],
           ),
 
@@ -99,11 +97,11 @@ class PageHeader extends StatelessWidget {
             IconButton(
               visualDensity: VisualDensity.compact,
               onPressed: () {
-                showNotifications(context, providers: inheritableProviders);
+                showNotifications(ctx);
               },
               icon: Icon(
                 Icons.notifications,
-                color: context.colorScheme.primary,
+                color: ctx.colorScheme.primary,
               ),
             )
           else if (screenType == ScreenType.entityPage)
@@ -118,7 +116,7 @@ class PageHeader extends StatelessWidget {
                   ? const LoadingIndicator(small: true)
                   : Icon(
                       Icons.check_circle,
-                      color: context.colorScheme.primary,
+                      color: ctx.colorScheme.primary,
                     ),
             ),
 
@@ -126,11 +124,11 @@ class PageHeader extends StatelessWidget {
             IconButton(
               visualDensity: VisualDensity.compact,
               onPressed: () {
-                _showLogoutDialog(context);
+                _showLogoutDialog(ctx);
               },
               icon: Icon(
                 Icons.logout_outlined,
-                color: context.colorScheme.error,
+                color: ctx.colorScheme.error,
               ),
             ),
 
@@ -138,7 +136,22 @@ class PageHeader extends StatelessWidget {
           if (screenType == ScreenType.subPage && !showLogout)
             const Icon(Icons.space_bar, color: Colors.transparent),
         ],
-      ),
+      );
+    }
+
+    final wrappedContent = inheritableProviders != null && inheritableProviders!.isNotEmpty
+        ? MultiBlocProvider(
+            providers: inheritableProviders!,
+            child: Builder(
+              builder: (context) => buildContent(context),
+            ),
+          )
+        : buildContent(context);
+
+    return Container(
+      color: context.colorScheme.surface,
+      padding: const EdgeInsets.only(top: 6, bottom: 2, left: 12, right: 12),
+      child: wrappedContent,
     );
   }
 

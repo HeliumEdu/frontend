@@ -15,6 +15,7 @@ import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
 import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
+import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_bloc.dart';
 import 'package:heliumapp/presentation/bloc/course/course_bloc.dart';
 import 'package:heliumapp/presentation/bloc/material/material_bloc.dart';
 import 'package:heliumapp/presentation/views/auth/forgot_password_screen.dart';
@@ -37,6 +38,7 @@ import 'package:heliumapp/presentation/views/settings/external_calendars_screen.
 import 'package:heliumapp/presentation/views/settings/feeds_screen.dart';
 import 'package:heliumapp/presentation/views/settings/preferences_screen.dart';
 import 'package:heliumapp/presentation/views/settings/settings_screen.dart';
+import 'package:heliumapp/utils/responsive_helpers.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 final shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -117,10 +119,20 @@ void initializeRouter() {
       GoRoute(
         path: AppRoutes.notificationsScreen,
         pageBuilder: (context, state) {
+          // On desktop/tablet, redirect to planner and open as dialog
+          if (!Responsive.isMobile(context)) {
+            return const MaterialPage(
+              child: _RouteRedirect(
+                redirectTo: AppRoutes.plannerScreen,
+                queryParams: {'openDialog': 'notifications'},
+              ),
+            );
+          }
+
           final args = state.extra as NotificationArgs?;
-          final child = (args?.providers != null && args!.providers!.isNotEmpty)
-              ? MultiBlocProvider(
-                  providers: args.providers!,
+          final child = (args?.calendarItemBloc != null)
+              ? BlocProvider<CalendarItemBloc>.value(
+                  value: args!.calendarItemBloc!,
                   child: NotificationsScreen(),
                 )
               : BlocProvider<CalendarItemBloc>(
@@ -317,8 +329,26 @@ void initializeRouter() {
       // Settings routes
       GoRoute(
         path: AppRoutes.settingScreen,
-        pageBuilder: (context, state) =>
-            const MaterialPage(child: SettingsScreen()),
+        pageBuilder: (context, state) {
+          // On desktop/tablet, redirect to planner and open as dialog
+          if (!Responsive.isMobile(context)) {
+            return const MaterialPage(
+              child: _RouteRedirect(
+                redirectTo: AppRoutes.plannerScreen,
+                queryParams: {'openDialog': 'settings'},
+              ),
+            );
+          }
+
+          final args = state.extra as SettingsArgs?;
+          final child = (args?.externalCalendarBloc != null)
+              ? BlocProvider<ExternalCalendarBloc>.value(
+                  value: args!.externalCalendarBloc!,
+                  child: const SettingsScreen(),
+                )
+              : const SettingsScreen();
+          return MaterialPage(child: child);
+        },
       ),
       GoRoute(
         path: AppRoutes.preferencesScreen,
@@ -332,8 +362,16 @@ void initializeRouter() {
       ),
       GoRoute(
         path: AppRoutes.externalCalendarsScreen,
-        pageBuilder: (context, state) =>
-            MaterialPage(child: ExternalCalendarsScreen()),
+        pageBuilder: (context, state) {
+          final args = state.extra as ExternalCalendarsArgs?;
+          final child = (args?.externalCalendarBloc != null)
+              ? BlocProvider<ExternalCalendarBloc>.value(
+                  value: args!.externalCalendarBloc!,
+                  child: ExternalCalendarsScreen(),
+                )
+              : ExternalCalendarsScreen();
+          return MaterialPage(child: child);
+        },
       ),
       GoRoute(
         path: AppRoutes.changePasswordScreen,
@@ -379,14 +417,23 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
 /// Widget that redirects to a fallback route when arguments are missing.
 class _RouteRedirect extends StatelessWidget {
   final String redirectTo;
+  final Map<String, String>? queryParams;
 
-  const _RouteRedirect({required this.redirectTo});
+  const _RouteRedirect({required this.redirectTo, this.queryParams});
 
   @override
   Widget build(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (context.mounted) {
-        context.go(redirectTo);
+        if (queryParams != null && queryParams!.isNotEmpty) {
+          final uri = Uri.parse(redirectTo);
+          final newUri = uri.replace(
+            queryParameters: {...uri.queryParameters, ...queryParams!},
+          );
+          context.go(newUri.toString());
+        } else {
+          context.go(redirectTo);
+        }
       }
     });
     return const Scaffold(body: SizedBox.shrink());

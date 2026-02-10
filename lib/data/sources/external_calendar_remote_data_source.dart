@@ -25,6 +25,7 @@ abstract class ExternalCalendarRemoteDataSource extends BaseDataSource {
     required DateTime from,
     required DateTime to,
     String? search,
+    bool? shownOnCalendar,
   });
 
   Future<ExternalCalendarModel> createExternalCalendar({
@@ -96,6 +97,7 @@ class ExternalCalendarRemoteDataSourceImpl
     required DateTime from,
     required DateTime to,
     String? search,
+    bool? shownOnCalendar,
   }) async {
     try {
       _log.info('Fetching ExternalCalendarEvents ...');
@@ -105,6 +107,9 @@ class ExternalCalendarRemoteDataSourceImpl
         'to': HeliumDateTime.formatDateForApi(to),
       };
       if (search != null) queryParameters['search'] = search;
+      if (shownOnCalendar != null) {
+        queryParameters['shown_on_calendar'] = shownOnCalendar;
+      }
 
       // TODO: Enhancement: consider just hitting iCal directly for a better path, and to reduce load on our backend
 

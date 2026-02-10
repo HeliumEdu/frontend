@@ -26,11 +26,13 @@ class ExternalCalendarRepositoryImpl implements ExternalCalendarRepository {
     required DateTime from,
     required DateTime to,
     String? search,
+    bool? shownOnCalendar,
   }) async {
     return await remoteDataSource.getExternalCalendarEvents(
       from: from,
       to: to,
       search: search,
+      shownOnCalendar: shownOnCalendar
     );
   }
 

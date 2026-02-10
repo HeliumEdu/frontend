@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
@@ -45,10 +46,14 @@ import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_state.dart
 import 'package:heliumapp/presentation/bloc/category/category_bloc.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
+import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_bloc.dart';
+import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_state.dart';
 import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/views/calendar/calendar_item_add_screen.dart';
 import 'package:heliumapp/presentation/views/calendar/todos_table_controller.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/views/core/notification_screen.dart';
+import 'package:heliumapp/presentation/views/settings/settings_screen.dart';
 import 'package:heliumapp/presentation/widgets/error_card.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
@@ -101,6 +106,9 @@ class CalendarScreen extends StatelessWidget {
             ),
           ),
         ),
+        BlocProvider(
+          create: _providerHelpers.createExternalCalendarBloc(),
+        ),
       ],
       child: const CalendarProvidedScreen(),
     );
@@ -126,6 +134,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   List<SingleChildWidget>? get inheritableProviders => [
     BlocProvider<CalendarItemBloc>.value(
       value: context.read<CalendarItemBloc>(),
+    ),
+    BlocProvider<ExternalCalendarBloc>.value(
+      value: context.read<ExternalCalendarBloc>(),
     ),
   ];
 
@@ -290,6 +301,24 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         listener: (context, state) {
           if (state is CalendarScreenDataFetched) {
             _populateInitialCalendarStateData(state);
+
+            // Check if we should open a dialog based on query parameters
+            final openDialog = GoRouterState.of(context).uri.queryParameters['openDialog'];
+            if (openDialog != null) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!mounted) return;
+
+                // Clear the query parameter from URL
+                context.go(GoRouterState.of(context).uri.replace(queryParameters: {}).toString());
+
+                // Open the appropriate dialog
+                if (openDialog == 'notifications') {
+                  showNotifications(context);
+                } else if (openDialog == 'settings') {
+                  showSettings(context);
+                }
+              });
+            }
           }
         },
       ),
@@ -317,6 +346,36 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           } else if (state is HomeworkDeleted) {
             showSnackBar(context, 'Assignment deleted');
             _calendarItemDataSource!.removeCalendarItem(state.id);
+          }
+        },
+      ),
+      BlocListener<ExternalCalendarBloc, ExternalCalendarState>(
+        listener: (context, state) async {
+          if (_calendarItemDataSource == null) return;
+
+          if (state is ExternalCalendarCreated ||
+              state is ExternalCalendarUpdated ||
+              state is ExternalCalendarDeleted) {
+            _log.info('External calendar changed, refreshing calendar sources');
+
+            setState(() {
+              _calendarItemDataSource!.refreshCalendarSources();
+            });
+
+            // Force reload by triggering a view change
+            await Future.delayed(const Duration(milliseconds: 100));
+            if (mounted) {
+              final currentDate = _calendarController.displayDate;
+              setState(() {
+                _calendarController.displayDate = currentDate?.add(const Duration(days: 1));
+              });
+              await Future.delayed(const Duration(milliseconds: 100));
+              if (mounted) {
+                setState(() {
+                  _calendarController.displayDate = currentDate;
+                });
+              }
+            }
           }
         },
       ),
