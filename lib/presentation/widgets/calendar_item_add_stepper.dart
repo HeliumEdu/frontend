@@ -16,10 +16,9 @@ import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart'
 import 'package:heliumapp/presentation/views/calendar/calendar_item_add_attachment_screen.dart';
 import 'package:heliumapp/presentation/views/calendar/calendar_item_add_reminder_screen.dart';
 import 'package:heliumapp/presentation/views/calendar/calendar_item_add_screen.dart';
+import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/views/core/dialog_step_navigation.dart';
 import 'package:heliumapp/presentation/widgets/shadow_container.dart';
-
-// FIXME: in dialog mode, the stepper icons look too small
 
 enum CalendarItemAddSteps {
   details(Icons.list, AppRoutes.plannerItemAddScreen),
@@ -97,14 +96,20 @@ class CalendarItemStepper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dialogProvider = DialogModeProvider.maybeOf(context);
+
+    // Use dialog width if available, otherwise use screen width
+    final availableWidth = dialogProvider?.width ?? MediaQuery.sizeOf(context).width;
+    final lineLength = (availableWidth - 275) / 3;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: ShadowContainer(
         child: EasyStepper(
           showTitle: false,
           lineStyle: LineStyle(
-            lineLength: (MediaQuery.sizeOf(context).width - 275) / 3,
-            lineThickness: 3,
+            lineLength: lineLength,
+            lineThickness: 3.0,
             lineSpace: 4,
             lineType: LineType.normal,
             defaultLineColor: context.colorScheme.outline.withValues(
@@ -137,7 +142,7 @@ class CalendarItemStepper extends StatelessWidget {
           disableScroll: true,
           activeStep: selectedIndex,
           onStepReached: (index) => _onStepReached(context, index),
-          steps: _buildSteps(context),
+          steps: _buildSteps(context, 25),
         ),
       ),
     );
@@ -199,7 +204,7 @@ class CalendarItemStepper extends StatelessWidget {
     }
   }
 
-  List<EasyStep> _buildSteps(BuildContext context) {
+  List<EasyStep> _buildSteps(BuildContext context, double iconSize) {
     return [
       EasyStep(
         customStep: Container(
@@ -218,7 +223,7 @@ class CalendarItemStepper extends StatelessWidget {
               color: selectedIndex == CalendarItemAddSteps.details.index
                   ? context.colorScheme.surface
                   : context.colorScheme.primary,
-              size: 30,
+              size: iconSize,
             ),
           ),
         ),
@@ -248,7 +253,7 @@ class CalendarItemStepper extends StatelessWidget {
                   : context.colorScheme.primary.withValues(
                       alpha: isEdit ? 1 : 0.3,
                     ),
-              size: 20,
+              size: iconSize,
             ),
           ),
         ),
@@ -278,7 +283,7 @@ class CalendarItemStepper extends StatelessWidget {
                   : context.colorScheme.primary.withValues(
                       alpha: isEdit ? 1 : 0.3,
                     ),
-              size: 20,
+              size: iconSize,
             ),
           ),
         ),
