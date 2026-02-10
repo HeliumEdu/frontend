@@ -1,4 +1,4 @@
-.PHONY: all env install clean build-android build-android-release build-ios-dev build-ios build-ios-release build-web upload-web-sourcemaps test coverage run
+.PHONY: all env install clean build-android build-android-release build-ios-dev build-ios build-ios-release update-version build-web upload-web-sourcemaps test coverage run
 
 SHELL := /usr/bin/env bash
 
@@ -52,7 +52,10 @@ build-ios: install
 build-ios-release: install
 	flutter build ipa --release --export-options-plist=ios/ExportOptions.plist --obfuscate --split-debug-info=build/symbols
 
-build-web: install
+update-version:
+	dart tool/update_version.dart
+
+build-web: install update-version
 	flutter build web --release --source-maps $(WEB_ARGS)
 
 upload-web-sourcemaps:
