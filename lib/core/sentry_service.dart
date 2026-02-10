@@ -42,9 +42,10 @@ class SentryService {
         // Filter expected user authentication errors (not bugs)
 
         // 401 on login endpoint = wrong credentials (expected user error)
-        if (exceptionValue.contains('status code of 401') &&
+        if ((exceptionValue.contains('status code of 401') ||
+            exceptionValue.contains('status code of 403')) &&
             exceptionValue.contains('/auth/token/')) {
-          _log.info('Filtered login failure from Sentry');
+          _log.info('Filtered /auth/token/ 401/403 from Sentry');
           return null;
         }
 
@@ -52,7 +53,7 @@ class SentryService {
         if ((exceptionValue.contains('status code of 401') ||
                 exceptionValue.contains('status code of 403')) &&
             exceptionValue.contains('/auth/user/delete/')) {
-          _log.info('Filtered account deletion auth error from Sentry');
+          _log.info('Filtered /auth/user/delete/ 401/403 from Sentry');
           return null;
         }
 
@@ -60,7 +61,15 @@ class SentryService {
         if ((exceptionValue.contains('status code of 400') ||
                 exceptionValue.contains('status code of 401')) &&
             exceptionValue.contains('/auth/user/verify/')) {
-          _log.info('Filtered verification error from Sentry');
+          _log.info('Filtered /auth/user/verify/ 400/401 from Sentry');
+          return null;
+        }
+
+        // 403 on token refresh = account doesn't exist (expected user error)
+        if ((exceptionValue.contains('status code of 401') ||
+                exceptionValue.contains('status code of 403')) &&
+            exceptionValue.contains('/auth/token/refresh/')) {
+          _log.info('Filtered /auth/token/refresh/ 401/403 from Sentry');
           return null;
         }
       }
