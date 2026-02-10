@@ -12,7 +12,6 @@ import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_bloc.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_event.dart';
-import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/views/core/notification_screen.dart';
 import 'package:heliumapp/presentation/widgets/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
@@ -199,8 +198,7 @@ class PageHeader extends StatelessWidget {
                         buttonText: 'Cancel',
                         backgroundColor: context.colorScheme.outline,
                         onPressed: () {
-                          dialogContext.pop();
-                          // FIXME: how to close in non-dialog context?
+                          Navigator.of(dialogContext).pop();
                         },
                       ),
                     ),
@@ -215,8 +213,7 @@ class PageHeader extends StatelessWidget {
                             isSubmitting = true;
                           });
 
-                          dialogContext.pop();
-                          // FIXME: how to close in non-dialog context?
+                          Navigator.of(dialogContext).pop();
 
                           context.read<AuthBloc>().add(LogoutEvent());
                         },

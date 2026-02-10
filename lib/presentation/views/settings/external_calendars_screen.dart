@@ -14,7 +14,6 @@ import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_model.dart';
 import 'package:heliumapp/data/models/planner/request/external_calendar_request_model.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
-import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_bloc.dart';
 import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_event.dart';
 import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_state.dart';
@@ -33,37 +32,25 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
-import 'package:logging/logging.dart';
-
-final _log = Logger('presentation.views');
 
 /// Shows as a dialog on desktop, or navigates on mobile.
 void showExternalCalendars(BuildContext context) {
-  ExternalCalendarBloc? externalCalendarBloc;
-  try {
-    externalCalendarBloc = context.read<ExternalCalendarBloc>();
-  } catch (_) {
-    _log.info('ExternalCalendarBloc not passed, will create a new one');
-  }
+  final externalCalendarBloc = context.read<ExternalCalendarBloc>();
 
   if (Responsive.isMobile(context)) {
     context.push(
       AppRoutes.externalCalendarsScreen,
-      extra: externalCalendarBloc != null
-          ? ExternalCalendarsArgs(externalCalendarBloc: externalCalendarBloc)
-          : null,
+      extra: ExternalCalendarsArgs(externalCalendarBloc: externalCalendarBloc),
     );
   } else {
     showScreenAsDialog(
       context,
-      child: ExternalCalendarsScreen(),
-      providers: externalCalendarBloc != null
-          ? [
-              BlocProvider<ExternalCalendarBloc>.value(
-                value: externalCalendarBloc,
-              ),
-            ]
-          : null,
+      child: const ExternalCalendarsScreen(),
+      providers: [
+        BlocProvider<ExternalCalendarBloc>.value(
+          value: externalCalendarBloc,
+        ),
+      ],
       width: 500,
       alignment: Alignment.centerLeft,
       insetPadding: const EdgeInsets.all(0),
@@ -72,24 +59,11 @@ void showExternalCalendars(BuildContext context) {
 }
 
 class ExternalCalendarsScreen extends StatelessWidget {
-  final ProviderHelpers _providerHelpers = ProviderHelpers();
-
-  ExternalCalendarsScreen({super.key});
+  const ExternalCalendarsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    try {
-      context.read<ExternalCalendarBloc>();
-      return const ExternalCalendarsProvidedScreen();
-    } catch (_) {
-      _log.fine('ExternalCalendarBloc not in context, creating a new one');
-      return MultiBlocProvider(
-        providers: [
-          BlocProvider(create: _providerHelpers.createExternalCalendarBloc()),
-        ],
-        child: const ExternalCalendarsProvidedScreen(),
-      );
-    }
+    return const ExternalCalendarsProvidedScreen();
   }
 }
 

@@ -5,7 +5,6 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -64,7 +63,6 @@ class DialogModeProvider extends InheritedWidget {
 ///   ],
 /// );
 /// ```
-// FIXME: update settings, sub screens to use this as Notifications does, except for Settings it should be pinned left (instead of right like Notifications), and for all others it should be centered.
 void showScreenAsDialog(
   BuildContext context, {
   required Widget child,

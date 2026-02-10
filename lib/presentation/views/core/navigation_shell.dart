@@ -7,10 +7,15 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/whats_new_service.dart';
+import 'package:heliumapp/presentation/bloc/auth/auth_bloc.dart';
+import 'package:heliumapp/presentation/bloc/auth/auth_state.dart';
+import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
+import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_bloc.dart';
 import 'package:heliumapp/presentation/dialogs/whats_new_dialog.dart';
 import 'package:heliumapp/presentation/views/calendar/calendar_screen.dart';
 import 'package:heliumapp/presentation/views/courses/courses_screen.dart';
@@ -120,6 +125,7 @@ class _NavigationShellState extends State<NavigationShell> {
   final Map<NavigationPage, Widget> _screenCache = {};
   final InheritableProvidersNotifier _inheritableProvidersNotifier =
       InheritableProvidersNotifier();
+  final ProviderHelpers _providerHelpers = ProviderHelpers();
 
   @override
   void initState() {
@@ -165,7 +171,15 @@ class _NavigationShellState extends State<NavigationShell> {
   Widget build(BuildContext context) {
     final currentPage = _getCurrentPage(context);
 
-    return LayoutBuilder(
+    return BlocProvider<ExternalCalendarBloc>(
+      create: _providerHelpers.createExternalCalendarBloc(),
+      child: BlocListener<AuthBloc, AuthState>(
+        listener: (context, state) {
+          if (state is AuthLoggedOut) {
+            context.go(AppRoutes.loginScreen);
+          }
+        },
+        child: LayoutBuilder(
       builder: (context, constraints) {
         final useNavigationRail = !Responsive.isMobile(context);
 
@@ -290,6 +304,8 @@ class _NavigationShellState extends State<NavigationShell> {
                 ),
         );
       },
+        ),
+      ),
     );
   }
 
