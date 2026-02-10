@@ -24,6 +24,7 @@ class SentryService {
       const release = String.fromEnvironment('SENTRY_RELEASE');
       if (release.isNotEmpty) {
         options.release = release;
+        options.environment = 'prod';
       }
 
       options.beforeSend = _beforeSend;
@@ -43,7 +44,7 @@ class SentryService {
 
         // 401 on login endpoint = wrong credentials (expected user error)
         if ((exceptionValue.contains('status code of 401') ||
-            exceptionValue.contains('status code of 403')) &&
+                exceptionValue.contains('status code of 403')) &&
             exceptionValue.contains('/auth/token/')) {
           _log.info('Filtered /auth/token/ 401/403 from Sentry');
           return null;
