@@ -127,8 +127,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
   Function? get saveAction => null;
 
-  // FIXME: show logout next to notifications bell on non-mobile, otherwise only show it in settings
-  bool get showLogout => kIsWeb && !Responsive.isMobile(context);
+  bool get showLogout => false;
 
   VoidCallback? get actionButtonCallback => null;
 

@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_routes.dart';
@@ -166,130 +167,130 @@ class _NavigationShellState extends State<NavigationShell> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-          final useNavigationRail = !Responsive.isMobile(context);
+        final useNavigationRail = !Responsive.isMobile(context);
 
-          return Scaffold(
-            body: Row(
-              children: [
-                if (useNavigationRail)
-                  NavigationRail(
-                    minWidth: 56,
-                    selectedIndex: currentPage.index,
-                    onDestinationSelected: (index) =>
-                        _onDestinationSelected(context, index),
-                    labelType: NavigationRailLabelType.all,
-                    destinations: NavigationPage.values
-                        .map(
-                          (page) => NavigationRailDestination(
-                            icon: Icon(
-                              page.icon,
-                              color: context.colorScheme.primary,
-                            ),
-                            label: Text(
-                              page.label,
-                              style: AppStyles.smallSecondaryText(context),
-                            ),
+        return Scaffold(
+          body: Row(
+            children: [
+              if (useNavigationRail)
+                NavigationRail(
+                  minWidth: 56,
+                  selectedIndex: currentPage.index,
+                  onDestinationSelected: (index) =>
+                      _onDestinationSelected(context, index),
+                  labelType: NavigationRailLabelType.all,
+                  destinations: NavigationPage.values
+                      .map(
+                        (page) => NavigationRailDestination(
+                          icon: Icon(
+                            page.icon,
+                            color: context.colorScheme.primary,
                           ),
-                        )
-                        .toList(),
-                    trailing: _buildTrailing(context, constraints.maxHeight),
-                    trailingAtBottom: true,
-                  ),
-                Expanded(
-                  child: SafeArea(
-                    bottom: false,
-                    child: InheritableProvidersScope(
-                      notifier: _inheritableProvidersNotifier,
-                      child: Column(
-                        children: [
-                          // Static PageHeader that doesn't animate
-                          ListenableBuilder(
-                            listenable: _inheritableProvidersNotifier,
-                            builder: (context, _) => PageHeader(
-                              title: currentPage.label,
-                              screenType: ScreenType.page,
-                              inheritableProviders:
-                                  _inheritableProvidersNotifier.providers,
-                            ),
+                          label: Text(
+                            page.label,
+                            style: AppStyles.smallSecondaryText(context),
                           ),
-                          // Only the content area animates
-                          Expanded(
-                            child: AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 300),
-                              switchInCurve: Curves.easeInOut,
-                              switchOutCurve: Curves.easeInOut,
-                              transitionBuilder: (child, animation) {
-                                // Vertical slide for NavigationRail
-                                // Horizontal slide for NavigationBar
-                                if (useNavigationRail) {
-                                  return SlideTransition(
-                                    position: Tween<Offset>(
-                                      begin: const Offset(0, 0.1),
-                                      end: Offset.zero,
-                                    ).animate(animation),
-                                    child: FadeTransition(
-                                      opacity: animation,
-                                      child: child,
-                                    ),
-                                  );
-                                } else {
-                                  return SlideTransition(
-                                    position: Tween<Offset>(
-                                      begin: const Offset(0.1, 0),
-                                      end: Offset.zero,
-                                    ).animate(animation),
-                                    child: FadeTransition(
-                                      opacity: animation,
-                                      child: child,
-                                    ),
-                                  );
-                                }
-                              },
-                              child: KeyedSubtree(
-                                key: ValueKey(currentPage),
-                                child: NavigationShellProvider(
-                                  child:
-                                      _screenCache[currentPage] ??
-                                      currentPage.buildScreen(),
-                                ),
+                        ),
+                      )
+                      .toList(),
+                  trailing: _buildTrailing(context, constraints.maxHeight),
+                  trailingAtBottom: true,
+                ),
+              Expanded(
+                child: SafeArea(
+                  bottom: false,
+                  child: InheritableProvidersScope(
+                    notifier: _inheritableProvidersNotifier,
+                    child: Column(
+                      children: [
+                        // Static PageHeader that doesn't animate
+                        ListenableBuilder(
+                          listenable: _inheritableProvidersNotifier,
+                          builder: (context, _) => PageHeader(
+                            title: currentPage.label,
+                            screenType: ScreenType.page,
+                            inheritableProviders:
+                                _inheritableProvidersNotifier.providers,
+                            showLogout: kIsWeb && !Responsive.isMobile(context),
+                          ),
+                        ),
+                        // Only the content area animates
+                        Expanded(
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            switchInCurve: Curves.easeInOut,
+                            switchOutCurve: Curves.easeInOut,
+                            transitionBuilder: (child, animation) {
+                              // Vertical slide for NavigationRail
+                              // Horizontal slide for NavigationBar
+                              if (useNavigationRail) {
+                                return SlideTransition(
+                                  position: Tween<Offset>(
+                                    begin: const Offset(0, 0.1),
+                                    end: Offset.zero,
+                                  ).animate(animation),
+                                  child: FadeTransition(
+                                    opacity: animation,
+                                    child: child,
+                                  ),
+                                );
+                              } else {
+                                return SlideTransition(
+                                  position: Tween<Offset>(
+                                    begin: const Offset(0.1, 0),
+                                    end: Offset.zero,
+                                  ).animate(animation),
+                                  child: FadeTransition(
+                                    opacity: animation,
+                                    child: child,
+                                  ),
+                                );
+                              }
+                            },
+                            child: KeyedSubtree(
+                              key: ValueKey(currentPage),
+                              child: NavigationShellProvider(
+                                child:
+                                    _screenCache[currentPage] ??
+                                    currentPage.buildScreen(),
                               ),
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ],
-            ),
-            bottomNavigationBar: useNavigationRail
-                ? null
-                : NavigationBar(
-                    height: 60,
-                    selectedIndex: currentPage.index,
-                    onDestinationSelected: (index) =>
-                        _onDestinationSelected(context, index),
-                    labelBehavior:
-                        NavigationDestinationLabelBehavior.alwaysShow,
-                    labelTextStyle: WidgetStateProperty.all(
-                      AppStyles.smallSecondaryText(context),
-                    ),
-                    destinations: NavigationPage.values
-                        .map(
-                          (page) => NavigationDestination(
-                            icon: Icon(
-                              page.icon,
-                              color: context.colorScheme.primary,
-                            ),
-                            label: page.label,
-                            tooltip: '',
-                          ),
-                        )
-                        .toList(),
+              ),
+            ],
+          ),
+          bottomNavigationBar: useNavigationRail
+              ? null
+              : NavigationBar(
+                  height: 60,
+                  selectedIndex: currentPage.index,
+                  onDestinationSelected: (index) =>
+                      _onDestinationSelected(context, index),
+                  labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+                  labelTextStyle: WidgetStateProperty.all(
+                    AppStyles.smallSecondaryText(context),
                   ),
-          );
-        },
-      );
+                  destinations: NavigationPage.values
+                      .map(
+                        (page) => NavigationDestination(
+                          icon: Icon(
+                            page.icon,
+                            color: context.colorScheme.primary,
+                          ),
+                          label: page.label,
+                          tooltip: '',
+                        ),
+                      )
+                      .toList(),
+                ),
+        );
+      },
+    );
   }
 
   Widget? _buildTrailing(BuildContext context, double availableHeight) {
