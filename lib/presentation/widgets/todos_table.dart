@@ -745,6 +745,7 @@ class TodosTableState extends State<TodosTable> {
         onChanged: (value) {
           widget.onToggleCompleted(homework, value!);
         },
+        // FIXME: unchecked color should match checked color, otherwise on mobile (where less columns are shown) it's not clear
         activeColor: userSettings.colorByCategory
             ? category.color
             : course.color,

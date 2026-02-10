@@ -20,6 +20,7 @@ import 'package:heliumapp/data/models/planner/request/reminder_request_model.dar
 import 'package:heliumapp/data/repositories/reminder_repository_impl.dart';
 import 'package:heliumapp/data/sources/reminder_remote_data_source.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
+import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/bloc/reminder/reminder_bloc.dart';
 import 'package:heliumapp/presentation/bloc/reminder/reminder_event.dart';
@@ -243,7 +244,7 @@ class _NotificationsScreenState
     } else {
       calendarItem = reminder.event?.entity;
       title = reminder.event?.entity?.title as String;
-      color = null;
+      color = userSettings?.eventsColor;
     }
 
     return NotificationModel(
@@ -429,30 +430,20 @@ class _NotificationsScreenState
       try {
         calendarItemBloc = context.read<CalendarItemBloc>();
       } catch (_) {
-        // No existing CalendarItemBloc, so next screen will initialize it
+        // No existing CalendarItemBloc, create one
+        calendarItemBloc = ProviderHelpers().createCalendarItemBloc()(context);
       }
 
-      if (calendarItemBloc != null) {
-        showCalendarItemAdd(
-          context,
-          eventId: notification.reminder.event?.id,
-          homeworkId: notification.reminder.homework?.id,
-          isEdit: true,
-          isNew: false,
-          providers: [
-            BlocProvider<CalendarItemBloc>.value(value: calendarItemBloc),
-          ],
-        );
-      } else {
-        // No existing bloc, so showCalendarItemAdd will create one via routing
-        showCalendarItemAdd(
-          context,
-          eventId: notification.reminder.event?.id,
-          homeworkId: notification.reminder.homework?.id,
-          isEdit: true,
-          isNew: false,
-        );
-      }
+      showCalendarItemAdd(
+        context,
+        eventId: notification.reminder.event?.id,
+        homeworkId: notification.reminder.homework?.id,
+        isEdit: true,
+        isNew: false,
+        providers: [
+          BlocProvider<CalendarItemBloc>.value(value: calendarItemBloc),
+        ],
+      );
     }
   }
 
