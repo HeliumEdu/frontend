@@ -31,6 +31,7 @@ class PageHeader extends StatelessWidget {
   final Function? cancelAction;
   final Function? saveAction;
   final bool showLogout;
+  final VoidCallback? onLogoutConfirmed;
   final List<SingleChildWidget>? inheritableProviders;
 
   const PageHeader({
@@ -42,6 +43,7 @@ class PageHeader extends StatelessWidget {
     this.cancelAction,
     this.saveAction,
     this.showLogout = false,
+    this.onLogoutConfirmed,
     this.inheritableProviders,
   });
 
@@ -115,7 +117,7 @@ class PageHeader extends StatelessWidget {
                           saveAction?.call();
                         },
                   icon: isLoading
-                      ? const LoadingIndicator(small: true)
+                      ? const LoadingIndicator(size: 20, expanded: false)
                       : Icon(
                           Icons.check_circle,
                           color: ctx.colorScheme.primary,
@@ -215,7 +217,8 @@ class PageHeader extends StatelessWidget {
 
                           Navigator.of(dialogContext).pop();
 
-                          context.read<AuthBloc>().add(LogoutEvent());
+                          onLogoutConfirmed?.call();
+                          parentContext.read<AuthBloc>().add(LogoutEvent());
                         },
                       ),
                     ),

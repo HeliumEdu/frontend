@@ -1388,12 +1388,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     return FutureBuilder<void>(
       future: loadMoreCalendarItems(),
       builder: (context, snapShot) {
-        return Container(
-          height: double.infinity,
-          width: double.infinity,
-          alignment: Alignment.center,
-          child: const CircularProgressIndicator(),
-        );
+        return const LoadingIndicator(expanded: true);
       },
     );
   }
