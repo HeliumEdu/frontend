@@ -22,7 +22,9 @@ import 'package:heliumapp/presentation/controllers/core/basic_form_controller.da
 import 'package:heliumapp/presentation/controllers/courses/course_form_controller.dart';
 import 'package:heliumapp/presentation/dialogs/color_picker_dialog.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
-import 'package:heliumapp/presentation/widgets/course_add_stepper.dart';
+import 'package:heliumapp/presentation/views/courses/course_add_stepper_container.dart';
+import 'package:heliumapp/presentation/widgets/course_add_stepper.dart'
+    show CourseStepper;
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
@@ -32,20 +34,64 @@ import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
+import 'package:nested/nested.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 final _log = Logger('presentation.views');
 
+/// Shows course add as a dialog on desktop, or navigates on mobile.
+///
+/// Pass [providers] to share Blocs from the parent screen with the course add
+/// dialog/screen, ensuring state changes are reflected in both.
+void showCourseAdd(
+  BuildContext context, {
+  required int courseGroupId,
+  int? courseId,
+  required bool isEdit,
+  required bool isNew,
+  int initialStep = 0,
+  List<SingleChildWidget>? providers,
+}) {
+  if (Responsive.isMobile(context)) {
+    context.push(
+      AppRoutes.courseAddScreen,
+      extra: CourseAddArgs(
+        courseBloc: context.read<CourseBloc>(),
+        courseGroupId: courseGroupId,
+        courseId: courseId,
+        isEdit: isEdit,
+        isNew: isNew,
+      ),
+    );
+  } else {
+    showScreenAsDialog(
+      context,
+      child: CourseAddStepperContainer(
+        courseGroupId: courseGroupId,
+        courseId: courseId,
+        isEdit: isEdit,
+        isNew: isNew,
+        initialStep: initialStep,
+      ),
+      providers: providers,
+      width: 600,
+      alignment: Alignment.center,
+    );
+  }
+}
+
 class CourseAddProvidedScreen extends StatefulWidget {
   final int courseGroupId;
-  final int? courseId;
   final bool isEdit;
+  final bool isNew;
+  final int? courseId;
 
   const CourseAddProvidedScreen({
     super.key,
     required this.courseGroupId,
+    required this.isEdit,
+    required this.isNew,
     this.courseId,
-    this.isEdit = false,
   });
 
   @override
@@ -55,7 +101,7 @@ class CourseAddProvidedScreen extends StatefulWidget {
 class _CourseAddScreenState
     extends BasePageScreenState<CourseAddProvidedScreen> {
   @override
-  String get screenTitle => widget.isEdit ? 'Edit Class' : 'Add Class';
+  String get screenTitle => !widget.isNew ? 'Edit Class' : 'Add Class';
 
   @override
   IconData? get icon => Icons.school;
@@ -114,15 +160,35 @@ class _CourseAddScreenState
             showSnackBar(context, 'Class saved');
 
             if (state.advanceNavOnSuccess) {
-              context.pushReplacement(
-                AppRoutes.courseAddScheduleScreen,
-                extra: CourseAddArgs(
-                  courseBloc: context.read<CourseBloc>(),
+              // In dialog mode, close and reopen with the new courseId
+              if (DialogModeProvider.isDialogMode(context)) {
+                Navigator.of(context).pop();
+                showCourseAdd(
+                  context,
                   courseGroupId: state.course.courseGroup,
                   courseId: state.course.id,
                   isEdit: true,
-                ),
-              );
+                  isNew: state is CourseCreated,
+                  initialStep: 1,
+                  providers: [
+                    BlocProvider<CourseBloc>.value(
+                      value: context.read<CourseBloc>(),
+                    ),
+                  ],
+                );
+              } else {
+                // Fall back to router navigation for non-dialog mode
+                context.pushReplacement(
+                  AppRoutes.courseAddScheduleScreen,
+                  extra: CourseAddArgs(
+                    courseBloc: context.read<CourseBloc>(),
+                    courseGroupId: state.course.courseGroup,
+                    courseId: state.course.id,
+                    isEdit: true,
+                    isNew: state is CourseCreated,
+                  ),
+                );
+              }
             }
           }
 
@@ -143,6 +209,7 @@ class _CourseAddScreenState
       courseGroupId: widget.courseGroupId,
       courseId: widget.courseId,
       isEdit: widget.isEdit,
+      isNew: widget.isNew,
       onStep: () => _onSubmit(advanceNavOnSuccess: false),
     );
   }
@@ -188,9 +255,7 @@ class _CourseAddScreenState
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        HeliumDateTime.formatDate(
-                          _formController.startDate!,
-                        ),
+                        HeliumDateTime.formatDate(_formController.startDate!),
                         style: AppStyles.formText(context),
                       ),
                       Icon(
@@ -228,9 +293,7 @@ class _CourseAddScreenState
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        HeliumDateTime.formatDate(
-                          _formController.endDate!,
-                        ),
+                        HeliumDateTime.formatDate(_formController.endDate!),
                         style: AppStyles.formText(context),
                       ),
                       Icon(

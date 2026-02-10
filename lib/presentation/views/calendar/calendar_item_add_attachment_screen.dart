@@ -18,6 +18,7 @@ class CalendarItemAddAttachmentScreen extends BaseAttachmentScreen {
     required this.isEvent,
     required super.entityId,
     required super.isEdit,
+    required super.isNew,
   });
 
   @override
@@ -26,6 +27,7 @@ class CalendarItemAddAttachmentScreen extends BaseAttachmentScreen {
       isEvent: isEvent,
       entityId: entityId,
       isEdit: isEdit,
+      isNew: isNew,
     );
   }
 }
@@ -39,6 +41,7 @@ class CalendarItemAddAttachmentProvidedScreen
     required this.isEvent,
     required super.entityId,
     required super.isEdit,
+    required super.isNew,
   });
 
   @override
@@ -52,7 +55,7 @@ class _CalendarItemAddAttachmentScreenState
   @override
   String get screenTitle => isLoading
       ? ''
-      : (widget.isEdit ? 'Edit ' : 'Add ') +
+      : (!widget.isNew ? 'Edit ' : 'Add ') +
             ((widget as CalendarItemAddAttachmentProvidedScreen).isEvent
                 ? 'Event'
                 : 'Assignment');
@@ -71,6 +74,7 @@ class _CalendarItemAddAttachmentScreenState
           ? widget.entityId
           : null,
       isEdit: widget.isEdit,
+      isNew: widget.isNew,
     );
   }
 

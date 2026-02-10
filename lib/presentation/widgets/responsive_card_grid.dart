@@ -56,24 +56,22 @@ class ResponsiveCardGrid<T> extends StatelessWidget {
                         (crossAxisSpacing * (columnsCount - 1))) /
                     columnsCount;
 
-                return IntrinsicHeight(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      for (var i = 0; i < rowItems.length; i++) ...[
-                        if (i > 0) SizedBox(width: crossAxisSpacing),
-                        SizedBox(
-                          width: cardWidth,
-                          child: itemBuilder(context, rowItems[i]),
-                        ),
-                      ],
-                      if (rowItems.length < columnsCount)
-                        ...List.generate(
-                          columnsCount - rowItems.length,
-                          (index) => SizedBox(width: cardWidth),
-                        ),
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    for (var i = 0; i < rowItems.length; i++) ...[
+                      if (i > 0) SizedBox(width: crossAxisSpacing),
+                      SizedBox(
+                        width: cardWidth,
+                        child: itemBuilder(context, rowItems[i]),
+                      ),
                     ],
-                  ),
+                    if (rowItems.length < columnsCount)
+                      ...List.generate(
+                        columnsCount - rowItems.length,
+                        (index) => SizedBox(width: cardWidth),
+                      ),
+                  ],
                 );
               },
             );

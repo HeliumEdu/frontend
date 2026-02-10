@@ -39,8 +39,14 @@ abstract class BaseReminderScreen extends StatelessWidget {
   final DioClient _dioClient = DioClient();
   final int entityId;
   final bool isEdit;
+  final bool isNew;
 
-  BaseReminderScreen({super.key, required this.entityId, required this.isEdit});
+  BaseReminderScreen({
+    super.key,
+    required this.entityId,
+    required this.isEdit,
+    required this.isNew,
+  });
 
   BaseReminderProvidedScreen buildScreen();
 
@@ -66,11 +72,13 @@ abstract class BaseReminderScreen extends StatelessWidget {
 abstract class BaseReminderProvidedScreen extends StatefulWidget {
   final int entityId;
   final bool isEdit;
+  final bool isNew;
 
   const BaseReminderProvidedScreen({
     super.key,
     required this.entityId,
     required this.isEdit,
+    required this.isNew,
   });
 
   @override

@@ -11,11 +11,13 @@ import 'dart:io';
 ///
 /// Usage: dart tool/update_version.dart
 void main() async {
+  // ignore: avoid_print
   print('Updating version in web/index.html from pubspec.yaml...');
 
   // Read pubspec.yaml
   final pubspecFile = File('pubspec.yaml');
   if (!pubspecFile.existsSync()) {
+    // ignore: avoid_print
     print('Error: pubspec.yaml not found');
     exit(1);
   }
@@ -27,6 +29,7 @@ void main() async {
       .firstMatch(pubspecContent);
 
   if (versionMatch == null) {
+    // ignore: avoid_print
     print('Error: Could not find version in pubspec.yaml');
     exit(1);
   }
@@ -35,16 +38,18 @@ void main() async {
   // Extract just the version number before the '+' (e.g., "1.0.25" from "1.0.25+25")
   final version = fullVersion.split('+').first;
 
+  // ignore: avoid_print
   print('Found version: $version');
 
   // Read index.html
   final indexFile = File('web/index.html');
   if (!indexFile.existsSync()) {
+    // ignore: avoid_print
     print('Error: web/index.html not found');
     exit(1);
   }
 
-  var indexContent = await indexFile.readAsString();
+  final indexContent = await indexFile.readAsString();
 
   // Replace version placeholder
   final updatedContent = indexContent.replaceAll(
@@ -55,5 +60,6 @@ void main() async {
   // Write updated content
   await indexFile.writeAsString(updatedContent);
 
+  // ignore: avoid_print
   print('Successfully updated version to $version in web/index.html');
 }

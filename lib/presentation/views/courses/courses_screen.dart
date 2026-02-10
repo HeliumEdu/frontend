@@ -8,10 +8,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
@@ -30,6 +27,7 @@ import 'package:heliumapp/presentation/bloc/course/course_state.dart';
 import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/dialogs/course_group_dialog.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/views/courses/course_add_screen.dart';
 import 'package:heliumapp/presentation/widgets/course_title_label.dart';
 import 'package:heliumapp/presentation/widgets/empty_card.dart';
 import 'package:heliumapp/presentation/widgets/error_card.dart';
@@ -96,13 +94,16 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
   @override
   VoidCallback get actionButtonCallback => () {
     if (_selectedGroupId != null) {
-      context.push(
-        AppRoutes.courseAddScreen,
-        extra: CourseAddArgs(
-          courseBloc: context.read<CourseBloc>(),
-          courseGroupId: _selectedGroupId!,
-          isEdit: false,
-        ),
+      showCourseAdd(
+        context,
+        courseGroupId: _selectedGroupId!,
+        isEdit: false,
+        isNew: true,
+        providers: [
+          BlocProvider<CourseBloc>.value(
+            value: context.read<CourseBloc>(),
+          ),
+        ],
       );
     } else {
       showSnackBar(context, 'Create a group first', isError: true);
@@ -122,7 +123,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
     super.initState();
 
     context.read<CourseBloc>().add(
-      FetchCoursesScreenDataEvent(origin: EventOrigin.subScreen),
+      FetchCoursesScreenDataEvent(origin: EventOrigin.screen),
     );
   }
 
@@ -242,7 +243,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
         onDelete: (g) => {
           context.read<CourseBloc>().add(
             DeleteCourseGroupEvent(
-              origin: EventOrigin.subScreen,
+              origin: EventOrigin.screen,
               courseGroupId: (g as BaseModel).id,
             ),
           ),
@@ -255,7 +256,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
   Widget buildMainArea(BuildContext context) {
     return BlocBuilder<CourseBloc, CourseState>(
       builder: (context, state) {
-        if (state is CoursesLoading) {
+        if (state is CoursesLoading && state.origin == EventOrigin.screen) {
           return const LoadingIndicator();
         }
 
@@ -332,6 +333,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
@@ -386,7 +388,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
                         onDelete: (c) {
                           context.read<CourseBloc>().add(
                             DeleteCourseEvent(
-                              origin: EventOrigin.subScreen,
+                              origin: EventOrigin.screen,
                               courseGroupId: c.courseGroup,
                               courseId: c.id,
                             ),
@@ -596,14 +598,17 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
   }
 
   void _onEdit(CourseModel course) {
-    context.push(
-      AppRoutes.courseAddScreen,
-      extra: CourseAddArgs(
-        courseBloc: context.read<CourseBloc>(),
-        courseGroupId: course.courseGroup,
-        courseId: course.id,
-        isEdit: true,
-      ),
+    showCourseAdd(
+      context,
+      courseGroupId: course.courseGroup,
+      courseId: course.id,
+      isEdit: true,
+      isNew: false,
+      providers: [
+        BlocProvider<CourseBloc>.value(
+          value: context.read<CourseBloc>(),
+        ),
+      ],
     );
   }
 }

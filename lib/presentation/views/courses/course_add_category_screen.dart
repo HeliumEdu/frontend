@@ -38,12 +38,14 @@ class CourseAddCategoryScreen extends StatelessWidget {
   final int courseGroupId;
   final int courseId;
   final bool isEdit;
+  final bool isNew;
 
   CourseAddCategoryScreen({
     super.key,
     required this.courseGroupId,
     required this.courseId,
-    this.isEdit = false,
+    required this.isEdit,
+    required this.isNew,
   });
 
   @override
@@ -64,6 +66,7 @@ class CourseAddCategoryScreen extends StatelessWidget {
         courseGroupId: courseGroupId,
         courseId: courseId,
         isEdit: isEdit,
+        isNew: isNew,
       ),
     );
   }
@@ -73,12 +76,14 @@ class CourseAddCategoryProvidedScreen extends StatefulWidget {
   final int courseGroupId;
   final int courseId;
   final bool isEdit;
+  final bool isNew;
 
   const CourseAddCategoryProvidedScreen({
     super.key,
     required this.courseGroupId,
     required this.courseId,
     required this.isEdit,
+    required this.isNew,
   });
 
   @override
@@ -89,7 +94,7 @@ class CourseAddCategoryProvidedScreen extends StatefulWidget {
 class _CourseAddCategoryScreenState
     extends BasePageScreenState<CourseAddCategoryProvidedScreen> {
   @override
-  String get screenTitle => widget.isEdit ? 'Edit Class' : 'Add Class';
+  String get screenTitle => !widget.isNew ? 'Edit Class' : 'Add Class';
 
   @override
   IconData? get icon => Icons.school;
@@ -162,6 +167,7 @@ class _CourseAddCategoryScreenState
       courseGroupId: widget.courseGroupId,
       courseId: widget.courseId,
       isEdit: widget.isEdit,
+      isNew: widget.isNew,
     );
   }
 

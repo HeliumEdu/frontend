@@ -9,7 +9,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/request/material_request_model.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
@@ -28,8 +30,46 @@ import 'package:heliumapp/presentation/widgets/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
+import 'package:nested/nested.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+/// Shows material add as a dialog on desktop, or navigates on mobile.
+///
+/// Pass [providers] to share Blocs from the parent screen with the material
+/// dialog/screen, ensuring state changes are reflected in both.
+void showMaterialAdd(
+  BuildContext context, {
+  required int materialGroupId,
+  int? materialId,
+  bool isEdit = false,
+  List<SingleChildWidget>? providers,
+}) {
+  if (Responsive.isMobile(context)) {
+    context.push(
+      AppRoutes.resourcesAddScreen,
+      extra: MaterialAddArgs(
+        materialBloc: context.read<MaterialBloc>(),
+        materialGroupId: materialGroupId,
+        materialId: materialId,
+        isEdit: isEdit,
+      ),
+    );
+  } else {
+    showScreenAsDialog(
+      context,
+      child: MaterialAddProvidedScreen(
+        materialGroupId: materialGroupId,
+        materialId: materialId,
+        isEdit: isEdit,
+      ),
+      providers: providers,
+      width: 600,
+      alignment: Alignment.center,
+    );
+  }
+}
 
 class MaterialAddProvidedScreen extends StatefulWidget {
   final int materialGroupId;
@@ -74,7 +114,7 @@ class _MaterialAddScreenState
 
     context.read<MaterialBloc>().add(
       FetchMaterialScreenDataEvent(
-        origin: EventOrigin.screen,
+        origin: EventOrigin.subScreen,
         materialGroupId: widget.materialGroupId,
         materialId: widget.materialId,
       ),
@@ -110,7 +150,12 @@ class _MaterialAddScreenState
               state is material_state.MaterialUpdated) {
             showSnackBar(context, 'Resource saved');
 
-            context.pop();
+            // In dialog mode, close the dialog; otherwise use router navigation
+            if (DialogModeProvider.isDialogMode(context)) {
+              Navigator.of(context).pop();
+            } else {
+              context.pop();
+            }
           }
 
           if (state is! material_state.MaterialsLoading) {

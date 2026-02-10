@@ -10,10 +10,7 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
@@ -49,6 +46,7 @@ import 'package:heliumapp/presentation/bloc/category/category_bloc.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
+import 'package:heliumapp/presentation/views/calendar/calendar_item_add_screen.dart';
 import 'package:heliumapp/presentation/views/calendar/todos_table_controller.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/error_card.dart';
@@ -142,14 +140,17 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         ? truncatedNow
         : _calendarController.selectedDate;
 
-    context.push(
-      AppRoutes.plannerItemAddScreen,
-      extra: CalendarItemAddArgs(
-        calendarItemBloc: context.read<CalendarItemBloc>(),
-        initialDate: initialDate,
-        isFromMonthView: _calendarController.view == CalendarView.month,
-        isEdit: false,
-      ),
+    showCalendarItemAdd(
+      context,
+      initialDate: initialDate,
+      isFromMonthView: _calendarController.view == CalendarView.month,
+      isEdit: false,
+      isNew: true,
+      providers: [
+        BlocProvider<CalendarItemBloc>.value(
+          value: context.read<CalendarItemBloc>(),
+        ),
+      ],
     );
   };
 
@@ -554,14 +555,17 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         ? calendarItem.id
         : null;
 
-    context.push(
-      AppRoutes.plannerItemAddScreen,
-      extra: CalendarItemAddArgs(
-        calendarItemBloc: context.read<CalendarItemBloc>(),
-        eventId: eventId,
-        homeworkId: homeworkId,
-        isEdit: true,
-      ),
+    showCalendarItemAdd(
+      context,
+      eventId: eventId,
+      homeworkId: homeworkId,
+      isEdit: true,
+      isNew: false,
+      providers: [
+        BlocProvider<CalendarItemBloc>.value(
+          value: context.read<CalendarItemBloc>(),
+        ),
+      ],
     );
 
     return true;

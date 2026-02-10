@@ -9,10 +9,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_html/flutter_html.dart';
-import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/material_group_model.dart';
@@ -29,6 +26,7 @@ import 'package:heliumapp/presentation/bloc/material/material_state.dart'
 import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/dialogs/material_group_dialog.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/views/materials/material_add_screen.dart';
 import 'package:heliumapp/presentation/widgets/course_title_label.dart';
 import 'package:heliumapp/presentation/widgets/empty_card.dart';
 import 'package:heliumapp/presentation/widgets/error_card.dart';
@@ -94,13 +92,15 @@ class _MaterialsScreenState
   @override
   VoidCallback get actionButtonCallback => () {
     if (_selectedGroupId != null) {
-      context.push(
-        AppRoutes.resourcesAddScreen,
-        extra: MaterialAddArgs(
-          materialBloc: context.read<MaterialBloc>(),
-          materialGroupId: _selectedGroupId!,
-          isEdit: false,
-        ),
+      showMaterialAdd(
+        context,
+        materialGroupId: _selectedGroupId!,
+        isEdit: false,
+        providers: [
+          BlocProvider<MaterialBloc>.value(
+            value: context.read<MaterialBloc>(),
+          ),
+        ],
       );
     } else {
       showSnackBar(context, 'Create a group first', isError: true);
@@ -243,7 +243,8 @@ class _MaterialsScreenState
   Widget buildMainArea(BuildContext context) {
     return BlocBuilder<MaterialBloc, material_state.MaterialState>(
       builder: (context, state) {
-        if (state is material_state.MaterialsLoading) {
+        if (state is material_state.MaterialsLoading &&
+            state.origin == EventOrigin.screen) {
           return const LoadingIndicator();
         }
 
@@ -326,6 +327,7 @@ class _MaterialsScreenState
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
@@ -434,22 +436,25 @@ class _MaterialsScreenState
 
                 const SizedBox(height: 12),
 
-                Html(
-                  data: material.details!,
-                  style: {
-                    'body': Style(
-                      margin: Margins.zero,
-                      padding: HtmlPaddings.zero,
-                      fontSize: FontSize(
-                        AppStyles.standardBodyText(context).fontSize!,
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 50),
+                  child: Html(
+                    data: material.details!,
+                    style: {
+                      'body': Style(
+                        margin: Margins.zero,
+                        padding: HtmlPaddings.zero,
+                        fontSize: FontSize(
+                          AppStyles.standardBodyText(context).fontSize!,
+                        ),
+                        color: context.colorScheme.onSurface.withValues(
+                          alpha: 0.6,
+                        ),
+                        maxLines: 2,
+                        textOverflow: TextOverflow.ellipsis,
                       ),
-                      color: context.colorScheme.onSurface.withValues(
-                        alpha: 0.6,
-                      ),
-                      maxLines: 2,
-                      textOverflow: TextOverflow.ellipsis,
-                    ),
-                  },
+                    },
+                  ),
                 ),
               ],
             ],
@@ -460,14 +465,16 @@ class _MaterialsScreenState
   }
 
   void _onEdit(MaterialModel material) {
-    context.push(
-      AppRoutes.resourcesAddScreen,
-      extra: MaterialAddArgs(
-        materialBloc: context.read<MaterialBloc>(),
-        materialGroupId: _selectedGroupId!,
-        materialId: material.id,
-        isEdit: true,
-      ),
+    showMaterialAdd(
+      context,
+      materialGroupId: _selectedGroupId!,
+      materialId: material.id,
+      isEdit: true,
+      providers: [
+        BlocProvider<MaterialBloc>.value(
+          value: context.read<MaterialBloc>(),
+        ),
+      ],
     );
   }
 }
