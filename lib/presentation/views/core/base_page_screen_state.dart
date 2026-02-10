@@ -199,7 +199,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     final listeners = buildListeners(context);
     if (listeners.isNotEmpty) {
       return MultiBlocListener(
-        listeners: buildListeners(context),
+        listeners: listeners,
         child: buildScaffold(context),
       );
     } else {

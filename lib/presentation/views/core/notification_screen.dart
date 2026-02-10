@@ -444,7 +444,14 @@ class _NotificationsScreenState
           ],
         );
       } else {
-        await context.push(AppRoutes.notificationsScreen);
+        // No existing bloc, so showCalendarItemAdd will create one via routing
+        showCalendarItemAdd(
+          context,
+          eventId: notification.reminder.event?.id,
+          homeworkId: notification.reminder.homework?.id,
+          isEdit: true,
+          isNew: false,
+        );
       }
     }
   }

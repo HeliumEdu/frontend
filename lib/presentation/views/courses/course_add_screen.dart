@@ -74,7 +74,7 @@ void showCourseAdd(
         initialStep: initialStep,
       ),
       providers: providers,
-      width: 600,
+      width: 550,
       alignment: Alignment.center,
     );
   }
@@ -157,7 +157,10 @@ class _CourseAddScreenState
           } else if (state is CourseCreated || state is CourseUpdated) {
             state as CourseEntityState;
 
-            showSnackBar(context, 'Class saved');
+            // TODO: Cleanup: a bit of a hack for now, dialog mode shows duplicate snackbars, but we should show _some_ notification that things saved successfully
+            if (!DialogModeProvider.isDialogMode(context)) {
+              showSnackBar(context, 'Class saved');
+            }
 
             if (state.advanceNavOnSuccess) {
               // In dialog mode, close and reopen with the new courseId

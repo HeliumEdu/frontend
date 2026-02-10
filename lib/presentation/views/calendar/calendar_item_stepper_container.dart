@@ -9,11 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/presentation/views/core/dialog_step_navigation.dart';
 import 'package:heliumapp/presentation/widgets/calendar_item_add_stepper.dart';
 
-/// Container that manages the calendar item add stepper flow in dialog mode.
-///
-/// When displayed as a dialog, this widget handles step navigation internally
-/// by swapping screens. When not in dialog mode, each screen handles its own
-/// navigation using GoRouter.
 class CalendarItemStepperContainer extends DialogStepperContainer {
   final int? eventId;
   final int? homeworkId;

@@ -24,6 +24,8 @@ import 'package:heliumapp/presentation/views/courses/course_add_screen.dart'
     show CourseAddProvidedScreen;
 import 'package:heliumapp/presentation/widgets/shadow_container.dart';
 
+// FIXME: in dialog mode, the stepper icons look too small
+
 enum CourseAddSteps {
   details(Icons.list, AppRoutes.courseAddScreen),
   schedule(Icons.date_range_outlined, AppRoutes.courseAddScheduleScreen),

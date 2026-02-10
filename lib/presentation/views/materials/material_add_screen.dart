@@ -65,7 +65,7 @@ void showMaterialAdd(
         isEdit: isEdit,
       ),
       providers: providers,
-      width: 600,
+      width: 550,
       alignment: Alignment.center,
     );
   }
@@ -148,7 +148,10 @@ class _MaterialAddScreenState
             _populateInitialStateData(state);
           } else if (state is material_state.MaterialCreated ||
               state is material_state.MaterialUpdated) {
-            showSnackBar(context, 'Resource saved');
+            // TODO: Cleanup: a bit of a hack for now, dialog mode shows duplicate snackbars, but we should show _some_ notification that things saved successfully
+            if (!DialogModeProvider.isDialogMode(context)) {
+              showSnackBar(context, 'Resource saved');
+            }
 
             // In dialog mode, close the dialog; otherwise use router navigation
             if (DialogModeProvider.isDialogMode(context)) {

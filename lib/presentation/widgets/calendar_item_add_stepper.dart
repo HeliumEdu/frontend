@@ -19,6 +19,8 @@ import 'package:heliumapp/presentation/views/calendar/calendar_item_add_screen.d
 import 'package:heliumapp/presentation/views/core/dialog_step_navigation.dart';
 import 'package:heliumapp/presentation/widgets/shadow_container.dart';
 
+// FIXME: in dialog mode, the stepper icons look too small
+
 enum CalendarItemAddSteps {
   details(Icons.list, AppRoutes.plannerItemAddScreen),
   reminders(
