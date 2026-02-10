@@ -21,6 +21,7 @@ import 'package:heliumapp/presentation/views/calendar/calendar_screen.dart';
 import 'package:heliumapp/presentation/views/courses/courses_screen.dart';
 import 'package:heliumapp/presentation/views/grades/grades_screen.dart';
 import 'package:heliumapp/presentation/views/materials/materials_screen.dart';
+import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/presentation/widgets/settings_button.dart';
 import 'package:heliumapp/utils/app_globals.dart';
@@ -126,6 +127,7 @@ class _NavigationShellState extends State<NavigationShell> {
   final InheritableProvidersNotifier _inheritableProvidersNotifier =
       InheritableProvidersNotifier();
   final ProviderHelpers _providerHelpers = ProviderHelpers();
+  bool _isLoggingOut = false;
 
   @override
   void initState() {
@@ -226,11 +228,18 @@ class _NavigationShellState extends State<NavigationShell> {
                             inheritableProviders:
                                 _inheritableProvidersNotifier.providers,
                             showLogout: kIsWeb && !Responsive.isMobile(context),
+                            onLogoutConfirmed: () {
+                              setState(() {
+                                _isLoggingOut = true;
+                              });
+                            },
                           ),
                         ),
                         // Only the content area animates
                         Expanded(
-                          child: AnimatedSwitcher(
+                          child: _isLoggingOut
+                              ? const LoadingIndicator()
+                              : AnimatedSwitcher(
                             duration: const Duration(milliseconds: 300),
                             switchInCurve: Curves.easeInOut,
                             switchOutCurve: Curves.easeInOut,

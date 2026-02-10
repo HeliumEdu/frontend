@@ -334,16 +334,15 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
           const Spacer(),
           if (saveAction != null) ...[
             if (isSubmitting)
-              const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(strokeWidth: 2),
+              const LoadingIndicator(
+                size: 20,
+                strokeWidth: 2.5,
+                expanded: false,
               )
             else
               IconButton(
                 icon: const Icon(Icons.check),
                 onPressed: () => saveAction!(),
-                tooltip: 'Save',
                 color: context.colorScheme.primary,
               ),
             const SizedBox(width: 8),
@@ -351,7 +350,6 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
           IconButton(
             icon: const Icon(Icons.close),
             onPressed: () => Navigator.of(context).pop(),
-            tooltip: 'Close',
           ),
         ],
       ),

@@ -9,37 +9,35 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 
 class LoadingIndicator extends StatelessWidget {
-  final bool small;
+  final double size;
   final Color? color;
   final bool expanded;
+  final double? strokeWidth;
 
   const LoadingIndicator({
     super.key,
-    this.small = false,
+    this.size = 36,
+    this.strokeWidth,
     this.color,
     this.expanded = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Cleanup: not sure the small version is necessary
-    if (small) {
-      return SizedBox(
-        height: 20,
-        width: 20,
-        child: CircularProgressIndicator(
-          strokeWidth: 2.5,
-          valueColor: AlwaysStoppedAnimation<Color>(
-            color ?? context.colorScheme.onPrimary,
-          ),
+    final indicator = SizedBox(
+      height: size,
+      width: size,
+      child: CircularProgressIndicator(
+        strokeWidth: strokeWidth,
+        valueColor: AlwaysStoppedAnimation<Color>(
+          color ?? context.colorScheme.primary,
         ),
-      );
-    }
-
-    const content = Center(
-      child: CircularProgressIndicator(),
+      ),
     );
 
-    return expanded ? const Expanded(child: content) : content;
+    if (expanded) {
+      return Expanded(child: Center(child: indicator));
+    }
+    return indicator;
   }
 }
