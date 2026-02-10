@@ -50,6 +50,7 @@ jobs:
       version: ${{ steps.get_version.outputs.version }}
       semver: ${{ steps.get_version.outputs.semver }}
       build_number: ${{ steps.get_version.outputs.build_number }}
+      commit_sha: ${{ steps.get_commit.outputs.commit_sha }}
 
     steps:
       - uses: actions/checkout@v5
@@ -97,6 +98,13 @@ jobs:
           echo "build_number=$BUILD_NUMBER" >> $GITHUB_OUTPUT
           echo "Version: $VERSION"
 
+      - name: Get commit SHA
+        id: get_commit
+        run: |
+          COMMIT_SHA=$(git rev-parse HEAD)
+          echo "commit_sha=$COMMIT_SHA" >> $GITHUB_OUTPUT
+          echo "Commit SHA: $COMMIT_SHA"
+
   build-android-release:
     name: Build Android Release AAB
     needs: [test, bump-version]
@@ -104,6 +112,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.bump-version.outputs.commit_sha }}
 
       - name: Setup Java 17
         uses: actions/setup-java@v4
@@ -151,6 +161,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.bump-version.outputs.commit_sha }}
 
       - name: Select latest Xcode
         run: |
@@ -240,6 +252,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.bump-version.outputs.commit_sha }}
 
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v4
@@ -278,6 +292,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          fetch-depth: 0
 
       - name: Display release info
         run: |
@@ -288,24 +305,28 @@ jobs:
           SEMVER: ${{ needs.bump-version.outputs.semver }}
           BUILD_NUMBER: ${{ needs.bump-version.outputs.build_number }}
           FULL_VERSION: ${{ needs.bump-version.outputs.version }}
+          COMMIT_SHA: ${{ needs.bump-version.outputs.commit_sha }}
         run: |
           git config --global user.name "GitHub Release Bot"
           git config --global user.email "<contact@alexlaird.com>"
 
-          # Create semantic version tag
+          # Fetch latest changes to ensure we have the version bump commit
+          git fetch origin ${{ github.ref_name }}
+
+          # Create semantic version tag on the specific commit
           if git rev-parse "v$SEMVER" >/dev/null 2>&1; then
             echo "Tag v$SEMVER already exists, skipping"
           else
-            echo "Creating tag v$SEMVER"
-            git tag -a "v$SEMVER" -m "Release v$SEMVER (build $FULL_VERSION)"
+            echo "Creating tag v$SEMVER on commit $COMMIT_SHA"
+            git tag -a "v$SEMVER" -m "Release v$SEMVER (build $FULL_VERSION)" "$COMMIT_SHA"
           fi
 
-          # Create build number tag
+          # Create build number tag on the specific commit
           if git rev-parse "b$BUILD_NUMBER" >/dev/null 2>&1; then
             echo "Tag b$BUILD_NUMBER already exists, skipping"
           else
-            echo "Creating tag b$BUILD_NUMBER"
-            git tag -a "b$BUILD_NUMBER" -m "Build $BUILD_NUMBER (v$SEMVER)"
+            echo "Creating tag b$BUILD_NUMBER on commit $COMMIT_SHA"
+            git tag -a "b$BUILD_NUMBER" -m "Build $BUILD_NUMBER (v$SEMVER)" "$COMMIT_SHA"
           fi
 
           # Push both tags
