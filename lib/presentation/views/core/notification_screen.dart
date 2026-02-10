@@ -20,8 +20,8 @@ import 'package:heliumapp/data/models/planner/request/reminder_request_model.dar
 import 'package:heliumapp/data/repositories/reminder_repository_impl.dart';
 import 'package:heliumapp/data/sources/reminder_remote_data_source.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
-import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
+import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/bloc/reminder/reminder_bloc.dart';
 import 'package:heliumapp/presentation/bloc/reminder/reminder_event.dart';
 import 'package:heliumapp/presentation/bloc/reminder/reminder_state.dart';
@@ -36,26 +36,34 @@ import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
-import 'package:nested/nested.dart';
+import 'package:logging/logging.dart';
+
+final _log = Logger('presentation.views');
 
 /// Shows notifications as a dialog on desktop, or navigates on mobile.
 ///
-/// Pass [providers] to share Blocs from the parent screen with the notifications
-/// dialog/screen, ensuring state changes are reflected in both.
-void showNotifications(
-  BuildContext context, {
-  List<SingleChildWidget>? providers,
-}) {
+/// Shows notifications as a dialog on desktop, or navigates on mobile.
+/// Automatically shares CalendarItemBloc from parent context if available.
+void showNotifications(BuildContext context) {
+  CalendarItemBloc? calendarItemBloc;
+  try {
+    calendarItemBloc = context.read<CalendarItemBloc>();
+  } catch (_) {
+    _log.info('CalendarItemBloc not passed, will create a new one');
+  }
+
   if (Responsive.isMobile(context)) {
     context.push(
       AppRoutes.notificationsScreen,
-      extra: NotificationArgs(providers: providers),
+      extra: NotificationArgs(calendarItemBloc: calendarItemBloc),
     );
   } else {
     showScreenAsDialog(
       context,
       child: NotificationsScreen(),
-      providers: providers,
+      providers: calendarItemBloc != null
+          ? [BlocProvider<CalendarItemBloc>.value(value: calendarItemBloc)]
+          : null,
       width: 420,
       alignment: Alignment.centerRight,
       insetPadding: const EdgeInsets.only(
@@ -430,7 +438,8 @@ class _NotificationsScreenState
       try {
         calendarItemBloc = context.read<CalendarItemBloc>();
       } catch (_) {
-        // No existing CalendarItemBloc, create one
+        _log.fine('CalendarItemBloc not in context, creating a new one');
+        // Bloc not in context, create one
         calendarItemBloc = ProviderHelpers().createCalendarItemBloc()(context);
       }
 

@@ -16,6 +16,7 @@ abstract class ExternalCalendarRepository {
     required DateTime from,
     required DateTime to,
     String? search,
+    bool? shownOnCalendar,
   });
 
   Future<ExternalCalendarModel> createExternalCalendar({
