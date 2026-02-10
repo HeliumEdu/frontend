@@ -69,7 +69,6 @@ jobs:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          # Strip 'v' prefix for artifact matching (v1.0.9 -> 1.0.9)
           SEMVER="${VERSION#v}"
 
           echo "Looking for artifact matching version ${SEMVER}..."
