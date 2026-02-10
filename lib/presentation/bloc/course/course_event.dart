@@ -154,6 +154,6 @@ class UpdateCourseScheduleEvent extends CourseEvent {
     required this.courseId,
     required this.scheduleId,
     required this.request,
-    required this.advanceNavOnSuccess,
+    this.advanceNavOnSuccess = false,
   });
 }

@@ -24,6 +24,7 @@ import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/bloc/reminder/reminder_bloc.dart';
 import 'package:heliumapp/presentation/bloc/reminder/reminder_event.dart';
 import 'package:heliumapp/presentation/bloc/reminder/reminder_state.dart';
+import 'package:heliumapp/presentation/views/calendar/calendar_item_add_screen.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/empty_card.dart';
 import 'package:heliumapp/presentation/widgets/error_card.dart';
@@ -431,23 +432,20 @@ class _NotificationsScreenState
         // No existing CalendarItemBloc, so next screen will initialize it
       }
 
-      final String route;
-      final Object? extra;
-
       if (calendarItemBloc != null) {
-        route = AppRoutes.plannerItemAddScreen;
-        extra = CalendarItemAddArgs(
-          calendarItemBloc: calendarItemBloc,
+        showCalendarItemAdd(
+          context,
           eventId: notification.reminder.event?.id,
           homeworkId: notification.reminder.homework?.id,
           isEdit: true,
+          isNew: false,
+          providers: [
+            BlocProvider<CalendarItemBloc>.value(value: calendarItemBloc),
+          ],
         );
       } else {
-        route = AppRoutes.notificationsScreen;
-        extra = null;
+        await context.push(AppRoutes.notificationsScreen);
       }
-
-      await context.push(route, extra: extra);
     }
   }
 

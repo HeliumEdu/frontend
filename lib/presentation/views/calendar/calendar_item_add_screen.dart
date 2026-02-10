@@ -29,6 +29,7 @@ import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/controllers/calendar/calendar_item_form_controller.dart';
 import 'package:heliumapp/presentation/controllers/core/basic_form_controller.dart';
 import 'package:heliumapp/presentation/dialogs/select_dialog.dart';
+import 'package:heliumapp/presentation/views/calendar/calendar_item_stepper_container.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/calendar_item_add_stepper.dart';
 import 'package:heliumapp/presentation/widgets/drop_down.dart';
@@ -41,26 +42,75 @@ import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
+import 'package:nested/nested.dart';
 import 'package:timezone/standalone.dart' as tz;
 
 final _log = Logger('presentation.views');
 
-// TODO: Feature Parity: implement "Clone" button for parity with current frontend
+// TODO: Feature Parity: implement "Clone" button
+// TODO: Feature Parity: implement "Delete" button
+
+/// Shows calendar item add as a dialog on desktop, or navigates on mobile.
+///
+/// Pass [providers] to share Blocs from the parent screen with the calendar item
+/// dialog/screen, ensuring state changes are reflected in both.
+void showCalendarItemAdd(
+  BuildContext context, {
+  int? eventId,
+  int? homeworkId,
+  DateTime? initialDate,
+  bool isFromMonthView = false,
+  required bool isEdit,
+  required bool isNew,
+  int initialStep = 0,
+  List<SingleChildWidget>? providers,
+}) {
+  if (Responsive.isMobile(context)) {
+    context.push(
+      AppRoutes.plannerItemAddScreen,
+      extra: CalendarItemAddArgs(
+        calendarItemBloc: context.read<CalendarItemBloc>(),
+        eventId: eventId,
+        homeworkId: homeworkId,
+        isEdit: isEdit,
+        isNew: isNew,
+      ),
+    );
+  } else {
+    showScreenAsDialog(
+      context,
+      child: CalendarItemStepperContainer(
+        eventId: eventId,
+        homeworkId: homeworkId,
+        initialDate: initialDate,
+        isFromMonthView: isFromMonthView,
+        isEdit: isEdit,
+        isNew: isNew,
+        initialStep: initialStep,
+      ),
+      providers: providers,
+      width: 600,
+      alignment: Alignment.center,
+    );
+  }
+}
 
 class CalendarItemAddProvidedScreen extends StatefulWidget {
   final int? eventId;
   final int? homeworkId;
   final DateTime? initialDate;
-  final bool isFromMonthView;
   final bool isEdit;
+  final bool isNew;
+  final bool isFromMonthView;
 
   const CalendarItemAddProvidedScreen({
     super.key,
     this.eventId,
     this.homeworkId,
     this.initialDate,
+    required this.isEdit,
+    required this.isNew,
     this.isFromMonthView = false,
-    this.isEdit = false,
   });
 
   @override
@@ -73,7 +123,7 @@ class _CalendarItemAddScreenState
   @override
   String get screenTitle => isLoading
       ? ''
-      : (widget.isEdit ? 'Edit ' : 'Add ') +
+      : (!widget.isNew ? 'Edit ' : 'Add ') +
             (_isEvent ? 'Event' : 'Assignment');
 
   @override
@@ -153,15 +203,35 @@ class _CalendarItemAddScreenState
             );
 
             if (state.advanceNavOnSuccess) {
-              context.pushReplacement(
-                AppRoutes.plannerItemAddRemindersScreen,
-                extra: CalendarItemReminderArgs(
-                  calendarItemBloc: context.read<CalendarItemBloc>(),
-                  isEvent: state.isEvent,
-                  entityId: state.entityId,
+              if (DialogModeProvider.isDialogMode(context)) {
+                // Close current dialog and reopen with new entityId
+                Navigator.of(context).pop();
+                showCalendarItemAdd(
+                  context,
+                  eventId: state.isEvent ? state.entityId : null,
+                  homeworkId: !state.isEvent ? state.entityId : null,
                   isEdit: true,
-                ),
-              );
+                  isNew: state is HomeworkCreated || state is EventCreated,
+                  initialStep: 1,
+                  providers: [
+                    BlocProvider<CalendarItemBloc>.value(
+                      value: context.read<CalendarItemBloc>(),
+                    ),
+                  ],
+                );
+              } else {
+                // Fall back to router navigation for non-dialog mode
+                context.pushReplacement(
+                  AppRoutes.plannerItemAddRemindersScreen,
+                  extra: CalendarItemReminderArgs(
+                    calendarItemBloc: context.read<CalendarItemBloc>(),
+                    isEvent: state.isEvent,
+                    entityId: state.entityId,
+                    isEdit: true,
+                    isNew: state is HomeworkCreated || state is EventCreated,
+                  ),
+                );
+              }
             }
           }
 
@@ -203,6 +273,7 @@ class _CalendarItemAddScreenState
           eventId: widget.eventId,
           homeworkId: widget.homeworkId,
           isEdit: widget.isEdit,
+          isNew: widget.isEdit,
           onStep: () => _onSubmit(advanceNavOnSuccess: false),
         ),
       ],

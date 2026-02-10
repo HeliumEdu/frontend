@@ -36,11 +36,13 @@ abstract class BaseAttachmentScreen extends StatelessWidget {
   final DioClient _dioClient = DioClient();
   final int entityId;
   final bool isEdit;
+  final bool isNew;
 
   BaseAttachmentScreen({
     super.key,
     required this.entityId,
     required this.isEdit,
+    required this.isNew,
   });
 
   BaseAttachmentProvidedScreen buildScreen();
@@ -67,11 +69,13 @@ abstract class BaseAttachmentScreen extends StatelessWidget {
 abstract class BaseAttachmentProvidedScreen extends StatefulWidget {
   final int entityId;
   final bool isEdit;
+  final bool isNew;
 
   const BaseAttachmentProvidedScreen({
     super.key,
     required this.entityId,
     required this.isEdit,
+    required this.isNew,
   });
 
   @override

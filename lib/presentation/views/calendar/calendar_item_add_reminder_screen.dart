@@ -18,7 +18,8 @@ class CalendarItemAddReminderScreen extends BaseReminderScreen {
   CalendarItemAddReminderScreen({
     super.key,
     required super.entityId,
-    super.isEdit = false,
+    required super.isEdit,
+    required super.isNew,
     this.isEvent = false,
   });
 
@@ -28,6 +29,7 @@ class CalendarItemAddReminderScreen extends BaseReminderScreen {
       isEvent: isEvent,
       entityId: entityId,
       isEdit: isEdit,
+      isNew: isNew
     );
   }
 }
@@ -40,6 +42,7 @@ class CalendarItemAddReminderProvidedScreen extends BaseReminderProvidedScreen {
     required this.isEvent,
     required super.entityId,
     required super.isEdit,
+    required super.isNew
   });
 
   @override
@@ -53,7 +56,7 @@ class _CalendarItemAddReminderScreenState
   @override
   String get screenTitle => isLoading
       ? ''
-      : (widget.isEdit ? 'Edit ' : 'Add ') +
+      : (!widget.isNew ? 'Edit ' : 'Add ') +
             ((widget as CalendarItemAddReminderProvidedScreen).isEvent
                 ? 'Event'
                 : 'Assignment');
@@ -72,6 +75,7 @@ class _CalendarItemAddReminderScreenState
           ? widget.entityId
           : null,
       isEdit: widget.isEdit,
+      isNew: widget.isNew
     );
   }
 

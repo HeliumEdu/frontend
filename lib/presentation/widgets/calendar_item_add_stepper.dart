@@ -13,16 +13,66 @@ import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
+import 'package:heliumapp/presentation/views/calendar/calendar_item_add_attachment_screen.dart';
+import 'package:heliumapp/presentation/views/calendar/calendar_item_add_reminder_screen.dart';
+import 'package:heliumapp/presentation/views/calendar/calendar_item_add_screen.dart';
+import 'package:heliumapp/presentation/views/core/dialog_step_navigation.dart';
 import 'package:heliumapp/presentation/widgets/shadow_container.dart';
 
 enum CalendarItemAddSteps {
-  details(Icons.list),
-  reminders(Icons.notifications_active_outlined),
-  attachments(Icons.attachment_outlined);
+  details(Icons.list, AppRoutes.plannerItemAddScreen),
+  reminders(
+    Icons.notifications_active_outlined,
+    AppRoutes.plannerItemAddRemindersScreen,
+  ),
+  attachments(
+    Icons.attachment_outlined,
+    AppRoutes.plannerItemAddAttachmentsScreen,
+  );
 
   final IconData icon;
+  final String route;
 
-  const CalendarItemAddSteps(this.icon);
+  const CalendarItemAddSteps(this.icon, this.route);
+
+  /// Builds the widget for this step
+  Widget buildWidget({
+    int? eventId,
+    int? homeworkId,
+    DateTime? initialDate,
+    bool isFromMonthView = false,
+    required bool isEdit,
+    required bool isNew,
+  }) {
+    final int? entityId = eventId ?? homeworkId;
+    final bool isEvent = eventId != null;
+
+    switch (this) {
+      case CalendarItemAddSteps.details:
+        return CalendarItemAddProvidedScreen(
+          eventId: eventId,
+          homeworkId: homeworkId,
+          initialDate: initialDate,
+          isFromMonthView: isFromMonthView,
+          isEdit: isEdit,
+          isNew: isNew,
+        );
+      case CalendarItemAddSteps.reminders:
+        return CalendarItemAddReminderScreen(
+          isEvent: isEvent,
+          entityId: entityId!,
+          isEdit: isEdit,
+          isNew: isNew,
+        );
+      case CalendarItemAddSteps.attachments:
+        return CalendarItemAddAttachmentScreen(
+          isEvent: isEvent,
+          entityId: entityId!,
+          isEdit: isEdit,
+          isNew: isNew,
+        );
+    }
+  }
 }
 
 class CalendarItemStepper extends StatelessWidget {
@@ -30,6 +80,7 @@ class CalendarItemStepper extends StatelessWidget {
   final int? eventId;
   final int? homeworkId;
   final bool isEdit;
+  final bool isNew;
   final void Function()? onStep;
 
   const CalendarItemStepper({
@@ -38,6 +89,7 @@ class CalendarItemStepper extends StatelessWidget {
     this.eventId,
     this.homeworkId,
     required this.isEdit,
+    required this.isNew,
     this.onStep,
   });
 
@@ -94,45 +146,52 @@ class CalendarItemStepper extends StatelessWidget {
 
     onStep?.call();
 
+    // Try to navigate within dialog first
+    if (navigateStepInDialog(context, index)) {
+      return;
+    }
+
+    // Fall back to router navigation for non-dialog mode
+    final step = CalendarItemAddSteps.values[index];
     final calendarItemBloc = context.read<CalendarItemBloc>();
     final entityId = eventId ?? homeworkId;
 
+    // Can't navigate to reminders/attachments without an entity
+    if (index != CalendarItemAddSteps.details.index && entityId == null) {
+      return;
+    }
+
     if (index == CalendarItemAddSteps.details.index) {
       context.pushReplacement(
-        AppRoutes.plannerItemAddScreen,
+        step.route,
         extra: CalendarItemAddArgs(
           calendarItemBloc: calendarItemBloc,
           eventId: eventId,
           homeworkId: homeworkId,
           isEdit: isEdit,
+          isNew: isNew,
         ),
       );
-      return;
-    }
-
-    // Can't navigate to reminders/attachments without an entity
-    if (entityId == null) return;
-
-    if (index == CalendarItemAddSteps.reminders.index) {
+    } else if (index == CalendarItemAddSteps.reminders.index) {
       context.pushReplacement(
-        AppRoutes.plannerItemAddRemindersScreen,
+        step.route,
         extra: CalendarItemReminderArgs(
           calendarItemBloc: calendarItemBloc,
           isEvent: eventId != null,
-          entityId: entityId,
+          entityId: entityId!,
           isEdit: isEdit,
+          isNew: isNew,
         ),
       );
-    }
-
-    if (index == CalendarItemAddSteps.attachments.index) {
+    } else if (index == CalendarItemAddSteps.attachments.index) {
       context.pushReplacement(
-        AppRoutes.plannerItemAddAttachmentsScreen,
+        step.route,
         extra: CalendarItemAttachmentArgs(
           calendarItemBloc: calendarItemBloc,
           isEvent: eventId != null,
-          entityId: entityId,
+          entityId: entityId!,
           isEdit: isEdit,
+          isNew: isNew,
         ),
       );
     }

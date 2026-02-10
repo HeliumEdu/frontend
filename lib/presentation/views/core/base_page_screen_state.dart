@@ -244,31 +244,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
         ),
         child: Column(
           children: [
-            // Dialog header
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: context.colorScheme.outline.withValues(alpha: 0.2),
-                  ),
-                ),
-              ),
-              child: Row(
-                children: [
-                  if (icon != null) ...[
-                    Icon(icon, color: context.colorScheme.primary),
-                    const SizedBox(width: 12),
-                  ],
-                  Text(screenTitle, style: AppStyles.pageTitle(context)),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ],
-              ),
-            ),
+            buildDialogHeader(context),
             Expanded(child: content),
           ],
         ),
@@ -338,6 +314,50 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
   @mustBeOverridden
   Widget buildMainArea(BuildContext context);
+
+  Widget buildDialogHeader(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: context.colorScheme.outline.withValues(alpha: 0.2),
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          if (icon != null) ...[
+            Icon(icon, color: context.colorScheme.primary),
+            const SizedBox(width: 12),
+          ],
+          Text(screenTitle, style: AppStyles.pageTitle(context)),
+          const Spacer(),
+          if (saveAction != null) ...[
+            if (isSubmitting)
+              const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            else
+              IconButton(
+                icon: const Icon(Icons.check),
+                onPressed: () => saveAction!(),
+                tooltip: 'Save',
+                color: context.colorScheme.primary,
+              ),
+            const SizedBox(width: 8),
+          ],
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () => Navigator.of(context).pop(),
+            tooltip: 'Close',
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget buildFloatingActionButton() {
     return Container(

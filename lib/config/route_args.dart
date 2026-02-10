@@ -23,6 +23,7 @@ class CalendarItemAddArgs {
   final DateTime? initialDate;
   final bool isFromMonthView;
   final bool isEdit;
+  final bool isNew;
 
   const CalendarItemAddArgs({
     required this.calendarItemBloc,
@@ -31,6 +32,7 @@ class CalendarItemAddArgs {
     this.initialDate,
     this.isFromMonthView = false,
     required this.isEdit,
+    required this.isNew,
   });
 }
 
@@ -39,12 +41,14 @@ class CalendarItemReminderArgs {
   final bool isEvent;
   final int entityId;
   final bool isEdit;
+  final bool isNew;
 
   const CalendarItemReminderArgs({
     required this.calendarItemBloc,
     required this.isEvent,
     required this.entityId,
     required this.isEdit,
+    required this.isNew,
   });
 }
 
@@ -53,26 +57,30 @@ class CalendarItemAttachmentArgs {
   final bool isEvent;
   final int entityId;
   final bool isEdit;
+  final bool isNew;
 
   const CalendarItemAttachmentArgs({
     required this.calendarItemBloc,
     required this.isEvent,
     required this.entityId,
     required this.isEdit,
+    required this.isNew,
   });
 }
 
 class CourseAddArgs {
   final CourseBloc courseBloc;
   final int courseGroupId;
-  final int? courseId;
   final bool isEdit;
+  final bool isNew;
+  final int? courseId;
 
   const CourseAddArgs({
     required this.courseBloc,
     required this.courseGroupId,
-    this.courseId,
     required this.isEdit,
+    required this.isNew,
+    this.courseId,
   });
 }
 

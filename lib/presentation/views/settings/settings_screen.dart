@@ -111,7 +111,6 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
 
   @override
   Widget buildMainArea(BuildContext context) {
-    // TODO: Blocker for Web: on larger screens, open settings as dialog instead of nav (ensure sub-pages also navigate within the popped up dialog)
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
         if (state is AuthLoading) {

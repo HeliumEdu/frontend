@@ -10,8 +10,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/pref_service.dart';
-import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/config/route_args.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
 import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
@@ -52,27 +52,23 @@ void initializeRouter() {
       // Public routes (no shell)
       GoRoute(
         path: AppRoutes.landingScreen,
-        pageBuilder: (context, state) => const MaterialPage(
-          child: LandingScreen(),
-        ),
+        pageBuilder: (context, state) =>
+            const MaterialPage(child: LandingScreen()),
       ),
       GoRoute(
         path: AppRoutes.loginScreen,
-        pageBuilder: (context, state) => const MaterialPage(
-          child: LoginScreen(),
-        ),
+        pageBuilder: (context, state) =>
+            const MaterialPage(child: LoginScreen()),
       ),
       GoRoute(
         path: AppRoutes.registerScreen,
-        pageBuilder: (context, state) => const MaterialPage(
-          child: RegisterScreen(),
-        ),
+        pageBuilder: (context, state) =>
+            const MaterialPage(child: RegisterScreen()),
       ),
       GoRoute(
         path: AppRoutes.forgotPasswordScreen,
-        pageBuilder: (context, state) => const MaterialPage(
-          child: ForgotPasswordScreen(),
-        ),
+        pageBuilder: (context, state) =>
+            const MaterialPage(child: ForgotPasswordScreen()),
       ),
       GoRoute(
         path: AppRoutes.verifyScreen,
@@ -154,6 +150,7 @@ void initializeRouter() {
                 initialDate: args.initialDate,
                 isFromMonthView: args.isFromMonthView,
                 isEdit: args.isEdit,
+                isNew: args.isNew
               ),
             ),
           );
@@ -175,6 +172,7 @@ void initializeRouter() {
                 isEvent: args.isEvent,
                 entityId: args.entityId,
                 isEdit: args.isEdit,
+                isNew: args.isNew
               ),
             ),
           );
@@ -196,6 +194,7 @@ void initializeRouter() {
                 isEvent: args.isEvent,
                 entityId: args.entityId,
                 isEdit: args.isEdit,
+                isNew: args.isNew,
               ),
             ),
           );
@@ -219,6 +218,7 @@ void initializeRouter() {
                 courseGroupId: args.courseGroupId,
                 courseId: args.courseId,
                 isEdit: args.isEdit,
+                isNew: args.isNew
               ),
             ),
           );
@@ -240,6 +240,7 @@ void initializeRouter() {
                 courseGroupId: args.courseGroupId,
                 courseId: args.courseId!,
                 isEdit: args.isEdit,
+                isNew: args.isNew,
               ),
             ),
           );
@@ -261,6 +262,7 @@ void initializeRouter() {
                 courseGroupId: args.courseGroupId,
                 courseId: args.courseId!,
                 isEdit: args.isEdit,
+                isNew: args.isNew
               ),
             ),
           );
@@ -282,6 +284,7 @@ void initializeRouter() {
                 courseGroupId: args.courseGroupId,
                 entityId: args.courseId!,
                 isEdit: args.isEdit,
+                isNew: args.isNew,
               ),
             ),
           );
@@ -314,33 +317,28 @@ void initializeRouter() {
       // Settings routes
       GoRoute(
         path: AppRoutes.settingScreen,
-        pageBuilder: (context, state) => const MaterialPage(
-          child: SettingsScreen(),
-        ),
+        pageBuilder: (context, state) =>
+            const MaterialPage(child: SettingsScreen()),
       ),
       GoRoute(
         path: AppRoutes.preferencesScreen,
-        pageBuilder: (context, state) => const MaterialPage(
-          child: PreferencesScreen(),
-        ),
+        pageBuilder: (context, state) =>
+            const MaterialPage(child: PreferencesScreen()),
       ),
       GoRoute(
         path: AppRoutes.feedsScreen,
-        pageBuilder: (context, state) => const MaterialPage(
-          child: FeedsScreen(),
-        ),
+        pageBuilder: (context, state) =>
+            const MaterialPage(child: FeedsScreen()),
       ),
       GoRoute(
         path: AppRoutes.externalCalendarsScreen,
-        pageBuilder: (context, state) => MaterialPage(
-          child: ExternalCalendarsScreen(),
-        ),
+        pageBuilder: (context, state) =>
+            MaterialPage(child: ExternalCalendarsScreen()),
       ),
       GoRoute(
         path: AppRoutes.changePasswordScreen,
-        pageBuilder: (context, state) => const MaterialPage(
-          child: ChangePasswordScreen(),
-        ),
+        pageBuilder: (context, state) =>
+            const MaterialPage(child: ChangePasswordScreen()),
       ),
     ],
   );
