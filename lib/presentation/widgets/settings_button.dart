@@ -6,9 +6,8 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/presentation/views/settings/settings_screen.dart';
 
 class SettingsButton extends StatelessWidget {
   final bool compact;
@@ -21,7 +20,7 @@ class SettingsButton extends StatelessWidget {
       visualDensity: compact ? VisualDensity.compact : VisualDensity.standard,
       onPressed: () {
         if (context.mounted) {
-          context.go(AppRoutes.settingScreen);
+          showSettings(context);
         }
       },
       icon: Icon(

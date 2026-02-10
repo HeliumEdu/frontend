@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -126,7 +127,8 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
   Function? get saveAction => null;
 
-  bool get showLogout => false;
+  // FIXME: show logout next to notifications bell on non-mobile, otherwise only show it in settings
+  bool get showLogout => kIsWeb && !Responsive.isMobile(context);
 
   VoidCallback? get actionButtonCallback => null;
 
@@ -398,6 +400,8 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     bool clearSnackBar = true,
   }) {
     if (!context.mounted) return;
+    // TODO: Show snackbar in parent context when in dialog mode
+    if (DialogModeProvider.isDialogMode(context)) return;
     if (clearSnackBar) {
       ScaffoldMessenger.of(context).clearSnackBars();
     }

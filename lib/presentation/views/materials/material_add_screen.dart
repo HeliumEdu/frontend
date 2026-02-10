@@ -148,10 +148,7 @@ class _MaterialAddScreenState
             _populateInitialStateData(state);
           } else if (state is material_state.MaterialCreated ||
               state is material_state.MaterialUpdated) {
-            // TODO: Cleanup: a bit of a hack for now, dialog mode shows duplicate snackbars, but we should show _some_ notification that things saved successfully
-            if (!DialogModeProvider.isDialogMode(context)) {
-              showSnackBar(context, 'Resource saved');
-            }
+            showSnackBar(context, 'Resource saved');
 
             // In dialog mode, close the dialog; otherwise use router navigation
             if (DialogModeProvider.isDialogMode(context)) {
