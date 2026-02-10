@@ -398,9 +398,24 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           _buildCalendarHeader(),
 
           Expanded(
-            child: _currentView == HeliumView.todos
-                ? _buildTodosView()
-                : _buildCalendarView(context),
+            child: ListenableBuilder(
+              listenable: _calendarItemDataSource!.changeNotifier,
+              builder: (context, _) {
+                return Stack(
+                  children: [
+                    _currentView == HeliumView.todos
+                        ? _buildTodosView()
+                        : _buildCalendarView(context),
+                    if (_calendarItemDataSource!.isRefreshing)
+                      Container(
+                        color:
+                            context.colorScheme.surface.withValues(alpha: 0.7),
+                        child: const LoadingIndicator(),
+                      ),
+                  ],
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -408,31 +423,26 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   Widget _buildCalendarView(BuildContext context) {
-    return ListenableBuilder(
-      listenable: _calendarItemDataSource!.changeNotifier,
-      builder: (context, _) {
-        // For month view, wrap to make it scrollable if the view height is too small
-        if (_calendarController.view == CalendarView.month) {
-          return LayoutBuilder(
-            builder: (context, constraints) {
-              final double calendarHeight = _calculateCalendarHeight(
-                constraints.maxHeight,
-              );
-
-              return SingleChildScrollView(
-                controller: _monthViewScrollController,
-                child: SizedBox(
-                  height: calendarHeight,
-                  child: _buildCalendar(),
-                ),
-              );
-            },
+    // For month view, wrap to make it scrollable if the view height is too small
+    if (_calendarController.view == CalendarView.month) {
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final double calendarHeight = _calculateCalendarHeight(
+            constraints.maxHeight,
           );
-        } else {
-          return _buildCalendar();
-        }
-      },
-    );
+
+          return SingleChildScrollView(
+            controller: _monthViewScrollController,
+            child: SizedBox(
+              height: calendarHeight,
+              child: _buildCalendar(),
+            ),
+          );
+        },
+      );
+    } else {
+      return _buildCalendar();
+    }
   }
 
   int _calculateCalendarItemDisplayCount(double availableHeight) {
@@ -1388,7 +1398,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     return FutureBuilder<void>(
       future: loadMoreCalendarItems(),
       builder: (context, snapShot) {
-        return const LoadingIndicator(expanded: true);
+        return const Center(child: LoadingIndicator(expanded: false));
       },
     );
   }
@@ -2886,17 +2896,12 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   Widget _buildTodosView() {
-    return ListenableBuilder(
-      listenable: _calendarItemDataSource!.changeNotifier,
-      builder: (context, _) {
-        return TodosTable(
-          dataSource: _calendarItemDataSource!,
-          controller: _todosController,
-          onTap: _openCalendarItem,
-          onToggleCompleted: _onToggleCompleted,
-          onDelete: _deleteCalendarItem,
-        );
-      },
+    return TodosTable(
+      dataSource: _calendarItemDataSource!,
+      controller: _todosController,
+      onTap: _openCalendarItem,
+      onToggleCompleted: _onToggleCompleted,
+      onDelete: _deleteCalendarItem,
     );
   }
 
