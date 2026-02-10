@@ -50,7 +50,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   List<CourseModel>? courses;
   Map<int, CategoryModel>? categoriesMap;
 
-  // TODO: Enhancement: Refactor this simple cache approach (which hits API more than necessary) to cache on the remote data source layer instead (implement "pull to force re-fetch from API" as well on all screens): https://pub.dev/packages/dio_cache_interceptor
+  // TODO: Enhancement: refactor this simple cache approach (which hits API more than necessary) to cache on the remote data source layer instead (implement "pull to force re-fetch from API" as well on all screens): https://pub.dev/packages/dio_cache_interceptor
   final Map<String, List<CalendarItemBaseModel>> _dateRangeCache = {};
 
   // State
@@ -101,6 +101,8 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     DateTime? visibleStart,
     DateTime? visibleEnd,
   }) async {
+    // TODO: Enhancement: we should show a loading overlay here (and re-use the widget we pass SfCalendar when it initializes its own handleLoadMore)
+
     _log.info('Refreshing calendar sources - clearing cache');
     _dateRangeCache.clear();
     _hasLoadedInitialData = false;
@@ -690,6 +692,8 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   /// Schedules filter application with debouncing to prevent the UI from
   /// hanging. Use compute() to run filtering on a background isolate.
   void _applyFiltersAndNotify() {
+    // TODO: Enhancement: most devices filtering is instantaneous, but for slower devices, we should render the loading animation here
+
     _filterDebounceTimer?.cancel();
 
     if (filterDebounceDuration == Duration.zero) {
