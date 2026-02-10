@@ -106,9 +106,6 @@ class CalendarScreen extends StatelessWidget {
             ),
           ),
         ),
-        BlocProvider(
-          create: _providerHelpers.createExternalCalendarBloc(),
-        ),
       ],
       child: const CalendarProvidedScreen(),
     );
@@ -131,27 +128,11 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   String get screenTitle => 'Planner';
 
   @override
-  List<SingleChildWidget>? get inheritableProviders {
-    final providers = <SingleChildWidget>[
-      BlocProvider<CalendarItemBloc>.value(
-        value: context.read<CalendarItemBloc>(),
-      ),
-    ];
-
-    try {
-      final externalCalendarBloc = context.read<ExternalCalendarBloc>();
-      providers.add(
-        BlocProvider<ExternalCalendarBloc>.value(
-          value: externalCalendarBloc,
+  List<SingleChildWidget>? get inheritableProviders => [
+        BlocProvider<CalendarItemBloc>.value(
+          value: context.read<CalendarItemBloc>(),
         ),
-      );
-      _log.info('ExternalCalendarBloc added to inheritable providers');
-    } catch (e) {
-      _log.warning('Failed to read ExternalCalendarBloc for inheritable providers: $e');
-    }
-
-    return providers;
-  }
+      ];
 
   @override
   VoidCallback get actionButtonCallback => () {
@@ -217,6 +198,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   // leaving month view on mobile)
   DateTime? _selectedDateBeforeMobileMonth;
   bool _mobileMonthAutoSelectApplied = false;
+
+  List<DateTime> _visibleDates = [];
 
   CalendarItemDataSource? _calendarItemDataSource;
 
@@ -363,7 +346,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         },
       ),
       BlocListener<ExternalCalendarBloc, ExternalCalendarState>(
-        listener: (context, state) async {
+        listener: (context, state) {
           if (_calendarItemDataSource == null) return;
 
           if (state is ExternalCalendarCreated ||
@@ -371,24 +354,15 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
               state is ExternalCalendarDeleted) {
             _log.info('External calendar changed, refreshing calendar sources');
 
-            setState(() {
-              _calendarItemDataSource!.refreshCalendarSources();
-            });
+            final visibleStart =
+                _visibleDates.isNotEmpty ? _visibleDates.first : null;
+            final visibleEnd =
+                _visibleDates.isNotEmpty ? _visibleDates.last : null;
 
-            // Force reload by triggering a view change
-            await Future.delayed(const Duration(milliseconds: 100));
-            if (mounted) {
-              final currentDate = _calendarController.displayDate;
-              setState(() {
-                _calendarController.displayDate = currentDate?.add(const Duration(days: 1));
-              });
-              await Future.delayed(const Duration(milliseconds: 100));
-              if (mounted) {
-                setState(() {
-                  _calendarController.displayDate = currentDate;
-                });
-              }
-            }
+            _calendarItemDataSource!.refreshCalendarSources(
+              visibleStart: visibleStart,
+              visibleEnd: visibleEnd,
+            );
           }
         },
       ),
@@ -588,6 +562,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           onAppointmentResizeEnd: _resizeCalendarItemFromSfCalendar,
           onSelectionChanged: _onCalendarSelectionChanged,
           onViewChanged: (ViewChangedDetails details) {
+            _visibleDates = details.visibleDates;
             if (mounted) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (mounted) {

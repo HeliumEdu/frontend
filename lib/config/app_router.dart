@@ -367,9 +367,9 @@ void initializeRouter() {
           final child = (args?.externalCalendarBloc != null)
               ? BlocProvider<ExternalCalendarBloc>.value(
                   value: args!.externalCalendarBloc!,
-                  child: ExternalCalendarsScreen(),
+                  child: const ExternalCalendarsScreen(),
                 )
-              : ExternalCalendarsScreen();
+              : const ExternalCalendarsScreen();
           return MaterialPage(child: child);
         },
       ),

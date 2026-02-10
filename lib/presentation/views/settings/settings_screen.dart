@@ -31,22 +31,12 @@ import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/presentation/widgets/shadow_container.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
-import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-final _log = Logger('presentation.views');
-
 /// Shows as a dialog on desktop, or navigates on mobile.
 void showSettings(BuildContext context) {
-  ExternalCalendarBloc? externalCalendarBloc;
-  try {
-    externalCalendarBloc = context.read<ExternalCalendarBloc>();
-  } catch (_) {
-    _log.info(
-      'ExternalCalendarBloc not passed to /settings, will create a new one',
-    );
-  }
+  final externalCalendarBloc = context.read<ExternalCalendarBloc>();
 
   if (Responsive.isMobile(context)) {
     context.push(
@@ -57,13 +47,11 @@ void showSettings(BuildContext context) {
     showScreenAsDialog(
       context,
       child: const SettingsScreen(),
-      providers: externalCalendarBloc != null
-          ? [
-              BlocProvider<ExternalCalendarBloc>.value(
-                value: externalCalendarBloc,
-              ),
-            ]
-          : null,
+      providers: [
+        BlocProvider<ExternalCalendarBloc>.value(
+          value: externalCalendarBloc,
+        ),
+      ],
       width: 500,
       alignment: Alignment.centerLeft,
       insetPadding: const EdgeInsets.all(0),

@@ -91,19 +91,24 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     _changeNotifier.notifyListeners();
   }
 
-  // FIXME: let's clean this up
   /// Clears all cached calendar data and triggers a refresh.
   /// Call this when calendar sources (courses, events, external calendars, etc.)
   /// have been modified and the calendar view needs to refetch data.
-  void refreshCalendarSources() {
+  ///
+  /// Pass [visibleStart] and [visibleEnd] to immediately reload data for the
+  /// currently visible date range.
+  Future<void> refreshCalendarSources({
+    DateTime? visibleStart,
+    DateTime? visibleEnd,
+  }) async {
     _log.info('Refreshing calendar sources - clearing cache');
     _dateRangeCache.clear();
     _hasLoadedInitialData = false;
-    _log.info('Cache cleared, applying filters. Appointments before: ${appointments?.length ?? 0}');
-    _applyFiltersSynchronously();
-    _log.info('Filters applied, appointments after: ${appointments?.length ?? 0}');
-    // Notify listeners again to ensure the calendar widget refreshes
-    _notifyChangeListeners();
+
+    // Reload data for visible range if provided
+    if (visibleStart != null && visibleEnd != null) {
+      await handleLoadMore(visibleStart, visibleEnd);
+    }
   }
 
   @override
