@@ -197,13 +197,10 @@ class _CalendarItemAddScreenState
               state is EventUpdated) {
             state as BaseEntityState;
 
-            // TODO: Cleanup: a bit of a hack for now, dialog mode shows duplicate snackbars, but we should show _some_ notification that things saved successfully
-            if (!DialogModeProvider.isDialogMode(context)) {
-              showSnackBar(
-                context,
-                '${state.isEvent ? 'Event' : 'Assignment'} saved',
-              );
-            }
+            showSnackBar(
+              context,
+              '${state.isEvent ? 'Event' : 'Assignment'} saved',
+            );
 
             if (state.advanceNavOnSuccess) {
               if (DialogModeProvider.isDialogMode(context)) {

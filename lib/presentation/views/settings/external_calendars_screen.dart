@@ -7,6 +7,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_model.dart';
@@ -32,6 +34,21 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
+
+/// Shows as a dialog on desktop, or navigates on mobile.
+void showExternalCalendars(BuildContext context) {
+  if (Responsive.isMobile(context)) {
+    context.push(AppRoutes.externalCalendarsScreen);
+  } else {
+    showScreenAsDialog(
+      context,
+      child: ExternalCalendarsScreen(),
+      width: 500,
+      alignment: Alignment.centerLeft,
+      insetPadding: const EdgeInsets.all(0),
+    );
+  }
+}
 
 class ExternalCalendarsScreen extends StatelessWidget {
   final DioClient _dioClient = DioClient();
@@ -146,12 +163,34 @@ class _ExternalCalendarsProvidedScreenState
 
   @override
   Widget buildHeaderArea(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.only(bottom: 12),
-      child: InfoContainer(
-        text:
-            'External calendars allow you to bring other calendars in to Helium',
-      ),
+    return Column(
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(bottom: 12),
+          child: InfoContainer(
+            text:
+                'External calendars allow you to bring other calendars in to Helium',
+          ),
+        ),
+        if (DialogModeProvider.isDialogMode(context))
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                HeliumIconButton(
+                  onPressed: () {
+                    showExternalCalendarDialog(
+                      parentContext: context,
+                      isEdit: false,
+                    );
+                  },
+                  icon: Icons.add,
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 
