@@ -13,17 +13,66 @@ import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/presentation/bloc/course/course_bloc.dart';
+import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/views/core/dialog_step_navigation.dart';
+import 'package:heliumapp/presentation/views/courses/course_add_attachment_screen.dart'
+    show CourseAddAttachmentScreen;
+import 'package:heliumapp/presentation/views/courses/course_add_category_screen.dart'
+    show CourseAddCategoryScreen;
+import 'package:heliumapp/presentation/views/courses/course_add_schedule_screen.dart'
+    show CourseAddScheduleProvidedScreen;
+import 'package:heliumapp/presentation/views/courses/course_add_screen.dart'
+    show CourseAddProvidedScreen;
 import 'package:heliumapp/presentation/widgets/shadow_container.dart';
 
 enum CourseAddSteps {
-  details(Icons.list),
-  schedule(Icons.date_range_outlined),
-  categories(Icons.category),
-  attachments(Icons.attachment);
+  details(Icons.list, AppRoutes.courseAddScreen),
+  schedule(Icons.date_range_outlined, AppRoutes.courseAddScheduleScreen),
+  categories(Icons.category, AppRoutes.courseAddCategoriesScreen),
+  attachments(Icons.attachment, AppRoutes.courseAddAttachmentsScreen);
 
   final IconData icon;
+  final String route;
 
-  const CourseAddSteps(this.icon);
+  const CourseAddSteps(this.icon, this.route);
+
+  Widget buildWidget({
+    required int courseGroupId,
+    int? courseId,
+    required bool isEdit,
+    required bool isNew,
+  }) {
+    switch (this) {
+      case CourseAddSteps.details:
+        return CourseAddProvidedScreen(
+          courseGroupId: courseGroupId,
+          courseId: courseId,
+          isEdit: isEdit,
+          isNew: isNew,
+        );
+      case CourseAddSteps.schedule:
+        return CourseAddScheduleProvidedScreen(
+          courseGroupId: courseGroupId,
+          courseId: courseId!,
+          isEdit: isEdit,
+          isNew: isNew,
+        );
+      case CourseAddSteps.categories:
+        return CourseAddCategoryScreen(
+          courseGroupId: courseGroupId,
+          courseId: courseId!,
+          isEdit: isEdit,
+          isNew: isNew,
+        );
+      case CourseAddSteps.attachments:
+        return CourseAddAttachmentScreen(
+          courseGroupId: courseGroupId,
+          entityId: courseId!,
+          isEdit: isEdit,
+          isNew: isNew,
+        );
+    }
+  }
 }
 
 class CourseStepper extends StatelessWidget {
@@ -31,6 +80,7 @@ class CourseStepper extends StatelessWidget {
   final int courseGroupId;
   final int? courseId;
   final bool isEdit;
+  final bool isNew;
   final bool Function()? onStep;
 
   const CourseStepper({
@@ -39,19 +89,27 @@ class CourseStepper extends StatelessWidget {
     required this.courseGroupId,
     this.courseId,
     required this.isEdit,
+    required this.isNew,
     this.onStep,
   });
 
   @override
   Widget build(BuildContext context) {
+    final dialogProvider = DialogModeProvider.maybeOf(context);
+
+    // Use dialog width if available, otherwise use screen width
+    final availableWidth =
+        dialogProvider?.width ?? MediaQuery.sizeOf(context).width;
+    final lineLength = (availableWidth - 275) / 4;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: ShadowContainer(
         child: EasyStepper(
           showTitle: false,
           lineStyle: LineStyle(
-            lineLength: (MediaQuery.sizeOf(context).width - 275) / 4,
-            lineThickness: 3,
+            lineLength: lineLength,
+            lineThickness: 3.0,
             lineSpace: 4,
             lineType: LineType.normal,
             defaultLineColor: context.colorScheme.outline.withValues(
@@ -84,7 +142,7 @@ class CourseStepper extends StatelessWidget {
           disableScroll: true,
           activeStep: selectedIndex,
           onStepReached: (index) => _onStepReached(context, index),
-          steps: _buildSteps(context),
+          steps: _buildSteps(context, 25),
         ),
       ),
     );
@@ -97,36 +155,32 @@ class CourseStepper extends StatelessWidget {
       return;
     }
 
+    // Try to navigate within dialog first
+    if (_navigateToStepInDialog(context, index)) {
+      return;
+    }
+
+    // Fall back to router navigation for non-dialog mode
+    final step = CourseAddSteps.values[index];
     final courseBloc = context.read<CourseBloc>();
     final args = CourseAddArgs(
       courseBloc: courseBloc,
       courseGroupId: courseGroupId,
       courseId: courseId,
       isEdit: isEdit,
+      isNew: isNew,
     );
 
-    if (index == CourseAddSteps.details.index) {
-      context.pushReplacement(AppRoutes.courseAddScreen, extra: args);
-      return;
-    }
-
-    if (index == CourseAddSteps.schedule.index) {
-      context.pushReplacement(AppRoutes.courseAddScheduleScreen, extra: args);
-    }
-
-    if (index == CourseAddSteps.categories.index) {
-      context.pushReplacement(AppRoutes.courseAddCategoriesScreen, extra: args);
-    }
-
-    if (index == CourseAddSteps.attachments.index) {
-      context.pushReplacement(
-        AppRoutes.courseAddAttachmentsScreen,
-        extra: args,
-      );
-    }
+    context.pushReplacement(step.route, extra: args);
   }
 
-  List<EasyStep> _buildSteps(BuildContext context) {
+  /// Helper function to navigate to a step when in dialog mode.
+  /// Returns true if navigation was handled (dialog mode), false otherwise.
+  bool _navigateToStepInDialog(BuildContext context, int stepIndex) {
+    return navigateStepInDialog(context, stepIndex);
+  }
+
+  List<EasyStep> _buildSteps(BuildContext context, double iconSize) {
     return [
       EasyStep(
         customStep: Container(
@@ -143,7 +197,7 @@ class CourseStepper extends StatelessWidget {
               color: selectedIndex == CourseAddSteps.details.index
                   ? context.colorScheme.surface
                   : context.colorScheme.primary,
-              size: 20,
+              size: iconSize,
             ),
           ),
         ),
@@ -170,7 +224,7 @@ class CourseStepper extends StatelessWidget {
                   : context.colorScheme.primary.withValues(
                       alpha: isEdit ? 1 : 0.3,
                     ),
-              size: 20,
+              size: iconSize,
             ),
           ),
         ),
@@ -197,7 +251,7 @@ class CourseStepper extends StatelessWidget {
                   : context.colorScheme.primary.withValues(
                       alpha: isEdit ? 1 : 0.3,
                     ),
-              size: 20,
+              size: iconSize,
             ),
           ),
         ),
@@ -226,7 +280,7 @@ class CourseStepper extends StatelessWidget {
                   : context.colorScheme.primary.withValues(
                       alpha: isEdit ? 1 : 0.3,
                     ),
-              size: 20,
+              size: iconSize,
             ),
           ),
         ),

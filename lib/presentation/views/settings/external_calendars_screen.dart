@@ -7,12 +7,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_model.dart';
 import 'package:heliumapp/data/models/planner/request/external_calendar_request_model.dart';
-import 'package:heliumapp/data/repositories/external_calendar_repository_impl.dart';
-import 'package:heliumapp/data/sources/external_calendar_remote_data_source.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_bloc.dart';
 import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_event.dart';
@@ -33,27 +33,37 @@ import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 
-class ExternalCalendarsScreen extends StatelessWidget {
-  final DioClient _dioClient = DioClient();
+/// Shows as a dialog on desktop, or navigates on mobile.
+void showExternalCalendars(BuildContext context) {
+  final externalCalendarBloc = context.read<ExternalCalendarBloc>();
 
-  ExternalCalendarsScreen({super.key});
+  if (Responsive.isMobile(context)) {
+    context.push(
+      AppRoutes.externalCalendarsScreen,
+      extra: ExternalCalendarsArgs(externalCalendarBloc: externalCalendarBloc),
+    );
+  } else {
+    showScreenAsDialog(
+      context,
+      child: const ExternalCalendarsScreen(),
+      providers: [
+        BlocProvider<ExternalCalendarBloc>.value(
+          value: externalCalendarBloc,
+        ),
+      ],
+      width: 500,
+      alignment: Alignment.centerLeft,
+      insetPadding: const EdgeInsets.all(0),
+    );
+  }
+}
+
+class ExternalCalendarsScreen extends StatelessWidget {
+  const ExternalCalendarsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          create: (context) => ExternalCalendarBloc(
-            externalCalendarRepository: ExternalCalendarRepositoryImpl(
-              remoteDataSource: ExternalCalendarRemoteDataSourceImpl(
-                dioClient: _dioClient,
-              ),
-            ),
-          ),
-        ),
-      ],
-      child: const ExternalCalendarsProvidedScreen(),
-    );
+    return const ExternalCalendarsProvidedScreen();
   }
 }
 
@@ -146,12 +156,34 @@ class _ExternalCalendarsProvidedScreenState
 
   @override
   Widget buildHeaderArea(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.only(bottom: 12),
-      child: InfoContainer(
-        text:
-            'External calendars allow you to bring other calendars in to Helium',
-      ),
+    return Column(
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(bottom: 12),
+          child: InfoContainer(
+            text:
+                'External calendars allow you to bring other calendars in to Helium',
+          ),
+        ),
+        if (DialogModeProvider.isDialogMode(context))
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                HeliumIconButton(
+                  onPressed: () {
+                    showExternalCalendarDialog(
+                      parentContext: context,
+                      isEdit: false,
+                    );
+                  },
+                  icon: Icons.add,
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 

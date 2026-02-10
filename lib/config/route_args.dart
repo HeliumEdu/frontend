@@ -7,13 +7,25 @@
 
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
 import 'package:heliumapp/presentation/bloc/course/course_bloc.dart';
+import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_bloc.dart';
 import 'package:heliumapp/presentation/bloc/material/material_bloc.dart';
-import 'package:nested/nested.dart';
 
 class NotificationArgs {
-  final List<SingleChildWidget>? providers;
+  final CalendarItemBloc? calendarItemBloc;
 
-  const NotificationArgs({this.providers});
+  const NotificationArgs({this.calendarItemBloc});
+}
+
+class ExternalCalendarsArgs {
+  final ExternalCalendarBloc? externalCalendarBloc;
+
+  const ExternalCalendarsArgs({this.externalCalendarBloc});
+}
+
+class SettingsArgs {
+  final ExternalCalendarBloc? externalCalendarBloc;
+
+  const SettingsArgs({this.externalCalendarBloc});
 }
 
 class CalendarItemAddArgs {
@@ -23,6 +35,7 @@ class CalendarItemAddArgs {
   final DateTime? initialDate;
   final bool isFromMonthView;
   final bool isEdit;
+  final bool isNew;
 
   const CalendarItemAddArgs({
     required this.calendarItemBloc,
@@ -31,6 +44,7 @@ class CalendarItemAddArgs {
     this.initialDate,
     this.isFromMonthView = false,
     required this.isEdit,
+    required this.isNew,
   });
 }
 
@@ -39,12 +53,14 @@ class CalendarItemReminderArgs {
   final bool isEvent;
   final int entityId;
   final bool isEdit;
+  final bool isNew;
 
   const CalendarItemReminderArgs({
     required this.calendarItemBloc,
     required this.isEvent,
     required this.entityId,
     required this.isEdit,
+    required this.isNew,
   });
 }
 
@@ -53,26 +69,30 @@ class CalendarItemAttachmentArgs {
   final bool isEvent;
   final int entityId;
   final bool isEdit;
+  final bool isNew;
 
   const CalendarItemAttachmentArgs({
     required this.calendarItemBloc,
     required this.isEvent,
     required this.entityId,
     required this.isEdit,
+    required this.isNew,
   });
 }
 
 class CourseAddArgs {
   final CourseBloc courseBloc;
   final int courseGroupId;
-  final int? courseId;
   final bool isEdit;
+  final bool isNew;
+  final int? courseId;
 
   const CourseAddArgs({
     required this.courseBloc,
     required this.courseGroupId,
-    this.courseId,
     required this.isEdit,
+    required this.isNew,
+    this.courseId,
   });
 }
 

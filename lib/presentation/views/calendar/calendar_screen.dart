@@ -11,9 +11,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
@@ -48,9 +46,14 @@ import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_state.dart
 import 'package:heliumapp/presentation/bloc/category/category_bloc.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
+import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_bloc.dart';
+import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_state.dart';
 import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
+import 'package:heliumapp/presentation/views/calendar/calendar_item_add_screen.dart';
 import 'package:heliumapp/presentation/views/calendar/todos_table_controller.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/views/core/notification_screen.dart';
+import 'package:heliumapp/presentation/views/settings/settings_screen.dart';
 import 'package:heliumapp/presentation/widgets/error_card.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
@@ -126,10 +129,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   @override
   List<SingleChildWidget>? get inheritableProviders => [
-    BlocProvider<CalendarItemBloc>.value(
-      value: context.read<CalendarItemBloc>(),
-    ),
-  ];
+        BlocProvider<CalendarItemBloc>.value(
+          value: context.read<CalendarItemBloc>(),
+        ),
+      ];
 
   @override
   VoidCallback get actionButtonCallback => () {
@@ -142,14 +145,17 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         ? truncatedNow
         : _calendarController.selectedDate;
 
-    context.push(
-      AppRoutes.plannerItemAddScreen,
-      extra: CalendarItemAddArgs(
-        calendarItemBloc: context.read<CalendarItemBloc>(),
-        initialDate: initialDate,
-        isFromMonthView: _calendarController.view == CalendarView.month,
-        isEdit: false,
-      ),
+    showCalendarItemAdd(
+      context,
+      initialDate: initialDate,
+      isFromMonthView: _calendarController.view == CalendarView.month,
+      isEdit: false,
+      isNew: true,
+      providers: [
+        BlocProvider<CalendarItemBloc>.value(
+          value: context.read<CalendarItemBloc>(),
+        ),
+      ],
     );
   };
 
@@ -192,6 +198,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   // leaving month view on mobile)
   DateTime? _selectedDateBeforeMobileMonth;
   bool _mobileMonthAutoSelectApplied = false;
+
+  List<DateTime> _visibleDates = [];
 
   CalendarItemDataSource? _calendarItemDataSource;
 
@@ -289,6 +297,24 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         listener: (context, state) {
           if (state is CalendarScreenDataFetched) {
             _populateInitialCalendarStateData(state);
+
+            // Check if we should open a dialog based on query parameters
+            final openDialog = GoRouterState.of(context).uri.queryParameters['openDialog'];
+            if (openDialog != null) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!mounted) return;
+
+                // Clear the query parameter from URL
+                context.go(GoRouterState.of(context).uri.replace(queryParameters: {}).toString());
+
+                // Open the appropriate dialog
+                if (openDialog == 'notifications') {
+                  showNotifications(context);
+                } else if (openDialog == 'settings') {
+                  showSettings(context);
+                }
+              });
+            }
           }
         },
       ),
@@ -316,6 +342,27 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           } else if (state is HomeworkDeleted) {
             showSnackBar(context, 'Assignment deleted');
             _calendarItemDataSource!.removeCalendarItem(state.id);
+          }
+        },
+      ),
+      BlocListener<ExternalCalendarBloc, ExternalCalendarState>(
+        listener: (context, state) {
+          if (_calendarItemDataSource == null) return;
+
+          if (state is ExternalCalendarCreated ||
+              state is ExternalCalendarUpdated ||
+              state is ExternalCalendarDeleted) {
+            _log.info('External calendar changed, refreshing calendar sources');
+
+            final visibleStart =
+                _visibleDates.isNotEmpty ? _visibleDates.first : null;
+            final visibleEnd =
+                _visibleDates.isNotEmpty ? _visibleDates.last : null;
+
+            _calendarItemDataSource!.refreshCalendarSources(
+              visibleStart: visibleStart,
+              visibleEnd: visibleEnd,
+            );
           }
         },
       ),
@@ -351,9 +398,24 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           _buildCalendarHeader(),
 
           Expanded(
-            child: _currentView == HeliumView.todos
-                ? _buildTodosView()
-                : _buildCalendarView(context),
+            child: ListenableBuilder(
+              listenable: _calendarItemDataSource!.changeNotifier,
+              builder: (context, _) {
+                return Stack(
+                  children: [
+                    _currentView == HeliumView.todos
+                        ? _buildTodosView()
+                        : _buildCalendarView(context),
+                    if (_calendarItemDataSource!.isRefreshing)
+                      Container(
+                        color:
+                            context.colorScheme.surface.withValues(alpha: 0.7),
+                        child: const LoadingIndicator(),
+                      ),
+                  ],
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -361,31 +423,26 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   Widget _buildCalendarView(BuildContext context) {
-    return ListenableBuilder(
-      listenable: _calendarItemDataSource!.changeNotifier,
-      builder: (context, _) {
-        // For month view, wrap to make it scrollable if the view height is too small
-        if (_calendarController.view == CalendarView.month) {
-          return LayoutBuilder(
-            builder: (context, constraints) {
-              final double calendarHeight = _calculateCalendarHeight(
-                constraints.maxHeight,
-              );
-
-              return SingleChildScrollView(
-                controller: _monthViewScrollController,
-                child: SizedBox(
-                  height: calendarHeight,
-                  child: _buildCalendar(),
-                ),
-              );
-            },
+    // For month view, wrap to make it scrollable if the view height is too small
+    if (_calendarController.view == CalendarView.month) {
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final double calendarHeight = _calculateCalendarHeight(
+            constraints.maxHeight,
           );
-        } else {
-          return _buildCalendar();
-        }
-      },
-    );
+
+          return SingleChildScrollView(
+            controller: _monthViewScrollController,
+            child: SizedBox(
+              height: calendarHeight,
+              child: _buildCalendar(),
+            ),
+          );
+        },
+      );
+    } else {
+      return _buildCalendar();
+    }
   }
 
   int _calculateCalendarItemDisplayCount(double availableHeight) {
@@ -515,6 +572,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           onAppointmentResizeEnd: _resizeCalendarItemFromSfCalendar,
           onSelectionChanged: _onCalendarSelectionChanged,
           onViewChanged: (ViewChangedDetails details) {
+            _visibleDates = details.visibleDates;
             if (mounted) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (mounted) {
@@ -554,14 +612,17 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         ? calendarItem.id
         : null;
 
-    context.push(
-      AppRoutes.plannerItemAddScreen,
-      extra: CalendarItemAddArgs(
-        calendarItemBloc: context.read<CalendarItemBloc>(),
-        eventId: eventId,
-        homeworkId: homeworkId,
-        isEdit: true,
-      ),
+    showCalendarItemAdd(
+      context,
+      eventId: eventId,
+      homeworkId: homeworkId,
+      isEdit: true,
+      isNew: false,
+      providers: [
+        BlocProvider<CalendarItemBloc>.value(
+          value: context.read<CalendarItemBloc>(),
+        ),
+      ],
     );
 
     return true;
@@ -1337,12 +1398,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     return FutureBuilder<void>(
       future: loadMoreCalendarItems(),
       builder: (context, snapShot) {
-        return Container(
-          height: double.infinity,
-          width: double.infinity,
-          alignment: Alignment.center,
-          child: const CircularProgressIndicator(),
-        );
+        return const Center(child: LoadingIndicator(expanded: false));
       },
     );
   }
@@ -2840,17 +2896,12 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   Widget _buildTodosView() {
-    return ListenableBuilder(
-      listenable: _calendarItemDataSource!.changeNotifier,
-      builder: (context, _) {
-        return TodosTable(
-          dataSource: _calendarItemDataSource!,
-          controller: _todosController,
-          onTap: _openCalendarItem,
-          onToggleCompleted: _onToggleCompleted,
-          onDelete: _deleteCalendarItem,
-        );
-      },
+    return TodosTable(
+      dataSource: _calendarItemDataSource!,
+      controller: _todosController,
+      onTap: _openCalendarItem,
+      onToggleCompleted: _onToggleCompleted,
+      onDelete: _deleteCalendarItem,
     );
   }
 

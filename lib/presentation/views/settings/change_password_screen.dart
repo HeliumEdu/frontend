@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_bloc.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_event.dart';
@@ -18,6 +19,22 @@ import 'package:heliumapp/presentation/controllers/settings/change_password_form
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
+import 'package:heliumapp/utils/responsive_helpers.dart';
+
+/// Shows as a dialog on desktop, or navigates on mobile.
+void showChangePassword(BuildContext context) {
+  if (Responsive.isMobile(context)) {
+    context.push(AppRoutes.changePasswordScreen);
+  } else {
+    showScreenAsDialog(
+      context,
+      child: const ChangePasswordScreen(),
+      width: 500,
+      alignment: Alignment.centerLeft,
+      insetPadding: const EdgeInsets.all(0),
+    );
+  }
+}
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -68,7 +85,11 @@ class _ChangePasswordScreenState
 
             _formController.clearForm();
 
-            context.pop();
+            if (DialogModeProvider.isDialogMode(context)) {
+              Navigator.of(context).pop();
+            } else {
+              context.pop();
+            }
           }
 
           if (state is! AuthLoading) {

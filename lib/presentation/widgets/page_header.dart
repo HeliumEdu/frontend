@@ -31,6 +31,7 @@ class PageHeader extends StatelessWidget {
   final Function? cancelAction;
   final Function? saveAction;
   final bool showLogout;
+  final VoidCallback? onLogoutConfirmed;
   final List<SingleChildWidget>? inheritableProviders;
 
   const PageHeader({
@@ -42,30 +43,29 @@ class PageHeader extends StatelessWidget {
     this.cancelAction,
     this.saveAction,
     this.showLogout = false,
+    this.onLogoutConfirmed,
     this.inheritableProviders,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: context.colorScheme.surface,
-      padding: const EdgeInsets.only(top: 6, bottom: 2, left: 12, right: 12),
-      child: Row(
+    Widget buildContent(BuildContext ctx) {
+      return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           if (screenType == ScreenType.subPage)
             IconButton(
               visualDensity: VisualDensity.compact,
               onPressed: () {
-                if (Navigator.canPop(context)) {
-                  context.pop();
+                if (Navigator.canPop(ctx)) {
+                  ctx.pop();
                 } else {
-                  context.go(AppRoutes.plannerScreen);
+                  ctx.go(AppRoutes.plannerScreen);
                 }
               },
               icon: Icon(
                 Icons.keyboard_arrow_left,
-                color: context.colorScheme.onSurface,
+                color: ctx.colorScheme.onSurface,
               ),
             )
           else if (screenType == ScreenType.entityPage)
@@ -74,11 +74,11 @@ class PageHeader extends StatelessWidget {
               onPressed: () {
                 cancelAction?.call();
               },
-              icon: Icon(Icons.cancel, color: context.colorScheme.primary),
+              icon: Icon(Icons.cancel, color: ctx.colorScheme.primary),
             )
-          else if (Responsive.isMobile(context) ||
-              (!Responsive.isTouchDevice(context) &&
-                  MediaQuery.of(context).size.height <
+          else if (Responsive.isMobile(ctx) ||
+              (!Responsive.isTouchDevice(ctx) &&
+                  MediaQuery.of(ctx).size.height <
                       AppConstants.minHeightForTrailingNav))
             const SettingsButton()
           else
@@ -88,57 +88,75 @@ class PageHeader extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (icon != null) ...[
-                Icon(icon, color: context.colorScheme.primary),
+                Icon(icon, color: ctx.colorScheme.primary),
                 const SizedBox(width: 8),
               ],
-              Text(title, style: AppStyles.pageTitle(context)),
+              Text(title, style: AppStyles.pageTitle(ctx)),
             ],
           ),
 
-          if (screenType == ScreenType.page)
-            IconButton(
-              visualDensity: VisualDensity.compact,
-              onPressed: () {
-                showNotifications(context, providers: inheritableProviders);
-              },
-              icon: Icon(
-                Icons.notifications,
-                color: context.colorScheme.primary,
-              ),
-            )
-          else if (screenType == ScreenType.entityPage)
-            IconButton(
-              visualDensity: VisualDensity.compact,
-              onPressed: isLoading
-                  ? null
-                  : () {
-                      saveAction?.call();
-                    },
-              icon: isLoading
-                  ? const LoadingIndicator(small: true)
-                  : Icon(
-                      Icons.check_circle,
-                      color: context.colorScheme.primary,
-                    ),
-            ),
+          Row(
+            children: [
+              if (screenType == ScreenType.page)
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () {
+                    showNotifications(ctx);
+                  },
+                  icon: Icon(
+                    Icons.notifications,
+                    color: ctx.colorScheme.primary,
+                  ),
+                )
+              else if (screenType == ScreenType.entityPage)
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  onPressed: isLoading
+                      ? null
+                      : () {
+                          saveAction?.call();
+                        },
+                  icon: isLoading
+                      ? const LoadingIndicator(size: 20, expanded: false)
+                      : Icon(
+                          Icons.check_circle,
+                          color: ctx.colorScheme.primary,
+                        ),
+                ),
 
-          if (showLogout)
-            IconButton(
-              visualDensity: VisualDensity.compact,
-              onPressed: () {
-                _showLogoutDialog(context);
-              },
-              icon: Icon(
-                Icons.logout_outlined,
-                color: context.colorScheme.error,
-              ),
-            ),
+              if (showLogout)
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () {
+                    _showLogoutDialog(ctx);
+                  },
+                  icon: Icon(
+                    Icons.logout_outlined,
+                    color: ctx.colorScheme.error,
+                  ),
+                ),
 
-          // Help keep things centered when no right button
-          if (screenType == ScreenType.subPage && !showLogout)
-            const Icon(Icons.space_bar, color: Colors.transparent),
+              // Help keep things centered when no right button
+              if (screenType == ScreenType.subPage && !showLogout)
+                const Icon(Icons.space_bar, color: Colors.transparent),
+            ],
+          ),
         ],
-      ),
+      );
+    }
+
+    final wrappedContent =
+        inheritableProviders != null && inheritableProviders!.isNotEmpty
+        ? MultiBlocProvider(
+            providers: inheritableProviders!,
+            child: Builder(builder: (context) => buildContent(context)),
+          )
+        : buildContent(context);
+
+    return Container(
+      color: context.colorScheme.surface,
+      padding: const EdgeInsets.only(top: 6, bottom: 2, left: 12, right: 12),
+      child: wrappedContent,
     );
   }
 
@@ -181,7 +199,9 @@ class PageHeader extends StatelessWidget {
                       child: HeliumElevatedButton(
                         buttonText: 'Cancel',
                         backgroundColor: context.colorScheme.outline,
-                        onPressed: () => dialogContext.pop(),
+                        onPressed: () {
+                          Navigator.of(dialogContext).pop();
+                        },
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -195,9 +215,10 @@ class PageHeader extends StatelessWidget {
                             isSubmitting = true;
                           });
 
-                          dialogContext.pop();
+                          Navigator.of(dialogContext).pop();
 
-                          context.read<AuthBloc>().add(LogoutEvent());
+                          onLogoutConfirmed?.call();
+                          parentContext.read<AuthBloc>().add(LogoutEvent());
                         },
                       ),
                     ),

@@ -18,6 +18,7 @@ class CourseAddAttachmentScreen extends BaseAttachmentScreen {
     required this.courseGroupId,
     required super.entityId,
     required super.isEdit,
+    required super.isNew,
   });
 
   @override
@@ -26,6 +27,7 @@ class CourseAddAttachmentScreen extends BaseAttachmentScreen {
       courseGroupId: courseGroupId,
       entityId: entityId,
       isEdit: isEdit,
+      isNew: isNew,
     );
   }
 }
@@ -38,6 +40,7 @@ class CourseAddAttachmentProvidedScreen extends BaseAttachmentProvidedScreen {
     required this.courseGroupId,
     required super.entityId,
     required super.isEdit,
+    required super.isNew,
   });
 
   @override
@@ -49,7 +52,7 @@ class CourseAddAttachmentProvidedScreen extends BaseAttachmentProvidedScreen {
 class _CourseAddAttachmentScreenState
     extends BaseAttachmentScreenState<CourseAddAttachmentProvidedScreen> {
   @override
-  String get screenTitle => widget.isEdit ? 'Edit Class' : 'Add Class';
+  String get screenTitle => !widget.isNew ? 'Edit Class' : 'Add Class';
 
   @override
   IconData? get icon => Icons.school;
@@ -62,6 +65,7 @@ class _CourseAddAttachmentScreenState
           (widget as CourseAddAttachmentProvidedScreen).courseGroupId,
       courseId: widget.entityId,
       isEdit: widget.isEdit,
+      isNew: widget.isNew,
     );
   }
 

@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
@@ -26,6 +27,21 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+
+/// Shows as a dialog on desktop, or navigates on mobile.
+void showPreferences(BuildContext context) {
+  if (Responsive.isMobile(context)) {
+    context.push(AppRoutes.preferencesScreen);
+  } else {
+    showScreenAsDialog(
+      context,
+      child: const PreferencesScreen(),
+      width: 500,
+      alignment: Alignment.centerLeft,
+      insetPadding: const EdgeInsets.all(0),
+    );
+  }
+}
 
 class PreferencesScreen extends StatefulWidget {
   const PreferencesScreen({super.key});
@@ -93,7 +109,11 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
 
             showSnackBar(context, 'Preferences saved');
 
-            context.pop();
+            if (DialogModeProvider.isDialogMode(context)) {
+              Navigator.of(context).pop();
+            } else {
+              context.pop();
+            }
           }
 
           if (state is! AuthLoading) {

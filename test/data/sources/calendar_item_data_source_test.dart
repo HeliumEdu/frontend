@@ -81,6 +81,7 @@ void main() {
     when(() => mockExternalCalendarRepository.getExternalCalendarEvents(
           from: any(named: 'from'),
           to: any(named: 'to'),
+          shownOnCalendar: any(named: 'shownOnCalendar'),
         )).thenAnswer((_) async => []);
 
     userSettings = UserSettingsModel(
@@ -1104,6 +1105,7 @@ void main() {
         when(() => mockExternalCalendarRepository.getExternalCalendarEvents(
               from: any(named: 'from'),
               to: any(named: 'to'),
+              shownOnCalendar: any(named: 'shownOnCalendar'),
             )).thenAnswer((_) async => []);
 
         // Create a fresh data source without the pre-loaded cache
@@ -1156,6 +1158,7 @@ void main() {
         when(() => mockExternalCalendarRepository.getExternalCalendarEvents(
               from: any(named: 'from'),
               to: any(named: 'to'),
+              shownOnCalendar: any(named: 'shownOnCalendar'),
             )).thenAnswer((_) async => []);
 
         // Same range should use cache
@@ -1213,6 +1216,7 @@ void main() {
         when(() => mockExternalCalendarRepository.getExternalCalendarEvents(
               from: any(named: 'from'),
               to: any(named: 'to'),
+              shownOnCalendar: any(named: 'shownOnCalendar'),
             )).thenAnswer((_) async => [externalEvent]);
 
         await freshDataSource.handleLoadMore(

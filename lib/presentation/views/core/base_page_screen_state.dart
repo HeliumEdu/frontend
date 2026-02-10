@@ -63,7 +63,6 @@ class DialogModeProvider extends InheritedWidget {
 ///   ],
 /// );
 /// ```
-// TODO: Blocker for Web: update settings, sub screens to use this as Notifications does, except for Settings it should be pinned left (instead of right like Notifications), and for all others it should be centered.
 void showScreenAsDialog(
   BuildContext context, {
   required Widget child,
@@ -199,7 +198,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     final listeners = buildListeners(context);
     if (listeners.isNotEmpty) {
       return MultiBlocListener(
-        listeners: buildListeners(context),
+        listeners: listeners,
         child: buildScaffold(context),
       );
     } else {
@@ -244,31 +243,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
         ),
         child: Column(
           children: [
-            // Dialog header
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: context.colorScheme.outline.withValues(alpha: 0.2),
-                  ),
-                ),
-              ),
-              child: Row(
-                children: [
-                  if (icon != null) ...[
-                    Icon(icon, color: context.colorScheme.primary),
-                    const SizedBox(width: 12),
-                  ],
-                  Text(screenTitle, style: AppStyles.pageTitle(context)),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ],
-              ),
-            ),
+            buildDialogHeader(context),
             Expanded(child: content),
           ],
         ),
@@ -339,6 +314,48 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   @mustBeOverridden
   Widget buildMainArea(BuildContext context);
 
+  Widget buildDialogHeader(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: context.colorScheme.outline.withValues(alpha: 0.2),
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          if (icon != null) ...[
+            Icon(icon, color: context.colorScheme.primary),
+            const SizedBox(width: 12),
+          ],
+          Text(screenTitle, style: AppStyles.pageTitle(context)),
+          const Spacer(),
+          if (saveAction != null) ...[
+            if (isSubmitting)
+              const LoadingIndicator(
+                size: 20,
+                strokeWidth: 2.5,
+                expanded: false,
+              )
+            else
+              IconButton(
+                icon: const Icon(Icons.check),
+                onPressed: () => saveAction!(),
+                color: context.colorScheme.primary,
+              ),
+            const SizedBox(width: 8),
+          ],
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget buildFloatingActionButton() {
     return Container(
       decoration: BoxDecoration(
@@ -378,6 +395,8 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     bool clearSnackBar = true,
   }) {
     if (!context.mounted) return;
+    // TODO: Show snackbar in parent context when in dialog mode
+    if (DialogModeProvider.isDialogMode(context)) return;
     if (clearSnackBar) {
       ScaffoldMessenger.of(context).clearSnackBars();
     }

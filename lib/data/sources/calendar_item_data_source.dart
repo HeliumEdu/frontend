@@ -50,7 +50,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   List<CourseModel>? courses;
   Map<int, CategoryModel>? categoriesMap;
 
-  // TODO: Enhancement: Refactor this simple cache approach (which hits API more than necessary) to cache on the remote data source layer instead (implement "pull to force re-fetch from API" as well on all screens): https://pub.dev/packages/dio_cache_interceptor
+  // TODO: Enhancement: refactor this simple cache approach (which hits API more than necessary) to cache on the remote data source layer instead (implement "pull to force re-fetch from API" as well on all screens): https://pub.dev/packages/dio_cache_interceptor
   final Map<String, List<CalendarItemBaseModel>> _dateRangeCache = {};
 
   // State
@@ -66,6 +66,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   Timer? _filterDebounceTimer;
   bool _isFilteringInProgress = false;
   Completer<void>? _filterCompleter;
+  bool _isRefreshing = false;
 
   /// Duration for filter debouncing. Set to Duration.zero in tests for
   /// synchronous behavior.
@@ -86,9 +87,42 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
 
   Listenable get changeNotifier => _changeNotifier;
 
+  /// Indicates when the data source is refreshing (loading data or applying
+  /// filters). UI can check this when changeNotifier fires to show a loading
+  /// overlay.
+  bool get isRefreshing => _isRefreshing;
+
   void _notifyChangeListeners() {
     // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
     _changeNotifier.notifyListeners();
+  }
+
+  /// Clears all cached calendar data and triggers a refresh.
+  /// Call this when calendar sources (courses, events, external calendars, etc.)
+  /// have been modified and the calendar view needs to refetch data.
+  ///
+  /// Pass [visibleStart] and [visibleEnd] to immediately reload data for the
+  /// currently visible date range.
+  Future<void> refreshCalendarSources({
+    DateTime? visibleStart,
+    DateTime? visibleEnd,
+  }) async {
+    _isRefreshing = true;
+    _notifyChangeListeners();
+
+    try {
+      _log.info('Refreshing calendar sources - clearing cache');
+      _dateRangeCache.clear();
+      _hasLoadedInitialData = false;
+
+      // Reload data for visible range if provided
+      if (visibleStart != null && visibleEnd != null) {
+        await handleLoadMore(visibleStart, visibleEnd);
+      }
+    } finally {
+      _isRefreshing = false;
+      _notifyChangeListeners();
+    }
   }
 
   @override
@@ -289,7 +323,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
             shownOnCalendar: true,
           );
       final externalCalendarEvents = await externalCalendarRepository
-          .getExternalCalendarEvents(from: startDate, to: endDate);
+          .getExternalCalendarEvents(from: startDate, to: endDate, shownOnCalendar: true,);
 
       final calendarItems = [
         ...events,
@@ -707,6 +741,12 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   Future<void> _applyFiltersAsync() async {
     if (_isFilteringInProgress) return;
     _isFilteringInProgress = true;
+    _isRefreshing = true;
+    // Defer notification to avoid triggering rebuild during build phase
+    // (handleLoadMore can be called during SfCalendar's layout)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _notifyChangeListeners();
+    });
 
     final completer = _filterCompleter;
     _filterCompleter = null;
@@ -748,6 +788,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
       rethrow;
     } finally {
       _isFilteringInProgress = false;
+      _isRefreshing = false;
     }
   }
 

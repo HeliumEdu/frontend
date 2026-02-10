@@ -11,13 +11,19 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_bloc.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_event.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_state.dart';
+import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_bloc.dart';
 import 'package:heliumapp/presentation/controllers/core/basic_form_controller.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/views/settings/change_password_screen.dart';
+import 'package:heliumapp/presentation/views/settings/external_calendars_screen.dart';
+import 'package:heliumapp/presentation/views/settings/feeds_screen.dart';
+import 'package:heliumapp/presentation/views/settings/preferences_screen.dart';
 import 'package:heliumapp/presentation/widgets/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/widgets/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
@@ -27,6 +33,31 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+/// Shows as a dialog on desktop, or navigates on mobile.
+void showSettings(BuildContext context) {
+  final externalCalendarBloc = context.read<ExternalCalendarBloc>();
+
+  if (Responsive.isMobile(context)) {
+    context.push(
+      AppRoutes.settingScreen,
+      extra: SettingsArgs(externalCalendarBloc: externalCalendarBloc),
+    );
+  } else {
+    showScreenAsDialog(
+      context,
+      child: const SettingsScreen(),
+      providers: [
+        BlocProvider<ExternalCalendarBloc>.value(
+          value: externalCalendarBloc,
+        ),
+      ],
+      width: 500,
+      alignment: Alignment.centerLeft,
+      insetPadding: const EdgeInsets.all(0),
+    );
+  }
+}
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -43,7 +74,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
   ScreenType get screenType => ScreenType.subPage;
 
   @override
-  bool get showLogout => true;
+  bool get showLogout => !kIsWeb || Responsive.isMobile(context);
 
   final BasicFormController _deleteAccountFormController =
       BasicFormController();
@@ -101,6 +132,10 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
               seconds: 6,
             );
             if (context.mounted) {
+              // Close settings dialog if open
+              if (DialogModeProvider.isDialogMode(context)) {
+                Navigator.of(context).pop();
+              }
               context.go(AppRoutes.loginScreen);
             }
           }
@@ -111,7 +146,6 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
 
   @override
   Widget buildMainArea(BuildContext context) {
-    // TODO: Blocker for Web: on larger screens, open settings as dialog instead of nav (ensure sub-pages also navigate within the popped up dialog)
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
         if (state is AuthLoading) {
@@ -270,7 +304,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
             color: Colors.transparent,
             child: InkWell(
               onTap: () {
-                context.push(AppRoutes.preferencesScreen);
+                showPreferences(context);
               },
               borderRadius: BorderRadius.circular(16),
               child: Padding(
@@ -301,7 +335,10 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Preferences', style: AppStyles.menuItem(context)),
+                          Text(
+                            'Preferences',
+                            style: AppStyles.menuItem(context),
+                          ),
                           const SizedBox(height: 2),
                           Text(
                             'Tailor Helium to your tastes',
@@ -334,7 +371,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
             color: Colors.transparent,
             child: InkWell(
               onTap: () {
-                context.push(AppRoutes.externalCalendarsScreen);
+                showExternalCalendars(context);
               },
               borderRadius: BorderRadius.circular(16),
               child: Padding(
@@ -401,7 +438,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
             color: Colors.transparent,
             child: InkWell(
               onTap: () {
-                context.push(AppRoutes.feedsScreen);
+                showFeeds(context);
               },
               borderRadius: BorderRadius.circular(16),
               child: Padding(
@@ -465,7 +502,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
             color: Colors.transparent,
             child: InkWell(
               onTap: () {
-                context.push(AppRoutes.changePasswordScreen);
+                showChangePassword(context);
               },
               borderRadius: BorderRadius.circular(16),
               child: Padding(
@@ -617,9 +654,9 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
 
               final password = _deleteAccountPasswordController.text.trim();
 
-              context.pop();
+              Navigator.of(dialogContext).pop();
 
-              context.read<AuthBloc>().add(
+              parentContext.read<AuthBloc>().add(
                 DeleteAccountEvent(password: password),
               );
             }
@@ -716,7 +753,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                         buttonText: 'Cancel',
                         backgroundColor: context.colorScheme.outline,
                         onPressed: () {
-                          context.pop();
+                          Navigator.of(dialogContext).pop();
                         },
                       ),
                     ),

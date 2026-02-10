@@ -19,6 +19,7 @@ import 'package:heliumapp/presentation/widgets/drop_down.dart';
 import 'package:heliumapp/presentation/widgets/empty_card.dart';
 import 'package:heliumapp/presentation/widgets/grade_label.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
+import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
@@ -29,6 +30,7 @@ import 'package:logging/logging.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 final _log = Logger('presentation.widgets');
+
 
 class TodosTable extends StatefulWidget {
   final CalendarItemDataSource dataSource;
@@ -51,6 +53,7 @@ class TodosTable extends StatefulWidget {
 }
 
 // TODO: Enhancement: consider migrating to https://pub.dev/packages/syncfusion_flutter_datagrid, gives us ability for adjustable column widths easily
+// TODO: Enhancement: when results are empty, still show table framing. Same with the loading indicator, show it as an overlay to the table as soon as that can be rendered (similar to SfCalendar)
 
 class TodosTableState extends State<TodosTable> {
   static const List<int> _itemsPerPageOptions = [5, 10, 25, 50, 100, -1];
@@ -95,7 +98,7 @@ class TodosTableState extends State<TodosTable> {
 
     // Show loading until TodosTable's data window expansion is complete
     if (!_isInitialized) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: LoadingIndicator(expanded: false));
     }
 
     // Sort homework based on selected column
@@ -749,7 +752,9 @@ class TodosTableState extends State<TodosTable> {
             ? category.color
             : course.color,
         side: BorderSide(
-          color: context.colorScheme.onSurface.withValues(alpha: 0.7),
+          color: userSettings.colorByCategory
+              ? category.color
+              : course.color,
           width: 2,
         ),
       ),

@@ -17,7 +17,9 @@ import 'package:heliumapp/presentation/bloc/course/course_bloc.dart';
 import 'package:heliumapp/presentation/bloc/course/course_event.dart';
 import 'package:heliumapp/presentation/bloc/course/course_state.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
-import 'package:heliumapp/presentation/widgets/course_add_stepper.dart';
+import 'package:heliumapp/presentation/views/core/dialog_step_navigation.dart';
+import 'package:heliumapp/presentation/widgets/course_add_stepper.dart'
+    show CourseStepper;
 import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -28,14 +30,16 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 
 class CourseAddScheduleProvidedScreen extends StatefulWidget {
   final int courseGroupId;
-  final int courseId;
   final bool isEdit;
+  final bool isNew;
+  final int courseId;
 
   const CourseAddScheduleProvidedScreen({
     super.key,
     required this.courseGroupId,
     required this.courseId,
     required this.isEdit,
+    required this.isNew,
   });
 
   @override
@@ -46,7 +50,7 @@ class CourseAddScheduleProvidedScreen extends StatefulWidget {
 class _CourseAddScheduleScreenState
     extends BasePageScreenState<CourseAddScheduleProvidedScreen> {
   @override
-  String get screenTitle => widget.isEdit ? 'Edit Class' : 'Add Class';
+  String get screenTitle => !widget.isNew ? 'Edit Class' : 'Add Class';
 
   @override
   IconData? get icon => Icons.school;
@@ -55,7 +59,8 @@ class _CourseAddScheduleScreenState
   ScreenType get screenType => ScreenType.entityPage;
 
   @override
-  Function get saveAction => _onSubmit;
+  Function get saveAction =>
+      () => _onSubmit(advanceNavOnSuccess: widget.isNew);
 
   // State
   int? _scheduleId;
@@ -111,16 +116,27 @@ class _CourseAddScheduleScreenState
             showSnackBar(context, 'Class schedule saved');
 
             if (state.advanceNavOnSuccess) {
-              context.pushReplacement(
-                AppRoutes.courseAddCategoriesScreen,
-                extra: CourseAddArgs(
-                  courseBloc: context.read<CourseBloc>(),
-                  courseGroupId: widget.courseGroupId,
-                  courseId: widget.courseId,
-                  isEdit: widget.isEdit,
-                ),
-              );
+              // Try to navigate within dialog first
+              if (!navigateStepInDialog(context, 2)) {
+                // Fall back to router navigation for non-dialog mode
+                context.pushReplacement(
+                  AppRoutes.courseAddCategoriesScreen,
+                  extra: CourseAddArgs(
+                    courseBloc: context.read<CourseBloc>(),
+                    courseGroupId: widget.courseGroupId,
+                    courseId: widget.courseId,
+                    isEdit: widget.isEdit,
+                    isNew: widget.isNew
+                  ),
+                );
+              }
             }
+          }
+
+          if (state is! CoursesLoading) {
+            setState(() {
+              isSubmitting = false;
+            });
           }
         },
       ),
@@ -134,6 +150,7 @@ class _CourseAddScheduleScreenState
       courseGroupId: widget.courseGroupId,
       courseId: widget.courseId,
       isEdit: widget.isEdit,
+      isNew: widget.isNew,
       onStep: () => _onSubmit(advanceNavOnSuccess: false),
     );
   }

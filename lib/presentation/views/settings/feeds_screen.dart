@@ -8,6 +8,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/data/models/auth/private_feed_model.dart';
@@ -23,6 +25,21 @@ import 'package:heliumapp/presentation/widgets/warning_container.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:share_plus/share_plus.dart';
+
+/// Shows as a dialog on desktop, or navigates on mobile.
+void showFeeds(BuildContext context) {
+  if (Responsive.isMobile(context)) {
+    context.push(AppRoutes.feedsScreen);
+  } else {
+    showScreenAsDialog(
+      context,
+      child: const FeedsScreen(),
+      width: 500,
+      alignment: Alignment.centerLeft,
+      insetPadding: const EdgeInsets.all(0),
+    );
+  }
+}
 
 class FeedsScreen extends StatefulWidget {
   const FeedsScreen({super.key});

@@ -48,7 +48,9 @@ class HeliumElevatedButton extends StatelessWidget {
       ),
       label: isLoading
           ? LoadingIndicator(
-              small: true,
+              size: 20,
+              strokeWidth: 2.5,
+              expanded: false,
               color: context.colorScheme.onSurface.withValues(alpha: 0.38),
             )
           : Text(
