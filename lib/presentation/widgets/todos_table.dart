@@ -31,6 +31,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 final _log = Logger('presentation.widgets');
 
+
 class TodosTable extends StatefulWidget {
   final CalendarItemDataSource dataSource;
   final TodosTableController controller;
@@ -52,6 +53,7 @@ class TodosTable extends StatefulWidget {
 }
 
 // TODO: Enhancement: consider migrating to https://pub.dev/packages/syncfusion_flutter_datagrid, gives us ability for adjustable column widths easily
+// TODO: Enhancement: when results are empty, still show table framing. Same with the loading indicator, show it as an overlay to the table as soon as that can be rendered (similar to SfCalendar)
 
 class TodosTableState extends State<TodosTable> {
   static const List<int> _itemsPerPageOptions = [5, 10, 25, 50, 100, -1];
@@ -96,7 +98,7 @@ class TodosTableState extends State<TodosTable> {
 
     // Show loading until TodosTable's data window expansion is complete
     if (!_isInitialized) {
-      return const LoadingIndicator();
+      return const Center(child: LoadingIndicator(expanded: false));
     }
 
     // Sort homework based on selected column

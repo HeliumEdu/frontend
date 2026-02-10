@@ -66,6 +66,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   Timer? _filterDebounceTimer;
   bool _isFilteringInProgress = false;
   Completer<void>? _filterCompleter;
+  bool _isRefreshing = false;
 
   /// Duration for filter debouncing. Set to Duration.zero in tests for
   /// synchronous behavior.
@@ -86,6 +87,11 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
 
   Listenable get changeNotifier => _changeNotifier;
 
+  /// Indicates when the data source is refreshing (loading data or applying
+  /// filters). UI can check this when changeNotifier fires to show a loading
+  /// overlay.
+  bool get isRefreshing => _isRefreshing;
+
   void _notifyChangeListeners() {
     // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
     _changeNotifier.notifyListeners();
@@ -101,15 +107,21 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     DateTime? visibleStart,
     DateTime? visibleEnd,
   }) async {
-    // TODO: Enhancement: we should show a loading overlay here (and re-use the widget we pass SfCalendar when it initializes its own handleLoadMore)
+    _isRefreshing = true;
+    _notifyChangeListeners();
 
-    _log.info('Refreshing calendar sources - clearing cache');
-    _dateRangeCache.clear();
-    _hasLoadedInitialData = false;
+    try {
+      _log.info('Refreshing calendar sources - clearing cache');
+      _dateRangeCache.clear();
+      _hasLoadedInitialData = false;
 
-    // Reload data for visible range if provided
-    if (visibleStart != null && visibleEnd != null) {
-      await handleLoadMore(visibleStart, visibleEnd);
+      // Reload data for visible range if provided
+      if (visibleStart != null && visibleEnd != null) {
+        await handleLoadMore(visibleStart, visibleEnd);
+      }
+    } finally {
+      _isRefreshing = false;
+      _notifyChangeListeners();
     }
   }
 
@@ -692,8 +704,6 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   /// Schedules filter application with debouncing to prevent the UI from
   /// hanging. Use compute() to run filtering on a background isolate.
   void _applyFiltersAndNotify() {
-    // TODO: Enhancement: most devices filtering is instantaneous, but for slower devices, we should render the loading animation here
-
     _filterDebounceTimer?.cancel();
 
     if (filterDebounceDuration == Duration.zero) {
@@ -731,6 +741,12 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   Future<void> _applyFiltersAsync() async {
     if (_isFilteringInProgress) return;
     _isFilteringInProgress = true;
+    _isRefreshing = true;
+    // Defer notification to avoid triggering rebuild during build phase
+    // (handleLoadMore can be called during SfCalendar's layout)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _notifyChangeListeners();
+    });
 
     final completer = _filterCompleter;
     _filterCompleter = null;
@@ -772,6 +788,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
       rethrow;
     } finally {
       _isFilteringInProgress = false;
+      _isRefreshing = false;
     }
   }
 
