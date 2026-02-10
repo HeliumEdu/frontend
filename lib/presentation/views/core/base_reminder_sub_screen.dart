@@ -94,10 +94,6 @@ abstract class BaseReminderScreenState<T>
   Function get cancelAction =>
       () => {context.pop()};
 
-  @override
-  Function get saveAction =>
-      () => {};
-
   final ReminderFormController _formController = ReminderFormController();
 
   // State

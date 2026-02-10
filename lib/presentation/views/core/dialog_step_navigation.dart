@@ -10,9 +10,6 @@ import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 
 /// Generic InheritedWidget that provides step navigation callback for multi-step
 /// flows in dialog mode.
-///
-/// Used by stepper containers (e.g., CourseAddStepperContainer,
-/// CalendarItemStepperContainer) to provide navigation within dialog mode.
 class DialogStepNavigator extends InheritedWidget {
   final void Function(int step) onNavigate;
 
