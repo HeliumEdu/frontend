@@ -131,14 +131,27 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   String get screenTitle => 'Planner';
 
   @override
-  List<SingleChildWidget>? get inheritableProviders => [
-    BlocProvider<CalendarItemBloc>.value(
-      value: context.read<CalendarItemBloc>(),
-    ),
-    BlocProvider<ExternalCalendarBloc>.value(
-      value: context.read<ExternalCalendarBloc>(),
-    ),
-  ];
+  List<SingleChildWidget>? get inheritableProviders {
+    final providers = <SingleChildWidget>[
+      BlocProvider<CalendarItemBloc>.value(
+        value: context.read<CalendarItemBloc>(),
+      ),
+    ];
+
+    try {
+      final externalCalendarBloc = context.read<ExternalCalendarBloc>();
+      providers.add(
+        BlocProvider<ExternalCalendarBloc>.value(
+          value: externalCalendarBloc,
+        ),
+      );
+      _log.info('ExternalCalendarBloc added to inheritable providers');
+    } catch (e) {
+      _log.warning('Failed to read ExternalCalendarBloc for inheritable providers: $e');
+    }
+
+    return providers;
+  }
 
   @override
   VoidCallback get actionButtonCallback => () {

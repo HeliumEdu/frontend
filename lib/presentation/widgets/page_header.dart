@@ -12,6 +12,7 @@ import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_bloc.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_event.dart';
+import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/views/core/notification_screen.dart';
 import 'package:heliumapp/presentation/widgets/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
@@ -93,58 +94,61 @@ class PageHeader extends StatelessWidget {
             ],
           ),
 
-          if (screenType == ScreenType.page)
-            IconButton(
-              visualDensity: VisualDensity.compact,
-              onPressed: () {
-                showNotifications(ctx);
-              },
-              icon: Icon(
-                Icons.notifications,
-                color: ctx.colorScheme.primary,
-              ),
-            )
-          else if (screenType == ScreenType.entityPage)
-            IconButton(
-              visualDensity: VisualDensity.compact,
-              onPressed: isLoading
-                  ? null
-                  : () {
-                      saveAction?.call();
-                    },
-              icon: isLoading
-                  ? const LoadingIndicator(small: true)
-                  : Icon(
-                      Icons.check_circle,
-                      color: ctx.colorScheme.primary,
-                    ),
-            ),
+          Row(
+            children: [
+              if (screenType == ScreenType.page)
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () {
+                    showNotifications(ctx);
+                  },
+                  icon: Icon(
+                    Icons.notifications,
+                    color: ctx.colorScheme.primary,
+                  ),
+                )
+              else if (screenType == ScreenType.entityPage)
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  onPressed: isLoading
+                      ? null
+                      : () {
+                          saveAction?.call();
+                        },
+                  icon: isLoading
+                      ? const LoadingIndicator(small: true)
+                      : Icon(
+                          Icons.check_circle,
+                          color: ctx.colorScheme.primary,
+                        ),
+                ),
 
-          if (showLogout)
-            IconButton(
-              visualDensity: VisualDensity.compact,
-              onPressed: () {
-                _showLogoutDialog(ctx);
-              },
-              icon: Icon(
-                Icons.logout_outlined,
-                color: ctx.colorScheme.error,
-              ),
-            ),
+              if (showLogout)
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () {
+                    _showLogoutDialog(ctx);
+                  },
+                  icon: Icon(
+                    Icons.logout_outlined,
+                    color: ctx.colorScheme.error,
+                  ),
+                ),
 
-          // Help keep things centered when no right button
-          if (screenType == ScreenType.subPage && !showLogout)
-            const Icon(Icons.space_bar, color: Colors.transparent),
+              // Help keep things centered when no right button
+              if (screenType == ScreenType.subPage && !showLogout)
+                const Icon(Icons.space_bar, color: Colors.transparent),
+            ],
+          ),
         ],
       );
     }
 
-    final wrappedContent = inheritableProviders != null && inheritableProviders!.isNotEmpty
+    final wrappedContent =
+        inheritableProviders != null && inheritableProviders!.isNotEmpty
         ? MultiBlocProvider(
             providers: inheritableProviders!,
-            child: Builder(
-              builder: (context) => buildContent(context),
-            ),
+            child: Builder(builder: (context) => buildContent(context)),
           )
         : buildContent(context);
 
@@ -194,7 +198,10 @@ class PageHeader extends StatelessWidget {
                       child: HeliumElevatedButton(
                         buttonText: 'Cancel',
                         backgroundColor: context.colorScheme.outline,
-                        onPressed: () => dialogContext.pop(),
+                        onPressed: () {
+                          dialogContext.pop();
+                          // FIXME: how to close in non-dialog context?
+                        },
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -209,6 +216,7 @@ class PageHeader extends StatelessWidget {
                           });
 
                           dialogContext.pop();
+                          // FIXME: how to close in non-dialog context?
 
                           context.read<AuthBloc>().add(LogoutEvent());
                         },
