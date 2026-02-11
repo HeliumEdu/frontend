@@ -346,6 +346,7 @@ jobs:
           echo "- **Version**: ${FULL_VERSION}" >> $GITHUB_STEP_SUMMARY
           echo "- **Environment**: ${ENVIRONMENT}" >> $GITHUB_STEP_SUMMARY
           echo "- **Track**: Internal" >> $GITHUB_STEP_SUMMARY
+          echo "- **Console**: [Google Play Console](https://play.google.com/console/developers/5225481146664498498/app/4975537823503737498/tracks/internal-testing)" >> $GITHUB_STEP_SUMMARY
 
   deploy-ios:
     name: Deploy iOS
@@ -481,3 +482,4 @@ jobs:
           echo "- **Version**: ${FULL_VERSION}" >> $GITHUB_STEP_SUMMARY
           echo "- **Environment**: ${ENVIRONMENT}" >> $GITHUB_STEP_SUMMARY
           echo "- **Destination**: TestFlight" >> $GITHUB_STEP_SUMMARY
+          echo "- **Console**: [App Store Connect](https://appstoreconnect.apple.com/apps/6742372051/testflight)" >> $GITHUB_STEP_SUMMARY
