@@ -317,7 +317,7 @@ jobs:
 
       - name: Install Fastlane
         run: |
-          gem install fastlane -v 2.225.0
+          gem install fastlane
 
       - name: Decode Google Play service account key
         env:
@@ -446,7 +446,7 @@ jobs:
 
       - name: Install Fastlane
         run: |
-          gem install fastlane -v 2.225.0
+          gem install fastlane
 
       - name: Deploy to TestFlight
         env:
