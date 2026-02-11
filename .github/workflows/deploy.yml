@@ -25,13 +25,24 @@ on:
         options:
           - dev
           - prod
+      platforms:
+        description: 'Platforms to deploy'
+        required: true
+        type: choice
+        default: all
+        options:
+          - all
+          - web
+          - android
+          - ios
 
 permissions:
   contents: read
 
 jobs:
-  deploy:
-    name: Deploy
+  deploy-web:
+    name: Deploy Web
+    if: github.event.inputs.platforms == 'web' || github.event.inputs.platforms == 'all'
     runs-on: ubuntu-latest
 
     steps:
@@ -200,8 +211,273 @@ jobs:
 
           URL="https://${ENVIRONMENT_PREFIX}app.heliumedu.com"
 
-          echo "### Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "### Web Deployment Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Version**: ${FULL_VERSION}" >> $GITHUB_STEP_SUMMARY
           echo "- **Environment**: ${ENVIRONMENT}" >> $GITHUB_STEP_SUMMARY
           echo "- **URL**: ${URL}" >> $GITHUB_STEP_SUMMARY
+
+  deploy-android:
+    name: Deploy Android
+    if: (github.event.inputs.platforms == 'android' || github.event.inputs.platforms == 'all') && github.event.inputs.environment == 'prod'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Determine version to deploy
+        id: version
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        run: |
+          if [ "${{ github.event.inputs.version_type }}" = "latest" ]; then
+            # Get the latest semver tag (v*.*.*)
+            VERSION=$(gh api repos/HeliumEdu/frontend/tags --jq '[.[] | select(.name | test("^v[0-9]+\\.[0-9]+\\.[0-9]+$"))][0].name')
+
+            if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
+              echo "Error: No version tags found in HeliumEdu/frontend"
+              exit 1
+            fi
+
+            echo "Using latest version: ${VERSION}"
+          else
+            VERSION="${{ github.event.inputs.specific_version }}"
+
+            if [ -z "$VERSION" ]; then
+              echo "Error: specific_version is required when version_type is 'specific'"
+              exit 1
+            fi
+
+            echo "Using specific version: ${VERSION}"
+          fi
+
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Find workflow run with matching artifact
+        id: find_run
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          SEMVER="${VERSION#v}"
+
+          echo "Looking for artifact matching version ${SEMVER}..."
+
+          # Get recent successful release workflow runs
+          RUNS=$(gh api "repos/HeliumEdu/frontend/actions/workflows/release.yml/runs?status=success&per_page=20" \
+            --jq '.workflow_runs[].id')
+
+          if [ -z "$RUNS" ]; then
+            echo "Error: No successful release workflow runs found"
+            exit 1
+          fi
+
+          # Search each run for an artifact matching our version
+          for RUN_ID in $RUNS; do
+            ARTIFACT_NAME=$(gh api "repos/HeliumEdu/frontend/actions/runs/${RUN_ID}/artifacts" \
+              --jq ".artifacts[] | select(.name | startswith(\"helium-${SEMVER}\") and endswith(\"-android.aab\")) | .name" 2>/dev/null)
+
+            if [ -n "$ARTIFACT_NAME" ]; then
+              echo "Found matching artifact '${ARTIFACT_NAME}' in workflow run ${RUN_ID}"
+              echo "run_id=${RUN_ID}" >> $GITHUB_OUTPUT
+              echo "artifact_name=${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
+
+              # Extract full version from artifact name (e.g., helium-1.0.9+42-android.aab -> 1.0.9+42)
+              FULL_VERSION=$(echo "$ARTIFACT_NAME" | sed 's/helium-\(.*\)-android\.aab/\1/')
+              echo "full_version=${FULL_VERSION}" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+          done
+
+          echo "Error: No workflow run found with artifact for version ${VERSION}"
+          exit 1
+
+      - name: Download Android artifact
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        run: |
+          RUN_ID="${{ steps.find_run.outputs.run_id }}"
+          ARTIFACT_NAME="${{ steps.find_run.outputs.artifact_name }}"
+
+          echo "Downloading artifact ${ARTIFACT_NAME} from run ${RUN_ID}..."
+
+          gh run download ${RUN_ID} \
+            --repo HeliumEdu/frontend \
+            --name "${ARTIFACT_NAME}" \
+            --dir ./android-build
+
+          echo "Artifact downloaded to ./android-build"
+          ls -la ./android-build
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: false
+
+      - name: Install Fastlane
+        run: |
+          gem install fastlane -v 2.225.0
+
+      - name: Decode Google Play service account key
+        env:
+          GOOGLE_PLAY_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_KEY }}
+        run: |
+          echo "$GOOGLE_PLAY_SERVICE_ACCOUNT_KEY" > android/fastlane/service-account-key.json
+
+      - name: Deploy to Google Play Internal Track
+        run: |
+          cd android
+          echo "Deploying to Google Play Internal Track..."
+          fastlane deploy_internal aab_path:../android-build/app-release.aab
+
+      - name: Cleanup service account key
+        if: always()
+        run: rm -f android/fastlane/service-account-key.json
+
+      - name: Deployment summary
+        env:
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          VERSION: ${{ steps.version.outputs.version }}
+          FULL_VERSION: ${{ steps.find_run.outputs.full_version }}
+        run: |
+          echo "### Android Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${FULL_VERSION}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment**: ${ENVIRONMENT}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Track**: Internal" >> $GITHUB_STEP_SUMMARY
+
+  deploy-ios:
+    name: Deploy iOS
+    if: (github.event.inputs.platforms == 'ios' || github.event.inputs.platforms == 'all') && github.event.inputs.environment == 'prod'
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Determine version to deploy
+        id: version
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        run: |
+          if [ "${{ github.event.inputs.version_type }}" = "latest" ]; then
+            # Get the latest semver tag (v*.*.*)
+            VERSION=$(gh api repos/HeliumEdu/frontend/tags --jq '[.[] | select(.name | test("^v[0-9]+\\.[0-9]+\\.[0-9]+$"))][0].name')
+
+            if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
+              echo "Error: No version tags found in HeliumEdu/frontend"
+              exit 1
+            fi
+
+            echo "Using latest version: ${VERSION}"
+          else
+            VERSION="${{ github.event.inputs.specific_version }}"
+
+            if [ -z "$VERSION" ]; then
+              echo "Error: specific_version is required when version_type is 'specific'"
+              exit 1
+            fi
+
+            echo "Using specific version: ${VERSION}"
+          fi
+
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Find workflow run with matching artifact
+        id: find_run
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          SEMVER="${VERSION#v}"
+
+          echo "Looking for artifact matching version ${SEMVER}..."
+
+          # Get recent successful release workflow runs
+          RUNS=$(gh api "repos/HeliumEdu/frontend/actions/workflows/release.yml/runs?status=success&per_page=20" \
+            --jq '.workflow_runs[].id')
+
+          if [ -z "$RUNS" ]; then
+            echo "Error: No successful release workflow runs found"
+            exit 1
+          fi
+
+          # Search each run for an artifact matching our version
+          for RUN_ID in $RUNS; do
+            ARTIFACT_NAME=$(gh api "repos/HeliumEdu/frontend/actions/runs/${RUN_ID}/artifacts" \
+              --jq ".artifacts[] | select(.name | startswith(\"helium-${SEMVER}\") and endswith(\"-ios.ipa\")) | .name" 2>/dev/null)
+
+            if [ -n "$ARTIFACT_NAME" ]; then
+              echo "Found matching artifact '${ARTIFACT_NAME}' in workflow run ${RUN_ID}"
+              echo "run_id=${RUN_ID}" >> $GITHUB_OUTPUT
+              echo "artifact_name=${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
+
+              # Extract full version from artifact name (e.g., helium-1.0.9+42-ios.ipa -> 1.0.9+42)
+              FULL_VERSION=$(echo "$ARTIFACT_NAME" | sed 's/helium-\(.*\)-ios\.ipa/\1/')
+              echo "full_version=${FULL_VERSION}" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+          done
+
+          echo "Error: No workflow run found with artifact for version ${VERSION}"
+          exit 1
+
+      - name: Download iOS artifact
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        run: |
+          RUN_ID="${{ steps.find_run.outputs.run_id }}"
+          ARTIFACT_NAME="${{ steps.find_run.outputs.artifact_name }}"
+
+          echo "Downloading artifact ${ARTIFACT_NAME} from run ${RUN_ID}..."
+
+          gh run download ${RUN_ID} \
+            --repo HeliumEdu/frontend \
+            --name "${ARTIFACT_NAME}" \
+            --dir ./ios-build
+
+          echo "Artifact downloaded to ./ios-build"
+          ls -la ./ios-build
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: false
+
+      - name: Install Fastlane
+        run: |
+          gem install fastlane -v 2.225.0
+
+      - name: Deploy to TestFlight
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          APP_STORE_CONNECT_TEAM_ID: ${{ secrets.APP_STORE_CONNECT_TEAM_ID }}
+        run: |
+          cd ios
+          echo "Deploying to TestFlight..."
+
+          # Create App Store Connect API key file
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo "$APP_STORE_CONNECT_API_KEY" > ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8
+
+          fastlane deploy_testflight ipa_path:../ios-build/heliumedu.ipa
+
+      - name: Cleanup API key
+        if: always()
+        run: rm -rf ~/.appstoreconnect
+
+      - name: Deployment summary
+        env:
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          VERSION: ${{ steps.version.outputs.version }}
+          FULL_VERSION: ${{ steps.find_run.outputs.full_version }}
+        run: |
+          echo "### iOS Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${FULL_VERSION}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment**: ${ENVIRONMENT}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Destination**: TestFlight" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,35 @@
+# Fastfile for Android deployment
+
+default_platform(:android)
+
+platform :android do
+  desc "Deploy AAB to Google Play Internal Track"
+  lane :deploy_internal do |options|
+    aab_path = options[:aab_path] || "../build/app/outputs/bundle/release/app-release.aab"
+
+    upload_to_play_store(
+      aab: aab_path,
+      track: 'internal',
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      release_status: 'completed'
+    )
+  end
+
+  desc "Deploy AAB to Google Play Production"
+  lane :deploy_production do |options|
+    aab_path = options[:aab_path] || "../build/app/outputs/bundle/release/app-release.aab"
+
+    upload_to_play_store(
+      aab: aab_path,
+      track: 'production',
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      release_status: 'completed'
+    )
+  end
+end
