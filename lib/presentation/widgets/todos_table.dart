@@ -522,45 +522,48 @@ class TodosTableState extends State<TodosTable> {
     final controller = widget.controller;
     final isActive = controller.sortColumn == column;
 
-    return GestureDetector(
-      onTap: () {
-        Feedback.forTap(context);
-        if (controller.sortColumn == column) {
-          controller.sortAscending = !controller.sortAscending;
-        } else {
-          controller.sortColumn = column;
-          controller.sortAscending = true;
-        }
-      },
-      child: Row(
-        mainAxisAlignment: isCheckbox
-            ? MainAxisAlignment.center
-            : MainAxisAlignment.start,
-        children: [
-          if (isCheckbox)
-            Icon(
-              Icons.check_box_outline_blank,
-              size: 16,
-              color: context.colorScheme.onSurface.withValues(alpha: 0.6),
-            )
-          else
-            Text(
-              label,
-              style: AppStyles.standardBodyText(
-                context,
-              ).copyWith(color: context.colorScheme.onSurface),
-            ),
-          if (isActive) ...[
-            const SizedBox(width: 4),
-            Icon(
-              controller.sortAscending
-                  ? Icons.arrow_upward
-                  : Icons.arrow_downward,
-              size: 14,
-              color: context.colorScheme.primary,
-            ),
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () {
+          Feedback.forTap(context);
+          if (controller.sortColumn == column) {
+            controller.sortAscending = !controller.sortAscending;
+          } else {
+            controller.sortColumn = column;
+            controller.sortAscending = true;
+          }
+        },
+        child: Row(
+          mainAxisAlignment: isCheckbox
+              ? MainAxisAlignment.center
+              : MainAxisAlignment.start,
+          children: [
+            if (isCheckbox)
+              Icon(
+                Icons.check_box_outline_blank,
+                size: 16,
+                color: context.colorScheme.onSurface.withValues(alpha: 0.6),
+              )
+            else
+              Text(
+                label,
+                style: AppStyles.standardBodyText(
+                  context,
+                ).copyWith(color: context.colorScheme.onSurface),
+              ),
+            if (isActive) ...[
+              const SizedBox(width: 4),
+              Icon(
+                controller.sortAscending
+                    ? Icons.arrow_upward
+                    : Icons.arrow_downward,
+                size: 14,
+                color: context.colorScheme.primary,
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -617,9 +620,35 @@ class TodosTableState extends State<TodosTable> {
           comparison = (a.priority).compareTo(b.priority);
           break;
         case 'grade':
-          final gradeA = a.currentGrade ?? '';
-          final gradeB = b.currentGrade ?? '';
-          comparison = gradeA.compareTo(gradeB);
+          final isCompletedA = dataSource.isHomeworkCompleted(a);
+          final isCompletedB = dataSource.isHomeworkCompleted(b);
+
+          // Incomplete items come first
+          if (!isCompletedA && isCompletedB) {
+            comparison = -1;
+          } else if (isCompletedA && !isCompletedB) {
+            comparison = 1;
+          } else if (!isCompletedA && !isCompletedB) {
+            // Both incomplete, equal
+            comparison = 0;
+          } else {
+            // Both complete, sort by grade
+            final parsedGradeA = Format.parseGrade(a.currentGrade);
+            final parsedGradeB = Format.parseGrade(b.currentGrade);
+
+            // Items without grade come before items with grade
+            if (parsedGradeA == null && parsedGradeB != null) {
+              comparison = -1;
+            } else if (parsedGradeA != null && parsedGradeB == null) {
+              comparison = 1;
+            } else if (parsedGradeA == null && parsedGradeB == null) {
+              // Both have no grade, equal
+              comparison = 0;
+            } else {
+              // Both have grades, compare numerically
+              comparison = parsedGradeA!.compareTo(parsedGradeB!);
+            }
+          }
           break;
       }
 
