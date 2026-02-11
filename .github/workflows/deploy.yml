@@ -219,7 +219,7 @@ jobs:
 
   deploy-android:
     name: Deploy Android
-    if: (github.event.inputs.platforms == 'android' || github.event.inputs.platforms == 'all') && github.event.inputs.environment == 'prod'
+    if: github.event.inputs.platforms == 'android' || github.event.inputs.platforms == 'all'
     runs-on: ubuntu-latest
 
     steps:
@@ -349,7 +349,7 @@ jobs:
 
   deploy-ios:
     name: Deploy iOS
-    if: (github.event.inputs.platforms == 'ios' || github.event.inputs.platforms == 'all') && github.event.inputs.environment == 'prod'
+    if: github.event.inputs.platforms == 'ios' || github.event.inputs.platforms == 'all'
     runs-on: macos-latest
 
     steps:
