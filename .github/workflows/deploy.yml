@@ -323,7 +323,7 @@ jobs:
         env:
           GOOGLE_PLAY_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_KEY }}
         run: |
-          echo "$GOOGLE_PLAY_SERVICE_ACCOUNT_KEY" > android/fastlane/service-account-key.json
+          echo "$GOOGLE_PLAY_SERVICE_ACCOUNT_KEY" > android/service-account-key.json
 
       - name: Deploy to Google Play Internal Track
         run: |
@@ -333,7 +333,7 @@ jobs:
 
       - name: Cleanup service account key
         if: always()
-        run: rm -f android/fastlane/service-account-key.json
+        run: rm -f android/service-account-key.json
 
       - name: Deployment summary
         env:
