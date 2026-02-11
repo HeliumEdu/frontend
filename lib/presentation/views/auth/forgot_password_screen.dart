@@ -122,8 +122,8 @@ class _ForgotPasswordScreenState
 
                 Center(
                   child: Container(
-                    width: 120,
-                    height: 120,
+                    width: AppConstants.authContainerSize,
+                    height: AppConstants.authContainerSize,
                     decoration: BoxDecoration(
                       color: context.colorScheme.primary.withValues(alpha: 0.1),
                       shape: BoxShape.circle,

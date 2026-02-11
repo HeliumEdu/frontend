@@ -19,6 +19,7 @@ import 'package:heliumapp/presentation/controllers/settings/change_password_form
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 /// Shows as a dialog on desktop, or navigates on mobile.
@@ -29,7 +30,7 @@ void showChangePassword(BuildContext context) {
     showScreenAsDialog(
       context,
       child: const ChangePasswordScreen(),
-      width: 500,
+      width: AppConstants.leftPanelDialogWidth,
       alignment: Alignment.centerLeft,
       insetPadding: const EdgeInsets.all(0),
     );
@@ -47,6 +48,9 @@ class _ChangePasswordScreenState
     extends BasePageScreenState<ChangePasswordScreen> {
   @override
   String get screenTitle => 'Change Password';
+
+  @override
+  IconData get icon => Icons.lock_outlined;
 
   @override
   ScreenType get screenType => ScreenType.entityPage;

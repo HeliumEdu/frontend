@@ -407,10 +407,14 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                         ? _buildTodosView()
                         : _buildCalendarView(context),
                     if (_calendarItemDataSource!.isRefreshing)
-                      Container(
-                        color:
-                            context.colorScheme.surface.withValues(alpha: 0.7),
-                        child: const LoadingIndicator(),
+                      Positioned.fill(
+                        child: Container(
+                          color:
+                              context.colorScheme.surface.withValues(alpha: 0.7),
+                          child: const Center(
+                            child: LoadingIndicator(expanded: false),
+                          ),
+                        ),
                       ),
                   ],
                 );
@@ -1060,6 +1064,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                             desktop: 24,
                           ),
                         ),
+                        tooltip: 'Close',
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                       ),

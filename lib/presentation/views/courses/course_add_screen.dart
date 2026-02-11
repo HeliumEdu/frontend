@@ -28,6 +28,7 @@ import 'package:heliumapp/presentation/widgets/course_add_stepper.dart'
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart' show HeliumColors;
 import 'package:heliumapp/utils/conversion_helpers.dart';
@@ -74,7 +75,7 @@ void showCourseAdd(
         initialStep: initialStep,
       ),
       providers: providers,
-      width: 550,
+      width: AppConstants.centeredDialogWidth,
       alignment: Alignment.center,
     );
   }
