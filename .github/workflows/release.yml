@@ -298,10 +298,8 @@ jobs:
         run: |
           echo "### Release ${{ needs.bump-version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
 
-      - name: Create and push tags
+      - name: Create and push tag
         env:
-          SEMVER: ${{ needs.bump-version.outputs.semver }}
-          BUILD_NUMBER: ${{ needs.bump-version.outputs.build_number }}
           FULL_VERSION: ${{ needs.bump-version.outputs.version }}
           COMMIT_SHA: ${{ needs.bump-version.outputs.commit_sha }}
         run: |
@@ -319,13 +317,4 @@ jobs:
             git tag -a "$FULL_VERSION" -m "Release $FULL_VERSION" "$COMMIT_SHA"
           fi
 
-          # Create build number tag on the specific commit
-          if git rev-parse "b$BUILD_NUMBER" >/dev/null 2>&1; then
-            echo "Tag b$BUILD_NUMBER already exists, skipping"
-          else
-            echo "Creating tag b$BUILD_NUMBER on commit $COMMIT_SHA"
-            git tag -a "b$BUILD_NUMBER" -m "Build $BUILD_NUMBER ($SEMVER)" "$COMMIT_SHA"
-          fi
-
-          # Push both tags
-          git push origin "$FULL_VERSION" "b$BUILD_NUMBER"
+          git push origin "$FULL_VERSION"
