@@ -93,4 +93,40 @@ class HomeworkModel extends CalendarItemBaseModel {
 
     return data;
   }
+
+  HomeworkModel copyWith({
+    int? id,
+    String? title,
+    bool? allDay,
+    bool? showEndTime,
+    DateTime? start,
+    DateTime? end,
+    int? priority,
+    String? comments,
+    List<IdOrEntity<AttachmentModel>>? attachments,
+    List<IdOrEntity<ReminderModel>>? reminders,
+    bool? completed,
+    IdOrEntity<CourseModel>? course,
+    IdOrEntity<CategoryModel>? category,
+    List<IdOrEntity<MaterialModel>>? materials,
+    String? currentGrade,
+  }) {
+    return HomeworkModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      allDay: allDay ?? this.allDay,
+      showEndTime: showEndTime ?? this.showEndTime,
+      start: start ?? this.start,
+      end: end ?? this.end,
+      priority: priority ?? this.priority,
+      comments: comments ?? this.comments,
+      attachments: attachments ?? this.attachments,
+      reminders: reminders ?? this.reminders,
+      completed: completed ?? this.completed,
+      course: course ?? this.course,
+      category: category ?? this.category,
+      materials: materials ?? this.materials,
+      currentGrade: currentGrade ?? this.currentGrade,
+    );
+  }
 }

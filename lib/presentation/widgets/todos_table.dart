@@ -214,18 +214,23 @@ class TodosTableState extends State<TodosTable> {
 
   // Order to hide columns, based on screen size:
   // 1. Priority
-  // 2. Resources
-  // 3. Category
-  // 4. Grade
-  // 5. Actions
-  // 6. Class
+  // 2. Attachments
+  // 3. Resources
+  // 4. Category
+  // 5. Grade
+  // 6. Actions
+  // 7. Class
 
   bool _shouldShowPriorityColumn(BuildContext context) {
     return MediaQuery.of(context).size.width >= 1150;
   }
 
-  bool _shouldShowResourcesColumn(BuildContext context) {
+  bool _shouldShowAttachmentsColumn(BuildContext context) {
     return MediaQuery.of(context).size.width >= 1000;
+  }
+
+  bool _shouldShowResourcesColumn(BuildContext context) {
+    return MediaQuery.of(context).size.width >= 950;
   }
 
   bool _shouldShowCategoryColumn(BuildContext context) {
@@ -286,6 +291,8 @@ class TodosTableState extends State<TodosTable> {
               child: _buildSortableHeader('Grade', 'grade'),
             ),
           if (_shouldShowResourcesColumn(context))
+            const SizedBox(width: 30, child: SizedBox.shrink()),
+          if (_shouldShowAttachmentsColumn(context))
             const SizedBox(width: 30, child: SizedBox.shrink()),
           if (!_shouldHideActionsColumn(context))
             SizedBox(
@@ -522,45 +529,48 @@ class TodosTableState extends State<TodosTable> {
     final controller = widget.controller;
     final isActive = controller.sortColumn == column;
 
-    return GestureDetector(
-      onTap: () {
-        Feedback.forTap(context);
-        if (controller.sortColumn == column) {
-          controller.sortAscending = !controller.sortAscending;
-        } else {
-          controller.sortColumn = column;
-          controller.sortAscending = true;
-        }
-      },
-      child: Row(
-        mainAxisAlignment: isCheckbox
-            ? MainAxisAlignment.center
-            : MainAxisAlignment.start,
-        children: [
-          if (isCheckbox)
-            Icon(
-              Icons.check_box_outline_blank,
-              size: 16,
-              color: context.colorScheme.onSurface.withValues(alpha: 0.6),
-            )
-          else
-            Text(
-              label,
-              style: AppStyles.standardBodyText(
-                context,
-              ).copyWith(color: context.colorScheme.onSurface),
-            ),
-          if (isActive) ...[
-            const SizedBox(width: 4),
-            Icon(
-              controller.sortAscending
-                  ? Icons.arrow_upward
-                  : Icons.arrow_downward,
-              size: 14,
-              color: context.colorScheme.primary,
-            ),
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () {
+          Feedback.forTap(context);
+          if (controller.sortColumn == column) {
+            controller.sortAscending = !controller.sortAscending;
+          } else {
+            controller.sortColumn = column;
+            controller.sortAscending = true;
+          }
+        },
+        child: Row(
+          mainAxisAlignment: isCheckbox
+              ? MainAxisAlignment.center
+              : MainAxisAlignment.start,
+          children: [
+            if (isCheckbox)
+              Icon(
+                Icons.check_box_outline_blank,
+                size: 16,
+                color: context.colorScheme.onSurface.withValues(alpha: 0.6),
+              )
+            else
+              Text(
+                label,
+                style: AppStyles.standardBodyText(
+                  context,
+                ).copyWith(color: context.colorScheme.onSurface),
+              ),
+            if (isActive) ...[
+              const SizedBox(width: 4),
+              Icon(
+                controller.sortAscending
+                    ? Icons.arrow_upward
+                    : Icons.arrow_downward,
+                size: 14,
+                color: context.colorScheme.primary,
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -617,9 +627,35 @@ class TodosTableState extends State<TodosTable> {
           comparison = (a.priority).compareTo(b.priority);
           break;
         case 'grade':
-          final gradeA = a.currentGrade ?? '';
-          final gradeB = b.currentGrade ?? '';
-          comparison = gradeA.compareTo(gradeB);
+          final isCompletedA = dataSource.isHomeworkCompleted(a);
+          final isCompletedB = dataSource.isHomeworkCompleted(b);
+
+          // Incomplete items come first
+          if (!isCompletedA && isCompletedB) {
+            comparison = -1;
+          } else if (isCompletedA && !isCompletedB) {
+            comparison = 1;
+          } else if (!isCompletedA && !isCompletedB) {
+            // Both incomplete, equal
+            comparison = 0;
+          } else {
+            // Both complete, sort by grade
+            final parsedGradeA = Format.parseGrade(a.currentGrade);
+            final parsedGradeB = Format.parseGrade(b.currentGrade);
+
+            // Items without grade come before items with grade
+            if (parsedGradeA == null && parsedGradeB != null) {
+              comparison = -1;
+            } else if (parsedGradeA != null && parsedGradeB == null) {
+              comparison = 1;
+            } else if (parsedGradeA == null && parsedGradeB == null) {
+              // Both have no grade, equal
+              comparison = 0;
+            } else {
+              // Both have grades, compare numerically
+              comparison = parsedGradeA!.compareTo(parsedGradeB!);
+            }
+          }
           break;
       }
 
@@ -704,7 +740,10 @@ class TodosTableState extends State<TodosTable> {
                   const SizedBox(width: 4),
                   _buildResourcesColumn(homework, userSettings),
                 ],
-                // TODO: Enhancement: show attachments in a similar way to resources, with attachment icon, when clicked open a menu and list as rows with titles and download buttons
+                if (_shouldShowAttachmentsColumn(context)) ...[
+                  const SizedBox(width: 4),
+                  _buildAttachmentsColumn(homework, userSettings),
+                ],
                 if (!hideActions) ...[
                   const SizedBox(width: 4),
                   _buildActionsColumn(actionButtons, isCompact),
@@ -841,14 +880,45 @@ class TodosTableState extends State<TodosTable> {
                 Icon(
                   Icons.book_outlined,
                   size: 14,
-                  color: userSettings.materialColor,
+                  color: userSettings.materialColor.withValues(alpha: 0.9),
                 ),
                 const SizedBox(width: 4),
                 Text(
                   homework.materials.length.toString(),
                   style: AppStyles.smallSecondaryTextLight(
                     context,
-                  ).copyWith(color: userSettings.materialColor),
+                  ).copyWith(color: userSettings.materialColor.withValues(alpha: 0.9)),
+                ),
+              ],
+            )
+          : const SizedBox.shrink(),
+    );
+  }
+
+  // TODO: Enhancement: implement where if the user clicks on this, a menu appears with the full attachment name / link
+  Widget _buildAttachmentsColumn(
+    HomeworkModel homework,
+    UserSettingsModel userSettings,
+  ) {
+    return SizedBox(
+      width: 30,
+      child: homework.attachments.isNotEmpty
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.attachment,
+                  size: 14,
+                  color: context.colorScheme.primary.withValues(alpha: 0.9),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  homework.attachments.length.toString(),
+                  style: AppStyles.smallSecondaryTextLight(
+                    context,
+                  ).copyWith(
+                    color: context.colorScheme.primary.withValues(alpha: 0.9),
+                  ),
                 ),
               ],
             )

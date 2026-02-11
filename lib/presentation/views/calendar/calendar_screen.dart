@@ -14,6 +14,8 @@ import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/data/models/id_or_entity.dart';
+import 'package:heliumapp/data/models/planner/attachment_model.dart';
 import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
@@ -37,6 +39,8 @@ import 'package:heliumapp/data/sources/course_schedule_remote_data_source.dart';
 import 'package:heliumapp/data/sources/event_remote_data_source.dart';
 import 'package:heliumapp/data/sources/external_calendar_remote_data_source.dart';
 import 'package:heliumapp/data/sources/homework_remote_data_source.dart';
+import 'package:heliumapp/presentation/bloc/attachment/attachment_bloc.dart';
+import 'package:heliumapp/presentation/bloc/attachment/attachment_state.dart';
 import 'package:heliumapp/presentation/bloc/calendar/calendar_bloc.dart';
 import 'package:heliumapp/presentation/bloc/calendar/calendar_event.dart';
 import 'package:heliumapp/presentation/bloc/calendar/calendar_state.dart';
@@ -83,6 +87,7 @@ class CalendarScreen extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: _providerHelpers.createCalendarItemBloc()),
+        BlocProvider(create: _providerHelpers.createAttachmentBloc()),
         BlocProvider(
           create: (context) => CalendarBloc(
             courseRepository: CourseRepositoryImpl(
@@ -129,10 +134,13 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   @override
   List<SingleChildWidget>? get inheritableProviders => [
-        BlocProvider<CalendarItemBloc>.value(
-          value: context.read<CalendarItemBloc>(),
-        ),
-      ];
+    BlocProvider<CalendarItemBloc>.value(
+      value: context.read<CalendarItemBloc>(),
+    ),
+    BlocProvider<AttachmentBloc>.value(
+      value: context.read<AttachmentBloc>(),
+    ),
+  ];
 
   @override
   VoidCallback get actionButtonCallback => () {
@@ -154,6 +162,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       providers: [
         BlocProvider<CalendarItemBloc>.value(
           value: context.read<CalendarItemBloc>(),
+        ),
+        BlocProvider<AttachmentBloc>.value(
+          value: context.read<AttachmentBloc>(),
         ),
       ],
     );
@@ -299,13 +310,19 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             _populateInitialCalendarStateData(state);
 
             // Check if we should open a dialog based on query parameters
-            final openDialog = GoRouterState.of(context).uri.queryParameters['openDialog'];
+            final openDialog = GoRouterState.of(
+              context,
+            ).uri.queryParameters['openDialog'];
             if (openDialog != null) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (!mounted) return;
 
                 // Clear the query parameter from URL
-                context.go(GoRouterState.of(context).uri.replace(queryParameters: {}).toString());
+                context.go(
+                  GoRouterState.of(
+                    context,
+                  ).uri.replace(queryParameters: {}).toString(),
+                );
 
                 // Open the appropriate dialog
                 if (openDialog == 'notifications') {
@@ -354,14 +371,48 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
               state is ExternalCalendarDeleted) {
             _log.info('External calendar changed, refreshing calendar sources');
 
-            final visibleStart =
-                _visibleDates.isNotEmpty ? _visibleDates.first : null;
-            final visibleEnd =
-                _visibleDates.isNotEmpty ? _visibleDates.last : null;
+            final visibleStart = _visibleDates.isNotEmpty
+                ? _visibleDates.first
+                : null;
+            final visibleEnd = _visibleDates.isNotEmpty
+                ? _visibleDates.last
+                : null;
 
             _calendarItemDataSource!.refreshCalendarSources(
               visibleStart: visibleStart,
               visibleEnd: visibleEnd,
+            );
+          }
+        },
+      ),
+      BlocListener<AttachmentBloc, AttachmentState>(
+        listener: (context, state) {
+          if (_calendarItemDataSource == null) return;
+
+          if (state is AttachmentsCreated) {
+            final attachment = state.attachments.firstOrNull;
+            if (attachment == null) return;
+
+            final isHomework = attachment.homework != null;
+            final itemId = isHomework
+                ? attachment.homework!
+                : attachment.event!;
+
+            _updateCalendarItemAttachments(
+              itemId,
+              state.attachments,
+              isAdd: true,
+              isHomework: isHomework,
+            );
+          } else if (state is AttachmentDeleted) {
+            final isHomework = state.homeworkId != null;
+            final itemId = isHomework ? state.homeworkId! : state.eventId!;
+
+            _updateCalendarItemAttachments(
+              itemId,
+              state.id,
+              isAdd: false,
+              isHomework: isHomework,
             );
           }
         },
@@ -409,8 +460,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                     if (_calendarItemDataSource!.isRefreshing)
                       Positioned.fill(
                         child: Container(
-                          color:
-                              context.colorScheme.surface.withValues(alpha: 0.7),
+                          color: context.colorScheme.surface.withValues(
+                            alpha: 0.7,
+                          ),
                           child: const Center(
                             child: LoadingIndicator(expanded: false),
                           ),
@@ -437,10 +489,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
           return SingleChildScrollView(
             controller: _monthViewScrollController,
-            child: SizedBox(
-              height: calendarHeight,
-              child: _buildCalendar(),
-            ),
+            child: SizedBox(height: calendarHeight, child: _buildCalendar()),
           );
         },
       );
@@ -625,6 +674,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       providers: [
         BlocProvider<CalendarItemBloc>.value(
           value: context.read<CalendarItemBloc>(),
+        ),
+        BlocProvider<AttachmentBloc>.value(
+          value: context.read<AttachmentBloc>(),
         ),
       ],
     );
@@ -2365,6 +2417,49 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         request: request,
       ),
     );
+  }
+
+  void _updateCalendarItemAttachments(
+    int itemId,
+    dynamic attachmentData, {
+    required bool isAdd,
+    required bool isHomework,
+  }) {
+    final CalendarItemBaseModel? calendarItem = isHomework
+        ? _calendarItemDataSource!.allHomeworks.firstWhereOrNull(
+            (h) => h.id == itemId,
+          )
+        : _calendarItemDataSource!.allEvents.firstWhereOrNull(
+            (e) => e.id == itemId,
+          );
+
+    if (calendarItem == null) return;
+
+    final updatedAttachments = List<IdOrEntity<AttachmentModel>>.from(
+      calendarItem.attachments,
+    );
+
+    if (isAdd) {
+      final newAttachments = attachmentData as List<AttachmentModel>;
+      for (final attachment in newAttachments) {
+        updatedAttachments.add(
+          IdOrEntity<AttachmentModel>(id: attachment.id, entity: attachment),
+        );
+      }
+    } else {
+      final attachmentId = attachmentData as int;
+      updatedAttachments.removeWhere((a) => a.id == attachmentId);
+    }
+
+    final CalendarItemBaseModel updatedItem = isHomework
+        ? (calendarItem as HomeworkModel).copyWith(
+            attachments: updatedAttachments,
+          )
+        : (calendarItem as EventModel).copyWith(
+            attachments: updatedAttachments,
+          );
+
+    _calendarItemDataSource!.updateCalendarItem(updatedItem);
   }
 
   void _openCoursesMenu(BuildContext context, List<CourseModel> courses) {

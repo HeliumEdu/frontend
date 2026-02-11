@@ -33,6 +33,14 @@ class CreateAttachmentEvent extends AttachmentEvent {
 
 class DeleteAttachmentEvent extends AttachmentEvent {
   final int id;
+  final int? courseId;
+  final int? eventId;
+  final int? homeworkId;
 
-  DeleteAttachmentEvent({required this.id});
+  DeleteAttachmentEvent({
+    required this.id,
+    this.courseId,
+    this.eventId,
+    this.homeworkId,
+  });
 }

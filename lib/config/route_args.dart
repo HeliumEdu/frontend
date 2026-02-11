@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:heliumapp/presentation/bloc/attachment/attachment_bloc.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
 import 'package:heliumapp/presentation/bloc/course/course_bloc.dart';
 import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_bloc.dart';
@@ -66,6 +67,7 @@ class CalendarItemReminderArgs {
 
 class CalendarItemAttachmentArgs {
   final CalendarItemBloc calendarItemBloc;
+  final AttachmentBloc attachmentBloc;
   final bool isEvent;
   final int entityId;
   final bool isEdit;
@@ -73,6 +75,7 @@ class CalendarItemAttachmentArgs {
 
   const CalendarItemAttachmentArgs({
     required this.calendarItemBloc,
+    required this.attachmentBloc,
     required this.isEvent,
     required this.entityId,
     required this.isEdit,
