@@ -866,7 +866,7 @@ class TodosTableState extends State<TodosTable> {
   ) {
     return SizedBox(
       width: Responsive.isMobile(context) ? 90 : 98,
-      child: homework.currentGrade != null && homework.currentGrade!.isNotEmpty
+      child: homework.completed
           ? GradeLabel(
               grade: Format.gradeForDisplay(homework.currentGrade),
               userSettings: userSettings,
