@@ -88,7 +88,6 @@ class CoursesProvidedScreen extends StatefulWidget {
 
 class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
   @override
-  // TODO: Cleanup: have the shell pass down its label here instead
   String get screenTitle => 'Classes';
 
   @override
@@ -344,7 +343,6 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
                       color: course.color,
                     ),
                   ),
-                  // TODO: Enhancement: show attachments icon, when clicked open a menu and list as rows with titles and download buttons
                   const SizedBox(width: 8),
                   if (course.teacherEmail.isNotEmpty) ...[
                     HeliumIconButton(

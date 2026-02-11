@@ -43,7 +43,6 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
     return [];
   }
 
-  // TODO: Cleanup: there's a keyboard gap on iOS (at the bottom) on taller dialogs, fix
   Dialog buildDialog(BuildContext context) {
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -65,7 +64,6 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
 
                     buildMainArea(context),
 
-                    // TODO: Enhancement: probably a way to parse prefix before colon (if exists) and map the specific error to the relevant field
                     if (errorMessage != null) buildErrorArea(),
 
                     const SizedBox(height: 12),

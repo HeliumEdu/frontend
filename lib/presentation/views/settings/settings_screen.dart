@@ -166,7 +166,6 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
       child: SingleChildScrollView(
         child: Column(
           children: [
-            // TODO: Feature Parity: implement ability to change username, email
             _buildProfileArea(),
 
             const SizedBox(height: 12),
@@ -175,9 +174,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
 
             const SizedBox(height: 12),
 
-            // TODO: Feature Parity: implement section for import/export, re-importing example schedule
 
-            // TODO: Feature Parity: implement ability to delete all events
             _buildDeleteAccountArea(),
 
             const SizedBox(height: 12),
@@ -644,7 +641,6 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
     bool isSubmitting = false;
     bool obscurePassword = true;
 
-    // TODO: Cleanup: refactor to a separate class
     showDialog(
       context: parentContext,
       barrierDismissible: false,

@@ -122,7 +122,6 @@ class _ReminderWidgetState extends BaseDialogState<_ReminderProvidedWidget> {
           initialValue: ReminderConstants.typeItems.firstWhere(
             (rt) => rt.id == _formController.reminderType,
           ),
-          // TODO: Remove deprecated type filtering once legacy 'Popup' and 'Text' reminder types are removed from backend
           items: ReminderConstants.typeItems
               .where((t) =>
                   t.id == _formController.reminderType ||

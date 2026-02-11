@@ -33,7 +33,6 @@ class Sort {
     list.sort((a, b) => b.startOfRange.compareTo(a.startOfRange));
   }
 
-  // TODO: Enhancement: let's also sort by course, that way items of the same course are grouped when time is the same
   static void byStartThenTitle(List<CalendarItemBaseModel> list) {
     list.sort((a, b) {
       final aPriority = typeSortPriority[a.calendarItemType] ?? 0;

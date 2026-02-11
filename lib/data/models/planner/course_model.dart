@@ -18,7 +18,6 @@ class CourseModel extends BaseTitledModel {
   final String room;
   final double credits;
   final Color color;
-  // TODO: Cleanup: change this to a URL
   final String website;
   final bool isOnline;
   final int courseGroup;
