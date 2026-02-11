@@ -36,7 +36,7 @@ void showPreferences(BuildContext context) {
     showScreenAsDialog(
       context,
       child: const PreferencesScreen(),
-      width: 500,
+      width: AppConstants.leftPanelDialogWidth,
       alignment: Alignment.centerLeft,
       insetPadding: const EdgeInsets.all(0),
     );
@@ -72,6 +72,9 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
 
   @override
   String get screenTitle => 'Preferences';
+
+  @override
+  IconData get icon => Icons.tune;
 
   @override
   ScreenType get screenType => ScreenType.entityPage;

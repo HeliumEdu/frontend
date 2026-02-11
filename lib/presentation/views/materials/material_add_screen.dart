@@ -65,7 +65,7 @@ void showMaterialAdd(
         isEdit: isEdit,
       ),
       providers: providers,
-      width: 550,
+      width: AppConstants.centeredDialogWidth,
       alignment: Alignment.center,
     );
   }

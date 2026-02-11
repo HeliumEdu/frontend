@@ -332,7 +332,12 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
           ],
           Text(screenTitle, style: AppStyles.pageTitle(context)),
           const Spacer(),
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
           if (saveAction != null) ...[
+            const SizedBox(width: 8),
             if (isSubmitting)
               const LoadingIndicator(
                 size: 20,
@@ -345,12 +350,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
                 onPressed: () => saveAction!(),
                 color: context.colorScheme.primary,
               ),
-            const SizedBox(width: 8),
           ],
-          IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
         ],
       ),
     );
