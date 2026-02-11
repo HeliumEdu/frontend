@@ -35,6 +35,9 @@ class AttachmentsCreated extends AttachmentState {
 
 class AttachmentDeleted extends AttachmentState {
   final int id;
+  final int? courseId;
+  final int? eventId;
+  final int? homeworkId;
 
-  AttachmentDeleted({required this.id});
+  AttachmentDeleted({required this.id, this.courseId, this.eventId, this.homeworkId});
 }
