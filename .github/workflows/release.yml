@@ -9,13 +9,12 @@ on:
         description: 'Version bump type'
         required: true
         type: choice
-        default: patch
+        default: build
         options:
           - build
           - patch
           - minor
           - major
-          - none
 
 permissions:
   contents: write
@@ -59,18 +58,15 @@ jobs:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
       - name: Setup Flutter SDK
-        if: ${{ github.event.inputs.bump_type != 'none' }}
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
           version: "3.38.9"
 
       - name: Install dependencies
-        if: ${{ github.event.inputs.bump_type != 'none' }}
         run: make install
 
       - name: Bump version
-        if: ${{ github.event.inputs.bump_type != 'none' }}
         run: |
           dart run cider bump build
           if [ "${{ github.event.inputs.bump_type }}" != "build" ]; then
@@ -78,7 +74,6 @@ jobs:
           fi
 
       - name: Commit version bump
-        if: ${{ github.event.inputs.bump_type != 'none' }}
         run: |
           git config --global user.name "GitHub Release Bot"
           git config --global user.email "<contact@alexlaird.com>"
