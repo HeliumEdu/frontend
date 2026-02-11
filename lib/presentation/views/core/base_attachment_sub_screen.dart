@@ -171,7 +171,7 @@ abstract class BaseAttachmentScreenState<T>
             child: BlocBuilder<AttachmentBloc, AttachmentState>(
               builder: (context, state) {
                 if (state is AttachmentsLoading) {
-                  return const LoadingIndicator(expanded: false);
+                  return const LoadingIndicator();
                 }
 
                 if (state is AttachmentsError) {
