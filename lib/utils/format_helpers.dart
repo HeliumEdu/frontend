@@ -41,25 +41,41 @@ class Format {
     return '${reminder.offset.toString()} $units';
   }
 
-  static String gradeForDisplay(dynamic grade, [showNaAsBlank = false]) {
+  static double? parseGrade(dynamic grade) {
     if (grade == null ||
         grade == '' ||
         grade == '-1/100' ||
         grade == 0 ||
         grade == -1.0) {
+      return null;
+    }
+
+    if (grade is String) {
+      try {
+        final split = grade.split('/');
+        if (split.length == 2) {
+          return (double.parse(split[0]) / double.parse(split[1])) * 100;
+        }
+        return null;
+      } catch (e) {
+        return null;
+      }
+    } else if (grade is num) {
+      return grade.toDouble();
+    }
+
+    return null;
+  }
+
+  static String gradeForDisplay(dynamic grade, [showNaAsBlank = false]) {
+    final gradeValue = parseGrade(grade);
+
+    if (gradeValue == null) {
       if (showNaAsBlank) {
         return '';
       } else {
         return 'N/A';
       }
-    }
-
-    final double gradeValue;
-    if (grade is String) {
-      final split = grade.split('/');
-      gradeValue = (double.parse(split[0]) / double.parse(split[1])) * 100;
-    } else {
-      gradeValue = grade;
     }
 
     return '${gradeValue.toStringAsFixed(2)}%';
