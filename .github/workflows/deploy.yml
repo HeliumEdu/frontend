@@ -326,10 +326,13 @@ jobs:
           echo "$GOOGLE_PLAY_SERVICE_ACCOUNT_KEY" > android/service-account-key.json
 
       - name: Deploy to Google Play Internal Track
+        env:
+          FULL_VERSION: ${{ steps.find_run.outputs.full_version }}
         run: |
           cd android
           echo "Deploying to Google Play Internal Track..."
-          fastlane deploy_internal aab_path:../android-build/app-release.aab
+          SEMVER="${FULL_VERSION%%+*}"
+          fastlane deploy_internal aab_path:../android-build/app-release.aab version:$SEMVER
 
       - name: Cleanup service account key
         if: always()
