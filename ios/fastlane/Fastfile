@@ -1,0 +1,32 @@
+# Fastfile for iOS deployment
+
+default_platform(:ios)
+
+platform :ios do
+  desc "Upload IPA to TestFlight"
+  lane :deploy_testflight do |options|
+    ipa_path = options[:ipa_path] || "../build/ios/ipa/heliumedu.ipa"
+
+    upload_to_testflight(
+      ipa: ipa_path,
+      skip_submission: true,
+      skip_waiting_for_build_processing: true,
+      distribute_external: false
+    )
+  end
+
+  desc "Upload IPA to App Store and submit for review"
+  lane :deploy_appstore do |options|
+    ipa_path = options[:ipa_path] || "../build/ios/ipa/heliumedu.ipa"
+
+    upload_to_app_store(
+      ipa: ipa_path,
+      skip_metadata: true,
+      skip_screenshots: true,
+      precheck_include_in_app_purchases: false,
+      submission_information: {
+        add_id_info_uses_idfa: false
+      }
+    )
+  end
+end
