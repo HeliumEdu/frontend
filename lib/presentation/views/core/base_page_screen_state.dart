@@ -395,7 +395,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     bool clearSnackBar = true,
   }) {
     if (!context.mounted) return;
-    // TODO: Show snackbar in parent context when in dialog mode
+    // FIXME: Find a proper way to show SnackBar messages when in DialogMode (desktop only)
     if (DialogModeProvider.isDialogMode(context)) return;
     if (clearSnackBar) {
       ScaffoldMessenger.of(context).clearSnackBars();
