@@ -1,4 +1,4 @@
-app_identifier("com.heliumedu.app")
+app_identifier("com.heliumedu.heliumapp")
 apple_id(ENV["APPLE_ID"])
 team_id("SHY4MCK827")
 
