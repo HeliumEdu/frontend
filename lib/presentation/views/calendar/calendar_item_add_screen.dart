@@ -22,6 +22,7 @@ import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/material_model.dart';
 import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
+import 'package:heliumapp/presentation/bloc/attachment/attachment_bloc.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_event.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_state.dart';
@@ -217,6 +218,9 @@ class _CalendarItemAddScreenState
                   providers: [
                     BlocProvider<CalendarItemBloc>.value(
                       value: context.read<CalendarItemBloc>(),
+                    ),
+                    BlocProvider<AttachmentBloc>.value(
+                      value: context.read<AttachmentBloc>(),
                     ),
                   ],
                 );
