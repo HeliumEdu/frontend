@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/route_args.dart';
+import 'package:heliumapp/presentation/bloc/attachment/attachment_bloc.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
 import 'package:heliumapp/presentation/views/calendar/calendar_item_add_attachment_screen.dart';
 import 'package:heliumapp/presentation/views/calendar/calendar_item_add_reminder_screen.dart';
@@ -161,6 +162,7 @@ class CalendarItemStepper extends StatelessWidget {
     // Fall back to router navigation for non-dialog mode
     final step = CalendarItemAddSteps.values[index];
     final calendarItemBloc = context.read<CalendarItemBloc>();
+    final attachmentBloc = context.read<AttachmentBloc>();
     final entityId = eventId ?? homeworkId;
 
     // Can't navigate to reminders/attachments without an entity
@@ -195,6 +197,7 @@ class CalendarItemStepper extends StatelessWidget {
         step.route,
         extra: CalendarItemAttachmentArgs(
           calendarItemBloc: calendarItemBloc,
+          attachmentBloc: attachmentBloc,
           isEvent: eventId != null,
           entityId: entityId!,
           isEdit: isEdit,

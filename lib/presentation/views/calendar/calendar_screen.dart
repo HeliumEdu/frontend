@@ -87,6 +87,7 @@ class CalendarScreen extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: _providerHelpers.createCalendarItemBloc()),
+        BlocProvider(create: _providerHelpers.createAttachmentBloc()),
         BlocProvider(
           create: (context) => CalendarBloc(
             courseRepository: CourseRepositoryImpl(
@@ -136,6 +137,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     BlocProvider<CalendarItemBloc>.value(
       value: context.read<CalendarItemBloc>(),
     ),
+    BlocProvider<AttachmentBloc>.value(
+      value: context.read<AttachmentBloc>(),
+    ),
   ];
 
   @override
@@ -158,6 +162,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       providers: [
         BlocProvider<CalendarItemBloc>.value(
           value: context.read<CalendarItemBloc>(),
+        ),
+        BlocProvider<AttachmentBloc>.value(
+          value: context.read<AttachmentBloc>(),
         ),
       ],
     );
@@ -386,29 +393,27 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             final attachment = state.attachments.firstOrNull;
             if (attachment == null) return;
 
-            if (attachment.homework != null) {
-              _updateHomeworkAttachments(
-                attachment.homework!,
-                state.attachments,
-                isAdd: true,
-              );
-            } else if (attachment.event != null) {
-              _updateEventAttachments(
-                attachment.event!,
-                state.attachments,
-                isAdd: true,
-              );
-            }
+            final isHomework = attachment.homework != null;
+            final itemId = isHomework
+                ? attachment.homework!
+                : attachment.event!;
+
+            _updateCalendarItemAttachments(
+              itemId,
+              state.attachments,
+              isAdd: true,
+              isHomework: isHomework,
+            );
           } else if (state is AttachmentDeleted) {
-            if (state.homeworkId != null) {
-              _updateHomeworkAttachments(
-                state.homeworkId!,
-                state.id,
-                isAdd: false,
-              );
-            } else if (state.eventId != null) {
-              _updateEventAttachments(state.eventId!, state.id, isAdd: false);
-            }
+            final isHomework = state.homeworkId != null;
+            final itemId = isHomework ? state.homeworkId! : state.eventId!;
+
+            _updateCalendarItemAttachments(
+              itemId,
+              state.id,
+              isAdd: false,
+              isHomework: isHomework,
+            );
           }
         },
       ),
@@ -669,6 +674,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       providers: [
         BlocProvider<CalendarItemBloc>.value(
           value: context.read<CalendarItemBloc>(),
+        ),
+        BlocProvider<AttachmentBloc>.value(
+          value: context.read<AttachmentBloc>(),
         ),
       ],
     );
@@ -2411,19 +2419,24 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     );
   }
 
-  void _updateHomeworkAttachments(
-    int homeworkId,
+  void _updateCalendarItemAttachments(
+    int itemId,
     dynamic attachmentData, {
     required bool isAdd,
+    required bool isHomework,
   }) {
-    final homework = _calendarItemDataSource!.allHomeworks.firstWhereOrNull(
-      (h) => h.id == homeworkId,
-    );
+    final CalendarItemBaseModel? calendarItem = isHomework
+        ? _calendarItemDataSource!.allHomeworks.firstWhereOrNull(
+            (h) => h.id == itemId,
+          )
+        : _calendarItemDataSource!.allEvents.firstWhereOrNull(
+            (e) => e.id == itemId,
+          );
 
-    if (homework == null) return;
+    if (calendarItem == null) return;
 
     final updatedAttachments = List<IdOrEntity<AttachmentModel>>.from(
-      homework.attachments,
+      calendarItem.attachments,
     );
 
     if (isAdd) {
@@ -2438,39 +2451,15 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       updatedAttachments.removeWhere((a) => a.id == attachmentId);
     }
 
-    final updatedHomework = homework.copyWith(attachments: updatedAttachments);
-    _calendarItemDataSource!.updateCalendarItem(updatedHomework);
-  }
+    final CalendarItemBaseModel updatedItem = isHomework
+        ? (calendarItem as HomeworkModel).copyWith(
+            attachments: updatedAttachments,
+          )
+        : (calendarItem as EventModel).copyWith(
+            attachments: updatedAttachments,
+          );
 
-  void _updateEventAttachments(
-    int eventId,
-    dynamic attachmentData, {
-    required bool isAdd,
-  }) {
-    final event = _calendarItemDataSource!.allEvents.firstWhereOrNull(
-      (e) => e.id == eventId,
-    );
-
-    if (event == null) return;
-
-    final updatedAttachments = List<IdOrEntity<AttachmentModel>>.from(
-      event.attachments,
-    );
-
-    if (isAdd) {
-      final newAttachments = attachmentData as List<AttachmentModel>;
-      for (final attachment in newAttachments) {
-        updatedAttachments.add(
-          IdOrEntity<AttachmentModel>(id: attachment.id, entity: attachment),
-        );
-      }
-    } else {
-      final attachmentId = attachmentData as int;
-      updatedAttachments.removeWhere((a) => a.id == attachmentId);
-    }
-
-    final updatedEvent = event.copyWith(attachments: updatedAttachments);
-    _calendarItemDataSource!.updateCalendarItem(updatedEvent);
+    _calendarItemDataSource!.updateCalendarItem(updatedItem);
   }
 
   void _openCoursesMenu(BuildContext context, List<CourseModel> courses) {

@@ -9,14 +9,12 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/attachment_file.dart';
 import 'package:heliumapp/data/models/planner/attachment_model.dart';
-import 'package:heliumapp/data/repositories/attachment_repository_impl.dart';
-import 'package:heliumapp/data/sources/attachment_remote_data_source.dart';
 import 'package:heliumapp/presentation/bloc/attachment/attachment_bloc.dart';
 import 'package:heliumapp/presentation/bloc/attachment/attachment_event.dart';
 import 'package:heliumapp/presentation/bloc/attachment/attachment_state.dart';
+import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/empty_card.dart';
@@ -30,10 +28,13 @@ import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:heliumapp/utils/storage_helpers.dart';
+import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
+final _log = Logger('presentation.views');
+
 abstract class BaseAttachmentScreen extends StatelessWidget {
-  final DioClient _dioClient = DioClient();
+  final ProviderHelpers _providerHelpers = ProviderHelpers();
   final int entityId;
   final bool isEdit;
   final bool isNew;
@@ -49,17 +50,18 @@ abstract class BaseAttachmentScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AttachmentBloc? existingBloc;
+    try {
+      existingBloc = context.read<AttachmentBloc>();
+    } catch (_) {
+      _log.info('AttachmentBloc not passed, will create a new one');
+    }
+
     return MultiBlocProvider(
       providers: [
-        BlocProvider(
-          create: (context) => AttachmentBloc(
-            attachmentRepository: AttachmentRepositoryImpl(
-              remoteDataSource: AttachmentRemoteDataSourceImpl(
-                dioClient: _dioClient,
-              ),
-            ),
-          ),
-        ),
+        existingBloc != null
+            ? BlocProvider<AttachmentBloc>.value(value: existingBloc)
+            : BlocProvider(create: _providerHelpers.createAttachmentBloc()),
       ],
       child: buildScreen(),
     );
