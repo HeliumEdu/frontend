@@ -178,15 +178,6 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     return customData;
   }
 
-  /// Priority order for calendar item types when times are equal.
-  /// Lower values appear first: Homework → ClassSchedule → Event → External
-  static const _typeSortPriority = {
-    CalendarItemType.homework: 0,
-    CalendarItemType.courseSchedule: 1,
-    CalendarItemType.event: 2,
-    CalendarItemType.external: 3,
-  };
-
   @override
   DateTime getStartTime(int index) {
     final item = _getData(index);
@@ -207,7 +198,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     // Higher priority items (lower number) get more seconds subtracted, making
     // them appear "earlier" and thus sort first. Using seconds instead of
     // microseconds because SfCalendar truncates sub-second precision.
-    final priority = _typeSortPriority[item.calendarItemType] ?? 0;
+    final priority = Sort.typeSortPriority[item.calendarItemType] ?? 0;
     final secondsToSubtract = 3 - priority; // 3, 2, 1, 0
     return baseTime.subtract(Duration(seconds: secondsToSubtract));
   }
@@ -224,7 +215,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     final endTime = override != null
         ? DateTime.parse(override.end)
         : calendarItem.end;
-    final priority = _typeSortPriority[calendarItem.calendarItemType] ?? 0;
+    final priority = Sort.typeSortPriority[calendarItem.calendarItemType] ?? 0;
 
     if (calendarItem.allDay) {
       final adjustedEnd = endTime.subtract(const Duration(days: 1));

@@ -12,6 +12,15 @@ import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 
 class Sort {
+  /// Priority order for calendar item types when times are equal.
+  /// Lower values appear first: Homework → ClassSchedule → Event → External
+  static const typeSortPriority = {
+    CalendarItemType.homework: 0,
+    CalendarItemType.courseSchedule: 1,
+    CalendarItemType.event: 2,
+    CalendarItemType.external: 3,
+  };
+
   static void byTitle(List<BaseTitledModel> list) {
     list.sort((a, b) => a.title.compareTo(b.title));
   }
@@ -24,19 +33,11 @@ class Sort {
     list.sort((a, b) => b.startOfRange.compareTo(a.startOfRange));
   }
 
-  /// When multiple items at the same time, opt for this priority
-  static const _typeSortPriority = {
-    CalendarItemType.homework: 0,
-    CalendarItemType.courseSchedule: 1,
-    CalendarItemType.event: 2,
-    CalendarItemType.external: 3,
-  };
-
   // TODO: let's also sort by course, that way items of the same course are grouped when time is the same
   static void byStartThenTitle(List<CalendarItemBaseModel> list) {
     list.sort((a, b) {
-      final aPriority = _typeSortPriority[a.calendarItemType] ?? 0;
-      final bPriority = _typeSortPriority[b.calendarItemType] ?? 0;
+      final aPriority = typeSortPriority[a.calendarItemType] ?? 0;
+      final bPriority = typeSortPriority[b.calendarItemType] ?? 0;
 
       // To ensure SfCalendar sorts as we expected, we add a "fake" second to
       // start/end times based on priority; SfCalendar's internal sort logic
