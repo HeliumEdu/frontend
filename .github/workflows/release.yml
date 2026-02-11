@@ -9,12 +9,12 @@ on:
         description: 'Version bump type'
         required: true
         type: choice
-        default: patch
+        default: build
         options:
+          - build
           - patch
           - minor
           - major
-          - none
 
 permissions:
   contents: write
@@ -58,24 +58,22 @@ jobs:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
       - name: Setup Flutter SDK
-        if: ${{ github.event.inputs.bump_type != 'none' }}
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
           version: "3.38.9"
 
       - name: Install dependencies
-        if: ${{ github.event.inputs.bump_type != 'none' }}
         run: make install
 
       - name: Bump version
-        if: ${{ github.event.inputs.bump_type != 'none' }}
         run: |
           dart run cider bump build
-          dart run cider bump ${{ github.event.inputs.bump_type }} --keep-build
+          if [ "${{ github.event.inputs.bump_type }}" != "build" ]; then
+            dart run cider bump ${{ github.event.inputs.bump_type }} --keep-build
+          fi
 
       - name: Commit version bump
-        if: ${{ github.event.inputs.bump_type != 'none' }}
         run: |
           git config --global user.name "GitHub Release Bot"
           git config --global user.email "<contact@alexlaird.com>"
@@ -298,7 +296,7 @@ jobs:
 
       - name: Display release info
         run: |
-          echo "### Release v${{ needs.bump-version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "### Release ${{ needs.bump-version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
 
       - name: Create and push tags
         env:
@@ -313,12 +311,12 @@ jobs:
           # Fetch latest changes to ensure we have the version bump commit
           git fetch origin ${{ github.ref_name }}
 
-          # Create semantic version tag on the specific commit
-          if git rev-parse "v$SEMVER" >/dev/null 2>&1; then
-            echo "Tag v$SEMVER already exists, skipping"
+          # Create full version tag (1.0.29+29) on the specific commit
+          if git rev-parse "$FULL_VERSION" >/dev/null 2>&1; then
+            echo "Tag $FULL_VERSION already exists, skipping"
           else
-            echo "Creating tag v$SEMVER on commit $COMMIT_SHA"
-            git tag -a "v$SEMVER" -m "Release v$SEMVER (build $FULL_VERSION)" "$COMMIT_SHA"
+            echo "Creating tag $FULL_VERSION on commit $COMMIT_SHA"
+            git tag -a "$FULL_VERSION" -m "Release $FULL_VERSION" "$COMMIT_SHA"
           fi
 
           # Create build number tag on the specific commit
@@ -326,8 +324,8 @@ jobs:
             echo "Tag b$BUILD_NUMBER already exists, skipping"
           else
             echo "Creating tag b$BUILD_NUMBER on commit $COMMIT_SHA"
-            git tag -a "b$BUILD_NUMBER" -m "Build $BUILD_NUMBER (v$SEMVER)" "$COMMIT_SHA"
+            git tag -a "b$BUILD_NUMBER" -m "Build $BUILD_NUMBER ($SEMVER)" "$COMMIT_SHA"
           fi
 
           # Push both tags
-          git push origin "v$SEMVER" "b$BUILD_NUMBER"
+          git push origin "$FULL_VERSION" "b$BUILD_NUMBER"

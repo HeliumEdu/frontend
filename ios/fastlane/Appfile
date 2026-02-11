@@ -1,0 +1,5 @@
+app_identifier("com.heliumedu.app")
+apple_id(ENV["APPLE_ID"])
+team_id("SHY4MCK827")
+
+itc_team_id(ENV["APP_STORE_CONNECT_TEAM_ID"])
