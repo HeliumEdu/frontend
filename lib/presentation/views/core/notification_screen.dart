@@ -245,8 +245,6 @@ class _NotificationsScreenState
       calendarItem = reminder.homework?.entity;
       final course = reminder.homework?.entity?.course.entity;
 
-      // TODO: Cleanup: refactor to use the CourseTitleLabel
-      // TODO: Cleanup: refactor to add category information (and use label)
 
       title = '${reminder.homework?.entity?.title} in ${course?.title}';
       color = course?.color;

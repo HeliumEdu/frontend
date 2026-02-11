@@ -19,7 +19,6 @@ abstract class CalendarItemBaseModel extends BaseTitledModel {
   final DateTime start;
   final DateTime end;
   final int priority;
-  // TODO: Cleanup: change this to a URL
   final String? url;
   final String comments;
   final Color? color;

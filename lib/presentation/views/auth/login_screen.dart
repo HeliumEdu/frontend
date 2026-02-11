@@ -28,8 +28,6 @@ import 'package:logging/logging.dart';
 
 final _log = Logger('presentation.views');
 
-// TODO: High Value, Low Effort: especially on auth screens, make error / response message display consistent—should messages be defined on screens, or pulled from backend (or Bloc's message field)?
-// TODO: Known Issues (9/High): some backend error messages (like when the user tries to login before verifying their email) have links in them to click, but these don't work on snackbar
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

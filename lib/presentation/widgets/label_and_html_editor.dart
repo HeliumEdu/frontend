@@ -10,7 +10,6 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:html_editor_enhanced/html_editor.dart';
 
-// TODO: Enhancement: migrate to quill: https://pub.dev/packages/flutter_quill
 
 class LabelAndHtmlEditor extends StatelessWidget {
   final String label;

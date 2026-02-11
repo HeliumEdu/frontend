@@ -51,8 +51,6 @@ class TodosTable extends StatefulWidget {
   State<TodosTable> createState() => TodosTableState();
 }
 
-// TODO: Enhancement: consider migrating to https://pub.dev/packages/syncfusion_flutter_datagrid, gives us ability for adjustable column widths easily
-// TODO: Enhancement: when results are empty, still show table framing. Same with the loading indicator, show it as an overlay to the table as soon as that can be rendered (similar to SfCalendar)
 
 class TodosTableState extends State<TodosTable> {
   static const List<int> _itemsPerPageOptions = [5, 10, 25, 50, 100, -1];
@@ -203,7 +201,6 @@ class TodosTableState extends State<TodosTable> {
       }
     }
 
-    // TODO: Enhancement: within the data source, we should have a separate from/to window for homework only, since this page only renders homework; would load quicker; (separate so we know in calendar-based views, the from/to for non-homework items still needs to be expanded on date change)
 
     // Trigger data source to expand its window
     if (from != null && to != null) {
@@ -842,7 +839,6 @@ class TodosTableState extends State<TodosTable> {
     );
   }
 
-  // TODO: Enhancement: the CourseTitleLabel should shrink-to-fix its text rather than expanding to fill the entire row
   Widget _buildClassColumn(dynamic course) {
     return Expanded(
       flex: 2,
@@ -854,7 +850,6 @@ class TodosTableState extends State<TodosTable> {
     );
   }
 
-  // TODO: Enhancement: the CategoryTitleLabel should shrink-to-fix its text rather than expanding to fill the entire row
   Widget _buildCategoryColumn(CategoryModel category) {
     return Expanded(
       flex: 2,
@@ -866,7 +861,6 @@ class TodosTableState extends State<TodosTable> {
     );
   }
 
-  // TODO: Enhancement: implement where if the user clicks on this, a menu appears with the full resource names / links
   Widget _buildResourcesColumn(
     HomeworkModel homework,
     UserSettingsModel userSettings,
@@ -895,7 +889,6 @@ class TodosTableState extends State<TodosTable> {
     );
   }
 
-  // TODO: Enhancement: implement where if the user clicks on this, a menu appears with the full attachment name / link
   Widget _buildAttachmentsColumn(
     HomeworkModel homework,
     UserSettingsModel userSettings,

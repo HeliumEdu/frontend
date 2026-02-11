@@ -129,7 +129,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   static const _agendaHeightDesktop = 57.0;
 
   @override
-  // TODO: Cleanup: have the shell pass down its label here instead
   String get screenTitle => 'Planner';
 
   @override
@@ -615,7 +614,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             ),
             dayFormat: 'EEE',
             timeIntervalHeight: 50,
-            // TODO: Enhancement: use this field and dynamically set it to null (full week), 3, or 1, to enable a new "3-day" view
             // numberOfDaysInView: 3
           ),
           loadMoreWidgetBuilder: _loadMoreWidgetBuilder,
@@ -642,7 +640,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   bool _openCalendarItem(CalendarItemBaseModel calendarItem) {
     if (calendarItem is CourseScheduleEventModel) {
-      // TODO: High Value, Low Effort: add an action button this snack bar to take the user to the page to edit the course schedule
       showSnackBar(
         context,
         "You can't open this on the Planner",
@@ -1818,7 +1815,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     required CalendarItemBaseModel calendarItem,
     bool? completedOverride,
   }) {
-    // TODO: Known Issues (2/Low): when the text wraps before even one letter can fit on the row, the prefix icon/checkbox gets pushed down a few pixels; fix here, and also for the .school icon (same behavior)
     if (PlannerHelper.shouldShowCheckbox(context, calendarItem, _currentView)) {
       return _buildCheckboxWidget(
         homework: calendarItem as HomeworkModel,
@@ -1919,7 +1915,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         TextSpan(
           text: calendarItem.title,
           style: AppStyles.smallSecondaryTextLight(context).copyWith(
-            // TODO: Known Issues (4/Medium): Use dynamic text color based on background luminance to prevent visibility issues with light user-selected colors
             color: Colors.white,
             decoration: isCompleted
                 ? TextDecoration.lineThrough
@@ -1986,7 +1981,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           },
           icon: Icons.email_outlined,
           tooltip: 'Email teacher',
-          // TODO: Known Issues (7/Low): Use dynamic icon color based on calendar item background luminance to prevent visibility issues with light user-selected colors
           color: Colors.white,
         ),
       );
@@ -2016,7 +2010,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         HeliumIconButton(
           onPressed: () => _openCalendarItem(calendarItem),
           icon: Icons.edit_outlined,
-          // TODO: Known Issues (4/Medium): Use dynamic text color based on background luminance to prevent visibility issues with light user-selected colors
           color: Colors.white,
         ),
       );
@@ -2027,7 +2020,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         HeliumIconButton(
           onPressed: () => _deleteCalendarItem(context, calendarItem),
           icon: Icons.delete_outline,
-          // TODO: Known Issues (4/Medium): Use dynamic text color based on background luminance to prevent visibility issues with light user-selected colors
           color: Colors.white,
         ),
       );
@@ -2215,7 +2207,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     DateTime? date,
     List<CalendarItemBaseModel> calendarItems,
   ) {
-    // TODO: Cleanup: migrate this out to its own file
     if (date == null || Responsive.isMobile(context)) return;
 
     showDialog(
@@ -2387,12 +2378,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         _storedSelectedDate = truncatedDate;
       }
 
-      // TODO: Known Issues (1/Medium): when jumping to a date that isn't within the loaded data source on "Schedule" view, the view shows the single specified date, but doesn't also trigger the "load more" behavior for that date window
     });
   }
 
   void _onToggleCompleted(HomeworkModel homework, bool value) {
-    // TODO: Enhancement: show confetti when Homework is completed
 
     Feedback.forTap(context);
 
@@ -2463,7 +2452,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   void _openCoursesMenu(BuildContext context, List<CourseModel> courses) {
-    // TODO: Enhancement: consider migrating this in to the "Filters" menu, but cleaning it up (maybe making sections collapsible)
     final RenderBox button = context.findRenderObject() as RenderBox;
     final RenderBox overlay =
         Overlay.of(context).context.findRenderObject() as RenderBox;
@@ -2844,9 +2832,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
                           return Column(
                             children: [
-                              // TODO: Enhancement: add another filter state called "Graded"
-                              // TODO: Enhancement: ensure mutually exclusive filter states can't be checked at the same time (complete/incomplete, graded/ungraded)
-                              // TODO: Enhancement: Combine opposite filter states (complete/incomplete, graded/ungraded) in to one, and put a switch toggle to the right of them—so checkbox "enables" the filter, switch toggle determines their true/false status when applying the filter
                               buildStatusTile('Complete'),
                               buildStatusTile('Incomplete'),
                               buildStatusTile('Overdue'),
@@ -3016,7 +3001,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     return Text(
       calendarItem.title,
       style: AppStyles.smallSecondaryTextLight(context).copyWith(
-        // TODO: Known Issues (4/Medium): Use dynamic text color based on background luminance to prevent visibility issues with light user-selected colors
         color: Colors.white,
         decoration: isCompleted
             ? TextDecoration.lineThrough
@@ -3057,7 +3041,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           },
           activeColor: context.colorScheme.primary,
           side: BorderSide(
-            // TODO: Known Issues (8/Low): Use dynamic colors based on calendar item background luminance for checkbox, school icon, time icons, and location icons to prevent visibility issues with light user-selected colors
             color: Colors.white.withValues(alpha: 0.7),
             width: 2.5,
           ),
@@ -3075,7 +3058,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         child: Icon(
           Icons.school,
           size: 16,
-          // TODO: Known Issues (4/Medium): Use dynamic text color based on background luminance to prevent visibility issues with light user-selected colors
           color: Colors.white.withValues(alpha: 0.7),
         ),
       ),
@@ -3089,7 +3071,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       ),
       style: AppStyles.smallSecondaryTextLight(
         context,
-        // TODO: Known Issues (4/Medium): Use dynamic text color based on background luminance to prevent visibility issues with light user-selected colors
       ).copyWith(color: Colors.white.withValues(alpha: 0.7)),
     );
   }
@@ -3111,7 +3092,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             ),
             style: AppStyles.smallSecondaryTextLight(
               context,
-              // TODO: Known Issues (4/Medium): Use dynamic text color based on background luminance to prevent visibility issues with light user-selected colors
             ).copyWith(color: Colors.white.withValues(alpha: 0.7)),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -3127,7 +3107,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         Icon(
           Icons.pin_drop_outlined,
           size: 10,
-          // TODO: Known Issues (4/Medium): Use dynamic text color based on background luminance to prevent visibility issues with light user-selected colors
           color: Colors.white.withValues(alpha: 0.4),
         ),
         const SizedBox(width: 2),
@@ -3136,7 +3115,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             location,
             style: AppStyles.smallSecondaryTextLight(
               context,
-              // TODO: Known Issues (4/Medium): Use dynamic text color based on background luminance to prevent visibility issues with light user-selected colors
             ).copyWith(color: Colors.white.withValues(alpha: 0.7)),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

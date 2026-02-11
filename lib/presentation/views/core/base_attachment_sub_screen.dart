@@ -234,7 +234,6 @@ abstract class BaseAttachmentScreenState<T>
   }
 
   Future<void> _openFileChooserDialog() async {
-    // TODO: Cleanup: refactor this out to its own dialog
     try {
       final FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.any,
@@ -260,7 +259,6 @@ abstract class BaseAttachmentScreenState<T>
           final fileSize = platFile.size;
 
           if (fileSize > 10 * 1024 * 1024) {
-            // TODO: Known Issues (3/Medium): the UI hangs when this happens, no snackbar shown
             if (mounted) {
               showSnackBar(
                 context,

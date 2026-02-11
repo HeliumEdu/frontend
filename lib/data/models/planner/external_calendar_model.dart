@@ -11,7 +11,6 @@ import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 
 class ExternalCalendarModel extends BaseTitledModel {
-  // TODO: Cleanup: change this to a URL
   final String url;
   final Color color;
 

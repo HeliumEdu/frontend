@@ -49,8 +49,6 @@ import 'package:timezone/standalone.dart' as tz;
 
 final _log = Logger('presentation.views');
 
-// TODO: Feature Parity: implement "Clone" button
-// TODO: Feature Parity: implement "Delete" button
 
 /// Shows calendar item add as a dialog on desktop, or navigates on mobile.
 ///
@@ -686,7 +684,6 @@ class _CalendarItemAddScreenState
                 const SizedBox(height: 14),
               ],
 
-              // TODO: Enhancement: add location field to Event's
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -988,7 +985,6 @@ class _CalendarItemAddScreenState
         _formController.isAllDay ? 0 : _formController.startTime.minute,
       );
 
-      // TODO: Feature Parity: evaluate if the "add 30 minutes" logic that was on the legacy frontend is still necessary, SfCalendar might resolve this issue for us
 
       if (endDateTimeUnaware.isAfter(startDateTimeUnaware)) {
         showSnackBar(
@@ -1049,7 +1045,6 @@ class _CalendarItemAddScreenState
 
         if (mounted) {
           if (widget.isEdit) {
-            // TODO: High Value, Low Effort: only submit if actual changes are made
 
             context.read<CalendarItemBloc>().add(
               UpdateEventEvent(
@@ -1096,7 +1091,6 @@ class _CalendarItemAddScreenState
 
         if (mounted) {
           if (widget.isEdit) {
-            // TODO: High Value, Low Effort: only submit if actual changes are made
             context.read<CalendarItemBloc>().add(
               UpdateHomeworkEvent(
                 origin: EventOrigin.subScreen,
