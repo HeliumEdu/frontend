@@ -31,6 +31,7 @@ import 'package:heliumapp/presentation/widgets/empty_card.dart';
 import 'package:heliumapp/presentation/widgets/error_card.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
@@ -64,7 +65,7 @@ void showNotifications(BuildContext context) {
       providers: calendarItemBloc != null
           ? [BlocProvider<CalendarItemBloc>.value(value: calendarItemBloc)]
           : null,
-      width: 420,
+      width: AppConstants.notificationsDialogWidth,
       alignment: Alignment.centerRight,
       insetPadding: const EdgeInsets.only(
         top: 16,
@@ -116,7 +117,7 @@ class _NotificationsScreenState
   String get screenTitle => 'Notifications';
 
   @override
-  IconData? get icon => Icons.notifications;
+  IconData get icon => Icons.notifications;
 
   @override
   ScreenType get screenType => ScreenType.subPage;
@@ -200,8 +201,8 @@ class _NotificationsScreenState
         }
 
         if (_notifications.isEmpty) {
-          return const EmptyCard(
-            icon: Icons.notifications_off,
+          return EmptyCard(
+            icon: icon,
             message: 'Reminders will appear here when they are due',
           );
         }

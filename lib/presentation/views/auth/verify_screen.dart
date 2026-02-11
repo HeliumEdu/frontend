@@ -135,17 +135,17 @@ class _VerifyScreenState extends BasePageScreenState<VerifyScreen> {
 
             Text(
               screenTitle,
-              style: AppStyles.featureText(context).copyWith(
-                fontSize: Responsive.getFontSize(context, mobile: 22),
-              ),
+              style: AppStyles.featureText(
+                context,
+              ).copyWith(fontSize: Responsive.getFontSize(context, mobile: 22)),
             ),
 
             const SizedBox(height: 25),
 
             Center(
               child: Container(
-                width: 120,
-                height: 120,
+                width: AppConstants.authContainerSize,
+                height: AppConstants.authContainerSize,
                 decoration: BoxDecoration(
                   color: context.colorScheme.primary.withValues(alpha: 0.1),
                   shape: BoxShape.circle,

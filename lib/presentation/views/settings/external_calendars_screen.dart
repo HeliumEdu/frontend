@@ -28,6 +28,7 @@ import 'package:heliumapp/presentation/widgets/info_container.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/mobile_gesture_detector.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -51,7 +52,7 @@ void showExternalCalendars(BuildContext context) {
           value: externalCalendarBloc,
         ),
       ],
-      width: 500,
+      width: AppConstants.leftPanelDialogWidth,
       alignment: Alignment.centerLeft,
       insetPadding: const EdgeInsets.all(0),
     );
@@ -81,7 +82,7 @@ class _ExternalCalendarsProvidedScreenState
   String get screenTitle => 'External Calendars';
 
   @override
-  IconData? get icon => Icons.cloud_download;
+  IconData get icon => Icons.cloud_download;
 
   @override
   ScreenType get screenType => ScreenType.subPage;
@@ -208,8 +209,8 @@ class _ExternalCalendarsProvidedScreenState
         }
 
         if (_externalCalendars.isEmpty) {
-          return const EmptyCard(
-            icon: Icons.cloud_download,
+          return EmptyCard(
+            icon: icon,
             message: 'Click "+" to add an external calendar',
           );
         }

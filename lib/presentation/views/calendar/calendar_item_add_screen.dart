@@ -36,6 +36,7 @@ import 'package:heliumapp/presentation/widgets/drop_down.dart';
 import 'package:heliumapp/presentation/widgets/label_and_html_editor.dart';
 import 'package:heliumapp/presentation/widgets/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
@@ -89,7 +90,7 @@ void showCalendarItemAdd(
         initialStep: initialStep,
       ),
       providers: providers,
-      width: 550,
+      width: AppConstants.centeredDialogWidth,
       alignment: Alignment.center,
     );
   }

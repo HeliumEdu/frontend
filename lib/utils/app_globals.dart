@@ -23,9 +23,15 @@ List<DropDownItem<String>> _listToDropDownItems(List<String> list) {
 class AppConstants {
   static const appName = 'Helium';
 
-  static const appTagline = 'Student Planner & Academic Calendar App';
+  static const authContainerSize = 120.0;
 
   static const minHeightForTrailingNav = 500.0;
+
+  static const leftPanelDialogWidth = 500.0;
+
+  static const notificationsDialogWidth = 420.0;
+
+  static const centeredDialogWidth = 550.0;
 }
 
 class FallbackConstants {

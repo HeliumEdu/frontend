@@ -22,6 +22,7 @@ import 'package:heliumapp/presentation/widgets/info_container.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/presentation/widgets/warning_container.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:share_plus/share_plus.dart';
@@ -34,7 +35,7 @@ void showFeeds(BuildContext context) {
     showScreenAsDialog(
       context,
       child: const FeedsScreen(),
-      width: 500,
+      width: AppConstants.leftPanelDialogWidth,
       alignment: Alignment.centerLeft,
       insetPadding: const EdgeInsets.all(0),
     );

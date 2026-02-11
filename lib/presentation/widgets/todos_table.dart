@@ -31,7 +31,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 final _log = Logger('presentation.widgets');
 
-
 class TodosTable extends StatefulWidget {
   final CalendarItemDataSource dataSource;
   final TodosTableController controller;
@@ -234,7 +233,8 @@ class TodosTableState extends State<TodosTable> {
   }
 
   bool _shouldShowGradeColumn(BuildContext context) {
-    return MediaQuery.of(context).size.width >= 850;
+    return MediaQuery.of(context).size.width >= 850 ||
+        Responsive.isTouchDevice(context);
   }
 
   bool _shouldHideActionsColumn(BuildContext context) {
@@ -265,7 +265,7 @@ class TodosTableState extends State<TodosTable> {
           ),
           Expanded(flex: 3, child: _buildSortableHeader('Title', 'title')),
           SizedBox(
-            width: 155,
+            width: 125,
             child: _buildSortableHeader('Due Date', 'dueDate'),
           ),
           if (_shouldShowClassColumn(context))
@@ -281,7 +281,10 @@ class TodosTableState extends State<TodosTable> {
               child: _buildSortableHeader('Priority', 'priority'),
             ),
           if (_shouldShowGradeColumn(context))
-            SizedBox(width: 98, child: _buildSortableHeader('Grade', 'grade')),
+            SizedBox(
+              width: Responsive.isMobile(context) ? 90 : 98,
+              child: _buildSortableHeader('Grade', 'grade'),
+            ),
           if (_shouldShowResourcesColumn(context))
             const SizedBox(width: 30, child: SizedBox.shrink()),
           if (!_shouldHideActionsColumn(context))
@@ -482,9 +485,7 @@ class TodosTableState extends State<TodosTable> {
               : null,
           minimumSize: const Size(40, 40),
           padding: EdgeInsets.zero,
-          side: BorderSide(
-            color: context.colorScheme.primary,
-          ),
+          side: BorderSide(color: context.colorScheme.primary),
         ),
         child: Text(
           pageNumber.toString(),
@@ -644,8 +645,9 @@ class TodosTableState extends State<TodosTable> {
     final category = categoriesMap[homework.category.id]!;
     final hideActions = _shouldHideActionsColumn(context);
     final isCompact = _isCompactActionsMode(context);
-    final actionButtons =
-        hideActions ? <Widget>[] : _buildActionButtons(homework, course, isCompact);
+    final actionButtons = hideActions
+        ? <Widget>[]
+        : _buildActionButtons(homework, course, isCompact);
 
     final rowContent = Material(
       child: Ink(
@@ -657,7 +659,9 @@ class TodosTableState extends State<TodosTable> {
           ),
         ),
         child: InkWell(
-          onTap: (hideActions || isCompact) ? () => widget.onTap(homework) : () {},
+          onTap: (hideActions || isCompact)
+              ? () => widget.onTap(homework)
+              : () {},
           mouseCursor: (hideActions || isCompact)
               ? SystemMouseCursors.click
               : MouseCursor.defer,
@@ -692,7 +696,6 @@ class TodosTableState extends State<TodosTable> {
                   const SizedBox(width: 4),
                   _buildPriorityColumn(homework),
                 ],
-                // TODO: Enhancement: on mobile, when delete button isn't shown (since we swipe), show grade again
                 if (_shouldShowGradeColumn(context)) ...[
                   const SizedBox(width: 4),
                   _buildGradeColumn(homework, userSettings),
@@ -752,9 +755,7 @@ class TodosTableState extends State<TodosTable> {
             ? category.color
             : course.color,
         side: BorderSide(
-          color: userSettings.colorByCategory
-              ? category.color
-              : course.color,
+          color: userSettings.colorByCategory ? category.color : course.color,
           width: 2,
         ),
       ),
@@ -790,7 +791,7 @@ class TodosTableState extends State<TodosTable> {
     UserSettingsModel userSettings,
   ) {
     return SizedBox(
-      width: 155,
+      width: 125,
       child: Text(
         HeliumDateTime.formatDateAndTimeForTodos(
           HeliumDateTime.toLocal(homework.start, userSettings.timeZone),
@@ -806,7 +807,11 @@ class TodosTableState extends State<TodosTable> {
   Widget _buildClassColumn(dynamic course) {
     return Expanded(
       flex: 2,
-      child: CourseTitleLabel(title: course.title, color: course.color, compact: true),
+      child: CourseTitleLabel(
+        title: course.title,
+        color: course.color,
+        compact: true,
+      ),
     );
   }
 
@@ -814,7 +819,11 @@ class TodosTableState extends State<TodosTable> {
   Widget _buildCategoryColumn(CategoryModel category) {
     return Expanded(
       flex: 2,
-      child: CategoryTitleLabel(title: category.title, color: category.color, compact: true),
+      child: CategoryTitleLabel(
+        title: category.title,
+        color: category.color,
+        compact: true,
+      ),
     );
   }
 
@@ -856,12 +865,12 @@ class TodosTableState extends State<TodosTable> {
     UserSettingsModel userSettings,
   ) {
     return SizedBox(
-      width: 98,
+      width: Responsive.isMobile(context) ? 90 : 98,
       child: homework.currentGrade != null && homework.currentGrade!.isNotEmpty
           ? GradeLabel(
               grade: Format.gradeForDisplay(homework.currentGrade),
               userSettings: userSettings,
-              compact: true
+              compact: true,
             )
           : const SizedBox.shrink(),
     );

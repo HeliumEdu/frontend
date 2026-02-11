@@ -29,6 +29,7 @@ import 'package:heliumapp/presentation/widgets/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/presentation/widgets/shadow_container.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -52,7 +53,7 @@ void showSettings(BuildContext context) {
           value: externalCalendarBloc,
         ),
       ],
-      width: 500,
+      width: AppConstants.leftPanelDialogWidth,
       alignment: Alignment.centerLeft,
       insetPadding: const EdgeInsets.all(0),
     );
@@ -69,6 +70,9 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
   @override
   String get screenTitle => 'Settings';
+
+  @override
+  IconData get icon => Icons.settings;
 
   @override
   ScreenType get screenType => ScreenType.subPage;

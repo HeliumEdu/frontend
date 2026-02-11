@@ -53,7 +53,7 @@ class GradeLabel extends StatelessWidget {
             ),
           ),
           Container(
-            width: 68,
+            width: Responsive.isMobile(context) ? 64 : 70,
             padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
             decoration: BoxDecoration(
               color: userSettings.gradeColor.withValues(alpha: 0.1),
