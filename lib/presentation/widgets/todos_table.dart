@@ -214,18 +214,23 @@ class TodosTableState extends State<TodosTable> {
 
   // Order to hide columns, based on screen size:
   // 1. Priority
-  // 2. Resources
-  // 3. Category
-  // 4. Grade
-  // 5. Actions
-  // 6. Class
+  // 2. Attachments
+  // 3. Resources
+  // 4. Category
+  // 5. Grade
+  // 6. Actions
+  // 7. Class
 
   bool _shouldShowPriorityColumn(BuildContext context) {
     return MediaQuery.of(context).size.width >= 1150;
   }
 
-  bool _shouldShowResourcesColumn(BuildContext context) {
+  bool _shouldShowAttachmentsColumn(BuildContext context) {
     return MediaQuery.of(context).size.width >= 1000;
+  }
+
+  bool _shouldShowResourcesColumn(BuildContext context) {
+    return MediaQuery.of(context).size.width >= 950;
   }
 
   bool _shouldShowCategoryColumn(BuildContext context) {
@@ -286,6 +291,8 @@ class TodosTableState extends State<TodosTable> {
               child: _buildSortableHeader('Grade', 'grade'),
             ),
           if (_shouldShowResourcesColumn(context))
+            const SizedBox(width: 30, child: SizedBox.shrink()),
+          if (_shouldShowAttachmentsColumn(context))
             const SizedBox(width: 30, child: SizedBox.shrink()),
           if (!_shouldHideActionsColumn(context))
             SizedBox(
@@ -733,7 +740,10 @@ class TodosTableState extends State<TodosTable> {
                   const SizedBox(width: 4),
                   _buildResourcesColumn(homework, userSettings),
                 ],
-                // TODO: Enhancement: show attachments in a similar way to resources, with attachment icon, when clicked open a menu and list as rows with titles and download buttons
+                if (_shouldShowAttachmentsColumn(context)) ...[
+                  const SizedBox(width: 4),
+                  _buildAttachmentsColumn(homework, userSettings),
+                ],
                 if (!hideActions) ...[
                   const SizedBox(width: 4),
                   _buildActionsColumn(actionButtons, isCompact),
@@ -870,14 +880,45 @@ class TodosTableState extends State<TodosTable> {
                 Icon(
                   Icons.book_outlined,
                   size: 14,
-                  color: userSettings.materialColor,
+                  color: userSettings.materialColor.withValues(alpha: 0.9),
                 ),
                 const SizedBox(width: 4),
                 Text(
                   homework.materials.length.toString(),
                   style: AppStyles.smallSecondaryTextLight(
                     context,
-                  ).copyWith(color: userSettings.materialColor),
+                  ).copyWith(color: userSettings.materialColor.withValues(alpha: 0.9)),
+                ),
+              ],
+            )
+          : const SizedBox.shrink(),
+    );
+  }
+
+  // TODO: Enhancement: implement where if the user clicks on this, a menu appears with the full attachment name / link
+  Widget _buildAttachmentsColumn(
+    HomeworkModel homework,
+    UserSettingsModel userSettings,
+  ) {
+    return SizedBox(
+      width: 30,
+      child: homework.attachments.isNotEmpty
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.attachment,
+                  size: 14,
+                  color: context.colorScheme.primary.withValues(alpha: 0.9),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  homework.attachments.length.toString(),
+                  style: AppStyles.smallSecondaryTextLight(
+                    context,
+                  ).copyWith(
+                    color: context.colorScheme.primary.withValues(alpha: 0.9),
+                  ),
                 ),
               ],
             )
