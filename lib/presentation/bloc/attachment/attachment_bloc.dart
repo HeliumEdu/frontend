@@ -54,9 +54,9 @@ class AttachmentBloc extends Bloc<AttachmentEvent, AttachmentState> {
           await attachmentRepository.createAttachment(
             bytes: file.bytes,
             filename: file.title,
-            homework: event.homeworkId,
-            event: event.eventId,
             course: event.courseId,
+            event: event.eventId,
+            homework: event.homeworkId,
           ),
         );
       }
@@ -76,7 +76,14 @@ class AttachmentBloc extends Bloc<AttachmentEvent, AttachmentState> {
 
     try {
       await attachmentRepository.deleteAttachment(event.id);
-      emit(AttachmentDeleted(id: event.id));
+      emit(
+        AttachmentDeleted(
+          id: event.id,
+          courseId: event.courseId,
+          eventId: event.eventId,
+          homeworkId: event.homeworkId,
+        ),
+      );
     } on HeliumException catch (e) {
       emit(AttachmentsError(message: e.message));
     } catch (e) {

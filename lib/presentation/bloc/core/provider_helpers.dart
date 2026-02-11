@@ -24,7 +24,7 @@ import 'package:heliumapp/data/sources/material_remote_data_source.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
 import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_bloc.dart';
 
-// TODO: Cleanup: Move all provider instantiation in to here
+// TODO: Cleanup: Move all provider instantiation in to here (prioritize any first that are in multiple places
 
 class ProviderHelpers {
   final DioClient _dioClient = DioClient();

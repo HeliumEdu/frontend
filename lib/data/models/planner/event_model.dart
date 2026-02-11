@@ -5,6 +5,8 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:flutter/material.dart';
+import 'package:heliumapp/data/models/id_or_entity.dart';
 import 'package:heliumapp/data/models/planner/attachment_model.dart';
 import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
@@ -69,5 +71,37 @@ class EventModel extends CalendarItemBaseModel {
     data['color'] = color != null ? HeliumColors.colorToHex(color!) : null;
 
     return data;
+  }
+
+  EventModel copyWith({
+    int? id,
+    String? title,
+    bool? allDay,
+    bool? showEndTime,
+    DateTime? start,
+    DateTime? end,
+    int? priority,
+    String? url,
+    String? comments,
+    List<IdOrEntity<AttachmentModel>>? attachments,
+    List<IdOrEntity<ReminderModel>>? reminders,
+    Color? color,
+    String? ownerId,
+  }) {
+    return EventModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      allDay: allDay ?? this.allDay,
+      showEndTime: showEndTime ?? this.showEndTime,
+      start: start ?? this.start,
+      end: end ?? this.end,
+      priority: priority ?? this.priority,
+      url: url ?? this.url,
+      comments: comments ?? this.comments,
+      attachments: attachments ?? this.attachments,
+      reminders: reminders ?? this.reminders,
+      color: color ?? this.color,
+      ownerId: ownerId ?? this.ownerId,
+    );
   }
 }

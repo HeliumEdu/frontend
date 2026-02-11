@@ -403,7 +403,12 @@ abstract class BaseAttachmentScreenState<T>
                   item: attachment,
                   onDelete: (a) {
                     context.read<AttachmentBloc>().add(
-                      DeleteAttachmentEvent(id: a.id),
+                      DeleteAttachmentEvent(
+                        id: a.id,
+                        courseId: a.course,
+                        eventId: a.event,
+                        homeworkId: a.homework,
+                      ),
                     );
                   },
                 );

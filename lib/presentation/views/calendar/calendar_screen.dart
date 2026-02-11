@@ -14,6 +14,8 @@ import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/data/models/id_or_entity.dart';
+import 'package:heliumapp/data/models/planner/attachment_model.dart';
 import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
@@ -37,6 +39,8 @@ import 'package:heliumapp/data/sources/course_schedule_remote_data_source.dart';
 import 'package:heliumapp/data/sources/event_remote_data_source.dart';
 import 'package:heliumapp/data/sources/external_calendar_remote_data_source.dart';
 import 'package:heliumapp/data/sources/homework_remote_data_source.dart';
+import 'package:heliumapp/presentation/bloc/attachment/attachment_bloc.dart';
+import 'package:heliumapp/presentation/bloc/attachment/attachment_state.dart';
 import 'package:heliumapp/presentation/bloc/calendar/calendar_bloc.dart';
 import 'package:heliumapp/presentation/bloc/calendar/calendar_event.dart';
 import 'package:heliumapp/presentation/bloc/calendar/calendar_state.dart';
@@ -129,10 +133,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   @override
   List<SingleChildWidget>? get inheritableProviders => [
-        BlocProvider<CalendarItemBloc>.value(
-          value: context.read<CalendarItemBloc>(),
-        ),
-      ];
+    BlocProvider<CalendarItemBloc>.value(
+      value: context.read<CalendarItemBloc>(),
+    ),
+  ];
 
   @override
   VoidCallback get actionButtonCallback => () {
@@ -299,13 +303,19 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             _populateInitialCalendarStateData(state);
 
             // Check if we should open a dialog based on query parameters
-            final openDialog = GoRouterState.of(context).uri.queryParameters['openDialog'];
+            final openDialog = GoRouterState.of(
+              context,
+            ).uri.queryParameters['openDialog'];
             if (openDialog != null) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (!mounted) return;
 
                 // Clear the query parameter from URL
-                context.go(GoRouterState.of(context).uri.replace(queryParameters: {}).toString());
+                context.go(
+                  GoRouterState.of(
+                    context,
+                  ).uri.replace(queryParameters: {}).toString(),
+                );
 
                 // Open the appropriate dialog
                 if (openDialog == 'notifications') {
@@ -354,15 +364,51 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
               state is ExternalCalendarDeleted) {
             _log.info('External calendar changed, refreshing calendar sources');
 
-            final visibleStart =
-                _visibleDates.isNotEmpty ? _visibleDates.first : null;
-            final visibleEnd =
-                _visibleDates.isNotEmpty ? _visibleDates.last : null;
+            final visibleStart = _visibleDates.isNotEmpty
+                ? _visibleDates.first
+                : null;
+            final visibleEnd = _visibleDates.isNotEmpty
+                ? _visibleDates.last
+                : null;
 
             _calendarItemDataSource!.refreshCalendarSources(
               visibleStart: visibleStart,
               visibleEnd: visibleEnd,
             );
+          }
+        },
+      ),
+      BlocListener<AttachmentBloc, AttachmentState>(
+        listener: (context, state) {
+          if (_calendarItemDataSource == null) return;
+
+          if (state is AttachmentsCreated) {
+            final attachment = state.attachments.firstOrNull;
+            if (attachment == null) return;
+
+            if (attachment.homework != null) {
+              _updateHomeworkAttachments(
+                attachment.homework!,
+                state.attachments,
+                isAdd: true,
+              );
+            } else if (attachment.event != null) {
+              _updateEventAttachments(
+                attachment.event!,
+                state.attachments,
+                isAdd: true,
+              );
+            }
+          } else if (state is AttachmentDeleted) {
+            if (state.homeworkId != null) {
+              _updateHomeworkAttachments(
+                state.homeworkId!,
+                state.id,
+                isAdd: false,
+              );
+            } else if (state.eventId != null) {
+              _updateEventAttachments(state.eventId!, state.id, isAdd: false);
+            }
           }
         },
       ),
@@ -409,8 +455,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                     if (_calendarItemDataSource!.isRefreshing)
                       Positioned.fill(
                         child: Container(
-                          color:
-                              context.colorScheme.surface.withValues(alpha: 0.7),
+                          color: context.colorScheme.surface.withValues(
+                            alpha: 0.7,
+                          ),
                           child: const Center(
                             child: LoadingIndicator(expanded: false),
                           ),
@@ -437,10 +484,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
           return SingleChildScrollView(
             controller: _monthViewScrollController,
-            child: SizedBox(
-              height: calendarHeight,
-              child: _buildCalendar(),
-            ),
+            child: SizedBox(height: calendarHeight, child: _buildCalendar()),
           );
         },
       );
@@ -2365,6 +2409,68 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         request: request,
       ),
     );
+  }
+
+  void _updateHomeworkAttachments(
+    int homeworkId,
+    dynamic attachmentData, {
+    required bool isAdd,
+  }) {
+    final homework = _calendarItemDataSource!.allHomeworks.firstWhereOrNull(
+      (h) => h.id == homeworkId,
+    );
+
+    if (homework == null) return;
+
+    final updatedAttachments = List<IdOrEntity<AttachmentModel>>.from(
+      homework.attachments,
+    );
+
+    if (isAdd) {
+      final newAttachments = attachmentData as List<AttachmentModel>;
+      for (final attachment in newAttachments) {
+        updatedAttachments.add(
+          IdOrEntity<AttachmentModel>(id: attachment.id, entity: attachment),
+        );
+      }
+    } else {
+      final attachmentId = attachmentData as int;
+      updatedAttachments.removeWhere((a) => a.id == attachmentId);
+    }
+
+    final updatedHomework = homework.copyWith(attachments: updatedAttachments);
+    _calendarItemDataSource!.updateCalendarItem(updatedHomework);
+  }
+
+  void _updateEventAttachments(
+    int eventId,
+    dynamic attachmentData, {
+    required bool isAdd,
+  }) {
+    final event = _calendarItemDataSource!.allEvents.firstWhereOrNull(
+      (e) => e.id == eventId,
+    );
+
+    if (event == null) return;
+
+    final updatedAttachments = List<IdOrEntity<AttachmentModel>>.from(
+      event.attachments,
+    );
+
+    if (isAdd) {
+      final newAttachments = attachmentData as List<AttachmentModel>;
+      for (final attachment in newAttachments) {
+        updatedAttachments.add(
+          IdOrEntity<AttachmentModel>(id: attachment.id, entity: attachment),
+        );
+      }
+    } else {
+      final attachmentId = attachmentData as int;
+      updatedAttachments.removeWhere((a) => a.id == attachmentId);
+    }
+
+    final updatedEvent = event.copyWith(attachments: updatedAttachments);
+    _calendarItemDataSource!.updateCalendarItem(updatedEvent);
   }
 
   void _openCoursesMenu(BuildContext context, List<CourseModel> courses) {
