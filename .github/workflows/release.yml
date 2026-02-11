@@ -244,7 +244,7 @@ jobs:
           rm -f ~/Library/MobileDevice/Provisioning\ Profiles/build_pp.mobileprovision
 
   build-web-release:
-    name: Build Web
+    name: Build Web Release Bundle
     needs: [test, bump-version]
     runs-on: ubuntu-latest
 
