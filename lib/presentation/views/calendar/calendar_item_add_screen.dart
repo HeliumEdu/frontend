@@ -799,10 +799,10 @@ class _CalendarItemAddScreenState
                 SizedBox(
                   height: 50,
                   child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Expanded(
-                        flex: 3,
+                      SizedBox(
+                        width: 140,
                         child: CheckboxListTile(
                           title: Text(
                             'Complete',
@@ -821,7 +821,6 @@ class _CalendarItemAddScreenState
                       if (_formController.isCompleted) ...[
                         const SizedBox(width: 8),
                         Expanded(
-                          flex: 5,
                           child: LabelAndTextFormField(
                             hintText: 'Grade',
                             controller: _formController.gradeController,
@@ -834,8 +833,8 @@ class _CalendarItemAddScreenState
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Expanded(
-                          flex: 2,
+                        SizedBox(
+                          width: 98,
                           child: GradeLabel(
                             grade: Format.gradeForDisplay(
                               _formController.gradeController.text.trim(),

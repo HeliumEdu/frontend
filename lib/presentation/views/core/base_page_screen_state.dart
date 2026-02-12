@@ -237,11 +237,9 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
     // When displayed as a dialog, wrap as such
     if (isDialogMode) {
-      return Container(
-        decoration: BoxDecoration(
-          color: context.colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
-        ),
+      return Material(
+        color: context.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
         child: Column(
           children: [
             buildDialogHeader(context),
