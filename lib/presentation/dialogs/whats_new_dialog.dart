@@ -27,7 +27,10 @@ class _WhatsNewDialogWidget extends StatelessWidget {
             size: 28,
           ),
           const SizedBox(width: 12),
-          Text('Welcome to the new Helium!', style: AppStyles.pageTitle(context)),
+          Text(
+            'Welcome to the new Helium!',
+            style: AppStyles.pageTitle(context),
+          ),
         ],
       ),
       content: SizedBox(
@@ -38,35 +41,44 @@ class _WhatsNewDialogWidget extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "We've completely rebuilt Helium from the ground up with a fresh, modern design, improved performance, and room to grow.",
+                "We've completely rebuilt Helium from the ground up—sleek, modern, fast, and built to last.",
                 style: AppStyles.standardBodyText(context),
               ),
               const SizedBox(height: 16),
               _buildFeatureItem(
                 context,
-                icon: Icons.palette_outlined,
-                title: 'New look',
-                description: 'A cleaner, more intuitive interface',
+                icon: Icons.bolt_outlined,
+                title: 'Lightning fast',
+                description: 'Snappier performance and a stable foundation',
               ),
               const SizedBox(height: 12),
               _buildFeatureItem(
                 context,
-                icon: Icons.devices_outlined,
-                title: 'Cross-platform',
-                description: 'Now with native mobile apps',
+                icon: Icons.phone_iphone_outlined,
+                title: 'Native mobile apps',
+                description: 'iOS and Android apps with push notifications',
               ),
               const SizedBox(height: 12),
               _buildFeatureItem(
                 context,
-                icon: Icons.trending_up_outlined,
-                title: 'Evolving',
+                icon: Icons.sync_outlined,
+                title: 'Seamless sync',
+                description: 'Consistent experience across web and mobile',
+              ),
+              const SizedBox(height: 12),
+              _buildFeatureItem(
+                context,
+                icon: Icons.construction_outlined,
+                title: 'Still polishing',
                 description:
-                    'More features coming soon',
+                    "Grade charts, import/export, and more coming soon—classic Helium will be around until we're ready here",
               ),
               const SizedBox(height: 12),
-              Text(
-                "We're still working to ensure all of Helium's existing features are in the new version, but we wanted to give you early access to the new experience while we finish polishing.",
-                style: AppStyles.standardBodyText(context),
+              _buildFeatureItem(
+                context,
+                icon: Icons.rocket_launch_outlined,
+                title: 'New surprises ahead',
+                description: 'Exciting new features on the horizon',
               ),
             ],
           ),
@@ -111,8 +123,18 @@ class _WhatsNewDialogWidget extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: AppStyles.menuItem(context)),
-              Text(description, style: AppStyles.menuItemHint(context)),
+              Text(
+                title,
+                style: AppStyles.headingText(context).copyWith(
+                  color: context.colorScheme.onSurface.withValues(alpha: 0.9),
+                ),
+              ),
+              Text(
+                description,
+                style: AppStyles.smallSecondaryText(context).copyWith(
+                  color: context.colorScheme.onSurface.withValues(alpha: 0.7),
+                ),
+              ),
             ],
           ),
         ),
