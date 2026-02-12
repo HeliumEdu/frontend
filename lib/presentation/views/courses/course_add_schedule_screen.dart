@@ -59,7 +59,7 @@ class _CourseAddScheduleScreenState
 
   @override
   Function get saveAction =>
-      () => _onSubmit(advanceNavOnSuccess: widget.isNew);
+      () => _onSubmit(widget.isNew);
 
   // State
   int? _scheduleId;
@@ -150,7 +150,7 @@ class _CourseAddScheduleScreenState
       courseId: widget.courseId,
       isEdit: widget.isEdit,
       isNew: widget.isNew,
-      onStep: () => _onSubmit(advanceNavOnSuccess: false),
+      onStep: () => _onSubmit(false),
     );
   }
 
@@ -573,8 +573,7 @@ class _CourseAddScheduleScreenState
     return daysString.join('');
   }
 
-  bool _onSubmit({bool advanceNavOnSuccess = true}) {
-
+  bool _onSubmit(bool advanceNavOnSuccess) {
     // Silently ignore if schedule data not loaded yet (user should see loading indicator)
     if (_scheduleId == null) {
       return false;

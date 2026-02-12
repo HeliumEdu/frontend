@@ -111,7 +111,8 @@ class _CourseAddScreenState
   ScreenType get screenType => ScreenType.entityPage;
 
   @override
-  Function get saveAction => _onSubmit;
+  Function get saveAction =>
+      () => _onSubmit(widget.isNew);
 
   final CourseFormController _formController = CourseFormController();
 
@@ -169,7 +170,7 @@ class _CourseAddScreenState
                   courseGroupId: state.course.courseGroup,
                   courseId: state.course.id,
                   isEdit: true,
-                  isNew: state is CourseCreated,
+                  isNew: widget.isNew,
                   initialStep: 1,
                   providers: [
                     BlocProvider<CourseBloc>.value(
@@ -186,7 +187,7 @@ class _CourseAddScreenState
                     courseGroupId: state.course.courseGroup,
                     courseId: state.course.id,
                     isEdit: true,
-                    isNew: state is CourseCreated,
+                    isNew: widget.isNew,
                   ),
                 );
               }
@@ -211,7 +212,7 @@ class _CourseAddScreenState
       courseId: widget.courseId,
       isEdit: widget.isEdit,
       isNew: widget.isNew,
-      onStep: () => _onSubmit(advanceNavOnSuccess: false),
+      onStep: () => _onSubmit(false),
     );
   }
 
@@ -232,8 +233,7 @@ class _CourseAddScreenState
                 controller: _formController.titleController,
                 validator: BasicFormController.validateRequiredField,
                 fieldKey: _formController.getFieldKey('title'),
-                onFieldSubmitted: (value) =>
-                    _onSubmit(advanceNavOnSuccess: !widget.isEdit),
+                onFieldSubmitted: (value) => _onSubmit(widget.isNew),
               ),
               const SizedBox(height: 14),
               Text('From', style: AppStyles.formLabel(context)),
@@ -558,7 +558,7 @@ class _CourseAddScreenState
     }
   }
 
-  bool _onSubmit({bool advanceNavOnSuccess = true}) {
+  bool _onSubmit(bool advanceNavOnSuccess) {
     if (_formController.validateAndScrollToError()) {
       if (_formController.endDate!.isBefore(_formController.startDate!)) {
         showSnackBar(
@@ -597,7 +597,7 @@ class _CourseAddScreenState
             courseGroupId: widget.courseGroupId,
             courseId: widget.courseId!,
             request: request,
-            advanceNavOnSuccess: false,
+            advanceNavOnSuccess: advanceNavOnSuccess,
           ),
         );
       } else {

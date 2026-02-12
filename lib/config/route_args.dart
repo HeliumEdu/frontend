@@ -31,6 +31,7 @@ class SettingsArgs {
 
 class CalendarItemAddArgs {
   final CalendarItemBloc calendarItemBloc;
+  final AttachmentBloc attachmentBloc;
   final int? eventId;
   final int? homeworkId;
   final DateTime? initialDate;
@@ -40,6 +41,7 @@ class CalendarItemAddArgs {
 
   const CalendarItemAddArgs({
     required this.calendarItemBloc,
+    required this.attachmentBloc,
     this.eventId,
     this.homeworkId,
     this.initialDate,
@@ -51,6 +53,7 @@ class CalendarItemAddArgs {
 
 class CalendarItemReminderArgs {
   final CalendarItemBloc calendarItemBloc;
+  final AttachmentBloc attachmentBloc;
   final bool isEvent;
   final int entityId;
   final bool isEdit;
@@ -58,6 +61,7 @@ class CalendarItemReminderArgs {
 
   const CalendarItemReminderArgs({
     required this.calendarItemBloc,
+    required this.attachmentBloc,
     required this.isEvent,
     required this.entityId,
     required this.isEdit,

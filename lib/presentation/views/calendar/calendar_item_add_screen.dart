@@ -49,7 +49,6 @@ import 'package:timezone/standalone.dart' as tz;
 
 final _log = Logger('presentation.views');
 
-
 /// Shows calendar item add as a dialog on desktop, or navigates on mobile.
 ///
 /// Pass [providers] to share Blocs from the parent screen with the calendar item
@@ -70,6 +69,7 @@ void showCalendarItemAdd(
       AppRoutes.plannerItemAddScreen,
       extra: CalendarItemAddArgs(
         calendarItemBloc: context.read<CalendarItemBloc>(),
+        attachmentBloc: context.read<AttachmentBloc>(),
         eventId: eventId,
         homeworkId: homeworkId,
         isEdit: isEdit,
@@ -133,7 +133,8 @@ class _CalendarItemAddScreenState
   ScreenType get screenType => ScreenType.entityPage;
 
   @override
-  Function get saveAction => _onSubmit;
+  Function get saveAction =>
+      () => _onSubmit(widget.isNew);
 
   ValueChanged<bool>? get calendarItemToggleCallback =>
       !widget.isEdit && _courses.isNotEmpty
@@ -211,7 +212,7 @@ class _CalendarItemAddScreenState
                   eventId: state.isEvent ? state.entityId : null,
                   homeworkId: !state.isEvent ? state.entityId : null,
                   isEdit: true,
-                  isNew: state is HomeworkCreated || state is EventCreated,
+                  isNew: widget.isNew,
                   initialStep: 1,
                   providers: [
                     BlocProvider<CalendarItemBloc>.value(
@@ -228,10 +229,11 @@ class _CalendarItemAddScreenState
                   AppRoutes.plannerItemAddRemindersScreen,
                   extra: CalendarItemReminderArgs(
                     calendarItemBloc: context.read<CalendarItemBloc>(),
+                    attachmentBloc: context.read<AttachmentBloc>(),
                     isEvent: state.isEvent,
                     entityId: state.entityId,
                     isEdit: true,
-                    isNew: state is HomeworkCreated || state is EventCreated,
+                    isNew: widget.isNew,
                   ),
                 );
               }
@@ -276,8 +278,8 @@ class _CalendarItemAddScreenState
           eventId: widget.eventId,
           homeworkId: widget.homeworkId,
           isEdit: widget.isEdit,
-          isNew: widget.isEdit,
-          onStep: () => _onSubmit(advanceNavOnSuccess: false),
+          isNew: widget.isNew,
+          onStep: () => _onSubmit(false),
         ),
       ],
     );
@@ -307,7 +309,7 @@ class _CalendarItemAddScreenState
                 controller: _formController.titleController,
                 validator: BasicFormController.validateRequiredField,
                 fieldKey: _formController.getFieldKey('title'),
-                onFieldSubmitted: (value) => _onSubmit(),
+                onFieldSubmitted: (value) => _onSubmit(widget.isNew),
               ),
               const SizedBox(height: 14),
               if (!_isEvent) ...[
@@ -958,7 +960,7 @@ class _CalendarItemAddScreenState
     return _formController.priorityValue.round();
   }
 
-  Future<void> _onSubmit({bool advanceNavOnSuccess = true}) async {
+  Future<void> _onSubmit(bool advanceNavOnSuccess) async {
     if (_formController.validateAndScrollToError()) {
       if (_formController.endDate.isBefore(_formController.startDate)) {
         showSnackBar(
@@ -984,7 +986,6 @@ class _CalendarItemAddScreenState
         _formController.isAllDay ? 0 : _formController.startTime.hour,
         _formController.isAllDay ? 0 : _formController.startTime.minute,
       );
-
 
       if (endDateTimeUnaware.isAfter(startDateTimeUnaware)) {
         showSnackBar(
@@ -1045,18 +1046,21 @@ class _CalendarItemAddScreenState
 
         if (mounted) {
           if (widget.isEdit) {
-
             context.read<CalendarItemBloc>().add(
               UpdateEventEvent(
                 origin: EventOrigin.subScreen,
                 id: widget.eventId!,
                 request: request,
-                advanceNavOnSuccess: false,
+                advanceNavOnSuccess: advanceNavOnSuccess,
               ),
             );
           } else {
             context.read<CalendarItemBloc>().add(
-              CreateEventEvent(origin: EventOrigin.subScreen, request: request),
+              CreateEventEvent(
+                origin: EventOrigin.subScreen,
+                request: request,
+                advanceNavOnSuccess: advanceNavOnSuccess,
+              ),
             );
           }
         }
@@ -1098,7 +1102,7 @@ class _CalendarItemAddScreenState
                 courseId: selectedCourse.id,
                 homeworkId: widget.homeworkId!,
                 request: request,
-                advanceNavOnSuccess: false,
+                advanceNavOnSuccess: advanceNavOnSuccess,
               ),
             );
           } else {
