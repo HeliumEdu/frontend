@@ -19,7 +19,6 @@ import 'package:heliumapp/presentation/widgets/settings_button.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
-import 'package:nested/nested.dart';
 
 enum ScreenType { page, subPage, entityPage }
 
@@ -32,7 +31,7 @@ class PageHeader extends StatelessWidget {
   final Function? saveAction;
   final bool showLogout;
   final VoidCallback? onLogoutConfirmed;
-  final List<SingleChildWidget>? inheritableProviders;
+  final List<BlocProvider>? inheritableProviders;
 
   const PageHeader({
     super.key,

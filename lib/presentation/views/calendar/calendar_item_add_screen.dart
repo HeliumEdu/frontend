@@ -51,15 +51,11 @@ import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
-import 'package:nested/nested.dart';
 import 'package:timezone/standalone.dart' as tz;
 
 final _log = Logger('presentation.views');
 
 /// Shows calendar item add as a dialog on desktop, or navigates on mobile.
-///
-/// Pass [providers] to share Blocs from the parent screen with the calendar item
-/// dialog/screen, ensuring state changes are reflected in both.
 void showCalendarItemAdd(
   BuildContext context, {
   int? eventId,
@@ -69,20 +65,22 @@ void showCalendarItemAdd(
   required bool isEdit,
   required bool isNew,
   int initialStep = 0,
-  List<SingleChildWidget>? providers,
+  CalendarItemBloc? calendarItemBloc,
+  AttachmentBloc? attachmentBloc,
 }) {
+  final args = CalendarItemAddArgs(
+    calendarItemBloc: calendarItemBloc ?? context.read<CalendarItemBloc>(),
+    attachmentBloc: attachmentBloc ?? context.read<AttachmentBloc>(),
+    eventId: eventId,
+    homeworkId: homeworkId,
+    initialDate: initialDate,
+    isFromMonthView: isFromMonthView,
+    isEdit: isEdit,
+    isNew: isNew,
+  );
+
   if (Responsive.isMobile(context)) {
-    context.push(
-      AppRoutes.plannerItemAddScreen,
-      extra: CalendarItemAddArgs(
-        calendarItemBloc: context.read<CalendarItemBloc>(),
-        attachmentBloc: context.read<AttachmentBloc>(),
-        eventId: eventId,
-        homeworkId: homeworkId,
-        isEdit: isEdit,
-        isNew: isNew,
-      ),
-    );
+    context.push(AppRoutes.plannerItemAddScreen, extra: args);
   } else {
     showScreenAsDialog(
       context,
@@ -95,7 +93,7 @@ void showCalendarItemAdd(
         isNew: isNew,
         initialStep: initialStep,
       ),
-      providers: providers,
+      extra: args,
       width: AppConstants.centeredDialogWidth,
       alignment: Alignment.center,
     );
@@ -245,14 +243,6 @@ class _CalendarItemAddScreenState
                 isEdit: true,
                 isNew: false,
                 initialStep: 0,
-                providers: [
-                  BlocProvider<CalendarItemBloc>.value(
-                    value: context.read<CalendarItemBloc>(),
-                  ),
-                  BlocProvider<AttachmentBloc>.value(
-                    value: context.read<AttachmentBloc>(),
-                  ),
-                ],
               );
             } else {
               showSnackBar(
@@ -271,14 +261,6 @@ class _CalendarItemAddScreenState
                   isEdit: true,
                   isNew: widget.isNew,
                   initialStep: 1,
-                  providers: [
-                    BlocProvider<CalendarItemBloc>.value(
-                      value: context.read<CalendarItemBloc>(),
-                    ),
-                    BlocProvider<AttachmentBloc>.value(
-                      value: context.read<AttachmentBloc>(),
-                    ),
-                  ],
                 );
               } else {
                 // Fall back to router navigation for non-dialog mode

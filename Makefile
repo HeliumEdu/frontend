@@ -31,7 +31,7 @@ all: test
 env:
 	cp -n .env.example .env | true
 
-install: env
+install: env update-version
 	flutter pub get
 
 clean:
@@ -55,7 +55,7 @@ build-ios-release: install
 update-version:
 	dart tool/update_version.dart
 
-build-web: install update-version
+build-web: install
 	flutter build web --release --source-maps $(WEB_ARGS)
 
 upload-web-sourcemaps:

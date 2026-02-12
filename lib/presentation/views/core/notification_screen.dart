@@ -15,7 +15,7 @@ import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/notification/notification_model.dart';
 import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
-import 'package:heliumapp/data/models/planner/course_model.dart';
+import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/data/models/planner/request/reminder_request_model.dart';
 import 'package:heliumapp/data/repositories/reminder_repository_impl.dart';
@@ -29,6 +29,7 @@ import 'package:heliumapp/presentation/bloc/reminder/reminder_event.dart';
 import 'package:heliumapp/presentation/bloc/reminder/reminder_state.dart';
 import 'package:heliumapp/presentation/views/calendar/calendar_item_add_screen.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/widgets/category_title_label.dart';
 import 'package:heliumapp/presentation/widgets/course_title_label.dart';
 import 'package:heliumapp/presentation/widgets/empty_card.dart';
 import 'package:heliumapp/presentation/widgets/error_card.dart';
@@ -41,14 +42,10 @@ import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:logging/logging.dart';
-import 'package:nested/nested.dart';
 
 final _log = Logger('presentation.views');
 
 /// Shows notifications as a dialog on desktop, or navigates on mobile.
-///
-/// Shows notifications as a dialog on desktop, or navigates on mobile.
-/// Automatically shares CalendarItemBloc from parent context if available.
 void showNotifications(BuildContext context) {
   CalendarItemBloc? calendarItemBloc;
   try {
@@ -63,29 +60,18 @@ void showNotifications(BuildContext context) {
     _log.info('AttachmentBloc not passed, will create a new one');
   }
 
-  final List<SingleChildWidget>? providers =
-      calendarItemBloc != null || attachmentBloc != null
-      ? [
-          if (calendarItemBloc != null)
-            BlocProvider<CalendarItemBloc>.value(value: calendarItemBloc),
-          if (attachmentBloc != null)
-            BlocProvider<AttachmentBloc>.value(value: attachmentBloc),
-        ]
-      : null;
+  final args = NotificationArgs(
+    calendarItemBloc: calendarItemBloc,
+    attachmentBloc: attachmentBloc,
+  );
 
   if (Responsive.isMobile(context)) {
-    context.push(
-      AppRoutes.notificationsScreen,
-      extra: NotificationArgs(
-        calendarItemBloc: calendarItemBloc,
-        attachmentBloc: attachmentBloc,
-      ),
-    );
+    context.push(AppRoutes.notificationsScreen, extra: args);
   } else {
     showScreenAsDialog(
       context,
       child: NotificationsScreen(),
-      providers: providers,
+      extra: args,
       width: AppConstants.notificationsDialogWidth,
       alignment: Alignment.centerRight,
       insetPadding: const EdgeInsets.only(
@@ -262,18 +248,21 @@ class _NotificationsScreenState
     final CalendarItemBaseModel? calendarItem;
     final String title;
     final Color? color;
-    final CourseModel? course;
     if (reminder.homework != null) {
       calendarItem = reminder.homework?.entity;
-      course = reminder.homework?.entity?.course.entity;
+      final course = reminder.homework?.entity?.course.entity;
+      final category = reminder.homework?.entity?.category.entity;
 
       title = reminder.homework?.entity?.title as String;
-      color = course?.color;
+      color =
+          (userSettings?.colorByCategory == true
+              ? category?.color
+              : course?.color) ??
+          FallbackConstants.fallbackColor;
     } else {
       calendarItem = reminder.event?.entity;
       title = reminder.event?.entity?.title as String;
-      color = userSettings?.eventsColor;
-      course = null;
+      color = userSettings?.eventsColor ?? FallbackConstants.fallbackColor;
     }
 
     return NotificationModel(
@@ -284,7 +273,6 @@ class _NotificationsScreenState
       timestamp: calendarItem!.start.toIso8601String(),
       isRead: _readNotificationIds.contains(reminder.id),
       reminder: reminder,
-      course: course,
     );
   }
 
@@ -344,29 +332,29 @@ class _NotificationsScreenState
                     Row(
                       children: [
                         Text(
-                          notification.title,
+                          '${notification.title}${calendarItem is HomeworkModel ? ' in ' : ''}',
                           style: AppStyles.standardBodyText(context).copyWith(
                             fontWeight: notification.isRead
                                 ? FontWeight.normal
                                 : FontWeight.w600,
                           ),
                         ),
-                        if (notification.course != null) ...[
-                          Text(
-                            ' in ',
-                            style: AppStyles.standardBodyText(context).copyWith(
-                              fontWeight: notification.isRead
-                                  ? FontWeight.normal
-                                  : FontWeight.w600,
+                        if (calendarItem is HomeworkModel)
+                          Expanded(
+                            child: CourseTitleLabel(
+                              title: calendarItem.course.entity!.title,
+                              color: calendarItem.course.entity!.color,
                             ),
                           ),
-                          CourseTitleLabel(
-                            title: notification.course!.title,
-                            color: notification.course!.color,
-                          ),
-                        ],
                       ],
                     ),
+                    if (calendarItem is HomeworkModel) ...[
+                      const SizedBox(height: 4),
+                      CategoryTitleLabel(
+                        title: calendarItem.category.entity!.title,
+                        color: calendarItem.category.entity!.color,
+                      ),
+                    ],
                     const SizedBox(height: 4),
                     Text(
                       notification.body,
@@ -375,8 +363,6 @@ class _NotificationsScreenState
                           alpha: 0.7,
                         ),
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -499,10 +485,8 @@ class _NotificationsScreenState
         homeworkId: notification.reminder.homework?.id,
         isEdit: true,
         isNew: false,
-        providers: [
-          BlocProvider<CalendarItemBloc>.value(value: calendarItemBloc),
-          BlocProvider<AttachmentBloc>.value(value: attachmentBloc),
-        ],
+        calendarItemBloc: calendarItemBloc,
+        attachmentBloc: attachmentBloc,
       );
     }
   }

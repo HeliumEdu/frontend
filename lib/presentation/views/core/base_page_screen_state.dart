@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/presentation/views/core/navigation_shell.dart';
@@ -19,7 +20,6 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
-import 'package:nested/nested.dart';
 
 final _log = Logger('presentation.views');
 
@@ -51,23 +51,10 @@ class DialogModeProvider extends InheritedWidget {
 
 /// Shows any widget using [BasePageScreenState] as a dialog with standard
 /// dialog chrome.
-///
-/// Pass [providers] to share existing Blocs with the dialog, ensuring state
-/// changes in the dialog are reflected in the parent screen:
-/// ```dart
-/// showScreenAsDialog(
-///   context,
-///   child: MyScreen(),
-///   providers: [
-///     BlocProvider<MyBloc>.value(value: existingBloc),
-///   ],
-/// );
-/// ```
 void showScreenAsDialog(
   BuildContext context, {
   required Widget child,
-  // TODO: Cleanup: Compare this to how we do providers in CalendarItemAddArgs, make a base HeliumProvider class, allow generic list of these to be passed to this base screen state, re-use in both dialog and screen flows (eliminates need for `nested` package)
-  List<SingleChildWidget>? providers,
+  RouteArgs? extra,
   double width = 500,
   double? height,
   AlignmentGeometry alignment = Alignment.center,
@@ -86,6 +73,7 @@ void showScreenAsDialog(
         child: SizedBox(width: width, height: effectiveHeight, child: child),
       );
 
+      final providers = extra?.toProviders();
       if (providers != null && providers.isNotEmpty) {
         _log.info(
           'Using ${providers.length} inherited provider(s): '
@@ -132,7 +120,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
   bool get showActionButton => false;
 
-  List<SingleChildWidget>? get inheritableProviders => null;
+  List<BlocProvider>? get inheritableProviders => null;
 
   // State
   UserSettingsModel? userSettings;

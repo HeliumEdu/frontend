@@ -98,11 +98,6 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
         courseGroupId: _selectedGroupId!,
         isEdit: false,
         isNew: true,
-        providers: [
-          BlocProvider<CourseBloc>.value(
-            value: context.read<CourseBloc>(),
-          ),
-        ],
       );
     } else {
       showSnackBar(context, 'Create a group first', isError: true);
@@ -602,11 +597,6 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
       courseId: course.id,
       isEdit: true,
       isNew: false,
-      providers: [
-        BlocProvider<CourseBloc>.value(
-          value: context.read<CourseBloc>(),
-        ),
-      ],
     );
   }
 }

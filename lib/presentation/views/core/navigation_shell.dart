@@ -27,16 +27,15 @@ import 'package:heliumapp/presentation/widgets/settings_button.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
-import 'package:nested/nested.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Notifier for screens to share their inheritable providers with NavigationShell.
 class InheritableProvidersNotifier extends ChangeNotifier {
-  List<SingleChildWidget>? _providers;
+  List<BlocProvider>? _providers;
 
-  List<SingleChildWidget>? get providers => _providers;
+  List<BlocProvider>? get providers => _providers;
 
-  void setProviders(List<SingleChildWidget>? providers) {
+  void setProviders(List<BlocProvider>? providers) {
     _providers = providers;
     notifyListeners();
   }

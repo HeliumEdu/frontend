@@ -37,22 +37,17 @@ import 'package:url_launcher/url_launcher.dart';
 
 /// Shows as a dialog on desktop, or navigates on mobile.
 void showSettings(BuildContext context) {
-  final externalCalendarBloc = context.read<ExternalCalendarBloc>();
+  final args = SettingsArgs(
+    externalCalendarBloc: context.read<ExternalCalendarBloc>(),
+  );
 
   if (Responsive.isMobile(context)) {
-    context.push(
-      AppRoutes.settingScreen,
-      extra: SettingsArgs(externalCalendarBloc: externalCalendarBloc),
-    );
+    context.push(AppRoutes.settingScreen, extra: args);
   } else {
     showScreenAsDialog(
       context,
       child: const SettingsScreen(),
-      providers: [
-        BlocProvider<ExternalCalendarBloc>.value(
-          value: externalCalendarBloc,
-        ),
-      ],
+      extra: args,
       width: AppConstants.leftPanelDialogWidth,
       alignment: Alignment.centerLeft,
       insetPadding: const EdgeInsets.all(0),

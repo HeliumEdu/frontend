@@ -69,7 +69,6 @@ import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
-import 'package:nested/nested.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:timezone/standalone.dart' as tz;
 import 'package:url_launcher/url_launcher.dart';
@@ -132,7 +131,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   String get screenTitle => 'Planner';
 
   @override
-  List<SingleChildWidget>? get inheritableProviders => [
+  List<BlocProvider>? get inheritableProviders => [
     BlocProvider<CalendarItemBloc>.value(
       value: context.read<CalendarItemBloc>(),
     ),
@@ -158,14 +157,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       isFromMonthView: _calendarController.view == CalendarView.month,
       isEdit: false,
       isNew: true,
-      providers: [
-        BlocProvider<CalendarItemBloc>.value(
-          value: context.read<CalendarItemBloc>(),
-        ),
-        BlocProvider<AttachmentBloc>.value(
-          value: context.read<AttachmentBloc>(),
-        ),
-      ],
     );
   };
 
@@ -311,7 +302,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             // Check if we should open a dialog based on query parameters
             final openDialog = GoRouterState.of(
               context,
-            ).uri.queryParameters['openDialog'];
+            ).uri.queryParameters['dialog'];
             if (openDialog != null) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (!mounted) return;
@@ -667,14 +658,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       homeworkId: homeworkId,
       isEdit: true,
       isNew: false,
-      providers: [
-        BlocProvider<CalendarItemBloc>.value(
-          value: context.read<CalendarItemBloc>(),
-        ),
-        BlocProvider<AttachmentBloc>.value(
-          value: context.read<AttachmentBloc>(),
-        ),
-      ],
     );
 
     return true;

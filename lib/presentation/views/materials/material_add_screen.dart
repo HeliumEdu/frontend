@@ -33,30 +33,25 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
-import 'package:nested/nested.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Shows material add as a dialog on desktop, or navigates on mobile.
-///
-/// Pass [providers] to share Blocs from the parent screen with the material
-/// dialog/screen, ensuring state changes are reflected in both.
 void showMaterialAdd(
   BuildContext context, {
   required int materialGroupId,
   int? materialId,
   bool isEdit = false,
-  List<SingleChildWidget>? providers,
+  MaterialBloc? materialBloc,
 }) {
+  final args = MaterialAddArgs(
+    materialBloc: materialBloc ?? context.read<MaterialBloc>(),
+    materialGroupId: materialGroupId,
+    materialId: materialId,
+    isEdit: isEdit,
+  );
+
   if (Responsive.isMobile(context)) {
-    context.push(
-      AppRoutes.resourcesAddScreen,
-      extra: MaterialAddArgs(
-        materialBloc: context.read<MaterialBloc>(),
-        materialGroupId: materialGroupId,
-        materialId: materialId,
-        isEdit: isEdit,
-      ),
-    );
+    context.push(AppRoutes.resourcesAddScreen, extra: args);
   } else {
     showScreenAsDialog(
       context,
@@ -65,7 +60,7 @@ void showMaterialAdd(
         materialId: materialId,
         isEdit: isEdit,
       ),
-      providers: providers,
+      extra: args,
       width: AppConstants.centeredDialogWidth,
       alignment: Alignment.center,
     );
