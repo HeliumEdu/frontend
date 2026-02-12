@@ -111,7 +111,6 @@ class ExternalCalendarRemoteDataSourceImpl
         queryParameters['shown_on_calendar'] = shownOnCalendar;
       }
 
-      // TODO: Enhancement: consider just hitting iCal directly for a better path, and to reduce load on our backend
 
       final response = await dioClient.dio.get(
         ApiUrl.feedExternalCalendarsEventsListUrl,

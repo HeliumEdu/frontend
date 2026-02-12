@@ -10,7 +10,6 @@ import 'package:heliumapp/data/models/base_model.dart';
 class MaterialModel extends BaseTitledModel {
   final int status;
   final int condition;
-  // TODO: Cleanup: change this to a URL
   final String website;
   final String? price;
   final String? details;

@@ -11,7 +11,6 @@ class PushTokenModel extends BaseModel {
   final String deviceId;
   final String token;
   final int user;
-  // TODO: Cleanup: change this to a DateTime
   final String createdAt;
 
   PushTokenModel({

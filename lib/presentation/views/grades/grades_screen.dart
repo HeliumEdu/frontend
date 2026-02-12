@@ -74,7 +74,6 @@ class GradesProvidedScreen extends StatefulWidget {
 
 class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
   @override
-  // TODO: Cleanup: have the shell pass down its label here instead
   String get screenTitle => 'Grades';
 
   // State
@@ -254,7 +253,6 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
   }
 
   Widget _buildGraphArea() {
-    // TODO: Feature Parity: implement graphs like current frontend, with https://pub.dev/packages/syncfusion_flutter_charts
     return const SizedBox.shrink();
   }
 
@@ -406,7 +404,6 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
   }
 
   Widget _buildCourseArea(GradeCourseModel course) {
-    // TODO: Feature Parity: implement pie charts like current frontend, with SyncFusion widgets
 
     return Container(
       margin: const EdgeInsets.only(top: 14),

@@ -43,7 +43,6 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-// TODO: Cleanup: refactor "Materials" to "Resources", update throughout code an backend
 
 class MaterialsScreen extends StatelessWidget {
   final DioClient _dioClient = DioClient();
@@ -86,7 +85,6 @@ class MaterialsProvidedScreen extends StatefulWidget {
 class _MaterialsScreenState
     extends BasePageScreenState<MaterialsProvidedScreen> {
   @override
-  // TODO: Cleanup: have the shell pass down its label here instead
   String get screenTitle => 'Resources';
 
   @override

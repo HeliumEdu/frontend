@@ -156,6 +156,7 @@ class CalendarItemBloc extends Bloc<CalendarItemEvent, CalendarItemState> {
           entityId: entity.id,
           isEvent: true,
           advanceNavOnSuccess: event.advanceNavOnSuccess,
+          isClone: event.isClone,
         ),
       );
     } on HeliumException catch (e) {
@@ -266,6 +267,7 @@ class CalendarItemBloc extends Bloc<CalendarItemEvent, CalendarItemState> {
           entityId: homework.id,
           isEvent: false,
           advanceNavOnSuccess: event.advanceNavOnSuccess,
+          isClone: event.isClone,
         ),
       );
     } on HeliumException catch (e) {

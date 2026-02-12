@@ -175,6 +175,7 @@ class CalendarItemStepper extends StatelessWidget {
         step.route,
         extra: CalendarItemAddArgs(
           calendarItemBloc: calendarItemBloc,
+          attachmentBloc: attachmentBloc,
           eventId: eventId,
           homeworkId: homeworkId,
           isEdit: isEdit,
@@ -186,6 +187,7 @@ class CalendarItemStepper extends StatelessWidget {
         step.route,
         extra: CalendarItemReminderArgs(
           calendarItemBloc: calendarItemBloc,
+          attachmentBloc: attachmentBloc,
           isEvent: eventId != null,
           entityId: entityId!,
           isEdit: isEdit,

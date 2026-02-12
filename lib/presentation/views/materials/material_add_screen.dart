@@ -208,6 +208,7 @@ class _MaterialAddScreenState
                         spacing: 4,
                         runSpacing: 2,
                         children: _formController.selectedCourses.map((id) {
+                          // TODO: Enhancement: Replace with CourseTitleLabel (need to implement a delete icon in that badge)
                           return Chip(
                             backgroundColor: _courses
                                 .where((c) => c.id == id)
@@ -218,7 +219,7 @@ class _MaterialAddScreenState
                               _courses.firstWhere((c) => c.id == id).title,
                               style: AppStyles.formText(
                                 context,
-                              ).copyWith(color: context.colorScheme.surface),
+                              ).copyWith(color: Colors.white),
                             ),
                             onDeleted: () {
                               setState(() {
