@@ -218,13 +218,11 @@ class _CalendarItemAddScreenState
                 (state is HomeworkCreated && state.isClone);
 
             if (isClone) {
-              // Show snackbar before navigation
               showSnackBar(
                 context,
                 '${state.isEvent ? 'Event' : 'Assignment'} cloned',
               );
 
-              // Navigate to the edit screen for the newly created item
               if (DialogModeProvider.isDialogMode(context)) {
                 Navigator.of(context).pop();
               } else {
@@ -247,7 +245,6 @@ class _CalendarItemAddScreenState
                 ],
               );
             } else {
-              // Show snackbar for non-clone operations
               showSnackBar(
                 context,
                 '${state.isEvent ? 'Event' : 'Assignment'} saved',
@@ -256,7 +253,6 @@ class _CalendarItemAddScreenState
 
             if (!isClone && state.advanceNavOnSuccess) {
               if (DialogModeProvider.isDialogMode(context)) {
-                // Close current dialog and reopen with new entityId
                 Navigator.of(context).pop();
                 showCalendarItemAdd(
                   context,
@@ -1346,7 +1342,6 @@ class _CalendarItemAddScreenState
 
     final clonedTitle = PlannerHelper.generateClonedTitle(_calendarItem!.title);
 
-    // Format dates for API
     final start = HeliumDateTime.formatDateAndTimeForApi(
       _formController.startDate,
       _formController.isAllDay ? null : _formController.startTime,
