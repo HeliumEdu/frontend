@@ -412,7 +412,7 @@ class _CourseAddScreenState
               ),
               const SizedBox(height: 14),
               SizedBox(
-                height: 80,
+                height: 88,
                 child: Row(
                   children: [
                     Expanded(
@@ -433,7 +433,6 @@ class _CourseAddScreenState
                                   onSelected: (color) {
                                     setState(() {
                                       _formController.selectedColor = color;
-                                      context.pop();
                                     });
                                   },
                                 );
