@@ -497,8 +497,6 @@ class _NotificationsScreenState
         Navigator.of(context).pop();
       }
 
-      // FIXME: in dialog mode, this isn't properly finding the providers (and also this is pretty messy)
-
       CalendarItemBloc? calendarItemBloc;
       try {
         calendarItemBloc = context.read<CalendarItemBloc>();
