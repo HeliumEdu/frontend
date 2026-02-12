@@ -125,7 +125,7 @@ void initializeRouter() {
             return const MaterialPage(
               child: _RouteRedirect(
                 redirectTo: AppRoutes.plannerScreen,
-                queryParams: {'openDialog': 'notifications'},
+                queryParams: {'dialog': 'notifications'},
               ),
             );
           }
@@ -357,7 +357,7 @@ void initializeRouter() {
             return const MaterialPage(
               child: _RouteRedirect(
                 redirectTo: AppRoutes.plannerScreen,
-                queryParams: {'openDialog': 'settings'},
+                queryParams: {'dialog': 'settings'},
               ),
             );
           }

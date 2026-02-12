@@ -269,22 +269,17 @@ abstract class BaseReminderScreenState<T>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      reminder.message,
-                      style: AppStyles.standardBodyText(context),
-                    ),
-                    const SizedBox(width: 40, child: Divider()),
-                    Text(
-                      ReminderConstants.types[reminder.type],
-                      style: AppStyles.standardBodyText(context).copyWith(
+                      '${ReminderConstants.types[reminder.type]} ${Format.reminderOffset(reminder)} before',
+                      style: AppStyles.standardBodyTextLight(context).copyWith(
                         color: context.colorScheme.onSurface.withValues(
-                          alpha: 0.7,
+                          alpha: 0.9,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(width: 40, child: Divider()),
                     Text(
-                      '${Format.reminderOffset(reminder)} before',
-                      style: AppStyles.standardBodyText(context).copyWith(
+                      reminder.message,
+                      style: AppStyles.standardBodyTextLight(context).copyWith(
                         color: context.colorScheme.onSurface.withValues(
                           alpha: 0.7,
                         ),

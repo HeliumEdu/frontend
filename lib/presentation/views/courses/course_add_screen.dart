@@ -34,15 +34,11 @@ import 'package:heliumapp/utils/color_helpers.dart' show HeliumColors;
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
-import 'package:nested/nested.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 final _log = Logger('presentation.views');
 
 /// Shows course add as a dialog on desktop, or navigates on mobile.
-///
-/// Pass [providers] to share Blocs from the parent screen with the course add
-/// dialog/screen, ensuring state changes are reflected in both.
 void showCourseAdd(
   BuildContext context, {
   required int courseGroupId,
@@ -50,19 +46,18 @@ void showCourseAdd(
   required bool isEdit,
   required bool isNew,
   int initialStep = 0,
-  List<SingleChildWidget>? providers,
+  CourseBloc? courseBloc,
 }) {
+  final args = CourseAddArgs(
+    courseBloc: courseBloc ?? context.read<CourseBloc>(),
+    courseGroupId: courseGroupId,
+    courseId: courseId,
+    isEdit: isEdit,
+    isNew: isNew,
+  );
+
   if (Responsive.isMobile(context)) {
-    context.push(
-      AppRoutes.courseAddScreen,
-      extra: CourseAddArgs(
-        courseBloc: context.read<CourseBloc>(),
-        courseGroupId: courseGroupId,
-        courseId: courseId,
-        isEdit: isEdit,
-        isNew: isNew,
-      ),
-    );
+    context.push(AppRoutes.courseAddScreen, extra: args);
   } else {
     showScreenAsDialog(
       context,
@@ -73,7 +68,7 @@ void showCourseAdd(
         isNew: isNew,
         initialStep: initialStep,
       ),
-      providers: providers,
+      extra: args,
       width: AppConstants.centeredDialogWidth,
       alignment: Alignment.center,
     );
@@ -171,11 +166,6 @@ class _CourseAddScreenState
                   isEdit: true,
                   isNew: widget.isNew,
                   initialStep: 1,
-                  providers: [
-                    BlocProvider<CourseBloc>.value(
-                      value: context.read<CourseBloc>(),
-                    ),
-                  ],
                 );
               } else {
                 // Fall back to router navigation for non-dialog mode

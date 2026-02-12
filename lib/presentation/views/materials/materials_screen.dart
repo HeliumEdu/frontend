@@ -94,11 +94,6 @@ class _MaterialsScreenState
         context,
         materialGroupId: _selectedGroupId!,
         isEdit: false,
-        providers: [
-          BlocProvider<MaterialBloc>.value(
-            value: context.read<MaterialBloc>(),
-          ),
-        ],
       );
     } else {
       showSnackBar(context, 'Create a group first', isError: true);
@@ -468,11 +463,6 @@ class _MaterialsScreenState
       materialGroupId: _selectedGroupId!,
       materialId: material.id,
       isEdit: true,
-      providers: [
-        BlocProvider<MaterialBloc>.value(
-          value: context.read<MaterialBloc>(),
-        ),
-      ],
     );
   }
 }
