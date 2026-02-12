@@ -169,6 +169,8 @@ class _NotificationsScreenState
             _populateInitialStateData(state);
           } else if (state is ReminderUpdated) {
             if (state.reminder.dismissed) {
+              showSnackBar(context, 'Reminder dismissed');
+
               setState(() {
                 _notifications.removeWhere((n) => n.id == state.reminder.id);
               });

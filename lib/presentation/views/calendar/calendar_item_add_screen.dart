@@ -276,6 +276,8 @@ class _CalendarItemAddScreenState
                   ),
                 );
               }
+            } else {
+              context.pop();
             }
           }
 
