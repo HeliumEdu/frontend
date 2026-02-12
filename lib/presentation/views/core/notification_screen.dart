@@ -331,35 +331,46 @@ class _NotificationsScreenState
                   children: [
                     Row(
                       children: [
-                        Flexible(
-                          child: Text(
-                            '${notification.title}${calendarItem is HomeworkModel ? ' in ' : ''}',
-                            overflow: TextOverflow.ellipsis,
+                        // When course label follows, Text hugs content;
+                        // when alone, Flexible allows ellipsis
+                        if (calendarItem is HomeworkModel &&
+                            calendarItem.course.entity != null)
+                          Text(
+                            notification.title,
                             style: AppStyles.standardBodyText(context).copyWith(
                               fontWeight: notification.isRead
                                   ? FontWeight.normal
                                   : FontWeight.w600,
                             ),
-                          ),
-                        ),
-                        if (calendarItem is HomeworkModel &&
-                            calendarItem.course.entity != null)
+                          )
+                        else
                           Flexible(
-                            child: CourseTitleLabel(
-                              title: calendarItem.course.entity!.title,
-                              color: calendarItem.course.entity!.color,
+                            child: Text(
+                              notification.title,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppStyles.standardBodyText(context)
+                                  .copyWith(
+                                    fontWeight: notification.isRead
+                                        ? FontWeight.normal
+                                        : FontWeight.w600,
+                                  ),
                             ),
                           ),
+                        if (calendarItem is HomeworkModel &&
+                            calendarItem.course.entity != null) ...[
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: CourseTitleLabel(
+                                title: calendarItem.course.entity!.title,
+                                color: calendarItem.course.entity!.color,
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
-                    if (calendarItem is HomeworkModel &&
-                        calendarItem.category.entity != null) ...[
-                      const SizedBox(height: 4),
-                      CategoryTitleLabel(
-                        title: calendarItem.category.entity!.title,
-                        color: calendarItem.category.entity!.color,
-                      ),
-                    ],
                     const SizedBox(height: 4),
                     Text(
                       notification.body,
@@ -370,25 +381,44 @@ class _NotificationsScreenState
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      HeliumDateTime.formatDateTimeRange(
-                        HeliumDateTime.toLocal(
-                          calendarItem.start,
-                          userSettings!.timeZone,
+                    Row(
+                      children: [
+                        Text(
+                          HeliumDateTime.formatDateTimeRange(
+                            HeliumDateTime.toLocal(
+                              calendarItem.start,
+                              userSettings!.timeZone,
+                            ),
+                            HeliumDateTime.toLocal(
+                              calendarItem.end,
+                              userSettings!.timeZone,
+                            ),
+                            calendarItem.showEndTime,
+                            calendarItem.allDay,
+                          ),
+                          style: AppStyles.standardBodyTextLight(context)
+                              .copyWith(
+                                fontSize: 12,
+                                color: context.colorScheme.onSurface.withValues(
+                                  alpha: 0.5,
+                                ),
+                              ),
                         ),
-                        HeliumDateTime.toLocal(
-                          calendarItem.end,
-                          userSettings!.timeZone,
-                        ),
-                        calendarItem.showEndTime,
-                        calendarItem.allDay,
-                      ),
-                      style: AppStyles.standardBodyTextLight(context).copyWith(
-                        fontSize: 12,
-                        color: context.colorScheme.onSurface.withValues(
-                          alpha: 0.5,
-                        ),
-                      ),
+                        if (calendarItem is HomeworkModel &&
+                            calendarItem.category.entity != null) ...[
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: CategoryTitleLabel(
+                                title: calendarItem.category.entity!.title,
+                                color: calendarItem.category.entity!.color,
+                                compact: true,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ],
                 ),
