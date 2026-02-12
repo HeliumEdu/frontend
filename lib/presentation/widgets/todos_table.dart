@@ -16,7 +16,6 @@ import 'package:heliumapp/presentation/views/calendar/todos_table_controller.dar
 import 'package:heliumapp/presentation/widgets/category_title_label.dart';
 import 'package:heliumapp/presentation/widgets/course_title_label.dart';
 import 'package:heliumapp/presentation/widgets/drop_down.dart';
-import 'package:heliumapp/presentation/widgets/empty_card.dart';
 import 'package:heliumapp/presentation/widgets/grade_label.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
@@ -93,13 +92,10 @@ class TodosTableState extends State<TodosTable> {
     final dataSource = widget.dataSource;
     final controller = widget.controller;
 
-    // Show loading until TodosTable's data window expansion is complete
-    if (!_isInitialized) {
-      return const Center(child: LoadingIndicator(expanded: false));
-    }
-
     // Sort homework based on selected column
-    final sortedHomeworks = _sortHomeworks(dataSource.filteredHomeworks);
+    final sortedHomeworks = _isInitialized
+        ? _sortHomeworks(dataSource.filteredHomeworks)
+        : <HomeworkModel>[];
 
     // Calculate pagination
     final totalItems = sortedHomeworks.length;
@@ -109,7 +105,9 @@ class TodosTableState extends State<TodosTable> {
         : controller.itemsPerPage;
     final totalPages = isShowingAll
         ? 1
-        : (totalItems / effectiveItemsPerPage).ceil();
+        : totalItems > 0
+            ? (totalItems / effectiveItemsPerPage).ceil()
+            : 1;
 
     // Reset to page 1 if current page is beyond valid range (e.g., after filtering)
     var effectiveCurrentPage = controller.currentPage;
@@ -128,20 +126,46 @@ class TodosTableState extends State<TodosTable> {
     final endIndex = isShowingAll
         ? totalItems
         : (startIndex + effectiveItemsPerPage).clamp(0, totalItems);
-    final paginatedHomeworks = sortedHomeworks.sublist(
-      startIndex.clamp(0, totalItems),
-      endIndex,
-    );
+    final paginatedHomeworks = totalItems > 0
+        ? sortedHomeworks.sublist(startIndex.clamp(0, totalItems), endIndex)
+        : <HomeworkModel>[];
 
-    if (totalItems == 0) {
-      // Distinguish between "no assignments at all" vs "filters hiding everything"
+    // Build the table body content
+    Widget tableBody;
+    if (!_isInitialized) {
+      // Loading state - show empty area (loading overlay will cover it)
+      tableBody = const SizedBox.shrink();
+    } else if (totalItems == 0) {
+      // Empty state - show message inside table frame
       final hasAssignments = dataSource.allHomeworks.isNotEmpty;
-      return EmptyCard(
-        icon: Icons.assignment_outlined,
-        message: hasAssignments
-            ? 'No assignments match the applied filters'
-            : 'No assignments found',
-        expanded: false,
+      tableBody = Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.assignment_outlined,
+              size: 48,
+              color: context.colorScheme.onSurface.withValues(alpha: 0.3),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              hasAssignments
+                  ? 'No assignments match the applied filters'
+                  : 'No assignments found',
+              style: AppStyles.standardBodyTextLight(context).copyWith(
+                color: context.colorScheme.onSurface.withValues(alpha: 0.5),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else {
+      // Normal state - show list
+      tableBody = ListView.builder(
+        itemCount: paginatedHomeworks.length,
+        itemBuilder: (context, index) {
+          return _buildTodoRow(paginatedHomeworks[index]);
+        },
       );
     }
 
@@ -152,14 +176,7 @@ class TodosTableState extends State<TodosTable> {
           child: Column(
             children: [
               _buildTableHeader(),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: paginatedHomeworks.length,
-                  itemBuilder: (context, index) {
-                    return _buildTodoRow(paginatedHomeworks[index]);
-                  },
-                ),
-              ),
+              Expanded(child: tableBody),
               _buildTableFooter(
                 startIndex: startIndex,
                 endIndex: endIndex,
@@ -171,6 +188,16 @@ class TodosTableState extends State<TodosTable> {
             ],
           ),
         ),
+        // Loading overlay
+        if (!_isInitialized)
+          Positioned.fill(
+            child: Container(
+              color: context.colorScheme.surface.withValues(alpha: 0.7),
+              child: const Center(
+                child: LoadingIndicator(expanded: false),
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -383,8 +410,9 @@ class TodosTableState extends State<TodosTable> {
   }
 
   Widget _buildItemsCountText(int startIndex, int endIndex, int totalItems) {
+    final displayStart = totalItems > 0 ? startIndex + 1 : 0;
     return Text(
-      '${!Responsive.isMobile(context) ? 'Showing ' : ''}${startIndex + 1} to $endIndex of $totalItems',
+      '${!Responsive.isMobile(context) ? 'Showing ' : ''}$displayStart to $endIndex of $totalItems',
       style: AppStyles.standardBodyTextLight(
         context,
       ).copyWith(color: context.colorScheme.onSurface.withValues(alpha: 0.7)),
