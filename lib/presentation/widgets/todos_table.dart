@@ -189,7 +189,7 @@ class TodosTableState extends State<TodosTable> {
           ),
         ),
         // Loading overlay
-        if (!_isInitialized)
+        if (!_isInitialized || widget.dataSource.isRefreshing)
           Positioned.fill(
             child: Container(
               color: context.colorScheme.surface.withValues(alpha: 0.7),
