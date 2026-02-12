@@ -33,11 +33,13 @@ class FetchEventEvent extends CalendarItemEvent {
 class CreateEventEvent extends CalendarItemEvent {
   final EventRequestModel request;
   final bool advanceNavOnSuccess;
+  final bool isClone;
 
   CreateEventEvent({
     required super.origin,
     required this.request,
     this.advanceNavOnSuccess = true,
+    this.isClone = false,
   });
 }
 
@@ -71,6 +73,7 @@ class CreateHomeworkEvent extends CalendarItemEvent {
   final int courseId;
   final HomeworkRequestModel request;
   final bool advanceNavOnSuccess;
+  final bool isClone;
 
   CreateHomeworkEvent({
     required super.origin,
@@ -78,6 +81,7 @@ class CreateHomeworkEvent extends CalendarItemEvent {
     required this.courseId,
     required this.request,
     this.advanceNavOnSuccess = true,
+    this.isClone = false,
   });
 }
 

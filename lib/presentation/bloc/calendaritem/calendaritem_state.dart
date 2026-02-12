@@ -115,12 +115,15 @@ class EventFetched extends EventEntityState {
 }
 
 class EventCreated extends EventEntityState {
+  final bool isClone;
+
   EventCreated({
     required super.origin,
     required super.event,
     required super.entityId,
     required super.isEvent,
     required super.advanceNavOnSuccess,
+    this.isClone = false,
   });
 }
 
@@ -151,12 +154,15 @@ class HomeworkFetched extends HomeworkEntityState {
 }
 
 class HomeworkCreated extends HomeworkEntityState {
+  final bool isClone;
+
   HomeworkCreated({
     required super.origin,
     required super.homework,
     required super.entityId,
     required super.isEvent,
     required super.advanceNavOnSuccess,
+    this.isClone = false,
   });
 }
 

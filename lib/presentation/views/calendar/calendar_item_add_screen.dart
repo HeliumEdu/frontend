@@ -16,8 +16,10 @@ import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
+import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
+import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/material_model.dart';
 import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
@@ -29,11 +31,13 @@ import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_state.dart
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/controllers/calendar/calendar_item_form_controller.dart';
 import 'package:heliumapp/presentation/controllers/core/basic_form_controller.dart';
+import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/dialogs/select_dialog.dart';
 import 'package:heliumapp/presentation/views/calendar/calendar_item_stepper_container.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/calendar_item_add_stepper.dart';
 import 'package:heliumapp/presentation/widgets/drop_down.dart';
+import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/label_and_html_editor.dart';
 import 'package:heliumapp/presentation/widgets/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
@@ -152,6 +156,7 @@ class _CalendarItemAddScreenState
 
   // State
   bool _isEvent = false;
+  CalendarItemBaseModel? _calendarItem;
   List<CourseGroupModel> _courseGroups = [];
   List<CourseModel> _courses = [];
   List<DropDownItem<CourseModel>> _courseItems = [];
@@ -192,18 +197,64 @@ class _CalendarItemAddScreenState
             showSnackBar(context, state.message!, isError: true);
           } else if (state is CalendarItemScreenDataFetched) {
             _populateInitialCalendarItemStateData(state);
+          } else if (state is EventDeleted || state is HomeworkDeleted) {
+            showSnackBar(
+              context,
+              '${state is EventDeleted ? 'Event' : 'Assignment'} deleted',
+            );
+
+            if (DialogModeProvider.isDialogMode(context)) {
+              Navigator.of(context).pop();
+            } else {
+              context.pop();
+            }
           } else if (state is HomeworkCreated ||
               state is HomeworkUpdated ||
               state is EventCreated ||
               state is EventUpdated) {
             state as BaseEntityState;
 
-            showSnackBar(
-              context,
-              '${state.isEvent ? 'Event' : 'Assignment'} saved',
-            );
+            final isClone = (state is EventCreated && state.isClone) ||
+                (state is HomeworkCreated && state.isClone);
 
-            if (state.advanceNavOnSuccess) {
+            if (isClone) {
+              // Show snackbar before navigation
+              showSnackBar(
+                context,
+                '${state.isEvent ? 'Event' : 'Assignment'} cloned',
+              );
+
+              // Navigate to the edit screen for the newly created item
+              if (DialogModeProvider.isDialogMode(context)) {
+                Navigator.of(context).pop();
+              } else {
+                context.pop();
+              }
+              showCalendarItemAdd(
+                context,
+                eventId: state.isEvent ? state.entityId : null,
+                homeworkId: !state.isEvent ? state.entityId : null,
+                isEdit: true,
+                isNew: false,
+                initialStep: 0,
+                providers: [
+                  BlocProvider<CalendarItemBloc>.value(
+                    value: context.read<CalendarItemBloc>(),
+                  ),
+                  BlocProvider<AttachmentBloc>.value(
+                    value: context.read<AttachmentBloc>(),
+                  ),
+                ],
+              );
+            } else {
+              // Show snackbar for non-clone operations
+              showSnackBar(
+                context,
+                '${state.isEvent ? 'Event' : 'Assignment'} saved',
+              );
+            }
+
+            if (!isClone && state.advanceNavOnSuccess) {
               if (DialogModeProvider.isDialogMode(context)) {
                 // Close current dialog and reopen with new entityId
                 Navigator.of(context).pop();
@@ -301,7 +352,29 @@ class _CalendarItemAddScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Details', style: AppStyles.featureText(context)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Details', style: AppStyles.featureText(context)),
+                  if (widget.isEdit && _calendarItem != null)
+                    Row(
+                      children: [
+                        HeliumIconButton(
+                          onPressed: _onClone,
+                          icon: Icons.copy_outlined,
+                          tooltip: 'Clone',
+                        ),
+                        const SizedBox(width: 8),
+                        HeliumIconButton(
+                          onPressed: _onDelete,
+                          icon: Icons.delete_outline,
+                          tooltip: 'Delete',
+                          color: context.colorScheme.error,
+                        ),
+                      ],
+                    ),
+                ],
+              ),
               const SizedBox(height: 14),
               LabelAndTextFormField(
                 label: 'Title',
@@ -630,6 +703,7 @@ class _CalendarItemAddScreenState
                           spacing: 4,
                           runSpacing: 2,
                           children: _formController.selectedMaterials.map((id) {
+                            // TODO: Enhancement: Replace with MaterialTitleLabel (need to implement a delete icon in that badge)
                             return Chip(
                               backgroundColor: userSettings!.materialColor,
                               deleteIconColor: context.colorScheme.surface,
@@ -820,6 +894,7 @@ class _CalendarItemAddScreenState
 
     if (widget.isEdit) {
       final calendarItem = state.calendarItem!;
+      _calendarItem = calendarItem;
 
       setState(() {
         _formController.titleController.text = calendarItem.title;
@@ -1219,5 +1294,144 @@ class _CalendarItemAddScreenState
     final updated = List<int>.from(_formController.selectedMaterials)
       ..remove(id);
     _updateSelectedMaterials(updated);
+  }
+
+  void _onDelete() {
+    if (_calendarItem == null) return;
+
+    final CourseModel? course;
+    if (_calendarItem is HomeworkModel) {
+      course = _courses.firstWhere(
+        (c) => c.id == (_calendarItem as HomeworkModel).course.id,
+      );
+    } else {
+      course = null;
+    }
+
+    final Function(CalendarItemBaseModel) onDelete;
+    if (_calendarItem is HomeworkModel) {
+      onDelete = (item) {
+        context.read<CalendarItemBloc>().add(
+          DeleteHomeworkEvent(
+            origin: EventOrigin.subScreen,
+            courseGroupId: course!.courseGroup,
+            courseId: course.id,
+            homeworkId: item.id,
+          ),
+        );
+      };
+    } else if (_calendarItem is EventModel) {
+      onDelete = (item) {
+        context.read<CalendarItemBloc>().add(
+          DeleteEventEvent(origin: EventOrigin.subScreen, id: item.id),
+        );
+      };
+    } else {
+      return;
+    }
+
+    showConfirmDeleteDialog(
+      parentContext: context,
+      item: _calendarItem!,
+      onDelete: onDelete,
+    );
+  }
+
+  Future<void> _onClone() async {
+    if (_calendarItem == null) return;
+
+    setState(() {
+      isSubmitting = true;
+    });
+
+    final clonedTitle = PlannerHelper.generateClonedTitle(_calendarItem!.title);
+
+    // Format dates for API
+    final start = HeliumDateTime.formatDateAndTimeForApi(
+      _formController.startDate,
+      _formController.isAllDay ? null : _formController.startTime,
+      userSettings!.timeZone,
+    );
+
+    String end;
+    if (_formController.showEndDateTime) {
+      final endDateForApi = _formController.isAllDay
+          ? _formController.endDate.add(const Duration(days: 1))
+          : _formController.endDate;
+      end = HeliumDateTime.formatDateAndTimeForApi(
+        endDateForApi,
+        _formController.isAllDay ? null : _formController.endTime,
+        userSettings!.timeZone,
+      );
+    } else {
+      if (_formController.isAllDay) {
+        final endDate = _formController.startDate.add(const Duration(days: 1));
+        end = HeliumDateTime.formatDateAndTimeForApi(
+          endDate,
+          null,
+          userSettings!.timeZone,
+        );
+      } else {
+        end = start;
+      }
+    }
+
+    final notes = await _formController.detailsController.getText();
+
+    if (_calendarItem is EventModel) {
+      final request = EventRequestModel(
+        title: clonedTitle,
+        allDay: _formController.isAllDay,
+        showEndTime: _formController.showEndDateTime,
+        start: start,
+        end: end,
+        priority: _getPriorityValue(),
+        comments: notes.trim().isEmpty ? '' : notes.trim(),
+      );
+
+      if (mounted) {
+        context.read<CalendarItemBloc>().add(
+          CreateEventEvent(
+            origin: EventOrigin.subScreen,
+            request: request,
+            advanceNavOnSuccess: false,
+            isClone: true,
+          ),
+        );
+      }
+    } else if (_calendarItem is HomeworkModel) {
+      final homework = _calendarItem as HomeworkModel;
+      final selectedCourse = _courses.firstWhere(
+        (c) => c.id == homework.course.id,
+      );
+
+      final request = HomeworkRequestModel(
+        title: clonedTitle,
+        allDay: _formController.isAllDay,
+        showEndTime: _formController.showEndDateTime,
+        start: start,
+        end: end,
+        priority: _getPriorityValue(),
+        comments: notes.trim().isEmpty ? '' : notes.trim(),
+        currentGrade: '-1/100',
+        completed: false,
+        category: _formController.selectedCategory,
+        materials: _formController.selectedMaterials,
+        course: homework.course.id,
+      );
+
+      if (mounted) {
+        context.read<CalendarItemBloc>().add(
+          CreateHomeworkEvent(
+            origin: EventOrigin.subScreen,
+            courseGroupId: selectedCourse.courseGroup,
+            courseId: selectedCourse.id,
+            request: request,
+            advanceNavOnSuccess: false,
+            isClone: true,
+          ),
+        );
+      }
+    }
   }
 }
