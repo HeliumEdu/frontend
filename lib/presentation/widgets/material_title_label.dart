@@ -13,11 +13,13 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 class MaterialTitleLabel extends StatelessWidget {
   final String title;
   final UserSettingsModel userSettings;
+  final VoidCallback? onDelete;
 
   const MaterialTitleLabel({
     super.key,
     required this.title,
     required this.userSettings,
+    this.onDelete,
   });
 
   @override
@@ -62,16 +64,41 @@ class MaterialTitleLabel extends StatelessWidget {
                   color: userSettings.materialColor.withValues(alpha: 0.2),
                 ),
               ),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  title,
-                  style: AppStyles.standardBodyText(
-                    context,
-                  ).copyWith(color: userSettings.materialColor),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Text(
+                      title,
+                      style: AppStyles.standardBodyText(
+                        context,
+                      ).copyWith(color: userSettings.materialColor),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (onDelete != null) ...[
+                    const SizedBox(width: 2),
+                    IconButton(
+                      onPressed: onDelete,
+                      icon: const Icon(Icons.close),
+                      iconSize: Responsive.getIconSize(
+                        context,
+                        mobile: 16,
+                        tablet: 18,
+                        desktop: 20,
+                      ),
+                      color: userSettings.materialColor,
+                      hoverColor: userSettings.materialColor.withValues(alpha: 0.3),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      visualDensity: VisualDensity.compact,
+                      style: IconButton.styleFrom(
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
           ),

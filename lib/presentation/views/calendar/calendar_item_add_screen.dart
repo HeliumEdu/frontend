@@ -40,6 +40,7 @@ import 'package:heliumapp/presentation/widgets/drop_down.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/label_and_html_editor.dart';
 import 'package:heliumapp/presentation/widgets/label_and_text_form_field.dart';
+import 'package:heliumapp/presentation/widgets/material_title_label.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -699,17 +700,10 @@ class _CalendarItemAddScreenState
                           spacing: 4,
                           runSpacing: 2,
                           children: _formController.selectedMaterials.map((id) {
-                            // TODO: Enhancement: Replace with MaterialTitleLabel (need to implement a delete icon in that badge)
-                            return Chip(
-                              backgroundColor: userSettings!.materialColor,
-                              deleteIconColor: context.colorScheme.surface,
-                              label: Text(
-                                _materialTitleById(id),
-                                style: AppStyles.formText(
-                                  context,
-                                ).copyWith(color: context.colorScheme.surface),
-                              ),
-                              onDeleted: () => _removeMaterial(id),
+                            return MaterialTitleLabel(
+                              title: _materialTitleById(id),
+                              userSettings: userSettings!,
+                              onDelete: () => _removeMaterial(id),
                             );
                           }).toList(),
                         ),

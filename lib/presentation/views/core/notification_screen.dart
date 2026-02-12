@@ -15,6 +15,7 @@ import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/notification/notification_model.dart';
 import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
+import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/data/models/planner/request/reminder_request_model.dart';
 import 'package:heliumapp/data/repositories/reminder_repository_impl.dart';
@@ -27,6 +28,7 @@ import 'package:heliumapp/presentation/bloc/reminder/reminder_event.dart';
 import 'package:heliumapp/presentation/bloc/reminder/reminder_state.dart';
 import 'package:heliumapp/presentation/views/calendar/calendar_item_add_screen.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/widgets/course_title_label.dart';
 import 'package:heliumapp/presentation/widgets/empty_card.dart';
 import 'package:heliumapp/presentation/widgets/error_card.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
@@ -52,6 +54,8 @@ void showNotifications(BuildContext context) {
   } catch (_) {
     _log.info('CalendarItemBloc not passed, will create a new one');
   }
+
+  // FIXME: AttachmentBloc also needs to be passed down to notification screen, so that it can also be passed down to calendar item screen (if necessary)
 
   if (Responsive.isMobile(context)) {
     context.push(
@@ -241,17 +245,18 @@ class _NotificationsScreenState
     final CalendarItemBaseModel? calendarItem;
     final String title;
     final Color? color;
+    final CourseModel? course;
     if (reminder.homework != null) {
       calendarItem = reminder.homework?.entity;
-      final course = reminder.homework?.entity?.course.entity;
+      course = reminder.homework?.entity?.course.entity;
 
-
-      title = '${reminder.homework?.entity?.title} in ${course?.title}';
+      title = reminder.homework?.entity?.title as String;
       color = course?.color;
     } else {
       calendarItem = reminder.event?.entity;
       title = reminder.event?.entity?.title as String;
       color = userSettings?.eventsColor;
+      course = null;
     }
 
     return NotificationModel(
@@ -262,6 +267,7 @@ class _NotificationsScreenState
       timestamp: calendarItem!.start.toIso8601String(),
       isRead: _readNotificationIds.contains(reminder.id),
       reminder: reminder,
+      course: course,
     );
   }
 
@@ -318,13 +324,31 @@ class _NotificationsScreenState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      notification.title,
-                      style: AppStyles.standardBodyText(context).copyWith(
-                        fontWeight: notification.isRead
-                            ? FontWeight.normal
-                            : FontWeight.w600,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          notification.title,
+                          style: AppStyles.standardBodyText(context).copyWith(
+                            fontWeight: notification.isRead
+                                ? FontWeight.normal
+                                : FontWeight.w600,
+                          ),
+                        ),
+                        if (notification.course != null) ...[
+                          Text(
+                            ' in ',
+                            style: AppStyles.standardBodyText(context).copyWith(
+                              fontWeight: notification.isRead
+                                  ? FontWeight.normal
+                                  : FontWeight.w600,
+                            ),
+                          ),
+                          CourseTitleLabel(
+                            title: notification.course!.title,
+                            color: notification.course!.color,
+                          ),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Text(

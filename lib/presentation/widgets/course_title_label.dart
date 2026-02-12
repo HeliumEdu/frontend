@@ -14,6 +14,7 @@ class CourseTitleLabel extends StatelessWidget {
   final Color color;
   final bool showIcon;
   final bool compact;
+  final VoidCallback? onDelete;
 
   const CourseTitleLabel({
     super.key,
@@ -21,6 +22,7 @@ class CourseTitleLabel extends StatelessWidget {
     required this.color,
     this.showIcon = true,
     this.compact = false,
+    this.onDelete,
   });
 
   @override
@@ -60,6 +62,27 @@ class CourseTitleLabel extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
+          if (onDelete != null) ...[
+            const SizedBox(width: 2),
+            IconButton(
+              onPressed: onDelete,
+              icon: const Icon(Icons.close),
+              iconSize: Responsive.getIconSize(
+                context,
+                mobile: 16,
+                tablet: 18,
+                desktop: 20,
+              ),
+              color: color,
+              hoverColor: color.withValues(alpha: 0.3),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              visualDensity: VisualDensity.compact,
+              style: IconButton.styleFrom(
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ),
+          ],
         ],
       ),
     );

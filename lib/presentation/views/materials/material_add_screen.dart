@@ -23,6 +23,7 @@ import 'package:heliumapp/presentation/controllers/core/basic_form_controller.da
 import 'package:heliumapp/presentation/controllers/materials/material_form_controller.dart';
 import 'package:heliumapp/presentation/dialogs/select_dialog.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/widgets/course_title_label.dart';
 import 'package:heliumapp/presentation/widgets/drop_down.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/label_and_html_editor.dart';
@@ -208,20 +209,11 @@ class _MaterialAddScreenState
                         spacing: 4,
                         runSpacing: 2,
                         children: _formController.selectedCourses.map((id) {
-                          // TODO: Enhancement: Replace with CourseTitleLabel (need to implement a delete icon in that badge)
-                          return Chip(
-                            backgroundColor: _courses
-                                .where((c) => c.id == id)
-                                .first
-                                .color,
-                            deleteIconColor: context.colorScheme.surface,
-                            label: Text(
-                              _courses.firstWhere((c) => c.id == id).title,
-                              style: AppStyles.formText(
-                                context,
-                              ).copyWith(color: Colors.white),
-                            ),
-                            onDeleted: () {
+                          final course = _courses.firstWhere((c) => c.id == id);
+                          return CourseTitleLabel(
+                            title: course.title,
+                            color: course.color,
+                            onDelete: () {
                               setState(() {
                                 _formController.selectedCourses.remove(id);
                               });
