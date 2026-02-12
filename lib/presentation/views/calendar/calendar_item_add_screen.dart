@@ -14,9 +14,9 @@ import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
+import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
-import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
@@ -37,26 +37,25 @@ import 'package:heliumapp/presentation/views/calendar/calendar_item_stepper_cont
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/calendar_item_add_stepper.dart';
 import 'package:heliumapp/presentation/widgets/drop_down.dart';
+import 'package:heliumapp/presentation/widgets/grade_label.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/label_and_html_editor.dart';
 import 'package:heliumapp/presentation/widgets/label_and_text_form_field.dart';
+import 'package:heliumapp/presentation/widgets/material_title_label.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
+import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
-import 'package:nested/nested.dart';
 import 'package:timezone/standalone.dart' as tz;
 
 final _log = Logger('presentation.views');
 
 /// Shows calendar item add as a dialog on desktop, or navigates on mobile.
-///
-/// Pass [providers] to share Blocs from the parent screen with the calendar item
-/// dialog/screen, ensuring state changes are reflected in both.
 void showCalendarItemAdd(
   BuildContext context, {
   int? eventId,
@@ -66,20 +65,22 @@ void showCalendarItemAdd(
   required bool isEdit,
   required bool isNew,
   int initialStep = 0,
-  List<SingleChildWidget>? providers,
+  CalendarItemBloc? calendarItemBloc,
+  AttachmentBloc? attachmentBloc,
 }) {
+  final args = CalendarItemAddArgs(
+    calendarItemBloc: calendarItemBloc ?? context.read<CalendarItemBloc>(),
+    attachmentBloc: attachmentBloc ?? context.read<AttachmentBloc>(),
+    eventId: eventId,
+    homeworkId: homeworkId,
+    initialDate: initialDate,
+    isFromMonthView: isFromMonthView,
+    isEdit: isEdit,
+    isNew: isNew,
+  );
+
   if (Responsive.isMobile(context)) {
-    context.push(
-      AppRoutes.plannerItemAddScreen,
-      extra: CalendarItemAddArgs(
-        calendarItemBloc: context.read<CalendarItemBloc>(),
-        attachmentBloc: context.read<AttachmentBloc>(),
-        eventId: eventId,
-        homeworkId: homeworkId,
-        isEdit: isEdit,
-        isNew: isNew,
-      ),
-    );
+    context.push(AppRoutes.plannerItemAddScreen, extra: args);
   } else {
     showScreenAsDialog(
       context,
@@ -92,7 +93,7 @@ void showCalendarItemAdd(
         isNew: isNew,
         initialStep: initialStep,
       ),
-      providers: providers,
+      extra: args,
       width: AppConstants.centeredDialogWidth,
       alignment: Alignment.center,
     );
@@ -172,6 +173,12 @@ class _CalendarItemAddScreenState
   void initState() {
     super.initState();
 
+    _formController.gradeFocusNode.addListener(() {
+      if (!_formController.gradeFocusNode.hasFocus) {
+        setState(() {});
+      }
+    });
+
     context.read<CalendarItemBloc>().add(
       FetchCalendarItemScreenDataEvent(
         origin: EventOrigin.subScreen,
@@ -214,7 +221,8 @@ class _CalendarItemAddScreenState
               state is EventUpdated) {
             state as BaseEntityState;
 
-            final isClone = (state is EventCreated && state.isClone) ||
+            final isClone =
+                (state is EventCreated && state.isClone) ||
                 (state is HomeworkCreated && state.isClone);
 
             if (isClone) {
@@ -235,14 +243,6 @@ class _CalendarItemAddScreenState
                 isEdit: true,
                 isNew: false,
                 initialStep: 0,
-                providers: [
-                  BlocProvider<CalendarItemBloc>.value(
-                    value: context.read<CalendarItemBloc>(),
-                  ),
-                  BlocProvider<AttachmentBloc>.value(
-                    value: context.read<AttachmentBloc>(),
-                  ),
-                ],
               );
             } else {
               showSnackBar(
@@ -261,14 +261,6 @@ class _CalendarItemAddScreenState
                   isEdit: true,
                   isNew: widget.isNew,
                   initialStep: 1,
-                  providers: [
-                    BlocProvider<CalendarItemBloc>.value(
-                      value: context.read<CalendarItemBloc>(),
-                    ),
-                    BlocProvider<AttachmentBloc>.value(
-                      value: context.read<AttachmentBloc>(),
-                    ),
-                  ],
                 );
               } else {
                 // Fall back to router navigation for non-dialog mode
@@ -699,17 +691,10 @@ class _CalendarItemAddScreenState
                           spacing: 4,
                           runSpacing: 2,
                           children: _formController.selectedMaterials.map((id) {
-                            // TODO: Enhancement: Replace with MaterialTitleLabel (need to implement a delete icon in that badge)
-                            return Chip(
-                              backgroundColor: userSettings!.materialColor,
-                              deleteIconColor: context.colorScheme.surface,
-                              label: Text(
-                                _materialTitleById(id),
-                                style: AppStyles.formText(
-                                  context,
-                                ).copyWith(color: context.colorScheme.surface),
-                              ),
-                              onDeleted: () => _removeMaterial(id),
+                            return MaterialTitleLabel(
+                              title: _materialTitleById(id),
+                              userSettings: userSettings!,
+                              onDelete: () => _removeMaterial(id),
                             );
                           }).toList(),
                         ),
@@ -793,37 +778,57 @@ class _CalendarItemAddScreenState
 
               if (!_isEvent) ...[
                 const SizedBox(height: 2),
-                Row(
-                  children: [
-                    Expanded(
-                      child: CheckboxListTile(
-                        title: Text(
-                          'Completed',
-                          style: AppStyles.formLabel(context),
+                SizedBox(
+                  height: 50,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: 140,
+                        child: CheckboxListTile(
+                          title: Text(
+                            'Complete',
+                            style: AppStyles.formLabel(context),
+                          ),
+                          value: _formController.isCompleted,
+                          onChanged: (value) {
+                            setState(() {
+                              _formController.isCompleted = value!;
+                            });
+                          },
+                          controlAffinity: ListTileControlAffinity.leading,
+                          contentPadding: EdgeInsets.zero,
                         ),
-                        value: _formController.isCompleted,
-                        onChanged: (value) {
-                          setState(() {
-                            _formController.isCompleted = value!;
-                          });
-                        },
-                        controlAffinity: ListTileControlAffinity.leading,
-                        contentPadding: EdgeInsets.zero,
                       ),
-                    ),
-                  ],
+                      if (_formController.isCompleted) ...[
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: LabelAndTextFormField(
+                            hintText: 'Grade',
+                            controller: _formController.gradeController,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(
+                                RegExp(r'[0-9\./]'),
+                              ),
+                            ],
+                            focusNode: _formController.gradeFocusNode,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          width: 98,
+                          child: GradeLabel(
+                            grade: Format.gradeForDisplay(
+                              _formController.gradeController.text.trim(),
+                            ),
+                            userSettings: userSettings!,
+                            compact: true,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
-              ],
-              if (!_isEvent && _formController.isCompleted) ...[
-                LabelAndTextFormField(
-                  label: 'Grade',
-                  controller: _formController.gradeController,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[0-9\./]')),
-                  ],
-                  focusNode: _formController.gradeFocusNode,
-                ),
-                const SizedBox(height: 8),
               ],
 
               const SizedBox(height: 8),

@@ -167,7 +167,7 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
           Expanded(child: formField),
           const SizedBox(width: 8),
           Padding(
-            padding: EdgeInsets.only(top: widget.label != null ? 33 : 0),
+            padding: EdgeInsets.only(top: widget.label != null ? 30 : 0),
             child: SizedBox(
               width: 48,
               height: 48,

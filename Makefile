@@ -55,8 +55,9 @@ build-ios-release: install
 update-version:
 	dart tool/update_version.dart
 
-build-web: install update-version
+build-web: install
 	flutter build web --release --source-maps $(WEB_ARGS)
+	$(MAKE) update-version
 
 upload-web-sourcemaps:
 ifndef SENTRY_RELEASE

@@ -18,7 +18,7 @@ class CategoryModel extends BaseTitledModel {
   final double? overallGrade;
   final double? gradeByWeight;
   final double? trend;
-  final int? numHomeworkGraded;
+  final int? numHomework;
 
   CategoryModel({
     required super.id,
@@ -29,7 +29,7 @@ class CategoryModel extends BaseTitledModel {
     this.overallGrade,
     this.gradeByWeight,
     this.trend,
-    this.numHomeworkGraded,
+    this.numHomework,
   });
 
   factory CategoryModel.fromJson(Map<String, dynamic> json) {
@@ -42,7 +42,7 @@ class CategoryModel extends BaseTitledModel {
       overallGrade: HeliumConversion.toDouble(json['overall_grade']),
       gradeByWeight: HeliumConversion.toDouble(json['grade_by_weight']),
       trend: HeliumConversion.toDouble(json['trend']),
-      numHomeworkGraded: json['num_homework_graded'],
+      numHomework: HeliumConversion.toInt(json['num_homework']),
     );
   }
 
@@ -56,7 +56,7 @@ class CategoryModel extends BaseTitledModel {
       'overall_grade': overallGrade,
       'grade_by_weight': gradeByWeight,
       'trend': trend,
-      'num_homework_graded': numHomeworkGraded,
+      'num_homework': numHomework,
     };
   }
 }

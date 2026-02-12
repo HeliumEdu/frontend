@@ -7,12 +7,16 @@
 
 import 'dart:io';
 
-/// Script to update version in web/index.html from pubspec.yaml
+/// Script to update version placeholder in build/web/index.html from pubspec.yaml
+///
+/// This should be run AFTER `flutter build web` to substitute the {{VERSION}}
+/// placeholder in the built output. The source web/index.html should always
+/// keep the {{VERSION}} placeholder.
 ///
 /// Usage: dart tool/update_version.dart
 void main() async {
   // ignore: avoid_print
-  print('Updating version in web/index.html from pubspec.yaml...');
+  print('Updating version in build/web/index.html from pubspec.yaml...');
 
   // Read pubspec.yaml
   final pubspecFile = File('pubspec.yaml');
@@ -41,25 +45,22 @@ void main() async {
   // ignore: avoid_print
   print('Found version: $version');
 
-  // Read index.html
-  final indexFile = File('web/index.html');
+  // Read built index.html
+  final indexFile = File('build/web/index.html');
   if (!indexFile.existsSync()) {
     // ignore: avoid_print
-    print('Error: web/index.html not found');
+    print('Error: build/web/index.html not found. Run `flutter build web` first.');
     exit(1);
   }
 
   final indexContent = await indexFile.readAsString();
 
-  // Replace version placeholder
-  final updatedContent = indexContent.replaceAll(
-    RegExp(r'<meta name="version" content="[^"]*">'),
-    '<meta name="version" content="$version">',
-  );
+  // Replace {{VERSION}} placeholder with actual version
+  final updatedContent = indexContent.replaceAll('{{VERSION}}', version);
 
   // Write updated content
   await indexFile.writeAsString(updatedContent);
 
   // ignore: avoid_print
-  print('Successfully updated version to $version in web/index.html');
+  print('Successfully updated version to $version in build/web/index.html');
 }

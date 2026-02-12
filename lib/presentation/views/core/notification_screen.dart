@@ -15,10 +15,12 @@ import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/notification/notification_model.dart';
 import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
+import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/data/models/planner/request/reminder_request_model.dart';
 import 'package:heliumapp/data/repositories/reminder_repository_impl.dart';
 import 'package:heliumapp/data/sources/reminder_remote_data_source.dart';
+import 'package:heliumapp/presentation/bloc/attachment/attachment_bloc.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
@@ -27,6 +29,8 @@ import 'package:heliumapp/presentation/bloc/reminder/reminder_event.dart';
 import 'package:heliumapp/presentation/bloc/reminder/reminder_state.dart';
 import 'package:heliumapp/presentation/views/calendar/calendar_item_add_screen.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/widgets/category_title_label.dart';
+import 'package:heliumapp/presentation/widgets/course_title_label.dart';
 import 'package:heliumapp/presentation/widgets/empty_card.dart';
 import 'package:heliumapp/presentation/widgets/error_card.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
@@ -42,9 +46,6 @@ import 'package:logging/logging.dart';
 final _log = Logger('presentation.views');
 
 /// Shows notifications as a dialog on desktop, or navigates on mobile.
-///
-/// Shows notifications as a dialog on desktop, or navigates on mobile.
-/// Automatically shares CalendarItemBloc from parent context if available.
 void showNotifications(BuildContext context) {
   CalendarItemBloc? calendarItemBloc;
   try {
@@ -52,19 +53,25 @@ void showNotifications(BuildContext context) {
   } catch (_) {
     _log.info('CalendarItemBloc not passed, will create a new one');
   }
+  AttachmentBloc? attachmentBloc;
+  try {
+    attachmentBloc = context.read<AttachmentBloc>();
+  } catch (_) {
+    _log.info('AttachmentBloc not passed, will create a new one');
+  }
+
+  final args = NotificationArgs(
+    calendarItemBloc: calendarItemBloc,
+    attachmentBloc: attachmentBloc,
+  );
 
   if (Responsive.isMobile(context)) {
-    context.push(
-      AppRoutes.notificationsScreen,
-      extra: NotificationArgs(calendarItemBloc: calendarItemBloc),
-    );
+    context.push(AppRoutes.notificationsScreen, extra: args);
   } else {
     showScreenAsDialog(
       context,
       child: NotificationsScreen(),
-      providers: calendarItemBloc != null
-          ? [BlocProvider<CalendarItemBloc>.value(value: calendarItemBloc)]
-          : null,
+      extra: args,
       width: AppConstants.notificationsDialogWidth,
       alignment: Alignment.centerRight,
       insetPadding: const EdgeInsets.only(
@@ -244,14 +251,18 @@ class _NotificationsScreenState
     if (reminder.homework != null) {
       calendarItem = reminder.homework?.entity;
       final course = reminder.homework?.entity?.course.entity;
+      final category = reminder.homework?.entity?.category.entity;
 
-
-      title = '${reminder.homework?.entity?.title} in ${course?.title}';
-      color = course?.color;
+      title = reminder.homework?.entity?.title as String;
+      color =
+          (userSettings?.colorByCategory == true
+              ? category?.color
+              : course?.color) ??
+          FallbackConstants.fallbackColor;
     } else {
       calendarItem = reminder.event?.entity;
       title = reminder.event?.entity?.title as String;
-      color = userSettings?.eventsColor;
+      color = userSettings?.eventsColor ?? FallbackConstants.fallbackColor;
     }
 
     return NotificationModel(
@@ -318,13 +329,47 @@ class _NotificationsScreenState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      notification.title,
-                      style: AppStyles.standardBodyText(context).copyWith(
-                        fontWeight: notification.isRead
-                            ? FontWeight.normal
-                            : FontWeight.w600,
-                      ),
+                    Row(
+                      children: [
+                        // When course label follows, Text hugs content;
+                        // when alone, Flexible allows ellipsis
+                        if (calendarItem is HomeworkModel &&
+                            calendarItem.course.entity != null)
+                          Text(
+                            notification.title,
+                            style: AppStyles.standardBodyText(context).copyWith(
+                              fontWeight: notification.isRead
+                                  ? FontWeight.normal
+                                  : FontWeight.w600,
+                            ),
+                          )
+                        else
+                          Flexible(
+                            child: Text(
+                              notification.title,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppStyles.standardBodyText(context)
+                                  .copyWith(
+                                    fontWeight: notification.isRead
+                                        ? FontWeight.normal
+                                        : FontWeight.w600,
+                                  ),
+                            ),
+                          ),
+                        if (calendarItem is HomeworkModel &&
+                            calendarItem.course.entity != null) ...[
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: CourseTitleLabel(
+                                title: calendarItem.course.entity!.title,
+                                color: calendarItem.course.entity!.color,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -334,29 +379,46 @@ class _NotificationsScreenState
                           alpha: 0.7,
                         ),
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      HeliumDateTime.formatDateTimeRange(
-                        HeliumDateTime.toLocal(
-                          calendarItem.start,
-                          userSettings!.timeZone,
+                    Row(
+                      children: [
+                        Text(
+                          HeliumDateTime.formatDateTimeRange(
+                            HeliumDateTime.toLocal(
+                              calendarItem.start,
+                              userSettings!.timeZone,
+                            ),
+                            HeliumDateTime.toLocal(
+                              calendarItem.end,
+                              userSettings!.timeZone,
+                            ),
+                            calendarItem.showEndTime,
+                            calendarItem.allDay,
+                          ),
+                          style: AppStyles.standardBodyTextLight(context)
+                              .copyWith(
+                                fontSize: 12,
+                                color: context.colorScheme.onSurface.withValues(
+                                  alpha: 0.5,
+                                ),
+                              ),
                         ),
-                        HeliumDateTime.toLocal(
-                          calendarItem.end,
-                          userSettings!.timeZone,
-                        ),
-                        calendarItem.showEndTime,
-                        calendarItem.allDay,
-                      ),
-                      style: AppStyles.standardBodyTextLight(context).copyWith(
-                        fontSize: 12,
-                        color: context.colorScheme.onSurface.withValues(
-                          alpha: 0.5,
-                        ),
-                      ),
+                        if (calendarItem is HomeworkModel &&
+                            calendarItem.category.entity != null) ...[
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: CategoryTitleLabel(
+                                title: calendarItem.category.entity!.title,
+                                color: calendarItem.category.entity!.color,
+                                compact: true,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ],
                 ),
@@ -433,6 +495,8 @@ class _NotificationsScreenState
         Navigator.of(context).pop();
       }
 
+      // FIXME: in dialog mode, this isn't properly finding the providers (and also this is pretty messy)
+
       CalendarItemBloc? calendarItemBloc;
       try {
         calendarItemBloc = context.read<CalendarItemBloc>();
@@ -441,6 +505,14 @@ class _NotificationsScreenState
         // Bloc not in context, create one
         calendarItemBloc = ProviderHelpers().createCalendarItemBloc()(context);
       }
+      AttachmentBloc? attachmentBloc;
+      try {
+        attachmentBloc = context.read<AttachmentBloc>();
+      } catch (_) {
+        _log.fine('AttachmentBloc not in context, creating a new one');
+        // Bloc not in context, create one
+        attachmentBloc = ProviderHelpers().createAttachmentBloc()(context);
+      }
 
       showCalendarItemAdd(
         context,
@@ -448,9 +520,8 @@ class _NotificationsScreenState
         homeworkId: notification.reminder.homework?.id,
         isEdit: true,
         isNew: false,
-        providers: [
-          BlocProvider<CalendarItemBloc>.value(value: calendarItemBloc),
-        ],
+        calendarItemBloc: calendarItemBloc,
+        attachmentBloc: attachmentBloc,
       );
     }
   }

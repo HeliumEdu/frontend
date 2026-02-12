@@ -8,6 +8,7 @@
 import 'dart:ui';
 
 import 'package:heliumapp/data/models/base_model.dart';
+import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 
 class NotificationModel extends BaseModel {
@@ -16,6 +17,7 @@ class NotificationModel extends BaseModel {
   final String timestamp;
   final bool isRead;
   final ReminderModel reminder;
+  final CourseModel? course;
   final Color? color;
 
   NotificationModel({
@@ -25,11 +27,12 @@ class NotificationModel extends BaseModel {
     required this.timestamp,
     required this.isRead,
     required this.reminder,
+    this.course,
     this.color,
   });
 
   Map<String, dynamic> toJson() {
-    return {
+    final Map<String, dynamic> data = {
       'id': id,
       'title': title,
       'body': body,
@@ -38,24 +41,9 @@ class NotificationModel extends BaseModel {
       'color': color,
       'reminder': reminder.toJson(),
     };
-  }
 
-  NotificationModel copyWith({
-    int? id,
-    String? title,
-    String? body,
-    String? timestamp,
-    bool? isRead,
-    Color? color,
-    ReminderModel? reminder,
-  }) {
-    return NotificationModel(
-      id: id ?? this.id,
-      title: title ?? this.title,
-      body: body ?? this.body,
-      timestamp: timestamp ?? this.timestamp,
-      isRead: isRead ?? this.isRead,
-      reminder: reminder ?? this.reminder,
-    );
+    if (course != null) data['course'] = course!.toJson();
+
+    return data;
   }
 }

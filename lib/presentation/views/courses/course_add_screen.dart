@@ -7,7 +7,6 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_routes.dart';
@@ -28,22 +27,18 @@ import 'package:heliumapp/presentation/widgets/course_add_stepper.dart'
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
+import 'package:heliumapp/presentation/widgets/spinner_field.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart' show HeliumColors;
-import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
-import 'package:nested/nested.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 final _log = Logger('presentation.views');
 
 /// Shows course add as a dialog on desktop, or navigates on mobile.
-///
-/// Pass [providers] to share Blocs from the parent screen with the course add
-/// dialog/screen, ensuring state changes are reflected in both.
 void showCourseAdd(
   BuildContext context, {
   required int courseGroupId,
@@ -51,19 +46,18 @@ void showCourseAdd(
   required bool isEdit,
   required bool isNew,
   int initialStep = 0,
-  List<SingleChildWidget>? providers,
+  CourseBloc? courseBloc,
 }) {
+  final args = CourseAddArgs(
+    courseBloc: courseBloc ?? context.read<CourseBloc>(),
+    courseGroupId: courseGroupId,
+    courseId: courseId,
+    isEdit: isEdit,
+    isNew: isNew,
+  );
+
   if (Responsive.isMobile(context)) {
-    context.push(
-      AppRoutes.courseAddScreen,
-      extra: CourseAddArgs(
-        courseBloc: context.read<CourseBloc>(),
-        courseGroupId: courseGroupId,
-        courseId: courseId,
-        isEdit: isEdit,
-        isNew: isNew,
-      ),
-    );
+    context.push(AppRoutes.courseAddScreen, extra: args);
   } else {
     showScreenAsDialog(
       context,
@@ -74,7 +68,7 @@ void showCourseAdd(
         isNew: isNew,
         initialStep: initialStep,
       ),
-      providers: providers,
+      extra: args,
       width: AppConstants.centeredDialogWidth,
       alignment: Alignment.center,
     );
@@ -172,11 +166,6 @@ class _CourseAddScreenState
                   isEdit: true,
                   isNew: widget.isNew,
                   initialStep: 1,
-                  providers: [
-                    BlocProvider<CourseBloc>.value(
-                      value: context.read<CourseBloc>(),
-                    ),
-                  ],
                 );
               } else {
                 // Fall back to router navigation for non-dialog mode
@@ -236,90 +225,108 @@ class _CourseAddScreenState
                 onFieldSubmitted: (value) => _onSubmit(widget.isNew),
               ),
               const SizedBox(height: 14),
-              Text('From', style: AppStyles.formLabel(context)),
-              const SizedBox(height: 9),
-              GestureDetector(
-                onTap: () => _selectDate(context, true),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: context.colorScheme.outline.withValues(alpha: 0.2),
-                    ),
-                    color: context.colorScheme.surface,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        HeliumDateTime.formatDate(_formController.startDate!),
-                        style: AppStyles.formText(context),
-                      ),
-                      Icon(
-                        Icons.calendar_today,
-                        color: context.colorScheme.primary,
-                        size: Responsive.getIconSize(
-                          context,
-                          mobile: 18,
-                          tablet: 20,
-                          desktop: 22,
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('From', style: AppStyles.formLabel(context)),
+                        const SizedBox(height: 9),
+                        GestureDetector(
+                          onTap: () => _selectDate(context, true),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: context.colorScheme.outline.withValues(
+                                  alpha: 0.2,
+                                ),
+                              ),
+                              color: context.colorScheme.surface,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  HeliumDateTime.formatDate(
+                                    _formController.startDate!,
+                                  ),
+                                  style: AppStyles.formText(context),
+                                ),
+                                Icon(
+                                  Icons.calendar_today,
+                                  color: context.colorScheme.primary,
+                                  size: Responsive.getIconSize(
+                                    context,
+                                    mobile: 18,
+                                    tablet: 20,
+                                    desktop: 22,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('To', style: AppStyles.formLabel(context)),
+                        const SizedBox(height: 9),
+                        GestureDetector(
+                          onTap: () => _selectDate(context, false),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: context.colorScheme.outline.withValues(
+                                  alpha: 0.2,
+                                ),
+                              ),
+                              color: context.colorScheme.surface,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  HeliumDateTime.formatDate(
+                                    _formController.endDate!,
+                                  ),
+                                  style: AppStyles.formText(context),
+                                ),
+                                Icon(
+                                  Icons.calendar_today,
+                                  color: context.colorScheme.primary,
+                                  size: Responsive.getIconSize(
+                                    context,
+                                    mobile: 18,
+                                    tablet: 20,
+                                    desktop: 22,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 14),
-              Text('To', style: AppStyles.formLabel(context)),
-              const SizedBox(height: 9),
-              GestureDetector(
-                onTap: () => _selectDate(context, false),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: context.colorScheme.outline.withValues(alpha: 0.2),
-                    ),
-                    color: context.colorScheme.surface,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        HeliumDateTime.formatDate(_formController.endDate!),
-                        style: AppStyles.formText(context),
-                      ),
-                      Icon(
-                        Icons.calendar_today,
-                        color: context.colorScheme.primary,
-                        size: Responsive.getIconSize(
-                          context,
-                          mobile: 18,
-                          tablet: 20,
-                          desktop: 22,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-
-              if (!_formController.isOnline) ...[
-                LabelAndTextFormField(
-                  label: 'Room',
-                  controller: _formController.roomController,
-                ),
-                const SizedBox(height: 14),
-              ],
 
               LabelAndTextFormField(
                 label: 'Website',
@@ -337,164 +344,127 @@ class _CourseAddScreenState
                 ),
               ),
               const SizedBox(height: 14),
-              LabelAndTextFormField(
-                label: 'Teacher',
-                controller: _formController.teacherNameController,
-              ),
-              const SizedBox(height: 14),
-              LabelAndTextFormField(
-                label: 'Teacher Email',
-                controller: _formController.teacherEmailController,
-                validator: BasicFormController.validateEmail,
-                fieldKey: _formController.getFieldKey('teacherEmail'),
-                trailingIconButton: HeliumIconButton(
-                  onPressed: () {
-                    launchUrl(
-                      Uri.parse(
-                        'mailto:${_formController.teacherEmailController.text}',
-                      ),
-                    );
-                  },
-                  icon: Icons.email_outlined,
-                  tooltip: 'Email teacher',
-                  color: context.semanticColors.info,
-                ),
-              ),
-              const SizedBox(height: 14),
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
                     child: LabelAndTextFormField(
-                      label: 'Credits',
-                      controller: _formController.creditsController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(
-                          RegExp(r'^\d*\.?\d*'),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        if (value.isEmpty) {
-                          _formController.creditsController.text = '0';
-                        } else {
-                          _formController.creditsController.text = value;
-                        }
-                      },
+                      label: 'Teacher',
+                      controller: _formController.teacherNameController,
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 30.0),
-                    child: Column(
-                      children: [
-                        InkWell(
-                          onTap: () {
-                            _formController.creditsController.text =
-                                (HeliumConversion.toDouble(
-                                          _formController
-                                              .creditsController
-                                              .text,
-                                        )! +
-                                        .5)
-                                    .toString();
-                          },
-                          child: Icon(
-                            Icons.arrow_drop_up,
-                            size: Responsive.getIconSize(
-                              context,
-                              mobile: 20,
-                              tablet: 22,
-                              desktop: 24,
-                            ),
-                            color: context.colorScheme.primary,
-                          ),
-                        ),
-                        InkWell(
-                          onTap: () {
-                            _formController.creditsController.text =
-                                (HeliumConversion.toDouble(
-                                          _formController
-                                              .creditsController
-                                              .text,
-                                        )! -
-                                        .5)
-                                    .toString();
-                          },
-                          child: Icon(
-                            Icons.arrow_drop_down,
-                            size: Responsive.getIconSize(
-                              context,
-                              mobile: 20,
-                              tablet: 22,
-                              desktop: 24,
-                            ),
-                            color: context.colorScheme.primary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-
-              Row(
-                children: [
+                  const SizedBox(width: 12),
                   Expanded(
-                    child: CheckboxListTile(
-                      title: Text(
-                        'Online',
-                        style: AppStyles.formLabel(context),
+                    child: LabelAndTextFormField(
+                      label: 'Email',
+                      controller: _formController.teacherEmailController,
+                      validator: BasicFormController.validateEmail,
+                      fieldKey: _formController.getFieldKey('teacherEmail'),
+                      trailingIconButton: HeliumIconButton(
+                        onPressed: () {
+                          launchUrl(
+                            Uri.parse(
+                              'mailto:${_formController.teacherEmailController.text}',
+                            ),
+                          );
+                        },
+                        icon: Icons.email_outlined,
+                        tooltip: 'Email teacher',
+                        color: context.semanticColors.info,
                       ),
-                      value: _formController.isOnline,
-                      onChanged: (value) {
-                        setState(() {
-                          _formController.isOnline = value!;
-                        });
-                      },
-                      controlAffinity: ListTileControlAffinity.leading,
-                      contentPadding: EdgeInsets.zero,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 14),
-              Row(
-                children: [
-                  const SizedBox(width: 12),
-                  Text('Color', style: AppStyles.formLabel(context)),
-                  const SizedBox(width: 12),
-                  MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                    child: GestureDetector(
-                      onTap: () {
-                        Feedback.forTap(context);
-                        showColorPickerDialog(
-                          parentContext: context,
-                          initialColor: _formController.selectedColor,
-                          onSelected: (color) {
-                            setState(() {
-                              _formController.selectedColor = color;
-                              context.pop();
-                            });
-                          },
-                        );
-                      },
-                      child: Container(
-                        width: 33,
-                        height: 33,
-                        decoration: BoxDecoration(
-                          color: _formController.selectedColor,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: context.colorScheme.outline.withValues(
-                              alpha: 0.2,
-                            ),
-                          ),
+              SizedBox(
+                height: 80,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: CheckboxListTile(
+                        title: Text(
+                          'Online',
+                          style: AppStyles.formLabel(context),
                         ),
+                        value: _formController.isOnline,
+                        onChanged: (value) {
+                          setState(() {
+                            _formController.isOnline = value!;
+                          });
+                        },
+                        controlAffinity: ListTileControlAffinity.leading,
+                        contentPadding: EdgeInsets.zero,
                       ),
                     ),
-                  ),
-                ],
+                    if (!_formController.isOnline) ...[
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: LabelAndTextFormField(
+                          label: 'Room',
+                          controller: _formController.roomController,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+              SizedBox(
+                height: 88,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const SizedBox(width: 9),
+                          Text('Color', style: AppStyles.formLabel(context)),
+                          const SizedBox(width: 9),
+                          MouseRegion(
+                            cursor: SystemMouseCursors.click,
+                            child: GestureDetector(
+                              onTap: () {
+                                Feedback.forTap(context);
+                                showColorPickerDialog(
+                                  parentContext: context,
+                                  initialColor: _formController.selectedColor,
+                                  onSelected: (color) {
+                                    setState(() {
+                                      _formController.selectedColor = color;
+                                    });
+                                  },
+                                );
+                              },
+                              child: Container(
+                                width: 33,
+                                height: 33,
+                                decoration: BoxDecoration(
+                                  color: _formController.selectedColor,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: context.colorScheme.outline
+                                        .withValues(alpha: 0.2),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: SpinnerField(
+                        label: 'Credits',
+                        controller: _formController.creditsController,
+                        step: 0.5,
+                        allowDecimal: true,
+                      ),
+                    ),
+                  ],
+                ),
               ),
 
               const SizedBox(height: 12),
