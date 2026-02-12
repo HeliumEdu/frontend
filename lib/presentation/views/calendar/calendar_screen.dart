@@ -47,6 +47,8 @@ import 'package:heliumapp/presentation/bloc/calendar/calendar_state.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_event.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_state.dart';
+import 'package:heliumapp/presentation/bloc/auth/auth_bloc.dart';
+import 'package:heliumapp/presentation/bloc/auth/auth_state.dart';
 import 'package:heliumapp/presentation/bloc/category/category_bloc.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
@@ -372,6 +374,19 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
               visibleStart: visibleStart,
               visibleEnd: visibleEnd,
             );
+          }
+        },
+      ),
+      BlocListener<AuthBloc, AuthState>(
+        listener: (context, state) {
+          if (state is AuthProfileUpdated) {
+            _log.info('User settings changed, repainting calendar');
+
+            _calendarItemDataSource?.userSettings = state.user.settings;
+
+            setState(() {
+              userSettings = state.user.settings;
+            });
           }
         },
       ),

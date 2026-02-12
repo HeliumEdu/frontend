@@ -45,7 +45,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   final HomeworkRepository homeworkRepository;
   final CourseScheduleRepository courseScheduleRepository;
   final ExternalCalendarRepository externalCalendarRepository;
-  final UserSettingsModel userSettings;
+  UserSettingsModel userSettings;
 
   List<CourseModel>? courses;
   Map<int, CategoryModel>? categoriesMap;
