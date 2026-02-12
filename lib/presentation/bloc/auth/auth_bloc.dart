@@ -241,6 +241,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       await authRepository.updateUserSettings(event.request);
       final UserModel user = await authRepository.getUser();
+      await dioClient.saveSettings(user.settings);
 
       emit(AuthProfileUpdated(user: user));
     } on HeliumException catch (e) {
