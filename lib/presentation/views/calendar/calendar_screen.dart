@@ -614,7 +614,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             ),
             dayFormat: 'EEE',
             timeIntervalHeight: 50,
-            // numberOfDaysInView: 3
           ),
           loadMoreWidgetBuilder: _loadMoreWidgetBuilder,
           appointmentBuilder: _buildCalendarItem,
