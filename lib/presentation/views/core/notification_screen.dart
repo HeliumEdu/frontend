@@ -20,6 +20,7 @@ import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/data/models/planner/request/reminder_request_model.dart';
 import 'package:heliumapp/data/repositories/reminder_repository_impl.dart';
 import 'package:heliumapp/data/sources/reminder_remote_data_source.dart';
+import 'package:heliumapp/presentation/bloc/attachment/attachment_bloc.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
@@ -40,6 +41,7 @@ import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:logging/logging.dart';
+import 'package:nested/nested.dart';
 
 final _log = Logger('presentation.views');
 
@@ -54,21 +56,36 @@ void showNotifications(BuildContext context) {
   } catch (_) {
     _log.info('CalendarItemBloc not passed, will create a new one');
   }
+  AttachmentBloc? attachmentBloc;
+  try {
+    attachmentBloc = context.read<AttachmentBloc>();
+  } catch (_) {
+    _log.info('AttachmentBloc not passed, will create a new one');
+  }
 
-  // FIXME: AttachmentBloc also needs to be passed down to notification screen, so that it can also be passed down to calendar item screen (if necessary)
+  final List<SingleChildWidget>? providers =
+      calendarItemBloc != null || attachmentBloc != null
+      ? [
+          if (calendarItemBloc != null)
+            BlocProvider<CalendarItemBloc>.value(value: calendarItemBloc),
+          if (attachmentBloc != null)
+            BlocProvider<AttachmentBloc>.value(value: attachmentBloc),
+        ]
+      : null;
 
   if (Responsive.isMobile(context)) {
     context.push(
       AppRoutes.notificationsScreen,
-      extra: NotificationArgs(calendarItemBloc: calendarItemBloc),
+      extra: NotificationArgs(
+        calendarItemBloc: calendarItemBloc,
+        attachmentBloc: attachmentBloc,
+      ),
     );
   } else {
     showScreenAsDialog(
       context,
       child: NotificationsScreen(),
-      providers: calendarItemBloc != null
-          ? [BlocProvider<CalendarItemBloc>.value(value: calendarItemBloc)]
-          : null,
+      providers: providers,
       width: AppConstants.notificationsDialogWidth,
       alignment: Alignment.centerRight,
       insetPadding: const EdgeInsets.only(
@@ -457,6 +474,8 @@ class _NotificationsScreenState
         Navigator.of(context).pop();
       }
 
+      // FIXME: in dialog mode, this isn't properly finding the providers (and also this is pretty messy)
+
       CalendarItemBloc? calendarItemBloc;
       try {
         calendarItemBloc = context.read<CalendarItemBloc>();
@@ -464,6 +483,14 @@ class _NotificationsScreenState
         _log.fine('CalendarItemBloc not in context, creating a new one');
         // Bloc not in context, create one
         calendarItemBloc = ProviderHelpers().createCalendarItemBloc()(context);
+      }
+      AttachmentBloc? attachmentBloc;
+      try {
+        attachmentBloc = context.read<AttachmentBloc>();
+      } catch (_) {
+        _log.fine('AttachmentBloc not in context, creating a new one');
+        // Bloc not in context, create one
+        attachmentBloc = ProviderHelpers().createAttachmentBloc()(context);
       }
 
       showCalendarItemAdd(
@@ -474,6 +501,7 @@ class _NotificationsScreenState
         isNew: false,
         providers: [
           BlocProvider<CalendarItemBloc>.value(value: calendarItemBloc),
+          BlocProvider<AttachmentBloc>.value(value: attachmentBloc),
         ],
       );
     }

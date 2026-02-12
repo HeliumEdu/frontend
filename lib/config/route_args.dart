@@ -13,8 +13,9 @@ import 'package:heliumapp/presentation/bloc/material/material_bloc.dart';
 
 class NotificationArgs {
   final CalendarItemBloc? calendarItemBloc;
+  final AttachmentBloc? attachmentBloc;
 
-  const NotificationArgs({this.calendarItemBloc});
+  const NotificationArgs({this.calendarItemBloc, this.attachmentBloc});
 }
 
 class ExternalCalendarsArgs {
