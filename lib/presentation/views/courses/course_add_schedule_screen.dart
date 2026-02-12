@@ -129,6 +129,8 @@ class _CourseAddScheduleScreenState
                   ),
                 );
               }
+            } else {
+              context.pop();
             }
           }
 

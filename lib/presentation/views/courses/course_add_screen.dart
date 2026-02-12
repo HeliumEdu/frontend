@@ -180,6 +180,8 @@ class _CourseAddScreenState
                   ),
                 );
               }
+            } else {
+              context.pop();
             }
           }
 
