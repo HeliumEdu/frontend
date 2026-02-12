@@ -13,6 +13,7 @@ import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/presentation/bloc/attachment/attachment_bloc.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
 import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_bloc.dart';
@@ -154,8 +155,15 @@ void initializeRouter() {
             );
           }
           return MaterialPage(
-            child: BlocProvider<CalendarItemBloc>.value(
-              value: args.calendarItemBloc,
+            child: MultiBlocProvider(
+              providers: [
+                BlocProvider<CalendarItemBloc>.value(
+                  value: args.calendarItemBloc,
+                ),
+                BlocProvider<AttachmentBloc>.value(
+                  value: args.attachmentBloc,
+                ),
+              ],
               child: CalendarItemAddProvidedScreen(
                 eventId: args.eventId,
                 homeworkId: args.homeworkId,
@@ -178,8 +186,15 @@ void initializeRouter() {
             );
           }
           return MaterialPage(
-            child: BlocProvider<CalendarItemBloc>.value(
-              value: args.calendarItemBloc,
+            child: MultiBlocProvider(
+              providers: [
+                BlocProvider<CalendarItemBloc>.value(
+                  value: args.calendarItemBloc,
+                ),
+                BlocProvider<AttachmentBloc>.value(
+                  value: args.attachmentBloc,
+                ),
+              ],
               child: CalendarItemAddReminderScreen(
                 isEvent: args.isEvent,
                 entityId: args.entityId,
@@ -200,8 +215,15 @@ void initializeRouter() {
             );
           }
           return MaterialPage(
-            child: BlocProvider<CalendarItemBloc>.value(
-              value: args.calendarItemBloc,
+            child: MultiBlocProvider(
+              providers: [
+                BlocProvider<CalendarItemBloc>.value(
+                  value: args.calendarItemBloc,
+                ),
+                BlocProvider<AttachmentBloc>.value(
+                  value: args.attachmentBloc,
+                ),
+              ],
               child: CalendarItemAddAttachmentScreen(
                 isEvent: args.isEvent,
                 entityId: args.entityId,

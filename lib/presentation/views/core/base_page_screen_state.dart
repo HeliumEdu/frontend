@@ -66,6 +66,7 @@ class DialogModeProvider extends InheritedWidget {
 void showScreenAsDialog(
   BuildContext context, {
   required Widget child,
+  // TODO: Cleanup: Compare this to how we do providers in CalendarItemAddArgs, make a base HeliumProvider class, allow generic list of these to be passed to this base screen state, re-use in both dialog and screen flows (eliminates need for `nested` package)
   List<SingleChildWidget>? providers,
   double width = 500,
   double? height,
