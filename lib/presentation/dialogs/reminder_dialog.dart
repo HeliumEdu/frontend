@@ -7,7 +7,6 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/base_model.dart';
@@ -21,6 +20,7 @@ import 'package:heliumapp/presentation/controllers/core/basic_form_controller.da
 import 'package:heliumapp/presentation/controllers/core/reminder_form_controller.dart';
 import 'package:heliumapp/presentation/widgets/drop_down.dart';
 import 'package:heliumapp/presentation/widgets/label_and_text_form_field.dart';
+import 'package:heliumapp/presentation/widgets/spinner_field.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
@@ -118,7 +118,6 @@ class _ReminderWidgetState extends BaseDialogState<_ReminderProvidedWidget> {
         ),
         const SizedBox(height: 14),
         DropDown(
-          // label: 'Default reminder type',
           initialValue: ReminderConstants.typeItems.firstWhere(
             (rt) => rt.id == _formController.reminderType,
           ),
@@ -140,18 +139,11 @@ class _ReminderWidgetState extends BaseDialogState<_ReminderProvidedWidget> {
           children: [
             Expanded(
               flex: 2,
-              child: LabelAndTextFormField(
+              child: SpinnerField(
                 controller: _formController.offsetController,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                onChanged: (value) {
-                  if (value.isEmpty) {
-                    _formController.offsetController.text = '0';
-                  }
-                },
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             Expanded(
               flex: 3,
               child: DropDown(

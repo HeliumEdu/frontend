@@ -270,11 +270,11 @@ abstract class BaseReminderScreenState<T>
                   children: [
                     Text(
                       reminder.message,
-                      style: AppStyles.headingText(context),
+                      style: AppStyles.standardBodyText(context),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(width: 40, child: Divider()),
                     Text(
-                      Format.reminderOffset(reminder),
+                      ReminderConstants.types[reminder.type],
                       style: AppStyles.standardBodyText(context).copyWith(
                         color: context.colorScheme.onSurface.withValues(
                           alpha: 0.7,
@@ -283,7 +283,7 @@ abstract class BaseReminderScreenState<T>
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      ReminderConstants.types[reminder.type],
+                      '${Format.reminderOffset(reminder)} before',
                       style: AppStyles.standardBodyText(context).copyWith(
                         color: context.colorScheme.onSurface.withValues(
                           alpha: 0.7,

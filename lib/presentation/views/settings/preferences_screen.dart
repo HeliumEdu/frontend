@@ -6,7 +6,6 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_routes.dart';
@@ -19,13 +18,12 @@ import 'package:heliumapp/presentation/bloc/auth/auth_state.dart';
 import 'package:heliumapp/presentation/dialogs/color_picker_dialog.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/drop_down.dart';
-import 'package:heliumapp/presentation/widgets/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/presentation/widgets/searchable_dropdown.dart';
+import 'package:heliumapp/presentation/widgets/spinner_field.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
-import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 /// Shows as a dialog on desktop, or navigates on mobile.
@@ -340,7 +338,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
 
             const SizedBox(height: 14),
             DropDown(
-              label: 'Default reminder type',
+              label: 'Default reminder',
               initialValue: ReminderConstants.typeItems.firstWhere(
                 (rt) => rt.value == _selectedReminderType,
               ),
@@ -363,83 +361,32 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
             ),
             const SizedBox(height: 14),
 
+            Text('Default "Remind before"', style: AppStyles.formLabel(context)),
+            const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
-                  child: LabelAndTextFormField(
-                    label: 'Default reminder offset',
+                  flex: 2,
+                  child: SpinnerField(
                     controller: _reminderOffsetController,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  flex: 3,
+                  child: DropDown(
+                    initialValue: ReminderConstants.offsetTypeItems.firstWhere(
+                      (rot) => rot.value == _selectedReminderOffsetType,
+                    ),
+                    items: ReminderConstants.offsetTypeItems,
                     onChanged: (value) {
-                      if (value.isEmpty) {
-                        _reminderOffsetController.text = '0';
-                      }
+                      setState(() {
+                        _selectedReminderOffsetType = value!.value!;
+                      });
                     },
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 30.0),
-                  child: Column(
-                    children: [
-                      InkWell(
-                        onTap: () {
-                          _reminderOffsetController.text =
-                              (HeliumConversion.toInt(
-                                        _reminderOffsetController.text,
-                                      )! +
-                                      1)
-                                  .toString();
-                        },
-                        child: Icon(
-                          Icons.arrow_drop_up,
-                          size: Responsive.getIconSize(
-                            context,
-                            mobile: 20,
-                            tablet: 22,
-                            desktop: 24,
-                          ),
-                          color: context.colorScheme.primary,
-                        ),
-                      ),
-                      InkWell(
-                        onTap: () {
-                          _reminderOffsetController.text =
-                              (HeliumConversion.toInt(
-                                        _reminderOffsetController.text,
-                                      )! -
-                                      1)
-                                  .toString();
-                        },
-                        child: Icon(
-                          Icons.arrow_drop_down,
-                          size: Responsive.getIconSize(
-                            context,
-                            mobile: 20,
-                            tablet: 22,
-                            desktop: 24,
-                          ),
-                          color: context.colorScheme.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ],
-            ),
-            const SizedBox(height: 14),
-
-            DropDown(
-              label: 'Default reminder offset type',
-              initialValue: ReminderConstants.offsetTypeItems.firstWhere(
-                (rot) => rot.value == _selectedReminderOffsetType,
-              ),
-              items: ReminderConstants.offsetTypeItems,
-              onChanged: (value) {
-                setState(() {
-                  _selectedReminderOffsetType = value!.value!;
-                });
-              },
             ),
 
             const SizedBox(height: 12),

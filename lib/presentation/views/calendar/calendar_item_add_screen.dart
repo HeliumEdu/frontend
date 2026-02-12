@@ -14,9 +14,9 @@ import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
+import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
-import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
@@ -37,6 +37,7 @@ import 'package:heliumapp/presentation/views/calendar/calendar_item_stepper_cont
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/calendar_item_add_stepper.dart';
 import 'package:heliumapp/presentation/widgets/drop_down.dart';
+import 'package:heliumapp/presentation/widgets/grade_label.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/label_and_html_editor.dart';
 import 'package:heliumapp/presentation/widgets/label_and_text_form_field.dart';
@@ -46,6 +47,7 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
+import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
@@ -173,6 +175,12 @@ class _CalendarItemAddScreenState
   void initState() {
     super.initState();
 
+    _formController.gradeFocusNode.addListener(() {
+      if (!_formController.gradeFocusNode.hasFocus) {
+        setState(() {});
+      }
+    });
+
     context.read<CalendarItemBloc>().add(
       FetchCalendarItemScreenDataEvent(
         origin: EventOrigin.subScreen,
@@ -215,7 +223,8 @@ class _CalendarItemAddScreenState
               state is EventUpdated) {
             state as BaseEntityState;
 
-            final isClone = (state is EventCreated && state.isClone) ||
+            final isClone =
+                (state is EventCreated && state.isClone) ||
                 (state is HomeworkCreated && state.isClone);
 
             if (isClone) {
@@ -787,37 +796,58 @@ class _CalendarItemAddScreenState
 
               if (!_isEvent) ...[
                 const SizedBox(height: 2),
-                Row(
-                  children: [
-                    Expanded(
-                      child: CheckboxListTile(
-                        title: Text(
-                          'Completed',
-                          style: AppStyles.formLabel(context),
+                SizedBox(
+                  height: 50,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: CheckboxListTile(
+                          title: Text(
+                            'Complete',
+                            style: AppStyles.formLabel(context),
+                          ),
+                          value: _formController.isCompleted,
+                          onChanged: (value) {
+                            setState(() {
+                              _formController.isCompleted = value!;
+                            });
+                          },
+                          controlAffinity: ListTileControlAffinity.leading,
+                          contentPadding: EdgeInsets.zero,
                         ),
-                        value: _formController.isCompleted,
-                        onChanged: (value) {
-                          setState(() {
-                            _formController.isCompleted = value!;
-                          });
-                        },
-                        controlAffinity: ListTileControlAffinity.leading,
-                        contentPadding: EdgeInsets.zero,
                       ),
-                    ),
-                  ],
+                      if (_formController.isCompleted) ...[
+                        const SizedBox(width: 8),
+                        Expanded(
+                          flex: 5,
+                          child: LabelAndTextFormField(
+                            hintText: 'Grade',
+                            controller: _formController.gradeController,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(
+                                RegExp(r'[0-9\./]'),
+                              ),
+                            ],
+                            focusNode: _formController.gradeFocusNode,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          flex: 2,
+                          child: GradeLabel(
+                            grade: Format.gradeForDisplay(
+                              _formController.gradeController.text.trim(),
+                            ),
+                            userSettings: userSettings!,
+                            compact: true,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
-              ],
-              if (!_isEvent && _formController.isCompleted) ...[
-                LabelAndTextFormField(
-                  label: 'Grade',
-                  controller: _formController.gradeController,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[0-9\./]')),
-                  ],
-                  focusNode: _formController.gradeFocusNode,
-                ),
-                const SizedBox(height: 8),
               ],
 
               const SizedBox(height: 8),

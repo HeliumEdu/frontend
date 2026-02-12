@@ -7,7 +7,6 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_routes.dart';
@@ -28,10 +27,10 @@ import 'package:heliumapp/presentation/widgets/course_add_stepper.dart'
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
+import 'package:heliumapp/presentation/widgets/spinner_field.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart' show HeliumColors;
-import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
@@ -361,79 +360,11 @@ class _CourseAddScreenState
                 ),
               ),
               const SizedBox(height: 14),
-              Row(
-                children: [
-                  Expanded(
-                    child: LabelAndTextFormField(
-                      label: 'Credits',
-                      controller: _formController.creditsController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(
-                          RegExp(r'^\d*\.?\d*'),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        if (value.isEmpty) {
-                          _formController.creditsController.text = '0';
-                        } else {
-                          _formController.creditsController.text = value;
-                        }
-                      },
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 30.0),
-                    child: Column(
-                      children: [
-                        InkWell(
-                          onTap: () {
-                            _formController.creditsController.text =
-                                (HeliumConversion.toDouble(
-                                          _formController
-                                              .creditsController
-                                              .text,
-                                        )! +
-                                        .5)
-                                    .toString();
-                          },
-                          child: Icon(
-                            Icons.arrow_drop_up,
-                            size: Responsive.getIconSize(
-                              context,
-                              mobile: 20,
-                              tablet: 22,
-                              desktop: 24,
-                            ),
-                            color: context.colorScheme.primary,
-                          ),
-                        ),
-                        InkWell(
-                          onTap: () {
-                            _formController.creditsController.text =
-                                (HeliumConversion.toDouble(
-                                          _formController
-                                              .creditsController
-                                              .text,
-                                        )! -
-                                        .5)
-                                    .toString();
-                          },
-                          child: Icon(
-                            Icons.arrow_drop_down,
-                            size: Responsive.getIconSize(
-                              context,
-                              mobile: 20,
-                              tablet: 22,
-                              desktop: 24,
-                            ),
-                            color: context.colorScheme.primary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+              SpinnerField(
+                label: 'Credits',
+                controller: _formController.creditsController,
+                step: 0.5,
+                allowDecimal: true,
               ),
               const SizedBox(height: 14),
 
