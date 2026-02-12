@@ -118,7 +118,7 @@ class _ReminderWidgetState extends BaseDialogState<_ReminderProvidedWidget> {
         ),
         const SizedBox(height: 14),
         DropDown(
-          label: 'Default reminder type',
+          // label: 'Default reminder type',
           initialValue: ReminderConstants.typeItems.firstWhere(
             (rt) => rt.id == _formController.reminderType,
           ),
@@ -134,7 +134,7 @@ class _ReminderWidgetState extends BaseDialogState<_ReminderProvidedWidget> {
           },
         ),
         const SizedBox(height: 12),
-        Text('When', style: AppStyles.formLabel(context)),
+        Text('Remind before', style: AppStyles.formLabel(context)),
         const SizedBox(height: 8),
         Row(
           children: [
