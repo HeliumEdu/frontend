@@ -215,6 +215,8 @@ Map<String, dynamic> givenCategoryJson({
   double? overallGrade,
   double? gradeByWeight,
   double? trend,
+  int? numHomework,
+  int? numHomeworkCompleted,
   int? numHomeworkGraded,
 }) {
   return {
@@ -226,7 +228,7 @@ Map<String, dynamic> givenCategoryJson({
     'overall_grade': overallGrade,
     'grade_by_weight': gradeByWeight,
     'trend': trend,
-    'num_homework_graded': numHomeworkGraded,
+    'num_homework': numHomework,
   };
 }
 
@@ -246,7 +248,7 @@ void verifyCategoryMatchesJson(
   expect(category.overallGrade, equals(json['overall_grade']));
   expect(category.gradeByWeight, equals(json['grade_by_weight']));
   expect(category.trend, equals(json['trend']));
-  expect(category.numHomeworkGraded, equals(json['num_homework_graded']));
+  expect(category.numHomework, equals(json['num_homework']));
 }
 
 // ============================================================================

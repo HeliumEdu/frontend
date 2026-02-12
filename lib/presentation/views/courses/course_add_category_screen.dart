@@ -272,6 +272,17 @@ class _CourseAddCategoryScreenState
                                 ),
                               ),
                         ),
+                        if (category.numHomework != null) ...[
+                          const SizedBox(width: 16),
+                          SelectableText(
+                            'Assignments: ${category.numHomework}',
+                            style: AppStyles.standardBodyTextLight(context)
+                                .copyWith(
+                                  color: context.colorScheme.onSurface
+                                      .withValues(alpha: 0.6),
+                                ),
+                          ),
+                        ],
                       ],
                     ),
                   ],
