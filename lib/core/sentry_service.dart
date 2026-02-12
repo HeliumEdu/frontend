@@ -40,37 +40,18 @@ class SentryService {
       final exceptionValue = exceptions.first.value;
 
       if (exceptionType == 'DioException' && exceptionValue != null) {
-        // Filter expected user authentication errors (not bugs)
-
-        // 401 on login endpoint = wrong credentials (expected user error)
-        if ((exceptionValue.contains('status code of 401') ||
-                exceptionValue.contains('status code of 403')) &&
-            exceptionValue.contains('/auth/token/')) {
-          _log.info('Filtered /auth/token/ 401/403 from Sentry');
-          return null;
-        }
-
-        // 401/403 on account deletion = wrong password (expected user error)
-        if ((exceptionValue.contains('status code of 401') ||
-                exceptionValue.contains('status code of 403')) &&
-            exceptionValue.contains('/auth/user/delete/')) {
-          _log.info('Filtered /auth/user/delete/ 401/403 from Sentry');
-          return null;
-        }
-
-        // 400/401 on email verification = wrong/expired code (expected user error)
-        if ((exceptionValue.contains('status code of 400') ||
-                exceptionValue.contains('status code of 401')) &&
+        // 400 on email verification = wrong/expired code (expected user error)
+        if (exceptionValue.contains('status code of 400') &&
             exceptionValue.contains('/auth/user/verify/')) {
-          _log.info('Filtered /auth/user/verify/ 400/401 from Sentry');
+          _log.info('Filtered /auth/user/verify/ 400 from Sentry');
           return null;
         }
 
-        // 403 on token refresh = account doesn't exist (expected user error)
-        if ((exceptionValue.contains('status code of 401') ||
-                exceptionValue.contains('status code of 403')) &&
-            exceptionValue.contains('/auth/token/refresh/')) {
-          _log.info('Filtered /auth/token/refresh/ 401/403 from Sentry');
+        // 401/403 on any endpoint = token invalid/expired or account deleted
+        // (expected user error, handled by Dio interceptor with logout flow)
+        if (exceptionValue.contains('status code of 401') ||
+            exceptionValue.contains('status code of 403')) {
+          _log.info('Filtered 401/403 DioException from Sentry');
           return null;
         }
       }
