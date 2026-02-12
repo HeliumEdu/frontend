@@ -175,7 +175,6 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
                         onSelected: (color) {
                           setState(() {
                             _selectedEventColor = color;
-                            context.pop();
                           });
                         },
                       );
@@ -216,7 +215,6 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
                       onSelected: (color) {
                         setState(() {
                           _selectedGradeColor = color;
-                          Navigator.pop(context);
                         });
                       },
                     ),
@@ -255,7 +253,6 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
                       onSelected: (color) {
                         setState(() {
                           _selectedMaterialColor = color;
-                          Navigator.pop(context);
                         });
                       },
                     ),

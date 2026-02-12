@@ -331,16 +331,20 @@ class _NotificationsScreenState
                   children: [
                     Row(
                       children: [
-                        Text(
-                          '${notification.title}${calendarItem is HomeworkModel ? ' in ' : ''}',
-                          style: AppStyles.standardBodyText(context).copyWith(
-                            fontWeight: notification.isRead
-                                ? FontWeight.normal
-                                : FontWeight.w600,
+                        Flexible(
+                          child: Text(
+                            '${notification.title}${calendarItem is HomeworkModel ? ' in ' : ''}',
+                            overflow: TextOverflow.ellipsis,
+                            style: AppStyles.standardBodyText(context).copyWith(
+                              fontWeight: notification.isRead
+                                  ? FontWeight.normal
+                                  : FontWeight.w600,
+                            ),
                           ),
                         ),
-                        if (calendarItem is HomeworkModel)
-                          Expanded(
+                        if (calendarItem is HomeworkModel &&
+                            calendarItem.course.entity != null)
+                          Flexible(
                             child: CourseTitleLabel(
                               title: calendarItem.course.entity!.title,
                               color: calendarItem.course.entity!.color,
@@ -348,7 +352,8 @@ class _NotificationsScreenState
                           ),
                       ],
                     ),
-                    if (calendarItem is HomeworkModel) ...[
+                    if (calendarItem is HomeworkModel &&
+                        calendarItem.category.entity != null) ...[
                       const SizedBox(height: 4),
                       CategoryTitleLabel(
                         title: calendarItem.category.entity!.title,

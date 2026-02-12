@@ -126,7 +126,10 @@ Future<void> showColorPickerDialog({
     builder: (BuildContext dialogContext) {
       return _ColorPickerWidget(
         initialColor: initialColor,
-        onSelect: onSelected,
+        onSelect: (color) {
+          Navigator.of(dialogContext).pop();
+          onSelected(color);
+        },
       );
     },
   );

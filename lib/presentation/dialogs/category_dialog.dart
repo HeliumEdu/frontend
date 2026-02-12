@@ -138,7 +138,6 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget> {
                     onSelected: (color) {
                       setState(() {
                         _formController.selectedColor = color;
-                        Navigator.pop(context);
                       });
                     },
                   );

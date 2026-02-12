@@ -31,7 +31,7 @@ all: test
 env:
 	cp -n .env.example .env | true
 
-install: env update-version
+install: env
 	flutter pub get
 
 clean:
@@ -57,6 +57,7 @@ update-version:
 
 build-web: install
 	flutter build web --release --source-maps $(WEB_ARGS)
+	$(MAKE) update-version
 
 upload-web-sourcemaps:
 ifndef SENTRY_RELEASE

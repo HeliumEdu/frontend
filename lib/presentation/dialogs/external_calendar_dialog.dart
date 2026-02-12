@@ -136,7 +136,6 @@ class _ExternalCalendarWidgetState
                     onSelected: (color) {
                       setState(() {
                         _formController.selectedColor = color;
-                        Navigator.pop(context);
                       });
                     },
                   );
