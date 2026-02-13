@@ -2166,10 +2166,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   void _showEditClassScheduleEventSnackBar(String courseId) {
     showSnackBar(
       context,
-      "You can't edit Class Schedules on the Planner",
+      'Edit the Class to change its Schedule',
       seconds: 4,
       action: SnackBarAction(
-        label: 'Edit Class Schedule',
+        label: 'Go',
         textColor: context.colorScheme.onPrimary,
         onPressed: () {
           context.go('${AppRoutes.coursesScreen}?id=$courseId&step=1');

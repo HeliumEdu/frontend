@@ -268,6 +268,122 @@ void main() {
         expect(items[0].id, 2); // Shorter duration first
         expect(items[1].id, 1); // Longer duration second
       });
+
+      test('homework items with same start time are grouped by course', () {
+        final sameTime = DateTime.parse('2025-01-15T10:00:00Z');
+        final items = [
+          _createHomework(id: 1, start: sameTime, courseId: 3, title: 'Assignment'),
+          _createHomework(id: 2, start: sameTime, courseId: 1, title: 'Lab'),
+          _createHomework(id: 3, start: sameTime, courseId: 2, title: 'Essay'),
+          _createHomework(id: 4, start: sameTime, courseId: 1, title: 'Quiz'),
+        ];
+
+        Sort.byStartThenTitle(items);
+
+        // Should group by course: 1, 1, 2, 3
+        expect(items[0].course.id, 1);
+        expect(items[1].course.id, 1);
+        expect(items[2].course.id, 2);
+        expect(items[3].course.id, 3);
+      });
+
+      test('homework items with same start time and course are sorted by title', () {
+        final sameTime = DateTime.parse('2025-01-15T10:00:00Z');
+        final items = [
+          _createHomework(id: 1, start: sameTime, courseId: 1, title: 'Zebra Assignment'),
+          _createHomework(id: 2, start: sameTime, courseId: 1, title: 'Apple Quiz'),
+          _createHomework(id: 3, start: sameTime, courseId: 1, title: 'Middle Lab'),
+        ];
+
+        Sort.byStartThenTitle(items);
+
+        expect(items[0].title, 'Apple Quiz');
+        expect(items[1].title, 'Middle Lab');
+        expect(items[2].title, 'Zebra Assignment');
+      });
+
+      test('sort is stable: items maintain order when re-sorted with identical properties', () {
+        final sameTime = DateTime.parse('2025-01-15T10:00:00Z');
+        final items = [
+          _createHomework(id: 1, start: sameTime, courseId: 1, title: 'Assignment A'),
+          _createHomework(id: 2, start: sameTime, courseId: 1, title: 'Assignment B'),
+          _createHomework(id: 3, start: sameTime, courseId: 1, title: 'Assignment C'),
+        ];
+
+        // Sort once
+        Sort.byStartThenTitle(items);
+        final firstSortIds = items.map((item) => item.id).toList();
+
+        // Sort again - order should be identical (stable)
+        Sort.byStartThenTitle(items);
+        final secondSortIds = items.map((item) => item.id).toList();
+
+        expect(secondSortIds, firstSortIds);
+      });
+
+      test('non-homework items with same start time and type are sorted by title', () {
+        final sameTime = DateTime.parse('2025-01-15T10:00:00Z');
+        final items = [
+          _createEvent(id: 1, start: sameTime),
+          _createEvent(id: 2, start: sameTime),
+        ];
+        // Manually set titles to test alphabetical sorting
+        items[0] = EventModel(
+          id: 1,
+          title: 'Zebra Event',
+          allDay: false,
+          showEndTime: true,
+          start: sameTime,
+          end: sameTime.add(const Duration(hours: 1)),
+          priority: 50,
+          url: null,
+          comments: '',
+          attachments: [],
+          reminders: [],
+          color: const Color(0xFF4CAF50),
+        );
+        items[1] = EventModel(
+          id: 2,
+          title: 'Apple Event',
+          allDay: false,
+          showEndTime: true,
+          start: sameTime,
+          end: sameTime.add(const Duration(hours: 1)),
+          priority: 50,
+          url: null,
+          comments: '',
+          attachments: [],
+          reminders: [],
+          color: const Color(0xFF4CAF50),
+        );
+
+        Sort.byStartThenTitle(items);
+
+        expect(items[0].title, 'Apple Event');
+        expect(items[1].title, 'Zebra Event');
+      });
+
+      test('course grouping works across multiple courses with title sorting', () {
+        final sameTime = DateTime.parse('2025-01-15T10:00:00Z');
+        final items = [
+          _createHomework(id: 1, start: sameTime, courseId: 2, title: 'Zebra'),
+          _createHomework(id: 2, start: sameTime, courseId: 1, title: 'Zebra'),
+          _createHomework(id: 3, start: sameTime, courseId: 2, title: 'Apple'),
+          _createHomework(id: 4, start: sameTime, courseId: 1, title: 'Apple'),
+        ];
+
+        Sort.byStartThenTitle(items);
+
+        // Course 1 items should come first (sorted by title), then course 2 items (sorted by title)
+        expect(items[0].course.id, 1);
+        expect(items[0].title, 'Apple');
+        expect(items[1].course.id, 1);
+        expect(items[1].title, 'Zebra');
+        expect(items[2].course.id, 2);
+        expect(items[2].title, 'Apple');
+        expect(items[3].course.id, 2);
+        expect(items[3].title, 'Zebra');
+      });
     });
   });
 }
@@ -308,10 +424,12 @@ HomeworkModel _createHomework({
   DateTime? start,
   DateTime? end,
   bool allDay = false,
+  int courseId = 1,
+  String? title,
 }) {
   return HomeworkModel(
     id: id,
-    title: 'Homework $id',
+    title: title ?? 'Homework $id',
     allDay: allDay,
     showEndTime: true,
     start: start ?? DateTime.parse('2025-01-15T10:00:00Z'),
@@ -322,7 +440,7 @@ HomeworkModel _createHomework({
     reminders: [],
     completed: false,
     currentGrade: '-1/100',
-    course: IdOrEntity<CourseModel>(id: 1),
+    course: IdOrEntity<CourseModel>(id: courseId),
     category: IdOrEntity<CategoryModel>(id: 1),
     materials: [],
   );

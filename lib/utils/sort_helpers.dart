@@ -8,6 +8,7 @@
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
+import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 
@@ -76,7 +77,17 @@ class Sort {
         if (durationCompare != 0) return durationCompare;
       }
 
-      return aPriority.compareTo(bPriority);
+      final priorityCompare = aPriority.compareTo(bPriority);
+      if (priorityCompare != 0) return priorityCompare;
+
+      // For homework items with same priority, group by course
+      if (a is HomeworkModel && b is HomeworkModel) {
+        final courseCompare = a.course.id.compareTo(b.course.id);
+        if (courseCompare != 0) return courseCompare;
+      }
+
+      // Final stable tiebreaker: sort by title
+      return a.title.compareTo(b.title);
     });
   }
 
