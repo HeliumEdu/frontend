@@ -8,6 +8,8 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/base_model.dart';
@@ -318,6 +320,40 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
 
       isLoading = false;
     });
+
+    // Check if we should open a course edit dialog based on query parameters
+    final queryParams = GoRouterState.of(context).uri.queryParameters;
+    final idParam = queryParams['id'];
+    final stepParam = queryParams['step'];
+
+    if (idParam != null) {
+      final courseId = int.tryParse(idParam);
+      final step = int.tryParse(stepParam ?? '0') ?? 0;
+
+      if (courseId != null) {
+        // Find the course in our data
+        final course = state.courses.firstWhereOrNull((c) => c.id == courseId);
+
+        if (course != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+
+            // Clear the query parameters from URL
+            context.go(AppRoutes.coursesScreen);
+
+            // Open the course edit dialog
+            showCourseAdd(
+              context,
+              courseGroupId: course.courseGroup,
+              courseId: course.id,
+              isEdit: true,
+              isNew: false,
+              initialStep: step,
+            );
+          });
+        }
+      }
+    }
   }
 
   Widget _buildCoursesCard(BuildContext context, CourseModel course) {

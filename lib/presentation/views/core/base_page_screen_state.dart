@@ -316,7 +316,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
           Text(screenTitle, style: AppStyles.pageTitle(context)),
           const Spacer(),
           IconButton(
-            icon: const Icon(Icons.close),
+            icon: Icon(Icons.close, color: context.colorScheme.secondary),
             onPressed: () => Navigator.of(context).pop(),
           ),
           if (screenType == ScreenType.entityPage) ...[
@@ -376,6 +376,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     int seconds = 2,
     bool isError = false,
     bool clearSnackBar = true,
+    SnackBarAction? action,
   }) {
     SnackBarHelper.show(
       context,
@@ -383,6 +384,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       seconds: seconds,
       isError: isError,
       clearSnackBar: clearSnackBar,
+      action: action,
     );
   }
 }
@@ -394,15 +396,19 @@ class SnackBarHelper {
     int seconds = 2,
     bool isError = false,
     bool clearSnackBar = true,
+    SnackBarAction? action,
   }) {
     if (!context.mounted) return;
     // FIXME: Find a proper way to show SnackBar messages when in DialogMode (desktop only)
     if (DialogModeProvider.isDialogMode(context)) return;
 
+    final messenger = ScaffoldMessenger.of(context);
+
     if (clearSnackBar) {
-      ScaffoldMessenger.of(context).clearSnackBars();
+      messenger.clearSnackBars();
     }
-    ScaffoldMessenger.of(context).showSnackBar(
+
+    final controller = messenger.showSnackBar(
       SnackBar(
         content: SelectableText(
           message,
@@ -415,7 +421,15 @@ class SnackBarHelper {
             : context.semanticColors.success,
         duration: Duration(seconds: seconds),
         behavior: SnackBarBehavior.floating,
+        action: action,
       ),
     );
+
+    // SnackBar won't automatically close with an action, so set a callback
+    if (action != null) {
+      Future.delayed(Duration(seconds: seconds), () {
+        controller.close();
+      });
+    }
   }
 }
