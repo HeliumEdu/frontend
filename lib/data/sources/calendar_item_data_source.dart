@@ -248,6 +248,15 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     return getColorForItem(_getData(index));
   }
 
+  @override
+  String? getRecurrenceRule(int index) {
+    final item = _getData(index);
+    if (item is CourseScheduleEventModel) {
+      return item.recurrenceRule;
+    }
+    return null;
+  }
+
   Color getColorForItem(CalendarItemBaseModel calendarItem) {
     if (calendarItem is EventModel) {
       return userSettings.eventsColor;
@@ -283,9 +292,8 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
       );
       return course?.room;
     } else if (calendarItem is CourseScheduleEventModel) {
-      final course = courses?.firstWhereOrNull(
-        (c) => c.id.toString() == calendarItem.ownerId,
-      );
+      final courseId = int.tryParse(calendarItem.ownerId);
+      final course = courses?.firstWhereOrNull((c) => c.id == courseId);
       return course?.room;
     } else {
       return calendarItem.location;
@@ -872,10 +880,9 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     final selectedCourseIds = _getSelectedCourseIds();
     if (selectedCourseIds.isEmpty) return true;
 
+    // ownerId is now just the course ID (e.g., "42")
     final courseId = int.tryParse(event.ownerId);
-    if (courseId == null) return true;
-
-    return selectedCourseIds.contains(courseId);
+    return courseId == null || selectedCourseIds.contains(courseId);
   }
 
   List<HomeworkModel> _applyCategoryFilter(List<HomeworkModel> homeworks) {

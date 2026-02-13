@@ -14,6 +14,7 @@ import 'package:heliumapp/utils/conversion_helpers.dart';
 
 class CourseScheduleEventModel extends CalendarItemBaseModel {
   final String ownerId;
+  final String? recurrenceRule;
 
   CourseScheduleEventModel({
     required super.id,
@@ -29,6 +30,7 @@ class CourseScheduleEventModel extends CalendarItemBaseModel {
     required super.reminders,
     required super.color,
     required this.ownerId,
+    this.recurrenceRule,
   }) : super(calendarItemType: CalendarItemType.courseSchedule);
 
   factory CourseScheduleEventModel.fromJson(Map<String, dynamic> json) {
@@ -56,6 +58,7 @@ class CourseScheduleEventModel extends CalendarItemBaseModel {
           : [],
       ownerId: json['owner_id'],
       color: HeliumColors.hexToColor(json['color']),
+      recurrenceRule: json['recurrence_rule'],
     );
   }
 
@@ -65,6 +68,9 @@ class CourseScheduleEventModel extends CalendarItemBaseModel {
 
     data['ownerId'] = ownerId;
     data['color'] = HeliumColors.colorToHex(color!);
+    if (recurrenceRule != null) {
+      data['recurrenceRule'] = recurrenceRule;
+    }
 
     return data;
   }
