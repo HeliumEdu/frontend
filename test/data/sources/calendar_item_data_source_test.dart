@@ -188,12 +188,12 @@ void main() {
 
       test('getStartTime returns DateTime with priority adjustment', () {
         final startTime = dataSource.getStartTime(0);
-        // Homework has priority 0, so gets 3 seconds subtracted
+        // Homework: (3-0)*1000 + (100-0) = 3100 seconds subtracted
         expect(
           startTime,
           DateTime.parse(
             '2025-01-15T10:00:00Z',
-          ).subtract(const Duration(seconds: 3)),
+          ).subtract(const Duration(seconds: 3100)),
         );
       });
 
@@ -201,12 +201,12 @@ void main() {
         'getEndTime returns DateTime with priority adjustment for non-allDay events',
         () {
           final endTime = dataSource.getEndTime(0);
-          // Homework has priority 0, so gets 3 minutes subtracted
+          // Homework: baseMin=3, posMin=1.667, total=4.667 → 4min 40sec
           expect(
             endTime,
             DateTime.parse(
               '2025-01-15T11:00:00Z',
-            ).subtract(const Duration(minutes: 3)),
+            ).subtract(const Duration(minutes: 4, seconds: 40)),
           );
         },
       );
@@ -933,12 +933,12 @@ void main() {
         );
 
         final startTime = dataSource.getStartTime(0);
-        // Start time should be based on override, minus priority adjustment (3 seconds for homework)
+        // Start time: override - 3100 seconds (homework priority + position)
         expect(
           startTime,
           DateTime.parse(
             '2025-01-20T09:00:00Z',
-          ).subtract(const Duration(seconds: 3)),
+          ).subtract(const Duration(seconds: 3100)),
         );
       });
 
@@ -950,12 +950,12 @@ void main() {
         );
 
         final endTime = dataSource.getEndTime(0);
-        // End time should be based on override, minus priority adjustment (3 minutes for homework)
+        // End time: override - 4min 40sec (homework)
         expect(
           endTime,
           DateTime.parse(
             '2025-01-20T10:00:00Z',
-          ).subtract(const Duration(minutes: 3)),
+          ).subtract(const Duration(minutes: 4, seconds: 40)),
         );
       });
 
@@ -998,7 +998,7 @@ void main() {
     });
 
     group('priority-based time adjustments', () {
-      test('homework gets 3 seconds subtracted from start time', () {
+      test('homework gets 3100 seconds subtracted from start time', () {
         final homework = _createHomeworkModel(
           id: 1,
           start: DateTime.parse('2025-01-15T10:00:00Z'),
@@ -1007,28 +1007,30 @@ void main() {
         dataSource.addCalendarItem(homework);
 
         final startTime = dataSource.getStartTime(0);
+        // Homework: (3-0)*1000 + (100-0) = 3100 seconds
         expect(
           startTime,
           DateTime.parse(
             '2025-01-15T10:00:00Z',
-          ).subtract(const Duration(seconds: 3)),
+          ).subtract(const Duration(seconds: 3100)),
         );
       });
 
-      test('course schedule gets 2 seconds subtracted from start time', () {
+      test('course schedule gets 2100 seconds subtracted from start time', () {
         final schedule = _createCourseScheduleEventModel(id: 1);
         dataSource.addCalendarItem(schedule);
 
         final startTime = dataSource.getStartTime(0);
+        // CourseSchedule: (3-1)*1000 + (100-0) = 2100 seconds
         expect(
           startTime,
           DateTime.parse(
             '2025-01-15T10:00:00Z',
-          ).subtract(const Duration(seconds: 2)),
+          ).subtract(const Duration(seconds: 2100)),
         );
       });
 
-      test('event gets 1 second subtracted from start time', () {
+      test('event gets 1100 seconds subtracted from start time', () {
         final event = _createEventModel(
           id: 1,
           start: DateTime.parse('2025-01-15T10:00:00Z'),
@@ -1037,20 +1039,25 @@ void main() {
         dataSource.addCalendarItem(event);
 
         final startTime = dataSource.getStartTime(0);
+        // Event: (3-2)*1000 + (100-0) = 1100 seconds
         expect(
           startTime,
           DateTime.parse(
             '2025-01-15T10:00:00Z',
-          ).subtract(const Duration(seconds: 1)),
+          ).subtract(const Duration(seconds: 1100)),
         );
       });
 
-      test('external event gets 0 seconds subtracted from start time', () {
+      test('external event gets 100 seconds subtracted from start time', () {
         final external = _createExternalCalendarEventModel(id: 1);
         dataSource.addCalendarItem(external);
 
         final startTime = dataSource.getStartTime(0);
-        expect(startTime, DateTime.parse('2025-01-15T10:00:00Z'));
+        // External: (3-3)*1000 + (100-0) = 100 seconds
+        expect(
+          startTime,
+          DateTime.parse('2025-01-15T10:00:00Z').subtract(const Duration(seconds: 100)),
+        );
       });
 
       test('all-day events do not get seconds subtracted from start time', () {
@@ -1067,7 +1074,7 @@ void main() {
         expect(startTime, DateTime.parse('2025-01-15T00:00:00Z'));
       });
 
-      test('homework gets 3 minutes subtracted from end time', () {
+      test('homework gets 4min 40sec subtracted from end time', () {
         final homework = _createHomeworkModel(
           id: 1,
           start: DateTime.parse('2025-01-15T10:00:00Z'),
@@ -1076,15 +1083,16 @@ void main() {
         dataSource.addCalendarItem(homework);
 
         final endTime = dataSource.getEndTime(0);
+        // Homework: 3 + (100/60) = 4.667 → 4min 40sec
         expect(
           endTime,
           DateTime.parse(
             '2025-01-15T11:00:00Z',
-          ).subtract(const Duration(minutes: 3)),
+          ).subtract(const Duration(minutes: 4, seconds: 40)),
         );
       });
 
-      test('event gets 1 minute subtracted from end time', () {
+      test('event gets 2min 40sec subtracted from end time', () {
         final event = _createEventModel(
           id: 1,
           start: DateTime.parse('2025-01-15T10:00:00Z'),
@@ -1093,11 +1101,12 @@ void main() {
         dataSource.addCalendarItem(event);
 
         final endTime = dataSource.getEndTime(0);
+        // Event: 1 + (100/60) = 2.667 → 2min 40sec
         expect(
           endTime,
           DateTime.parse(
             '2025-01-15T11:00:00Z',
-          ).subtract(const Duration(minutes: 1)),
+          ).subtract(const Duration(minutes: 2, seconds: 40)),
         );
       });
 
