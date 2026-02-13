@@ -55,6 +55,7 @@ class _HeliumAppState extends State<HeliumApp> {
     }
 
     return MaterialApp.router(
+      scaffoldMessengerKey: rootScaffoldMessengerKey,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
       title: AppConstants.appName,

@@ -152,6 +152,13 @@ class _CalendarItemAddScreenState
     };
   }
 
+  bool _willCloseAfterSave() {
+    if (_targetStep != null) {
+      return _targetStep! >= steps.length;
+    }
+    return !widget.isNew || currentStep + 1 >= steps.length;
+  }
+
   void _navigateAfterSave() {
     if (_targetStep != null) {
       // User explicitly requested a specific step (clicked step icon)
@@ -179,9 +186,11 @@ class _CalendarItemAddScreenState
             showSnackBar(context, state.message!, isError: true);
             setState(() => isSubmitting = false);
           } else if (state is EventDeleted || state is HomeworkDeleted) {
+            // Always closes after delete, show on root
             showSnackBar(
               context,
               '${state is EventDeleted ? 'Event' : 'Assignment'} deleted',
+              useRootMessenger: true,
             );
             cancelAction();
           } else if (state is HomeworkCreated ||
@@ -195,6 +204,7 @@ class _CalendarItemAddScreenState
                 (state is HomeworkCreated && state.isClone);
 
             if (isClone) {
+              // Clone stays open, show in dialog
               showSnackBar(
                 context,
                 '${state.isEvent ? 'Event' : 'Assignment'} cloned',
@@ -211,9 +221,11 @@ class _CalendarItemAddScreenState
                 homeworkId: !state.isEvent ? state.entityId : null,
               );
             } else {
+              final willClose = _willCloseAfterSave();
               showSnackBar(
                 context,
                 '${state.isEvent ? 'Event' : 'Assignment'} saved',
+                useRootMessenger: willClose,
               );
 
               setState(() {

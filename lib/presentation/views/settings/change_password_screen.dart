@@ -85,9 +85,9 @@ class _ChangePasswordScreenState
           if (state is AuthError) {
             showSnackBar(context, state.message!, isError: true);
           } else if (state is AuthPasswordChanged) {
-            showSnackBar(context, 'Password changed');
-
             _formController.clearForm();
+
+            showSnackBar(context, 'Password changed', useRootMessenger: true);
 
             if (DialogModeProvider.isDialogMode(context)) {
               Navigator.of(context).pop();

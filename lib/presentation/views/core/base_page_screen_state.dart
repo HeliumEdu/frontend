@@ -26,12 +26,14 @@ final _log = Logger('presentation.views');
 class DialogModeProvider extends InheritedWidget {
   final double? width;
   final double? height;
+  final GlobalKey<ScaffoldMessengerState>? scaffoldMessengerKey;
 
   const DialogModeProvider({
     super.key,
     required super.child,
     this.width,
     this.height,
+    this.scaffoldMessengerKey,
   });
 
   static DialogModeProvider? maybeOf(BuildContext context) {
@@ -59,6 +61,9 @@ void showScreenAsDialog(
   AlignmentGeometry alignment = Alignment.center,
   EdgeInsets insetPadding = const EdgeInsets.all(16),
 }) {
+  // Create a key for this dialog's ScaffoldMessenger
+  final dialogMessengerKey = GlobalKey<ScaffoldMessengerState>();
+
   showDialog(
     context: context,
     barrierColor: Colors.black54,
@@ -69,7 +74,8 @@ void showScreenAsDialog(
       Widget dialogContent = DialogModeProvider(
         width: width,
         height: effectiveHeight,
-        child: SizedBox(width: width, height: effectiveHeight, child: child),
+        scaffoldMessengerKey: dialogMessengerKey,
+        child: child,
       );
 
       final providers = extra?.toProviders();
@@ -87,9 +93,20 @@ void showScreenAsDialog(
       return Dialog(
         alignment: alignment,
         insetPadding: insetPadding,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: dialogContent,
+        child: SizedBox(
+          width: width,
+          height: effectiveHeight,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            // ScaffoldMessenger to ensure SnackBar is shown properly in dialogs
+            child: ScaffoldMessenger(
+              key: dialogMessengerKey,
+              child: Scaffold(
+                backgroundColor: Colors.transparent,
+                body: dialogContent,
+              ),
+            ),
+          ),
         ),
       );
     },
@@ -377,6 +394,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     bool isError = false,
     bool clearSnackBar = true,
     SnackBarAction? action,
+    bool useRootMessenger = false,
   }) {
     SnackBarHelper.show(
       context,
@@ -385,6 +403,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       isError: isError,
       clearSnackBar: clearSnackBar,
       action: action,
+      useRootMessenger: useRootMessenger,
     );
   }
 }
@@ -397,12 +416,17 @@ class SnackBarHelper {
     bool isError = false,
     bool clearSnackBar = true,
     SnackBarAction? action,
+    bool useRootMessenger = false,
   }) {
-    if (!context.mounted) return;
-    // FIXME: Find a proper way to show SnackBar messages when in DialogMode (desktop only)
-    if (DialogModeProvider.isDialogMode(context)) return;
-
-    final messenger = ScaffoldMessenger.of(context);
+    // Use root messenger if requested, or dialog's keyed messenger
+    final ScaffoldMessengerState? messenger;
+    final dialogProvider = DialogModeProvider.maybeOf(context);
+    if (!useRootMessenger && dialogProvider?.scaffoldMessengerKey != null) {
+      messenger = dialogProvider!.scaffoldMessengerKey!.currentState;
+    } else {
+      messenger = rootScaffoldMessengerKey.currentState;
+    }
+    if (messenger == null) return;
 
     if (clearSnackBar) {
       messenger.clearSnackBars();

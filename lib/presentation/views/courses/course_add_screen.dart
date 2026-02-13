@@ -139,6 +139,13 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
     };
   }
 
+  bool _willCloseAfterSave() {
+    if (_targetStep != null) {
+      return _targetStep! >= steps.length;
+    }
+    return !widget.isNew || currentStep + 1 >= steps.length;
+  }
+
   void _navigateAfterSave() {
     if (_targetStep != null) {
       // User explicitly requested a specific step (clicked step icon)
@@ -168,7 +175,8 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
           } else if (state is CourseCreated || state is CourseUpdated) {
             state as CourseEntityState;
 
-            showSnackBar(context, 'Class saved');
+            final willClose = _willCloseAfterSave();
+            showSnackBar(context, 'Class saved', useRootMessenger: willClose);
 
             setState(() {
               _currentCourseId = state.course.id;
@@ -177,7 +185,12 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
 
             _navigateAfterSave();
           } else if (state is CourseScheduleUpdated) {
-            showSnackBar(context, 'Class schedule saved');
+            final willClose = _willCloseAfterSave();
+            showSnackBar(
+              context,
+              'Class schedule saved',
+              useRootMessenger: willClose,
+            );
             setState(() => isSubmitting = false);
 
             _navigateAfterSave();
