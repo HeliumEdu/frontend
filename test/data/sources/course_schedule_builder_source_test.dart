@@ -50,8 +50,8 @@ void main() {
         expect(events, isEmpty);
       });
 
-      test('generates events for active days in schedule', () {
-        // GIVEN - MWF schedule (daysOfWeek: '0101010')
+      test('generates one recurring event for MWF schedule with same times', () {
+        // GIVEN - MWF schedule (daysOfWeek: '0101010') with same times
         final course = CourseModel.fromJson(
           givenCourseJson(
             id: 1,
@@ -81,23 +81,21 @@ void main() {
           to: DateTime(2025, 8, 31), // Sunday
         );
 
-        // THEN - Should have 3 events (Mon, Wed, Fri)
-        expect(events.length, equals(3));
+        // THEN - Should have 1 recurring event (all days have same time)
+        expect(events.length, equals(1));
 
-        // Verify Monday event
+        // Verify the event starts on Monday (first occurrence)
         expect(events[0].start, equals(DateTime(2025, 8, 25, 9, 0)));
         expect(events[0].end, equals(DateTime(2025, 8, 25, 10, 30)));
 
-        // Verify Wednesday event
-        expect(events[1].start, equals(DateTime(2025, 8, 27, 9, 0)));
-        expect(events[1].end, equals(DateTime(2025, 8, 27, 10, 30)));
-
-        // Verify Friday event
-        expect(events[2].start, equals(DateTime(2025, 8, 29, 9, 0)));
-        expect(events[2].end, equals(DateTime(2025, 8, 29, 10, 30)));
+        // Verify recurrence rule
+        expect(events[0].recurrenceRule, isNotNull);
+        expect(events[0].recurrenceRule, contains('FREQ=WEEKLY'));
+        expect(events[0].recurrenceRule, contains('BYDAY=MO,WE,FR'));
+        expect(events[0].recurrenceRule, contains('UNTIL='));
       });
 
-      test('generates events for Tuesday/Thursday schedule', () {
+      test('generates one recurring event for Tuesday/Thursday schedule', () {
         // GIVEN - TTh schedule (daysOfWeek: '0010100')
         final course = CourseModel.fromJson(
           givenCourseJson(
@@ -126,19 +124,18 @@ void main() {
           to: DateTime(2025, 8, 31),
         );
 
-        // THEN - Should have 2 events (Tue, Thu)
-        expect(events.length, equals(2));
+        // THEN - Should have 1 recurring event
+        expect(events.length, equals(1));
 
-        // Verify Tuesday event
+        // Verify the event starts on Tuesday (first occurrence)
         expect(events[0].start, equals(DateTime(2025, 8, 26, 14, 0)));
         expect(events[0].end, equals(DateTime(2025, 8, 26, 15, 30)));
 
-        // Verify Thursday event
-        expect(events[1].start, equals(DateTime(2025, 8, 28, 14, 0)));
-        expect(events[1].end, equals(DateTime(2025, 8, 28, 15, 30)));
+        // Verify recurrence rule
+        expect(events[0].recurrenceRule, contains('BYDAY=TU,TH'));
       });
 
-      test('respects course start date boundary', () {
+      test('recurring event starts on first occurrence based on course start date', () {
         // GIVEN - Course starts on Wednesday Aug 27
         final course = CourseModel.fromJson(
           givenCourseJson(
@@ -163,13 +160,14 @@ void main() {
           to: DateTime(2025, 8, 31),
         );
 
-        // THEN - Should only have Wed and Fri (Mon is before course start)
-        expect(events.length, equals(2));
+        // THEN - Should have 1 recurring event starting on Wednesday (first occurrence)
+        expect(events.length, equals(1));
         expect(events[0].start.weekday, equals(DateTime.wednesday));
-        expect(events[1].start.weekday, equals(DateTime.friday));
+        // RRULE should extend to course end date, not query end date
+        expect(events[0].recurrenceRule, contains('UNTIL=20251215'));
       });
 
-      test('respects course end date boundary', () {
+      test('RRULE UNTIL uses course end date regardless of query range', () {
         // GIVEN - Course ends on Wednesday Aug 27
         final course = CourseModel.fromJson(
           givenCourseJson(
@@ -187,17 +185,58 @@ void main() {
           ),
         );
 
-        // WHEN
+        // WHEN - Query extends beyond course end date
         final events = builderSource.buildCourseScheduleEvents(
           courses: [course],
           from: DateTime(2025, 8, 25),
           to: DateTime(2025, 8, 31),
         );
 
-        // THEN - Should only have Mon and Wed (Fri is after course end)
-        expect(events.length, equals(2));
-        expect(events[0].start.weekday, equals(DateTime.monday));
-        expect(events[1].start.weekday, equals(DateTime.wednesday));
+        // THEN - RRULE UNTIL should be course end date, not query end date
+        expect(events.length, equals(1));
+        expect(events[0].recurrenceRule, contains('UNTIL=20250827'));
+      });
+
+      test('returns same recurring event when querying different months', () {
+        // GIVEN - Course spans multiple months
+        final course = CourseModel.fromJson(
+          givenCourseJson(
+            id: 1,
+            title: 'CS 101',
+            startDate: '2025-08-25',
+            endDate: '2025-12-15',
+            schedules: [
+              givenCourseScheduleJson(
+                id: 1,
+                daysOfWeek: '0101010', // Mon, Wed, Fri
+              ),
+            ],
+          ),
+        );
+
+        // WHEN - Query August
+        final augustEvents = builderSource.buildCourseScheduleEvents(
+          courses: [course],
+          from: DateTime(2025, 8, 1),
+          to: DateTime(2025, 8, 31),
+        );
+
+        // WHEN - Query September
+        final septemberEvents = builderSource.buildCourseScheduleEvents(
+          courses: [course],
+          from: DateTime(2025, 9, 1),
+          to: DateTime(2025, 9, 30),
+        );
+
+        // THEN - Both should return the SAME recurring event
+        // (same ID, same start date, same RRULE)
+        expect(augustEvents.length, equals(1));
+        expect(septemberEvents.length, equals(1));
+        expect(augustEvents[0].id, equals(septemberEvents[0].id));
+        expect(augustEvents[0].start, equals(septemberEvents[0].start));
+        expect(augustEvents[0].recurrenceRule, equals(septemberEvents[0].recurrenceRule));
+        // Start should be first Monday of course, not September
+        expect(augustEvents[0].start, equals(DateTime(2025, 8, 25, 9, 0)));
       });
 
       test('returns empty when query range is outside course dates', () {
@@ -268,8 +307,8 @@ void main() {
           to: DateTime(2025, 8, 31),
         );
 
-        // THEN
-        expect(events[0].ownerId, equals('course-42'));
+        // THEN - ownerId is now just the course ID
+        expect(events[0].ownerId, equals('42'));
       });
 
       test('generates events with course color', () {
@@ -333,7 +372,7 @@ void main() {
           to: DateTime(2025, 8, 31),
         );
 
-        // THEN - Should have 2 events sorted by start time
+        // THEN - Should have 2 recurring events sorted by start time
         expect(events.length, equals(2));
         expect(events[0].title, equals('CS 101')); // Monday first
         expect(events[1].title, equals('Math 201')); // Tuesday second
@@ -371,7 +410,7 @@ void main() {
           to: DateTime(2025, 8, 31),
         );
 
-        // THEN - Should have 2 events
+        // THEN - Should have 2 recurring events
         expect(events.length, equals(2));
         expect(events[0].start, equals(DateTime(2025, 8, 25, 9, 0))); // Mon
         expect(events[1].start, equals(DateTime(2025, 8, 27, 14, 0))); // Wed
@@ -435,7 +474,7 @@ void main() {
         expect(events.length, equals(1));
       });
 
-      test('generates events with per-day times', () {
+      test('generates multiple recurring events for different per-day times', () {
         // GIVEN - Different times for different days
         final course = CourseModel.fromJson(
           givenCourseJson(
@@ -464,17 +503,19 @@ void main() {
           to: DateTime(2025, 8, 31),
         );
 
-        // THEN
+        // THEN - Should have 2 recurring events (different time slots)
         expect(events.length, equals(2));
 
-        // Monday - 9:00-10:00
+        // Monday slot - 9:00-10:00
         expect(events[0].start.hour, equals(9));
         expect(events[0].end.hour, equals(10));
+        expect(events[0].recurrenceRule, contains('BYDAY=MO'));
 
-        // Tuesday - 14:00-15:30
+        // Tuesday slot - 14:00-15:30
         expect(events[1].start.hour, equals(14));
         expect(events[1].end.hour, equals(15));
         expect(events[1].end.minute, equals(30));
+        expect(events[1].recurrenceRule, contains('BYDAY=TU'));
       });
 
       test('generates deterministic event IDs', () {
@@ -536,6 +577,7 @@ void main() {
         expect(events.length, equals(1));
         expect(events[0].start, equals(DateTime(2025, 8, 24, 10, 0)));
         expect(events[0].start.weekday, equals(DateTime.sunday));
+        expect(events[0].recurrenceRule, contains('BYDAY=SU'));
       });
 
       test('handles Saturday schedule correctly', () {
@@ -568,6 +610,7 @@ void main() {
         expect(events.length, equals(1));
         expect(events[0].start, equals(DateTime(2025, 8, 30, 9, 0)));
         expect(events[0].start.weekday, equals(DateTime.saturday));
+        expect(events[0].recurrenceRule, contains('BYDAY=SA'));
       });
 
       test('events are sorted by start time', () {
@@ -665,6 +708,51 @@ void main() {
         expect(events[0].comments, equals(''));
         expect(events[0].attachments, isEmpty);
         expect(events[0].reminders, isEmpty);
+      });
+
+      test('groups days with same time into single recurring event', () {
+        // GIVEN - MWF with same time, then MF same time but W different
+        final course = CourseModel.fromJson(
+          givenCourseJson(
+            id: 1,
+            title: 'CS 101',
+            startDate: '2025-08-25',
+            endDate: '2025-12-15',
+            schedules: [
+              givenCourseScheduleJson(
+                id: 1,
+                daysOfWeek: '0101010', // Mon, Wed, Fri
+                monStartTime: '09:00:00',
+                monEndTime: '10:30:00',
+                wedStartTime: '14:00:00', // Different!
+                wedEndTime: '15:30:00',
+                friStartTime: '09:00:00', // Same as Mon
+                friEndTime: '10:30:00',
+              ),
+            ],
+          ),
+        );
+
+        // WHEN
+        final events = builderSource.buildCourseScheduleEvents(
+          courses: [course],
+          from: DateTime(2025, 8, 25),
+          to: DateTime(2025, 8, 31),
+        );
+
+        // THEN - Should have 2 recurring events (MF at 9am, W at 2pm)
+        expect(events.length, equals(2));
+
+        // Find the MF event and W event
+        final mfEvent = events.firstWhere(
+          (e) => e.start.hour == 9,
+        );
+        final wEvent = events.firstWhere(
+          (e) => e.start.hour == 14,
+        );
+
+        expect(mfEvent.recurrenceRule, contains('BYDAY=MO,FR'));
+        expect(wEvent.recurrenceRule, contains('BYDAY=WE'));
       });
     });
   });
