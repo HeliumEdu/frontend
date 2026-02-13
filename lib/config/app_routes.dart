@@ -19,15 +19,9 @@ class AppRoutes {
   static const String resourcesScreen = '/resources';
   static const String gradesScreen = '/grades';
   static const String notificationsScreen = '/notifications';
-  static const String plannerItemAddScreen = '/planner/add';
-  static const String plannerItemAddRemindersScreen = '/planner/add/reminders';
-  static const String plannerItemAddAttachmentsScreen =
-      '/planner/add/attachments';
-  static const String courseAddScreen = '/classes/add';
-  static const String courseAddScheduleScreen = '/classes/add/schedule';
-  static const String courseAddCategoriesScreen = '/classes/add/categories';
-  static const String courseAddAttachmentsScreen = '/classes/add/attachments';
-  static const String resourcesAddScreen = '/resources/add';
+  static const String plannerItemAddScreen = '/planner/edit';
+  static const String courseAddScreen = '/classes/edit';
+  static const String resourcesAddScreen = '/resources/edit';
   static const String settingScreen = '/settings';
   static const String preferencesScreen = '/settings/preferences';
   static const String feedsScreen = '/settings/feeds';

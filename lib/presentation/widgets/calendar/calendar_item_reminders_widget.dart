@@ -5,83 +5,54 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:flutter/material.dart';
 import 'package:heliumapp/data/models/planner/request/reminder_request_model.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/bloc/reminder/reminder_event.dart';
-import 'package:heliumapp/presentation/views/core/base_reminder_sub_screen.dart';
-import 'package:heliumapp/presentation/widgets/calendar_item_add_stepper.dart';
+import 'package:heliumapp/presentation/widgets/base_reminder_widget.dart';
 
-class CalendarItemAddReminderScreen extends BaseReminderScreen {
+class CalendarItemRemindersWidget extends BaseReminderWidget {
   final bool isEvent;
 
-  CalendarItemAddReminderScreen({
-    super.key,
-    required super.entityId,
-    required super.isEdit,
-    required super.isNew,
-    this.isEvent = false,
-  });
-
-  @override
-  CalendarItemAddReminderProvidedScreen buildScreen() {
-    return CalendarItemAddReminderProvidedScreen(
-      isEvent: isEvent,
-      entityId: entityId,
-      isEdit: isEdit,
-      isNew: isNew
-    );
-  }
-}
-
-class CalendarItemAddReminderProvidedScreen extends BaseReminderProvidedScreen {
-  final bool isEvent;
-
-  const CalendarItemAddReminderProvidedScreen({
+  CalendarItemRemindersWidget({
     super.key,
     required this.isEvent,
     required super.entityId,
     required super.isEdit,
-    required super.isNew
+    super.userSettings,
   });
 
   @override
-  BaseReminderScreenState<CalendarItemAddReminderProvidedScreen>
-  createState() => _CalendarItemAddReminderScreenState();
-}
-
-// ignore: missing_override_of_must_be_overridden
-class _CalendarItemAddReminderScreenState
-    extends BaseReminderScreenState<CalendarItemAddReminderProvidedScreen> {
-  @override
-  String get screenTitle => isLoading
-      ? ''
-      : (!widget.isNew ? 'Edit ' : 'Add ') +
-            ((widget as CalendarItemAddReminderProvidedScreen).isEvent
-                ? 'Event'
-                : 'Assignment');
-
-  @override
-  IconData? get icon => isLoading ? null : Icons.calendar_month;
-
-  @override
-  StatelessWidget buildStepper() {
-    return CalendarItemStepper(
-      selectedIndex: 1,
-      eventId: (widget as CalendarItemAddReminderProvidedScreen).isEvent
-          ? widget.entityId
-          : null,
-      homeworkId: !(widget as CalendarItemAddReminderProvidedScreen).isEvent
-          ? widget.entityId
-          : null,
-      isEdit: widget.isEdit,
-      isNew: widget.isNew
+  CalendarItemRemindersWidgetContent buildContent() {
+    return CalendarItemRemindersWidgetContent(
+      isEvent: isEvent,
+      entityId: entityId,
+      isEdit: isEdit,
+      userSettings: userSettings,
     );
   }
+}
+
+class CalendarItemRemindersWidgetContent extends BaseReminderWidgetContent {
+  final bool isEvent;
+
+  const CalendarItemRemindersWidgetContent({
+    super.key,
+    required this.isEvent,
+    required super.entityId,
+    required super.isEdit,
+    super.userSettings,
+  });
 
   @override
+  BaseReminderWidgetState<CalendarItemRemindersWidgetContent> createState() =>
+      _CalendarItemRemindersWidgetState();
+}
+
+class _CalendarItemRemindersWidgetState
+    extends BaseReminderWidgetState<CalendarItemRemindersWidgetContent> {
+  @override
   FetchRemindersEvent createFetchRemindersEvent() {
-    if ((widget as CalendarItemAddReminderProvidedScreen).isEvent) {
+    if (widget.isEvent) {
       return FetchRemindersEvent(
         origin: EventOrigin.subScreen,
         eventId: widget.entityId,
@@ -101,7 +72,7 @@ class _CalendarItemAddReminderScreenState
     int offsetType,
     int type,
   ) {
-    if ((widget as CalendarItemAddReminderProvidedScreen).isEvent) {
+    if (widget.isEvent) {
       return ReminderRequestModel(
         title: message,
         message: message,

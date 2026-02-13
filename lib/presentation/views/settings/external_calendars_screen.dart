@@ -35,9 +35,12 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 
 /// Shows as a dialog on desktop, or navigates on mobile.
-void showExternalCalendars(BuildContext context) {
+void showExternalCalendars(
+  BuildContext context, {
+  required ExternalCalendarBloc externalCalendarBloc,
+}) {
   final args = ExternalCalendarsArgs(
-    externalCalendarBloc: context.read<ExternalCalendarBloc>(),
+    externalCalendarBloc: externalCalendarBloc,
   );
 
   if (Responsive.isMobile(context)) {

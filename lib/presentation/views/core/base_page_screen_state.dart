@@ -7,7 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
+import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/core/dio_client.dart';
@@ -27,12 +27,14 @@ final _log = Logger('presentation.views');
 class DialogModeProvider extends InheritedWidget {
   final double? width;
   final double? height;
+  final GlobalKey<ScaffoldMessengerState>? scaffoldMessengerKey;
 
   const DialogModeProvider({
     super.key,
     required super.child,
     this.width,
     this.height,
+    this.scaffoldMessengerKey,
   });
 
   static DialogModeProvider? maybeOf(BuildContext context) {
@@ -60,6 +62,13 @@ void showScreenAsDialog(
   AlignmentGeometry alignment = Alignment.center,
   EdgeInsets insetPadding = const EdgeInsets.all(16),
 }) {
+  // Create a key for this dialog's ScaffoldMessenger
+  final dialogMessengerKey = GlobalKey<ScaffoldMessengerState>();
+
+  // Capture the initial route to detect browser navigation
+  final initialLocation =
+      router.routerDelegate.currentConfiguration.uri.toString();
+
   showDialog(
     context: context,
     barrierColor: Colors.black54,
@@ -70,7 +79,8 @@ void showScreenAsDialog(
       Widget dialogContent = DialogModeProvider(
         width: width,
         height: effectiveHeight,
-        child: SizedBox(width: width, height: effectiveHeight, child: child),
+        scaffoldMessengerKey: dialogMessengerKey,
+        child: child,
       );
 
       final providers = extra?.toProviders();
@@ -85,16 +95,80 @@ void showScreenAsDialog(
         );
       }
 
-      return Dialog(
-        alignment: alignment,
-        insetPadding: insetPadding,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: dialogContent,
+      return _DialogRouteListener(
+        initialLocation: initialLocation,
+        child: Dialog(
+          alignment: alignment,
+          insetPadding: insetPadding,
+          child: SizedBox(
+            width: width,
+            height: effectiveHeight,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              // ScaffoldMessenger to ensure SnackBar is shown properly in dialogs
+              child: ScaffoldMessenger(
+                key: dialogMessengerKey,
+                child: Scaffold(
+                  backgroundColor: Colors.transparent,
+                  body: dialogContent,
+                ),
+              ),
+            ),
+          ),
         ),
       );
     },
   );
+}
+
+/// Listens to router changes and closes the dialog when browser navigation
+/// (back/forward) causes a route change. Can be eliminated if we transition
+/// to go_router's dialog navigation in the future.
+class _DialogRouteListener extends StatefulWidget {
+  final String initialLocation;
+  final Widget child;
+
+  const _DialogRouteListener({
+    required this.initialLocation,
+    required this.child,
+  });
+
+  @override
+  State<_DialogRouteListener> createState() => _DialogRouteListenerState();
+}
+
+class _DialogRouteListenerState extends State<_DialogRouteListener> {
+  VoidCallback? _routeListener;
+
+  @override
+  void initState() {
+    super.initState();
+    _routeListener = _onRouteChanged;
+    router.routerDelegate.addListener(_routeListener!);
+  }
+
+  @override
+  void dispose() {
+    if (_routeListener != null) {
+      router.routerDelegate.removeListener(_routeListener!);
+    }
+    super.dispose();
+  }
+
+  void _onRouteChanged() {
+    final currentLocation =
+        router.routerDelegate.currentConfiguration.uri.toString();
+    if (currentLocation != widget.initialLocation && mounted) {
+      _log.info(
+        'Browser navigation detected, closing dialog: '
+        '${widget.initialLocation} -> $currentLocation',
+      );
+      Navigator.of(context).pop();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
 
 abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
@@ -110,7 +184,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   ScreenType get screenType => ScreenType.page;
 
   Function get cancelAction =>
-      () => {context.pop()};
+      () => Navigator.of(context).pop();
 
   Function? get saveAction => null;
 
@@ -154,9 +228,9 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     if (notifier != null) {
       // Use post-frame callback to avoid updating during build
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          notifier.setProviders(inheritableProviders);
-        }
+        if (!mounted) return;
+
+        notifier.setProviders(inheritableProviders);
       });
     }
   }
@@ -166,15 +240,13 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     return dioClient
         .getSettings()
         .then((settings) {
-          if (mounted) {
-            setState(() {
-              userSettings = settings;
-              if (userSettings != null) {
-                settingsLoaded = true;
-              }
-            });
-          }
-
+          if (!mounted) return settings;
+          setState(() {
+            userSettings = settings;
+            if (userSettings != null) {
+              settingsLoaded = true;
+            }
+          });
           return settings;
         })
         .catchError((error) {
@@ -298,7 +370,6 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     return const SizedBox.shrink();
   }
 
-  @mustBeOverridden
   Widget buildMainArea(BuildContext context);
 
   Widget buildDialogHeader(BuildContext context) {
@@ -320,10 +391,10 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
           Text(screenTitle, style: AppStyles.pageTitle(context)),
           const Spacer(),
           IconButton(
-            icon: const Icon(Icons.close),
+            icon: Icon(Icons.close, color: context.colorScheme.secondary),
             onPressed: () => Navigator.of(context).pop(),
           ),
-          if (saveAction != null) ...[
+          if (screenType == ScreenType.entityPage) ...[
             const SizedBox(width: 8),
             if (isSubmitting)
               const LoadingIndicator(
@@ -334,7 +405,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
             else
               IconButton(
                 icon: const Icon(Icons.check),
-                onPressed: () => saveAction!(),
+                onPressed: () => saveAction?.call(),
                 color: context.colorScheme.primary,
               ),
           ],
@@ -380,14 +451,46 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     int seconds = 2,
     bool isError = false,
     bool clearSnackBar = true,
+    SnackBarAction? action,
+    bool useRootMessenger = false,
   }) {
-    if (!context.mounted) return;
-    // FIXME: Find a proper way to show SnackBar messages when in DialogMode (desktop only)
-    if (DialogModeProvider.isDialogMode(context)) return;
-    if (clearSnackBar) {
-      ScaffoldMessenger.of(context).clearSnackBars();
+    SnackBarHelper.show(
+      context,
+      message,
+      seconds: seconds,
+      isError: isError,
+      clearSnackBar: clearSnackBar,
+      action: action,
+      useRootMessenger: useRootMessenger,
+    );
+  }
+}
+
+class SnackBarHelper {
+  static void show(
+    BuildContext context,
+    String message, {
+    int seconds = 2,
+    bool isError = false,
+    bool clearSnackBar = true,
+    SnackBarAction? action,
+    bool useRootMessenger = false,
+  }) {
+    // Use root messenger if requested, or dialog's keyed messenger
+    final ScaffoldMessengerState? messenger;
+    final dialogProvider = DialogModeProvider.maybeOf(context);
+    if (!useRootMessenger && dialogProvider?.scaffoldMessengerKey != null) {
+      messenger = dialogProvider!.scaffoldMessengerKey!.currentState;
+    } else {
+      messenger = rootScaffoldMessengerKey.currentState;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
+    if (messenger == null) return;
+
+    if (clearSnackBar) {
+      messenger.clearSnackBars();
+    }
+
+    final controller = messenger.showSnackBar(
       SnackBar(
         content: SelectableText(
           message,
@@ -400,7 +503,15 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
             : context.semanticColors.success,
         duration: Duration(seconds: seconds),
         behavior: SnackBarBehavior.floating,
+        action: action,
       ),
     );
+
+    // SnackBar won't automatically close with an action, so set a callback
+    if (action != null) {
+      Future.delayed(Duration(seconds: seconds), () {
+        controller.close();
+      });
+    }
   }
 }

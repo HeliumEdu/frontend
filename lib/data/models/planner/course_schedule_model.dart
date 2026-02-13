@@ -111,7 +111,26 @@ class CourseScheduleModel extends BaseModel {
     return a.hour == b.hour && a.minute == b.minute;
   }
 
-  // Helper method to get active days
+  /// Checks if the given day index (0=Sun, 6=Sat) is active in the schedule.
+  bool isDayActive(int dayIndex) {
+    if (dayIndex < 0 || dayIndex >= daysOfWeek.length) {
+      return false;
+    }
+    return daysOfWeek[dayIndex] == '1';
+  }
+
+  /// Gets the list of active day indices (0=Sun, 6=Sat).
+  Set<int> getActiveDayIndices() {
+    final Set<int> indices = {};
+    for (int i = 0; i < daysOfWeek.length; i++) {
+      if (daysOfWeek[i] == '1') {
+        indices.add(i);
+      }
+    }
+    return indices;
+  }
+
+  // Helper method to get active days as abbreviated names
   List<String> getActiveDays() {
     final List<String> activeDays = [];
 
@@ -120,7 +139,7 @@ class CourseScheduleModel extends BaseModel {
       i < daysOfWeek.length && i < CalendarConstants.dayNamesAbbrev.length;
       i++
     ) {
-      if (daysOfWeek[i] == '1') {
+      if (isDayActive(i)) {
         activeDays.add(CalendarConstants.dayNamesAbbrev[i]);
       }
     }
@@ -204,5 +223,49 @@ class CourseScheduleModel extends BaseModel {
     }
 
     return endTime;
+  }
+
+  /// Gets the start time for a specific day index (0=Sun, 6=Sat).
+  TimeOfDay getStartTimeForDayIndex(int dayIndex) {
+    switch (dayIndex) {
+      case 0:
+        return sunStartTime;
+      case 1:
+        return monStartTime;
+      case 2:
+        return tueStartTime;
+      case 3:
+        return wedStartTime;
+      case 4:
+        return thuStartTime;
+      case 5:
+        return friStartTime;
+      case 6:
+        return satStartTime;
+      default:
+        return sunStartTime;
+    }
+  }
+
+  /// Gets the end time for a specific day index (0=Sun, 6=Sat).
+  TimeOfDay getEndTimeForDayIndex(int dayIndex) {
+    switch (dayIndex) {
+      case 0:
+        return sunEndTime;
+      case 1:
+        return monEndTime;
+      case 2:
+        return tueEndTime;
+      case 3:
+        return wedEndTime;
+      case 4:
+        return thuEndTime;
+      case 5:
+        return friEndTime;
+      case 6:
+        return satEndTime;
+      default:
+        return sunEndTime;
+    }
   }
 }

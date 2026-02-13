@@ -12,6 +12,7 @@ import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_bloc.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_event.dart';
+import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/views/core/notification_screen.dart';
 import 'package:heliumapp/presentation/widgets/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
@@ -56,7 +57,10 @@ class PageHeader extends StatelessWidget {
             IconButton(
               visualDensity: VisualDensity.compact,
               onPressed: () {
-                if (Navigator.canPop(ctx)) {
+                // In dialog mode, close all dialogs and go to main screen
+                if (DialogModeProvider.isDialogMode(ctx)) {
+                  ctx.go(AppRoutes.plannerScreen);
+                } else if (Navigator.canPop(ctx)) {
                   ctx.pop();
                 } else {
                   ctx.go(AppRoutes.plannerScreen);
@@ -64,7 +68,7 @@ class PageHeader extends StatelessWidget {
               },
               icon: Icon(
                 Icons.keyboard_arrow_left,
-                color: ctx.colorScheme.onSurface,
+                color: ctx.colorScheme.secondary,
               ),
             )
           else if (screenType == ScreenType.entityPage)
@@ -73,7 +77,7 @@ class PageHeader extends StatelessWidget {
               onPressed: () {
                 cancelAction?.call();
               },
-              icon: Icon(Icons.cancel, color: ctx.colorScheme.primary),
+              icon: Icon(Icons.cancel, color: ctx.colorScheme.secondary),
             )
           else if (Responsive.isMobile(ctx) ||
               (!Responsive.isTouchDevice(ctx) &&
@@ -116,7 +120,11 @@ class PageHeader extends StatelessWidget {
                           saveAction?.call();
                         },
                   icon: isLoading
-                      ? const LoadingIndicator(size: 20, expanded: false)
+                      ? const LoadingIndicator(
+                          size: 20,
+                          expanded: false,
+                          strokeWidth: 2.5,
+                        )
                       : Icon(
                           Icons.check_circle,
                           color: ctx.colorScheme.primary,

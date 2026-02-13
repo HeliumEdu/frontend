@@ -169,6 +169,8 @@ class _NotificationsScreenState
             _populateInitialStateData(state);
           } else if (state is ReminderUpdated) {
             if (state.reminder.dismissed) {
+              showSnackBar(context, 'Reminder dismissed');
+
               setState(() {
                 _notifications.removeWhere((n) => n.id == state.reminder.id);
               });
@@ -423,7 +425,8 @@ class _NotificationsScreenState
                   ],
                 ),
               ),
-              if (!isTouchDevice)
+              if (!isTouchDevice) ...[
+                const SizedBox(width: 4),
                 IconButton(
                   onPressed: () => _dismissReminder(notification),
                   icon: Icon(
@@ -437,6 +440,7 @@ class _NotificationsScreenState
                     ),
                   ),
                 ),
+              ],
             ],
           ),
         ),
@@ -489,41 +493,39 @@ class _NotificationsScreenState
       }).toList();
     });
 
-    if (mounted) {
-      // Close the dialog first if we're in dialog mode
-      if (DialogModeProvider.isDialogMode(context)) {
-        Navigator.of(context).pop();
-      }
+    if (!mounted) return;
 
-      // FIXME: in dialog mode, this isn't properly finding the providers (and also this is pretty messy)
-
-      CalendarItemBloc? calendarItemBloc;
-      try {
-        calendarItemBloc = context.read<CalendarItemBloc>();
-      } catch (_) {
-        _log.fine('CalendarItemBloc not in context, creating a new one');
-        // Bloc not in context, create one
-        calendarItemBloc = ProviderHelpers().createCalendarItemBloc()(context);
-      }
-      AttachmentBloc? attachmentBloc;
-      try {
-        attachmentBloc = context.read<AttachmentBloc>();
-      } catch (_) {
-        _log.fine('AttachmentBloc not in context, creating a new one');
-        // Bloc not in context, create one
-        attachmentBloc = ProviderHelpers().createAttachmentBloc()(context);
-      }
-
-      showCalendarItemAdd(
-        context,
-        eventId: notification.reminder.event?.id,
-        homeworkId: notification.reminder.homework?.id,
-        isEdit: true,
-        isNew: false,
-        calendarItemBloc: calendarItemBloc,
-        attachmentBloc: attachmentBloc,
-      );
+    // Close the dialog first if we're in dialog mode
+    if (DialogModeProvider.isDialogMode(context)) {
+      Navigator.of(context).pop();
     }
+
+    CalendarItemBloc? calendarItemBloc;
+    try {
+      calendarItemBloc = context.read<CalendarItemBloc>();
+    } catch (_) {
+      _log.fine('CalendarItemBloc not in context, creating a new one');
+      // Bloc not in context, create one
+      calendarItemBloc = ProviderHelpers().createCalendarItemBloc()(context);
+    }
+    AttachmentBloc? attachmentBloc;
+    try {
+      attachmentBloc = context.read<AttachmentBloc>();
+    } catch (_) {
+      _log.fine('AttachmentBloc not in context, creating a new one');
+      // Bloc not in context, create one
+      attachmentBloc = ProviderHelpers().createAttachmentBloc()(context);
+    }
+
+    showCalendarItemAdd(
+      context,
+      eventId: notification.reminder.event?.id,
+      homeworkId: notification.reminder.homework?.id,
+      isEdit: true,
+      isNew: false,
+      calendarItemBloc: calendarItemBloc,
+      attachmentBloc: attachmentBloc,
+    );
   }
 
   Future<void> _dismissReminder(NotificationModel notification) async {

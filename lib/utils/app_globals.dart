@@ -10,6 +10,8 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 
+final rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+
 enum CalendarItemType { event, homework, external, courseSchedule }
 
 enum HeliumView { month, week, day, agenda, todos }

@@ -136,6 +136,7 @@ bool _passesFilters(FilterableItem item, FilterParams params) {
       }
     } else if (item.type == CalendarItemType.courseSchedule &&
         item.ownerId != null) {
+      // ownerId is now just the course ID (e.g., "42")
       final courseId = int.tryParse(item.ownerId!);
       if (courseId != null && !params.selectedCourseIds.contains(courseId)) {
         return false;

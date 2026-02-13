@@ -16,13 +16,14 @@ import 'package:heliumapp/presentation/bloc/attachment/attachment_event.dart';
 import 'package:heliumapp/presentation/bloc/attachment/attachment_state.dart';
 import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
-import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart'
+    show SnackBarHelper;
+import 'package:heliumapp/presentation/views/core/multi_step_container.dart';
 import 'package:heliumapp/presentation/widgets/empty_card.dart';
 import 'package:heliumapp/presentation/widgets/error_card.dart';
 import 'package:heliumapp/presentation/widgets/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
-import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -31,22 +32,22 @@ import 'package:heliumapp/utils/storage_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
-final _log = Logger('presentation.views');
+final _log = Logger('presentation.widgets');
 
-abstract class BaseAttachmentScreen extends StatelessWidget {
+abstract class BaseAttachmentWidget extends StatelessWidget {
   final ProviderHelpers _providerHelpers = ProviderHelpers();
   final int entityId;
   final bool isEdit;
-  final bool isNew;
+  final UserSettingsModel? userSettings;
 
-  BaseAttachmentScreen({
+  BaseAttachmentWidget({
     super.key,
     required this.entityId,
     required this.isEdit,
-    required this.isNew,
+    this.userSettings,
   });
 
-  BaseAttachmentProvidedScreen buildScreen();
+  BaseAttachmentWidgetContent buildContent();
 
   @override
   Widget build(BuildContext context) {
@@ -63,38 +64,34 @@ abstract class BaseAttachmentScreen extends StatelessWidget {
             ? BlocProvider<AttachmentBloc>.value(value: existingBloc)
             : BlocProvider(create: _providerHelpers.createAttachmentBloc()),
       ],
-      child: buildScreen(),
+      child: buildContent(),
     );
   }
 }
 
-abstract class BaseAttachmentProvidedScreen extends StatefulWidget {
+abstract class BaseAttachmentWidgetContent extends StatefulWidget {
   final int entityId;
   final bool isEdit;
-  final bool isNew;
+  final UserSettingsModel? userSettings;
 
-  const BaseAttachmentProvidedScreen({
+  const BaseAttachmentWidgetContent({
     super.key,
     required this.entityId,
     required this.isEdit,
-    required this.isNew,
+    this.userSettings,
   });
 
   @override
-  BasePageScreenState<BaseAttachmentProvidedScreen> createState();
+  BaseAttachmentWidgetState createState();
 }
 
-abstract class BaseAttachmentScreenState<T>
-    extends BasePageScreenState<BaseAttachmentProvidedScreen> {
-  @override
-  ScreenType get screenType => ScreenType.subPage;
-
+abstract class BaseAttachmentWidgetState<T extends BaseAttachmentWidgetContent>
+    extends State<T> {
   // State
   List<AttachmentFile> filesToUpload = [];
   List<AttachmentModel> attachments = [];
-
-  @mustBeOverridden
-  StatelessWidget buildStepper();
+  bool isLoading = true;
+  bool isSubmitting = false;
 
   @mustBeOverridden
   FetchAttachmentsEvent createFetchAttachmentsEvent();
@@ -108,128 +105,117 @@ abstract class BaseAttachmentScreenState<T>
 
     if (widget.isEdit) {
       context.read<AttachmentBloc>().add(createFetchAttachmentsEvent());
+    } else {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
   @override
-  List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
-    return [
-      BlocListener<AttachmentBloc, AttachmentState>(
-        listener: (context, state) {
-          if (state is AttachmentsError) {
-            showSnackBar(context, state.message!, isError: true);
-          } else if (state is AttachmentsFetched) {
-            setState(() {
-              attachments = state.attachments;
-              Sort.byTitle(attachments);
+  Widget build(BuildContext context) {
+    return BlocListener<AttachmentBloc, AttachmentState>(
+      listener: (context, state) {
+        if (state is AttachmentsError) {
+          SnackBarHelper.show(context, state.message!, isError: true);
+        } else if (state is AttachmentsFetched) {
+          setState(() {
+            attachments = state.attachments;
+            Sort.byTitle(attachments);
+            isLoading = false;
+          });
+        } else if (state is AttachmentsCreated) {
+          SnackBarHelper.show(
+            context,
+            '${state.attachments.length} ${state.attachments.length.plural('attachment')} uploaded',
+          );
 
-              isLoading = false;
-            });
-          } else if (state is AttachmentsCreated) {
-            showSnackBar(
-              context,
-              '${state.attachments.length} ${state.attachments.length.plural('attachment')} uploaded',
-            );
+          setState(() {
+            filesToUpload.clear();
+            attachments.addAll(state.attachments);
+            Sort.byTitle(attachments);
+          });
+        } else if (state is AttachmentDeleted) {
+          SnackBarHelper.show(context, 'Attachment deleted');
 
-            setState(() {
-              filesToUpload.clear();
+          setState(() {
+            attachments.removeWhere((a) => a.id == state.id);
+          });
+        }
 
-              attachments.addAll(state.attachments);
-              Sort.byTitle(attachments);
-            });
-          } else if (state is AttachmentDeleted) {
-            showSnackBar(context, 'Attachment deleted');
-
-            setState(() {
-              attachments.removeWhere((a) => a.id == state.id);
-            });
-          }
-
-          if (state is! AttachmentsLoading) {
-            setState(() {
-              isSubmitting = false;
-            });
-          }
-        },
-      ),
-    ];
+        if (state is! AttachmentsLoading) {
+          setState(() {
+            isSubmitting = false;
+          });
+        }
+      },
+      child: _buildContent(context),
+    );
   }
 
-  @override
-  Widget buildHeaderArea(BuildContext context) {
-    return buildStepper();
-  }
+  Widget _buildContent(BuildContext context) {
+    if (isLoading || widget.userSettings == null) {
+      return const Center(child: LoadingIndicator(expanded: false));
+    }
 
-  @override
-  Widget buildMainArea(BuildContext context) {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Attachments', style: AppStyles.featureText(context)),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Attachments', style: AppStyles.featureText(context)),
+        const SizedBox(height: 12),
+        Expanded(
+          child: BlocBuilder<AttachmentBloc, AttachmentState>(
+            builder: (context, state) {
+              if (state is AttachmentsLoading) {
+                return const Center(child: LoadingIndicator(expanded: false));
+              }
 
-          const SizedBox(height: 12),
-          Expanded(
-            child: BlocBuilder<AttachmentBloc, AttachmentState>(
-              builder: (context, state) {
-                if (state is AttachmentsLoading) {
-                  return const LoadingIndicator();
-                }
+              if (state is AttachmentsError) {
+                return ErrorCard(
+                  message: state.message!,
+                  onReload: () {
+                    context.read<AttachmentBloc>().add(
+                      createFetchAttachmentsEvent(),
+                    );
+                  },
+                  expanded: false,
+                );
+              }
 
-                if (state is AttachmentsError) {
-                  return ErrorCard(
-                    message: state.message!,
-                    onReload: () {
-                      context.read<AttachmentBloc>().add(
-                        createFetchAttachmentsEvent(),
-                      );
-                    },
-                    expanded: false,
-                  );
-                }
+              if (attachments.isEmpty) {
+                return const EmptyCard(
+                  icon: Icons.attachment_outlined,
+                  message: 'Click "Choose Files" to add attachments',
+                  expanded: false,
+                );
+              }
 
-                if (attachments.isEmpty) {
-                  return const EmptyCard(
-                    icon: Icons.attachment_outlined,
-                    message: 'Click "Choose Files" to add attachments',
-                    expanded: false,
-                  );
-                }
-
-                return _buildAttachmentsList();
-              },
-            ),
-          ),
-
-          HeliumElevatedButton(
-            onPressed: () {
-              _openFileChooserDialog();
+              return _buildAttachmentsList();
             },
-            icon: Icons.cloud_upload_outlined,
-            buttonText: 'Choose Files',
           ),
-          const SizedBox(height: 12),
-
-          if (filesToUpload.isNotEmpty)
-            ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.4,
-              ),
-              child: _buildFilesToUploadList(),
+        ),
+        HeliumElevatedButton(
+          onPressed: _openFileChooserDialog,
+          icon: Icons.cloud_upload_outlined,
+          buttonText: 'Choose Files',
+        ),
+        const SizedBox(height: 12),
+        if (filesToUpload.isNotEmpty)
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.4,
             ),
-
-          const SizedBox(height: 12),
-
-          HeliumElevatedButton(
-            buttonText: 'Upload',
-            isLoading: isSubmitting,
-            enabled: filesToUpload.isNotEmpty && !isSubmitting,
-            onPressed: _saveAttachments,
+            child: _buildFilesToUploadList(),
           ),
-
-          const SizedBox(height: 12),
-        ],
-      ),
+        const SizedBox(height: 12),
+        HeliumElevatedButton(
+          buttonText: 'Upload',
+          isLoading: isSubmitting,
+          enabled: filesToUpload.isNotEmpty && !isSubmitting,
+          onPressed: _saveAttachments,
+        ),
+        const SizedBox(height: 12),
+      ],
     );
   }
 
@@ -247,7 +233,7 @@ abstract class BaseAttachmentScreenState<T>
         for (var platFile in result.files) {
           if (platFile.bytes == null) {
             if (mounted) {
-              showSnackBar(
+              SnackBarHelper.show(
                 context,
                 'An error occurred while reading the file: ${platFile.name}',
                 isError: true,
@@ -260,7 +246,7 @@ abstract class BaseAttachmentScreenState<T>
 
           if (fileSize > 10 * 1024 * 1024) {
             if (mounted) {
-              showSnackBar(
+              SnackBarHelper.show(
                 context,
                 'File size cannot exceed 10mb limit',
                 isError: true,
@@ -274,13 +260,16 @@ abstract class BaseAttachmentScreenState<T>
           );
         }
 
-        setState(() {
-          // Trigger UI rebuild
+        // Defer setState to avoid layout conflicts during pointer events
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+
+          setState(() {});
         });
       }
     } catch (e) {
       if (!mounted) return;
-      showSnackBar(context, 'Error picking file: $e', isError: true);
+      SnackBarHelper.show(context, 'Error picking file: $e', isError: true);
     }
   }
 
@@ -294,17 +283,24 @@ abstract class BaseAttachmentScreenState<T>
 
   Widget _buildFilesToUploadList() {
     return ListView.builder(
+      key: ValueKey(filesToUpload.length),
       shrinkWrap: true,
+      physics: const ClampingScrollPhysics(),
       itemCount: filesToUpload.length,
       itemBuilder: (context, index) {
         final file = filesToUpload[index];
-        return _buildFileToUploadCard(context, file);
+        return _buildFileToUploadCard(context, file, index);
       },
     );
   }
 
-  Widget _buildFileToUploadCard(BuildContext context, AttachmentFile file) {
+  Widget _buildFileToUploadCard(
+    BuildContext context,
+    AttachmentFile file,
+    int index,
+  ) {
     return Card(
+      key: ValueKey('file_upload_$index'),
       child: Padding(
         padding: const EdgeInsets.all(8),
         child: Row(
@@ -333,9 +329,15 @@ abstract class BaseAttachmentScreenState<T>
             ),
             IconButton(
               onPressed: () {
-                setState(() {
-                  filesToUpload.remove(file);
-                });
+                if (index < filesToUpload.length) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (!mounted) return;
+
+                    setState(() {
+                      filesToUpload.removeAt(index);
+                    });
+                  });
+                }
               },
               icon: Icon(
                 Icons.close,
@@ -437,9 +439,9 @@ abstract class BaseAttachmentScreenState<T>
 
     if (!mounted) return;
     if (success) {
-      showSnackBar(context, '"${attachment.title}" downloaded');
+      SnackBarHelper.show(context, '"${attachment.title}" downloaded');
     } else {
-      showSnackBar(
+      SnackBarHelper.show(
         context,
         'Failed to download "${attachment.title}"',
         isError: true,

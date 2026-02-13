@@ -120,9 +120,8 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
               isLoading = false;
             });
           } else if (state is AuthLoggedOut) {
-            if (context.mounted) {
-              context.go(AppRoutes.loginScreen);
-            }
+            if (!context.mounted) return;
+            context.go(AppRoutes.loginScreen);
           } else if (state is AuthAccountDeleted) {
             showSnackBar(
               context,
@@ -130,13 +129,12 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
               isError: false,
               seconds: 6,
             );
-            if (context.mounted) {
-              // Close settings dialog if open
-              if (DialogModeProvider.isDialogMode(context)) {
-                Navigator.of(context).pop();
-              }
-              context.go(AppRoutes.loginScreen);
+            if (!context.mounted) return;
+            // Close settings dialog if open
+            if (DialogModeProvider.isDialogMode(context)) {
+              Navigator.of(context).pop();
             }
+            context.go(AppRoutes.loginScreen);
           }
         },
       ),
@@ -299,9 +297,10 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
           Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: () {
-                showPreferences(context);
-              },
+              onTap: () => _navigateToSubSettings(
+                context,
+                (ctx) => showPreferences(ctx),
+              ),
               borderRadius: BorderRadius.circular(16),
               child: Padding(
                 padding: const EdgeInsets.all(14),
@@ -367,7 +366,13 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
             color: Colors.transparent,
             child: InkWell(
               onTap: () {
-                showExternalCalendars(context);
+                // Capture the bloc before navigating, since the new context
+                // won't have it after the settings dialog is popped
+                final bloc = context.read<ExternalCalendarBloc>();
+                _navigateToSubSettings(
+                  context,
+                  (ctx) => showExternalCalendars(ctx, externalCalendarBloc: bloc),
+                );
               },
               borderRadius: BorderRadius.circular(16),
               child: Padding(
@@ -433,9 +438,10 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
           Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: () {
-                showFeeds(context);
-              },
+              onTap: () => _navigateToSubSettings(
+                context,
+                (ctx) => showFeeds(ctx),
+              ),
               borderRadius: BorderRadius.circular(16),
               child: Padding(
                 padding: const EdgeInsets.all(14),
@@ -497,9 +503,10 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
           Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: () {
-                showChangePassword(context);
-              },
+              onTap: () => _navigateToSubSettings(
+                context,
+                (ctx) => showChangePassword(ctx),
+              ),
               borderRadius: BorderRadius.circular(16),
               child: Padding(
                 padding: const EdgeInsets.all(14),
@@ -561,6 +568,23 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
         ],
       ),
     );
+  }
+
+  /// Navigates to a sub-settings screen. In dialog mode, closes the settings
+  /// dialog first, then opens the sub-dialog. This avoids double-stacked
+  /// dialogs with double shadows.
+  void _navigateToSubSettings(
+    BuildContext context,
+    void Function(BuildContext) showSubScreen,
+  ) {
+    if (DialogModeProvider.isDialogMode(context)) {
+      // Get a context that survives the pop (Navigator's context)
+      final navContext = Navigator.of(context, rootNavigator: true).context;
+      Navigator.of(context).pop();
+      showSubScreen(navContext);
+    } else {
+      showSubScreen(context);
+    }
   }
 
   Widget _buildDeleteAccountArea() {

@@ -53,8 +53,9 @@ void main() {
 
   tearDownAll(() {
     // Restore default debounce duration
-    CalendarItemDataSource.filterDebounceDuration =
-        const Duration(milliseconds: 16);
+    CalendarItemDataSource.filterDebounceDuration = const Duration(
+      milliseconds: 16,
+    );
   });
 
   setUp(() async {
@@ -64,25 +65,34 @@ void main() {
     mockExternalCalendarRepository = MockExternalCalendarRepository();
 
     // Default mocks for handleLoadMore
-    when(() => mockHomeworkRepository.getHomeworks(
-          from: any(named: 'from'),
-          to: any(named: 'to'),
-          shownOnCalendar: any(named: 'shownOnCalendar'),
-        )).thenAnswer((_) async => []);
-    when(() => mockEventRepository.getEvents(
-          from: any(named: 'from'),
-          to: any(named: 'to'),
-        )).thenAnswer((_) async => []);
-    when(() => mockCourseScheduleRepository.getCourseScheduleEvents(
-          from: any(named: 'from'),
-          to: any(named: 'to'),
-          shownOnCalendar: any(named: 'shownOnCalendar'),
-        )).thenAnswer((_) async => []);
-    when(() => mockExternalCalendarRepository.getExternalCalendarEvents(
-          from: any(named: 'from'),
-          to: any(named: 'to'),
-          shownOnCalendar: any(named: 'shownOnCalendar'),
-        )).thenAnswer((_) async => []);
+    when(
+      () => mockHomeworkRepository.getHomeworks(
+        from: any(named: 'from'),
+        to: any(named: 'to'),
+        shownOnCalendar: any(named: 'shownOnCalendar'),
+      ),
+    ).thenAnswer((_) async => []);
+    when(
+      () => mockEventRepository.getEvents(
+        from: any(named: 'from'),
+        to: any(named: 'to'),
+      ),
+    ).thenAnswer((_) async => []);
+    when(
+      () => mockCourseScheduleRepository.getCourseScheduleEvents(
+        courses: any(named: 'courses'),
+        from: any(named: 'from'),
+        to: any(named: 'to'),
+        shownOnCalendar: any(named: 'shownOnCalendar'),
+      ),
+    ).thenAnswer((_) async => []);
+    when(
+      () => mockExternalCalendarRepository.getExternalCalendarEvents(
+        from: any(named: 'from'),
+        to: any(named: 'to'),
+        shownOnCalendar: any(named: 'shownOnCalendar'),
+      ),
+    ).thenAnswer((_) async => []);
 
     userSettings = UserSettingsModel(
       timeZone: tz.getLocation('America/Los_Angeles'),
@@ -179,14 +189,27 @@ void main() {
       test('getStartTime returns DateTime with priority adjustment', () {
         final startTime = dataSource.getStartTime(0);
         // Homework has priority 0, so gets 3 seconds subtracted
-        expect(startTime, DateTime.parse('2025-01-15T10:00:00Z').subtract(const Duration(seconds: 3)));
+        expect(
+          startTime,
+          DateTime.parse(
+            '2025-01-15T10:00:00Z',
+          ).subtract(const Duration(seconds: 3)),
+        );
       });
 
-      test('getEndTime returns DateTime with priority adjustment for non-allDay events', () {
-        final endTime = dataSource.getEndTime(0);
-        // Homework has priority 0, so gets 3 minutes subtracted
-        expect(endTime, DateTime.parse('2025-01-15T11:00:00Z').subtract(const Duration(minutes: 3)));
-      });
+      test(
+        'getEndTime returns DateTime with priority adjustment for non-allDay events',
+        () {
+          final endTime = dataSource.getEndTime(0);
+          // Homework has priority 0, so gets 3 minutes subtracted
+          expect(
+            endTime,
+            DateTime.parse(
+              '2025-01-15T11:00:00Z',
+            ).subtract(const Duration(minutes: 3)),
+          );
+        },
+      );
 
       test('getEndTime subtracts 1 day for allDay events', () {
         final allDayHomework = _createHomeworkModel(
@@ -233,8 +256,7 @@ void main() {
 
       setUp(() {
         course = _createCourseModel(id: 1, color: const Color(0xFFFF5722));
-        category =
-            _createCategoryModel(id: 1, color: const Color(0xFF9C27B0));
+        category = _createCategoryModel(id: 1, color: const Color(0xFF9C27B0));
 
         dataSource.courses = [course];
         dataSource.categoriesMap = {1: category};
@@ -246,8 +268,7 @@ void main() {
         expect(color, userSettings.eventsColor);
       });
 
-      test('returns category color for HomeworkModel when colorByCategory',
-          () {
+      test('returns category color for HomeworkModel when colorByCategory', () {
         final colorByCategorySettings = UserSettingsModel(
           timeZone: tz.getLocation('America/Los_Angeles'),
           defaultView: 0,
@@ -275,25 +296,21 @@ void main() {
         colorByCategoryDataSource.courses = [course];
         colorByCategoryDataSource.categoriesMap = {1: category};
 
-        final homework = _createHomeworkModel(
-          courseId: 1,
-          categoryId: 1,
-        );
+        final homework = _createHomeworkModel(courseId: 1, categoryId: 1);
 
         final color = colorByCategoryDataSource.getColorForItem(homework);
         expect(color, category.color);
       });
 
-      test('returns course color for HomeworkModel when not colorByCategory',
-          () {
-        final homework = _createHomeworkModel(
-          courseId: 1,
-          categoryId: 1,
-        );
+      test(
+        'returns course color for HomeworkModel when not colorByCategory',
+        () {
+          final homework = _createHomeworkModel(courseId: 1, categoryId: 1);
 
-        final color = dataSource.getColorForItem(homework);
-        expect(color, course.color);
-      });
+          final color = dataSource.getColorForItem(homework);
+          expect(color, course.color);
+        },
+      );
 
       test('returns item color for CourseScheduleEventModel', () {
         final scheduleEvent = _createCourseScheduleEventModel(
@@ -370,18 +387,12 @@ void main() {
       });
 
       test('filters by multiple selected courses', () {
-        dataSource.setFilteredCourses({
-          1: true,
-          2: true,
-        });
+        dataSource.setFilteredCourses({1: true, 2: true});
         expect(dataSource.filteredHomeworks, hasLength(3));
       });
 
       test('filters out when course not selected', () {
-        dataSource.setFilteredCourses({
-          1: true,
-          2: false,
-        });
+        dataSource.setFilteredCourses({1: true, 2: false});
         final filtered = dataSource.filteredHomeworks;
 
         expect(filtered, hasLength(2));
@@ -397,10 +408,14 @@ void main() {
       });
 
       test('filters CourseScheduleEventModels by course', () {
-        final scheduleEvent1 =
-            _createCourseScheduleEventModel(id: 10, ownerId: '1');
-        final scheduleEvent2 =
-            _createCourseScheduleEventModel(id: 11, ownerId: '2');
+        final scheduleEvent1 = _createCourseScheduleEventModel(
+          id: 10,
+          ownerId: '1',
+        );
+        final scheduleEvent2 = _createCourseScheduleEventModel(
+          id: 11,
+          ownerId: '2',
+        );
         dataSource.addCalendarItem(scheduleEvent1);
         dataSource.addCalendarItem(scheduleEvent2);
 
@@ -408,8 +423,10 @@ void main() {
         dataSource.setFilterTypes(['Class Schedules']);
 
         expect(dataSource.appointments, hasLength(1));
-        expect((dataSource.appointments![0] as CourseScheduleEventModel).ownerId,
-            '1');
+        expect(
+          (dataSource.appointments![0] as CourseScheduleEventModel).ownerId,
+          '1',
+        );
       });
     });
 
@@ -864,10 +881,7 @@ void main() {
         dataSource.setCompletedOverride(1, true);
         final overrides = dataSource.completedOverrides;
 
-        expect(
-          () => overrides[2] = true,
-          throwsUnsupportedError,
-        );
+        expect(() => overrides[2] = true, throwsUnsupportedError);
       });
     });
 
@@ -884,7 +898,11 @@ void main() {
       });
 
       test('setTimeOverride stores override', () {
-        dataSource.setTimeOverride(1, '2025-01-16T14:00:00Z', '2025-01-16T15:00:00Z');
+        dataSource.setTimeOverride(
+          1,
+          '2025-01-16T14:00:00Z',
+          '2025-01-16T15:00:00Z',
+        );
 
         final override = dataSource.getTimeOverride(1);
         expect(override, isNotNull);
@@ -897,30 +915,56 @@ void main() {
       });
 
       test('clearTimeOverride removes override', () {
-        dataSource.setTimeOverride(1, '2025-01-16T14:00:00Z', '2025-01-16T15:00:00Z');
+        dataSource.setTimeOverride(
+          1,
+          '2025-01-16T14:00:00Z',
+          '2025-01-16T15:00:00Z',
+        );
         dataSource.clearTimeOverride(1);
 
         expect(dataSource.getTimeOverride(1), isNull);
       });
 
       test('getStartTime uses override when present', () {
-        dataSource.setTimeOverride(1, '2025-01-20T09:00:00Z', '2025-01-20T10:00:00Z');
+        dataSource.setTimeOverride(
+          1,
+          '2025-01-20T09:00:00Z',
+          '2025-01-20T10:00:00Z',
+        );
 
         final startTime = dataSource.getStartTime(0);
         // Start time should be based on override, minus priority adjustment (3 seconds for homework)
-        expect(startTime, DateTime.parse('2025-01-20T09:00:00Z').subtract(const Duration(seconds: 3)));
+        expect(
+          startTime,
+          DateTime.parse(
+            '2025-01-20T09:00:00Z',
+          ).subtract(const Duration(seconds: 3)),
+        );
       });
 
       test('getEndTime uses override when present', () {
-        dataSource.setTimeOverride(1, '2025-01-20T09:00:00Z', '2025-01-20T10:00:00Z');
+        dataSource.setTimeOverride(
+          1,
+          '2025-01-20T09:00:00Z',
+          '2025-01-20T10:00:00Z',
+        );
 
         final endTime = dataSource.getEndTime(0);
         // End time should be based on override, minus priority adjustment (3 minutes for homework)
-        expect(endTime, DateTime.parse('2025-01-20T10:00:00Z').subtract(const Duration(minutes: 3)));
+        expect(
+          endTime,
+          DateTime.parse(
+            '2025-01-20T10:00:00Z',
+          ).subtract(const Duration(minutes: 3)),
+        );
       });
 
       test('updateCalendarItem clears time override', () {
-        dataSource.setTimeOverride(1, '2025-01-20T09:00:00Z', '2025-01-20T10:00:00Z');
+        dataSource.setTimeOverride(
+          1,
+          '2025-01-20T09:00:00Z',
+          '2025-01-20T10:00:00Z',
+        );
         expect(dataSource.getTimeOverride(1), isNotNull);
 
         final updated = _createHomeworkModel(
@@ -941,7 +985,11 @@ void main() {
         );
         dataSource.addCalendarItem(event);
 
-        dataSource.setTimeOverride(2, '2025-01-18T16:00:00Z', '2025-01-18T17:00:00Z');
+        dataSource.setTimeOverride(
+          2,
+          '2025-01-18T16:00:00Z',
+          '2025-01-18T17:00:00Z',
+        );
 
         final override = dataSource.getTimeOverride(2);
         expect(override, isNotNull);
@@ -959,7 +1007,12 @@ void main() {
         dataSource.addCalendarItem(homework);
 
         final startTime = dataSource.getStartTime(0);
-        expect(startTime, DateTime.parse('2025-01-15T10:00:00Z').subtract(const Duration(seconds: 3)));
+        expect(
+          startTime,
+          DateTime.parse(
+            '2025-01-15T10:00:00Z',
+          ).subtract(const Duration(seconds: 3)),
+        );
       });
 
       test('course schedule gets 2 seconds subtracted from start time', () {
@@ -967,7 +1020,12 @@ void main() {
         dataSource.addCalendarItem(schedule);
 
         final startTime = dataSource.getStartTime(0);
-        expect(startTime, DateTime.parse('2025-01-15T10:00:00Z').subtract(const Duration(seconds: 2)));
+        expect(
+          startTime,
+          DateTime.parse(
+            '2025-01-15T10:00:00Z',
+          ).subtract(const Duration(seconds: 2)),
+        );
       });
 
       test('event gets 1 second subtracted from start time', () {
@@ -979,7 +1037,12 @@ void main() {
         dataSource.addCalendarItem(event);
 
         final startTime = dataSource.getStartTime(0);
-        expect(startTime, DateTime.parse('2025-01-15T10:00:00Z').subtract(const Duration(seconds: 1)));
+        expect(
+          startTime,
+          DateTime.parse(
+            '2025-01-15T10:00:00Z',
+          ).subtract(const Duration(seconds: 1)),
+        );
       });
 
       test('external event gets 0 seconds subtracted from start time', () {
@@ -1013,7 +1076,12 @@ void main() {
         dataSource.addCalendarItem(homework);
 
         final endTime = dataSource.getEndTime(0);
-        expect(endTime, DateTime.parse('2025-01-15T11:00:00Z').subtract(const Duration(minutes: 3)));
+        expect(
+          endTime,
+          DateTime.parse(
+            '2025-01-15T11:00:00Z',
+          ).subtract(const Duration(minutes: 3)),
+        );
       });
 
       test('event gets 1 minute subtracted from end time', () {
@@ -1025,30 +1093,42 @@ void main() {
         dataSource.addCalendarItem(event);
 
         final endTime = dataSource.getEndTime(0);
-        expect(endTime, DateTime.parse('2025-01-15T11:00:00Z').subtract(const Duration(minutes: 1)));
+        expect(
+          endTime,
+          DateTime.parse(
+            '2025-01-15T11:00:00Z',
+          ).subtract(const Duration(minutes: 1)),
+        );
       });
 
-      test('priority adjustments ensure homework sorts before event at same time', () {
-        final event = _createEventModel(
-          id: 1,
-          start: DateTime.parse('2025-01-15T10:00:00Z'),
-          end: DateTime.parse('2025-01-15T11:00:00Z'),
-        );
-        final homework = _createHomeworkModel(
-          id: 2,
-          start: DateTime.parse('2025-01-15T10:00:00Z'),
-          end: DateTime.parse('2025-01-15T11:00:00Z'),
-        );
-        dataSource.addCalendarItem(event);
-        dataSource.addCalendarItem(homework);
+      test(
+        'priority adjustments ensure homework sorts before event at same time',
+        () {
+          final event = _createEventModel(
+            id: 1,
+            start: DateTime.parse('2025-01-15T10:00:00Z'),
+            end: DateTime.parse('2025-01-15T11:00:00Z'),
+          );
+          final homework = _createHomeworkModel(
+            id: 2,
+            start: DateTime.parse('2025-01-15T10:00:00Z'),
+            end: DateTime.parse('2025-01-15T11:00:00Z'),
+          );
+          dataSource.addCalendarItem(event);
+          dataSource.addCalendarItem(homework);
 
-        // Homework (priority 0) gets -3 seconds, Event (priority 2) gets -1 second
-        // So homework's adjusted start is earlier and should sort first
-        final homeworkAdjustedStart = DateTime.parse('2025-01-15T10:00:00Z').subtract(const Duration(seconds: 3));
-        final eventAdjustedStart = DateTime.parse('2025-01-15T10:00:00Z').subtract(const Duration(seconds: 1));
+          // Homework (priority 0) gets -3 seconds, Event (priority 2) gets -1 second
+          // So homework's adjusted start is earlier and should sort first
+          final homeworkAdjustedStart = DateTime.parse(
+            '2025-01-15T10:00:00Z',
+          ).subtract(const Duration(seconds: 3));
+          final eventAdjustedStart = DateTime.parse(
+            '2025-01-15T10:00:00Z',
+          ).subtract(const Duration(seconds: 1));
 
-        expect(homeworkAdjustedStart.isBefore(eventAdjustedStart), isTrue);
-      });
+          expect(homeworkAdjustedStart.isBefore(eventAdjustedStart), isTrue);
+        },
+      );
     });
 
     group('clearFilters', () {
@@ -1088,25 +1168,34 @@ void main() {
         reset(mockExternalCalendarRepository);
 
         // Re-setup default mocks
-        when(() => mockHomeworkRepository.getHomeworks(
-              from: any(named: 'from'),
-              to: any(named: 'to'),
-              shownOnCalendar: any(named: 'shownOnCalendar'),
-            )).thenAnswer((_) async => []);
-        when(() => mockEventRepository.getEvents(
-              from: any(named: 'from'),
-              to: any(named: 'to'),
-            )).thenAnswer((_) async => []);
-        when(() => mockCourseScheduleRepository.getCourseScheduleEvents(
-              from: any(named: 'from'),
-              to: any(named: 'to'),
-              shownOnCalendar: any(named: 'shownOnCalendar'),
-            )).thenAnswer((_) async => []);
-        when(() => mockExternalCalendarRepository.getExternalCalendarEvents(
-              from: any(named: 'from'),
-              to: any(named: 'to'),
-              shownOnCalendar: any(named: 'shownOnCalendar'),
-            )).thenAnswer((_) async => []);
+        when(
+          () => mockHomeworkRepository.getHomeworks(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+            shownOnCalendar: any(named: 'shownOnCalendar'),
+          ),
+        ).thenAnswer((_) async => []);
+        when(
+          () => mockEventRepository.getEvents(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+          ),
+        ).thenAnswer((_) async => []);
+        when(
+          () => mockCourseScheduleRepository.getCourseScheduleEvents(
+            courses: any(named: 'courses'),
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+            shownOnCalendar: any(named: 'shownOnCalendar'),
+          ),
+        ).thenAnswer((_) async => []);
+        when(
+          () => mockExternalCalendarRepository.getExternalCalendarEvents(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+            shownOnCalendar: any(named: 'shownOnCalendar'),
+          ),
+        ).thenAnswer((_) async => []);
 
         // Create a fresh data source without the pre-loaded cache
         freshDataSource = CalendarItemDataSource(
@@ -1141,25 +1230,34 @@ void main() {
         reset(mockCourseScheduleRepository);
         reset(mockExternalCalendarRepository);
 
-        when(() => mockHomeworkRepository.getHomeworks(
-              from: any(named: 'from'),
-              to: any(named: 'to'),
-              shownOnCalendar: any(named: 'shownOnCalendar'),
-            )).thenAnswer((_) async => []);
-        when(() => mockEventRepository.getEvents(
-              from: any(named: 'from'),
-              to: any(named: 'to'),
-            )).thenAnswer((_) async => []);
-        when(() => mockCourseScheduleRepository.getCourseScheduleEvents(
-              from: any(named: 'from'),
-              to: any(named: 'to'),
-              shownOnCalendar: any(named: 'shownOnCalendar'),
-            )).thenAnswer((_) async => []);
-        when(() => mockExternalCalendarRepository.getExternalCalendarEvents(
-              from: any(named: 'from'),
-              to: any(named: 'to'),
-              shownOnCalendar: any(named: 'shownOnCalendar'),
-            )).thenAnswer((_) async => []);
+        when(
+          () => mockHomeworkRepository.getHomeworks(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+            shownOnCalendar: any(named: 'shownOnCalendar'),
+          ),
+        ).thenAnswer((_) async => []);
+        when(
+          () => mockEventRepository.getEvents(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+          ),
+        ).thenAnswer((_) async => []);
+        when(
+          () => mockCourseScheduleRepository.getCourseScheduleEvents(
+            courses: any(named: 'courses'),
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+            shownOnCalendar: any(named: 'shownOnCalendar'),
+          ),
+        ).thenAnswer((_) async => []);
+        when(
+          () => mockExternalCalendarRepository.getExternalCalendarEvents(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+            shownOnCalendar: any(named: 'shownOnCalendar'),
+          ),
+        ).thenAnswer((_) async => []);
 
         // Same range should use cache
         await freshDataSource.handleLoadMore(
@@ -1167,11 +1265,13 @@ void main() {
           DateTime(2025, 1, 31),
         );
 
-        verifyNever(() => mockHomeworkRepository.getHomeworks(
-              from: any(named: 'from'),
-              to: any(named: 'to'),
-              shownOnCalendar: any(named: 'shownOnCalendar'),
-            ));
+        verifyNever(
+          () => mockHomeworkRepository.getHomeworks(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+            shownOnCalendar: any(named: 'shownOnCalendar'),
+          ),
+        );
       });
 
       test('fetches for different date ranges', () async {
@@ -1186,11 +1286,13 @@ void main() {
           DateTime(2025, 2, 28),
         );
 
-        verify(() => mockHomeworkRepository.getHomeworks(
-              from: any(named: 'from'),
-              to: any(named: 'to'),
-              shownOnCalendar: any(named: 'shownOnCalendar'),
-            )).called(2);
+        verify(
+          () => mockHomeworkRepository.getHomeworks(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+            shownOnCalendar: any(named: 'shownOnCalendar'),
+          ),
+        ).called(2);
       });
 
       test('fetches calendar items from all repositories', () async {
@@ -1199,25 +1301,34 @@ void main() {
         final scheduleEvent = _createCourseScheduleEventModel(id: 102);
         final externalEvent = _createExternalCalendarEventModel(id: 103);
 
-        when(() => mockHomeworkRepository.getHomeworks(
-              from: any(named: 'from'),
-              to: any(named: 'to'),
-              shownOnCalendar: any(named: 'shownOnCalendar'),
-            )).thenAnswer((_) async => [homework]);
-        when(() => mockEventRepository.getEvents(
-              from: any(named: 'from'),
-              to: any(named: 'to'),
-            )).thenAnswer((_) async => [event]);
-        when(() => mockCourseScheduleRepository.getCourseScheduleEvents(
-              from: any(named: 'from'),
-              to: any(named: 'to'),
-              shownOnCalendar: any(named: 'shownOnCalendar'),
-            )).thenAnswer((_) async => [scheduleEvent]);
-        when(() => mockExternalCalendarRepository.getExternalCalendarEvents(
-              from: any(named: 'from'),
-              to: any(named: 'to'),
-              shownOnCalendar: any(named: 'shownOnCalendar'),
-            )).thenAnswer((_) async => [externalEvent]);
+        when(
+          () => mockHomeworkRepository.getHomeworks(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+            shownOnCalendar: any(named: 'shownOnCalendar'),
+          ),
+        ).thenAnswer((_) async => [homework]);
+        when(
+          () => mockEventRepository.getEvents(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+          ),
+        ).thenAnswer((_) async => [event]);
+        when(
+          () => mockCourseScheduleRepository.getCourseScheduleEvents(
+            courses: any(named: 'courses'),
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+            shownOnCalendar: any(named: 'shownOnCalendar'),
+          ),
+        ).thenAnswer((_) async => [scheduleEvent]);
+        when(
+          () => mockExternalCalendarRepository.getExternalCalendarEvents(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+            shownOnCalendar: any(named: 'shownOnCalendar'),
+          ),
+        ).thenAnswer((_) async => [externalEvent]);
 
         await freshDataSource.handleLoadMore(
           DateTime(2025, 1, 1),
@@ -1231,11 +1342,13 @@ void main() {
       test('deduplicates items across overlapping date ranges', () async {
         final homework = _createHomeworkModel(id: 100);
 
-        when(() => mockHomeworkRepository.getHomeworks(
-              from: any(named: 'from'),
-              to: any(named: 'to'),
-              shownOnCalendar: any(named: 'shownOnCalendar'),
-            )).thenAnswer((_) async => [homework]);
+        when(
+          () => mockHomeworkRepository.getHomeworks(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+            shownOnCalendar: any(named: 'shownOnCalendar'),
+          ),
+        ).thenAnswer((_) async => [homework]);
 
         // Load two different ranges that both return the same item
         await freshDataSource.handleLoadMore(
@@ -1257,13 +1370,14 @@ void main() {
           DateTime(2025, 1, 31),
         );
 
-        verify(() => mockHomeworkRepository.getHomeworks(
-              from: any(named: 'from'),
-              to: any(named: 'to'),
-              shownOnCalendar: true,
-            )).called(1);
+        verify(
+          () => mockHomeworkRepository.getHomeworks(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+            shownOnCalendar: true,
+          ),
+        ).called(1);
       });
-
     });
 
     group('typed getters', () {
@@ -1283,23 +1397,31 @@ void main() {
         expect(dataSource.allEvents, hasLength(2));
       });
 
-      test('allCourseScheduleEvents returns only CourseScheduleEventModels',
-          () {
-        dataSource.addCalendarItem(_createCourseScheduleEventModel(id: 107));
-        dataSource.addCalendarItem(_createEventModel(id: 108));
-        dataSource.addCalendarItem(_createCourseScheduleEventModel(id: 109));
+      test(
+        'allCourseScheduleEvents returns only CourseScheduleEventModels',
+        () {
+          dataSource.addCalendarItem(_createCourseScheduleEventModel(id: 107));
+          dataSource.addCalendarItem(_createEventModel(id: 108));
+          dataSource.addCalendarItem(_createCourseScheduleEventModel(id: 109));
 
-        expect(dataSource.allCourseScheduleEvents, hasLength(2));
-      });
+          expect(dataSource.allCourseScheduleEvents, hasLength(2));
+        },
+      );
 
-      test('allExternalCalendarEvents returns only ExternalCalendarEventModels',
-          () {
-        dataSource.addCalendarItem(_createExternalCalendarEventModel(id: 110));
-        dataSource.addCalendarItem(_createEventModel(id: 111));
-        dataSource.addCalendarItem(_createExternalCalendarEventModel(id: 112));
+      test(
+        'allExternalCalendarEvents returns only ExternalCalendarEventModels',
+        () {
+          dataSource.addCalendarItem(
+            _createExternalCalendarEventModel(id: 110),
+          );
+          dataSource.addCalendarItem(_createEventModel(id: 111));
+          dataSource.addCalendarItem(
+            _createExternalCalendarEventModel(id: 112),
+          );
 
-        expect(dataSource.allExternalCalendarEvents, hasLength(2));
-      });
+          expect(dataSource.allExternalCalendarEvents, hasLength(2));
+        },
+      );
     });
 
     group('convertAppointmentToObject', () {
@@ -1324,10 +1446,7 @@ void main() {
           endTime: DateTime.now(),
         );
 
-        final result = dataSource.convertAppointmentToObject(
-          null,
-          appointment,
-        );
+        final result = dataSource.convertAppointmentToObject(null, appointment);
 
         expect(result, isNull);
       });

@@ -93,11 +93,10 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
           if (state is AuthLoggedIn) {
             _formController.clearForm();
 
-            if (context.mounted) {
-              // Redirect to intended destination or default to calendar
-              final destination = _nextRoute ?? AppRoutes.plannerScreen;
-              context.replace(destination);
-            }
+            if (!context.mounted) return;
+            // Redirect to intended destination or default to calendar
+            final destination = _nextRoute ?? AppRoutes.plannerScreen;
+            context.replace(destination);
           } else if (state is AuthError) {
             // 401/403 errors on login screen are from force logout (already showed snackbar)
             if (state.code == '401' || state.code == '403') {

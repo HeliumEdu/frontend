@@ -11,6 +11,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
@@ -35,20 +36,21 @@ import 'package:heliumapp/data/repositories/homework_repository_impl.dart';
 import 'package:heliumapp/data/sources/calendar_item_data_source.dart';
 import 'package:heliumapp/data/sources/category_remote_data_source.dart';
 import 'package:heliumapp/data/sources/course_remote_data_source.dart';
+import 'package:heliumapp/data/sources/course_schedule_builder_source.dart';
 import 'package:heliumapp/data/sources/course_schedule_remote_data_source.dart';
 import 'package:heliumapp/data/sources/event_remote_data_source.dart';
 import 'package:heliumapp/data/sources/external_calendar_remote_data_source.dart';
 import 'package:heliumapp/data/sources/homework_remote_data_source.dart';
 import 'package:heliumapp/presentation/bloc/attachment/attachment_bloc.dart';
 import 'package:heliumapp/presentation/bloc/attachment/attachment_state.dart';
+import 'package:heliumapp/presentation/bloc/auth/auth_bloc.dart';
+import 'package:heliumapp/presentation/bloc/auth/auth_state.dart';
 import 'package:heliumapp/presentation/bloc/calendar/calendar_bloc.dart';
 import 'package:heliumapp/presentation/bloc/calendar/calendar_event.dart';
 import 'package:heliumapp/presentation/bloc/calendar/calendar_state.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_event.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_state.dart';
-import 'package:heliumapp/presentation/bloc/auth/auth_bloc.dart';
-import 'package:heliumapp/presentation/bloc/auth/auth_state.dart';
 import 'package:heliumapp/presentation/bloc/category/category_bloc.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
@@ -137,9 +139,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     BlocProvider<CalendarItemBloc>.value(
       value: context.read<CalendarItemBloc>(),
     ),
-    BlocProvider<AttachmentBloc>.value(
-      value: context.read<AttachmentBloc>(),
-    ),
+    BlocProvider<AttachmentBloc>.value(value: context.read<AttachmentBloc>()),
   ];
 
   @override
@@ -153,12 +153,17 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         ? truncatedNow
         : _calendarController.selectedDate;
 
+    final calendarItemBloc = context.read<CalendarItemBloc>();
+    final attachmentBloc = context.read<AttachmentBloc>();
+
     showCalendarItemAdd(
       context,
       initialDate: initialDate,
       isFromMonthView: _calendarController.view == CalendarView.month,
       isEdit: false,
       isNew: true,
+      calendarItemBloc: calendarItemBloc,
+      attachmentBloc: attachmentBloc,
     );
   };
 
@@ -222,9 +227,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       } else if (value == 'displayDate' && _currentView == HeliumView.agenda) {
         _log.fine('Display date change: $value');
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            setState(() {});
-          }
+          if (!mounted) return;
+
+          setState(() {});
         });
       }
     });
@@ -275,6 +280,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
               remoteDataSource: CourseScheduleRemoteDataSourceImpl(
                 dioClient: dioClient,
               ),
+              builderSource: CourseScheduleBuilderSource(),
             ),
             externalCalendarRepository: ExternalCalendarRepositoryImpl(
               remoteDataSource: ExternalCalendarRemoteDataSourceImpl(
@@ -629,14 +635,14 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           onSelectionChanged: _onCalendarSelectionChanged,
           onViewChanged: (ViewChangedDetails details) {
             _visibleDates = details.visibleDates;
-            if (mounted) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) {
-                  // Ensure the date header is updated
-                  setState(() {});
-                }
-              });
-            }
+            if (!mounted) return;
+
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!mounted) return;
+
+              // Ensure the date header is updated
+              setState(() {});
+            });
           },
         );
       },
@@ -645,20 +651,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   bool _openCalendarItem(CalendarItemBaseModel calendarItem) {
     if (calendarItem is CourseScheduleEventModel) {
-      showSnackBar(
-        context,
-        "You can't open this on the Planner",
-        isError: true,
-      );
-
+      _showEditClassScheduleEventSnackBar(calendarItem.ownerId);
       return false;
     } else if (calendarItem is ExternalCalendarEventModel) {
-      showSnackBar(
-        context,
-        "You can't open this on the Planner",
-        isError: true,
-      );
-
+      _showEditExternalCalendarEventSnackBar();
       return false;
     }
 
@@ -667,12 +663,17 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         ? calendarItem.id
         : null;
 
+    final calendarItemBloc = context.read<CalendarItemBloc>();
+    final attachmentBloc = context.read<AttachmentBloc>();
+
     showCalendarItemAdd(
       context,
       eventId: eventId,
       homeworkId: homeworkId,
       isEdit: true,
       isNew: false,
+      calendarItemBloc: calendarItemBloc,
+      attachmentBloc: attachmentBloc,
     );
 
     return true;
@@ -1557,17 +1558,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         );
       }
     } else if (calendarItem is CourseScheduleEventModel) {
-      showSnackBar(
-        context,
-        "You can't edit this on the Planner",
-        isError: true,
-      );
+      _showEditClassScheduleEventSnackBar(calendarItem.ownerId);
     } else if (calendarItem is ExternalCalendarEventModel) {
-      showSnackBar(
-        context,
-        "You can't edit this on the Planner",
-        isError: true,
-      );
+      _showEditExternalCalendarEventSnackBar();
     }
   }
 
@@ -1666,17 +1659,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         );
       }
     } else if (calendarItem is CourseScheduleEventModel) {
-      showSnackBar(
-        context,
-        "You can't edit this on the Planner",
-        isError: true,
-      );
+      _showEditClassScheduleEventSnackBar(calendarItem.ownerId);
     } else if (calendarItem is ExternalCalendarEventModel) {
-      showSnackBar(
-        context,
-        "You can't edit this on the Planner",
-        isError: true,
-      );
+      _showEditExternalCalendarEventSnackBar();
     }
   }
 
@@ -1858,7 +1843,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       ],
     );
 
-    return Flexible(child: contentColumn);
+    return Expanded(child: contentColumn);
   }
 
   Widget _buildCalendarItemCenterForTimeline({
@@ -2169,6 +2154,31 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     return null;
   }
 
+  void _showEditExternalCalendarEventSnackBar() {
+    showSnackBar(
+      context,
+      "You can't edit External Calendars in Helium",
+      seconds: 4,
+      isError: true,
+    );
+  }
+
+  void _showEditClassScheduleEventSnackBar(String courseId) {
+    showSnackBar(
+      context,
+      'Edit the Class to change its Schedule',
+      seconds: 4,
+      action: SnackBarAction(
+        label: 'Go',
+        textColor: context.colorScheme.onPrimary,
+        onPressed: () {
+          context.go('${AppRoutes.coursesScreen}?id=$courseId&step=1');
+        },
+      ),
+      isError: true,
+    );
+  }
+
   Widget _buildMoreIndicator(
     BuildContext context,
     CalendarAppointmentDetails details,
@@ -2374,12 +2384,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         _calendarController.selectedDate = truncatedDate;
         _storedSelectedDate = truncatedDate;
       }
-
     });
   }
 
   void _onToggleCompleted(HomeworkModel homework, bool value) {
-
     Feedback.forTap(context);
 
     _log.info('Homework ${homework.id} completion toggled: $value');

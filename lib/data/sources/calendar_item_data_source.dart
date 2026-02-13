@@ -11,7 +11,6 @@ import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:heliumapp/data/sources/calendar_item_filter_compute.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
@@ -21,6 +20,7 @@ import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
+import 'package:heliumapp/data/sources/calendar_item_filter_compute.dart';
 import 'package:heliumapp/domain/repositories/course_schedule_event_repository.dart';
 import 'package:heliumapp/domain/repositories/event_repository.dart';
 import 'package:heliumapp/domain/repositories/external_calendar_repository.dart';
@@ -83,6 +83,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   }
 
   final ChangeNotifier _changeNotifier = ChangeNotifier();
+  bool _isDisposed = false;
 
   Listenable get changeNotifier => _changeNotifier;
 
@@ -92,6 +93,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   bool get isRefreshing => _isRefreshing;
 
   void _notifyChangeListeners() {
+    if (_isDisposed) return;
     // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
     _changeNotifier.notifyListeners();
   }
@@ -126,6 +128,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
 
   @override
   void dispose() {
+    _isDisposed = true;
     _filterDebounceTimer?.cancel();
     _changeNotifier.dispose();
     super.dispose();
@@ -245,6 +248,15 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     return getColorForItem(_getData(index));
   }
 
+  @override
+  String? getRecurrenceRule(int index) {
+    final item = _getData(index);
+    if (item is CourseScheduleEventModel) {
+      return item.recurrenceRule;
+    }
+    return null;
+  }
+
   Color getColorForItem(CalendarItemBaseModel calendarItem) {
     if (calendarItem is EventModel) {
       return userSettings.eventsColor;
@@ -280,9 +292,8 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
       );
       return course?.room;
     } else if (calendarItem is CourseScheduleEventModel) {
-      final course = courses?.firstWhereOrNull(
-        (c) => c.id.toString() == calendarItem.ownerId,
-      );
+      final courseId = int.tryParse(calendarItem.ownerId);
+      final course = courses?.firstWhereOrNull((c) => c.id == courseId);
       return course?.room;
     } else {
       return calendarItem.location;
@@ -307,12 +318,17 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
       );
       final courseScheduleEvents = await courseScheduleRepository
           .getCourseScheduleEvents(
+            courses: courses ?? [],
             from: startDate,
             to: endDate,
             shownOnCalendar: true,
           );
       final externalCalendarEvents = await externalCalendarRepository
-          .getExternalCalendarEvents(from: startDate, to: endDate, shownOnCalendar: true,);
+          .getExternalCalendarEvents(
+            from: startDate,
+            to: endDate,
+            shownOnCalendar: true,
+          );
 
       final calendarItems = [
         ...events,
@@ -565,8 +581,9 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     // Add directly to appointments for immediate visibility, then schedule
     // async refilter for proper sorting. This provides better UX as users
     // see their added items immediately.
-    if (!appointments!.any((item) =>
-        (item as CalendarItemBaseModel).id == calendarItem.id)) {
+    if (!appointments!.any(
+      (item) => (item as CalendarItemBaseModel).id == calendarItem.id,
+    )) {
       appointments!.add(calendarItem);
       Sort.byStartThenTitle(appointments!.cast<CalendarItemBaseModel>());
       notifyListeners(CalendarDataSourceAction.add, [calendarItem]);
@@ -863,10 +880,9 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     final selectedCourseIds = _getSelectedCourseIds();
     if (selectedCourseIds.isEmpty) return true;
 
+    // ownerId is now just the course ID (e.g., "42")
     final courseId = int.tryParse(event.ownerId);
-    if (courseId == null) return true;
-
-    return selectedCourseIds.contains(courseId);
+    return courseId == null || selectedCourseIds.contains(courseId);
   }
 
   List<HomeworkModel> _applyCategoryFilter(List<HomeworkModel> homeworks) {

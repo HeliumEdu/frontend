@@ -40,6 +40,16 @@ class HeliumTime {
 }
 
 class HeliumDateTime {
+  /// Returns a DateTime with only the date part (time set to midnight).
+  static DateTime dateOnly(DateTime date) {
+    return DateTime(date.year, date.month, date.day);
+  }
+
+  /// Converts DateTime.weekday (1=Mon, 7=Sun) to 0-based index (0=Sun, 6=Sat).
+  static int getDayIndex(DateTime date) {
+    return date.weekday == 7 ? 0 : date.weekday;
+  }
+
   static DateTime parse(String isoString, tz.Location timeZone) {
     return tz.TZDateTime.from(DateTime.parse(isoString), timeZone);
   }

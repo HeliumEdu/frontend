@@ -148,9 +148,9 @@ class _NavigationShellState extends State<NavigationShell> {
   Future<void> _checkWhatsNew() async {
     if (await WhatsNewService().shouldShowWhatsNew()) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          showWhatsNewDialog(context: context);
-        }
+        if (!mounted) return;
+
+        showWhatsNewDialog(context: context);
       });
     }
   }

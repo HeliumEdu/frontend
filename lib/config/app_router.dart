@@ -23,15 +23,10 @@ import 'package:heliumapp/presentation/views/auth/forgot_password_screen.dart';
 import 'package:heliumapp/presentation/views/auth/login_screen.dart';
 import 'package:heliumapp/presentation/views/auth/register_screen.dart';
 import 'package:heliumapp/presentation/views/auth/verify_screen.dart';
-import 'package:heliumapp/presentation/views/calendar/calendar_item_add_attachment_screen.dart';
-import 'package:heliumapp/presentation/views/calendar/calendar_item_add_reminder_screen.dart';
 import 'package:heliumapp/presentation/views/calendar/calendar_item_add_screen.dart';
 import 'package:heliumapp/presentation/views/core/landing_screen.dart';
 import 'package:heliumapp/presentation/views/core/navigation_shell.dart';
 import 'package:heliumapp/presentation/views/core/notification_screen.dart';
-import 'package:heliumapp/presentation/views/courses/course_add_attachment_screen.dart';
-import 'package:heliumapp/presentation/views/courses/course_add_category_screen.dart';
-import 'package:heliumapp/presentation/views/courses/course_add_schedule_screen.dart';
 import 'package:heliumapp/presentation/views/courses/course_add_screen.dart';
 import 'package:heliumapp/presentation/views/materials/material_add_screen.dart';
 import 'package:heliumapp/presentation/views/settings/change_password_screen.dart';
@@ -51,6 +46,9 @@ void initializeRouter() {
     initialLocation: AppRoutes.landingScreen,
     redirect: _authRedirect,
     observers: [AnalyticsService().observer],
+    errorBuilder: (context, state) => const _RouteRedirect(
+      redirectTo: AppRoutes.plannerScreen,
+    ),
     routes: [
       // Public routes (no shell)
       GoRoute(
@@ -120,7 +118,6 @@ void initializeRouter() {
       GoRoute(
         path: AppRoutes.notificationsScreen,
         pageBuilder: (context, state) {
-          // On desktop/tablet, redirect to planner and open as dialog
           if (!Responsive.isMobile(context)) {
             return const MaterialPage(
               child: _RouteRedirect(
@@ -144,7 +141,6 @@ void initializeRouter() {
         },
       ),
 
-      // Calendar item add flow
       GoRoute(
         path: AppRoutes.plannerItemAddScreen,
         pageBuilder: (context, state) {
@@ -164,70 +160,12 @@ void initializeRouter() {
                   value: args.attachmentBloc,
                 ),
               ],
-              child: CalendarItemAddProvidedScreen(
+              child: CalendarItemAddScreen(
                 eventId: args.eventId,
                 homeworkId: args.homeworkId,
                 initialDate: args.initialDate,
                 isFromMonthView: args.isFromMonthView,
                 isEdit: args.isEdit,
-                isNew: args.isNew
-              ),
-            ),
-          );
-        },
-      ),
-      GoRoute(
-        path: AppRoutes.plannerItemAddRemindersScreen,
-        pageBuilder: (context, state) {
-          final args = state.extra as CalendarItemReminderArgs?;
-          if (args == null) {
-            return const MaterialPage(
-              child: _RouteRedirect(redirectTo: AppRoutes.plannerScreen),
-            );
-          }
-          return MaterialPage(
-            child: MultiBlocProvider(
-              providers: [
-                BlocProvider<CalendarItemBloc>.value(
-                  value: args.calendarItemBloc,
-                ),
-                BlocProvider<AttachmentBloc>.value(
-                  value: args.attachmentBloc,
-                ),
-              ],
-              child: CalendarItemAddReminderScreen(
-                isEvent: args.isEvent,
-                entityId: args.entityId,
-                isEdit: args.isEdit,
-                isNew: args.isNew
-              ),
-            ),
-          );
-        },
-      ),
-      GoRoute(
-        path: AppRoutes.plannerItemAddAttachmentsScreen,
-        pageBuilder: (context, state) {
-          final args = state.extra as CalendarItemAttachmentArgs?;
-          if (args == null) {
-            return const MaterialPage(
-              child: _RouteRedirect(redirectTo: AppRoutes.plannerScreen),
-            );
-          }
-          return MaterialPage(
-            child: MultiBlocProvider(
-              providers: [
-                BlocProvider<CalendarItemBloc>.value(
-                  value: args.calendarItemBloc,
-                ),
-                BlocProvider<AttachmentBloc>.value(
-                  value: args.attachmentBloc,
-                ),
-              ],
-              child: CalendarItemAddAttachmentScreen(
-                isEvent: args.isEvent,
-                entityId: args.entityId,
-                isEdit: args.isEdit,
                 isNew: args.isNew,
               ),
             ),
@@ -235,10 +173,25 @@ void initializeRouter() {
         },
       ),
 
-      // Course add flow
       GoRoute(
         path: AppRoutes.courseAddScreen,
         pageBuilder: (context, state) {
+          final courseIdParam = state.uri.queryParameters['id'];
+          final stepParam = state.uri.queryParameters['step'];
+
+          if (courseIdParam != null) {
+            final queryParams = {'class': courseIdParam};
+            if (stepParam != null) {
+              queryParams['step'] = stepParam;
+            }
+            return MaterialPage(
+              child: _RouteRedirect(
+                redirectTo: AppRoutes.coursesScreen,
+                queryParams: queryParams,
+              ),
+            );
+          }
+
           final args = state.extra as CourseAddArgs?;
           if (args == null) {
             return const MaterialPage(
@@ -248,84 +201,18 @@ void initializeRouter() {
           return MaterialPage(
             child: BlocProvider<CourseBloc>.value(
               value: args.courseBloc,
-              child: CourseAddProvidedScreen(
+              child: CourseAddScreen(
                 courseGroupId: args.courseGroupId,
                 courseId: args.courseId,
                 isEdit: args.isEdit,
-                isNew: args.isNew
-              ),
-            ),
-          );
-        },
-      ),
-      GoRoute(
-        path: AppRoutes.courseAddScheduleScreen,
-        pageBuilder: (context, state) {
-          final args = state.extra as CourseAddArgs?;
-          if (args == null) {
-            return const MaterialPage(
-              child: _RouteRedirect(redirectTo: AppRoutes.coursesScreen),
-            );
-          }
-          return MaterialPage(
-            child: BlocProvider<CourseBloc>.value(
-              value: args.courseBloc,
-              child: CourseAddScheduleProvidedScreen(
-                courseGroupId: args.courseGroupId,
-                courseId: args.courseId!,
-                isEdit: args.isEdit,
                 isNew: args.isNew,
-              ),
-            ),
-          );
-        },
-      ),
-      GoRoute(
-        path: AppRoutes.courseAddCategoriesScreen,
-        pageBuilder: (context, state) {
-          final args = state.extra as CourseAddArgs?;
-          if (args == null) {
-            return const MaterialPage(
-              child: _RouteRedirect(redirectTo: AppRoutes.coursesScreen),
-            );
-          }
-          return MaterialPage(
-            child: BlocProvider<CourseBloc>.value(
-              value: args.courseBloc,
-              child: CourseAddCategoryScreen(
-                courseGroupId: args.courseGroupId,
-                courseId: args.courseId!,
-                isEdit: args.isEdit,
-                isNew: args.isNew
-              ),
-            ),
-          );
-        },
-      ),
-      GoRoute(
-        path: AppRoutes.courseAddAttachmentsScreen,
-        pageBuilder: (context, state) {
-          final args = state.extra as CourseAddArgs?;
-          if (args == null) {
-            return const MaterialPage(
-              child: _RouteRedirect(redirectTo: AppRoutes.coursesScreen),
-            );
-          }
-          return MaterialPage(
-            child: BlocProvider<CourseBloc>.value(
-              value: args.courseBloc,
-              child: CourseAddAttachmentScreen(
-                courseGroupId: args.courseGroupId,
-                entityId: args.courseId!,
-                isEdit: args.isEdit,
-                isNew: args.isNew,
+                initialStep: args.initialStep,
               ),
             ),
           );
         },
       ),
 
-      // Material add flow
       GoRoute(
         path: AppRoutes.resourcesAddScreen,
         pageBuilder: (context, state) {
@@ -338,10 +225,11 @@ void initializeRouter() {
           return MaterialPage(
             child: BlocProvider<MaterialBloc>.value(
               value: args.materialBloc,
-              child: MaterialAddProvidedScreen(
+              child: MaterialAddScreen(
                 materialGroupId: args.materialGroupId,
                 materialId: args.materialId,
                 isEdit: args.isEdit,
+                isNew: !args.isEdit,
               ),
             ),
           );
@@ -352,7 +240,6 @@ void initializeRouter() {
       GoRoute(
         path: AppRoutes.settingScreen,
         pageBuilder: (context, state) {
-          // On desktop/tablet, redirect to planner and open as dialog
           if (!Responsive.isMobile(context)) {
             return const MaterialPage(
               child: _RouteRedirect(
@@ -446,16 +333,16 @@ class _RouteRedirect extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (context.mounted) {
-        if (queryParams != null && queryParams!.isNotEmpty) {
-          final uri = Uri.parse(redirectTo);
-          final newUri = uri.replace(
-            queryParameters: {...uri.queryParameters, ...queryParams!},
-          );
-          context.go(newUri.toString());
-        } else {
-          context.go(redirectTo);
-        }
+      if (!context.mounted) return;
+
+      if (queryParams != null && queryParams!.isNotEmpty) {
+        final uri = Uri.parse(redirectTo);
+        final newUri = uri.replace(
+          queryParameters: {...uri.queryParameters, ...queryParams!},
+        );
+        context.go(newUri.toString());
+      } else {
+        context.go(redirectTo);
       }
     });
     return const Scaffold(body: SizedBox.shrink());
