@@ -30,7 +30,7 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<NoContentResponseModel> verifyEmail(
+  Future<TokenResponseModel> verifyEmail(
     String username,
     String code,
   ) async {

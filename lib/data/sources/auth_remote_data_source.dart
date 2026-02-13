@@ -29,7 +29,7 @@ final _log = Logger('data.sources');
 abstract class AuthRemoteDataSource extends BaseDataSource {
   Future<NoContentResponseModel> register(RegisterRequestModel request);
 
-  Future<NoContentResponseModel> verifyEmail(String username, String code);
+  Future<TokenResponseModel> verifyEmail(String username, String code);
 
   Future<TokenResponseModel> login(LoginRequestModel request);
 
@@ -91,7 +91,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
   }
 
   @override
-  Future<NoContentResponseModel> verifyEmail(
+  Future<TokenResponseModel> verifyEmail(
     String username,
     String code,
   ) async {
@@ -102,7 +102,29 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       );
 
       if (response.statusCode == 202) {
-        return NoContentResponseModel(message: 'Email verified');
+        _log.info('Email verification successful');
+
+        await dioClient.saveTokens(
+          response.data['access'],
+          response.data['refresh'],
+        );
+
+        await dioClient.fetchSettings();
+
+        final tokenResponse = TokenResponseModel.fromJson(response.data);
+
+        try {
+          await FcmService().registerToken(force: true);
+          if (FcmService().fcmToken != null) {
+            _log.info('FCM token registered after verification');
+          } else {
+            _log.warning('FCM token not yet available after verification');
+          }
+        } catch (e) {
+          _log.warning('Failed to register FCM token after verification', e);
+        }
+
+        return tokenResponse;
       } else {
         throw ServerException(
           message: 'Email verification failed',

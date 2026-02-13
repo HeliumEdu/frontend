@@ -20,7 +20,7 @@ import 'package:heliumapp/data/models/no_content_response_model.dart';
 abstract class AuthRepository {
   Future<NoContentResponseModel> register(RegisterRequestModel request);
 
-  Future<NoContentResponseModel> verifyEmail(String username, String code);
+  Future<TokenResponseModel> verifyEmail(String username, String code);
 
   Future<TokenResponseModel> login(LoginRequestModel request);
 
