@@ -91,6 +91,66 @@ void main() {
   });
 
   group('DateTimeHelpers', () {
+    group('dateOnly', () {
+      test('strips time from datetime', () {
+        final dateTime = DateTime(2025, 8, 15, 14, 30, 45);
+        final result = HeliumDateTime.dateOnly(dateTime);
+        expect(result, equals(DateTime(2025, 8, 15)));
+        expect(result.hour, equals(0));
+        expect(result.minute, equals(0));
+        expect(result.second, equals(0));
+      });
+
+      test('preserves date when already at midnight', () {
+        final dateTime = DateTime(2025, 8, 15);
+        final result = HeliumDateTime.dateOnly(dateTime);
+        expect(result, equals(DateTime(2025, 8, 15)));
+      });
+
+      test('handles end of day time', () {
+        final dateTime = DateTime(2025, 8, 15, 23, 59, 59, 999);
+        final result = HeliumDateTime.dateOnly(dateTime);
+        expect(result, equals(DateTime(2025, 8, 15)));
+      });
+    });
+
+    group('getDayIndex', () {
+      test('returns 0 for Sunday', () {
+        final sunday = DateTime(2025, 8, 24); // Sunday
+        expect(HeliumDateTime.getDayIndex(sunday), equals(0));
+      });
+
+      test('returns 1 for Monday', () {
+        final monday = DateTime(2025, 8, 25); // Monday
+        expect(HeliumDateTime.getDayIndex(monday), equals(1));
+      });
+
+      test('returns 2 for Tuesday', () {
+        final tuesday = DateTime(2025, 8, 26); // Tuesday
+        expect(HeliumDateTime.getDayIndex(tuesday), equals(2));
+      });
+
+      test('returns 3 for Wednesday', () {
+        final wednesday = DateTime(2025, 8, 27); // Wednesday
+        expect(HeliumDateTime.getDayIndex(wednesday), equals(3));
+      });
+
+      test('returns 4 for Thursday', () {
+        final thursday = DateTime(2025, 8, 28); // Thursday
+        expect(HeliumDateTime.getDayIndex(thursday), equals(4));
+      });
+
+      test('returns 5 for Friday', () {
+        final friday = DateTime(2025, 8, 29); // Friday
+        expect(HeliumDateTime.getDayIndex(friday), equals(5));
+      });
+
+      test('returns 6 for Saturday', () {
+        final saturday = DateTime(2025, 8, 30); // Saturday
+        expect(HeliumDateTime.getDayIndex(saturday), equals(6));
+      });
+    });
+
     group('parse', () {
       test('parses ISO string with timezone correctly', () {
         final location = tz.getLocation('America/New_York');
