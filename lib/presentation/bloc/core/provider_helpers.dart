@@ -18,6 +18,7 @@ import 'package:heliumapp/data/repositories/material_repository_impl.dart';
 import 'package:heliumapp/data/sources/attachment_remote_data_source.dart';
 import 'package:heliumapp/data/sources/category_remote_data_source.dart';
 import 'package:heliumapp/data/sources/course_remote_data_source.dart';
+import 'package:heliumapp/data/sources/course_schedule_builder_source.dart';
 import 'package:heliumapp/data/sources/course_schedule_remote_data_source.dart';
 import 'package:heliumapp/data/sources/event_remote_data_source.dart';
 import 'package:heliumapp/data/sources/external_calendar_remote_data_source.dart';
@@ -49,6 +50,7 @@ class ProviderHelpers {
         remoteDataSource: CourseScheduleRemoteDataSourceImpl(
           dioClient: _dioClient,
         ),
+        builderSource: CourseScheduleBuilderSource(),
       ),
       materialRepository: MaterialRepositoryImpl(
         remoteDataSource: MaterialRemoteDataSourceImpl(dioClient: _dioClient),

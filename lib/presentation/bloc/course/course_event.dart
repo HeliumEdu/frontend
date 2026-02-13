@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/request/course_group_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/course_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/course_schedule_request_model.dart';
@@ -118,12 +119,14 @@ class DeleteCourseEvent extends CourseEvent {
 }
 
 class FetchAllCourseSchedulesEventsEvent extends CourseEvent {
+  final List<CourseModel> courses;
   final DateTime from;
   final DateTime to;
   final String? search;
 
   FetchAllCourseSchedulesEventsEvent({
     required super.origin,
+    required this.courses,
     required this.from,
     required this.to,
     this.search,

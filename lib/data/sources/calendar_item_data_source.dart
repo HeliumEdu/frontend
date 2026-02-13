@@ -11,7 +11,6 @@ import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:heliumapp/data/sources/calendar_item_filter_compute.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
@@ -21,6 +20,7 @@ import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
+import 'package:heliumapp/data/sources/calendar_item_filter_compute.dart';
 import 'package:heliumapp/domain/repositories/course_schedule_event_repository.dart';
 import 'package:heliumapp/domain/repositories/event_repository.dart';
 import 'package:heliumapp/domain/repositories/external_calendar_repository.dart';
@@ -310,12 +310,17 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
       );
       final courseScheduleEvents = await courseScheduleRepository
           .getCourseScheduleEvents(
+            courses: courses ?? [],
             from: startDate,
             to: endDate,
             shownOnCalendar: true,
           );
       final externalCalendarEvents = await externalCalendarRepository
-          .getExternalCalendarEvents(from: startDate, to: endDate, shownOnCalendar: true,);
+          .getExternalCalendarEvents(
+            from: startDate,
+            to: endDate,
+            shownOnCalendar: true,
+          );
 
       final calendarItems = [
         ...events,
@@ -568,8 +573,9 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     // Add directly to appointments for immediate visibility, then schedule
     // async refilter for proper sorting. This provides better UX as users
     // see their added items immediately.
-    if (!appointments!.any((item) =>
-        (item as CalendarItemBaseModel).id == calendarItem.id)) {
+    if (!appointments!.any(
+      (item) => (item as CalendarItemBaseModel).id == calendarItem.id,
+    )) {
       appointments!.add(calendarItem);
       Sort.byStartThenTitle(appointments!.cast<CalendarItemBaseModel>());
       notifyListeners(CalendarDataSourceAction.add, [calendarItem]);

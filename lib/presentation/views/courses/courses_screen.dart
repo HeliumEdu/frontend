@@ -21,6 +21,7 @@ import 'package:heliumapp/data/repositories/course_repository_impl.dart';
 import 'package:heliumapp/data/repositories/course_schedule_event_repository_impl.dart';
 import 'package:heliumapp/data/sources/category_remote_data_source.dart';
 import 'package:heliumapp/data/sources/course_remote_data_source.dart';
+import 'package:heliumapp/data/sources/course_schedule_builder_source.dart';
 import 'package:heliumapp/data/sources/course_schedule_remote_data_source.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/bloc/course/course_bloc.dart';
@@ -67,6 +68,7 @@ class CoursesScreen extends StatelessWidget {
               remoteDataSource: CourseScheduleRemoteDataSourceImpl(
                 dioClient: _dioClient,
               ),
+              builderSource: CourseScheduleBuilderSource(),
             ),
             categoryRepository: CategoryRepositoryImpl(
               remoteDataSource: CategoryRemoteDataSourceImpl(

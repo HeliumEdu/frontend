@@ -184,6 +184,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
     emit(CoursesLoading(origin: event.origin));
     try {
       final events = await courseScheduleRepository.getCourseScheduleEvents(
+        courses: event.courses,
         from: event.from,
         to: event.to,
       );
