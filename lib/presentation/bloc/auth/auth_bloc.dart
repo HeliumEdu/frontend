@@ -74,7 +74,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       await authRepository.verifyEmail(event.username, event.code);
 
-      emit(AuthEmailVerified());
+      emit(AuthLoggedIn());
     } on HeliumException catch (e) {
       emit(AuthError(message: e.message));
     } catch (e) {
