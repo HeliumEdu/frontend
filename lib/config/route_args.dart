@@ -94,58 +94,6 @@ class CalendarItemAddArgs extends RouteArgs {
   }
 }
 
-class CalendarItemReminderArgs extends RouteArgs {
-  final CalendarItemBloc calendarItemBloc;
-  final AttachmentBloc attachmentBloc;
-  final bool isEvent;
-  final int entityId;
-  final bool isEdit;
-  final bool isNew;
-
-  const CalendarItemReminderArgs({
-    required this.calendarItemBloc,
-    required this.attachmentBloc,
-    required this.isEvent,
-    required this.entityId,
-    required this.isEdit,
-    required this.isNew,
-  });
-
-  @override
-  List<BlocProvider>? toProviders() {
-    return [
-      BlocProvider<CalendarItemBloc>.value(value: calendarItemBloc),
-      BlocProvider<AttachmentBloc>.value(value: attachmentBloc),
-    ];
-  }
-}
-
-class CalendarItemAttachmentArgs extends RouteArgs {
-  final CalendarItemBloc calendarItemBloc;
-  final AttachmentBloc attachmentBloc;
-  final bool isEvent;
-  final int entityId;
-  final bool isEdit;
-  final bool isNew;
-
-  const CalendarItemAttachmentArgs({
-    required this.calendarItemBloc,
-    required this.attachmentBloc,
-    required this.isEvent,
-    required this.entityId,
-    required this.isEdit,
-    required this.isNew,
-  });
-
-  @override
-  List<BlocProvider>? toProviders() {
-    return [
-      BlocProvider<CalendarItemBloc>.value(value: calendarItemBloc),
-      BlocProvider<AttachmentBloc>.value(value: attachmentBloc),
-    ];
-  }
-}
-
 class CourseAddArgs extends RouteArgs {
   final CourseBloc courseBloc;
   final int courseGroupId;

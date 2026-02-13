@@ -40,7 +40,6 @@ dependencies:
   syncfusion_flutter_calendar: ^32.1.0
   html_editor_enhanced: ^2.7.0
   flutter_html: ^3.0.0
-  easy_stepper: ^1.0.0
   flutter_colorpicker: ^1.1.0
   file_picker: ^10.3.0
   url_launcher: ^6.3.0

@@ -19,33 +19,36 @@ import 'package:heliumapp/presentation/bloc/category/category_state.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/dialogs/category_dialog.dart';
 import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
-import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart'
+    show SnackBarHelper;
+import 'package:heliumapp/presentation/views/core/multi_step_container.dart';
 import 'package:heliumapp/presentation/widgets/category_title_label.dart';
-import 'package:heliumapp/presentation/widgets/course_add_stepper.dart';
 import 'package:heliumapp/presentation/widgets/empty_card.dart';
 import 'package:heliumapp/presentation/widgets/error_card.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/mobile_gesture_detector.dart';
-import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 
-class CourseAddCategoryScreen extends StatelessWidget {
+/// Course categories widget for the third step of course add/edit flow.
+class CourseCategoriesWidget extends StatelessWidget {
   final DioClient _dioClient = DioClient();
   final int courseGroupId;
   final int courseId;
   final bool isEdit;
   final bool isNew;
+  final UserSettingsModel? userSettings;
 
-  CourseAddCategoryScreen({
+  CourseCategoriesWidget({
     super.key,
     required this.courseGroupId,
     required this.courseId,
     required this.isEdit,
     required this.isNew,
+    this.userSettings,
   });
 
   @override
@@ -62,47 +65,40 @@ class CourseAddCategoryScreen extends StatelessWidget {
           ),
         ),
       ],
-      child: CourseAddCategoryProvidedScreen(
+      child: _CourseCategoriesContent(
         courseGroupId: courseGroupId,
         courseId: courseId,
         isEdit: isEdit,
         isNew: isNew,
+        userSettings: userSettings,
       ),
     );
   }
 }
 
-class CourseAddCategoryProvidedScreen extends StatefulWidget {
+class _CourseCategoriesContent extends StatefulWidget {
   final int courseGroupId;
   final int courseId;
   final bool isEdit;
   final bool isNew;
+  final UserSettingsModel? userSettings;
 
-  const CourseAddCategoryProvidedScreen({
-    super.key,
+  const _CourseCategoriesContent({
     required this.courseGroupId,
     required this.courseId,
     required this.isEdit,
     required this.isNew,
+    this.userSettings,
   });
 
   @override
-  State<CourseAddCategoryProvidedScreen> createState() =>
-      _CourseAddCategoryScreenState();
+  State<_CourseCategoriesContent> createState() =>
+      _CourseCategoriesContentState();
 }
 
-class _CourseAddCategoryScreenState
-    extends BasePageScreenState<CourseAddCategoryProvidedScreen> {
-  @override
-  String get screenTitle => !widget.isNew ? 'Edit Class' : 'Add Class';
-
-  @override
-  IconData? get icon => Icons.school;
-
-  @override
-  ScreenType get screenType => ScreenType.subPage;
-
+class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
   // State
+  bool isLoading = true;
   List<CategoryModel> _categories = [];
 
   @override
@@ -116,94 +112,82 @@ class _CourseAddCategoryScreenState
           courseId: widget.courseId,
         ),
       );
+    } else {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
   @override
-  List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
-    return [
-      BlocListener<CategoryBloc, CategoryState>(
-        listener: (context, state) {
-          if (state is CategoriesFetched) {
-            setState(() {
-              _categories = state.categories;
-              Sort.byTitle(_categories);
-
-              isLoading = false;
-            });
-          } else if (state is CategoryCreated) {
-            showSnackBar(context, 'Category saved');
-
-            setState(() {
-              _categories.add(state.category);
-              Sort.byTitle(_categories);
-            });
-          } else if (state is CategoryUpdated) {
-            showSnackBar(context, 'Category saved');
-
-            setState(() {
-              _categories[_categories.indexWhere(
-                    (c) => c.id == state.category.id,
-                  )] =
-                  state.category;
-              Sort.byTitle(_categories);
-            });
-          } else if (state is CategoryDeleted) {
-            showSnackBar(context, 'Category deleted');
-
-            setState(() {
-              _categories.removeWhere((c) => c.id == state.id);
-            });
-          }
-        },
-      ),
-    ];
-  }
-
-  @override
-  Widget buildHeaderArea(BuildContext context) {
-    return CourseStepper(
-      selectedIndex: 2,
-      courseGroupId: widget.courseGroupId,
-      courseId: widget.courseId,
-      isEdit: widget.isEdit,
-      isNew: widget.isNew,
+  Widget build(BuildContext context) {
+    return BlocListener<CategoryBloc, CategoryState>(
+      listener: (context, state) {
+        if (state is CategoriesFetched) {
+          setState(() {
+            _categories = state.categories;
+            Sort.byTitle(_categories);
+            isLoading = false;
+          });
+        } else if (state is CategoryCreated) {
+          SnackBarHelper.show(context, 'Category saved');
+          setState(() {
+            _categories.add(state.category);
+            Sort.byTitle(_categories);
+          });
+        } else if (state is CategoryUpdated) {
+          SnackBarHelper.show(context, 'Category saved');
+          setState(() {
+            _categories[_categories.indexWhere(
+                  (c) => c.id == state.category.id,
+                )] =
+                state.category;
+            Sort.byTitle(_categories);
+          });
+        } else if (state is CategoryDeleted) {
+          SnackBarHelper.show(context, 'Category deleted');
+          setState(() {
+            _categories.removeWhere((c) => c.id == state.id);
+          });
+        }
+      },
+      child: _buildContent(context),
     );
   }
 
-  @override
-  Widget buildMainArea(BuildContext context) {
-    return Expanded(
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Categories', style: AppStyles.featureText(context)),
-              HeliumIconButton(
-                onPressed: () {
-                  showCategoryDialog(
-                    parentContext: context,
-                    courseGroupId: widget.courseGroupId,
-                    courseId: widget.courseId,
-                    isEdit: false,
-                  );
-                },
-                icon: Icons.add,
-              ),
-            ],
-          ),
+  Widget _buildContent(BuildContext context) {
+    if (isLoading || widget.userSettings == null) {
+      return const Center(child: LoadingIndicator(expanded: false));
+    }
 
-          const SizedBox(height: 12),
-
-          BlocBuilder<CategoryBloc, CategoryState>(
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Categories', style: AppStyles.featureText(context)),
+            HeliumIconButton(
+              onPressed: () {
+                showCategoryDialog(
+                  parentContext: context,
+                  courseGroupId: widget.courseGroupId,
+                  courseId: widget.courseId,
+                  isEdit: false,
+                );
+              },
+              icon: Icons.add,
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Expanded(
+          child: BlocBuilder<CategoryBloc, CategoryState>(
             builder: (context, state) {
               if (state is CategoriesLoading) {
-                return const LoadingIndicator();
+                return const Center(child: LoadingIndicator(expanded: false));
               }
 
-              if (state is CategoriesError &&
-                  state.origin == EventOrigin.screen) {
+              if (state is CategoriesError && state.origin == EventOrigin.screen) {
                 return ErrorCard(
                   message: state.message!,
                   onReload: () {
@@ -227,20 +211,18 @@ class _CourseAddCategoryScreenState
               return _buildCategoriesList();
             },
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _buildCategoriesList() {
-    return Expanded(
-      child: ListView.builder(
-        itemCount: _categories.length,
-        itemBuilder: (context, index) {
-          final category = _categories[index];
-          return _buildCategoryCard(context, category);
-        },
-      ),
+    return ListView.builder(
+      itemCount: _categories.length,
+      itemBuilder: (context, index) {
+        final category = _categories[index];
+        return _buildCategoryCard(context, category);
+      },
     );
   }
 
@@ -288,7 +270,6 @@ class _CourseAddCategoryScreenState
                   ],
                 ),
               ),
-
               const SizedBox(width: 8),
               if (PlannerHelper.shouldShowEditButton(context)) ...[
                 HeliumIconButton(

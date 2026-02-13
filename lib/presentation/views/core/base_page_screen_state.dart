@@ -7,7 +7,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/core/dio_client.dart';
@@ -110,7 +109,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   ScreenType get screenType => ScreenType.page;
 
   Function get cancelAction =>
-      () => {context.pop()};
+      () => Navigator.of(context).pop();
 
   Function? get saveAction => null;
 
@@ -298,7 +297,6 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     return const SizedBox.shrink();
   }
 
-  @mustBeOverridden
   Widget buildMainArea(BuildContext context);
 
   Widget buildDialogHeader(BuildContext context) {
@@ -323,7 +321,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
             icon: const Icon(Icons.close),
             onPressed: () => Navigator.of(context).pop(),
           ),
-          if (saveAction != null) ...[
+          if (screenType == ScreenType.entityPage) ...[
             const SizedBox(width: 8),
             if (isSubmitting)
               const LoadingIndicator(
@@ -334,7 +332,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
             else
               IconButton(
                 icon: const Icon(Icons.check),
-                onPressed: () => saveAction!(),
+                onPressed: () => saveAction?.call(),
                 color: context.colorScheme.primary,
               ),
           ],
@@ -375,6 +373,24 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   }
 
   void showSnackBar(
+    BuildContext context,
+    String message, {
+    int seconds = 2,
+    bool isError = false,
+    bool clearSnackBar = true,
+  }) {
+    SnackBarHelper.show(
+      context,
+      message,
+      seconds: seconds,
+      isError: isError,
+      clearSnackBar: clearSnackBar,
+    );
+  }
+}
+
+class SnackBarHelper {
+  static void show(
     BuildContext context,
     String message, {
     int seconds = 2,
