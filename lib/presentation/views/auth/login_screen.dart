@@ -97,11 +97,19 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
             // Redirect to intended destination or default to calendar
             final destination = _nextRoute ?? AppRoutes.plannerScreen;
             context.replace(destination);
+          } else if (state is AuthAccountInactive) {
+            _showInactiveAccountSnackBar(context, state.username, state.message);
+          } else if (state is AuthVerificationResent) {
+            showSnackBar(
+              context,
+              'Verification email sent! Check your inbox.',
+              seconds: 4,
+            );
           } else if (state is AuthError) {
             // 401/403 errors on login screen are from force logout (already showed snackbar)
-            if (state.code == '401' || state.code == '403') {
+            if (state.httpStatusCode == 401 || state.httpStatusCode == 403) {
               _log.info(
-                'Suppressing ${state.code} error snackbar on login screen: ${state.message}',
+                'Suppressing ${state.httpStatusCode} error snackbar on login screen: ${state.message}',
               );
             } else {
               showSnackBar(context, state.message!, isError: true, seconds: 6);
@@ -116,6 +124,22 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
         },
       ),
     ];
+  }
+
+  void _showInactiveAccountSnackBar(BuildContext context, String username, String? message) {
+    showSnackBar(
+      context,
+      message ?? 'Your account is not yet verified.',
+      isError: true,
+      seconds: 10,
+      action: SnackBarAction(
+        label: 'Resend Email',
+        textColor: context.colorScheme.onError,
+        onPressed: () {
+          context.read<AuthBloc>().add(ResendVerificationEvent(username: username));
+        },
+      ),
+    );
   }
 
   @override

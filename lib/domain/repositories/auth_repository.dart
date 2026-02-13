@@ -22,6 +22,8 @@ abstract class AuthRepository {
 
   Future<TokenResponseModel> verifyEmail(String username, String code);
 
+  Future<NoContentResponseModel> resendVerificationEmail(String username);
+
   Future<TokenResponseModel> login(LoginRequestModel request);
 
   Future<TokenResponseModel> refreshToken(RefreshTokenRequestModel request);
