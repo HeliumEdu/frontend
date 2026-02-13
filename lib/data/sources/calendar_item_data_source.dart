@@ -83,6 +83,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   }
 
   final ChangeNotifier _changeNotifier = ChangeNotifier();
+  bool _isDisposed = false;
 
   Listenable get changeNotifier => _changeNotifier;
 
@@ -92,6 +93,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   bool get isRefreshing => _isRefreshing;
 
   void _notifyChangeListeners() {
+    if (_isDisposed) return;
     // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
     _changeNotifier.notifyListeners();
   }
@@ -126,6 +128,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
 
   @override
   void dispose() {
+    _isDisposed = true;
     _filterDebounceTimer?.cancel();
     _changeNotifier.dispose();
     super.dispose();
