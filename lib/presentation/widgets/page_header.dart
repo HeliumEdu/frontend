@@ -64,7 +64,7 @@ class PageHeader extends StatelessWidget {
               },
               icon: Icon(
                 Icons.keyboard_arrow_left,
-                color: ctx.colorScheme.onSurface,
+                color: ctx.colorScheme.secondary,
               ),
             )
           else if (screenType == ScreenType.entityPage)
@@ -73,7 +73,7 @@ class PageHeader extends StatelessWidget {
               onPressed: () {
                 cancelAction?.call();
               },
-              icon: Icon(Icons.cancel, color: ctx.colorScheme.primary),
+              icon: Icon(Icons.cancel, color: ctx.colorScheme.secondary),
             )
           else if (Responsive.isMobile(ctx) ||
               (!Responsive.isTouchDevice(ctx) &&

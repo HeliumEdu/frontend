@@ -118,7 +118,6 @@ void initializeRouter() {
       GoRoute(
         path: AppRoutes.notificationsScreen,
         pageBuilder: (context, state) {
-          // On desktop/tablet, redirect to planner and open as dialog
           if (!Responsive.isMobile(context)) {
             return const MaterialPage(
               child: _RouteRedirect(
@@ -177,6 +176,22 @@ void initializeRouter() {
       GoRoute(
         path: AppRoutes.courseAddScreen,
         pageBuilder: (context, state) {
+          final courseIdParam = state.uri.queryParameters['id'];
+          final stepParam = state.uri.queryParameters['step'];
+
+          if (courseIdParam != null) {
+            final queryParams = {'class': courseIdParam};
+            if (stepParam != null) {
+              queryParams['step'] = stepParam;
+            }
+            return MaterialPage(
+              child: _RouteRedirect(
+                redirectTo: AppRoutes.coursesScreen,
+                queryParams: queryParams,
+              ),
+            );
+          }
+
           final args = state.extra as CourseAddArgs?;
           if (args == null) {
             return const MaterialPage(
@@ -224,7 +239,6 @@ void initializeRouter() {
       GoRoute(
         path: AppRoutes.settingScreen,
         pageBuilder: (context, state) {
-          // On desktop/tablet, redirect to planner and open as dialog
           if (!Responsive.isMobile(context)) {
             return const MaterialPage(
               child: _RouteRedirect(
