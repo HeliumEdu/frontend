@@ -5,6 +5,8 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -45,6 +47,12 @@ class _VerifyScreenState extends BasePageScreenState<VerifyScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _codeController = TextEditingController();
 
+  // Resend countdown timer
+  static const int _resendCooldownSeconds = 60;
+  Timer? _resendTimer;
+  int _resendCountdown = 0;
+  bool _isResending = false;
+
   @override
   void initState() {
     super.initState();
@@ -74,6 +82,7 @@ class _VerifyScreenState extends BasePageScreenState<VerifyScreen> {
   void dispose() {
     _usernameController.dispose();
     _codeController.dispose();
+    _resendTimer?.cancel();
 
     super.dispose();
   }
@@ -100,8 +109,18 @@ class _VerifyScreenState extends BasePageScreenState<VerifyScreen> {
 
             if (!context.mounted) return;
             context.go(AppRoutes.plannerScreen);
+          } else if (state is AuthVerificationResent) {
+            showSnackBar(
+              context,
+              'Verification email sent! Check your inbox.',
+              seconds: 4,
+            );
+            _startResendCountdown();
           } else if (state is AuthError) {
             showSnackBar(context, state.message!, isError: true, seconds: 4);
+            setState(() {
+              _isResending = false;
+            });
           }
 
           if (state is! AuthLoading) {
@@ -200,14 +219,66 @@ class _VerifyScreenState extends BasePageScreenState<VerifyScreen> {
             BlocBuilder<AuthBloc, AuthState>(
               builder: (context, state) {
                 return HeliumElevatedButton(
-                  buttonText: 'Verify Email',
+                  buttonText: 'Verify & Login',
                   isLoading: isSubmitting,
                   onPressed: _onSubmit,
                 );
               },
             ),
 
-            const SizedBox(height: 25),
+            const SizedBox(height: 16),
+
+            Center(
+              child: TextButton(
+                onPressed: _canResend ? _onResend : null,
+                child: _isResending
+                    ? SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: context.colorScheme.primary,
+                        ),
+                      )
+                    : Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.refresh,
+                            size: Responsive.getIconSize(
+                              context,
+                              mobile: 18,
+                              tablet: 20,
+                              desktop: 22,
+                            ),
+                            color: _canResend
+                                ? context.colorScheme.primary
+                                : context.colorScheme.onSurface.withValues(alpha: 0.38),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Resend verification email',
+                            style: AppStyles.buttonText(context).copyWith(
+                              color: _canResend
+                                  ? context.colorScheme.primary
+                                  : context.colorScheme.onSurface.withValues(alpha: 0.38),
+                            ),
+                          ),
+                          if (_resendCountdown > 0) ...[
+                            const SizedBox(width: 8),
+                            Text(
+                              '($_resendCountdown)',
+                              style: AppStyles.buttonText(context).copyWith(
+                                color: context.colorScheme.onSurface.withValues(alpha: 0.38),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+              ),
+            ),
+
+            const SizedBox(height: 12),
 
             Center(
               child: TextButton(
@@ -267,5 +338,50 @@ class _VerifyScreenState extends BasePageScreenState<VerifyScreen> {
         ),
       );
     }
+  }
+
+  bool get _canResend =>
+      _resendCountdown == 0 &&
+      !_isResending &&
+      _usernameController.text.trim().isNotEmpty;
+
+  void _onResend() {
+    if (!_canResend) return;
+
+    setState(() {
+      _isResending = true;
+    });
+
+    context.read<AuthBloc>().add(
+      ResendVerificationEvent(username: _usernameController.text.trim()),
+    );
+  }
+
+  void _startResendCountdown() {
+    setState(() {
+      _isResending = false;
+      _resendCountdown = _resendCooldownSeconds;
+    });
+
+    _resendTimer?.cancel();
+
+    // Wait 1 second before starting countdown to avoid hitting rate limit edge case
+    Future.delayed(const Duration(seconds: 1), () {
+      if (!mounted) return;
+
+      _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (!mounted) {
+          timer.cancel();
+          return;
+        }
+
+        setState(() {
+          _resendCountdown--;
+          if (_resendCountdown <= 0) {
+            timer.cancel();
+          }
+        });
+      });
+    });
   }
 }

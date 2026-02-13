@@ -31,6 +31,8 @@ abstract class AuthRemoteDataSource extends BaseDataSource {
 
   Future<TokenResponseModel> verifyEmail(String username, String code);
 
+  Future<NoContentResponseModel> resendVerificationEmail(String username);
+
   Future<TokenResponseModel> login(LoginRequestModel request);
 
   Future<TokenResponseModel> refreshToken(RefreshTokenRequestModel request);
@@ -128,6 +130,34 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       } else {
         throw ServerException(
           message: 'Email verification failed',
+          code: response.statusCode.toString(),
+        );
+      }
+    } on DioException catch (e, s) {
+      throw handleDioError(e, s);
+    } catch (e, s) {
+      _log.severe('An unexpected error occurred', e, s);
+      if (e is HeliumException) {
+        rethrow;
+      }
+      throw HeliumException(message: 'An unexpected error occurred: $e');
+    }
+  }
+
+  @override
+  Future<NoContentResponseModel> resendVerificationEmail(String username) async {
+    try {
+      final response = await dioClient.dio.get(
+        ApiUrl.authUserVerifyResendUrl,
+        queryParameters: {'username': username},
+      );
+
+      if (response.statusCode == 202) {
+        _log.info('Verification email resent for $username');
+        return NoContentResponseModel(message: 'Verification email sent');
+      } else {
+        throw ServerException(
+          message: 'Failed to resend verification email',
           code: response.statusCode.toString(),
         );
       }

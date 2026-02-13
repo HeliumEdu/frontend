@@ -31,6 +31,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     : super(AuthInitial()) {
     on<RegisterEvent>(_onRegister);
     on<VerifyEmailEvent>(_onVerifyEmail);
+    on<ResendVerificationEvent>(_onResendVerification);
     on<LoginEvent>(_onLogin);
     on<LogoutEvent>(_onLogout);
     on<CheckAuthEvent>(_onCheckAuth);
@@ -75,6 +76,28 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await authRepository.verifyEmail(event.username, event.code);
 
       emit(AuthLoggedIn());
+    } on HeliumException catch (e) {
+      // Show friendly message for verification errors (400/404) to avoid revealing user existence
+      if (e.httpStatusCode == 400 || e.httpStatusCode == 404) {
+        emit(AuthError(message: 'That code doesn\'t look right. Please check and try again.'));
+      } else {
+        emit(AuthError(message: e.message));
+      }
+    } catch (e) {
+      emit(AuthError(message: 'An unexpected error occurred: $e'));
+    }
+  }
+
+  Future<void> _onResendVerification(
+      ResendVerificationEvent event,
+      Emitter<AuthState> emit,
+      ) async {
+    emit(AuthLoading());
+
+    try {
+      await authRepository.resendVerificationEmail(event.username);
+
+      emit(AuthVerificationResent());
     } on HeliumException catch (e) {
       emit(AuthError(message: e.message));
     } catch (e) {
@@ -134,7 +157,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       emit(AuthLoggedIn());
     } on HeliumException catch (e) {
-      emit(AuthError(message: e.message));
+      // Check for inactive account error
+      if (e.code == 'account_inactive') {
+        final username = e.details is Map ? e.details['username'] ?? event.username : event.username;
+        emit(AuthAccountInactive(message: e.message, username: username));
+      } else {
+        emit(AuthError(message: e.message, code: e.code, httpStatusCode: e.httpStatusCode));
+      }
     } catch (e) {
       emit(AuthError(message: 'An unexpected error occurred: $e'));
     }

@@ -37,6 +37,14 @@ class AuthRegistered extends AuthState {
 
 class AuthEmailVerified extends AuthState {}
 
+class AuthVerificationResent extends AuthState {}
+
+class AuthAccountInactive extends AuthState {
+  final String username;
+
+  AuthAccountInactive({required super.message, required this.username});
+}
+
 class AuthLoggedIn extends AuthState {}
 
 class AuthLoggedOut extends AuthState {}
@@ -57,8 +65,9 @@ class AuthUnauthenticated extends AuthState {
 
 class AuthError extends AuthState {
   final String? code;
+  final int? httpStatusCode;
 
-  AuthError({required super.message, this.code});
+  AuthError({required super.message, this.code, this.httpStatusCode});
 }
 
 class AuthProfileError extends AuthError {

@@ -166,7 +166,7 @@ class _DialogRouteListenerState extends State<_DialogRouteListener> {
       // Defer pop() to avoid calling it while Navigator is locked during
       // GoRouter's route change notification.
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
+        if (mounted && Navigator.of(context).canPop()) {
           Navigator.of(context).pop();
         }
       });

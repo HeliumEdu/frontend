@@ -8,34 +8,61 @@
 class HeliumException implements Exception {
   final String message;
   final String? code;
+  final int? httpStatusCode;
   final dynamic details;
 
-  HeliumException({required this.message, this.code, this.details});
+  HeliumException({
+    required this.message,
+    this.code,
+    this.httpStatusCode,
+    this.details,
+  });
 
   @override
   String toString() => message;
 }
 
 class NetworkException extends HeliumException {
-  NetworkException({required super.message, super.code, super.details});
+  NetworkException({
+    required super.message,
+    super.code,
+    super.httpStatusCode,
+    super.details,
+  });
 }
 
 class ServerException extends HeliumException {
-  ServerException({required super.message, super.code, super.details});
+  ServerException({
+    required super.message,
+    super.code,
+    super.httpStatusCode,
+    super.details,
+  });
 }
 
 class ValidationException extends HeliumException {
-  ValidationException({required super.message, super.code, super.details});
+  ValidationException({
+    required super.message,
+    super.code,
+    super.httpStatusCode,
+    super.details,
+  });
 }
 
 class NotFoundException extends HeliumException {
   NotFoundException({
     required super.message,
     super.code = '404',
+    super.httpStatusCode = 404,
     super.details,
   });
 }
 
 class UnauthorizedException extends HeliumException {
-  UnauthorizedException({required super.message, super.code, super.details});
+  UnauthorizedException({
+    required super.message,
+    super.code,
+    super.httpStatusCode,
+    super.details,
+  });
 }
