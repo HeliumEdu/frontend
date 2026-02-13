@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/core/dio_client.dart';
@@ -64,6 +65,10 @@ void showScreenAsDialog(
   // Create a key for this dialog's ScaffoldMessenger
   final dialogMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
+  // Capture the initial route to detect browser navigation
+  final initialLocation =
+      router.routerDelegate.currentConfiguration.uri.toString();
+
   showDialog(
     context: context,
     barrierColor: Colors.black54,
@@ -90,20 +95,23 @@ void showScreenAsDialog(
         );
       }
 
-      return Dialog(
-        alignment: alignment,
-        insetPadding: insetPadding,
-        child: SizedBox(
-          width: width,
-          height: effectiveHeight,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            // ScaffoldMessenger to ensure SnackBar is shown properly in dialogs
-            child: ScaffoldMessenger(
-              key: dialogMessengerKey,
-              child: Scaffold(
-                backgroundColor: Colors.transparent,
-                body: dialogContent,
+      return _DialogRouteListener(
+        initialLocation: initialLocation,
+        child: Dialog(
+          alignment: alignment,
+          insetPadding: insetPadding,
+          child: SizedBox(
+            width: width,
+            height: effectiveHeight,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              // ScaffoldMessenger to ensure SnackBar is shown properly in dialogs
+              child: ScaffoldMessenger(
+                key: dialogMessengerKey,
+                child: Scaffold(
+                  backgroundColor: Colors.transparent,
+                  body: dialogContent,
+                ),
               ),
             ),
           ),
@@ -111,6 +119,56 @@ void showScreenAsDialog(
       );
     },
   );
+}
+
+/// Listens to router changes and closes the dialog when browser navigation
+/// (back/forward) causes a route change. Can be eliminated if we transition
+/// to go_router's dialog navigation in the future.
+class _DialogRouteListener extends StatefulWidget {
+  final String initialLocation;
+  final Widget child;
+
+  const _DialogRouteListener({
+    required this.initialLocation,
+    required this.child,
+  });
+
+  @override
+  State<_DialogRouteListener> createState() => _DialogRouteListenerState();
+}
+
+class _DialogRouteListenerState extends State<_DialogRouteListener> {
+  VoidCallback? _routeListener;
+
+  @override
+  void initState() {
+    super.initState();
+    _routeListener = _onRouteChanged;
+    router.routerDelegate.addListener(_routeListener!);
+  }
+
+  @override
+  void dispose() {
+    if (_routeListener != null) {
+      router.routerDelegate.removeListener(_routeListener!);
+    }
+    super.dispose();
+  }
+
+  void _onRouteChanged() {
+    final currentLocation =
+        router.routerDelegate.currentConfiguration.uri.toString();
+    if (currentLocation != widget.initialLocation && mounted) {
+      _log.info(
+        'Browser navigation detected, closing dialog: '
+        '${widget.initialLocation} -> $currentLocation',
+      );
+      Navigator.of(context).pop();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
 
 abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
