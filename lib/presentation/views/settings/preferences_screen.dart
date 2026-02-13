@@ -348,11 +348,11 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
               onChanged: (value) {
                 // Delay state update to avoid layout exception when items list changes
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted) {
-                    setState(() {
-                      _selectedReminderType = value!.value!;
-                    });
-                  }
+                  if (!mounted) return;
+
+                  setState(() {
+                    _selectedReminderType = value!.value!;
+                  });
                 });
               },
             ),

@@ -91,11 +91,10 @@ abstract class MultiStepContainerState<T extends MultiStepContainer>
   @override
   Future<UserSettingsModel?> loadSettings() {
     return super.loadSettings().then((settings) {
-      if (mounted) {
-        setState(() {
-          isLoading = false;
-        });
-      }
+      if (!mounted) return settings;
+      setState(() {
+        isLoading = false;
+      });
       return settings;
     });
   }

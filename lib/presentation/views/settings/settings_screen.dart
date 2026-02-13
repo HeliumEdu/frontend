@@ -120,9 +120,8 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
               isLoading = false;
             });
           } else if (state is AuthLoggedOut) {
-            if (context.mounted) {
-              context.go(AppRoutes.loginScreen);
-            }
+            if (!context.mounted) return;
+            context.go(AppRoutes.loginScreen);
           } else if (state is AuthAccountDeleted) {
             showSnackBar(
               context,
@@ -130,13 +129,12 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
               isError: false,
               seconds: 6,
             );
-            if (context.mounted) {
-              // Close settings dialog if open
-              if (DialogModeProvider.isDialogMode(context)) {
-                Navigator.of(context).pop();
-              }
-              context.go(AppRoutes.loginScreen);
+            if (!context.mounted) return;
+            // Close settings dialog if open
+            if (DialogModeProvider.isDialogMode(context)) {
+              Navigator.of(context).pop();
             }
+            context.go(AppRoutes.loginScreen);
           }
         },
       ),

@@ -279,9 +279,8 @@ abstract class BaseAttachmentScreenState<T>
         });
       }
     } catch (e) {
-      if (mounted) {
-        showSnackBar(context, 'Error picking file: $e', isError: true);
-      }
+      if (!mounted) return;
+      showSnackBar(context, 'Error picking file: $e', isError: true);
     }
   }
 
@@ -436,16 +435,15 @@ abstract class BaseAttachmentScreenState<T>
       isLoading = false;
     });
 
-    if (mounted) {
-      if (success) {
-        showSnackBar(context, '"${attachment.title}" downloaded');
-      } else {
-        showSnackBar(
-          context,
-          'Failed to download "${attachment.title}"',
-          isError: true,
-        );
-      }
+    if (!mounted) return;
+    if (success) {
+      showSnackBar(context, '"${attachment.title}" downloaded');
+    } else {
+      showSnackBar(
+        context,
+        'Failed to download "${attachment.title}"',
+        isError: true,
+      );
     }
   }
 }

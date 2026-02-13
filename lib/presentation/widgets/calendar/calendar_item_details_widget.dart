@@ -891,23 +891,22 @@ class CalendarItemDetailsWidgetState extends State<CalendarItemDetailsWidget> {
           comments: notes.trim().isEmpty ? '' : notes.trim(),
         );
 
-        if (mounted) {
-          if (widget.isEdit && widget.eventId != null) {
-            context.read<CalendarItemBloc>().add(
-              UpdateEventEvent(
-                origin: EventOrigin.subScreen,
-                id: widget.eventId!,
-                request: request,
-              ),
-            );
-          } else {
-            context.read<CalendarItemBloc>().add(
-              CreateEventEvent(
-                origin: EventOrigin.subScreen,
-                request: request,
-              ),
-            );
-          }
+        if (!mounted) return;
+        if (widget.isEdit && widget.eventId != null) {
+          context.read<CalendarItemBloc>().add(
+            UpdateEventEvent(
+              origin: EventOrigin.subScreen,
+              id: widget.eventId!,
+              request: request,
+            ),
+          );
+        } else {
+          context.read<CalendarItemBloc>().add(
+            CreateEventEvent(
+              origin: EventOrigin.subScreen,
+              request: request,
+            ),
+          );
         }
       } else {
         final selectedCourse = _courses.firstWhere(
@@ -937,27 +936,26 @@ class CalendarItemDetailsWidgetState extends State<CalendarItemDetailsWidget> {
           course: _formController.selectedCourse!,
         );
 
-        if (mounted) {
-          if (widget.isEdit && widget.homeworkId != null) {
-            context.read<CalendarItemBloc>().add(
-              UpdateHomeworkEvent(
-                origin: EventOrigin.subScreen,
-                courseGroupId: selectedCourse.courseGroup,
-                courseId: selectedCourse.id,
-                homeworkId: widget.homeworkId!,
-                request: request,
-              ),
-            );
-          } else {
-            context.read<CalendarItemBloc>().add(
-              CreateHomeworkEvent(
-                origin: EventOrigin.subScreen,
-                courseGroupId: selectedCourse.courseGroup,
-                courseId: selectedCourse.id,
-                request: request,
-              ),
-            );
-          }
+        if (!mounted) return;
+        if (widget.isEdit && widget.homeworkId != null) {
+          context.read<CalendarItemBloc>().add(
+            UpdateHomeworkEvent(
+              origin: EventOrigin.subScreen,
+              courseGroupId: selectedCourse.courseGroup,
+              courseId: selectedCourse.id,
+              homeworkId: widget.homeworkId!,
+              request: request,
+            ),
+          );
+        } else {
+          context.read<CalendarItemBloc>().add(
+            CreateHomeworkEvent(
+              origin: EventOrigin.subScreen,
+              courseGroupId: selectedCourse.courseGroup,
+              courseId: selectedCourse.id,
+              request: request,
+            ),
+          );
         }
       }
     } else {
@@ -1153,15 +1151,14 @@ class CalendarItemDetailsWidgetState extends State<CalendarItemDetailsWidget> {
         comments: notes.trim().isEmpty ? '' : notes.trim(),
       );
 
-      if (mounted) {
-        context.read<CalendarItemBloc>().add(
-          CreateEventEvent(
-            origin: EventOrigin.subScreen,
-            request: request,
-            isClone: true,
-          ),
-        );
-      }
+      if (!mounted) return;
+      context.read<CalendarItemBloc>().add(
+        CreateEventEvent(
+          origin: EventOrigin.subScreen,
+          request: request,
+          isClone: true,
+        ),
+      );
     } else if (_calendarItem is HomeworkModel) {
       final homework = _calendarItem as HomeworkModel;
       final selectedCourse = _courses.firstWhere(
@@ -1183,17 +1180,16 @@ class CalendarItemDetailsWidgetState extends State<CalendarItemDetailsWidget> {
         course: homework.course.id,
       );
 
-      if (mounted) {
-        context.read<CalendarItemBloc>().add(
-          CreateHomeworkEvent(
-            origin: EventOrigin.subScreen,
-            courseGroupId: selectedCourse.courseGroup,
-            courseId: selectedCourse.id,
-            request: request,
-            isClone: true,
-          ),
-        );
-      }
+      if (!mounted) return;
+      context.read<CalendarItemBloc>().add(
+        CreateHomeworkEvent(
+          origin: EventOrigin.subScreen,
+          courseGroupId: selectedCourse.courseGroup,
+          courseId: selectedCourse.id,
+          request: request,
+          isClone: true,
+        ),
+      );
     }
   }
 }

@@ -46,6 +46,9 @@ void initializeRouter() {
     initialLocation: AppRoutes.landingScreen,
     redirect: _authRedirect,
     observers: [AnalyticsService().observer],
+    errorBuilder: (context, state) => const _RouteRedirect(
+      redirectTo: AppRoutes.plannerScreen,
+    ),
     routes: [
       // Public routes (no shell)
       GoRoute(
@@ -315,16 +318,16 @@ class _RouteRedirect extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (context.mounted) {
-        if (queryParams != null && queryParams!.isNotEmpty) {
-          final uri = Uri.parse(redirectTo);
-          final newUri = uri.replace(
-            queryParameters: {...uri.queryParameters, ...queryParams!},
-          );
-          context.go(newUri.toString());
-        } else {
-          context.go(redirectTo);
-        }
+      if (!context.mounted) return;
+
+      if (queryParams != null && queryParams!.isNotEmpty) {
+        final uri = Uri.parse(redirectTo);
+        final newUri = uri.replace(
+          queryParameters: {...uri.queryParameters, ...queryParams!},
+        );
+        context.go(newUri.toString());
+      } else {
+        context.go(redirectTo);
       }
     });
     return const Scaffold(body: SizedBox.shrink());

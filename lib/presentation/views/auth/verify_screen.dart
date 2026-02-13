@@ -63,9 +63,9 @@ class _VerifyScreenState extends BasePageScreenState<VerifyScreen> {
     // Auto-submit if both username and code are provided (e.g., from email link)
     if (widget.username != null && widget.code != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _onSubmit();
-        }
+        if (!mounted) return;
+
+        _onSubmit();
       });
     }
   }
@@ -98,9 +98,8 @@ class _VerifyScreenState extends BasePageScreenState<VerifyScreen> {
               seconds: 6,
             );
 
-            if (context.mounted) {
-              context.go(AppRoutes.loginScreen);
-            }
+            if (!context.mounted) return;
+            context.go(AppRoutes.loginScreen);
           } else if (state is AuthError) {
             showSnackBar(context, state.message!, isError: true, seconds: 4);
           }

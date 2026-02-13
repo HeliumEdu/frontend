@@ -41,14 +41,14 @@ import 'package:heliumapp/data/sources/external_calendar_remote_data_source.dart
 import 'package:heliumapp/data/sources/homework_remote_data_source.dart';
 import 'package:heliumapp/presentation/bloc/attachment/attachment_bloc.dart';
 import 'package:heliumapp/presentation/bloc/attachment/attachment_state.dart';
+import 'package:heliumapp/presentation/bloc/auth/auth_bloc.dart';
+import 'package:heliumapp/presentation/bloc/auth/auth_state.dart';
 import 'package:heliumapp/presentation/bloc/calendar/calendar_bloc.dart';
 import 'package:heliumapp/presentation/bloc/calendar/calendar_event.dart';
 import 'package:heliumapp/presentation/bloc/calendar/calendar_state.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_event.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_state.dart';
-import 'package:heliumapp/presentation/bloc/auth/auth_bloc.dart';
-import 'package:heliumapp/presentation/bloc/auth/auth_state.dart';
 import 'package:heliumapp/presentation/bloc/category/category_bloc.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
@@ -137,9 +137,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     BlocProvider<CalendarItemBloc>.value(
       value: context.read<CalendarItemBloc>(),
     ),
-    BlocProvider<AttachmentBloc>.value(
-      value: context.read<AttachmentBloc>(),
-    ),
+    BlocProvider<AttachmentBloc>.value(value: context.read<AttachmentBloc>()),
   ];
 
   @override
@@ -153,12 +151,17 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         ? truncatedNow
         : _calendarController.selectedDate;
 
+    final calendarItemBloc = context.read<CalendarItemBloc>();
+    final attachmentBloc = context.read<AttachmentBloc>();
+
     showCalendarItemAdd(
       context,
       initialDate: initialDate,
       isFromMonthView: _calendarController.view == CalendarView.month,
       isEdit: false,
       isNew: true,
+      calendarItemBloc: calendarItemBloc,
+      attachmentBloc: attachmentBloc,
     );
   };
 
@@ -222,9 +225,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       } else if (value == 'displayDate' && _currentView == HeliumView.agenda) {
         _log.fine('Display date change: $value');
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            setState(() {});
-          }
+          if (!mounted) return;
+
+          setState(() {});
         });
       }
     });
@@ -629,14 +632,14 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           onSelectionChanged: _onCalendarSelectionChanged,
           onViewChanged: (ViewChangedDetails details) {
             _visibleDates = details.visibleDates;
-            if (mounted) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) {
-                  // Ensure the date header is updated
-                  setState(() {});
-                }
-              });
-            }
+            if (!mounted) return;
+
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!mounted) return;
+
+              // Ensure the date header is updated
+              setState(() {});
+            });
           },
         );
       },
@@ -667,12 +670,17 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         ? calendarItem.id
         : null;
 
+    final calendarItemBloc = context.read<CalendarItemBloc>();
+    final attachmentBloc = context.read<AttachmentBloc>();
+
     showCalendarItemAdd(
       context,
       eventId: eventId,
       homeworkId: homeworkId,
       isEdit: true,
       isNew: false,
+      calendarItemBloc: calendarItemBloc,
+      attachmentBloc: attachmentBloc,
     );
 
     return true;
@@ -2374,12 +2382,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         _calendarController.selectedDate = truncatedDate;
         _storedSelectedDate = truncatedDate;
       }
-
     });
   }
 
   void _onToggleCompleted(HomeworkModel homework, bool value) {
-
     Feedback.forTap(context);
 
     _log.info('Homework ${homework.id} completion toggled: $value');

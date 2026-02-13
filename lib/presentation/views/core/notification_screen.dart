@@ -491,39 +491,39 @@ class _NotificationsScreenState
       }).toList();
     });
 
-    if (mounted) {
-      // Close the dialog first if we're in dialog mode
-      if (DialogModeProvider.isDialogMode(context)) {
-        Navigator.of(context).pop();
-      }
+    if (!mounted) return;
 
-      CalendarItemBloc? calendarItemBloc;
-      try {
-        calendarItemBloc = context.read<CalendarItemBloc>();
-      } catch (_) {
-        _log.fine('CalendarItemBloc not in context, creating a new one');
-        // Bloc not in context, create one
-        calendarItemBloc = ProviderHelpers().createCalendarItemBloc()(context);
-      }
-      AttachmentBloc? attachmentBloc;
-      try {
-        attachmentBloc = context.read<AttachmentBloc>();
-      } catch (_) {
-        _log.fine('AttachmentBloc not in context, creating a new one');
-        // Bloc not in context, create one
-        attachmentBloc = ProviderHelpers().createAttachmentBloc()(context);
-      }
-
-      showCalendarItemAdd(
-        context,
-        eventId: notification.reminder.event?.id,
-        homeworkId: notification.reminder.homework?.id,
-        isEdit: true,
-        isNew: false,
-        calendarItemBloc: calendarItemBloc,
-        attachmentBloc: attachmentBloc,
-      );
+    // Close the dialog first if we're in dialog mode
+    if (DialogModeProvider.isDialogMode(context)) {
+      Navigator.of(context).pop();
     }
+
+    CalendarItemBloc? calendarItemBloc;
+    try {
+      calendarItemBloc = context.read<CalendarItemBloc>();
+    } catch (_) {
+      _log.fine('CalendarItemBloc not in context, creating a new one');
+      // Bloc not in context, create one
+      calendarItemBloc = ProviderHelpers().createCalendarItemBloc()(context);
+    }
+    AttachmentBloc? attachmentBloc;
+    try {
+      attachmentBloc = context.read<AttachmentBloc>();
+    } catch (_) {
+      _log.fine('AttachmentBloc not in context, creating a new one');
+      // Bloc not in context, create one
+      attachmentBloc = ProviderHelpers().createAttachmentBloc()(context);
+    }
+
+    showCalendarItemAdd(
+      context,
+      eventId: notification.reminder.event?.id,
+      homeworkId: notification.reminder.homework?.id,
+      isEdit: true,
+      isNew: false,
+      calendarItemBloc: calendarItemBloc,
+      attachmentBloc: attachmentBloc,
+    );
   }
 
   Future<void> _dismissReminder(NotificationModel notification) async {

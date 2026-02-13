@@ -28,16 +28,14 @@ void showCourseAdd(
   required bool isEdit,
   required bool isNew,
   int initialStep = 0,
-  CourseBloc? courseBloc,
 }) {
-  // FIXME: not sure we have a path where we ever pass this through the args, I think we always pull it from the context, so might be able to clean this function params and logic up (and on all other pages)
-  final bloc = courseBloc ?? context.read<CourseBloc>();
+  final courseBloc = context.read<CourseBloc>();
 
   if (Responsive.isMobile(context)) {
     context.push(
       AppRoutes.courseAddScreen,
       extra: CourseAddArgs(
-        courseBloc: bloc,
+        courseBloc: courseBloc,
         courseGroupId: courseGroupId,
         courseId: courseId,
         isEdit: isEdit,
@@ -48,7 +46,7 @@ void showCourseAdd(
     showScreenAsDialog(
       context,
       child: BlocProvider<CourseBloc>.value(
-        value: bloc,
+        value: courseBloc,
         child: CourseAddScreen(
           courseGroupId: courseGroupId,
           courseId: courseId,
