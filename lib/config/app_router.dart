@@ -206,6 +206,7 @@ void initializeRouter() {
                 courseId: args.courseId,
                 isEdit: args.isEdit,
                 isNew: args.isNew,
+                initialStep: args.initialStep,
               ),
             ),
           );

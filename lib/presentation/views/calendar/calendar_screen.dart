@@ -1843,7 +1843,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       ],
     );
 
-    return Flexible(child: contentColumn);
+    return Expanded(child: contentColumn);
   }
 
   Widget _buildCalendarItemCenterForTimeline({

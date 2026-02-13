@@ -40,6 +40,7 @@ void showCourseAdd(
         courseId: courseId,
         isEdit: isEdit,
         isNew: isNew,
+        initialStep: initialStep,
       ),
     );
   } else {
