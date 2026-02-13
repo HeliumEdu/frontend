@@ -338,21 +338,19 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           if (_calendarItemDataSource == null) return;
 
           if (state is EventCreated) {
+            showSnackBar(context, 'Event created');
             _calendarItemDataSource!.addCalendarItem(state.event);
           } else if (state is EventUpdated) {
-            if (state.origin == EventOrigin.screen) {
-              showSnackBar(context, 'Event saved');
-            }
+            // No snackbar on updates
             _calendarItemDataSource!.updateCalendarItem(state.event);
           } else if (state is EventDeleted) {
             showSnackBar(context, 'Event deleted');
             _calendarItemDataSource!.removeCalendarItem(state.id);
           } else if (state is HomeworkCreated) {
+            showSnackBar(context, 'Assignment created');
             _calendarItemDataSource!.addCalendarItem(state.homework);
           } else if (state is HomeworkUpdated) {
-            if (state.origin == EventOrigin.screen) {
-              showSnackBar(context, 'Assignment saved');
-            }
+            // No snackbar on updates
             _calendarItemDataSource!.updateCalendarItem(state.homework);
           } else if (state is HomeworkDeleted) {
             showSnackBar(context, 'Assignment deleted');
@@ -1336,7 +1334,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   void _changeView(HeliumView newView) {
-    _log.info('View changed: $_currentView -> $newView');
+    _log.info('View changed: $_currentView --> $newView');
     final isEnteringNonCalendarView = (newView == HeliumView.todos);
     final wasInNonCalendarView =
         _previousView != null && _previousView == HeliumView.todos;

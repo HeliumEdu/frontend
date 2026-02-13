@@ -124,14 +124,14 @@ class _ExternalCalendarsProvidedScreenState
           if (state is ExternalCalendarsFetched) {
             _populateInitialStateData(state);
           } else if (state is ExternalCalendarCreated) {
-            showSnackBar(context, 'External calendar saved');
+            showSnackBar(context, 'External calendar created');
 
             setState(() {
               _externalCalendars.add(state.externalCalendar);
               Sort.byTitle(_externalCalendars);
             });
           } else if (state is ExternalCalendarUpdated) {
-            showSnackBar(context, 'External calendar saved');
+            // No snackbar on updates
 
             setState(() {
               _externalCalendars[_externalCalendars.indexWhere(

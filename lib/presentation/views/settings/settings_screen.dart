@@ -125,9 +125,10 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
           } else if (state is AuthAccountDeleted) {
             showSnackBar(
               context,
-              'Sorry to see you go! We\'ve deleted all traces of your existence from Helium.',
+              "Sorry to see you go! We've deleted all traces of your existence from Helium.",
               isError: false,
               seconds: 6,
+              useRootMessenger: true,
             );
             if (!context.mounted) return;
             // Close settings dialog if open
@@ -166,7 +167,6 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
             _buildSubSettingsArea(),
 
             const SizedBox(height: 12),
-
 
             _buildDeleteAccountArea(),
 
@@ -371,7 +371,8 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                 final bloc = context.read<ExternalCalendarBloc>();
                 _navigateToSubSettings(
                   context,
-                  (ctx) => showExternalCalendars(ctx, externalCalendarBloc: bloc),
+                  (ctx) =>
+                      showExternalCalendars(ctx, externalCalendarBloc: bloc),
                 );
               },
               borderRadius: BorderRadius.circular(16),
@@ -438,10 +439,8 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
           Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: () => _navigateToSubSettings(
-                context,
-                (ctx) => showFeeds(ctx),
-              ),
+              onTap: () =>
+                  _navigateToSubSettings(context, (ctx) => showFeeds(ctx)),
               borderRadius: BorderRadius.circular(16),
               child: Padding(
                 padding: const EdgeInsets.all(14),
