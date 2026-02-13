@@ -106,7 +106,8 @@ class _MaterialAddScreenState
             setState(() => isSubmitting = false);
           } else if (state is material_state.MaterialCreated ||
               state is material_state.MaterialUpdated) {
-            showSnackBar(context, 'Resource saved');
+            // Always closes after save, show on root
+            showSnackBar(context, 'Resource saved', useRootMessenger: true);
             cancelAction();
           }
         },

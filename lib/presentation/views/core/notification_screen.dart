@@ -425,7 +425,8 @@ class _NotificationsScreenState
                   ],
                 ),
               ),
-              if (!isTouchDevice)
+              if (!isTouchDevice) ...[
+                const SizedBox(width: 4),
                 IconButton(
                   onPressed: () => _dismissReminder(notification),
                   icon: Icon(
@@ -439,6 +440,7 @@ class _NotificationsScreenState
                     ),
                   ),
                 ),
+              ],
             ],
           ),
         ),

@@ -12,6 +12,7 @@ import 'package:heliumapp/config/app_routes.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_bloc.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_event.dart';
+import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/views/core/notification_screen.dart';
 import 'package:heliumapp/presentation/widgets/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
@@ -56,7 +57,10 @@ class PageHeader extends StatelessWidget {
             IconButton(
               visualDensity: VisualDensity.compact,
               onPressed: () {
-                if (Navigator.canPop(ctx)) {
+                // In dialog mode, close all dialogs and go to main screen
+                if (DialogModeProvider.isDialogMode(ctx)) {
+                  ctx.go(AppRoutes.plannerScreen);
+                } else if (Navigator.canPop(ctx)) {
                   ctx.pop();
                 } else {
                   ctx.go(AppRoutes.plannerScreen);
