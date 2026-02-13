@@ -19,9 +19,9 @@ class SettingsButton extends StatelessWidget {
     return IconButton(
       visualDensity: compact ? VisualDensity.compact : VisualDensity.standard,
       onPressed: () {
-        if (context.mounted) {
-          showSettings(context);
-        }
+        if (!context.mounted) return;
+
+        showSettings(context);
       },
       icon: Icon(
         Icons.settings_outlined,

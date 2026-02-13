@@ -306,25 +306,24 @@ class MaterialDetailsWidgetState extends State<MaterialDetailsWidget> {
         materialGroup: widget.materialGroupId,
       );
 
-      if (mounted) {
-        if (widget.isEdit && widget.materialId != null) {
-          context.read<MaterialBloc>().add(
-            UpdateMaterialEvent(
-              origin: EventOrigin.subScreen,
-              materialGroupId: widget.materialGroupId,
-              materialId: widget.materialId!,
-              request: request,
-            ),
-          );
-        } else {
-          context.read<MaterialBloc>().add(
-            CreateMaterialEvent(
-              origin: EventOrigin.subScreen,
-              materialGroupId: widget.materialGroupId,
-              request: request,
-            ),
-          );
-        }
+      if (!mounted) return;
+      if (widget.isEdit && widget.materialId != null) {
+        context.read<MaterialBloc>().add(
+          UpdateMaterialEvent(
+            origin: EventOrigin.subScreen,
+            materialGroupId: widget.materialGroupId,
+            materialId: widget.materialId!,
+            request: request,
+          ),
+        );
+      } else {
+        context.read<MaterialBloc>().add(
+          CreateMaterialEvent(
+            origin: EventOrigin.subScreen,
+            materialGroupId: widget.materialGroupId,
+            request: request,
+          ),
+        );
       }
     } else {
       SnackBarHelper.show(

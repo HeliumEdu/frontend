@@ -91,9 +91,8 @@ class _WhatsNewDialogWidget extends StatelessWidget {
             buttonText: 'Dive In!',
             onPressed: () async {
               await WhatsNewService().markWhatsNewAsSeen();
-              if (context.mounted) {
-                Navigator.pop(context);
-              }
+              if (!context.mounted) return;
+              Navigator.pop(context);
             },
           ),
         ),

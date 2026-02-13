@@ -87,11 +87,10 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
               seconds: 6,
             );
 
-            if (context.mounted) {
-              context.go(
-                '${AppRoutes.verifyScreen}?username=${Uri.encodeComponent(state.username!)}',
-              );
-            }
+            if (!context.mounted) return;
+            context.go(
+              '${AppRoutes.verifyScreen}?username=${Uri.encodeComponent(state.username!)}',
+            );
           } else if (state is AuthError) {
             showSnackBar(context, state.message!, isError: true, seconds: 6);
           }

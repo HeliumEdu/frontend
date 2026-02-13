@@ -30,18 +30,15 @@ void showCalendarItemAdd(
   required bool isEdit,
   required bool isNew,
   int initialStep = 0,
-  CalendarItemBloc? calendarItemBloc,
-  AttachmentBloc? attachmentBloc,
+  required CalendarItemBloc calendarItemBloc,
+  required AttachmentBloc attachmentBloc,
 }) {
-  final calBloc = calendarItemBloc ?? context.read<CalendarItemBloc>();
-  final attBloc = attachmentBloc ?? context.read<AttachmentBloc>();
-
   if (Responsive.isMobile(context)) {
     context.push(
       AppRoutes.plannerItemAddScreen,
       extra: CalendarItemAddArgs(
-        calendarItemBloc: calBloc,
-        attachmentBloc: attBloc,
+        calendarItemBloc: calendarItemBloc,
+        attachmentBloc: attachmentBloc,
         eventId: eventId,
         homeworkId: homeworkId,
         initialDate: initialDate,
@@ -55,8 +52,8 @@ void showCalendarItemAdd(
       context,
       child: MultiBlocProvider(
         providers: [
-          BlocProvider<CalendarItemBloc>.value(value: calBloc),
-          BlocProvider<AttachmentBloc>.value(value: attBloc),
+          BlocProvider<CalendarItemBloc>.value(value: calendarItemBloc),
+          BlocProvider<AttachmentBloc>.value(value: attachmentBloc),
         ],
         child: CalendarItemAddScreen(
           eventId: eventId,
@@ -193,7 +190,8 @@ class _CalendarItemAddScreenState
               state is EventUpdated) {
             state as BaseEntityState;
 
-            final isClone = (state is EventCreated && state.isClone) ||
+            final isClone =
+                (state is EventCreated && state.isClone) ||
                 (state is HomeworkCreated && state.isClone);
 
             if (isClone) {

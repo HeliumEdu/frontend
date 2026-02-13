@@ -153,9 +153,9 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     if (notifier != null) {
       // Use post-frame callback to avoid updating during build
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          notifier.setProviders(inheritableProviders);
-        }
+        if (!mounted) return;
+
+        notifier.setProviders(inheritableProviders);
       });
     }
   }
@@ -165,15 +165,13 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     return dioClient
         .getSettings()
         .then((settings) {
-          if (mounted) {
-            setState(() {
-              userSettings = settings;
-              if (userSettings != null) {
-                settingsLoaded = true;
-              }
-            });
-          }
-
+          if (!mounted) return settings;
+          setState(() {
+            userSettings = settings;
+            if (userSettings != null) {
+              settingsLoaded = true;
+            }
+          });
           return settings;
         })
         .catchError((error) {
@@ -400,6 +398,7 @@ class SnackBarHelper {
     if (!context.mounted) return;
     // FIXME: Find a proper way to show SnackBar messages when in DialogMode (desktop only)
     if (DialogModeProvider.isDialogMode(context)) return;
+
     if (clearSnackBar) {
       ScaffoldMessenger.of(context).clearSnackBars();
     }

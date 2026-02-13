@@ -262,15 +262,14 @@ abstract class BaseAttachmentWidgetState<T extends BaseAttachmentWidgetContent>
 
         // Defer setState to avoid layout conflicts during pointer events
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            setState(() {});
-          }
+          if (!mounted) return;
+
+          setState(() {});
         });
       }
     } catch (e) {
-      if (mounted) {
-        SnackBarHelper.show(context, 'Error picking file: $e', isError: true);
-      }
+      if (!mounted) return;
+      SnackBarHelper.show(context, 'Error picking file: $e', isError: true);
     }
   }
 
@@ -332,11 +331,11 @@ abstract class BaseAttachmentWidgetState<T extends BaseAttachmentWidgetContent>
               onPressed: () {
                 if (index < filesToUpload.length) {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (mounted) {
-                      setState(() {
-                        filesToUpload.removeAt(index);
-                      });
-                    }
+                    if (!mounted) return;
+
+                    setState(() {
+                      filesToUpload.removeAt(index);
+                    });
                   });
                 }
               },
@@ -438,16 +437,15 @@ abstract class BaseAttachmentWidgetState<T extends BaseAttachmentWidgetContent>
       isLoading = false;
     });
 
-    if (mounted) {
-      if (success) {
-        SnackBarHelper.show(context, '"${attachment.title}" downloaded');
-      } else {
-        SnackBarHelper.show(
-          context,
-          'Failed to download "${attachment.title}"',
-          isError: true,
-        );
-      }
+    if (!mounted) return;
+    if (success) {
+      SnackBarHelper.show(context, '"${attachment.title}" downloaded');
+    } else {
+      SnackBarHelper.show(
+        context,
+        'Failed to download "${attachment.title}"',
+        isError: true,
+      );
     }
   }
 }

@@ -24,15 +24,14 @@ void showMaterialAdd(
   required int materialGroupId,
   int? materialId,
   bool isEdit = false,
-  MaterialBloc? materialBloc,
 }) {
-  final bloc = materialBloc ?? context.read<MaterialBloc>();
+  final materialBloc = context.read<MaterialBloc>();
 
   if (Responsive.isMobile(context)) {
     context.push(
       AppRoutes.resourcesAddScreen,
       extra: MaterialAddArgs(
-        materialBloc: bloc,
+        materialBloc: materialBloc,
         materialGroupId: materialGroupId,
         materialId: materialId,
         isEdit: isEdit,
@@ -42,7 +41,7 @@ void showMaterialAdd(
     showScreenAsDialog(
       context,
       child: BlocProvider<MaterialBloc>.value(
-        value: bloc,
+        value: materialBloc,
         child: MaterialAddScreen(
           materialGroupId: materialGroupId,
           materialId: materialId,

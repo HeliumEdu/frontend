@@ -64,14 +64,13 @@ class TodosTableState extends State<TodosTable> {
 
   Future<void> _initializeData() async {
     await _expandDataWindowForAllCourses();
-    if (mounted) {
-      setState(() {
-        _isInitialized = true;
-      });
-      // Navigate to today only on first initialization
-      if (!widget.controller.hasInitializedNavigation) {
-        widget.controller.goToToday(widget.dataSource.filteredHomeworks);
-      }
+    if (!mounted) return;
+    setState(() {
+      _isInitialized = true;
+    });
+    // Navigate to today only on first initialization
+    if (!widget.controller.hasInitializedNavigation) {
+      widget.controller.goToToday(widget.dataSource.filteredHomeworks);
     }
   }
 
@@ -82,9 +81,9 @@ class TodosTableState extends State<TodosTable> {
   }
 
   void _onControllerChanged() {
-    if (mounted) {
-      setState(() {});
-    }
+    if (!mounted) return;
+
+    setState(() {});
   }
 
   @override
