@@ -669,7 +669,8 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   // Optimistic UI methods
   void setCompletedOverride(int homeworkId, bool completed) {
     _completedOverrides[homeworkId] = completed;
-    _notifyChangeListeners();
+
+    _applyFiltersAndNotify();
   }
 
   void clearCompletedOverride(int homeworkId) {
