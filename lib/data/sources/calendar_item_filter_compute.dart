@@ -6,6 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/utils/sort_helpers.dart';
 
 /// Lightweight representation of a calendar item for filtering/sorting in isolate.
 /// Contains only the fields needed for filtering and sorting operations.
@@ -71,15 +72,6 @@ class FilterComputeInput {
   });
 }
 
-/// Priority order for calendar item types when times are equal.
-/// Lower values appear first: Homework → ClassSchedule → Event → External
-const _typeSortPriority = {
-  CalendarItemType.homework: 0,
-  CalendarItemType.courseSchedule: 1,
-  CalendarItemType.event: 2,
-  CalendarItemType.external: 3,
-};
-
 /// Top-level function that runs filtering and sorting in a background isolate.
 /// Returns the indices of items that pass the filter, in sorted order.
 List<int> computeFilteredItems(FilterComputeInput input) {
@@ -101,7 +93,7 @@ List<int> computeFilteredItems(FilterComputeInput input) {
     filtered.add(item);
   }
 
-  // Sort using the same logic as Sort.byStartThenTitle
+  // Sort using shared comparison logic from sort_helpers.dart
   _sortByStartThenTitle(filtered);
 
   // Return indices in sorted order
@@ -195,48 +187,23 @@ bool _passesFilters(FilterableItem item, FilterParams params) {
   return true;
 }
 
+/// Sorts FilterableItems using the shared calendar item comparison logic.
+/// This ensures consistent sorting between sync and async code paths.
 void _sortByStartThenTitle(List<FilterableItem> list) {
   list.sort((a, b) {
-    final aPriority = _typeSortPriority[a.type] ?? 0;
-    final bPriority = _typeSortPriority[b.type] ?? 0;
-
-    // Apply priority-based time adjustments for sorting
-    final aSecondsToSubtract = a.allDay ? 0 : 3 - aPriority;
-    final bSecondsToSubtract = b.allDay ? 0 : 3 - bPriority;
-    final aStart = a.start.subtract(Duration(seconds: aSecondsToSubtract));
-    final bStart = b.start.subtract(Duration(seconds: bSecondsToSubtract));
-    final aEnd = a.end.subtract(Duration(minutes: a.allDay ? 0 : 3 - aPriority));
-    final bEnd = b.end.subtract(Duration(minutes: b.allDay ? 0 : 3 - bPriority));
-
-    final startDateCompare = _compareDatesOnly(aStart, bStart);
-    if (startDateCompare != 0) return startDateCompare;
-
-    final sameEndDate = _isSameDate(aEnd, bEnd);
-
-    // Before considering type-based priorities, all-day events always shown first
-    if (sameEndDate) {
-      if (a.allDay != b.allDay) {
-        return a.allDay ? -1 : 1;
-      }
-      final startTimeCompare = aStart.compareTo(bStart);
-      if (startTimeCompare != 0) return startTimeCompare;
-    } else {
-      final aDuration = aEnd.difference(aStart).inMinutes;
-      final bDuration = bEnd.difference(bStart).inMinutes;
-      final durationCompare = aDuration.compareTo(bDuration);
-      if (durationCompare != 0) return durationCompare;
-    }
-
-    return aPriority.compareTo(bPriority);
+    return compareCalendarItems(
+      aType: a.type,
+      bType: b.type,
+      aAllDay: a.allDay,
+      bAllDay: b.allDay,
+      aStart: a.start,
+      bStart: b.start,
+      aEnd: a.end,
+      bEnd: b.end,
+      aTitle: a.title,
+      bTitle: b.title,
+      aCourseId: a.courseId,
+      bCourseId: b.courseId,
+    );
   });
-}
-
-int _compareDatesOnly(DateTime a, DateTime b) {
-  final aDate = DateTime(a.year, a.month, a.day);
-  final bDate = DateTime(b.year, b.month, b.day);
-  return aDate.compareTo(bDate);
-}
-
-bool _isSameDate(DateTime a, DateTime b) {
-  return a.year == b.year && a.month == b.month && a.day == b.day;
 }
