@@ -9,12 +9,12 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
+import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/rrule_builder.dart';
 import 'package:logging/logging.dart';
 
 final _log = Logger('data.sources');
 
-/// Represents a time slot with start and end times.
 class _TimeSlot {
   final TimeOfDay start;
   final TimeOfDay end;
@@ -32,28 +32,18 @@ class _TimeSlot {
   }
 
   @override
-  int get hashCode => Object.hash(
-        start.hour,
-        start.minute,
-        end.hour,
-        end.minute,
-      );
+  int get hashCode =>
+      Object.hash(start.hour, start.minute, end.hour, end.minute);
 }
 
-/// Builds course schedule events from local course data without hitting the API.
+/// Builds course schedule events for the given courses within the date range.
 ///
-/// This source generates [CourseScheduleEventModel] instances with recurrence rules,
-/// letting SfCalendar handle the expansion during rendering. Instead of creating
-/// one event per occurrence, it creates 1-3 recurring appointments per schedule
-/// based on unique time slots.
+/// Events are generated as recurring appointments using RRULE format. Days with
+/// different times are grouped into separate recurring events.
+///
+/// If [search] is provided, only events whose title contains the search string
+/// (case-insensitive) are returned.
 class CourseScheduleBuilderSource {
-  /// Builds course schedule events for the given courses within the date range.
-  ///
-  /// Events are generated as recurring appointments using RRULE format. Days with
-  /// different times are grouped into separate recurring events.
-  ///
-  /// If [search] is provided, only events whose title contains the search string
-  /// (case-insensitive) are returned.
   List<CourseScheduleEventModel> buildCourseScheduleEvents({
     required List<CourseModel> courses,
     required DateTime from,
@@ -110,21 +100,17 @@ class CourseScheduleBuilderSource {
   }) {
     final List<CourseScheduleEventModel> events = [];
 
-    // Check if course overlaps with requested range at all
     if (from.isAfter(course.endDate) || to.isBefore(course.startDate)) {
       return events;
     }
 
-    // Group active days by their time slot
     final timeSlotGroups = _groupDaysByTimeSlot(schedule);
 
-    // Create one recurring event per time slot group
     int slotIndex = 0;
     for (final entry in timeSlotGroups.entries) {
       final timeSlot = entry.key;
       final dayIndices = entry.value;
 
-      // Find the TRUE first occurrence based on course start date (not query range)
       final firstOccurrence = _findFirstOccurrence(
         course.startDate,
         dayIndices,
@@ -135,13 +121,11 @@ class CourseScheduleBuilderSource {
         continue;
       }
 
-      // Build the RRULE with course end date (not query end date)
       final rrule = RRuleBuilder.buildWeeklyRecurrence(
         dayIndices: dayIndices,
         until: course.endDate,
       );
 
-      // Create the recurring event starting on the first occurrence
       final start = DateTime(
         firstOccurrence.year,
         firstOccurrence.month,
@@ -157,25 +141,26 @@ class CourseScheduleBuilderSource {
         timeSlot.end.minute,
       );
 
-      // Generate a deterministic ID based on schedule ID and slot index
       final eventId = _generateEventId(schedule.id, slotIndex);
 
-      events.add(CourseScheduleEventModel(
-        id: eventId,
-        title: course.title,
-        allDay: false,
-        showEndTime: true,
-        start: start,
-        end: end,
-        priority: 50,
-        url: null,
-        comments: '',
-        attachments: [],
-        reminders: [],
-        color: course.color,
-        ownerId: '${course.id}',
-        recurrenceRule: rrule,
-      ));
+      events.add(
+        CourseScheduleEventModel(
+          id: eventId,
+          title: course.title,
+          allDay: false,
+          showEndTime: true,
+          start: start,
+          end: end,
+          priority: 50,
+          url: null,
+          comments: '',
+          attachments: [],
+          reminders: [],
+          color: course.color,
+          ownerId: '${course.id}',
+          recurrenceRule: rrule,
+        ),
+      );
 
       slotIndex++;
     }
@@ -192,12 +177,12 @@ class CourseScheduleBuilderSource {
     final Map<_TimeSlot, List<int>> groups = {};
 
     for (int dayIndex = 0; dayIndex < 7; dayIndex++) {
-      if (!_isDayActive(schedule.daysOfWeek, dayIndex)) {
+      if (!schedule.isDayActive(dayIndex)) {
         continue;
       }
 
-      final startTime = _getStartTimeForDayIndex(schedule, dayIndex);
-      final endTime = _getEndTimeForDayIndex(schedule, dayIndex);
+      final startTime = schedule.getStartTimeForDayIndex(dayIndex);
+      final endTime = schedule.getEndTimeForDayIndex(dayIndex);
       final timeSlot = _TimeSlot(startTime, endTime);
 
       groups.putIfAbsent(timeSlot, () => []).add(dayIndex);
@@ -211,11 +196,10 @@ class CourseScheduleBuilderSource {
   DateTime? _findFirstOccurrence(DateTime startDate, List<int> dayIndices) {
     if (dayIndices.isEmpty) return null;
 
-    DateTime current = _dateOnly(startDate);
+    DateTime current = HeliumDateTime.dateOnly(startDate);
 
-    // Search up to 7 days to find the first matching day
     for (int i = 0; i < 7; i++) {
-      final dayIndex = _getDayIndex(current);
+      final dayIndex = HeliumDateTime.getDayIndex(current);
       if (dayIndices.contains(dayIndex)) {
         return current;
       }
@@ -225,86 +209,7 @@ class CourseScheduleBuilderSource {
     return null;
   }
 
-  /// Generates a deterministic event ID from schedule ID and slot index.
   int _generateEventId(int scheduleId, int slotIndex) {
-    // Use a formula that ensures unique IDs across schedules and slots
     return scheduleId * 100 + slotIndex;
-  }
-
-  /// Converts Dart's DateTime.weekday (1=Monday, 7=Sunday) to our index (0=Sunday, 6=Saturday).
-  int _getDayIndex(DateTime date) {
-    // DateTime.weekday: 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat, 7=Sun
-    // Our index: 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
-    return date.weekday == 7 ? 0 : date.weekday;
-  }
-
-  /// Checks if the given day index is active in the daysOfWeek string.
-  bool _isDayActive(String daysOfWeek, int dayIndex) {
-    if (dayIndex < 0 || dayIndex >= daysOfWeek.length) {
-      return false;
-    }
-    return daysOfWeek[dayIndex] == '1';
-  }
-
-  /// Gets the start time for a specific day index.
-  TimeOfDay _getStartTimeForDayIndex(
-    CourseScheduleModel schedule,
-    int dayIndex,
-  ) {
-    switch (dayIndex) {
-      case 0:
-        return schedule.sunStartTime;
-      case 1:
-        return schedule.monStartTime;
-      case 2:
-        return schedule.tueStartTime;
-      case 3:
-        return schedule.wedStartTime;
-      case 4:
-        return schedule.thuStartTime;
-      case 5:
-        return schedule.friStartTime;
-      case 6:
-        return schedule.satStartTime;
-      default:
-        return schedule.sunStartTime;
-    }
-  }
-
-  /// Gets the end time for a specific day index.
-  TimeOfDay _getEndTimeForDayIndex(CourseScheduleModel schedule, int dayIndex) {
-    switch (dayIndex) {
-      case 0:
-        return schedule.sunEndTime;
-      case 1:
-        return schedule.monEndTime;
-      case 2:
-        return schedule.tueEndTime;
-      case 3:
-        return schedule.wedEndTime;
-      case 4:
-        return schedule.thuEndTime;
-      case 5:
-        return schedule.friEndTime;
-      case 6:
-        return schedule.satEndTime;
-      default:
-        return schedule.sunEndTime;
-    }
-  }
-
-  /// Returns the later of two dates.
-  DateTime _maxDate(DateTime a, DateTime b) {
-    return a.isAfter(b) ? a : b;
-  }
-
-  /// Returns the earlier of two dates.
-  DateTime _minDate(DateTime a, DateTime b) {
-    return a.isBefore(b) ? a : b;
-  }
-
-  /// Returns a DateTime with only the date part (no time).
-  DateTime _dateOnly(DateTime date) {
-    return DateTime(date.year, date.month, date.day);
   }
 }

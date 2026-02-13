@@ -377,50 +377,20 @@ class CourseScheduleWidgetState extends State<CourseScheduleWidget> {
   }
 
   void _populateInitialStateData(CourseScheduleFetched state) {
-    final daysOfWeek = state.schedule.daysOfWeek;
-    final Set<int> activeDays = {};
-
-    for (int i = 0; i < daysOfWeek.length; i++) {
-      if (daysOfWeek[i] == '1') {
-        activeDays.add(i);
-      }
-    }
+    final schedule = state.schedule;
+    final activeDays = schedule.getActiveDayIndices();
 
     setState(() {
-      _scheduleId = state.schedule.id;
+      _scheduleId = schedule.id;
       _selectedDays = activeDays;
-      _singleStartTime = state.schedule.sunStartTime;
-      _singleEndTime = state.schedule.sunEndTime;
-      _variesByDay = !state.schedule.allDaysSameTime();
+      _singleStartTime = schedule.sunStartTime;
+      _singleEndTime = schedule.sunEndTime;
+      _variesByDay = !schedule.allDaysSameTime();
 
       if (_variesByDay) {
-        if (activeDays.contains(0)) {
-          _startTimes[0] = state.schedule.sunStartTime;
-          _endTimes[0] = state.schedule.sunEndTime;
-        }
-        if (activeDays.contains(1)) {
-          _startTimes[1] = state.schedule.monStartTime;
-          _endTimes[1] = state.schedule.monEndTime;
-        }
-        if (activeDays.contains(2)) {
-          _startTimes[2] = state.schedule.tueStartTime;
-          _endTimes[2] = state.schedule.tueEndTime;
-        }
-        if (activeDays.contains(3)) {
-          _startTimes[3] = state.schedule.wedStartTime;
-          _endTimes[3] = state.schedule.wedEndTime;
-        }
-        if (activeDays.contains(4)) {
-          _startTimes[4] = state.schedule.thuStartTime;
-          _endTimes[4] = state.schedule.thuEndTime;
-        }
-        if (activeDays.contains(5)) {
-          _startTimes[5] = state.schedule.friStartTime;
-          _endTimes[5] = state.schedule.friEndTime;
-        }
-        if (activeDays.contains(6)) {
-          _startTimes[6] = state.schedule.satStartTime;
-          _endTimes[6] = state.schedule.satEndTime;
+        for (final dayIndex in activeDays) {
+          _startTimes[dayIndex] = schedule.getStartTimeForDayIndex(dayIndex);
+          _endTimes[dayIndex] = schedule.getEndTimeForDayIndex(dayIndex);
         }
       }
 
