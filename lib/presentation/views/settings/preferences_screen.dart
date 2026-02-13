@@ -108,7 +108,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
               PrefService().setString('saved_filter_state', '');
             }
 
-            showSnackBar(context, 'Preferences saved', useRootMessenger: true);
+            // No snackbar on updates
 
             if (DialogModeProvider.isDialogMode(context)) {
               Navigator.of(context).pop();

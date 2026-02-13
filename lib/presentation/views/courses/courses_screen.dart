@@ -133,7 +133,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
           if (state is CoursesScreenDataFetched) {
             _populateInitialStateData(state);
           } else if (state is CourseGroupCreated) {
-            showSnackBar(context, 'Class group saved');
+            showSnackBar(context, 'Class group created');
 
             setState(() {
               _courseGroups.add(state.courseGroup);
@@ -142,7 +142,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
               _coursesMap[_selectedGroupId!] = [];
             });
           } else if (state is CourseGroupUpdated) {
-            showSnackBar(context, 'Class group saved');
+            // No snackbar on updates
 
             setState(() {
               _courseGroups[_courseGroups.indexWhere(

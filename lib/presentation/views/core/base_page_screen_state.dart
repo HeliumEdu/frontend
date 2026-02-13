@@ -161,7 +161,7 @@ class _DialogRouteListenerState extends State<_DialogRouteListener> {
     if (currentLocation != widget.initialLocation && mounted) {
       _log.info(
         'Browser navigation detected, closing dialog: '
-        '${widget.initialLocation} -> $currentLocation',
+        '${widget.initialLocation} --> $currentLocation',
       );
       Navigator.of(context).pop();
     }

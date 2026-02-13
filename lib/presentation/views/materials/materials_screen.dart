@@ -126,7 +126,7 @@ class _MaterialsScreenState
           if (state is material_state.MaterialsScreenDataFetched) {
             _populateInitialStateData(state);
           } else if (state is material_state.MaterialGroupCreated) {
-            showSnackBar(context, 'Group saved');
+            showSnackBar(context, 'Group created');
 
             setState(() {
               _materialGroups.add(state.materialGroup);
@@ -135,7 +135,7 @@ class _MaterialsScreenState
               _materialsMap[_selectedGroupId!] = [];
             });
           } else if (state is material_state.MaterialGroupUpdated) {
-            showSnackBar(context, 'Resource group saved');
+            // No snackbar on updates
 
             setState(() {
               _materialGroups[_materialGroups.indexWhere(

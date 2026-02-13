@@ -176,8 +176,11 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
           } else if (state is CourseCreated || state is CourseUpdated) {
             state as CourseEntityState;
 
-            final willClose = _willCloseAfterSave();
-            showSnackBar(context, 'Class saved', useRootMessenger: willClose);
+            // Only show snackbar for creates, not updates (visual confirmation is enough)
+            if (state is CourseCreated) {
+              final willClose = _willCloseAfterSave();
+              showSnackBar(context, 'Class created', useRootMessenger: willClose);
+            }
 
             setState(() {
               _currentCourseId = state.course.id;
@@ -186,14 +189,8 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
 
             _navigateAfterSave();
           } else if (state is CourseScheduleUpdated) {
-            final willClose = _willCloseAfterSave();
-            showSnackBar(
-              context,
-              'Class schedule saved',
-              useRootMessenger: willClose,
-            );
+            // No snackbar on updates
             setState(() => isSubmitting = false);
-
             _navigateAfterSave();
           }
         },
