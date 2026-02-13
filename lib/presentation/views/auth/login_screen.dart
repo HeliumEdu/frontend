@@ -106,10 +106,12 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
               seconds: 4,
             );
           } else if (state is AuthError) {
-            // 401/403 errors on login screen are from force logout (already showed snackbar)
-            if (state.httpStatusCode == 401 || state.httpStatusCode == 403) {
+            // Only suppress 401/403 if NOT from active login attempt (force logout already showed snackbar)
+            final isForceLogoutError = !isSubmitting &&
+                (state.httpStatusCode == 401 || state.httpStatusCode == 403);
+            if (isForceLogoutError) {
               _log.info(
-                'Suppressing ${state.httpStatusCode} error snackbar on login screen: ${state.message}',
+                'Suppressing force logout ${state.httpStatusCode} error on login screen: ${state.message}',
               );
             } else {
               showSnackBar(context, state.message!, isError: true, seconds: 6);
