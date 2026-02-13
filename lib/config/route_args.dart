@@ -100,6 +100,7 @@ class CourseAddArgs extends RouteArgs {
   final bool isEdit;
   final bool isNew;
   final int? courseId;
+  final int initialStep;
 
   const CourseAddArgs({
     required this.courseBloc,
@@ -107,6 +108,7 @@ class CourseAddArgs extends RouteArgs {
     required this.isEdit,
     required this.isNew,
     this.courseId,
+    this.initialStep = 0,
   });
 
   @override
