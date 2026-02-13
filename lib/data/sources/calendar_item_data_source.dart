@@ -62,6 +62,10 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   int _todosItemsPerPage = 10;
   final Map<int, bool> _completedOverrides = {};
   final Map<int, CalendarItemTimeOverride> _timeOverrides = {};
+  /// Maps calendar item ID to its position in the sorted list for items at the
+  /// same base time. Used to apply microsecond adjustments that encode the full
+  /// sort order (type --> course --> title) into times seen by SfCalendar.
+  final Map<int, int> _sortPositions = {};
   Timer? _filterDebounceTimer;
   bool _isFilteringInProgress = false;
   Completer<void>? _filterCompleter;
@@ -196,13 +200,22 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
       return baseTime;
     }
 
-    // Subtract seconds based on type priority to enforce sort order in SfCalendar.
-    // Higher priority items (lower number) get more seconds subtracted, making
-    // them appear "earlier" and thus sort first. Using seconds instead of
-    // microseconds because SfCalendar truncates sub-second precision.
-    final priority = Sort.typeSortPriority[item.calendarItemType] ?? 0;
-    final secondsToSubtract = 3 - priority; // 3, 2, 1, 0
-    return baseTime.subtract(Duration(seconds: secondsToSubtract));
+    // Apply time adjustments to encode our full sort order in SfCalendar.
+    // SfCalendar truncates sub-second precision, so we must use seconds.
+
+    final priority = typeSortPriority[item.calendarItemType] ?? 0;
+    final position = _sortPositions[item.id] ?? 0;
+
+    // Type priority: Use thousands of seconds (3000, 2000, 1000, 0)
+    // This ensures homework < course schedule < event < external
+    final baseSeconds = (3 - priority) * 1000;
+
+    // Position: Add seconds with reverse order (position 0 gets most)
+    // This allows up to 100 items at same time to maintain alphabetical order
+    final positionSeconds = 100 - position;
+
+    final totalSeconds = baseSeconds + positionSeconds;
+    return baseTime.subtract(Duration(seconds: totalSeconds));
   }
 
   @override
@@ -217,7 +230,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     final endTime = override != null
         ? DateTime.parse(override.end)
         : calendarItem.end;
-    final priority = Sort.typeSortPriority[calendarItem.calendarItemType] ?? 0;
+    final priority = typeSortPriority[calendarItem.calendarItemType] ?? 0;
 
     if (calendarItem.allDay) {
       final adjustedEnd = endTime.subtract(const Duration(days: 1));
@@ -225,12 +238,24 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
       return baseEnd.add(Duration(microseconds: priority));
     }
 
-    // SfCalendar sorts by duration (shorter first) when start times match.
-    // Subtract minutes based on priority to make higher priority items appear
-    // "shorter" and thus sort first. Applied unconditionally since the small
-    // time adjustment doesn't visibly affect week/day view rendering.
-    final minutesToSubtract = 3 - priority;
-    return endTime.subtract(Duration(minutes: minutesToSubtract));
+    // Apply time adjustments to encode our full sort order in SfCalendar.
+    // SfCalendar truncates sub-second precision, so we must use seconds.
+    // For end time, we use minutes to avoid visibly shortening the event too much.
+
+    final position = _sortPositions[calendarItem.id] ?? 0;
+
+    // Type priority: Use minutes (3, 2, 1, 0)
+    final baseMinutes = 3 - priority;
+
+    // Position: Add seconds for fine-grained ordering within same type/time
+    // Convert to fractional minutes to combine with type priority
+    final positionMinutes = (100 - position) / 60.0;
+
+    final totalMinutes = baseMinutes + positionMinutes;
+    return endTime.subtract(Duration(
+      minutes: totalMinutes.floor(),
+      seconds: ((totalMinutes % 1) * 60).round(),
+    ));
   }
 
   @override
@@ -586,6 +611,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     )) {
       appointments!.add(calendarItem);
       Sort.byStartThenTitle(appointments!.cast<CalendarItemBaseModel>());
+      _buildSortPositions(appointments!.cast<CalendarItemBaseModel>());
       notifyListeners(CalendarDataSourceAction.add, [calendarItem]);
     }
 
@@ -632,6 +658,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
       // Re-add at correct sorted position
       appointments!.add(calendarItem);
       Sort.byStartThenTitle(appointments!.cast<CalendarItemBaseModel>());
+      _buildSortPositions(appointments!.cast<CalendarItemBaseModel>());
       notifyListeners(CalendarDataSourceAction.add, [calendarItem]);
     } else {
       // Item not in current view, do full refresh
@@ -661,6 +688,8 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
       );
       appointments!.remove(removedItem);
       _completedOverrides.remove(calendarItemId);
+      _sortPositions.remove(calendarItemId);
+      _buildSortPositions(appointments!.cast<CalendarItemBaseModel>());
       notifyListeners(CalendarDataSourceAction.remove, [removedItem]);
       _notifyChangeListeners();
     }
@@ -669,6 +698,8 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   // Optimistic UI methods
   void setCompletedOverride(int homeworkId, bool completed) {
     _completedOverrides[homeworkId] = completed;
+    // Notify immediately for instant UI feedback, then async filter for sorting
+    _notifyChangeListeners();
     _applyFiltersAndNotify();
   }
 
@@ -680,6 +711,10 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   // Optimistic UI methods for drag-drop/resize
   void setTimeOverride(int itemId, String start, String end) {
     _timeOverrides[itemId] = CalendarItemTimeOverride(start: start, end: end);
+
+    // Re-sort and rebuild positions to maintain correct order with new time
+    Sort.byStartThenTitle(appointments!.cast<CalendarItemBaseModel>());
+    _buildSortPositions(appointments!.cast<CalendarItemBaseModel>());
 
     notifyListeners(CalendarDataSourceAction.reset, appointments!);
     _notifyChangeListeners();
@@ -728,6 +763,10 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   void _applyFiltersSynchronously() {
     appointments!.clear();
     appointments!.addAll(_filteredCalendarItems);
+
+    // Build sort position map to encode full sort order in time adjustments
+    _buildSortPositions(_filteredCalendarItems);
+
     _log.fine(
       'Filters applied (sync): ${appointments!.length} of ${allCalendarItems.length} items visible',
     );
@@ -783,6 +822,10 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
 
       appointments!.clear();
       appointments!.addAll(filteredItems);
+
+      // Build sort position map to encode full sort order in time adjustments
+      _buildSortPositions(filteredItems);
+
       _log.fine(
         'Filters applied: ${appointments!.length} of ${items.length} items visible',
       );
@@ -848,6 +891,36 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   Map<int, String> _buildCategoryIdToTitleMap() {
     if (categoriesMap == null) return {};
     return categoriesMap!.map((id, category) => MapEntry(id, category.title));
+  }
+
+  /// Builds a map of item IDs to their position within items at the same time.
+  /// This position is used to apply microsecond adjustments that encode the full
+  /// sort order (type --> course --> title) into the times seen by SfCalendar.
+  void _buildSortPositions(List<CalendarItemBaseModel> sortedItems) {
+    _sortPositions.clear();
+
+    // Group items by their base time (without any adjustments)
+    final itemsByBaseTime = <String, List<CalendarItemBaseModel>>{};
+
+    for (final item in sortedItems) {
+      // Use only date + hour + minute for grouping (ignore seconds/milliseconds)
+      final baseTime = DateTime(
+        item.start.year,
+        item.start.month,
+        item.start.day,
+        item.start.hour,
+        item.start.minute,
+      );
+      final key = baseTime.toIso8601String();
+      itemsByBaseTime.putIfAbsent(key, () => []).add(item);
+    }
+
+    // Assign positions within each time group
+    for (final timeGroup in itemsByBaseTime.values) {
+      for (int i = 0; i < timeGroup.length; i++) {
+        _sortPositions[timeGroup[i].id] = i;
+      }
+    }
   }
 
   bool _hasSelectedCourses() {

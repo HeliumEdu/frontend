@@ -13,7 +13,7 @@ import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 
 /// Priority order for calendar item types when times are equal.
-/// Lower values appear first: Homework → ClassSchedule → Event → External
+/// Lower values appear first: Homework --> ClassSchedule --> Event --> External
 const typeSortPriority = {
   CalendarItemType.homework: 0,
   CalendarItemType.courseSchedule: 1,
@@ -36,9 +36,18 @@ bool isSameDate(DateTime a, DateTime b) {
 /// Top-level comparison function for calendar items.
 /// Shared by both Sort.byStartThenTitle() and background isolate filtering.
 ///
-/// To ensure SfCalendar sorts as expected, we add "fake" adjustments to
-/// start/end times based on priority. SfCalendar's internal sort logic
-/// takes duration into account, so we adjust both start and end times.
+/// IMPORTANT: This comparison logic is used to sort items, but the actual
+/// times seen by SfCalendar come from CalendarItemDataSource.getStartTime()
+/// and getEndTime(). Those methods apply time adjustments to encode the full
+/// sort order (type --> course --> title) into the times.
+///
+/// Why time adjustments are necessary:
+/// - SfCalendar has its own internal sorting that we cannot override
+/// - SfCalendar truncates sub-second precision (microseconds are ignored!)
+/// - We must use SECONDS-based adjustments to encode our sort priorities
+/// - Type priority uses 1000s of seconds, position uses 1-100 seconds
+///
+/// This ensures SfCalendar's re-sorting maintains our desired order.
 int compareCalendarItems({
   required CalendarItemType aType,
   required CalendarItemType bType,
@@ -99,16 +108,6 @@ int compareCalendarItems({
 }
 
 class Sort {
-  /// Priority order for calendar item types when times are equal.
-  /// Lower values appear first: Homework -> ClassSchedule -> Event -> External
-  @Deprecated('Use top-level typeSortPriority constant instead')
-  static const typeSortPriority = {
-    CalendarItemType.homework: 0,
-    CalendarItemType.courseSchedule: 1,
-    CalendarItemType.event: 2,
-    CalendarItemType.external: 3,
-  };
-
   static void byTitle(List<BaseTitledModel> list) {
     list.sort((a, b) => a.title.compareTo(b.title));
   }
