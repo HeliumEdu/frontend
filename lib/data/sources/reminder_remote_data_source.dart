@@ -99,6 +99,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
       if (response.statusCode == 201) {
         final reminder = ReminderModel.fromJson(response.data);
         _log.info('... Reminder ${reminder.id} created');
+        await dioClient.cacheService.invalidateAll();
         return reminder;
       } else {
         throw ServerException(
@@ -130,6 +131,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
 
       if (response.statusCode == 200) {
         _log.info('... Reminder $id updated');
+        await dioClient.cacheService.invalidateAll();
         return ReminderModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -157,6 +159,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
 
       if (response.statusCode == 204) {
         _log.info('... Reminder $id deleted');
+        await dioClient.cacheService.invalidateAll();
       } else {
         throw ServerException(
           message: 'Failed to delete reminder: ${response.statusCode}',

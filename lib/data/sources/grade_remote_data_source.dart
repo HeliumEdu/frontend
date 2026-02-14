@@ -16,7 +16,7 @@ import 'package:logging/logging.dart';
 final _log = Logger('data.sources');
 
 abstract class GradeRemoteDataSource extends BaseDataSource {
-  Future<List<GradeCourseGroupModel>> getGrades();
+  Future<List<GradeCourseGroupModel>> getGrades({bool forceRefresh = false});
 }
 
 class GradeRemoteDataSourceImpl extends GradeRemoteDataSource {
@@ -25,11 +25,14 @@ class GradeRemoteDataSourceImpl extends GradeRemoteDataSource {
   GradeRemoteDataSourceImpl({required this.dioClient});
 
   @override
-  Future<List<GradeCourseGroupModel>> getGrades() async {
+  Future<List<GradeCourseGroupModel>> getGrades({bool forceRefresh = false}) async {
     try {
       _log.info('Fetching Grades ...');
 
-      final response = await dioClient.dio.get(ApiUrl.plannerGradesUrl);
+      final response = await dioClient.dio.get(
+        ApiUrl.plannerGradesUrl,
+        options: forceRefresh ? dioClient.cacheService.forceRefreshOptions() : null,
+      );
 
       if (response.statusCode == 200) {
         if (response.data is Map<String, dynamic>) {

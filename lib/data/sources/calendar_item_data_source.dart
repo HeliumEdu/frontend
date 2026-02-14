@@ -122,7 +122,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
 
       // Reload data for visible range if provided
       if (visibleStart != null && visibleEnd != null) {
-        await handleLoadMore(visibleStart, visibleEnd);
+        await handleLoadMore(visibleStart, visibleEnd, forceRefresh: true);
       }
     } finally {
       _isRefreshing = false;
@@ -326,20 +326,22 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   }
 
   @override
-  Future<void> handleLoadMore(DateTime startDate, DateTime endDate) async {
+  Future<void> handleLoadMore(DateTime startDate, DateTime endDate, {bool forceRefresh = false}) async {
     final key = _cacheKey(startDate, endDate);
 
-    if (!_dateRangeCache.containsKey(key)) {
-      _log.info('Fetching data for range: $startDate to $endDate');
+    if (forceRefresh || !_dateRangeCache.containsKey(key)) {
+      _log.info('Fetching data for range: $startDate to $endDate${forceRefresh ? ' (force refresh)' : ''}');
 
       final homeworks = await homeworkRepository.getHomeworks(
         from: startDate,
         to: endDate,
         shownOnCalendar: true,
+        forceRefresh: forceRefresh,
       );
       final events = await eventRepository.getEvents(
         from: startDate,
         to: endDate,
+        forceRefresh: forceRefresh,
       );
       final courseScheduleEvents = await courseScheduleRepository
           .getCourseScheduleEvents(
@@ -347,12 +349,14 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
             from: startDate,
             to: endDate,
             shownOnCalendar: true,
+            forceRefresh: forceRefresh,
           );
       final externalCalendarEvents = await externalCalendarRepository
           .getExternalCalendarEvents(
             from: startDate,
             to: endDate,
             shownOnCalendar: true,
+            forceRefresh: forceRefresh,
           );
 
       final calendarItems = [

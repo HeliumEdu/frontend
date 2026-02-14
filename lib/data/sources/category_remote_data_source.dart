@@ -21,6 +21,7 @@ abstract class CategoryRemoteDataSource extends BaseDataSource {
     int? courseId,
     String? title,
     bool? shownOnCalendar,
+    bool forceRefresh = false,
   });
 
   Future<CategoryModel> createCategory(
@@ -49,6 +50,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
     int? courseId,
     String? title,
     bool? shownOnCalendar,
+    bool forceRefresh = false,
   }) async {
     try {
       final filterInfo = courseId != null ? ' for Course $courseId' : '';
@@ -62,6 +64,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
       final response = await dioClient.dio.get(
         ApiUrl.plannerCategoriesListUrl,
         queryParameters: queryParameters.isNotEmpty ? queryParameters : null,
+        options: forceRefresh ? dioClient.cacheService.forceRefreshOptions() : null,
       );
 
       if (response.statusCode == 200) {
@@ -105,6 +108,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
       if (response.statusCode == 201) {
         final category = CategoryModel.fromJson(response.data);
         _log.info('... Category ${category.id} created for Course $courseId');
+        await dioClient.cacheService.invalidateAll();
         return category;
       } else {
         throw ServerException(
@@ -144,6 +148,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
 
       if (response.statusCode == 200) {
         _log.info('... Category $categoryId updated');
+        await dioClient.cacheService.invalidateAll();
         return CategoryModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -176,6 +181,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
 
       if (response.statusCode == 204) {
         _log.info('... Category $categoryId deleted');
+        await dioClient.cacheService.invalidateAll();
         return;
       } else {
         throw ServerException(

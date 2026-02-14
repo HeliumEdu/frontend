@@ -17,8 +17,10 @@ class ExternalCalendarRepositoryImpl implements ExternalCalendarRepository {
   ExternalCalendarRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<List<ExternalCalendarModel>> getExternalCalendars() async {
-    return await remoteDataSource.getExternalCalendars();
+  Future<List<ExternalCalendarModel>> getExternalCalendars({
+    bool forceRefresh = false,
+  }) async {
+    return await remoteDataSource.getExternalCalendars(forceRefresh: forceRefresh);
   }
 
   @override
@@ -27,12 +29,14 @@ class ExternalCalendarRepositoryImpl implements ExternalCalendarRepository {
     required DateTime to,
     String? search,
     bool? shownOnCalendar,
+    bool forceRefresh = false,
   }) async {
     return await remoteDataSource.getExternalCalendarEvents(
       from: from,
       to: to,
       search: search,
-      shownOnCalendar: shownOnCalendar
+      shownOnCalendar: shownOnCalendar,
+      forceRefresh: forceRefresh,
     );
   }
 

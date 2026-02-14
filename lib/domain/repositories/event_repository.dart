@@ -14,9 +14,13 @@ abstract class EventRepository {
     DateTime? to,
     String? search,
     String? title,
+    bool forceRefresh = false,
   });
 
-  Future<EventModel> getEvent({required int id});
+  Future<EventModel> getEvent({
+    required int id,
+    bool forceRefresh = false,
+  });
 
   Future<EventModel> createEvent({required EventRequestModel request});
 
