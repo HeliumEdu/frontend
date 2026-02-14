@@ -7,11 +7,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:heliumapp/presentation/controllers/core/basic_form_controller.dart';
-import 'package:html_editor_enhanced/html_editor.dart';
 
 class CalendarItemFormController extends BasicFormController {
   final TextEditingController titleController = TextEditingController();
-  final HtmlEditorController detailsController = HtmlEditorController();
   final TextEditingController gradeController = TextEditingController();
   final gradeFocusNode = FocusNode();
   int? selectedCourse;

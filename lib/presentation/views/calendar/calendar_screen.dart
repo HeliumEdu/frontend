@@ -522,7 +522,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   double _calculateCalendarHeight(double maxHeight) {
-    const double minCalendarHeight = 600;
+    final double minCalendarHeight = Responsive.isMobile(context) ? -1 : 600;
     return maxHeight < minCalendarHeight ? minCalendarHeight : maxHeight;
   }
 
@@ -623,7 +623,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
               color: context.colorScheme.onSurface.withValues(alpha: 0.6),
             ),
             dayFormat: 'EEE',
-            timeIntervalHeight: 50,
+            timeIntervalHeight: Responsive.isMobile(context) ? 43 : 60,
           ),
           loadMoreWidgetBuilder: _loadMoreWidgetBuilder,
           appointmentBuilder: _buildCalendarItem,
