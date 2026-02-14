@@ -19,9 +19,12 @@ import 'package:logging/logging.dart';
 final _log = Logger('data.sources');
 
 abstract class CourseRemoteDataSource extends BaseDataSource {
-  Future<List<CourseGroupModel>> getCourseGroups({bool? shownOnCalendar});
+  Future<List<CourseGroupModel>> getCourseGroups({
+    bool? shownOnCalendar,
+    bool forceRefresh = false,
+  });
 
-  Future<CourseGroupModel> getCourseGroup(int id);
+  Future<CourseGroupModel> getCourseGroup(int id, {bool forceRefresh = false});
 
   Future<CourseGroupModel> createCourseGroup(CourseGroupRequestModel request);
 
@@ -32,9 +35,13 @@ abstract class CourseRemoteDataSource extends BaseDataSource {
 
   Future<void> deleteCourseGroup(int groupId);
 
-  Future<List<CourseModel>> getCourses({int? groupId, bool? shownOnCalendar});
+  Future<List<CourseModel>> getCourses({
+    int? groupId,
+    bool? shownOnCalendar,
+    bool forceRefresh = false,
+  });
 
-  Future<CourseModel> getCourse(int groupId, int courseId);
+  Future<CourseModel> getCourse(int groupId, int courseId, {bool forceRefresh = false});
 
   Future<CourseModel> createCourse(int groupId, CourseRequestModel request);
 
@@ -56,6 +63,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
   Future<List<CourseModel>> getCourses({
     int? groupId,
     bool? shownOnCalendar,
+    bool forceRefresh = false,
   }) async {
     try {
       final filterInfo = groupId != null ? ' for CourseGroup $groupId' : '';
@@ -70,6 +78,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
       final response = await dioClient.dio.get(
         ApiUrl.plannerCoursesListUrl,
         queryParameters: queryParameters,
+        options: forceRefresh ? dioClient.cacheService.forceRefreshOptions() : null,
       );
 
       if (response.statusCode == 200) {
@@ -103,12 +112,13 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
   }
 
   @override
-  Future<CourseModel> getCourse(int groupId, int courseId) async {
+  Future<CourseModel> getCourse(int groupId, int courseId, {bool forceRefresh = false}) async {
     try {
       _log.info('Fetching Course $courseId in CourseGroup $groupId ...');
 
       final response = await dioClient.dio.get(
         ApiUrl.plannerCourseGroupsCoursesDetailsUrl(groupId, courseId),
+        options: forceRefresh ? dioClient.cacheService.forceRefreshOptions() : null,
       );
 
       if (response.statusCode == 200) {
@@ -146,6 +156,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
       if (response.statusCode == 201) {
         final course = CourseModel.fromJson(response.data);
         _log.info('... Course ${course.id} created in CourseGroup $groupId');
+        await dioClient.cacheService.invalidateAll();
         return course;
       } else {
         throw ServerException(
@@ -180,6 +191,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
 
       if (response.statusCode == 200) {
         _log.info('... Course $courseId updated');
+        await dioClient.cacheService.invalidateAll();
         return CourseModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -208,6 +220,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
 
       if (response.statusCode == 204) {
         _log.info('... Course $courseId deleted');
+        await dioClient.cacheService.invalidateAll();
         return;
       } else {
         throw ServerException(
@@ -229,6 +242,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
   @override
   Future<List<CourseGroupModel>> getCourseGroups({
     bool? shownOnCalendar,
+    bool forceRefresh = false,
   }) async {
     try {
       _log.info('Fetching CourseGroups ...');
@@ -240,6 +254,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
 
       final response = await dioClient.dio.get(
         ApiUrl.plannerCourseGroupsListUrl,
+        options: forceRefresh ? dioClient.cacheService.forceRefreshOptions() : null,
       );
 
       if (response.statusCode == 200) {
@@ -273,11 +288,12 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
   }
 
   @override
-  Future<CourseGroupModel> getCourseGroup(int id) async {
+  Future<CourseGroupModel> getCourseGroup(int id, {bool forceRefresh = false}) async {
     try {
       _log.info('Fetching CourseGroup $id ...');
       final response = await dioClient.dio.get(
         ApiUrl.plannerCourseGroupsDetailsUrl(id),
+        options: forceRefresh ? dioClient.cacheService.forceRefreshOptions() : null,
       );
 
       if (response.statusCode == 200) {
@@ -314,6 +330,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
       if (response.statusCode == 201) {
         final group = CourseGroupModel.fromJson(response.data);
         _log.info('... CourseGroup ${group.id} created');
+        await dioClient.cacheService.invalidateAll();
         return group;
       } else {
         throw ServerException(
@@ -346,6 +363,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
 
       if (response.statusCode == 200) {
         _log.info('... CourseGroup $groupId updated');
+        await dioClient.cacheService.invalidateAll();
         return CourseGroupModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -374,6 +392,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
 
       if (response.statusCode == 204) {
         _log.info('... CourseGroup $groupId deleted');
+        await dioClient.cacheService.invalidateAll();
         return;
       } else {
         throw ServerException(

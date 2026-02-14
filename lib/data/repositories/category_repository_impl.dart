@@ -20,11 +20,13 @@ class CategoryRepositoryImpl implements CategoryRepository {
     int? courseId,
     String? title,
     bool? shownOnCalendar,
+    bool forceRefresh = false,
   }) async {
     return await remoteDataSource.getCategories(
       courseId: courseId,
       title: title,
-      shownOnCalendar: shownOnCalendar
+      shownOnCalendar: shownOnCalendar,
+      forceRefresh: forceRefresh,
     );
   }
 

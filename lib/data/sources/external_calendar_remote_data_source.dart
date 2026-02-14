@@ -19,13 +19,16 @@ import 'package:logging/logging.dart';
 final _log = Logger('data.sources');
 
 abstract class ExternalCalendarRemoteDataSource extends BaseDataSource {
-  Future<List<ExternalCalendarModel>> getExternalCalendars();
+  Future<List<ExternalCalendarModel>> getExternalCalendars({
+    bool forceRefresh = false,
+  });
 
   Future<List<ExternalCalendarEventModel>> getExternalCalendarEvents({
     required DateTime from,
     required DateTime to,
     String? search,
     bool? shownOnCalendar,
+    bool forceRefresh = false,
   });
 
   Future<ExternalCalendarModel> createExternalCalendar({
@@ -47,12 +50,15 @@ class ExternalCalendarRemoteDataSourceImpl
   ExternalCalendarRemoteDataSourceImpl({required this.dioClient});
 
   @override
-  Future<List<ExternalCalendarModel>> getExternalCalendars() async {
+  Future<List<ExternalCalendarModel>> getExternalCalendars({
+    bool forceRefresh = false,
+  }) async {
     try {
       _log.info('Fetching ExternalCalendars ...');
 
       final response = await dioClient.dio.get(
         ApiUrl.feedExternalCalendarsListUrl,
+        options: forceRefresh ? dioClient.cacheService.forceRefreshOptions() : null,
       );
 
       if (response.statusCode == 200) {
@@ -98,6 +104,7 @@ class ExternalCalendarRemoteDataSourceImpl
     required DateTime to,
     String? search,
     bool? shownOnCalendar,
+    bool forceRefresh = false,
   }) async {
     try {
       _log.info('Fetching ExternalCalendarEvents ...');
@@ -115,6 +122,7 @@ class ExternalCalendarRemoteDataSourceImpl
       final response = await dioClient.dio.get(
         ApiUrl.feedExternalCalendarsEventsListUrl,
         queryParameters: queryParameters.isEmpty ? null : queryParameters,
+        options: forceRefresh ? dioClient.cacheService.forceRefreshOptions() : null,
       );
 
       if (response.statusCode == 200) {
@@ -162,6 +170,7 @@ class ExternalCalendarRemoteDataSourceImpl
       if (response.statusCode == 201) {
         final calendar = ExternalCalendarModel.fromJson(response.data);
         _log.info('... ExternalCalendar ${calendar.id} created');
+        await dioClient.cacheService.invalidateAll();
         return calendar;
       } else {
         throw ServerException(message: 'Failed to add external calendar');
@@ -192,6 +201,7 @@ class ExternalCalendarRemoteDataSourceImpl
 
       if (response.statusCode == 200) {
         _log.info('... ExternalCalendar $calendarId updated');
+        await dioClient.cacheService.invalidateAll();
         return ExternalCalendarModel.fromJson(response.data);
       } else {
         throw ServerException(message: 'Failed to update external calendar');
@@ -215,6 +225,7 @@ class ExternalCalendarRemoteDataSourceImpl
 
       if (response.statusCode == 204) {
         _log.info('... ExternalCalendar $calendarId deleted');
+        await dioClient.cacheService.invalidateAll();
         return;
       } else {
         throw ServerException(message: 'Failed to delete external calendar');

@@ -23,6 +23,7 @@ class HomeworkRepositoryImpl implements HomeworkRepository {
     String? search,
     String? title,
     bool? shownOnCalendar,
+    bool forceRefresh = false,
   }) async {
     return await remoteDataSource.getHomeworks(
       categoryTitles: categoryTitles,
@@ -31,12 +32,16 @@ class HomeworkRepositoryImpl implements HomeworkRepository {
       search: search,
       title: title,
       shownOnCalendar: shownOnCalendar,
+      forceRefresh: forceRefresh,
     );
   }
 
   @override
-  Future<HomeworkModel> getHomework({required int id}) async {
-    return await remoteDataSource.getHomework(id: id);
+  Future<HomeworkModel> getHomework({
+    required int id,
+    bool forceRefresh = false,
+  }) async {
+    return await remoteDataSource.getHomework(id: id, forceRefresh: forceRefresh);
   }
 
   @override

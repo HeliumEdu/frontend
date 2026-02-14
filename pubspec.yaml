@@ -21,6 +21,7 @@ dependencies:
   google_fonts: ^6.3.0
   dio: ^5.4.0
   pretty_dio_logger: ^1.4.0
+  dio_cache_interceptor: ^4.0.0
   bloc: ^9.0.0
   flutter_bloc: ^9.1.0
   shared_preferences: ^2.2.0

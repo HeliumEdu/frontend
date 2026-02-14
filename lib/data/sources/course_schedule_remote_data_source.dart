@@ -17,12 +17,16 @@ import 'package:logging/logging.dart';
 final _log = Logger('data.sources');
 
 abstract class CourseScheduleRemoteDataSource extends BaseDataSource {
-  Future<List<CourseScheduleModel>> getCourseSchedules({bool? shownOnCalendar});
+  Future<List<CourseScheduleModel>> getCourseSchedules({
+    bool? shownOnCalendar,
+    bool forceRefresh = false,
+  });
 
   Future<CourseScheduleModel> getCourseScheduleForCourse(
     int groupId,
-    int courseId,
-  );
+    int courseId, {
+    bool forceRefresh = false,
+  });
 
   Future<CourseScheduleModel> createCourseSchedule(
     int groupId,
@@ -47,6 +51,7 @@ class CourseScheduleRemoteDataSourceImpl
   @override
   Future<List<CourseScheduleModel>> getCourseSchedules({
     bool? shownOnCalendar,
+    bool forceRefresh = false,
   }) async {
     try {
       _log.info('Fetching CourseSchedules ...');
@@ -58,6 +63,7 @@ class CourseScheduleRemoteDataSourceImpl
 
       final response = await dioClient.dio.get(
         ApiUrl.plannerCourseSchedulesUrl,
+        options: forceRefresh ? dioClient.cacheService.forceRefreshOptions() : null,
       );
 
       if (response.statusCode == 200) {
@@ -93,13 +99,15 @@ class CourseScheduleRemoteDataSourceImpl
   @override
   Future<CourseScheduleModel> getCourseScheduleForCourse(
     int groupId,
-    int courseId,
-  ) async {
+    int courseId, {
+    bool forceRefresh = false,
+  }) async {
     try {
       _log.info('Fetching CourseSchedule for Course $courseId ...');
 
       final schedulesResponse = await dioClient.dio.get(
         ApiUrl.plannerCourseGroupsCoursesSchedulesListUrl(groupId, courseId),
+        options: forceRefresh ? dioClient.cacheService.forceRefreshOptions() : null,
       );
 
       if (schedulesResponse.data.length == 0) {
@@ -113,6 +121,7 @@ class CourseScheduleRemoteDataSourceImpl
           courseId,
           scheduleId,
         ),
+        options: forceRefresh ? dioClient.cacheService.forceRefreshOptions() : null,
       );
 
       if (response.statusCode == 200) {
@@ -155,6 +164,7 @@ class CourseScheduleRemoteDataSourceImpl
         _log.info(
           '... CourseSchedule ${schedule.id} created for Course $courseId',
         );
+        await dioClient.cacheService.invalidateAll();
         return schedule;
       } else {
         throw ServerException(
@@ -194,6 +204,7 @@ class CourseScheduleRemoteDataSourceImpl
 
       if (response.statusCode == 200) {
         _log.info('... CourseSchedule $scheduleId updated');
+        await dioClient.cacheService.invalidateAll();
         return CourseScheduleModel.fromJson(response.data);
       } else {
         throw ServerException(
