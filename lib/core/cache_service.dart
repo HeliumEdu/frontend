@@ -8,30 +8,41 @@
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:logging/logging.dart';
 
 final _log = Logger('core');
 
 /// Centralized cache service for HTTP requests.
 ///
-/// Provides a 10-minute TTL cache for GET requests using an in-memory store.
-class CacheService {
+/// Provides a 30-minute TTL cache for GET requests using an in-memory store.
+/// Automatically invalidates cache when returning from background after 5+ minutes.
+class CacheService with WidgetsBindingObserver {
   late final CacheStore _store;
   late final CacheOptions _options;
   late final DioCacheInterceptor _interceptor;
   late final Interceptor _loggingInterceptor;
+
+  /// How long cached responses remain valid.
+  static const cacheTtl = Duration(minutes: 30);
+
+  /// If app is backgrounded longer than this, cache is invalidated on resume.
+  static const inactivityThreshold = Duration(minutes: 5);
+
+  DateTime? _pausedAt;
 
   CacheService() {
     _store = MemCacheStore();
     _options = CacheOptions(
       store: _store,
       policy: CachePolicy.forceCache,
-      maxStale: const Duration(minutes: 10),
+      maxStale: cacheTtl,
       hitCacheOnNetworkFailure: true,
       keyBuilder: CacheOptions.defaultCacheKeyBuilder,
     );
     _interceptor = DioCacheInterceptor(options: _options);
     _loggingInterceptor = _createLoggingInterceptor();
+    _initLifecycleObserver();
   }
 
   /// Constructor for testing with a custom store.
@@ -41,12 +52,42 @@ class CacheService {
     _options = CacheOptions(
       store: _store,
       policy: CachePolicy.forceCache,
-      maxStale: const Duration(minutes: 10),
+      maxStale: cacheTtl,
       hitCacheOnNetworkFailure: true,
       keyBuilder: CacheOptions.defaultCacheKeyBuilder,
     );
     _interceptor = DioCacheInterceptor(options: _options);
     _loggingInterceptor = _createLoggingInterceptor();
+    // Skip lifecycle observer in tests
+  }
+
+  void _initLifecycleObserver() {
+    // Use addPostFrameCallback to ensure WidgetsBinding is ready
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addObserver(this);
+    });
+  }
+
+  /// Call this when the service is no longer needed.
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      _pausedAt = DateTime.now();
+      _log.fine('App paused, recording timestamp for cache invalidation check');
+    } else if (state == AppLifecycleState.resumed && _pausedAt != null) {
+      final inactiveDuration = DateTime.now().difference(_pausedAt!);
+      if (inactiveDuration > inactivityThreshold) {
+        _log.info(
+          'App resumed after ${inactiveDuration.inMinutes} minutes, invalidating cache',
+        );
+        invalidateAll();
+      }
+      _pausedAt = null;
+    }
   }
 
   /// The cache interceptor to add to Dio.
