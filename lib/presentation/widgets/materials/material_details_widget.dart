@@ -23,7 +23,6 @@ import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/course_title_label.dart';
 import 'package:heliumapp/presentation/widgets/drop_down.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
-import 'package:heliumapp/presentation/widgets/label_and_html_editor.dart';
 import 'package:heliumapp/presentation/widgets/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/utils/app_globals.dart';
@@ -245,14 +244,6 @@ class MaterialDetailsWidgetState extends State<MaterialDetailsWidget> {
                     label: 'Price',
                     controller: _formController.priceController,
                   ),
-                  const SizedBox(height: 14),
-                  const Divider(),
-                  const SizedBox(height: 9),
-                  LabelAndHtmlEditor(
-                    label: 'Notes',
-                    controller: _formController.detailsController,
-                    initialText: _formController.initialNotes,
-                  ),
                   const SizedBox(height: 12),
                 ],
               ),
@@ -289,8 +280,6 @@ class MaterialDetailsWidgetState extends State<MaterialDetailsWidget> {
 
   Future<void> onSubmit() async {
     if (_formController.validateAndScrollToError()) {
-      final notes = await _formController.detailsController.getText();
-
       final request = MaterialRequestModel(
         title: _formController.titleController.text.trim(),
         status: _formController.selectedStatus,
@@ -301,7 +290,7 @@ class MaterialDetailsWidgetState extends State<MaterialDetailsWidget> {
         price: _formController.priceController.text.trim().isEmpty
             ? ''
             : _formController.priceController.text.trim(),
-        details: notes.trim().isEmpty ? '' : notes,
+        details: widget.isEdit ? _formController.initialNotes : '',
         courses: _formController.selectedCourses,
         materialGroup: widget.materialGroupId,
       );
