@@ -182,21 +182,23 @@ void main() {
       });
 
       test('filters by groupId when provided', () async {
-        // GIVEN
+        // GIVEN - API returns materials from multiple groups
+        final materialsJson = [
+          givenMaterialJson(id: 1, title: 'Material A', materialGroup: 5),
+          givenMaterialJson(id: 2, title: 'Material B', materialGroup: 3),
+          givenMaterialJson(id: 3, title: 'Material C', materialGroup: 5),
+        ];
         when(
-          () => mockDio.get(
-            any(),
-            queryParameters: any(named: 'queryParameters'),
-          ),
-        ).thenAnswer((_) async => givenSuccessResponse([]));
+          () => mockDio.get(any()),
+        ).thenAnswer((_) async => givenSuccessResponse(materialsJson));
 
-        // WHEN
-        await dataSource.getMaterials(groupId: 5);
+        // WHEN - filter by groupId 5
+        final result = await dataSource.getMaterials(groupId: 5);
 
-        // THEN
-        verify(
-          () => mockDio.get(any(), queryParameters: {'material_group': 5}),
-        ).called(1);
+        // THEN - only materials from group 5 are returned
+        expect(result.length, equals(2));
+        expect(result[0].title, equals('Material A'));
+        expect(result[1].title, equals('Material C'));
       });
 
       test('parses material with courses correctly', () async {

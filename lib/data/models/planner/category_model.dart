@@ -23,6 +23,7 @@ class CategoryModel extends BaseTitledModel {
   CategoryModel({
     required super.id,
     required super.title,
+    super.shownOnCalendar,
     required this.color,
     required this.course,
     required this.weight,
@@ -36,6 +37,7 @@ class CategoryModel extends BaseTitledModel {
     return CategoryModel(
       id: json['id'],
       title: json['title'],
+      shownOnCalendar: json['shown_on_calendar'],
       color: HeliumColors.hexToColor(json['color']),
       course: json['course'],
       weight: HeliumConversion.toDouble(json['weight'])!,

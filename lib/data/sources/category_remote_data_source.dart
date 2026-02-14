@@ -56,10 +56,11 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
       final filterInfo = courseId != null ? ' for Course $courseId' : '';
       _log.info('Fetching Categories$filterInfo ...');
 
+      // shownOnCalendar requires server-side filtering (hierarchical check on parent groups)
       final Map<String, dynamic> queryParameters = {};
-      if (courseId != null) queryParameters['course'] = courseId;
-      if (title?.isNotEmpty ?? false) queryParameters['title'] = title;
-      if (shownOnCalendar != null) queryParameters['shown_on_calendar'] = shownOnCalendar;
+      if (shownOnCalendar != null) {
+        queryParameters['shown_on_calendar'] = shownOnCalendar;
+      }
 
       final response = await dioClient.dio.get(
         ApiUrl.plannerCategoriesListUrl,
@@ -69,9 +70,17 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
 
       if (response.statusCode == 200) {
         final List<dynamic> categoriesJson = response.data;
-        final categories = categoriesJson
+        var categories = categoriesJson
             .map((json) => CategoryModel.fromJson(json))
             .toList();
+
+        // Filter client-side for cache efficiency
+        if (courseId != null) {
+          categories = categories.where((c) => c.course == courseId).toList();
+        }
+        if (title?.isNotEmpty ?? false) {
+          categories = categories.where((c) => c.title == title).toList();
+        }
 
         _log.info('... fetched ${categories.length} Category(ies)');
         return categories;
