@@ -18,8 +18,8 @@ class MaterialRepositoryImpl implements MaterialRepository {
   MaterialRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<List<MaterialGroupModel>> getMaterialGroups() async {
-    return await remoteDataSource.getMaterialGroups();
+  Future<List<MaterialGroupModel>> getMaterialGroups({bool forceRefresh = false}) async {
+    return await remoteDataSource.getMaterialGroups(forceRefresh: forceRefresh);
   }
 
   @override
@@ -46,16 +46,18 @@ class MaterialRepositoryImpl implements MaterialRepository {
   Future<List<MaterialModel>> getMaterials({
     int? groupId,
     bool? shownOnCalendar,
+    bool forceRefresh = false,
   }) async {
     return await remoteDataSource.getMaterials(
       groupId: groupId,
       shownOnCalendar: shownOnCalendar,
+      forceRefresh: forceRefresh,
     );
   }
 
   @override
-  Future<MaterialModel> getMaterial(int groupId, int materialId) async {
-    return await remoteDataSource.getMaterialById(groupId, materialId);
+  Future<MaterialModel> getMaterial(int groupId, int materialId, {bool forceRefresh = false}) async {
+    return await remoteDataSource.getMaterialById(groupId, materialId, forceRefresh: forceRefresh);
   }
 
   @override

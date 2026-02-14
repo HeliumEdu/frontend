@@ -16,13 +16,19 @@ class CourseRepositoryImpl implements CourseRepository {
   final CourseRemoteDataSource remoteDataSource;
 
   @override
-  Future<List<CourseGroupModel>> getCourseGroups({bool? shownOnCalendar}) async {
-    return await remoteDataSource.getCourseGroups(shownOnCalendar: shownOnCalendar);
+  Future<List<CourseGroupModel>> getCourseGroups({
+    bool? shownOnCalendar,
+    bool forceRefresh = false,
+  }) async {
+    return await remoteDataSource.getCourseGroups(
+      shownOnCalendar: shownOnCalendar,
+      forceRefresh: forceRefresh,
+    );
   }
 
   @override
-  Future<CourseGroupModel> getCourseGroup(int id) async {
-    return await remoteDataSource.getCourseGroup(id);
+  Future<CourseGroupModel> getCourseGroup(int id, {bool forceRefresh = false}) async {
+    return await remoteDataSource.getCourseGroup(id, forceRefresh: forceRefresh);
   }
 
   @override
@@ -51,16 +57,18 @@ class CourseRepositoryImpl implements CourseRepository {
   Future<List<CourseModel>> getCourses({
     int? groupId,
     bool? shownOnCalendar,
+    bool forceRefresh = false,
   }) async {
     return await remoteDataSource.getCourses(
       groupId: groupId,
       shownOnCalendar: shownOnCalendar,
+      forceRefresh: forceRefresh,
     );
   }
 
   @override
-  Future<CourseModel> getCourse(int groupId, int courseId) async {
-    return await remoteDataSource.getCourse(groupId, courseId);
+  Future<CourseModel> getCourse(int groupId, int courseId, {bool forceRefresh = false}) async {
+    return await remoteDataSource.getCourse(groupId, courseId, forceRefresh: forceRefresh);
   }
 
   @override

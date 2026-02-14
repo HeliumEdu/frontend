@@ -19,6 +19,7 @@ class MaterialModel extends BaseTitledModel {
   MaterialModel({
     required super.id,
     required super.title,
+    super.shownOnCalendar,
     required this.status,
     required this.condition,
     required this.website,
@@ -32,6 +33,7 @@ class MaterialModel extends BaseTitledModel {
     return MaterialModel(
       id: json['id'],
       title: json['title'],
+      shownOnCalendar: json['shown_on_calendar'],
       status: json['status'],
       condition: json['condition'],
       website: json['website'],

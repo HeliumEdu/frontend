@@ -19,9 +19,9 @@ import 'package:logging/logging.dart';
 final _log = Logger('data.sources');
 
 abstract class MaterialRemoteDataSource extends BaseDataSource {
-  Future<List<MaterialGroupModel>> getMaterialGroups();
+  Future<List<MaterialGroupModel>> getMaterialGroups({bool forceRefresh = false});
 
-  Future<MaterialGroupModel> getMaterialGroupById(int groupId);
+  Future<MaterialGroupModel> getMaterialGroupById(int groupId, {bool forceRefresh = false});
 
   Future<MaterialGroupModel> createMaterialGroup(
     MaterialGroupRequestModel request,
@@ -37,9 +37,10 @@ abstract class MaterialRemoteDataSource extends BaseDataSource {
   Future<List<MaterialModel>> getMaterials({
     int? groupId,
     bool? shownOnCalendar,
+    bool forceRefresh = false,
   });
 
-  Future<MaterialModel> getMaterialById(int groupId, int materialId);
+  Future<MaterialModel> getMaterialById(int groupId, int materialId, {bool forceRefresh = false});
 
   Future<MaterialModel> createMaterial(
     int groupId,
@@ -61,11 +62,12 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
   MaterialRemoteDataSourceImpl({required this.dioClient});
 
   @override
-  Future<List<MaterialGroupModel>> getMaterialGroups() async {
+  Future<List<MaterialGroupModel>> getMaterialGroups({bool forceRefresh = false}) async {
     try {
       _log.info('Fetching MaterialGroups ...');
       final response = await dioClient.dio.get(
         ApiUrl.plannerMaterialGroupsListUrl,
+        options: forceRefresh ? dioClient.cacheService.forceRefreshOptions() : null,
       );
 
       if (response.statusCode == 200) {
@@ -99,11 +101,12 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
   }
 
   @override
-  Future<MaterialGroupModel> getMaterialGroupById(int groupId) async {
+  Future<MaterialGroupModel> getMaterialGroupById(int groupId, {bool forceRefresh = false}) async {
     try {
       _log.info('Fetching MaterialGroup $groupId ...');
       final response = await dioClient.dio.get(
         ApiUrl.plannerMaterialGroupsDetailsUrl(groupId),
+        options: forceRefresh ? dioClient.cacheService.forceRefreshOptions() : null,
       );
 
       if (response.statusCode == 200) {
@@ -141,6 +144,7 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
       if (response.statusCode == 201) {
         final group = MaterialGroupModel.fromJson(response.data);
         _log.info('... MaterialGroup ${group.id} created');
+        await dioClient.cacheService.invalidateAll();
         return group;
       } else {
         throw ServerException(
@@ -174,6 +178,7 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
 
       if (response.statusCode == 200) {
         _log.info('... MaterialGroup $groupId updated');
+        await dioClient.cacheService.invalidateAll();
         return MaterialGroupModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -202,6 +207,7 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
 
       if (response.statusCode == 204) {
         _log.info('... MaterialGroup $groupId deleted');
+        await dioClient.cacheService.invalidateAll();
         return;
       } else {
         throw ServerException(
@@ -224,29 +230,35 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
   Future<List<MaterialModel>> getMaterials({
     int? groupId,
     bool? shownOnCalendar,
+    bool forceRefresh = false,
   }) async {
     try {
       final filterInfo = groupId != null ? ' for MaterialGroup $groupId' : '';
       _log.info('Fetching Materials$filterInfo ...');
 
+      // shownOnCalendar requires server-side filtering (hierarchical check on parent groups)
       final Map<String, dynamic> queryParameters = {};
-      if (groupId != null) {
-        queryParameters['material_group'] = groupId;
-      }
       if (shownOnCalendar != null) {
         queryParameters['shown_on_calendar'] = shownOnCalendar;
       }
 
       final response = await dioClient.dio.get(
         ApiUrl.plannerMaterialsListUrl,
-        queryParameters: queryParameters,
+        queryParameters: queryParameters.isNotEmpty ? queryParameters : null,
+        options: forceRefresh ? dioClient.cacheService.forceRefreshOptions() : null,
       );
 
       if (response.statusCode == 200) {
         if (response.data is List) {
-          final materials = (response.data as List)
+          var materials = (response.data as List)
               .map((material) => MaterialModel.fromJson(material))
               .toList();
+
+          // Filter by groupId client-side for cache efficiency
+          if (groupId != null) {
+            materials = materials.where((m) => m.materialGroup == groupId).toList();
+          }
+
           _log.info('... fetched ${materials.length} Material(s)');
           return materials;
         } else {
@@ -273,11 +285,12 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
   }
 
   @override
-  Future<MaterialModel> getMaterialById(int groupId, int materialId) async {
+  Future<MaterialModel> getMaterialById(int groupId, int materialId, {bool forceRefresh = false}) async {
     try {
       _log.info('Fetching Material $materialId in MaterialGroup $groupId ...');
       final response = await dioClient.dio.get(
         ApiUrl.plannerMaterialGroupsMaterialDetailsUrl(groupId, materialId),
+        options: forceRefresh ? dioClient.cacheService.forceRefreshOptions() : null,
       );
 
       if (response.statusCode == 200) {
@@ -316,6 +329,7 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
       if (response.statusCode == 201) {
         final material = MaterialModel.fromJson(response.data);
         _log.info('... Material ${material.id} created in MaterialGroup $groupId');
+        await dioClient.cacheService.invalidateAll();
         return material;
       } else {
         throw ServerException(
@@ -349,6 +363,7 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
 
       if (response.statusCode == 200) {
         _log.info('... Material $materialId updated');
+        await dioClient.cacheService.invalidateAll();
         return MaterialModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -377,6 +392,7 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
 
       if (response.statusCode == 204) {
         _log.info('... Material $materialId deleted');
+        await dioClient.cacheService.invalidateAll();
         return;
       } else {
         throw ServerException(

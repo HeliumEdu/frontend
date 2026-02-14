@@ -36,6 +36,7 @@ class CourseModel extends BaseTitledModel {
   CourseModel({
     required super.id,
     required super.title,
+    super.shownOnCalendar,
     required this.startDate,
     required this.endDate,
     required this.room,
@@ -61,6 +62,7 @@ class CourseModel extends BaseTitledModel {
     return CourseModel(
       id: json['id'],
       title: json['title'],
+      shownOnCalendar: json['shown_on_calendar'],
       startDate: DateTime.parse(json['start_date']),
       endDate: DateTime.parse(json['end_date']),
       room: json['room'],

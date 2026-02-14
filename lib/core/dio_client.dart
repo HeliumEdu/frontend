@@ -16,6 +16,7 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/core/api_url.dart';
+import 'package:heliumapp/core/cache_service.dart';
 import 'package:heliumapp/data/models/auth/request/refresh_token_request_model.dart';
 import 'package:heliumapp/data/models/auth/token_response_model.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
@@ -36,11 +37,16 @@ class DioClient {
 
   late final Dio _dio;
   late final PrefService _prefService;
+  late final CacheService _cacheService;
 
   @visibleForTesting
-  DioClient.forTesting({required Dio dio, required PrefService prefService})
-    : _dio = dio,
-      _prefService = prefService;
+  DioClient.forTesting({
+    required Dio dio,
+    required PrefService prefService,
+    CacheService? cacheService,
+  }) : _dio = dio,
+       _prefService = prefService,
+       _cacheService = cacheService ?? CacheService();
 
   @visibleForTesting
   static void resetForTesting() {
@@ -60,6 +66,7 @@ class DioClient {
 
   // Getters
   Dio get dio => _dio;
+  CacheService get cacheService => _cacheService;
 
   DioClient._internal()
     : _dio = Dio(
@@ -80,7 +87,7 @@ class DioClient {
           final token = await _prefService.getSecure('access_token');
           if (token?.isNotEmpty ?? false) {
             options.headers['Authorization'] = 'Bearer $token';
-            _log.info('Authorization token attached to request');
+            _log.fine('Authorization token attached to request');
           }
           return handler.next(options);
         },
@@ -244,6 +251,11 @@ class DioClient {
       ),
     );
 
+    // Add cache interceptor
+    _cacheService = CacheService();
+    _dio.interceptors.add(_cacheService.interceptor);
+    _dio.interceptors.add(_cacheService.loggingInterceptor);
+
     if (kDebugMode) {
       final logLevel = Logger.root.level;
       final isVerbose = logLevel <= Level.FINE;
@@ -275,6 +287,7 @@ class DioClient {
   }
 
   Future<List<void>?> clearStorage() async {
+    await _cacheService.clearAll();
     return _prefService.clear();
   }
 

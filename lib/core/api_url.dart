@@ -46,12 +46,12 @@ class ApiUrl {
   static const plannerMaterialsListUrl = '/planner/materials/';
   static const plannerHomeworkListUrl = '/planner/homework/';
   static const plannerEventsListUrl = '/planner/events/';
-  static const plannerSchedulesEvents = '/planner/courseschedules/events/';
   static const feedExternalCalendarsEventsListUrl =
       '/feed/externalcalendars/events/';
   static const plannerRemindersListUrl = '/planner/reminders/';
   static const plannerAttachmentsListUrl = '/planner/attachments/';
 
+  // Entities
   static String plannerCourseGroupsCoursesHomeworkDetailsUrl(
     int groupId,
     int courseId,

@@ -8,6 +8,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/config/pref_service.dart';
+import 'package:heliumapp/core/cache_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
@@ -23,11 +24,13 @@ void main() {
 
   late MockPrefService mockPrefService;
   late MockDio mockDio;
+  late MockCacheService mockCacheService;
   late DioClient dioClient;
 
   setUp(() {
     mockPrefService = MockPrefService();
     mockDio = MockDio();
+    mockCacheService = MockCacheService();
 
     // Setup default mock behaviors
     when(() => mockDio.options).thenReturn(BaseOptions(
@@ -43,9 +46,13 @@ void main() {
     // Stub init() to return a completed Future
     when(() => mockPrefService.init()).thenAnswer((_) async {});
 
+    // Stub cache service methods
+    when(() => mockCacheService.clearAll()).thenAnswer((_) async {});
+
     dioClient = DioClient.forTesting(
       dio: mockDio,
       prefService: mockPrefService,
+      cacheService: mockCacheService,
     );
   });
 
@@ -247,6 +254,31 @@ void main() {
         verify(() => mockPrefService.getString('time_zone')).called(1);
         // The service reads from calendar_use_category_colors, not color_by_category
         verify(() => mockPrefService.getBool('calendar_use_category_colors')).called(1);
+      });
+    });
+
+    group('cacheService', () {
+      test('getter returns the cache service', () {
+        // WHEN
+        final cacheService = dioClient.cacheService;
+
+        // THEN
+        expect(cacheService, isA<CacheService>());
+        expect(cacheService, equals(mockCacheService));
+      });
+    });
+
+    group('clearStorage', () {
+      test('clears cache and preferences', () async {
+        // GIVEN
+        when(() => mockPrefService.clear()).thenAnswer((_) async => []);
+
+        // WHEN
+        await dioClient.clearStorage();
+
+        // THEN
+        verify(() => mockCacheService.clearAll()).called(1);
+        verify(() => mockPrefService.clear()).called(1);
       });
     });
 
