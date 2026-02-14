@@ -58,6 +58,8 @@ abstract class AuthRemoteDataSource extends BaseDataSource {
   Future<NoContentResponseModel> forgotPassword(
     ForgotPasswordRequestModel request,
   );
+
+  Future<void> deleteExampleSchedule();
 }
 
 class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
@@ -476,6 +478,33 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
           code: response.statusCode.toString(),
         );
       }
+    } on DioException catch (e, s) {
+      throw handleDioError(e, s);
+    } catch (e, s) {
+      _log.severe('An unexpected error occurred', e, s);
+      if (e is HeliumException) {
+        rethrow;
+      }
+      throw HeliumException(message: 'An unexpected error occurred: $e');
+    }
+  }
+
+  @override
+  Future<void> deleteExampleSchedule() async {
+    try {
+      final response = await dioClient.dio.delete(
+        ApiUrl.authUserDeleteExampleScheduleUrl,
+      );
+
+      if (response.statusCode != 204) {
+        throw ServerException(
+          message: 'Failed to delete example schedule',
+          code: response.statusCode.toString(),
+        );
+      }
+
+      // Clear all cached data since the example data is now deleted
+      await dioClient.cacheService.clearAll();
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {

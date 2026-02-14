@@ -49,6 +49,7 @@ class FallbackConstants {
   static const defaultColorSchemeTheme = 2; // System
   static const defaultAllDayOffset = 0;
   static const defaultWhatsNewVersionSeen = 0;
+  static const defaultShowGettingStarted = false;
   static const defaultEventsColor = '#418eb9'; // seedColor hex
   static const defaultMaterialColor = '#418eb9'; // seedColor hex
   static const defaultGradeColor = '#418eb9'; // seedColor hex

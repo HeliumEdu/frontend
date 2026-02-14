@@ -15,6 +15,7 @@ import 'package:heliumapp/data/models/auth/request/forgot_password_request_model
 import 'package:heliumapp/data/models/auth/login_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/refresh_token_request_model.dart';
 import 'package:heliumapp/data/models/auth/register_request_model.dart';
+import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/domain/repositories/auth_repository.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_event.dart';
@@ -43,6 +44,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<ChangePasswordEvent>(_onChangePassword);
     on<ForgotPasswordEvent>(_onForgotPassword);
     on<DeleteAccountEvent>(_onDeleteAccount);
+    on<DeleteExampleScheduleEvent>(_onDeleteExampleSchedule);
   }
 
   Future<void> _onRegister(RegisterEvent event, Emitter<AuthState> emit) async {
@@ -337,6 +339,26 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthError(message: e.message, code: e.code));
     } on HeliumException catch (e) {
       emit(AuthError(message: e.message, code: e.code));
+    } catch (e) {
+      emit(AuthError(message: 'An unexpected error occurred: $e'));
+    }
+  }
+
+  Future<void> _onDeleteExampleSchedule(
+    DeleteExampleScheduleEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+
+    try {
+      await authRepository.deleteExampleSchedule();
+      await authRepository.updateUserSettings(
+        UpdateSettingsRequestModel(showGettingStarted: false),
+      );
+
+      emit(AuthExampleScheduleDeleted());
+    } on HeliumException catch (e) {
+      emit(AuthError(message: e.message));
     } catch (e) {
       emit(AuthError(message: 'An unexpected error occurred: $e'));
     }

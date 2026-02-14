@@ -53,6 +53,7 @@ class UserSettingsModel {
   final int weekStartsOn;
   final int allDayOffset;
   final int whatsNewVersionSeen;
+  final bool showGettingStarted;
   Color eventsColor;
   Color materialColor;
   Color gradeColor;
@@ -70,6 +71,7 @@ class UserSettingsModel {
     required this.weekStartsOn,
     required this.allDayOffset,
     required this.whatsNewVersionSeen,
+    required this.showGettingStarted,
     required this.eventsColor,
     required this.materialColor,
     required this.gradeColor,
@@ -89,6 +91,7 @@ class UserSettingsModel {
       weekStartsOn: json['week_starts_on'],
       allDayOffset: json['all_day_offset'],
       whatsNewVersionSeen: json['whats_new_version_seen'],
+      showGettingStarted: json['show_getting_started'] ?? false,
       eventsColor: HeliumColors.hexToColor(json['events_color']),
       materialColor: HeliumColors.hexToColor(json['material_color']),
       gradeColor: HeliumColors.hexToColor(json['grade_color']),
@@ -108,6 +111,7 @@ class UserSettingsModel {
       'color_scheme_theme': colorSchemeTheme,
       'week_starts_on': weekStartsOn,
       'all_day_offset': allDayOffset,
+      'show_getting_started': showGettingStarted,
       'events_color': eventsColor,
       'material_color': materialColor,
       'grade_color': gradeColor,

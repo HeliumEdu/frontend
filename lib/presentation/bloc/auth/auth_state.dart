@@ -51,6 +51,8 @@ class AuthLoggedOut extends AuthState {}
 
 class AuthAccountDeleted extends AuthState {}
 
+class AuthExampleScheduleDeleted extends AuthState {}
+
 class AuthPasswordChanged extends AuthState {}
 
 class AuthPasswordReset extends AuthState {}

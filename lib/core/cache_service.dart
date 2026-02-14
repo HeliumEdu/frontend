@@ -29,6 +29,7 @@ class CacheService with WidgetsBindingObserver {
   static const inactivityThreshold = Duration(minutes: 5);
 
   DateTime? _pausedAt;
+  final List<VoidCallback> _onInactivityResumeCallbacks = [];
 
   CacheService() {
     _store = MemCacheStore();
@@ -84,8 +85,25 @@ class CacheService with WidgetsBindingObserver {
           'App resumed after ${inactiveDuration.inMinutes} minutes, invalidating cache',
         );
         invalidateAll();
+        _notifyInactivityResume();
       }
       _pausedAt = null;
+    }
+  }
+
+  /// Register a callback to be notified when app resumes after inactivity threshold.
+  void addInactivityResumeListener(VoidCallback callback) {
+    _onInactivityResumeCallbacks.add(callback);
+  }
+
+  /// Remove a previously registered callback.
+  void removeInactivityResumeListener(VoidCallback callback) {
+    _onInactivityResumeCallbacks.remove(callback);
+  }
+
+  void _notifyInactivityResume() {
+    for (final callback in _onInactivityResumeCallbacks) {
+      callback();
     }
   }
 

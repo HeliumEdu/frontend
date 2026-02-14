@@ -79,3 +79,5 @@ class ResendVerificationEvent extends AuthEvent {
 
   ResendVerificationEvent({required this.username});
 }
+
+class DeleteExampleScheduleEvent extends AuthEvent {}

@@ -49,4 +49,6 @@ abstract class AuthRepository {
   Future<NoContentResponseModel> forgotPassword(
     ForgotPasswordRequestModel request,
   );
+
+  Future<void> deleteExampleSchedule();
 }
