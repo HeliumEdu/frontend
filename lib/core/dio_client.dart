@@ -254,6 +254,7 @@ class DioClient {
     // Add cache interceptor
     _cacheService = CacheService();
     _dio.interceptors.add(_cacheService.interceptor);
+    _dio.interceptors.add(_cacheService.loggingInterceptor);
 
     if (kDebugMode) {
       final logLevel = Logger.root.level;

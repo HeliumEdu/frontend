@@ -15,22 +15,23 @@ final _log = Logger('core');
 /// Centralized cache service for HTTP requests.
 ///
 /// Provides a 10-minute TTL cache for GET requests using an in-memory store.
-/// Excludes `/planner/reminders/` from caching due to nested data concerns.
 class CacheService {
   late final CacheStore _store;
   late final CacheOptions _options;
   late final DioCacheInterceptor _interceptor;
+  late final Interceptor _loggingInterceptor;
 
   CacheService() {
     _store = MemCacheStore();
     _options = CacheOptions(
       store: _store,
-      policy: CachePolicy.request,
+      policy: CachePolicy.forceCache,
       maxStale: const Duration(minutes: 10),
       hitCacheOnNetworkFailure: true,
       keyBuilder: CacheOptions.defaultCacheKeyBuilder,
     );
     _interceptor = DioCacheInterceptor(options: _options);
+    _loggingInterceptor = _createLoggingInterceptor();
   }
 
   /// Constructor for testing with a custom store.
@@ -39,16 +40,36 @@ class CacheService {
     _store = store;
     _options = CacheOptions(
       store: _store,
-      policy: CachePolicy.request,
+      policy: CachePolicy.forceCache,
       maxStale: const Duration(minutes: 10),
       hitCacheOnNetworkFailure: true,
       keyBuilder: CacheOptions.defaultCacheKeyBuilder,
     );
     _interceptor = DioCacheInterceptor(options: _options);
+    _loggingInterceptor = _createLoggingInterceptor();
   }
 
   /// The cache interceptor to add to Dio.
   DioCacheInterceptor get interceptor => _interceptor;
+
+  /// Logging interceptor to add after the cache interceptor.
+  /// Logs whether responses came from cache or network.
+  Interceptor get loggingInterceptor => _loggingInterceptor;
+
+  Interceptor _createLoggingInterceptor() {
+    return InterceptorsWrapper(
+      onResponse: (response, handler) {
+        final fromNetwork = response.extra['@fromNetwork@'];
+        final cacheKey = response.extra['@cache_key@'];
+        final path = response.requestOptions.path;
+        // Cache hit: has cache key and fromNetwork is explicitly false
+        if (cacheKey != null && fromNetwork == false) {
+          _log.info('CACHE HIT: $path');
+        }
+        handler.next(response);
+      },
+    );
+  }
 
   /// Returns cache options configured for the given request.
   /// Returns options with noCache policy for excluded paths.
