@@ -161,9 +161,15 @@ class _DialogRouteListenerState extends State<_DialogRouteListener> {
     if (currentLocation != widget.initialLocation && mounted) {
       _log.info(
         'Browser navigation detected, closing dialog: '
-        '${widget.initialLocation} -> $currentLocation',
+        '${widget.initialLocation} --> $currentLocation',
       );
-      Navigator.of(context).pop();
+      // Defer pop() to avoid calling it while Navigator is locked during
+      // GoRouter's route change notification.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
+      });
     }
   }
 

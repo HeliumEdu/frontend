@@ -136,7 +136,8 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
             Sort.byTitle(_categories);
           });
         } else if (state is CategoryUpdated) {
-          SnackBarHelper.show(context, 'Category saved');
+          // No snackbar on updates
+
           setState(() {
             _categories[_categories.indexWhere(
                   (c) => c.id == state.category.id,

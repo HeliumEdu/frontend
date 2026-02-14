@@ -29,7 +29,9 @@ final _log = Logger('data.sources');
 abstract class AuthRemoteDataSource extends BaseDataSource {
   Future<NoContentResponseModel> register(RegisterRequestModel request);
 
-  Future<NoContentResponseModel> verifyEmail(String username, String code);
+  Future<TokenResponseModel> verifyEmail(String username, String code);
+
+  Future<NoContentResponseModel> resendVerificationEmail(String username);
 
   Future<TokenResponseModel> login(LoginRequestModel request);
 
@@ -91,7 +93,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
   }
 
   @override
-  Future<NoContentResponseModel> verifyEmail(
+  Future<TokenResponseModel> verifyEmail(
     String username,
     String code,
   ) async {
@@ -102,10 +104,60 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       );
 
       if (response.statusCode == 202) {
-        return NoContentResponseModel(message: 'Email verified');
+        _log.info('Email verification successful');
+
+        await dioClient.saveTokens(
+          response.data['access'],
+          response.data['refresh'],
+        );
+
+        await dioClient.fetchSettings();
+
+        final tokenResponse = TokenResponseModel.fromJson(response.data);
+
+        try {
+          await FcmService().registerToken(force: true);
+          if (FcmService().fcmToken != null) {
+            _log.info('FCM token registered after verification');
+          } else {
+            _log.warning('FCM token not yet available after verification');
+          }
+        } catch (e) {
+          _log.warning('Failed to register FCM token after verification', e);
+        }
+
+        return tokenResponse;
       } else {
         throw ServerException(
           message: 'Email verification failed',
+          code: response.statusCode.toString(),
+        );
+      }
+    } on DioException catch (e, s) {
+      throw handleDioError(e, s);
+    } catch (e, s) {
+      _log.severe('An unexpected error occurred', e, s);
+      if (e is HeliumException) {
+        rethrow;
+      }
+      throw HeliumException(message: 'An unexpected error occurred: $e');
+    }
+  }
+
+  @override
+  Future<NoContentResponseModel> resendVerificationEmail(String username) async {
+    try {
+      final response = await dioClient.dio.get(
+        ApiUrl.authUserVerifyResendUrl,
+        queryParameters: {'username': username},
+      );
+
+      if (response.statusCode == 202) {
+        _log.info('Verification email resent for $username');
+        return NoContentResponseModel(message: 'Verification email sent');
+      } else {
+        throw ServerException(
+          message: 'Failed to resend verification email',
           code: response.statusCode.toString(),
         );
       }

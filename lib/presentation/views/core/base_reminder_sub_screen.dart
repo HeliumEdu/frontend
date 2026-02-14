@@ -142,14 +142,14 @@ abstract class BaseReminderScreenState<T>
               isLoading = false;
             });
           } else if (state is ReminderCreated) {
-            showSnackBar(context, 'Reminder saved');
+            showSnackBar(context, 'Reminder created');
 
             setState(() {
               _reminders.add(state.reminder);
               Sort.byTitle(_reminders);
             });
           } else if (state is ReminderUpdated) {
-            showSnackBar(context, 'Reminder saved');
+            // No snackbar on updates
 
             setState(() {
               _reminders[_reminders.indexWhere(

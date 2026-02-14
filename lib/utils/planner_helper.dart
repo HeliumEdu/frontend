@@ -317,9 +317,9 @@ class PlannerHelper {
   /// " 1" if no trailing number exists.
   ///
   /// Examples:
-  /// - "My Assignment" -> "My Assignment 1"
-  /// - "My Assignment 1" -> "My Assignment 2"
-  /// - "My Assignment 10" -> "My Assignment 11"
+  /// - "My Assignment" --> "My Assignment 1"
+  /// - "My Assignment 1" --> "My Assignment 2"
+  /// - "My Assignment 10" --> "My Assignment 11"
   static String generateClonedTitle(String originalTitle) {
     final trailingNumberPattern = RegExp(r'^(.*?)(\d+)$');
     final match = trailingNumberPattern.firstMatch(originalTitle);

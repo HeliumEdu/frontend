@@ -73,3 +73,9 @@ class VerifyEmailEvent extends AuthEvent {
 
   VerifyEmailEvent({required this.username, required this.code});
 }
+
+class ResendVerificationEvent extends AuthEvent {
+  final String username;
+
+  ResendVerificationEvent({required this.username});
+}

@@ -30,11 +30,16 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<NoContentResponseModel> verifyEmail(
+  Future<TokenResponseModel> verifyEmail(
     String username,
     String code,
   ) async {
     return await remoteDataSource.verifyEmail(username, code);
+  }
+
+  @override
+  Future<NoContentResponseModel> resendVerificationEmail(String username) async {
+    return await remoteDataSource.resendVerificationEmail(username);
   }
 
   @override

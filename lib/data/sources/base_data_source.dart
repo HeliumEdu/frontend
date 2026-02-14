@@ -34,6 +34,7 @@ abstract class BaseDataSource {
           return UnauthorizedException(
             message: 'Check your credentials and try again.',
             code: '401',
+            httpStatusCode: 401,
           );
         } else if (statusCode == 400) {
           String errorMessage = 'Unknown validation error occurred.';
@@ -75,15 +76,18 @@ abstract class BaseDataSource {
           return ValidationException(
             message: errorMessage,
             code: '400',
+            httpStatusCode: 400,
             details: responseData,
           );
         } else if (statusCode == 500) {
           return ServerException(
             message: 'Server error. Please try again later.',
             code: '500',
+            httpStatusCode: 500,
           );
         } else {
           String errorMessage = e.response?.statusMessage ?? 'Unknown error';
+          String? errorCode = statusCode.toString();
 
           if (responseData != null) {
             try {
@@ -98,6 +102,10 @@ abstract class BaseDataSource {
                 } else {
                   errorMessage = responseData.toString();
                 }
+                // Extract custom error code if present
+                if (responseData.containsKey('code')) {
+                  errorCode = responseData['code'].toString();
+                }
               } else if (responseData is String) {
                 errorMessage = responseData;
               }
@@ -109,7 +117,8 @@ abstract class BaseDataSource {
 
           return ServerException(
             message: errorMessage,
-            code: statusCode.toString(),
+            code: errorCode,
+            httpStatusCode: statusCode,
             details: responseData,
           );
         }
