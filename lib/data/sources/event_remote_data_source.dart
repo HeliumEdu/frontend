@@ -22,9 +22,13 @@ abstract class EventRemoteDataSource extends BaseDataSource {
     DateTime? to,
     String? search,
     String? title,
+    bool forceRefresh = false,
   });
 
-  Future<EventModel> getEvent({required int id});
+  Future<EventModel> getEvent({
+    required int id,
+    bool forceRefresh = false,
+  });
 
   Future<EventModel> createEvent({required EventRequestModel request});
 
@@ -47,6 +51,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
     DateTime? to,
     String? search,
     String? title,
+    bool forceRefresh = false,
   }) async {
     try {
       _log.info('Fetching Events ...');
@@ -60,6 +65,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
       final response = await dioClient.dio.get(
         ApiUrl.plannerEventsListUrl,
         queryParameters: queryParameters.isNotEmpty ? queryParameters : null,
+        options: forceRefresh ? dioClient.cacheService.forceRefreshOptions() : null,
       );
 
       if (response.statusCode == 200) {
@@ -92,11 +98,15 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
   }
 
   @override
-  Future<EventModel> getEvent({required int id}) async {
+  Future<EventModel> getEvent({
+    required int id,
+    bool forceRefresh = false,
+  }) async {
     try {
       _log.info('Fetching Event $id ...');
       final response = await dioClient.dio.get(
         ApiUrl.plannerEventsDetailsUrl(id),
+        options: forceRefresh ? dioClient.cacheService.forceRefreshOptions() : null,
       );
 
       if (response.statusCode == 200) {
@@ -130,6 +140,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
       if (response.statusCode == 201) {
         final event = EventModel.fromJson(response.data);
         _log.info('... Event ${event.id} created');
+        await dioClient.cacheService.invalidateAll();
         return event;
       } else {
         throw ServerException(
@@ -161,6 +172,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
 
       if (response.statusCode == 200) {
         _log.info('... Event $eventId updated');
+        await dioClient.cacheService.invalidateAll();
         return EventModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -188,6 +200,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
 
       if (response.statusCode == 204) {
         _log.info('... Event $eventId deleted');
+        await dioClient.cacheService.invalidateAll();
       } else {
         throw ServerException(
           message: 'Failed to delete event: ${response.statusCode}',

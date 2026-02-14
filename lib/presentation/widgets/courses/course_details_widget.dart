@@ -310,7 +310,7 @@ class CourseDetailsWidgetState extends State<CourseDetailsWidget> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: LabelAndTextFormField(
-                              label: 'Room',
+                              label: 'Location',
                               controller: _formController.roomController,
                             ),
                           ),

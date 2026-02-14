@@ -29,6 +29,7 @@ class CourseScheduleRepositoryImpl implements CourseScheduleRepository {
     required DateTime to,
     String? search,
     bool? shownOnCalendar,
+    bool forceRefresh = false,
   }) async {
     return builderSource.buildCourseScheduleEvents(
       courses: courses,
@@ -42,18 +43,25 @@ class CourseScheduleRepositoryImpl implements CourseScheduleRepository {
   @override
   Future<List<CourseScheduleModel>> getCourseSchedules({
     bool? shownOnCalendar,
+    bool forceRefresh = false,
   }) async {
     return await remoteDataSource.getCourseSchedules(
       shownOnCalendar: shownOnCalendar,
+      forceRefresh: forceRefresh,
     );
   }
 
   @override
   Future<CourseScheduleModel> getCourseScheduleForCourse(
     int groupId,
-    int courseId,
-  ) async {
-    return await remoteDataSource.getCourseScheduleForCourse(groupId, courseId);
+    int courseId, {
+    bool forceRefresh = false,
+  }) async {
+    return await remoteDataSource.getCourseScheduleForCourse(
+      groupId,
+      courseId,
+      forceRefresh: forceRefresh,
+    );
   }
 
   @override

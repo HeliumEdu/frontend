@@ -85,6 +85,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
 
         final attachment = AttachmentModel.fromJson(response.data[0]);
         _log.info('... Attachment ${attachment.id} created');
+        await dioClient.cacheService.invalidateAll();
 
         return attachment;
       } else {
@@ -161,6 +162,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
 
       if (response.statusCode == 204) {
         _log.info('... Attachment $attachmentId deleted');
+        await dioClient.cacheService.invalidateAll();
       } else {
         throw ServerException(
           message: 'Failed to delete attachment: ${response.statusCode}',

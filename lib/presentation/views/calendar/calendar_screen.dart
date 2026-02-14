@@ -522,7 +522,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   double _calculateCalendarHeight(double maxHeight) {
-    const double minCalendarHeight = 600;
+    final double minCalendarHeight = Responsive.isMobile(context) ? -1 : 600;
     return maxHeight < minCalendarHeight ? minCalendarHeight : maxHeight;
   }
 
@@ -623,7 +623,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
               color: context.colorScheme.onSurface.withValues(alpha: 0.6),
             ),
             dayFormat: 'EEE',
-            timeIntervalHeight: 50,
+            timeIntervalHeight: Responsive.isMobile(context) ? 43 : 60,
           ),
           loadMoreWidgetBuilder: _loadMoreWidgetBuilder,
           appointmentBuilder: _buildCalendarItem,
@@ -2229,6 +2229,24 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     return ListenableBuilder(
       listenable: _calendarItemDataSource!.changeNotifier,
       builder: (context, _) {
+        // Get current items for this date from the data source
+        final currentItems = _calendarItemDataSource!.allCalendarItems
+            .where((item) {
+              final itemDate = item.allDay
+                  ? DateTime(item.start.year, item.start.month, item.start.day)
+                  : item.start;
+              final targetDate = DateTime(date.year, date.month, date.day);
+
+              if (item.allDay) {
+                return itemDate.isAtSameMomentAs(targetDate);
+              } else {
+                // Check if item falls on this date
+                final itemDay = DateTime(itemDate.year, itemDate.month, itemDate.day);
+                return itemDay.isAtSameMomentAs(targetDate);
+              }
+            })
+            .toList();
+
         return Dialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -2269,17 +2287,11 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                   child: ListView.separated(
                     shrinkWrap: true,
                     padding: const EdgeInsets.all(8),
-                    itemCount: calendarItems.length,
+                    itemCount: currentItems.length,
                     separatorBuilder: (context, index) =>
                         const SizedBox(height: 6),
                     itemBuilder: (_, index) {
-                      final staleCalendarItems = calendarItems[index];
-                      final calendarItem =
-                          _calendarItemDataSource!.allCalendarItems
-                              .firstWhereOrNull(
-                                (item) => item.id == staleCalendarItems.id,
-                              ) ??
-                          staleCalendarItems;
+                      final calendarItem = currentItems[index];
                       final homeworkId = calendarItem is HomeworkModel
                           ? calendarItem.id
                           : null;
@@ -2290,7 +2302,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
                       return GestureDetector(
                         onTap: () {
-                          if (PlannerHelper.shouldShowEditButtonForCalendarItem(
+                          if (!PlannerHelper.shouldShowEditButtonForCalendarItem(
                             context,
                             calendarItem,
                           )) {

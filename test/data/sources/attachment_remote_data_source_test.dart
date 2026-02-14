@@ -6,6 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:heliumapp/core/cache_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/sources/attachment_remote_data_source.dart';
@@ -16,15 +17,21 @@ import '../../mocks/mock_dio.dart';
 
 class MockDioClient extends Mock implements DioClient {}
 
+class MockCacheService extends Mock implements CacheService {}
+
 void main() {
   late AttachmentRemoteDataSourceImpl dataSource;
   late MockDioClient mockDioClient;
   late MockDio mockDio;
+  late MockCacheService mockCacheService;
 
   setUp(() {
     mockDioClient = MockDioClient();
     mockDio = MockDio();
+    mockCacheService = MockCacheService();
     when(() => mockDioClient.dio).thenReturn(mockDio);
+    when(() => mockDioClient.cacheService).thenReturn(mockCacheService);
+    when(() => mockCacheService.invalidateAll()).thenAnswer((_) async {});
     dataSource = AttachmentRemoteDataSourceImpl(dioClient: mockDioClient);
   });
 

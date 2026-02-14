@@ -6,6 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:heliumapp/core/cache_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/planner/request/category_request_model.dart';
@@ -17,15 +18,21 @@ import '../../mocks/mock_dio.dart';
 
 class MockDioClient extends Mock implements DioClient {}
 
+class MockCacheService extends Mock implements CacheService {}
+
 void main() {
   late CategoryRemoteDataSourceImpl dataSource;
   late MockDioClient mockDioClient;
   late MockDio mockDio;
+  late MockCacheService mockCacheService;
 
   setUp(() {
     mockDioClient = MockDioClient();
     mockDio = MockDio();
+    mockCacheService = MockCacheService();
     when(() => mockDioClient.dio).thenReturn(mockDio);
+    when(() => mockDioClient.cacheService).thenReturn(mockCacheService);
+    when(() => mockCacheService.invalidateAll()).thenAnswer((_) async {});
     dataSource = CategoryRemoteDataSourceImpl(dioClient: mockDioClient);
   });
 
@@ -70,39 +77,43 @@ void main() {
       });
 
       test('filters by courseId when provided', () async {
-        // GIVEN
+        // GIVEN - API returns categories from multiple courses
+        final categoriesJson = [
+          givenCategoryJson(id: 1, title: 'Homework', course: 5),
+          givenCategoryJson(id: 2, title: 'Exams', course: 3),
+          givenCategoryJson(id: 3, title: 'Projects', course: 5),
+        ];
         when(
-          () => mockDio.get(
-            any(),
-            queryParameters: any(named: 'queryParameters'),
-          ),
-        ).thenAnswer((_) async => givenSuccessResponse([]));
+          () => mockDio.get(any()),
+        ).thenAnswer((_) async => givenSuccessResponse(categoriesJson));
 
-        // WHEN
-        await dataSource.getCategories(courseId: 5);
+        // WHEN - filter by courseId 5
+        final result = await dataSource.getCategories(courseId: 5);
 
-        // THEN
-        verify(
-          () => mockDio.get(any(), queryParameters: {'course': 5}),
-        ).called(1);
+        // THEN - only categories from course 5 are returned
+        expect(result.length, equals(2));
+        expect(result[0].title, equals('Homework'));
+        expect(result[1].title, equals('Projects'));
       });
 
       test('filters by title when provided', () async {
-        // GIVEN
+        // GIVEN - API returns categories with different titles
+        final categoriesJson = [
+          givenCategoryJson(id: 1, title: 'Homework'),
+          givenCategoryJson(id: 2, title: 'Exams'),
+          givenCategoryJson(id: 3, title: 'Homework'),
+        ];
         when(
-          () => mockDio.get(
-            any(),
-            queryParameters: any(named: 'queryParameters'),
-          ),
-        ).thenAnswer((_) async => givenSuccessResponse([]));
+          () => mockDio.get(any()),
+        ).thenAnswer((_) async => givenSuccessResponse(categoriesJson));
 
-        // WHEN
-        await dataSource.getCategories(title: 'Homework');
+        // WHEN - filter by title 'Homework'
+        final result = await dataSource.getCategories(title: 'Homework');
 
-        // THEN
-        verify(
-          () => mockDio.get(any(), queryParameters: {'title': 'Homework'}),
-        ).called(1);
+        // THEN - only categories with title 'Homework' are returned
+        expect(result.length, equals(2));
+        expect(result[0].id, equals(1));
+        expect(result[1].id, equals(3));
       });
 
       test('parses category with weight and grades', () async {
