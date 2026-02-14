@@ -236,25 +236,29 @@ class MaterialRemoteDataSourceImpl extends MaterialRemoteDataSource {
       final filterInfo = groupId != null ? ' for MaterialGroup $groupId' : '';
       _log.info('Fetching Materials$filterInfo ...');
 
+      // shownOnCalendar requires server-side filtering (hierarchical check on parent groups)
       final Map<String, dynamic> queryParameters = {};
-      if (groupId != null) {
-        queryParameters['material_group'] = groupId;
-      }
       if (shownOnCalendar != null) {
         queryParameters['shown_on_calendar'] = shownOnCalendar;
       }
 
       final response = await dioClient.dio.get(
         ApiUrl.plannerMaterialsListUrl,
-        queryParameters: queryParameters,
+        queryParameters: queryParameters.isNotEmpty ? queryParameters : null,
         options: forceRefresh ? dioClient.cacheService.forceRefreshOptions() : null,
       );
 
       if (response.statusCode == 200) {
         if (response.data is List) {
-          final materials = (response.data as List)
+          var materials = (response.data as List)
               .map((material) => MaterialModel.fromJson(material))
               .toList();
+
+          // Filter by groupId client-side for cache efficiency
+          if (groupId != null) {
+            materials = materials.where((m) => m.materialGroup == groupId).toList();
+          }
+
           _log.info('... fetched ${materials.length} Material(s)');
           return materials;
         } else {

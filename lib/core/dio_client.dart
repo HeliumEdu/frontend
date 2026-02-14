@@ -87,7 +87,7 @@ class DioClient {
           final token = await _prefService.getSecure('access_token');
           if (token?.isNotEmpty ?? false) {
             options.headers['Authorization'] = 'Bearer $token';
-            _log.info('Authorization token attached to request');
+            _log.fine('Authorization token attached to request');
           }
           return handler.next(options);
         },

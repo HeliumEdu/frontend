@@ -69,23 +69,29 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
       final filterInfo = groupId != null ? ' for CourseGroup $groupId' : '';
       _log.info('Fetching Courses$filterInfo ...');
 
+      // shownOnCalendar requires server-side filtering (hierarchical check on parent groups)
       final Map<String, dynamic> queryParameters = {};
-      if (groupId != null) queryParameters['course_group'] = groupId;
       if (shownOnCalendar != null) {
         queryParameters['shown_on_calendar'] = shownOnCalendar;
       }
 
       final response = await dioClient.dio.get(
         ApiUrl.plannerCoursesListUrl,
-        queryParameters: queryParameters,
+        queryParameters: queryParameters.isNotEmpty ? queryParameters : null,
         options: forceRefresh ? dioClient.cacheService.forceRefreshOptions() : null,
       );
 
       if (response.statusCode == 200) {
         if (response.data is List) {
-          final courses = (response.data as List)
+          var courses = (response.data as List)
               .map((course) => CourseModel.fromJson(course))
               .toList();
+
+          // Filter by groupId client-side for cache efficiency
+          if (groupId != null) {
+            courses = courses.where((c) => c.courseGroup == groupId).toList();
+          }
+
           _log.info('... fetched ${courses.length} Course(s)');
           return courses;
         } else {
@@ -247,11 +253,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
     try {
       _log.info('Fetching CourseGroups ...');
 
-      final Map<String, dynamic> queryParameters = {};
-      if (shownOnCalendar != null) {
-        queryParameters['shown_on_calendar'] = shownOnCalendar;
-      }
-
+      // Fetch all course groups without query params for cache benefit
       final response = await dioClient.dio.get(
         ApiUrl.plannerCourseGroupsListUrl,
         options: forceRefresh ? dioClient.cacheService.forceRefreshOptions() : null,
@@ -259,9 +261,15 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
 
       if (response.statusCode == 200) {
         if (response.data is List) {
-          final groups = (response.data as List)
+          var groups = (response.data as List)
               .map((group) => CourseGroupModel.fromJson(group))
               .toList();
+
+          // Only filter by shownOnCalendar if the API returns this field
+          if (shownOnCalendar != null && groups.any((g) => g.shownOnCalendar != null)) {
+            groups = groups.where((g) => g.shownOnCalendar == shownOnCalendar).toList();
+          }
+
           _log.info('... fetched ${groups.length} CourseGroup(s)');
           return groups;
         } else {

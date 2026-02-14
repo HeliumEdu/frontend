@@ -258,21 +258,23 @@ void main() {
       });
 
       test('filters by groupId when provided', () async {
-        // GIVEN
+        // GIVEN - API returns courses from multiple groups
+        final coursesJson = [
+          givenCourseJson(id: 1, title: 'Course A', courseGroup: 5),
+          givenCourseJson(id: 2, title: 'Course B', courseGroup: 3),
+          givenCourseJson(id: 3, title: 'Course C', courseGroup: 5),
+        ];
         when(
-          () => mockDio.get(
-            any(),
-            queryParameters: any(named: 'queryParameters'),
-          ),
-        ).thenAnswer((_) async => givenSuccessResponse([]));
+          () => mockDio.get(any()),
+        ).thenAnswer((_) async => givenSuccessResponse(coursesJson));
 
-        // WHEN
-        await dataSource.getCourses(groupId: 5);
+        // WHEN - filter by groupId 5
+        final result = await dataSource.getCourses(groupId: 5);
 
-        // THEN
-        verify(
-          () => mockDio.get(any(), queryParameters: {'course_group': 5}),
-        ).called(1);
+        // THEN - only courses from group 5 are returned
+        expect(result.length, equals(2));
+        expect(result[0].title, equals('Course A'));
+        expect(result[1].title, equals('Course C'));
       });
 
       test('filters by shownOnCalendar when provided', () async {
@@ -284,13 +286,12 @@ void main() {
           ),
         ).thenAnswer((_) async => givenSuccessResponse([]));
 
-        // WHEN
+        // WHEN - shownOnCalendar requires server-side filtering (hierarchical)
         await dataSource.getCourses(shownOnCalendar: true);
 
-        // THEN
+        // THEN - query param is passed to server
         verify(
-          () =>
-              mockDio.get(any(), queryParameters: {'shown_on_calendar': true}),
+          () => mockDio.get(any(), queryParameters: {'shown_on_calendar': true}),
         ).called(1);
       });
 

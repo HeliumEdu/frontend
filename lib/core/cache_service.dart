@@ -62,9 +62,8 @@ class CacheService {
         final fromNetwork = response.extra['@fromNetwork@'];
         final cacheKey = response.extra['@cache_key@'];
         final path = response.requestOptions.path;
-        // Cache hit: has cache key and fromNetwork is explicitly false
         if (cacheKey != null && fromNetwork == false) {
-          _log.info('CACHE HIT: $path');
+          _log.info('CACHED RESPONSE: $path');
         }
         handler.next(response);
       },
