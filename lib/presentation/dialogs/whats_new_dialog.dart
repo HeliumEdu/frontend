@@ -35,17 +35,22 @@ class _WhatsNewDialogWidget extends StatelessWidget {
       ),
       content: SizedBox(
         width: Responsive.getDialogWidth(context),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "We've completely rebuilt Helium from the ground up—sleek, modern, fast, and built to last.",
-                style: AppStyles.standardBodyText(context),
-              ),
-              const SizedBox(height: 16),
-              _buildFeatureItem(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SelectableText(
+              "We've completely rebuilt Helium from the ground up—sleek, modern, fast, and built to last.",
+              style: AppStyles.standardBodyText(context),
+            ),
+            const SizedBox(height: 16),
+            Flexible(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildFeatureItem(
                 context,
                 icon: Icons.bolt_outlined,
                 title: 'Lightning fast',
@@ -79,9 +84,12 @@ class _WhatsNewDialogWidget extends StatelessWidget {
                 icon: Icons.rocket_launch_outlined,
                 title: 'New surprises ahead',
                 description: 'Exciting new features on the horizon',
+                    ),
+                  ],
+                ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
       actions: [
@@ -122,13 +130,13 @@ class _WhatsNewDialogWidget extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              SelectableText(
                 title,
                 style: AppStyles.headingText(context).copyWith(
                   color: context.colorScheme.onSurface.withValues(alpha: 0.9),
                 ),
               ),
-              Text(
+              SelectableText(
                 description,
                 style: AppStyles.smallSecondaryText(context).copyWith(
                   color: context.colorScheme.onSurface.withValues(alpha: 0.7),

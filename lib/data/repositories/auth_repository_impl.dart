@@ -99,4 +99,9 @@ class AuthRepositoryImpl implements AuthRepository {
   ) async {
     return await remoteDataSource.forgotPassword(request);
   }
+
+  @override
+  Future<void> deleteExampleSchedule() async {
+    return await remoteDataSource.deleteExampleSchedule();
+  }
 }

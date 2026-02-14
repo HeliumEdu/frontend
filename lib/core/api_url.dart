@@ -24,6 +24,8 @@ class ApiUrl {
   static const authUserDeleteUrl = '/auth/user/delete/';
   static const authUserSettingsUrl = '/auth/user/settings/';
   static const authUserPushTokenUrl = '/auth/user/pushtoken/';
+  static const authUserDeleteExampleScheduleUrl =
+      '/auth/user/delete/exampleschedule/';
 
   // Token
   static const authTokenRefreshUrl = '/auth/token/refresh/';

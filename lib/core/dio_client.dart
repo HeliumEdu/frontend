@@ -365,6 +365,9 @@ class DioClient {
         'whats_new_version_seen':
             _prefService.getInt('whats_new_version_seen') ??
             FallbackConstants.defaultWhatsNewVersionSeen,
+        'show_getting_started':
+            _prefService.getBool('show_getting_started') ??
+            FallbackConstants.defaultShowGettingStarted,
         'events_color':
             _prefService.getString('events_color') ??
             FallbackConstants.defaultEventsColor,
@@ -443,6 +446,10 @@ class DioClient {
       ?_prefService.setInt(
         'whats_new_version_seen',
         settings.whatsNewVersionSeen,
+      ),
+      ?_prefService.setBool(
+        'show_getting_started',
+        settings.showGettingStarted,
       ),
       ?_prefService.setBool(
         'remember_filter_state',
