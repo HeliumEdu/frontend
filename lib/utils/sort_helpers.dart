@@ -21,6 +21,38 @@ const typeSortPriority = {
   CalendarItemType.external: 3,
 };
 
+/// Calculates seconds to subtract from start time to encode sort order for timed events.
+/// SfCalendar truncates sub-second precision, so we use seconds-based adjustments.
+/// Higher priority items (lower priority value) get more seconds subtracted,
+/// making them appear earlier.
+int getTimedEventStartTimeAdjustmentSeconds(int priority, int position) {
+  // Type priority: Use thousands of seconds (3000, 2000, 1000, 0)
+  // This ensures homework < course schedule < event < external
+  final baseSeconds = (3 - priority) * 1000;
+
+  // Position: Add seconds with reverse order (position 0 gets most)
+  // This allows up to 100 items at same time to maintain alphabetical order
+  final positionSeconds = 100 - position;
+
+  return baseSeconds + positionSeconds;
+}
+
+/// Calculates the Duration to subtract from end time for timed events.
+/// Uses minutes to avoid visibly shortening events too much.
+Duration getTimedEventEndTimeAdjustment(int priority, int position) {
+  // Type priority: Use minutes (3, 2, 1, 0)
+  final baseMinutes = 3 - priority;
+
+  // Position: Add seconds for fine-grained ordering within same type/time
+  final positionMinutes = (100 - position) / 60.0;
+
+  final totalMinutes = baseMinutes + positionMinutes;
+  return Duration(
+    minutes: totalMinutes.floor(),
+    seconds: ((totalMinutes % 1) * 60).round(),
+  );
+}
+
 /// Compares dates only (ignoring time components).
 int compareDatesOnly(DateTime a, DateTime b) {
   final aDate = DateTime(a.year, a.month, a.day);
@@ -65,7 +97,7 @@ int compareCalendarItems({
   final aPriority = typeSortPriority[aType] ?? 0;
   final bPriority = typeSortPriority[bType] ?? 0;
 
-  // Apply priority-based time adjustments for sorting
+  // Apply priority-based time adjustments for sorting (timed events only)
   final aSecondsToSubtract = aAllDay ? 0 : 3 - aPriority;
   final bSecondsToSubtract = bAllDay ? 0 : 3 - bPriority;
   final aStartAdjusted = aStart.subtract(Duration(seconds: aSecondsToSubtract));
@@ -73,29 +105,34 @@ int compareCalendarItems({
   final aEndAdjusted = aEnd.subtract(Duration(minutes: aAllDay ? 0 : 3 - aPriority));
   final bEndAdjusted = bEnd.subtract(Duration(minutes: bAllDay ? 0 : 3 - bPriority));
 
+  // 1. Sort by start date
   final startDateCompare = compareDatesOnly(aStartAdjusted, bStartAdjusted);
   if (startDateCompare != 0) return startDateCompare;
 
-  final sameEndDate = isSameDate(aEndAdjusted, bEndAdjusted);
-
-  // Before considering type-based priorities, all-day events always shown first
-  if (sameEndDate) {
-    if (aAllDay != bAllDay) {
-      return aAllDay ? -1 : 1;
-    }
-    final startTimeCompare = aStartAdjusted.compareTo(bStartAdjusted);
-    if (startTimeCompare != 0) return startTimeCompare;
-  } else {
-    final aDuration = aEndAdjusted.difference(aStartAdjusted).inMinutes;
-    final bDuration = bEndAdjusted.difference(bStartAdjusted).inMinutes;
-    final durationCompare = aDuration.compareTo(bDuration);
-    if (durationCompare != 0) return durationCompare;
+  // 2. All-day events always shown before timed events
+  if (aAllDay != bAllDay) {
+    return aAllDay ? -1 : 1;
   }
 
+  // 3. For timed events with different end dates: sort by duration ascending (shorter first)
+  if (!aAllDay && !bAllDay) {
+    final sameEndDate = isSameDate(aEndAdjusted, bEndAdjusted);
+    if (!sameEndDate) {
+      final aDuration = aEndAdjusted.difference(aStartAdjusted).inMinutes;
+      final bDuration = bEndAdjusted.difference(bStartAdjusted).inMinutes;
+      final durationCompare = aDuration.compareTo(bDuration); // Ascending
+      if (durationCompare != 0) return durationCompare;
+    }
+    // Sort by start time
+    final startTimeCompare = aStartAdjusted.compareTo(bStartAdjusted);
+    if (startTimeCompare != 0) return startTimeCompare;
+  }
+
+  // 4. Type priority
   final priorityCompare = aPriority.compareTo(bPriority);
   if (priorityCompare != 0) return priorityCompare;
 
-  // For homework items with same priority, group by course
+  // 5. For homework items with same priority, group by course
   if (aType == CalendarItemType.homework && bType == CalendarItemType.homework) {
     if (aCourseId != null && bCourseId != null) {
       final courseCompare = aCourseId.compareTo(bCourseId);
@@ -103,7 +140,7 @@ int compareCalendarItems({
     }
   }
 
-  // Final stable tiebreaker: sort by title
+  // 6. Final tiebreaker: sort by title alphabetically
   return aTitle.compareTo(bTitle);
 }
 
