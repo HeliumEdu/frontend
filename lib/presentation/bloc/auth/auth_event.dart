@@ -30,6 +30,8 @@ class LoginEvent extends AuthEvent {
   LoginEvent({required this.username, required this.password});
 }
 
+class GoogleLoginEvent extends AuthEvent {}
+
 class LogoutEvent extends AuthEvent {}
 
 class CheckAuthEvent extends AuthEvent {}

@@ -25,6 +25,7 @@ import 'package:heliumapp/presentation/widgets/searchable_dropdown.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:sign_in_button/sign_in_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -308,6 +309,46 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
                     onPressed: _onSubmit,
                   );
                 },
+              ),
+
+              const SizedBox(height: 25),
+
+              Row(
+                children: [
+                  const Expanded(child: Divider()),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'OR',
+                      style: AppStyles.standardBodyText(context).copyWith(
+                        color: context.colorScheme.onSurface.withValues(
+                          alpha: 0.6,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const Expanded(child: Divider()),
+                ],
+              ),
+
+              const SizedBox(height: 25),
+
+              // Google Sign-In button
+              IgnorePointer(
+                ignoring: isSubmitting,
+                child: Opacity(
+                  opacity: isSubmitting ? 0.5 : 1.0,
+                  child: SignInButton(
+                    Buttons.google,
+                    onPressed: () {
+                      setState(() {
+                        isSubmitting = true;
+                      });
+                      context.read<AuthBloc>().add(GoogleLoginEvent());
+                    },
+                    text: 'Sign up with Google',
+                  ),
+                ),
               ),
 
               const SizedBox(height: 25),

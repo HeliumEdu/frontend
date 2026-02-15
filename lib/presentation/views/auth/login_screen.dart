@@ -25,9 +25,9 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
+import 'package:sign_in_button/sign_in_button.dart';
 
 final _log = Logger('presentation.views');
-
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -98,7 +98,11 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
             final destination = _nextRoute ?? AppRoute.plannerScreen;
             context.replace(destination);
           } else if (state is AuthAccountInactive) {
-            _showInactiveAccountSnackBar(context, state.username, state.message);
+            _showInactiveAccountSnackBar(
+              context,
+              state.username,
+              state.message,
+            );
           } else if (state is AuthVerificationResent) {
             showSnackBar(
               context,
@@ -107,7 +111,8 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
             );
           } else if (state is AuthError) {
             // Only suppress 401/403 if NOT from active login attempt (force logout already showed snackbar)
-            final isForceLogoutError = !isSubmitting &&
+            final isForceLogoutError =
+                !isSubmitting &&
                 (state.httpStatusCode == 401 || state.httpStatusCode == 403);
             if (isForceLogoutError) {
               _log.info(
@@ -128,7 +133,11 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
     ];
   }
 
-  void _showInactiveAccountSnackBar(BuildContext context, String username, String? message) {
+  void _showInactiveAccountSnackBar(
+    BuildContext context,
+    String username,
+    String? message,
+  ) {
     showSnackBar(
       context,
       message ?? 'Your account is not yet verified.',
@@ -138,7 +147,9 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
         label: 'Resend Email',
         textColor: context.colorScheme.onError,
         onPressed: () {
-          context.read<AuthBloc>().add(ResendVerificationEvent(username: username));
+          context.read<AuthBloc>().add(
+            ResendVerificationEvent(username: username),
+          );
         },
       ),
     );
@@ -235,6 +246,45 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                     ],
                   );
                 },
+              ),
+
+              const SizedBox(height: 25),
+
+              Row(
+                children: [
+                  const Expanded(child: Divider()),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'OR',
+                      style: AppStyles.standardBodyText(context).copyWith(
+                        color: context.colorScheme.onSurface.withValues(
+                          alpha: 0.6,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const Expanded(child: Divider()),
+                ],
+              ),
+
+              const SizedBox(height: 25),
+
+              IgnorePointer(
+                ignoring: isSubmitting,
+                child: Opacity(
+                  opacity: isSubmitting ? 0.5 : 1.0,
+                  child: SignInButton(
+                    Buttons.google,
+                    onPressed: () {
+                      setState(() {
+                        isSubmitting = true;
+                      });
+                      context.read<AuthBloc>().add(GoogleLoginEvent());
+                    },
+                    text: 'Sign in with Google',
+                  ),
+                ),
               ),
 
               const SizedBox(height: 25),
