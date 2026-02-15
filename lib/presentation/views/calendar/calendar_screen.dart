@@ -480,28 +480,37 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           _buildCalendarHeader(),
 
           Expanded(
-            child: ListenableBuilder(
-              listenable: _calendarItemDataSource!.changeNotifier,
-              builder: (context, _) {
-                return Stack(
-                  children: [
-                    _currentView == HeliumView.todos
-                        ? _buildTodosView()
-                        : _buildCalendarView(context),
-                    if (_calendarItemDataSource!.isRefreshing)
-                      Positioned.fill(
-                        child: Container(
-                          color: context.colorScheme.surface.withValues(
-                            alpha: 0.7,
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: context.colorScheme.outlineVariant),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(7),
+                child: ListenableBuilder(
+                  listenable: _calendarItemDataSource!.changeNotifier,
+                  builder: (context, _) {
+                    return Stack(
+                      children: [
+                        _currentView == HeliumView.todos
+                            ? _buildTodosView()
+                            : _buildCalendarView(context),
+                        if (_calendarItemDataSource!.isRefreshing)
+                          Positioned.fill(
+                            child: Container(
+                              color: context.colorScheme.surface.withValues(
+                                alpha: 0.7,
+                              ),
+                              child: const Center(
+                                child: LoadingIndicator(expanded: false),
+                              ),
+                            ),
                           ),
-                          child: const Center(
-                            child: LoadingIndicator(expanded: false),
-                          ),
-                        ),
-                      ),
-                  ],
-                );
-              },
+                      ],
+                    );
+                  },
+                ),
+              ),
             ),
           ),
         ],
@@ -2252,22 +2261,26 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       listenable: _calendarItemDataSource!.changeNotifier,
       builder: (context, _) {
         // Get current items for this date from the data source
-        final currentItems = _calendarItemDataSource!.allCalendarItems
-            .where((item) {
-              final itemDate = item.allDay
-                  ? DateTime(item.start.year, item.start.month, item.start.day)
-                  : item.start;
-              final targetDate = DateTime(date.year, date.month, date.day);
+        final currentItems = _calendarItemDataSource!.allCalendarItems.where((
+          item,
+        ) {
+          final itemDate = item.allDay
+              ? DateTime(item.start.year, item.start.month, item.start.day)
+              : item.start;
+          final targetDate = DateTime(date.year, date.month, date.day);
 
-              if (item.allDay) {
-                return itemDate.isAtSameMomentAs(targetDate);
-              } else {
-                // Check if item falls on this date
-                final itemDay = DateTime(itemDate.year, itemDate.month, itemDate.day);
-                return itemDay.isAtSameMomentAs(targetDate);
-              }
-            })
-            .toList();
+          if (item.allDay) {
+            return itemDate.isAtSameMomentAs(targetDate);
+          } else {
+            // Check if item falls on this date
+            final itemDay = DateTime(
+              itemDate.year,
+              itemDate.month,
+              itemDate.day,
+            );
+            return itemDay.isAtSameMomentAs(targetDate);
+          }
+        }).toList();
 
         return Dialog(
           shape: RoundedRectangleBorder(
