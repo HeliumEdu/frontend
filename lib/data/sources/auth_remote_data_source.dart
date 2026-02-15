@@ -37,6 +37,8 @@ abstract class AuthRemoteDataSource extends BaseDataSource {
 
   Future<TokenResponseModel> loginWithGoogle(String firebaseIdToken);
 
+  Future<TokenResponseModel> loginWithApple(String firebaseIdToken);
+
   Future<TokenResponseModel> refreshToken(RefreshTokenRequestModel request);
 
   Future<void> logout();
@@ -270,6 +272,55 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
         rethrow;
       }
       throw HeliumException(message: 'Google login failed: $e');
+    }
+  }
+
+  @override
+  Future<TokenResponseModel> loginWithApple(String firebaseIdToken) async {
+    try {
+      final response = await dioClient.dio.post(
+        ApiUrl.authAppleLoginUrl,
+        data: {'id_token': firebaseIdToken},
+      );
+
+      if (response.statusCode == 200) {
+        _log.info('Apple login successful');
+
+        await dioClient.saveTokens(
+          response.data['access'],
+          response.data['refresh'],
+        );
+
+        await dioClient.fetchSettings();
+
+        final loginResponse = TokenResponseModel.fromJson(response.data);
+
+        try {
+          await FcmService().registerToken(force: true);
+          if (FcmService().fcmToken != null) {
+            _log.info('FCM token registered after Apple login');
+          } else {
+            _log.warning('FCM token not yet available after Apple login');
+          }
+        } catch (e) {
+          _log.warning('Failed to register FCM token after Apple login', e);
+        }
+
+        return loginResponse;
+      } else {
+        throw ServerException(
+          message: 'Apple login failed',
+          code: response.statusCode.toString(),
+        );
+      }
+    } on DioException catch (e, s) {
+      throw handleDioError(e, s);
+    } catch (e, s) {
+      _log.severe('An unexpected error occurred during Apple login', e, s);
+      if (e is HeliumException) {
+        rethrow;
+      }
+      throw HeliumException(message: 'Apple login failed: $e');
     }
   }
 

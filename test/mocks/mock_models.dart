@@ -48,6 +48,7 @@ class MockModels {
     String email = 'test@example.com',
     String? emailChanging,
     UserSettingsModel? settings,
+    bool hasUsablePassword = true,
   }) {
     _ensureTzInitialized();
     return UserModel(
@@ -56,6 +57,7 @@ class MockModels {
       email: email,
       emailChanging: emailChanging,
       settings: settings ?? createUserSettings(),
+      hasUsablePassword: hasUsablePassword,
     );
   }
 

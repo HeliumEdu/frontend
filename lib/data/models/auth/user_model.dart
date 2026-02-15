@@ -16,6 +16,7 @@ class UserModel extends BaseModel {
   final String email;
   final UserSettingsModel settings;
   final String? emailChanging;
+  final bool hasUsablePassword;
 
   UserModel({
     required super.id,
@@ -23,6 +24,7 @@ class UserModel extends BaseModel {
     required this.email,
     required this.settings,
     this.emailChanging,
+    required this.hasUsablePassword,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -32,6 +34,7 @@ class UserModel extends BaseModel {
       email: json['email'],
       emailChanging: json['email_changing'],
       settings: UserSettingsModel.fromJson(json['settings']),
+      hasUsablePassword: json['has_usable_password'] ?? true,
     );
   }
 
@@ -42,6 +45,7 @@ class UserModel extends BaseModel {
       'email': email,
       'email_changing': emailChanging,
       'settings': settings.toJson(),
+      'has_usable_password': hasUsablePassword,
     };
   }
 }

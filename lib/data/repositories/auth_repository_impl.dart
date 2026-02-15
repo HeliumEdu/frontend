@@ -53,6 +53,11 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<TokenResponseModel> loginWithApple(String firebaseIdToken) async {
+    return await remoteDataSource.loginWithApple(firebaseIdToken);
+  }
+
+  @override
   Future<TokenResponseModel> refreshToken(
     RefreshTokenRequestModel request,
   ) async {

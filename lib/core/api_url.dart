@@ -18,6 +18,7 @@ class ApiUrl {
   static const authUserForgotUrl = '/auth/user/forgot/';
   static const authTokenUrl = '/auth/token/';
   static const authGoogleLoginUrl = '/auth/google/login/';
+  static const authAppleLoginUrl = '/auth/apple/login/';
 
   // Authenticated URLs
   // User
