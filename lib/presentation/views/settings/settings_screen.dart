@@ -86,6 +86,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
   String _username = '';
   String _email = '';
   String _version = '';
+  bool _hasUsablePassword = true;
 
   @override
   void initState() {
@@ -116,6 +117,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
 
               _username = state.user.username;
               _email = state.user.email;
+              _hasUsablePassword = state.user.hasUsablePassword;
 
               isLoading = false;
             });
@@ -670,7 +672,9 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                 isSubmitting = true;
               });
 
-              final password = _deleteAccountPasswordController.text.trim();
+              final password = _hasUsablePassword
+                  ? _deleteAccountPasswordController.text.trim()
+                  : null;
 
               Navigator.of(dialogContext).pop();
 
@@ -717,45 +721,49 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'To permanently delete your account—and all data you have stored in Helium—confirm your password below. This action cannot be undone.',
+                        _hasUsablePassword
+                            ? 'To permanently delete your account—and all data you have stored in Helium—confirm your password below. This action cannot be undone.'
+                            : 'To permanently delete your account—and all data you have stored in Helium—confirm by clicking the Delete button below. This action cannot be undone.',
                         style: AppStyles.standardBodyText(context),
                       ),
-                      const SizedBox(height: 20),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: LabelAndTextFormField(
-                              autofocus: kIsWeb,
-                              controller: _deleteAccountPasswordController,
-                              validator:
-                                  BasicFormController.validateRequiredField,
-                              onFieldSubmitted: (value) => handleSubmit(),
-                              obscureText: obscurePassword,
-                              prefixIcon: Icons.lock_outline,
-                              suffixIcon: IconButton(
-                                onPressed: () {
-                                  setState(() {
-                                    obscurePassword = !obscurePassword;
-                                  });
-                                },
-                                icon: Icon(
-                                  obscurePassword
-                                      ? Icons.visibility_outlined
-                                      : Icons.visibility_off_outlined,
-                                  color: context.colorScheme.onSurface
-                                      .withValues(alpha: 0.4),
-                                  size: Responsive.getIconSize(
-                                    context,
-                                    mobile: 20,
-                                    tablet: 22,
-                                    desktop: 24,
+                      if (_hasUsablePassword) ...[
+                        const SizedBox(height: 20),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: LabelAndTextFormField(
+                                autofocus: kIsWeb,
+                                controller: _deleteAccountPasswordController,
+                                validator:
+                                    BasicFormController.validateRequiredField,
+                                onFieldSubmitted: (value) => handleSubmit(),
+                                obscureText: obscurePassword,
+                                prefixIcon: Icons.lock_outline,
+                                suffixIcon: IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      obscurePassword = !obscurePassword;
+                                    });
+                                  },
+                                  icon: Icon(
+                                    obscurePassword
+                                        ? Icons.visibility_outlined
+                                        : Icons.visibility_off_outlined,
+                                    color: context.colorScheme.onSurface
+                                        .withValues(alpha: 0.4),
+                                    size: Responsive.getIconSize(
+                                      context,
+                                      mobile: 20,
+                                      tablet: 22,
+                                      desktop: 24,
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),

@@ -5,6 +5,8 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:io' show Platform;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -270,22 +272,51 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
 
               const SizedBox(height: 25),
 
-              IgnorePointer(
-                ignoring: isSubmitting,
-                child: Opacity(
-                  opacity: isSubmitting ? 0.5 : 1.0,
-                  child: SignInButton(
-                    Buttons.google,
-                    onPressed: () {
-                      setState(() {
-                        isSubmitting = true;
-                      });
-                      context.read<AuthBloc>().add(GoogleLoginEvent());
-                    },
-                    text: 'Sign in with Google',
+              SizedBox(
+                width: 250,
+                height: 40,
+                child: IgnorePointer(
+                  ignoring: isSubmitting,
+                  child: Opacity(
+                    opacity: isSubmitting ? 0.5 : 1.0,
+                    child: SignInButton(
+                      Buttons.google,
+                      onPressed: () {
+                        setState(() {
+                          isSubmitting = true;
+                        });
+                        context.read<AuthBloc>().add(GoogleLoginEvent());
+                      },
+                      text: 'Sign in with Google',
+                    ),
                   ),
                 ),
               ),
+
+              // Only show Apple Sign-In on iOS and web (not Android)
+              if (kIsWeb || !Platform.isAndroid) ...[
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: 250,
+                  height: 40,
+                  child: IgnorePointer(
+                    ignoring: isSubmitting,
+                    child: Opacity(
+                      opacity: isSubmitting ? 0.5 : 1.0,
+                      child: SignInButton(
+                        Buttons.apple,
+                        onPressed: () {
+                          setState(() {
+                            isSubmitting = true;
+                          });
+                          context.read<AuthBloc>().add(AppleLoginEvent());
+                        },
+                        text: 'Sign in with Apple',
+                      ),
+                    ),
+                  ),
+                ),
+              ],
 
               const SizedBox(height: 25),
 

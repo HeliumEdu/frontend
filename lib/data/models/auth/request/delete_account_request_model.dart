@@ -6,11 +6,15 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 class DeleteAccountRequestModel {
-  final String password;
+  final String? password;
 
-  DeleteAccountRequestModel({required this.password});
+  DeleteAccountRequestModel({this.password});
 
   Map<String, dynamic> toJson() {
-    return {'password': password};
+    final Map<String, dynamic> json = {};
+    if (password != null && password!.isNotEmpty) {
+      json['password'] = password;
+    }
+    return json;
   }
 }
