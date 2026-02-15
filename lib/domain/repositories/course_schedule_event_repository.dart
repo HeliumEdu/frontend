@@ -17,14 +17,19 @@ abstract class CourseScheduleRepository {
     required DateTime to,
     String? search,
     bool? shownOnCalendar,
+    bool forceRefresh = false,
   });
 
-  Future<List<CourseScheduleModel>> getCourseSchedules({bool? shownOnCalendar});
+  Future<List<CourseScheduleModel>> getCourseSchedules({
+    bool? shownOnCalendar,
+    bool forceRefresh = false,
+  });
 
   Future<CourseScheduleModel> getCourseScheduleForCourse(
     int groupId,
-    int courseId,
-  );
+    int courseId, {
+    bool forceRefresh = false,
+  });
 
   Future<CourseScheduleModel> createCourseSchedule(
     int groupId,

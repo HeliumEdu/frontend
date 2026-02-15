@@ -11,9 +11,12 @@ import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/request/course_request_model.dart';
 
 abstract class CourseRepository {
-  Future<List<CourseGroupModel>> getCourseGroups({bool? shownOnCalendar});
+  Future<List<CourseGroupModel>> getCourseGroups({
+    bool? shownOnCalendar,
+    bool forceRefresh = false,
+  });
 
-  Future<CourseGroupModel> getCourseGroup(int id);
+  Future<CourseGroupModel> getCourseGroup(int id, {bool forceRefresh = false});
 
   Future<CourseGroupModel> createCourseGroup(CourseGroupRequestModel request);
 
@@ -24,9 +27,13 @@ abstract class CourseRepository {
 
   Future<void> deleteCourseGroup(int groupId);
 
-  Future<List<CourseModel>> getCourses({int? groupId, bool? shownOnCalendar});
+  Future<List<CourseModel>> getCourses({
+    int? groupId,
+    bool? shownOnCalendar,
+    bool forceRefresh = false,
+  });
 
-  Future<CourseModel> getCourse(int groupId, int courseId);
+  Future<CourseModel> getCourse(int groupId, int courseId, {bool forceRefresh = false});
 
   Future<CourseModel> createCourse(int groupId, CourseRequestModel request);
 

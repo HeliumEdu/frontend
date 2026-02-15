@@ -24,6 +24,8 @@ class ApiUrl {
   static const authUserDeleteUrl = '/auth/user/delete/';
   static const authUserSettingsUrl = '/auth/user/settings/';
   static const authUserPushTokenUrl = '/auth/user/pushtoken/';
+  static const authUserDeleteExampleScheduleUrl =
+      '/auth/user/delete/exampleschedule/';
 
   // Token
   static const authTokenRefreshUrl = '/auth/token/refresh/';
@@ -46,12 +48,12 @@ class ApiUrl {
   static const plannerMaterialsListUrl = '/planner/materials/';
   static const plannerHomeworkListUrl = '/planner/homework/';
   static const plannerEventsListUrl = '/planner/events/';
-  static const plannerSchedulesEvents = '/planner/courseschedules/events/';
   static const feedExternalCalendarsEventsListUrl =
       '/feed/externalcalendars/events/';
   static const plannerRemindersListUrl = '/planner/reminders/';
   static const plannerAttachmentsListUrl = '/planner/attachments/';
 
+  // Entities
   static String plannerCourseGroupsCoursesHomeworkDetailsUrl(
     int groupId,
     int courseId,

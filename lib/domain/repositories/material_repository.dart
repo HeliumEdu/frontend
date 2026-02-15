@@ -11,7 +11,7 @@ import 'package:heliumapp/data/models/planner/material_model.dart';
 import 'package:heliumapp/data/models/planner/request/material_request_model.dart';
 
 abstract class MaterialRepository {
-  Future<List<MaterialGroupModel>> getMaterialGroups();
+  Future<List<MaterialGroupModel>> getMaterialGroups({bool forceRefresh = false});
 
   Future<MaterialGroupModel> createMaterialGroup(
     MaterialGroupRequestModel request,
@@ -27,9 +27,10 @@ abstract class MaterialRepository {
   Future<List<MaterialModel>> getMaterials({
     int? groupId,
     bool? shownOnCalendar,
+    bool forceRefresh = false,
   });
 
-  Future<MaterialModel> getMaterial(int groupId, int materialId);
+  Future<MaterialModel> getMaterial(int groupId, int materialId, {bool forceRefresh = false});
 
   Future<MaterialModel> createMaterial(
     int groupId,

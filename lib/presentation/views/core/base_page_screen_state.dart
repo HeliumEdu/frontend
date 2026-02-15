@@ -516,7 +516,11 @@ class SnackBarHelper {
     // SnackBar won't automatically close with an action, so set a callback
     if (action != null) {
       Future.delayed(Duration(seconds: seconds), () {
-        controller.close();
+        try {
+          controller.close();
+        } catch (_) {
+          // SnackBar may have already been dismissed
+        }
       });
     }
   }

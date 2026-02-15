@@ -16,9 +16,13 @@ abstract class HomeworkRepository {
     String? search,
     String? title,
     bool? shownOnCalendar,
+    bool forceRefresh = false,
   });
 
-  Future<HomeworkModel> getHomework({required int id});
+  Future<HomeworkModel> getHomework({
+    required int id,
+    bool forceRefresh = false,
+  });
 
   Future<HomeworkModel> createHomework({
     required int groupId,

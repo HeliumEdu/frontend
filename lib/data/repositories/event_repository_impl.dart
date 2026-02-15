@@ -21,18 +21,23 @@ class EventRepositoryImpl implements EventRepository {
     DateTime? to,
     String? search,
     String? title,
+    bool forceRefresh = false,
   }) async {
     return await remoteDataSource.getEvents(
       from: from,
       to: to,
       search: search,
       title: title,
+      forceRefresh: forceRefresh,
     );
   }
 
   @override
-  Future<EventModel> getEvent({required int id}) async {
-    return await remoteDataSource.getEvent(id: id);
+  Future<EventModel> getEvent({
+    required int id,
+    bool forceRefresh = false,
+  }) async {
+    return await remoteDataSource.getEvent(id: id, forceRefresh: forceRefresh);
   }
 
   @override

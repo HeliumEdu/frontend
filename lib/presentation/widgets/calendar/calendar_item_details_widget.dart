@@ -34,7 +34,6 @@ import 'package:heliumapp/presentation/views/core/multi_step_container.dart';
 import 'package:heliumapp/presentation/widgets/drop_down.dart';
 import 'package:heliumapp/presentation/widgets/grade_label.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
-import 'package:heliumapp/presentation/widgets/label_and_html_editor.dart';
 import 'package:heliumapp/presentation/widgets/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/material_title_label.dart';
@@ -301,14 +300,6 @@ class CalendarItemDetailsWidgetState extends State<CalendarItemDetailsWidget> {
                   ],
                   _buildPrioritySlider(context),
                   if (!_isEvent) ...[_buildCompletionSection(context)],
-                  const SizedBox(height: 8),
-                  const Divider(),
-                  const SizedBox(height: 14),
-                  LabelAndHtmlEditor(
-                    label: 'Notes',
-                    controller: _formController.detailsController,
-                    initialText: _formController.initialNotes,
-                  ),
                   const SizedBox(height: 12),
                 ],
               ),
@@ -878,8 +869,6 @@ class CalendarItemDetailsWidgetState extends State<CalendarItemDetailsWidget> {
         }
       }
 
-      final notes = await _formController.detailsController.getText();
-
       if (_isEvent) {
         final request = EventRequestModel(
           title: _formController.titleController.text.trim(),
@@ -888,7 +877,7 @@ class CalendarItemDetailsWidgetState extends State<CalendarItemDetailsWidget> {
           start: start,
           end: end,
           priority: _getPriorityValue(),
-          comments: notes.trim().isEmpty ? '' : notes.trim(),
+          comments: widget.isEdit ? _formController.initialNotes : '',
         );
 
         if (!mounted) return;
@@ -902,10 +891,7 @@ class CalendarItemDetailsWidgetState extends State<CalendarItemDetailsWidget> {
           );
         } else {
           context.read<CalendarItemBloc>().add(
-            CreateEventEvent(
-              origin: EventOrigin.subScreen,
-              request: request,
-            ),
+            CreateEventEvent(origin: EventOrigin.subScreen, request: request),
           );
         }
       } else {
@@ -928,7 +914,7 @@ class CalendarItemDetailsWidgetState extends State<CalendarItemDetailsWidget> {
           start: start,
           end: end,
           priority: _getPriorityValue(),
-          comments: notes.trim().isEmpty ? '' : notes.trim(),
+          comments: widget.isEdit ? _formController.initialNotes : '',
           currentGrade: gradeValue,
           completed: _formController.isCompleted,
           category: _formController.selectedCategory,
@@ -1138,8 +1124,6 @@ class CalendarItemDetailsWidgetState extends State<CalendarItemDetailsWidget> {
       }
     }
 
-    final notes = await _formController.detailsController.getText();
-
     if (_calendarItem is EventModel) {
       final request = EventRequestModel(
         title: clonedTitle,
@@ -1148,7 +1132,7 @@ class CalendarItemDetailsWidgetState extends State<CalendarItemDetailsWidget> {
         start: start,
         end: end,
         priority: _getPriorityValue(),
-        comments: notes.trim().isEmpty ? '' : notes.trim(),
+        comments: widget.isEdit ? null : '',
       );
 
       if (!mounted) return;
@@ -1172,7 +1156,7 @@ class CalendarItemDetailsWidgetState extends State<CalendarItemDetailsWidget> {
         start: start,
         end: end,
         priority: _getPriorityValue(),
-        comments: notes.trim().isEmpty ? '' : notes.trim(),
+        comments: widget.isEdit ? null : '',
         currentGrade: '-1/100',
         completed: false,
         category: _formController.selectedCategory,

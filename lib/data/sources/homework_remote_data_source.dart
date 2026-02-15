@@ -25,9 +25,13 @@ abstract class HomeworkRemoteDataSource extends BaseDataSource {
     String? search,
     String? title,
     bool? shownOnCalendar,
+    bool forceRefresh = false,
   });
 
-  Future<HomeworkModel> getHomework({required int id});
+  Future<HomeworkModel> getHomework({
+    required int id,
+    bool forceRefresh = false,
+  });
 
   Future<HomeworkModel> createHomework({
     required int groupId,
@@ -62,6 +66,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
     String? search,
     String? title,
     bool? shownOnCalendar,
+    bool forceRefresh = false,
   }) async {
     try {
       final Map<String, dynamic> queryParameters = {
@@ -88,6 +93,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
       final response = await dioClient.dio.get(
         ApiUrl.plannerHomeworkListUrl,
         queryParameters: queryParameters.isEmpty ? null : queryParameters,
+        options: forceRefresh ? dioClient.cacheService.forceRefreshOptions() : null,
       );
 
       if (response.statusCode == 200) {
@@ -121,12 +127,16 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
   }
 
   @override
-  Future<HomeworkModel> getHomework({required int id}) async {
+  Future<HomeworkModel> getHomework({
+    required int id,
+    bool forceRefresh = false,
+  }) async {
     try {
       _log.info('Fetching Homework $id ...');
       final response = await dioClient.dio.get(
         ApiUrl.plannerHomeworkListUrl,
         queryParameters: {'id': id},
+        options: forceRefresh ? dioClient.cacheService.forceRefreshOptions() : null,
       );
 
       if (response.statusCode == 200) {
@@ -167,6 +177,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
       if (response.statusCode == 201) {
         final homework = HomeworkModel.fromJson(response.data);
         _log.info('... Homework ${homework.id} created for Course $courseId');
+        await dioClient.cacheService.invalidateAll();
         return homework;
       } else {
         throw ServerException(
@@ -204,6 +215,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
 
       if (response.statusCode == 200) {
         _log.info('... Homework $homeworkId updated');
+        await dioClient.cacheService.invalidateAll();
         return HomeworkModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -239,6 +251,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
 
       if (response.statusCode == 204) {
         _log.info('... Homework $homeworkId deleted');
+        await dioClient.cacheService.invalidateAll();
       } else {
         throw ServerException(
           message: 'Failed to delete homework: ${response.statusCode}',
