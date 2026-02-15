@@ -482,11 +482,18 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                border: Border.all(color: context.colorScheme.outlineVariant),
-                borderRadius: BorderRadius.circular(4),
+                border: Border.all(
+                  color: context.colorScheme.outlineVariant.withValues(
+                    alpha: 0.5,
+                  ),
+                ),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(8),
+                  topRight: Radius.circular(8),
+                ),
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(7),
+                borderRadius: BorderRadius.circular(8),
                 child: ListenableBuilder(
                   listenable: _calendarItemDataSource!.changeNotifier,
                   builder: (context, _) {
@@ -589,6 +596,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           todayTextStyle: AppStyles.standardBodyText(
             context,
           ).copyWith(color: context.colorScheme.onPrimary),
+          viewHeaderHeight: _currentView == HeliumView.month ? 28 : -1,
           viewHeaderStyle: ViewHeaderStyle(
             dayTextStyle: AppStyles.standardBodyText(context),
             dateTextStyle: AppStyles.standardBodyText(context),
