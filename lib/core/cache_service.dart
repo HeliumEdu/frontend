@@ -19,7 +19,8 @@ final _log = Logger('core');
 class CacheService with WidgetsBindingObserver {
   late final CacheStore _store;
   late final CacheOptions _options;
-  late final DioCacheInterceptor _interceptor;
+  late final DioCacheInterceptor _cacheInterceptor;
+  late final Interceptor _interceptor;
   late final Interceptor _loggingInterceptor;
 
   /// How long cached responses remain valid.
@@ -40,7 +41,8 @@ class CacheService with WidgetsBindingObserver {
       hitCacheOnNetworkFailure: true,
       keyBuilder: CacheOptions.defaultCacheKeyBuilder,
     );
-    _interceptor = DioCacheInterceptor(options: _options);
+    _cacheInterceptor = DioCacheInterceptor(options: _options);
+    _interceptor = _createMethodFilteringInterceptor();
     _loggingInterceptor = _createLoggingInterceptor();
     _initLifecycleObserver();
   }
@@ -56,7 +58,8 @@ class CacheService with WidgetsBindingObserver {
       hitCacheOnNetworkFailure: true,
       keyBuilder: CacheOptions.defaultCacheKeyBuilder,
     );
-    _interceptor = DioCacheInterceptor(options: _options);
+    _cacheInterceptor = DioCacheInterceptor(options: _options);
+    _interceptor = _createMethodFilteringInterceptor();
     _loggingInterceptor = _createLoggingInterceptor();
     // Skip lifecycle observer in tests
   }
@@ -66,6 +69,33 @@ class CacheService with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       WidgetsBinding.instance.addObserver(this);
     });
+  }
+
+  /// Creates an interceptor that only caches GET requests.
+  /// POST, PUT, DELETE, and PATCH bypass caching but invalidate the cache
+  /// on successful responses.
+  Interceptor _createMethodFilteringInterceptor() {
+    return InterceptorsWrapper(
+      onRequest: (options, handler) {
+        if (options.method.toUpperCase() != 'GET') {
+          // Skip caching for non-GET requests
+          options.extra['@cache_options@'] =
+              _options.copyWith(policy: CachePolicy.noCache);
+        }
+        _cacheInterceptor.onRequest(options, handler);
+      },
+      onResponse: (response, handler) {
+        final method = response.requestOptions.method.toUpperCase();
+        if (method == 'POST' || method == 'PUT' || method == 'DELETE' || method == 'PATCH') {
+          // Invalidate cache after successful mutation
+          invalidateAll();
+        }
+        _cacheInterceptor.onResponse(response, handler);
+      },
+      onError: (error, handler) {
+        _cacheInterceptor.onError(error, handler);
+      },
+    );
   }
 
   /// Call this when the service is no longer needed.
@@ -108,7 +138,9 @@ class CacheService with WidgetsBindingObserver {
   }
 
   /// The cache interceptor to add to Dio.
-  DioCacheInterceptor get interceptor => _interceptor;
+  /// Only caches GET requests; POST, PUT, DELETE, and PATCH bypass caching
+  /// but trigger cache invalidation on success.
+  Interceptor get interceptor => _interceptor;
 
   /// Logging interceptor to add after the cache interceptor.
   /// Logs whether responses came from cache or network.
