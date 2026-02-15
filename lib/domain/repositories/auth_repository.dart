@@ -26,6 +26,8 @@ abstract class AuthRepository {
 
   Future<TokenResponseModel> login(LoginRequestModel request);
 
+  Future<TokenResponseModel> loginWithGoogle(String firebaseIdToken);
+
   Future<TokenResponseModel> refreshToken(RefreshTokenRequestModel request);
 
   Future<void> logout();

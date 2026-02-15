@@ -48,6 +48,11 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<TokenResponseModel> loginWithGoogle(String firebaseIdToken) async {
+    return await remoteDataSource.loginWithGoogle(firebaseIdToken);
+  }
+
+  @override
   Future<TokenResponseModel> refreshToken(
     RefreshTokenRequestModel request,
   ) async {

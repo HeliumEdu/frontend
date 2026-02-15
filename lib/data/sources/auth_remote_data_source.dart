@@ -10,15 +10,15 @@ import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/fcm_service.dart';
 import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/data/models/auth/login_request_model.dart';
+import 'package:heliumapp/data/models/auth/private_feed_model.dart';
+import 'package:heliumapp/data/models/auth/register_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/change_password_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/delete_account_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/forgot_password_request_model.dart';
-import 'package:heliumapp/data/models/auth/login_request_model.dart';
-import 'package:heliumapp/data/models/auth/private_feed_model.dart';
 import 'package:heliumapp/data/models/auth/request/refresh_token_request_model.dart';
-import 'package:heliumapp/data/models/auth/register_request_model.dart';
-import 'package:heliumapp/data/models/auth/token_response_model.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
+import 'package:heliumapp/data/models/auth/token_response_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/no_content_response_model.dart';
 import 'package:heliumapp/data/sources/base_data_source.dart';
@@ -34,6 +34,8 @@ abstract class AuthRemoteDataSource extends BaseDataSource {
   Future<NoContentResponseModel> resendVerificationEmail(String username);
 
   Future<TokenResponseModel> login(LoginRequestModel request);
+
+  Future<TokenResponseModel> loginWithGoogle(String firebaseIdToken);
 
   Future<TokenResponseModel> refreshToken(RefreshTokenRequestModel request);
 
@@ -95,10 +97,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
   }
 
   @override
-  Future<TokenResponseModel> verifyEmail(
-    String username,
-    String code,
-  ) async {
+  Future<TokenResponseModel> verifyEmail(String username, String code) async {
     try {
       final response = await dioClient.dio.get(
         ApiUrl.authUserVerifyUrl,
@@ -147,7 +146,9 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
   }
 
   @override
-  Future<NoContentResponseModel> resendVerificationEmail(String username) async {
+  Future<NoContentResponseModel> resendVerificationEmail(
+    String username,
+  ) async {
     try {
       final response = await dioClient.dio.get(
         ApiUrl.authUserVerifyResendUrl,
@@ -220,6 +221,55 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
         rethrow;
       }
       throw HeliumException(message: 'An unexpected error occurred: $e');
+    }
+  }
+
+  @override
+  Future<TokenResponseModel> loginWithGoogle(String firebaseIdToken) async {
+    try {
+      final response = await dioClient.dio.post(
+        ApiUrl.authGoogleLoginUrl,
+        data: {'id_token': firebaseIdToken},
+      );
+
+      if (response.statusCode == 200) {
+        _log.info('Google login successful');
+
+        await dioClient.saveTokens(
+          response.data['access'],
+          response.data['refresh'],
+        );
+
+        await dioClient.fetchSettings();
+
+        final loginResponse = TokenResponseModel.fromJson(response.data);
+
+        try {
+          await FcmService().registerToken(force: true);
+          if (FcmService().fcmToken != null) {
+            _log.info('FCM token registered after Google login');
+          } else {
+            _log.warning('FCM token not yet available after Google login');
+          }
+        } catch (e) {
+          _log.warning('Failed to register FCM token after Google login', e);
+        }
+
+        return loginResponse;
+      } else {
+        throw ServerException(
+          message: 'Google login failed',
+          code: response.statusCode.toString(),
+        );
+      }
+    } on DioException catch (e, s) {
+      throw handleDioError(e, s);
+    } catch (e, s) {
+      _log.severe('An unexpected error occurred during Google login', e, s);
+      if (e is HeliumException) {
+        rethrow;
+      }
+      throw HeliumException(message: 'Google login failed: $e');
     }
   }
 

@@ -12,7 +12,28 @@
           "package_name": "com.heliumedu.heliumapp"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "643279973445-fh4qtftlq0gtcktpvt9fhm070p2ik3v3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.heliumedu.heliumapp",
+            "certificate_hash": "c1cdee8d087f3b589fe1ce046d4199d3d528877f"
+          }
+        },
+        {
+          "client_id": "643279973445-gthdigdmju8n5qj1ujir7sjc0hn1jpf0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.heliumedu.heliumapp",
+            "certificate_hash": "442120859e8fedf5318ab8c925fd212218b5881c"
+          }
+        },
+        {
+          "client_id": "643279973445-e69crc4hlj2tp29jsrbr2o7ompl042r9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBm8ZilzevweGPcO8qhzXBo8R3PxgsFEM8"
@@ -20,7 +41,20 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "643279973445-e69crc4hlj2tp29jsrbr2o7ompl042r9.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "643279973445-jfl7v2elnh84ld4drtlkekt5b8e5llg0.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.heliumedu.heliumapp",
+                "app_store_id": "6758323154"
+              }
+            }
+          ]
         }
       }
     }
