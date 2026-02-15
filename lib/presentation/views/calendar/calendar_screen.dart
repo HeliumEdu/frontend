@@ -391,6 +391,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             setState(() {
               userSettings = state.user.settings;
             });
+          } else if (state is AuthExampleScheduleDeleted) {
+            _log.info('Example schedule deleted, refetching calendar data');
+            context.read<CalendarBloc>().add(FetchCalendarScreenDataEvent());
           }
         },
       ),

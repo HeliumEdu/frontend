@@ -167,8 +167,7 @@ class _NavigationShellState extends State<NavigationShell> {
     _isShowingGettingStarted = true;
     await showGettingStartedDialog(
       context: context,
-      onDeleted: _refreshCalendar,
-    );
+          );
     _isShowingGettingStarted = false;
   }
 
@@ -188,8 +187,7 @@ class _NavigationShellState extends State<NavigationShell> {
         _isShowingGettingStarted = true;
         await showGettingStartedDialog(
           context: context,
-          onDeleted: _refreshCalendar,
-        );
+                  );
         _isShowingGettingStarted = false;
         if (!mounted) return;
       }
@@ -198,11 +196,6 @@ class _NavigationShellState extends State<NavigationShell> {
         await showWhatsNewDialog(context: context);
       }
     });
-  }
-
-  void _refreshCalendar() {
-    // Force a rebuild to refresh the calendar after example data is deleted
-    setState(() {});
   }
 
   NavigationPage _getCurrentPage(BuildContext context) {
