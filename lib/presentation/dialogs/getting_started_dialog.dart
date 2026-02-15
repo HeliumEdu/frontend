@@ -16,9 +16,7 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 class _GettingStartedDialogWidget extends StatelessWidget {
-  final VoidCallback? onDeleted;
-
-  const _GettingStartedDialogWidget({this.onDeleted});
+  const _GettingStartedDialogWidget();
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +24,6 @@ class _GettingStartedDialogWidget extends StatelessWidget {
       listener: (context, state) {
         if (state is AuthExampleScheduleDeleted) {
           Navigator.pop(context);
-          onDeleted?.call();
         } else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -218,13 +215,12 @@ class _GettingStartedDialogWidget extends StatelessWidget {
 
 Future<void> showGettingStartedDialog({
   required BuildContext context,
-  VoidCallback? onDeleted,
 }) {
   return showDialog(
     context: context,
     barrierDismissible: false,
     builder: (BuildContext dialogContext) {
-      return _GettingStartedDialogWidget(onDeleted: onDeleted);
+      return const _GettingStartedDialogWidget();
     },
   );
 }
