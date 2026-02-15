@@ -664,7 +664,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
               setState(() {});
             });
           },
-          ),
         );
       },
     );
