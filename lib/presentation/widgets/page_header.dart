@@ -8,7 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_routes.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_bloc.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_event.dart';
@@ -59,11 +59,11 @@ class PageHeader extends StatelessWidget {
               onPressed: () {
                 // In dialog mode, close all dialogs and go to main screen
                 if (DialogModeProvider.isDialogMode(ctx)) {
-                  ctx.go(AppRoutes.plannerScreen);
+                  ctx.go(AppRoute.plannerScreen);
                 } else if (Navigator.canPop(ctx)) {
                   ctx.pop();
                 } else {
-                  ctx.go(AppRoutes.plannerScreen);
+                  ctx.go(AppRoute.plannerScreen);
                 }
               },
               icon: Icon(

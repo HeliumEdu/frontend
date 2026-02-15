@@ -11,7 +11,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_router.dart';
-import 'package:heliumapp/config/app_routes.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
@@ -507,7 +507,7 @@ class DioClient {
           ),
         );
 
-        router.go(AppRoutes.loginScreen);
+        router.go(AppRoute.loginScreen);
       }
     } catch (_) {
       // Ignore navigation errors

@@ -8,7 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_routes.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/presentation/bloc/attachment/attachment_bloc.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
@@ -35,7 +35,7 @@ void showCalendarItemAdd(
 }) {
   if (Responsive.isMobile(context)) {
     context.push(
-      AppRoutes.plannerItemAddScreen,
+      AppRoute.plannerItemAddScreen,
       extra: CalendarItemAddArgs(
         calendarItemBloc: calendarItemBloc,
         attachmentBloc: attachmentBloc,

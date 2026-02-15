@@ -9,7 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_routes.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
@@ -42,7 +42,7 @@ void showSettings(BuildContext context) {
   );
 
   if (Responsive.isMobile(context)) {
-    context.push(AppRoutes.settingScreen, extra: args);
+    context.push(AppRoute.settingScreen, extra: args);
   } else {
     showScreenAsDialog(
       context,
@@ -121,7 +121,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
             });
           } else if (state is AuthLoggedOut) {
             if (!context.mounted) return;
-            context.go(AppRoutes.loginScreen);
+            context.go(AppRoute.loginScreen);
           } else if (state is AuthAccountDeleted) {
             showSnackBar(
               context,
@@ -135,7 +135,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
             if (DialogModeProvider.isDialogMode(context)) {
               Navigator.of(context).pop();
             }
-            context.go(AppRoutes.loginScreen);
+            context.go(AppRoute.loginScreen);
           }
         },
       ),
