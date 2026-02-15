@@ -1804,7 +1804,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     );
 
     // On mobile, make the entire left area tappable for checkboxes
-    if (Responsive.isMobile(context) && isCheckbox) {
+    if (Responsive.isTouchDevice(context) && isCheckbox) {
       final homework = calendarItem as HomeworkModel;
       return MouseRegion(
         cursor: SystemMouseCursors.click,
