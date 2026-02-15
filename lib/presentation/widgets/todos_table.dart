@@ -50,7 +50,6 @@ class TodosTable extends StatefulWidget {
   State<TodosTable> createState() => TodosTableState();
 }
 
-
 class TodosTableState extends State<TodosTable> {
   static const List<int> _itemsPerPageOptions = [5, 10, 25, 50, 100, -1];
   bool _isInitialized = false;
@@ -105,8 +104,8 @@ class TodosTableState extends State<TodosTable> {
     final totalPages = isShowingAll
         ? 1
         : totalItems > 0
-            ? (totalItems / effectiveItemsPerPage).ceil()
-            : 1;
+        ? (totalItems / effectiveItemsPerPage).ceil()
+        : 1;
 
     // Reset to page 1 if current page is beyond valid range (e.g., after filtering)
     var effectiveCurrentPage = controller.currentPage;
@@ -192,9 +191,7 @@ class TodosTableState extends State<TodosTable> {
           Positioned.fill(
             child: Container(
               color: context.colorScheme.surface.withValues(alpha: 0.7),
-              child: const Center(
-                child: LoadingIndicator(expanded: false),
-              ),
+              child: const Center(child: LoadingIndicator(expanded: false)),
             ),
           ),
       ],
@@ -226,7 +223,6 @@ class TodosTableState extends State<TodosTable> {
         to = endDate;
       }
     }
-
 
     // Trigger data source to expand its window
     if (from != null && to != null) {
@@ -279,12 +275,13 @@ class TodosTableState extends State<TodosTable> {
 
   Widget _buildTableHeader() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: context.colorScheme.surfaceContainerHighest.withValues(
           alpha: 0.5,
         ),
       ),
+      height: 40,
       child: Row(
         children: [
           SizedBox(
@@ -906,9 +903,9 @@ class TodosTableState extends State<TodosTable> {
                 const SizedBox(width: 4),
                 Text(
                   homework.materials.length.toString(),
-                  style: AppStyles.smallSecondaryTextLight(
-                    context,
-                  ).copyWith(color: userSettings.materialColor.withValues(alpha: 0.9)),
+                  style: AppStyles.smallSecondaryTextLight(context).copyWith(
+                    color: userSettings.materialColor.withValues(alpha: 0.9),
+                  ),
                 ),
               ],
             )
@@ -934,9 +931,7 @@ class TodosTableState extends State<TodosTable> {
                 const SizedBox(width: 4),
                 Text(
                   homework.attachments.length.toString(),
-                  style: AppStyles.smallSecondaryTextLight(
-                    context,
-                  ).copyWith(
+                  style: AppStyles.smallSecondaryTextLight(context).copyWith(
                     color: context.colorScheme.primary.withValues(alpha: 0.9),
                   ),
                 ),

@@ -63,7 +63,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   final Map<int, bool> _completedOverrides = {};
   final Map<int, CalendarItemTimeOverride> _timeOverrides = {};
   /// Maps calendar item ID to its position in the sorted list for items at the
-  /// same base time. Used to apply microsecond adjustments that encode the full
+  /// same base time. Used to apply seconds-based adjustments that encode the full
   /// sort order (type --> course --> title) into times seen by SfCalendar.
   final Map<int, int> _sortPositions = {};
   Timer? _filterDebounceTimer;
@@ -194,28 +194,16 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
         ? DateTime.parse(override.start)
         : item.start;
 
-    // Don't adjust all-day events - they start at midnight and subtracting
-    // seconds would push them to the previous day
+    // All-day events: no adjustment (SfCalendar handles its own all-day sorting)
     if (item.allDay) {
       return baseTime;
     }
 
-    // Apply time adjustments to encode our full sort order in SfCalendar.
-    // SfCalendar truncates sub-second precision, so we must use seconds.
-
+    // Timed events: subtract seconds to encode sort order
     final priority = typeSortPriority[item.calendarItemType] ?? 0;
     final position = _sortPositions[item.id] ?? 0;
-
-    // Type priority: Use thousands of seconds (3000, 2000, 1000, 0)
-    // This ensures homework < course schedule < event < external
-    final baseSeconds = (3 - priority) * 1000;
-
-    // Position: Add seconds with reverse order (position 0 gets most)
-    // This allows up to 100 items at same time to maintain alphabetical order
-    final positionSeconds = 100 - position;
-
-    final totalSeconds = baseSeconds + positionSeconds;
-    return baseTime.subtract(Duration(seconds: totalSeconds));
+    final adjustment = getTimedEventStartTimeAdjustmentSeconds(priority, position);
+    return baseTime.subtract(Duration(seconds: adjustment));
   }
 
   @override
@@ -230,32 +218,18 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     final endTime = override != null
         ? DateTime.parse(override.end)
         : calendarItem.end;
-    final priority = typeSortPriority[calendarItem.calendarItemType] ?? 0;
 
+    // All-day events: sort order is encoded in start time, just adjust end for display
     if (calendarItem.allDay) {
       final adjustedEnd = endTime.subtract(const Duration(days: 1));
-      final baseEnd = adjustedEnd.isBefore(startTime) ? startTime : adjustedEnd;
-      return baseEnd.add(Duration(microseconds: priority));
+      return adjustedEnd.isBefore(startTime) ? startTime : adjustedEnd;
     }
 
-    // Apply time adjustments to encode our full sort order in SfCalendar.
-    // SfCalendar truncates sub-second precision, so we must use seconds.
-    // For end time, we use minutes to avoid visibly shortening the event too much.
-
+    // Timed events: subtract to encode sort order (uses minutes to avoid visible shortening)
+    final priority = typeSortPriority[calendarItem.calendarItemType] ?? 0;
     final position = _sortPositions[calendarItem.id] ?? 0;
-
-    // Type priority: Use minutes (3, 2, 1, 0)
-    final baseMinutes = 3 - priority;
-
-    // Position: Add seconds for fine-grained ordering within same type/time
-    // Convert to fractional minutes to combine with type priority
-    final positionMinutes = (100 - position) / 60.0;
-
-    final totalMinutes = baseMinutes + positionMinutes;
-    return endTime.subtract(Duration(
-      minutes: totalMinutes.floor(),
-      seconds: ((totalMinutes % 1) * 60).round(),
-    ));
+    final adjustment = getTimedEventEndTimeAdjustment(priority, position);
+    return endTime.subtract(adjustment);
   }
 
   @override
@@ -450,8 +424,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
       items.addAll(_applySearchFilterToItems(allExternalCalendarEvents));
     }
 
-    // Sort using the same logic as getEndTime adjustments so our order
-    // matches what SfCalendar will produce with our fake end times
+    // Sort using centralized logic from sort_helpers.dart
     Sort.byStartThenTitle(items);
     return items;
   }
@@ -898,7 +871,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   }
 
   /// Builds a map of item IDs to their position within items at the same time.
-  /// This position is used to apply microsecond adjustments that encode the full
+  /// This position is used to apply seconds-based adjustments that encode the full
   /// sort order (type --> course --> title) into the times seen by SfCalendar.
   void _buildSortPositions(List<CalendarItemBaseModel> sortedItems) {
     _sortPositions.clear();
