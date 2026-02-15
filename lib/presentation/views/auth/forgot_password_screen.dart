@@ -9,7 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_routes.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_bloc.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_event.dart';
@@ -177,7 +177,7 @@ class _ForgotPasswordScreenState
                 Center(
                   child: TextButton(
                     onPressed: () {
-                      context.go(AppRoutes.loginScreen);
+                      context.go(AppRoute.loginScreen);
                     },
                     child: Row(
                       mainAxisSize: MainAxisSize.min,

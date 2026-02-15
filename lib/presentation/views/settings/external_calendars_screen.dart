@@ -8,7 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_routes.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_model.dart';
@@ -44,7 +44,7 @@ void showExternalCalendars(
   );
 
   if (Responsive.isMobile(context)) {
-    context.push(AppRoutes.externalCalendarsScreen, extra: args);
+    context.push(AppRoute.externalCalendarsScreen, extra: args);
   } else {
     showScreenAsDialog(
       context,

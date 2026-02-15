@@ -12,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_routes.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_bloc.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_event.dart';
@@ -108,7 +108,7 @@ class _VerifyScreenState extends BasePageScreenState<VerifyScreen> {
             );
 
             if (!context.mounted) return;
-            context.go(AppRoutes.plannerScreen);
+            context.go(AppRoute.plannerScreen);
           } else if (state is AuthVerificationResent) {
             showSnackBar(
               context,
@@ -283,7 +283,7 @@ class _VerifyScreenState extends BasePageScreenState<VerifyScreen> {
             Center(
               child: TextButton(
                 onPressed: () {
-                  context.go(AppRoutes.loginScreen);
+                  context.go(AppRoute.loginScreen);
                 },
                 child: Row(
                   mainAxisSize: MainAxisSize.min,

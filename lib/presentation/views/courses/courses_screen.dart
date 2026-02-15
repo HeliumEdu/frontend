@@ -9,7 +9,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_routes.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/base_model.dart';
@@ -341,7 +341,7 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
             if (!mounted) return;
 
             // Clear the query parameters from URL
-            context.go(AppRoutes.coursesScreen);
+            context.go(AppRoute.coursesScreen);
 
             // Open the course edit dialog
             showCourseAdd(

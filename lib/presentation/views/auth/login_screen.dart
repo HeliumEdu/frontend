@@ -9,7 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_routes.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_bloc.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_event.dart';
@@ -95,7 +95,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
 
             if (!context.mounted) return;
             // Redirect to intended destination or default to calendar
-            final destination = _nextRoute ?? AppRoutes.plannerScreen;
+            final destination = _nextRoute ?? AppRoute.plannerScreen;
             context.replace(destination);
           } else if (state is AuthAccountInactive) {
             _showInactiveAccountSnackBar(context, state.username, state.message);
@@ -209,7 +209,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                 children: [
                   TextButton(
                     onPressed: () {
-                      context.go(AppRoutes.forgotPasswordScreen);
+                      context.go(AppRoute.forgotPasswordScreen);
                     },
                     child: Text(
                       'Forgot your password?',
@@ -242,7 +242,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
               Center(
                 child: TextButton(
                   onPressed: () {
-                    context.go(AppRoutes.registerScreen);
+                    context.go(AppRoute.registerScreen);
                   },
                   child: Row(
                     mainAxisSize: MainAxisSize.min,

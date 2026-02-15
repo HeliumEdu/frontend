@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_routes.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_bloc.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_event.dart';
@@ -89,7 +89,7 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
 
             if (!context.mounted) return;
             context.go(
-              '${AppRoutes.verifyScreen}?username=${Uri.encodeComponent(state.username!)}',
+              '${AppRoute.verifyScreen}?username=${Uri.encodeComponent(state.username!)}',
             );
           } else if (state is AuthError) {
             showSnackBar(context, state.message!, isError: true, seconds: 6);
@@ -317,7 +317,7 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
                 children: [
                   TextButton(
                     onPressed: () {
-                      context.go(AppRoutes.loginScreen);
+                      context.go(AppRoute.loginScreen);
                     },
                     child: Row(
                       mainAxisSize: MainAxisSize.min,

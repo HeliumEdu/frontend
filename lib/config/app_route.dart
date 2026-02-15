@@ -5,7 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-class AppRoutes {
+class AppRoute {
   // Unauthenticated routes
   static const String landingScreen = '/';
   static const String loginScreen = '/login';

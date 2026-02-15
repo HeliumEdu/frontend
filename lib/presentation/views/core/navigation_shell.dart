@@ -9,7 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_routes.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/whats_new_service.dart';
@@ -79,10 +79,10 @@ class NavigationShellProvider extends InheritedWidget {
 }
 
 enum NavigationPage {
-  calendar('Planner', Icons.calendar_month, AppRoutes.plannerScreen),
-  courses('Classes', Icons.school, AppRoutes.coursesScreen),
-  materials('Resources', Icons.book, AppRoutes.resourcesScreen),
-  grades('Grades', Icons.bar_chart, AppRoutes.gradesScreen);
+  calendar('Planner', Icons.calendar_month, AppRoute.plannerScreen),
+  courses('Classes', Icons.school, AppRoute.coursesScreen),
+  materials('Resources', Icons.book, AppRoute.resourcesScreen),
+  grades('Grades', Icons.bar_chart, AppRoute.gradesScreen);
 
   final String label;
   final IconData icon;
@@ -220,7 +220,7 @@ class _NavigationShellState extends State<NavigationShell> {
       child: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthLoggedOut) {
-            context.go(AppRoutes.loginScreen);
+            context.go(AppRoute.loginScreen);
           }
         },
         child: LayoutBuilder(

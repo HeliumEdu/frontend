@@ -8,7 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_routes.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/presentation/bloc/course/course_bloc.dart';
 import 'package:heliumapp/presentation/bloc/course/course_state.dart';
@@ -33,7 +33,7 @@ void showCourseAdd(
 
   if (Responsive.isMobile(context)) {
     context.push(
-      AppRoutes.courseAddScreen,
+      AppRoute.courseAddScreen,
       extra: CourseAddArgs(
         courseBloc: courseBloc,
         courseGroupId: courseGroupId,

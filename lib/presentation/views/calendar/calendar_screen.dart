@@ -11,7 +11,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_routes.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
@@ -209,6 +209,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   List<DateTime> _visibleDates = [];
 
+  bool _forceRefreshCalendarSource = false;
+
   CalendarItemDataSource? _calendarItemDataSource;
 
   @override
@@ -307,6 +309,20 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           if (state is CalendarScreenDataFetched) {
             _populateInitialCalendarStateData(state);
 
+            if (_forceRefreshCalendarSource) {
+              final visibleStart = _visibleDates.isNotEmpty
+                  ? _visibleDates.first
+                  : null;
+              final visibleEnd = _visibleDates.isNotEmpty
+                  ? _visibleDates.last
+                  : null;
+
+              _calendarItemDataSource!.refreshCalendarSources(
+                visibleStart: visibleStart,
+                visibleEnd: visibleEnd,
+              );
+            }
+
             // Check if we should open a dialog based on query parameters
             final openDialog = GoRouterState.of(
               context,
@@ -392,7 +408,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
               userSettings = state.user.settings;
             });
           } else if (state is AuthExampleScheduleDeleted) {
-            _log.info('Example schedule deleted, refetching calendar data');
+            _log.info('Example schedule deleted, refreshing the calendar');
+
+            _forceRefreshCalendarSource = true;
+
             context.read<CalendarBloc>().add(FetchCalendarScreenDataEvent());
           }
         },
@@ -461,28 +480,37 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           _buildCalendarHeader(),
 
           Expanded(
-            child: ListenableBuilder(
-              listenable: _calendarItemDataSource!.changeNotifier,
-              builder: (context, _) {
-                return Stack(
-                  children: [
-                    _currentView == HeliumView.todos
-                        ? _buildTodosView()
-                        : _buildCalendarView(context),
-                    if (_calendarItemDataSource!.isRefreshing)
-                      Positioned.fill(
-                        child: Container(
-                          color: context.colorScheme.surface.withValues(
-                            alpha: 0.7,
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: context.colorScheme.outlineVariant),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(7),
+                child: ListenableBuilder(
+                  listenable: _calendarItemDataSource!.changeNotifier,
+                  builder: (context, _) {
+                    return Stack(
+                      children: [
+                        _currentView == HeliumView.todos
+                            ? _buildTodosView()
+                            : _buildCalendarView(context),
+                        if (_calendarItemDataSource!.isRefreshing)
+                          Positioned.fill(
+                            child: Container(
+                              color: context.colorScheme.surface.withValues(
+                                alpha: 0.7,
+                              ),
+                              child: const Center(
+                                child: LoadingIndicator(expanded: false),
+                              ),
+                            ),
                           ),
-                          child: const Center(
-                            child: LoadingIndicator(expanded: false),
-                          ),
-                        ),
-                      ),
-                  ],
-                );
-              },
+                      ],
+                    );
+                  },
+                ),
+              ),
             ),
           ),
         ],
@@ -1776,7 +1804,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     );
 
     // On mobile, make the entire left area tappable for checkboxes
-    if (Responsive.isMobile(context) && isCheckbox) {
+    if (Responsive.isTouchDevice(context) && isCheckbox) {
       final homework = calendarItem as HomeworkModel;
       return MouseRegion(
         cursor: SystemMouseCursors.click,
@@ -2173,7 +2201,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         label: 'Go',
         textColor: context.colorScheme.onPrimary,
         onPressed: () {
-          context.go('${AppRoutes.coursesScreen}?id=$courseId&step=1');
+          context.go('${AppRoute.coursesScreen}?id=$courseId&step=1');
         },
       ),
       isError: true,
@@ -2233,22 +2261,26 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       listenable: _calendarItemDataSource!.changeNotifier,
       builder: (context, _) {
         // Get current items for this date from the data source
-        final currentItems = _calendarItemDataSource!.allCalendarItems
-            .where((item) {
-              final itemDate = item.allDay
-                  ? DateTime(item.start.year, item.start.month, item.start.day)
-                  : item.start;
-              final targetDate = DateTime(date.year, date.month, date.day);
+        final currentItems = _calendarItemDataSource!.allCalendarItems.where((
+          item,
+        ) {
+          final itemDate = item.allDay
+              ? DateTime(item.start.year, item.start.month, item.start.day)
+              : item.start;
+          final targetDate = DateTime(date.year, date.month, date.day);
 
-              if (item.allDay) {
-                return itemDate.isAtSameMomentAs(targetDate);
-              } else {
-                // Check if item falls on this date
-                final itemDay = DateTime(itemDate.year, itemDate.month, itemDate.day);
-                return itemDay.isAtSameMomentAs(targetDate);
-              }
-            })
-            .toList();
+          if (item.allDay) {
+            return itemDate.isAtSameMomentAs(targetDate);
+          } else {
+            // Check if item falls on this date
+            final itemDay = DateTime(
+              itemDate.year,
+              itemDate.month,
+              itemDate.day,
+            );
+            return itemDay.isAtSameMomentAs(targetDate);
+          }
+        }).toList();
 
         return Dialog(
           shape: RoundedRectangleBorder(

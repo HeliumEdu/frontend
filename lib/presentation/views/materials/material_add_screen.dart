@@ -8,7 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_routes.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/presentation/bloc/material/material_bloc.dart';
 import 'package:heliumapp/presentation/bloc/material/material_state.dart'
@@ -29,7 +29,7 @@ void showMaterialAdd(
 
   if (Responsive.isMobile(context)) {
     context.push(
-      AppRoutes.resourcesAddScreen,
+      AppRoute.resourcesAddScreen,
       extra: MaterialAddArgs(
         materialBloc: materialBloc,
         materialGroupId: materialGroupId,
