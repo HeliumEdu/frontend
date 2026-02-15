@@ -27,8 +27,9 @@ class _GettingStartedDialogWidget extends StatelessWidget {
         } else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content:
-                  Text('Failed to delete example schedule: ${state.message}'),
+              content: Text(
+                'Failed to delete example schedule: ${state.message}',
+              ),
               backgroundColor: context.colorScheme.error,
             ),
           );
@@ -50,10 +51,7 @@ class _GettingStartedDialogWidget extends StatelessWidget {
                   size: 28,
                 ),
                 const SizedBox(width: 12),
-                Text(
-                  'Welcome to Helium!',
-                  style: AppStyles.pageTitle(context),
-                ),
+                Text('Welcome to Helium!', style: AppStyles.pageTitle(context)),
               ],
             ),
             content: SizedBox(
@@ -73,53 +71,53 @@ class _GettingStartedDialogWidget extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                    _buildFeatureItem(
-                      context,
-                      icon: Icons.calendar_month_outlined,
-                      title: 'Your Planner, your way',
-                      description:
-                          'Switch between month, week, day, and agenda views. Click an event to see details, or drag to reschedule.',
-                    ),
-                    const SizedBox(height: 12),
-                    _buildFeatureItem(
-                      context,
-                      icon: Icons.school_outlined,
-                      title: 'Organized by class',
-                      description:
-                          'Head over to Classes to see how classes, assignments, and resources all connect together.',
-                    ),
-                    const SizedBox(height: 12),
-                    _buildFeatureItem(
-                      context,
-                      icon: Icons.bar_chart_outlined,
-                      title: 'Track your grades',
-                      description:
-                          'Check out Grades to see how your scores break down by class—great for staying on top of your progress.',
-                    ),
-                    const SizedBox(height: 12),
-                    _buildFeatureItem(
-                      context,
-                      icon: Icons.sync_outlined,
-                      title: 'Sync with other calendars',
-                      description:
-                          'In Settings, use External Calendars to pull in events from Google Calendar, Apple Calendar, or Outlook—and enable Feeds to share your Helium schedule back to those apps.',
-                    ),
-                    const SizedBox(height: 12),
-                    _buildFeatureItem(
-                      context,
-                      icon: Icons.devices_outlined,
-                      title: 'Available everywhere',
-                      description:
-                          'Helium works seamlessly across web, iOS, and Android. Your schedule stays in sync no matter which device you use.',
-                    ),
-                    const SizedBox(height: 12),
-                    _buildFeatureItem(
-                      context,
-                      icon: Icons.auto_delete_outlined,
-                      title: 'Ready when you are',
-                      description:
-                          "You'll see this dialog each time you open Helium or return after a break, until you're ready to clear the example data.",
-                    ),
+                          _buildFeatureItem(
+                            context,
+                            icon: Icons.calendar_month_outlined,
+                            title: 'Your Planner, your way',
+                            description:
+                                'Switch between time-based views and Todos. Click for details, drag to reschedule, filter and search across everything, and stay in control of your time.',
+                          ),
+                          const SizedBox(height: 12),
+                          _buildFeatureItem(
+                            context,
+                            icon: Icons.school_outlined,
+                            title: 'Organized by class',
+                            description:
+                                'Visit Classes to see how schedules, categories, and assignments connect—so you can track weeks, deadlines, and grades in one place.',
+                          ),
+                          const SizedBox(height: 12),
+                          _buildFeatureItem(
+                            context,
+                            icon: Icons.bar_chart_outlined,
+                            title: 'Track your grades',
+                            description:
+                                'Check out Grades to see how your scores break down by class—great for staying on top of your progress.',
+                          ),
+                          const SizedBox(height: 12),
+                          _buildFeatureItem(
+                            context,
+                            icon: Icons.sync_outlined,
+                            title: 'Sync with other calendars',
+                            description:
+                                'In Settings, use External Calendars to pull in events from Google Calendar, Apple Calendar, or Outlook—and enable Feeds to share your Helium schedule back to those apps.',
+                          ),
+                          const SizedBox(height: 12),
+                          _buildFeatureItem(
+                            context,
+                            icon: Icons.devices_outlined,
+                            title: 'Available everywhere',
+                            description:
+                                'Helium works seamlessly across web, iOS, and Android. Your schedule stays in sync no matter which device you use.',
+                          ),
+                          const SizedBox(height: 12),
+                          _buildFeatureItem(
+                            context,
+                            icon: Icons.auto_delete_outlined,
+                            title: 'Ready when you are',
+                            description:
+                                "You'll see this dialog each time you open Helium or return after a break, until you're ready to clear the example data.",
+                          ),
                         ],
                       ),
                     ),
@@ -139,9 +137,9 @@ class _GettingStartedDialogWidget extends StatelessWidget {
                       enabled: !isLoading,
                       backgroundColor: context.colorScheme.error,
                       onPressed: () {
-                        context
-                            .read<AuthBloc>()
-                            .add(DeleteExampleScheduleEvent());
+                        context.read<AuthBloc>().add(
+                          DeleteExampleScheduleEvent(),
+                        );
                       },
                     ),
                   ),
@@ -152,9 +150,9 @@ class _GettingStartedDialogWidget extends StatelessWidget {
                       onPressed: isLoading ? null : () => _handleClose(context),
                       child: Text(
                         "I'll explore first",
-                        style: AppStyles.standardBodyText(context).copyWith(
-                          color: context.colorScheme.primary,
-                        ),
+                        style: AppStyles.standardBodyText(
+                          context,
+                        ).copyWith(color: context.colorScheme.primary),
                       ),
                     ),
                   ),
@@ -213,9 +211,7 @@ class _GettingStartedDialogWidget extends StatelessWidget {
   }
 }
 
-Future<void> showGettingStartedDialog({
-  required BuildContext context,
-}) {
+Future<void> showGettingStartedDialog({required BuildContext context}) {
   return showDialog(
     context: context,
     barrierDismissible: false,
