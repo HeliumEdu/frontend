@@ -8,7 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_routes.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/config/route_args.dart';
@@ -66,7 +66,7 @@ void showNotifications(BuildContext context) {
   );
 
   if (Responsive.isMobile(context)) {
-    context.push(AppRoutes.notificationsScreen, extra: args);
+    context.push(AppRoute.notificationsScreen, extra: args);
   } else {
     showScreenAsDialog(
       context,

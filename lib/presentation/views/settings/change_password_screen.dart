@@ -9,7 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_routes.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_bloc.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_event.dart';
@@ -25,7 +25,7 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 /// Shows as a dialog on desktop, or navigates on mobile.
 void showChangePassword(BuildContext context) {
   if (Responsive.isMobile(context)) {
-    context.push(AppRoutes.changePasswordScreen);
+    context.push(AppRoute.changePasswordScreen);
   } else {
     showScreenAsDialog(
       context,

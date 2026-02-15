@@ -14,7 +14,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:heliumapp/config/app_router.dart';
-import 'package:heliumapp/config/app_routes.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/fcm_web_notifications_stub.dart'
@@ -388,7 +388,7 @@ class FcmService {
   Future<void> _onNotificationTap(RemoteMessage message) async {
     final messageId = message.messageId;
     _log.info('Notification $messageId tapped');
-    await router.push(AppRoutes.notificationsScreen);
+    await router.push(AppRoute.notificationsScreen);
   }
 
   Future<void> _handleInitialMessage() async {
@@ -399,7 +399,7 @@ class FcmService {
 
     if (initialMessage != null) {
       _log.info('App opened from terminated state via notification');
-      await router.push(AppRoutes.notificationsScreen);
+      await router.push(AppRoute.notificationsScreen);
     }
   }
 
@@ -410,7 +410,7 @@ class FcmService {
       if (await web_notifications.requestWebNotificationPermission()) {
         web_notifications.showWebNotification(
           notification,
-          (_) => router.push(AppRoutes.notificationsScreen),
+          (_) => router.push(AppRoute.notificationsScreen),
         );
       }
       return;
@@ -448,7 +448,7 @@ class FcmService {
 
   void _onNotificationTapped(NotificationResponse response) {
     _log.info('Local notification tapped: ${response.id}');
-    router.push(AppRoutes.notificationsScreen);
+    router.push(AppRoute.notificationsScreen);
   }
 
   Future<void> registerToken({bool force = false}) async {

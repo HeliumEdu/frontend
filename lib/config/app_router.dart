@@ -8,7 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_routes.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/core/analytics_service.dart';
@@ -43,36 +43,36 @@ late final GoRouter router;
 void initializeRouter() {
   router = GoRouter(
     navigatorKey: rootNavigatorKey,
-    initialLocation: AppRoutes.landingScreen,
+    initialLocation: AppRoute.landingScreen,
     redirect: _authRedirect,
     observers: [AnalyticsService().observer],
     errorBuilder: (context, state) => const _RouteRedirect(
-      redirectTo: AppRoutes.plannerScreen,
+      redirectTo: AppRoute.plannerScreen,
     ),
     routes: [
       // Public routes (no shell)
       GoRoute(
-        path: AppRoutes.landingScreen,
+        path: AppRoute.landingScreen,
         pageBuilder: (context, state) =>
             const MaterialPage(child: LandingScreen()),
       ),
       GoRoute(
-        path: AppRoutes.loginScreen,
+        path: AppRoute.loginScreen,
         pageBuilder: (context, state) =>
             const MaterialPage(child: LoginScreen()),
       ),
       GoRoute(
-        path: AppRoutes.registerScreen,
+        path: AppRoute.registerScreen,
         pageBuilder: (context, state) =>
             const MaterialPage(child: RegisterScreen()),
       ),
       GoRoute(
-        path: AppRoutes.forgotPasswordScreen,
+        path: AppRoute.forgotPasswordScreen,
         pageBuilder: (context, state) =>
             const MaterialPage(child: ForgotPasswordScreen()),
       ),
       GoRoute(
-        path: AppRoutes.verifyScreen,
+        path: AppRoute.verifyScreen,
         pageBuilder: (context, state) {
           final username = state.uri.queryParameters['username'];
           final code = state.uri.queryParameters['code'];
@@ -88,25 +88,25 @@ void initializeRouter() {
         builder: (context, state, child) => NavigationShell(child: child),
         routes: [
           GoRoute(
-            path: AppRoutes.plannerScreen,
+            path: AppRoute.plannerScreen,
             pageBuilder: (context, state) => const NoTransitionPage(
               child: NavigationShellContent(page: NavigationPage.calendar),
             ),
           ),
           GoRoute(
-            path: AppRoutes.coursesScreen,
+            path: AppRoute.coursesScreen,
             pageBuilder: (context, state) => const NoTransitionPage(
               child: NavigationShellContent(page: NavigationPage.courses),
             ),
           ),
           GoRoute(
-            path: AppRoutes.resourcesScreen,
+            path: AppRoute.resourcesScreen,
             pageBuilder: (context, state) => const NoTransitionPage(
               child: NavigationShellContent(page: NavigationPage.materials),
             ),
           ),
           GoRoute(
-            path: AppRoutes.gradesScreen,
+            path: AppRoute.gradesScreen,
             pageBuilder: (context, state) => const NoTransitionPage(
               child: NavigationShellContent(page: NavigationPage.grades),
             ),
@@ -116,12 +116,12 @@ void initializeRouter() {
 
       // Protected full-screen routes (outside shell)
       GoRoute(
-        path: AppRoutes.notificationsScreen,
+        path: AppRoute.notificationsScreen,
         pageBuilder: (context, state) {
           if (!Responsive.isMobile(context)) {
             return const MaterialPage(
               child: _RouteRedirect(
-                redirectTo: AppRoutes.plannerScreen,
+                redirectTo: AppRoute.plannerScreen,
                 queryParams: {'dialog': 'notifications'},
               ),
             );
@@ -142,12 +142,12 @@ void initializeRouter() {
       ),
 
       GoRoute(
-        path: AppRoutes.plannerItemAddScreen,
+        path: AppRoute.plannerItemAddScreen,
         pageBuilder: (context, state) {
           final args = state.extra as CalendarItemAddArgs?;
           if (args == null) {
             return const MaterialPage(
-              child: _RouteRedirect(redirectTo: AppRoutes.plannerScreen),
+              child: _RouteRedirect(redirectTo: AppRoute.plannerScreen),
             );
           }
           return MaterialPage(
@@ -174,7 +174,7 @@ void initializeRouter() {
       ),
 
       GoRoute(
-        path: AppRoutes.courseAddScreen,
+        path: AppRoute.courseAddScreen,
         pageBuilder: (context, state) {
           final courseIdParam = state.uri.queryParameters['id'];
           final stepParam = state.uri.queryParameters['step'];
@@ -186,7 +186,7 @@ void initializeRouter() {
             }
             return MaterialPage(
               child: _RouteRedirect(
-                redirectTo: AppRoutes.coursesScreen,
+                redirectTo: AppRoute.coursesScreen,
                 queryParams: queryParams,
               ),
             );
@@ -195,7 +195,7 @@ void initializeRouter() {
           final args = state.extra as CourseAddArgs?;
           if (args == null) {
             return const MaterialPage(
-              child: _RouteRedirect(redirectTo: AppRoutes.coursesScreen),
+              child: _RouteRedirect(redirectTo: AppRoute.coursesScreen),
             );
           }
           return MaterialPage(
@@ -214,12 +214,12 @@ void initializeRouter() {
       ),
 
       GoRoute(
-        path: AppRoutes.resourcesAddScreen,
+        path: AppRoute.resourcesAddScreen,
         pageBuilder: (context, state) {
           final args = state.extra as MaterialAddArgs?;
           if (args == null) {
             return const MaterialPage(
-              child: _RouteRedirect(redirectTo: AppRoutes.resourcesScreen),
+              child: _RouteRedirect(redirectTo: AppRoute.resourcesScreen),
             );
           }
           return MaterialPage(
@@ -238,12 +238,12 @@ void initializeRouter() {
 
       // Settings routes
       GoRoute(
-        path: AppRoutes.settingScreen,
+        path: AppRoute.settingScreen,
         pageBuilder: (context, state) {
           if (!Responsive.isMobile(context)) {
             return const MaterialPage(
               child: _RouteRedirect(
-                redirectTo: AppRoutes.plannerScreen,
+                redirectTo: AppRoute.plannerScreen,
                 queryParams: {'dialog': 'settings'},
               ),
             );
@@ -260,17 +260,17 @@ void initializeRouter() {
         },
       ),
       GoRoute(
-        path: AppRoutes.preferencesScreen,
+        path: AppRoute.preferencesScreen,
         pageBuilder: (context, state) =>
             const MaterialPage(child: PreferencesScreen()),
       ),
       GoRoute(
-        path: AppRoutes.feedsScreen,
+        path: AppRoute.feedsScreen,
         pageBuilder: (context, state) =>
             const MaterialPage(child: FeedsScreen()),
       ),
       GoRoute(
-        path: AppRoutes.externalCalendarsScreen,
+        path: AppRoute.externalCalendarsScreen,
         pageBuilder: (context, state) {
           final args = state.extra as ExternalCalendarsArgs?;
           final child = (args?.externalCalendarBloc != null)
@@ -283,7 +283,7 @@ void initializeRouter() {
         },
       ),
       GoRoute(
-        path: AppRoutes.changePasswordScreen,
+        path: AppRoute.changePasswordScreen,
         pageBuilder: (context, state) =>
             const MaterialPage(child: ChangePasswordScreen()),
       ),
@@ -296,11 +296,11 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
   final token = await PrefService().getSecure('access_token');
   final isLoggedIn = token?.isNotEmpty ?? false;
   final publicRoutes = [
-    AppRoutes.landingScreen,
-    AppRoutes.loginScreen,
-    AppRoutes.registerScreen,
-    AppRoutes.forgotPasswordScreen,
-    AppRoutes.verifyScreen,
+    AppRoute.landingScreen,
+    AppRoute.loginScreen,
+    AppRoute.registerScreen,
+    AppRoute.forgotPasswordScreen,
+    AppRoute.verifyScreen,
   ];
 
   final matchedLocation = state.matchedLocation;
@@ -310,14 +310,14 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
     // Pass intended destination as ?next param for redirect after login
     final intendedUrl = state.uri.toString();
     final encodedNext = Uri.encodeComponent(intendedUrl);
-    return '${AppRoutes.loginScreen}?next=$encodedNext';
+    return '${AppRoute.loginScreen}?next=$encodedNext';
   }
 
   // If logged in and trying to access a public route, redirect to calendar
   if (isLoggedIn && publicRoutes.contains(matchedLocation)) {
     await DioClient().fetchSettings();
 
-    return AppRoutes.plannerScreen;
+    return AppRoute.plannerScreen;
   }
 
   return null;

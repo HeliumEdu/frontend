@@ -8,7 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_routes.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
@@ -29,7 +29,7 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 /// Shows as a dialog on desktop, or navigates on mobile.
 void showPreferences(BuildContext context) {
   if (Responsive.isMobile(context)) {
-    context.push(AppRoutes.preferencesScreen);
+    context.push(AppRoute.preferencesScreen);
   } else {
     showScreenAsDialog(
       context,

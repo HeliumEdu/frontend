@@ -11,7 +11,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_routes.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_bloc.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_event.dart';
@@ -95,7 +95,7 @@ class _LandingScreenState extends State<LandingScreen> {
   void _navigateToTarget() {
     if (!mounted) return;
 
-    final targetRoute = _deepLinkRoute ?? AppRoutes.plannerScreen;
+    final targetRoute = _deepLinkRoute ?? AppRoute.plannerScreen;
     _log.info('Navigating to: $targetRoute');
 
     context.go(targetRoute);
@@ -104,6 +104,6 @@ class _LandingScreenState extends State<LandingScreen> {
   void _navigateToLogin() {
     if (!mounted) return;
 
-    context.replace(AppRoutes.loginScreen);
+    context.replace(AppRoute.loginScreen);
   }
 }
