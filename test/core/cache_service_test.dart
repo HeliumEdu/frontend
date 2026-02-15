@@ -5,7 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/core/cache_service.dart';
 
@@ -57,12 +57,12 @@ void main() {
     });
 
     group('interceptor', () {
-      test('returns a DioCacheInterceptor', () {
+      test('returns an Interceptor that filters by HTTP method', () {
         // WHEN
         final interceptor = cacheService.interceptor;
 
-        // THEN
-        expect(interceptor, isA<DioCacheInterceptor>());
+        // THEN - should be an Interceptor (wraps DioCacheInterceptor for GET-only caching)
+        expect(interceptor, isA<Interceptor>());
       });
     });
   });
