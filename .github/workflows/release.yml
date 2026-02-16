@@ -234,7 +234,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: helium-${{ needs.bump-version.outputs.version }}-ios.ipa
-          path: build/ios/ipa/heliumedu.ipa
+          path: build/ios/ipa/Helium.ipa
           retention-days: 30
 
       - name: Cleanup keychain and provisioning profile
