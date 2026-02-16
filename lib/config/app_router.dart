@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -26,6 +27,7 @@ import 'package:heliumapp/presentation/views/auth/setup_screen.dart';
 import 'package:heliumapp/presentation/views/auth/verify_screen.dart';
 import 'package:heliumapp/presentation/views/calendar/calendar_item_add_screen.dart';
 import 'package:heliumapp/presentation/views/core/landing_screen.dart';
+import 'package:heliumapp/presentation/views/core/mobile_screen.dart';
 import 'package:heliumapp/presentation/views/core/navigation_shell.dart';
 import 'package:heliumapp/presentation/views/core/notification_screen.dart';
 import 'package:heliumapp/presentation/views/courses/course_add_screen.dart';
@@ -62,7 +64,7 @@ void initializeRouter() {
             const MaterialPage(child: LoginScreen()),
       ),
       GoRoute(
-        path: AppRoute.registerScreen,
+        path: AppRoute.signUpScreen,
         pageBuilder: (context, state) =>
             const MaterialPage(child: RegisterScreen()),
       ),
@@ -85,6 +87,16 @@ void initializeRouter() {
         path: AppRoute.setupScreen,
         pageBuilder: (context, state) =>
             const MaterialPage(child: SetupScreen()),
+      ),
+      GoRoute(
+        path: AppRoute.mobileWebPromptScreen,
+        pageBuilder: (context, state) {
+          final nextRoute =
+              state.uri.queryParameters['next'] ?? AppRoute.landingScreen;
+          return MaterialPage(
+            child: MobileWebPromptScreen(nextRoute: nextRoute),
+          );
+        },
       ),
 
       // Main app shell (tab navigation)
@@ -296,14 +308,23 @@ void initializeRouter() {
 
 /// Auth redirect logic for go_router.
 Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
+  if (_shouldShowMobileWebPrompt(context, state)) {
+    if (state.matchedLocation != AppRoute.mobileWebPromptScreen) {
+      final encodedNext = Uri.encodeComponent(state.uri.toString());
+      return '${AppRoute.mobileWebPromptScreen}?next=$encodedNext';
+    }
+    return null;
+  }
+
   final token = await PrefService().getSecure('access_token');
   final isLoggedIn = token?.isNotEmpty ?? false;
   final publicRoutes = [
     AppRoute.landingScreen,
     AppRoute.loginScreen,
-    AppRoute.registerScreen,
+    AppRoute.signUpScreen,
     AppRoute.forgotPasswordScreen,
     AppRoute.verifyScreen,
+    AppRoute.mobileWebPromptScreen,
   ];
 
   final matchedLocation = state.matchedLocation;
@@ -334,6 +355,24 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
   }
 
   return null;
+}
+
+bool _shouldShowMobileWebPrompt(BuildContext context, GoRouterState state) {
+  if (!kIsWeb) return false;
+
+  final hasBypassedPrompt =
+      PrefService().getBool('mobile_web_continue') ?? false;
+  if (hasBypassedPrompt) return false;
+
+  final isMobileWebPlatform = kDebugMode
+      ? MediaQuery.maybeOf(context) != null && Responsive.isMobile(context)
+      : Responsive.isIOSPlatform() || Responsive.isAndroidPlatform();
+  if (!isMobileWebPlatform) return false;
+
+  final requestedPath = state.matchedLocation;
+  if (requestedPath == AppRoute.mobileWebPromptScreen) return true;
+
+  return true;
 }
 
 /// Widget that redirects to a fallback route when arguments are missing.

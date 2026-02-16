@@ -20,6 +20,11 @@ class ResponsiveBreakpoints {
 enum DeviceType { mobile, tablet, desktop }
 
 class Responsive {
+  static bool isIOSPlatform() => defaultTargetPlatform == TargetPlatform.iOS;
+
+  static bool isAndroidPlatform() =>
+      defaultTargetPlatform == TargetPlatform.android;
+
   static bool isMobile(BuildContext context) {
     return MediaQuery.of(context).size.width < ResponsiveBreakpoints.mobile;
   }
@@ -38,16 +43,7 @@ class Responsive {
   /// - Web on mobile/tablet browser → true (Flutter detects the platform)
   /// - Desktop (native or web) → false
   static bool isTouchDevice(BuildContext context) {
-    switch (defaultTargetPlatform) {
-      case TargetPlatform.iOS:
-      case TargetPlatform.android:
-        return true;
-      case TargetPlatform.macOS:
-      case TargetPlatform.windows:
-      case TargetPlatform.linux:
-      case TargetPlatform.fuchsia:
-        return false;
-    }
+    return isIOSPlatform() || isAndroidPlatform();
   }
 
   static DeviceType getDeviceType(BuildContext context) {

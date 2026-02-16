@@ -145,7 +145,9 @@ class _NavigationShellState extends State<NavigationShell> {
 
   @override
   void dispose() {
-    DioClient().cacheService.removeInactivityResumeListener(_onInactivityResume);
+    DioClient().cacheService.removeInactivityResumeListener(
+      _onInactivityResume,
+    );
     _inheritableProvidersNotifier.dispose();
     super.dispose();
   }
@@ -165,9 +167,7 @@ class _NavigationShellState extends State<NavigationShell> {
     if (!mounted || !showGettingStarted) return;
 
     _isShowingGettingStarted = true;
-    await showGettingStartedDialog(
-      context: context,
-          );
+    await showGettingStartedDialog(context: context);
     _isShowingGettingStarted = false;
   }
 
@@ -185,9 +185,7 @@ class _NavigationShellState extends State<NavigationShell> {
 
       if (showGettingStarted) {
         _isShowingGettingStarted = true;
-        await showGettingStartedDialog(
-          context: context,
-                  );
+        await showGettingStartedDialog(context: context);
         _isShowingGettingStarted = false;
         if (!mounted) return;
       }
@@ -376,15 +374,14 @@ class _NavigationShellState extends State<NavigationShell> {
               context: context,
               icon: Icons.apple,
               tooltip: 'Download on the App Store',
-              url: 'https://apps.apple.com/app/app-name/id6758323154',
+              url: AppConstants.iosUrl,
             ),
             const SizedBox(height: 8),
             _buildAppStoreButton(
               context: context,
               icon: Icons.android,
               tooltip: 'Get it on Google Play',
-              url:
-                  'https://play.google.com/store/apps/details?id=com.heliumedu.heliumapp',
+              url: AppConstants.androidUrl,
             ),
           ],
           const SizedBox(width: 40, child: Divider()),

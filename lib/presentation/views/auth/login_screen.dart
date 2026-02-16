@@ -343,7 +343,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
               Center(
                 child: TextButton(
                   onPressed: () {
-                    context.go(AppRoute.registerScreen);
+                    context.go(AppRoute.signUpScreen);
                   },
                   child: Row(
                     mainAxisSize: MainAxisSize.min,

@@ -9,10 +9,11 @@ class AppRoute {
   // Unauthenticated routes
   static const String landingScreen = '/';
   static const String loginScreen = '/login';
-  static const String registerScreen = '/register';
+  static const String signUpScreen = '/signup';
   static const String forgotPasswordScreen = '/forgot';
   static const String verifyScreen = '/verify';
   static const String setupScreen = '/setup';
+  static const String mobileWebPromptScreen = '/mobile';
 
   // Authenticated routes
   static const String plannerScreen = '/planner';
