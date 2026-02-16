@@ -404,7 +404,6 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
   }
 
   Widget _buildCourseArea(GradeCourseModel course) {
-
     return Container(
       margin: const EdgeInsets.only(top: 14),
       padding: const EdgeInsets.all(16),
