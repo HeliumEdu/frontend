@@ -133,7 +133,9 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
       BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthExampleScheduleDeleted) {
-            setState(() {});
+            context.read<CourseBloc>().add(
+              FetchCoursesScreenDataEvent(origin: EventOrigin.screen),
+            );
           }
         },
       ),
