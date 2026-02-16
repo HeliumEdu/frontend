@@ -13,6 +13,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_bloc.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_event.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_state.dart';
@@ -47,6 +48,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
 
   final CredentialsFormController _formController = CredentialsFormController();
   String? _nextRoute;
+  bool isOAuthLoading = false;
 
   @override
   void initState() {
@@ -95,10 +97,25 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
           if (state is AuthLoggedIn) {
             _formController.clearForm();
 
+            setState(() {
+              isOAuthLoading = false;
+              isSubmitting = true;
+            });
+
             if (!context.mounted) return;
-            // Redirect to intended destination or default to calendar
-            final destination = _nextRoute ?? AppRoute.plannerScreen;
-            context.replace(destination);
+
+            // Check if account setup is complete
+            final isSetupComplete =
+                PrefService().getBool('is_setup_complete') ?? true;
+
+            if (!isSetupComplete) {
+              // New OAuth user - redirect to setup screen
+              context.replace(AppRoute.setupScreen);
+            } else {
+              // Redirect to intended destination or default to planner
+              final destination = _nextRoute ?? AppRoute.plannerScreen;
+              context.replace(destination);
+            }
           } else if (state is AuthAccountInactive) {
             _showInactiveAccountSnackBar(
               context,
@@ -115,6 +132,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
             // Only suppress 401/403 if NOT from active login attempt (force logout already showed snackbar)
             final isForceLogoutError =
                 !isSubmitting &&
+                !isOAuthLoading &&
                 (state.httpStatusCode == 401 || state.httpStatusCode == 403);
             if (isForceLogoutError) {
               _log.info(
@@ -125,9 +143,10 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
             }
           }
 
-          if (state is! AuthLoading) {
+          if (state is! AuthLoading && state is! AuthLoggedIn) {
             setState(() {
               isSubmitting = false;
+              isOAuthLoading = false;
             });
           }
         },
@@ -243,6 +262,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                       HeliumElevatedButton(
                         buttonText: 'Sign In',
                         isLoading: isSubmitting,
+                        enabled: !isOAuthLoading,
                         onPressed: _onSubmit,
                       ),
                     ],
@@ -276,14 +296,14 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                 width: 250,
                 height: 40,
                 child: IgnorePointer(
-                  ignoring: isSubmitting,
+                  ignoring: isOAuthLoading || isSubmitting,
                   child: Opacity(
-                    opacity: isSubmitting ? 0.5 : 1.0,
+                    opacity: isOAuthLoading || isSubmitting ? 0.5 : 1.0,
                     child: SignInButton(
                       Buttons.google,
                       onPressed: () {
                         setState(() {
-                          isSubmitting = true;
+                          isOAuthLoading = true;
                         });
                         context.read<AuthBloc>().add(GoogleLoginEvent());
                       },
@@ -300,14 +320,14 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                   width: 250,
                   height: 40,
                   child: IgnorePointer(
-                    ignoring: isSubmitting,
+                    ignoring: isOAuthLoading || isSubmitting,
                     child: Opacity(
-                      opacity: isSubmitting ? 0.5 : 1.0,
+                      opacity: isOAuthLoading || isSubmitting ? 0.5 : 1.0,
                       child: SignInButton(
                         Buttons.apple,
                         onPressed: () {
                           setState(() {
-                            isSubmitting = true;
+                            isOAuthLoading = true;
                           });
                           context.read<AuthBloc>().add(AppleLoginEvent());
                         },

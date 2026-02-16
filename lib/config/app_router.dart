@@ -22,6 +22,7 @@ import 'package:heliumapp/presentation/bloc/material/material_bloc.dart';
 import 'package:heliumapp/presentation/views/auth/forgot_password_screen.dart';
 import 'package:heliumapp/presentation/views/auth/login_screen.dart';
 import 'package:heliumapp/presentation/views/auth/register_screen.dart';
+import 'package:heliumapp/presentation/views/auth/setup_screen.dart';
 import 'package:heliumapp/presentation/views/auth/verify_screen.dart';
 import 'package:heliumapp/presentation/views/calendar/calendar_item_add_screen.dart';
 import 'package:heliumapp/presentation/views/core/landing_screen.dart';
@@ -80,6 +81,11 @@ void initializeRouter() {
             child: VerifyScreen(username: username, code: code),
           );
         },
+      ),
+      GoRoute(
+        path: AppRoute.setupScreen,
+        pageBuilder: (context, state) =>
+            const MaterialPage(child: SetupScreen()),
       ),
 
       // Main app shell (tab navigation)
@@ -301,6 +307,7 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
     AppRoute.registerScreen,
     AppRoute.forgotPasswordScreen,
     AppRoute.verifyScreen,
+    AppRoute.setupScreen,
   ];
 
   final matchedLocation = state.matchedLocation;

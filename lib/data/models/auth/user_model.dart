@@ -58,9 +58,10 @@ class UserSettingsModel {
   final int allDayOffset;
   final int whatsNewVersionSeen;
   final bool showGettingStarted;
-  Color eventsColor;
-  Color materialColor;
-  Color gradeColor;
+  final bool isSetupComplete;
+  final Color eventsColor;
+  final Color materialColor;
+  final Color gradeColor;
   final int defaultReminderType;
   final int defaultReminderOffset;
   final int defaultReminderOffsetType;
@@ -76,6 +77,7 @@ class UserSettingsModel {
     required this.allDayOffset,
     required this.whatsNewVersionSeen,
     required this.showGettingStarted,
+    required this.isSetupComplete,
     required this.eventsColor,
     required this.materialColor,
     required this.gradeColor,
@@ -96,6 +98,7 @@ class UserSettingsModel {
       allDayOffset: json['all_day_offset'],
       whatsNewVersionSeen: json['whats_new_version_seen'],
       showGettingStarted: json['show_getting_started'] ?? false,
+      isSetupComplete: json['is_setup_complete'] ?? true,
       eventsColor: HeliumColors.hexToColor(json['events_color']),
       materialColor: HeliumColors.hexToColor(json['material_color']),
       gradeColor: HeliumColors.hexToColor(json['grade_color']),
@@ -116,6 +119,7 @@ class UserSettingsModel {
       'week_starts_on': weekStartsOn,
       'all_day_offset': allDayOffset,
       'show_getting_started': showGettingStarted,
+      'is_setup_complete': isSetupComplete,
       'events_color': eventsColor,
       'material_color': materialColor,
       'grade_color': gradeColor,
