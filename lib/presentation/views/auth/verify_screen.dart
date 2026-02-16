@@ -108,7 +108,7 @@ class _VerifyScreenState extends BasePageScreenState<VerifyScreen> {
             );
 
             if (!context.mounted) return;
-            context.go(AppRoute.plannerScreen);
+            context.go(AppRoute.setupScreen);
           } else if (state is AuthVerificationResent) {
             showSnackBar(
               context,
