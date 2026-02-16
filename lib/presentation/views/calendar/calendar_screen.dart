@@ -79,6 +79,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 final _log = Logger('presentation.views');
 
+// TODO: the legacy UI did have hover tooltips for calendar items—they were ugly and may not have provided much value, but we should analyze them as the last feature parity item missing from this page and see if we still want them
+
 class CalendarScreen extends StatelessWidget {
   final DioClient _dioClient = DioClient();
   final ProviderHelpers _providerHelpers = ProviderHelpers();

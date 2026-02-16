@@ -5,7 +5,18 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+// FIXME: overall look-and-feel of graphs is good, but their animations are slow, speed that up
+// FIXME: in the "what grade do I need" dialog, every grade reports "not achievable" saying you'd need over 100%—this is wrong, and likely just a case where we're not /100 somewhere before passing the calculation
+// FIXME: move the "auto-adjust" graph settings checkbox to the bottom instead of the top (and maybe reword)
+// TODO: use CourseTitleLabel and CategoryTitleLabel in legend and in graph settings menu
+// TODO: give the legend a bit more width
+// TODO: cleanup the UX on mobile (not a ton to do, but still a blocker
+// TODO: what other tooltips can we show when hovering grade point, in legacy UI we used to show the homework's title and category as well
+// FIXME: check how the grade point "hover" logic works on mobile
 // FIXME: on mobile, make make all of header for time series or course card clickable, not just up/down arrow
+// TODO: make the thresholds for at-risk classes (and eventually progress/pace ratio) configurable by the user
+// TODO: in "Pending Impact", make the "x in y" badge clickable, and open it up to a menu where the user can switch which course is shown
+// TODO: in "Pending Impact", based on the currently selected class, show the user which ungraded item is most impactful
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
