@@ -183,7 +183,7 @@ jobs:
             ENVIRONMENT_PREFIX="${ENVIRONMENT}."
           fi
 
-          DOMAIN="${ENVIRONMENT_PREFIX}app.heliumedu.com"
+          DOMAIN="app.${ENVIRONMENT_PREFIX}heliumedu.com"
 
           DISTRIBUTION_ID=$(aws cloudfront list-distributions \
             --query "DistributionList.Items[?contains(Aliases.Items, '${DOMAIN}')].Id" \
@@ -209,7 +209,7 @@ jobs:
             ENVIRONMENT_PREFIX="${ENVIRONMENT}."
           fi
 
-          URL="https://${ENVIRONMENT_PREFIX}app.heliumedu.com"
+          URL="https://app.${ENVIRONMENT_PREFIX}heliumedu.com"
 
           echo "### Web Deployment Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
