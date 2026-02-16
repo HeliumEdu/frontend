@@ -354,7 +354,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           if (_calendarItemDataSource == null) return;
 
           if (state is EventCreated) {
-            showSnackBar(context, 'Event created');
             _calendarItemDataSource!.addCalendarItem(state.event);
           } else if (state is EventUpdated) {
             // No snackbar on updates
@@ -363,7 +362,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             showSnackBar(context, 'Event deleted');
             _calendarItemDataSource!.removeCalendarItem(state.id);
           } else if (state is HomeworkCreated) {
-            showSnackBar(context, 'Assignment created');
             _calendarItemDataSource!.addCalendarItem(state.homework);
           } else if (state is HomeworkUpdated) {
             // No snackbar on updates

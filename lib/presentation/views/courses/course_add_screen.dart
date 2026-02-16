@@ -176,7 +176,6 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
           } else if (state is CourseCreated || state is CourseUpdated) {
             state as CourseEntityState;
 
-            // Only show snackbar for creates, not updates (visual confirmation is enough)
             if (state is CourseCreated) {
               final willClose = _willCloseAfterSave();
               showSnackBar(context, 'Class created', useRootMessenger: willClose);
