@@ -30,6 +30,10 @@ class LoginEvent extends AuthEvent {
   LoginEvent({required this.username, required this.password});
 }
 
+class GoogleLoginEvent extends AuthEvent {}
+
+class AppleLoginEvent extends AuthEvent {}
+
 class LogoutEvent extends AuthEvent {}
 
 class CheckAuthEvent extends AuthEvent {}
@@ -62,9 +66,9 @@ class ForgotPasswordEvent extends AuthEvent {
 }
 
 class DeleteAccountEvent extends AuthEvent {
-  final String password;
+  final String? password;
 
-  DeleteAccountEvent({required this.password});
+  DeleteAccountEvent({this.password});
 }
 
 class VerifyEmailEvent extends AuthEvent {

@@ -8,13 +8,14 @@
 import 'package:bloc/bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/core/oauth_sign_in_service.dart';
 import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/data/models/auth/login_request_model.dart';
+import 'package:heliumapp/data/models/auth/register_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/change_password_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/delete_account_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/forgot_password_request_model.dart';
-import 'package:heliumapp/data/models/auth/login_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/refresh_token_request_model.dart';
-import 'package:heliumapp/data/models/auth/register_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/domain/repositories/auth_repository.dart';
@@ -34,6 +35,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<VerifyEmailEvent>(_onVerifyEmail);
     on<ResendVerificationEvent>(_onResendVerification);
     on<LoginEvent>(_onLogin);
+    on<GoogleLoginEvent>(_onGoogleLogin);
+    on<AppleLoginEvent>(_onAppleLogin);
     on<LogoutEvent>(_onLogout);
     on<CheckAuthEvent>(_onCheckAuth);
     on<RefreshTokenEvent>(_onRefreshToken);
@@ -69,9 +72,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onVerifyEmail(
-      VerifyEmailEvent event,
-      Emitter<AuthState> emit,
-      ) async {
+    VerifyEmailEvent event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(AuthLoading());
 
     try {
@@ -81,7 +84,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } on HeliumException catch (e) {
       // Show friendly message for verification errors (400/404) to avoid revealing user existence
       if (e.httpStatusCode == 400 || e.httpStatusCode == 404) {
-        emit(AuthError(message: 'That code doesn\'t look right. Please check and try again.'));
+        emit(
+          AuthError(
+            message:
+                'That code doesn\'t look right. Please check and try again.',
+          ),
+        );
       } else {
         emit(AuthError(message: e.message));
       }
@@ -91,9 +99,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onResendVerification(
-      ResendVerificationEvent event,
-      Emitter<AuthState> emit,
-      ) async {
+    ResendVerificationEvent event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(AuthLoading());
 
     try {
@@ -161,14 +169,89 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } on HeliumException catch (e) {
       // Check for inactive account error
       if (e.code == 'account_inactive') {
-        final username = e.details is Map ? e.details['username'] ?? event.username : event.username;
+        final username = e.details is Map
+            ? e.details['username'] ?? event.username
+            : event.username;
         emit(AuthAccountInactive(message: e.message, username: username));
       } else {
-        emit(AuthError(message: e.message, code: e.code, httpStatusCode: e.httpStatusCode));
+        emit(
+          AuthError(
+            message: e.message,
+            code: e.code,
+            httpStatusCode: e.httpStatusCode,
+          ),
+        );
       }
     } catch (e) {
       emit(AuthError(message: 'An unexpected error occurred: $e'));
     }
+  }
+
+  Future<void> _onOAuthLogin(
+    String provider,
+    Future<String?> Function() signInMethod,
+    Future<void> Function(String) backendLogin,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+
+    try {
+      _log.info('Starting $provider Sign-In flow');
+
+      final firebaseIdToken = await signInMethod();
+
+      if (firebaseIdToken == null) {
+        _log.info('$provider Sign-In cancelled by user');
+        emit(AuthInitial());
+        return;
+      }
+
+      _log.info('Firebase ID token obtained, authenticating with backend');
+
+      // Send Firebase ID token to backend and get JWT tokens
+      await backendLogin(firebaseIdToken);
+
+      _log.info('$provider Sign-In successful');
+      emit(AuthLoggedIn());
+    } on HeliumException catch (e) {
+      _log.warning('$provider Sign-In failed: ${e.message}');
+      emit(
+        AuthError(
+          message: e.message,
+          code: e.code,
+          httpStatusCode: e.httpStatusCode,
+        ),
+      );
+    } catch (e, s) {
+      _log.severe('$provider Sign-In error', e, s);
+      emit(AuthError(message: '$provider Sign-In failed: $e'));
+    }
+  }
+
+  Future<void> _onGoogleLogin(
+    GoogleLoginEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    final oauthSignInService = OAuthSignInService();
+    await _onOAuthLogin(
+      'Google',
+      oauthSignInService.signInWithGoogle,
+      authRepository.loginWithGoogle,
+      emit,
+    );
+  }
+
+  Future<void> _onAppleLogin(
+    AppleLoginEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    final oauthSignInService = OAuthSignInService();
+    await _onOAuthLogin(
+      'Apple',
+      oauthSignInService.signInWithApple,
+      authRepository.loginWithApple,
+      emit,
+    );
   }
 
   Future<void> _onLogout(LogoutEvent event, Emitter<AuthState> emit) async {
