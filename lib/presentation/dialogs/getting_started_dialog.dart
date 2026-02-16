@@ -26,8 +26,7 @@ class _GettingStartedDialogWidget extends StatelessWidget {
       listener: (context, state) {
         if (state is AuthExampleScheduleDeleted) {
           Navigator.pop(context);
-          // TODO: if we have this redirect to /classes every time, we could probably get rid of the complex cache clearing logic needed for if the user is on /planner
-          context.go(AppRoute.plannerScreen);
+          context.go(AppRoute.coursesScreen);
         } else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

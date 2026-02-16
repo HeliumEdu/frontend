@@ -23,6 +23,8 @@ import 'package:heliumapp/data/sources/category_remote_data_source.dart';
 import 'package:heliumapp/data/sources/course_remote_data_source.dart';
 import 'package:heliumapp/data/sources/course_schedule_builder_source.dart';
 import 'package:heliumapp/data/sources/course_schedule_remote_data_source.dart';
+import 'package:heliumapp/presentation/bloc/auth/auth_bloc.dart';
+import 'package:heliumapp/presentation/bloc/auth/auth_state.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/bloc/course/course_bloc.dart';
 import 'package:heliumapp/presentation/bloc/course/course_event.dart';
@@ -128,6 +130,13 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
   @override
   List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
     return [
+      BlocListener<AuthBloc, AuthState>(
+        listener: (context, state) {
+          if (state is AuthExampleScheduleDeleted) {
+            setState(() {});
+          }
+        },
+      ),
       BlocListener<CourseBloc, CourseState>(
         listener: (context, state) {
           if (state is CoursesScreenDataFetched) {

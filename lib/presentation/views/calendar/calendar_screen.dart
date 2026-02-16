@@ -211,8 +211,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   List<DateTime> _visibleDates = [];
 
-  bool _forceRefreshCalendarSource = false;
-
   CalendarItemDataSource? _calendarItemDataSource;
 
   @override
@@ -311,20 +309,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           if (state is CalendarScreenDataFetched) {
             _populateInitialCalendarStateData(state);
 
-            if (_forceRefreshCalendarSource) {
-              final visibleStart = _visibleDates.isNotEmpty
-                  ? _visibleDates.first
-                  : null;
-              final visibleEnd = _visibleDates.isNotEmpty
-                  ? _visibleDates.last
-                  : null;
-
-              _calendarItemDataSource!.refreshCalendarSources(
-                visibleStart: visibleStart,
-                visibleEnd: visibleEnd,
-              );
-            }
-
             // Check if we should open a dialog based on query parameters
             final openDialog = GoRouterState.of(
               context,
@@ -407,12 +391,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             setState(() {
               userSettings = state.user.settings;
             });
-          } else if (state is AuthExampleScheduleDeleted) {
-            _log.info('Example schedule deleted, refreshing the calendar');
-
-            _forceRefreshCalendarSource = true;
-
-            context.read<CalendarBloc>().add(FetchCalendarScreenDataEvent());
           }
         },
       ),
