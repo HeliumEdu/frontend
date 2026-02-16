@@ -10,16 +10,16 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_route.dart';
+import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/cache_service.dart';
 import 'package:heliumapp/data/models/auth/request/refresh_token_request_model.dart';
-import 'package:heliumapp/data/models/auth/token_response_model.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
+import 'package:heliumapp/data/models/auth/token_response_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -66,6 +66,7 @@ class DioClient {
 
   // Getters
   Dio get dio => _dio;
+
   CacheService get cacheService => _cacheService;
 
   DioClient._internal()
@@ -458,10 +459,7 @@ class DioClient {
         'remember_filter_state',
         settings.rememberFilterState,
       ),
-      ?_prefService.setBool(
-        'is_setup_complete',
-        settings.isSetupComplete,
-      ),
+      ?_prefService.setBool('is_setup_complete', settings.isSetupComplete),
     ]);
   }
 
