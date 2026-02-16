@@ -14,6 +14,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_bloc.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_event.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_state.dart';
@@ -45,6 +46,7 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
   bool get isAuthenticatedScreen => false;
 
   final RegisterFormController _formController = RegisterFormController();
+  bool isOAuthLoading = false;
 
   @override
   void initState() {
@@ -82,7 +84,25 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
     return [
       BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
-          if (state is AuthRegistered) {
+          if (state is AuthLoggedIn) {
+            setState(() {
+              isOAuthLoading = false;
+              isSubmitting = true;
+            });
+
+            if (!context.mounted) return;
+
+            // Check if account setup is complete
+            final isSetupComplete =
+                PrefService().getBool('is_setup_complete') ?? true;
+
+            if (!isSetupComplete) {
+              // New OAuth user - redirect to setup screen
+              context.replace(AppRoute.setupScreen);
+            } else {
+              context.replace(AppRoute.plannerScreen);
+            }
+          } else if (state is AuthRegistered) {
             TextInput.finishAutofillContext();
             showSnackBar(
               context,
@@ -98,9 +118,10 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
             showSnackBar(context, state.message!, isError: true, seconds: 6);
           }
 
-          if (state is! AuthLoading) {
+          if (state is! AuthLoading && state is! AuthLoggedIn) {
             setState(() {
               isSubmitting = false;
+              isOAuthLoading = false;
             });
           }
         },
@@ -308,6 +329,7 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
                   return HeliumElevatedButton(
                     buttonText: 'Sign Up',
                     isLoading: isSubmitting,
+                    enabled: !isOAuthLoading,
                     onPressed: _onSubmit,
                   );
                 },
@@ -339,14 +361,14 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
                 width: 250,
                 height: 40,
                 child: IgnorePointer(
-                  ignoring: isSubmitting,
+                  ignoring: isOAuthLoading || isSubmitting,
                   child: Opacity(
-                    opacity: isSubmitting ? 0.5 : 1.0,
+                    opacity: isOAuthLoading || isSubmitting ? 0.5 : 1.0,
                     child: SignInButton(
                       Buttons.google,
                       onPressed: () {
                         setState(() {
-                          isSubmitting = true;
+                          isOAuthLoading = true;
                         });
                         context.read<AuthBloc>().add(GoogleLoginEvent());
                       },
@@ -363,14 +385,14 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
                   width: 250,
                   height: 40,
                   child: IgnorePointer(
-                    ignoring: isSubmitting,
+                    ignoring: isOAuthLoading || isSubmitting,
                     child: Opacity(
-                      opacity: isSubmitting ? 0.5 : 1.0,
+                      opacity: isOAuthLoading || isSubmitting ? 0.5 : 1.0,
                       child: SignInButton(
                         Buttons.apple,
                         onPressed: () {
                           setState(() {
-                            isSubmitting = true;
+                            isOAuthLoading = true;
                           });
                           context.read<AuthBloc>().add(AppleLoginEvent());
                         },

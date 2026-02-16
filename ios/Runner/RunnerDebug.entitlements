@@ -11,5 +11,9 @@
 		<string>webcredentials:heliumedu.com</string>
 		<string>webcredentials:www.heliumedu.com</string>
 	</array>
+	<key>com.apple.developer.applesignin</key>
+	<array>
+		<string>Default</string>
+	</array>
 </dict>
 </plist>

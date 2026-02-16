@@ -110,6 +110,7 @@ void main() {
       defaultReminderOffsetType: 0,
       colorByCategory: false,
       rememberFilterState: false,
+      isSetupComplete: true,
     );
 
     dataSource = CalendarItemDataSource(
@@ -286,6 +287,7 @@ void main() {
           defaultReminderOffsetType: 0,
           colorByCategory: true,
           rememberFilterState: false,
+          isSetupComplete: true,
         );
 
         final colorByCategoryDataSource = CalendarItemDataSource(
@@ -1058,7 +1060,9 @@ void main() {
         // External: (3-3)*1000 + (100-0) = 100 seconds
         expect(
           startTime,
-          DateTime.parse('2025-01-15T10:00:00Z').subtract(const Duration(seconds: 100)),
+          DateTime.parse(
+            '2025-01-15T10:00:00Z',
+          ).subtract(const Duration(seconds: 100)),
         );
       });
 
