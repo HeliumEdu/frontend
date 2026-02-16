@@ -466,7 +466,7 @@ jobs:
           mkdir -p ~/.appstoreconnect/private_keys
           echo "$APP_STORE_CONNECT_API_KEY" > ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8
 
-          fastlane deploy_testflight ipa_path:../ios-build/heliumedu.ipa
+          fastlane deploy_testflight ipa_path:../ios-build/Helium.ipa
 
       - name: Cleanup API key
         if: always()
