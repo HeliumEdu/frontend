@@ -25,6 +25,11 @@ List<DropDownItem<String>> _listToDropDownItems(List<String> list) {
 class AppConstants {
   static const appName = 'Helium';
 
+  static const iosUrl = 'https://apps.apple.com/app/app-name/id6758323154';
+
+  static const androidUrl =
+      'https://play.google.com/store/apps/details?id=com.heliumedu.heliumapp';
+
   static const authContainerSize = 120.0;
 
   static const minHeightForTrailingNav = 500.0;
