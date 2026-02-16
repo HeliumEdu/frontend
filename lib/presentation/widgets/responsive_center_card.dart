@@ -11,11 +11,13 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 class ResponsiveCenterCard extends StatelessWidget {
   final Widget child;
   final double maxWidth;
+  final bool showCard;
 
   const ResponsiveCenterCard({
     super.key,
     required this.child,
     this.maxWidth = 450,
+    this.showCard = true,
   });
 
   @override
@@ -27,9 +29,12 @@ class ResponsiveCenterCard extends StatelessWidget {
         : Container(
             constraints: BoxConstraints(maxWidth: maxWidth),
             margin: const EdgeInsets.symmetric(vertical: 25),
-            child: Card(
-              child: Padding(padding: const EdgeInsets.all(16), child: child),
-            ),
+            child: showCard
+                ? Card(
+                    child:
+                        Padding(padding: const EdgeInsets.all(16), child: child),
+                  )
+                : Padding(padding: const EdgeInsets.all(16), child: child),
           );
 
     return LayoutBuilder(

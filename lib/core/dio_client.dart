@@ -304,10 +304,13 @@ class DioClient {
     return token?.isNotEmpty ?? false;
   }
 
-  Future<UserSettingsModel?> fetchSettings() async {
+  Future<UserSettingsModel?> fetchSettings({bool forceRefresh = false}) async {
     try {
       _log.info('Fetching settings from API...');
-      final response = await _dio.get(ApiUrl.authUserUrl);
+      final response = await _dio.get(
+        ApiUrl.authUserUrl,
+        options: forceRefresh ? _cacheService.forceRefreshOptions() : null,
+      );
 
       if (response.statusCode == 200) {
         final user = UserModel.fromJson(response.data);

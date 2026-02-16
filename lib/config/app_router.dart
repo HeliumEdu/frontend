@@ -307,7 +307,6 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
     AppRoute.registerScreen,
     AppRoute.forgotPasswordScreen,
     AppRoute.verifyScreen,
-    AppRoute.setupScreen,
   ];
 
   final matchedLocation = state.matchedLocation;
@@ -320,11 +319,22 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
     return '${AppRoute.loginScreen}?next=$encodedNext';
   }
 
-  // If logged in and trying to access a public route, redirect to calendar
-  if (isLoggedIn && publicRoutes.contains(matchedLocation)) {
+  // If logged in, check setup status for routing
+  if (isLoggedIn) {
     await DioClient().fetchSettings();
 
-    return AppRoute.plannerScreen;
+    final isSetupComplete =
+        PrefService().getBool('is_setup_complete') ?? true;
+
+    // On public routes: redirect to setup or planner based on setup status
+    if (publicRoutes.contains(matchedLocation)) {
+      return isSetupComplete ? AppRoute.plannerScreen : AppRoute.setupScreen;
+    }
+
+    // On setup screen: redirect to planner if setup is complete
+    if (matchedLocation == AppRoute.setupScreen && isSetupComplete) {
+      return AppRoute.plannerScreen;
+    }
   }
 
   return null;

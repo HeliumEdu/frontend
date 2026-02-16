@@ -10,8 +10,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
+import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
+import 'package:heliumapp/presentation/widgets/responsive_center_card.dart';
+import 'package:heliumapp/utils/app_assets.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:logging/logging.dart';
 
@@ -24,7 +29,10 @@ class SetupScreen extends StatefulWidget {
   State<SetupScreen> createState() => _SetupScreenState();
 }
 
-class _SetupScreenState extends State<SetupScreen> {
+class _SetupScreenState extends BasePageScreenState<SetupScreen> {
+  @override
+  String get screenTitle => '';
+
   Timer? _pollTimer;
   bool _isPolling = false;
 
@@ -40,12 +48,47 @@ class _SetupScreenState extends State<SetupScreen> {
     super.dispose();
   }
 
+  @override
+  Widget buildScaffold(BuildContext context) {
+    return Title(
+      title: AppConstants.appName,
+      color: context.colorScheme.primary,
+      child: Scaffold(body: SafeArea(child: buildMainArea(context))),
+    );
+  }
+
+  @override
+  Widget buildMainArea(BuildContext context) {
+    return ResponsiveCenterCard(
+      showCard: false,
+      child: Column(
+        children: [
+          Image.asset(AppAssets.logoImagePath, height: 120),
+
+          const SizedBox(height: 50),
+
+          const LoadingIndicator(size: 48, strokeWidth: 4, expanded: false),
+
+          const SizedBox(height: 32),
+
+          Text(
+            'Getting things ready...',
+            style: AppStyles.standardBodyText(
+              context,
+            ).copyWith(fontSize: 18, fontWeight: FontWeight.w500),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
   void _startPolling() {
     _log.info('Starting setup status polling');
     _checkSetupStatus();
 
     // Poll every 3 seconds
-    _pollTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+    _pollTimer = Timer.periodic(const Duration(milliseconds: 1500), (_) {
       _checkSetupStatus();
     });
   }
@@ -57,8 +100,7 @@ class _SetupScreenState extends State<SetupScreen> {
     try {
       _log.info('Checking setup status...');
 
-      // Fetch fresh settings from API
-      final settings = await DioClient().fetchSettings();
+      final settings = await DioClient().fetchSettings(forceRefresh: true);
 
       if (settings != null && settings.isSetupComplete) {
         _log.info('Setup complete, navigating to planner');
@@ -75,44 +117,5 @@ class _SetupScreenState extends State<SetupScreen> {
     } finally {
       _isPolling = false;
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const LoadingIndicator(size: 48, strokeWidth: 4),
-                const SizedBox(height: 32),
-                Text(
-                  'Setting up your account...',
-                  style: AppStyles.standardBodyText(context).copyWith(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Creating your example schedule. This may take a moment.',
-                  style: AppStyles.standardBodyText(context).copyWith(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.6),
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }
