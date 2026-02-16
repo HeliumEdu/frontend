@@ -70,6 +70,7 @@ class MockModels {
     int allDayOffset = 0,
     int whatsNewVersionSeen = 0,
     bool showGettingStarted = false,
+    bool isSetupComplete = true,
     Color eventsColor = const Color(0xFF4CAF50),
     Color materialColor = const Color(0xFF2196F3),
     Color gradeColor = const Color(0xFFFF9800),
@@ -89,6 +90,7 @@ class MockModels {
       allDayOffset: allDayOffset,
       whatsNewVersionSeen: whatsNewVersionSeen,
       showGettingStarted: showGettingStarted,
+      isSetupComplete: isSetupComplete,
       eventsColor: eventsColor,
       materialColor: materialColor,
       gradeColor: gradeColor,
@@ -98,7 +100,6 @@ class MockModels {
       colorByCategory: colorByCategory,
       rememberFilterState: rememberFilterState,
       privateSlug: privateSlug,
-      isSetupComplete: true,
     );
   }
 
