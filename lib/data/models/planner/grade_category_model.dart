@@ -19,6 +19,7 @@ class GradeCategoryModel extends BaseTitledModel {
   final double? trend;
   final int numHomework;
   final int numHomeworkGraded;
+  final List<List<dynamic>> gradePoints;
 
   GradeCategoryModel({
     required super.id,
@@ -30,6 +31,7 @@ class GradeCategoryModel extends BaseTitledModel {
     this.trend,
     required this.numHomework,
     required this.numHomeworkGraded,
+    required this.gradePoints,
   });
 
   factory GradeCategoryModel.fromJson(Map<String, dynamic> json) {
@@ -43,6 +45,11 @@ class GradeCategoryModel extends BaseTitledModel {
       trend: HeliumConversion.toDouble(json['trend']),
       numHomework: json['num_homework'],
       numHomeworkGraded: json['num_homework_graded'],
+      gradePoints:
+          (json['grade_points'] as List<dynamic>?)
+              ?.map((point) => point as List<dynamic>)
+              .toList() ??
+          [],
     );
   }
 
@@ -57,6 +64,7 @@ class GradeCategoryModel extends BaseTitledModel {
       'trend': trend,
       'num_homework': numHomework,
       'num_homework_graded': numHomeworkGraded,
+      'grade_points': gradePoints,
     };
   }
 }

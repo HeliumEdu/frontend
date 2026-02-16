@@ -40,7 +40,7 @@ import 'package:heliumapp/presentation/widgets/material_title_label.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
-import 'package:heliumapp/utils/format_helpers.dart';
+import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:timezone/standalone.dart' as tz;
@@ -628,7 +628,7 @@ class CalendarItemDetailsWidgetState extends State<CalendarItemDetailsWidget> {
                 SizedBox(
                   width: 98,
                   child: GradeLabel(
-                    grade: Format.gradeForDisplay(
+                    grade: GradeHelper.gradeForDisplay(
                       _formController.gradeController.text.trim(),
                     ),
                     userSettings: widget.userSettings!,

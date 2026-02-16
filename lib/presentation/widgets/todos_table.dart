@@ -22,7 +22,7 @@ import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
-import 'package:heliumapp/utils/format_helpers.dart';
+import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
@@ -661,8 +661,8 @@ class TodosTableState extends State<TodosTable> {
             comparison = 0;
           } else {
             // Both complete, sort by grade
-            final parsedGradeA = Format.parseGrade(a.currentGrade);
-            final parsedGradeB = Format.parseGrade(b.currentGrade);
+            final parsedGradeA = GradeHelper.parseGrade(a.currentGrade);
+            final parsedGradeB = GradeHelper.parseGrade(b.currentGrade);
 
             // Items without grade come before items with grade
             if (parsedGradeA == null && parsedGradeB != null) {
@@ -953,7 +953,7 @@ class TodosTableState extends State<TodosTable> {
       width: Responsive.isMobile(context) ? 90 : 98,
       child: homework.completed
           ? GradeLabel(
-              grade: Format.gradeForDisplay(homework.currentGrade),
+              grade: GradeHelper.gradeForDisplay(homework.currentGrade),
               userSettings: userSettings,
               compact: true,
             )

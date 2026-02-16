@@ -204,7 +204,6 @@ class _CalendarItemAddScreenState
                 (state is HomeworkCreated && state.isClone);
 
             if (isClone) {
-              // Clone stays open, show in dialog
               showSnackBar(
                 context,
                 '${state.isEvent ? 'Event' : 'Assignment'} cloned',
@@ -221,12 +220,14 @@ class _CalendarItemAddScreenState
                 homeworkId: !state.isEvent ? state.entityId : null,
               );
             } else {
-              final willClose = _willCloseAfterSave();
-              showSnackBar(
-                context,
-                '${state.isEvent ? 'Event' : 'Assignment'} saved',
-                useRootMessenger: willClose,
-              );
+              if (state is HomeworkCreated || state is EventCreated) {
+                final willClose = _willCloseAfterSave();
+                showSnackBar(
+                  context,
+                  '${state.isEvent ? 'Event' : 'Assignment'} created',
+                  useRootMessenger: willClose,
+                );
+              }
 
               setState(() {
                 _currentEntityId = state.entityId;

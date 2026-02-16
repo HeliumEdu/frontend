@@ -29,7 +29,7 @@ import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/mobile_gesture_detector.dart';
 import 'package:heliumapp/utils/app_style.dart';
-import 'package:heliumapp/utils/format_helpers.dart';
+import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 
@@ -247,7 +247,7 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
                     Row(
                       children: [
                         SelectableText(
-                          'Weight: ${Format.percentForDisplay(category.weight.toString(), true)}',
+                          'Weight: ${GradeHelper.percentForDisplay(category.weight.toString(), true)}',
                           style: AppStyles.standardBodyTextLight(context)
                               .copyWith(
                                 color: context.colorScheme.onSurface.withValues(

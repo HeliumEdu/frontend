@@ -17,21 +17,6 @@ extension PluralExtension on int {
 }
 
 class Format {
-  static String percentForDisplay(String value, bool? zeroAsNa) {
-    try {
-      final percentage = double.parse(value);
-      if (percentage == 0 && zeroAsNa != null && zeroAsNa) {
-        return 'N/A';
-      } else if (percentage == percentage.roundToDouble()) {
-        return '${percentage.toInt()}%';
-      } else {
-        return '${percentage.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '')}%';
-      }
-    } catch (e) {
-      return 'N/A';
-    }
-  }
-
   static String reminderOffset(ReminderModel reminder) {
     String units = ReminderConstants.offsetTypes[reminder.offsetType]
         .toLowerCase();
@@ -39,45 +24,5 @@ class Format {
       units = units.substring(0, units.length - 1);
     }
     return '${reminder.offset.toString()} $units';
-  }
-
-  static double? parseGrade(dynamic grade) {
-    if (grade == null ||
-        grade == '' ||
-        grade == '-1/100' ||
-        grade == 0 ||
-        grade == -1.0) {
-      return null;
-    }
-
-    if (grade is String) {
-      try {
-        final split = grade.split('/');
-        if (split.length == 2) {
-          return (double.parse(split[0]) / double.parse(split[1])) * 100;
-        }
-        return null;
-      } catch (e) {
-        return null;
-      }
-    } else if (grade is num) {
-      return grade.toDouble();
-    }
-
-    return null;
-  }
-
-  static String gradeForDisplay(dynamic grade, [showNaAsBlank = false]) {
-    final gradeValue = parseGrade(grade);
-
-    if (gradeValue == null) {
-      if (showNaAsBlank) {
-        return '';
-      } else {
-        return 'N/A';
-      }
-    }
-
-    return '${gradeValue.toStringAsFixed(2)}%';
   }
 }
