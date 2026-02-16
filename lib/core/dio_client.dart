@@ -455,6 +455,10 @@ class DioClient {
         'remember_filter_state',
         settings.rememberFilterState,
       ),
+      ?_prefService.setBool(
+        'is_setup_complete',
+        settings.isSetupComplete,
+      ),
     ]);
   }
 

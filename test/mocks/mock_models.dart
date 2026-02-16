@@ -98,6 +98,7 @@ class MockModels {
       colorByCategory: colorByCategory,
       rememberFilterState: rememberFilterState,
       privateSlug: privateSlug,
+      isSetupComplete: true,
     );
   }
 
