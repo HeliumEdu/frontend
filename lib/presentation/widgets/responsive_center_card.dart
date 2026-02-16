@@ -31,8 +31,10 @@ class ResponsiveCenterCard extends StatelessWidget {
             margin: const EdgeInsets.symmetric(vertical: 25),
             child: showCard
                 ? Card(
-                    child:
-                        Padding(padding: const EdgeInsets.all(16), child: child),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: child,
+                    ),
                   )
                 : Padding(padding: const EdgeInsets.all(16), child: child),
           );

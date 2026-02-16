@@ -16,8 +16,8 @@ import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/presentation/bloc/attachment/attachment_bloc.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
 import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
-import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_bloc.dart';
 import 'package:heliumapp/presentation/bloc/course/course_bloc.dart';
+import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_bloc.dart';
 import 'package:heliumapp/presentation/bloc/material/material_bloc.dart';
 import 'package:heliumapp/presentation/views/auth/forgot_password_screen.dart';
 import 'package:heliumapp/presentation/views/auth/login_screen.dart';
@@ -47,9 +47,8 @@ void initializeRouter() {
     initialLocation: AppRoute.landingScreen,
     redirect: _authRedirect,
     observers: [AnalyticsService().observer],
-    errorBuilder: (context, state) => const _RouteRedirect(
-      redirectTo: AppRoute.plannerScreen,
-    ),
+    errorBuilder: (context, state) =>
+        const _RouteRedirect(redirectTo: AppRoute.plannerScreen),
     routes: [
       // Public routes (no shell)
       GoRoute(
@@ -162,9 +161,7 @@ void initializeRouter() {
                 BlocProvider<CalendarItemBloc>.value(
                   value: args.calendarItemBloc,
                 ),
-                BlocProvider<AttachmentBloc>.value(
-                  value: args.attachmentBloc,
-                ),
+                BlocProvider<AttachmentBloc>.value(value: args.attachmentBloc),
               ],
               child: CalendarItemAddScreen(
                 eventId: args.eventId,
@@ -323,8 +320,7 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
   if (isLoggedIn) {
     await DioClient().fetchSettings();
 
-    final isSetupComplete =
-        PrefService().getBool('is_setup_complete') ?? true;
+    final isSetupComplete = PrefService().getBool('is_setup_complete') ?? true;
 
     // On public routes: redirect to setup or planner based on setup status
     if (publicRoutes.contains(matchedLocation)) {
