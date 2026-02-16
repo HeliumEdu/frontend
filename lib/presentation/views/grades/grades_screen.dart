@@ -1066,6 +1066,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
         // Title
         Expanded(
           child: Text(
+            // TODO: Still shown the "Grade Trend" prefix even for courses
             isTermView ? 'Grade Trend' : _getSelectedCourseName(),
             style: AppStyles.headingText(context),
             overflow: TextOverflow.ellipsis,
@@ -1526,7 +1527,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                       const Divider(height: 20),
                       // Radio group for graph view mode
                       RadioGroup<String>(
-                        value: _graphViewMode,
+                        groupValue: _graphViewMode,
                         onChanged: (value) {
                           setState(() => _graphViewMode = value!);
                           Navigator.pop(menuContext);
@@ -1547,7 +1548,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                                 ),
                                 child: Row(
                                   children: [
-                                    Radio<String>(value: 'term'),
+                                    const Radio<String>(value: 'term'),
                                     Expanded(
                                       child: Text(
                                         'Entire Term',
