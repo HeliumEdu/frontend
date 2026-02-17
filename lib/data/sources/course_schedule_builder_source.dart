@@ -15,27 +15,6 @@ import 'package:logging/logging.dart';
 
 final _log = Logger('data.sources');
 
-class _TimeSlot {
-  final TimeOfDay start;
-  final TimeOfDay end;
-
-  const _TimeSlot(this.start, this.end);
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is _TimeSlot &&
-        other.start.hour == start.hour &&
-        other.start.minute == start.minute &&
-        other.end.hour == end.hour &&
-        other.end.minute == end.minute;
-  }
-
-  @override
-  int get hashCode =>
-      Object.hash(start.hour, start.minute, end.hour, end.minute);
-}
-
 /// Builds course schedule events for the given courses within the date range.
 ///
 /// Events are generated as recurring appointments using RRULE format. Days with
@@ -212,4 +191,25 @@ class CourseScheduleBuilderSource {
   int _generateEventId(int scheduleId, int slotIndex) {
     return scheduleId * 100 + slotIndex;
   }
+}
+
+class _TimeSlot {
+  final TimeOfDay start;
+  final TimeOfDay end;
+
+  const _TimeSlot(this.start, this.end);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is _TimeSlot &&
+        other.start.hour == start.hour &&
+        other.start.minute == start.minute &&
+        other.end.hour == end.hour &&
+        other.end.minute == end.minute;
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(start.hour, start.minute, end.hour, end.minute);
 }

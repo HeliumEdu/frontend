@@ -18,7 +18,7 @@ import 'package:heliumapp/presentation/controllers/core/basic_form_controller.da
 import 'package:heliumapp/presentation/controllers/courses/course_form_controller.dart';
 import 'package:heliumapp/presentation/dialogs/color_picker_dialog.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
-import 'package:heliumapp/presentation/views/core/multi_step_container.dart';
+import 'package:heliumapp/presentation/widgets/multi_step_container.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';

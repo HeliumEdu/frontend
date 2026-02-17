@@ -14,22 +14,21 @@ import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/notification/notification_model.dart';
-import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
+import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/data/models/planner/request/reminder_request_model.dart';
 import 'package:heliumapp/data/repositories/reminder_repository_impl.dart';
 import 'package:heliumapp/data/sources/reminder_remote_data_source.dart';
 import 'package:heliumapp/presentation/bloc/attachment/attachment_bloc.dart';
-import 'package:heliumapp/presentation/bloc/planneritem/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
+import 'package:heliumapp/presentation/bloc/planneritem/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/bloc/reminder/reminder_bloc.dart';
 import 'package:heliumapp/presentation/bloc/reminder/reminder_event.dart';
 import 'package:heliumapp/presentation/bloc/reminder/reminder_state.dart';
-import 'package:heliumapp/presentation/views/planner/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
-import 'package:heliumapp/presentation/widgets/category_title_label.dart';
+import 'package:heliumapp/presentation/views/planner/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/widgets/course_title_label.dart';
 import 'package:heliumapp/presentation/widgets/empty_card.dart';
 import 'package:heliumapp/presentation/widgets/error_card.dart';
@@ -284,8 +283,7 @@ class _NotificationsScreenState
       plannerItem =
           notification.reminder.homework?.entity as PlannerItemBaseModel;
     } else {
-      plannerItem =
-          notification.reminder.event?.entity as PlannerItemBaseModel;
+      plannerItem = notification.reminder.event?.entity as PlannerItemBaseModel;
     }
 
     final isTouchDevice = Responsive.isTouchDevice(context);
@@ -374,7 +372,7 @@ class _NotificationsScreenState
                       ],
                     ),
                     const SizedBox(height: 4),
-                    Text(
+                    SelectableText(
                       notification.body,
                       style: AppStyles.standardBodyTextLight(context).copyWith(
                         color: context.colorScheme.onSurface.withValues(
@@ -385,7 +383,7 @@ class _NotificationsScreenState
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Text(
+                        SelectableText(
                           HeliumDateTime.formatDateTimeRange(
                             HeliumDateTime.toLocal(
                               plannerItem.start,
@@ -406,20 +404,6 @@ class _NotificationsScreenState
                                 ),
                               ),
                         ),
-                        if (plannerItem is HomeworkModel &&
-                            plannerItem.category.entity != null) ...[
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Align(
-                              alignment: Alignment.centerRight,
-                              child: CategoryTitleLabel(
-                                title: plannerItem.category.entity!.title,
-                                color: plannerItem.category.entity!.color,
-                                compact: true,
-                              ),
-                            ),
-                          ),
-                        ],
                       ],
                     ),
                   ],

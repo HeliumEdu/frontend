@@ -107,9 +107,11 @@ class TodosTableState extends State<TodosTable> {
         ? (totalItems / effectiveItemsPerPage).ceil()
         : 1;
 
-    // Reset to page 1 if current page is beyond valid range (e.g., after filtering)
+    // Reset to page 1 if current page is beyond valid range (e.g., after filtering).
+    // Only do this after initialization; while loading, sortedHomeworks is intentionally
+    // empty and would otherwise incorrectly force page 1 on view re-entry.
     var effectiveCurrentPage = controller.currentPage;
-    if (effectiveCurrentPage > totalPages && totalPages > 0) {
+    if (_isInitialized && effectiveCurrentPage > totalPages && totalPages > 0) {
       effectiveCurrentPage = 1;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && controller.currentPage != 1) {
@@ -828,7 +830,7 @@ class TodosTableState extends State<TodosTable> {
       child: Row(
         children: [
           Expanded(
-            child: Text(
+            child: SelectableText(
               homework.title,
               style: AppStyles.smallSecondaryText(context).copyWith(
                 decoration: isCompleted
@@ -838,7 +840,6 @@ class TodosTableState extends State<TodosTable> {
                 decorationThickness: 2.0,
               ),
               maxLines: 1,
-              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -852,13 +853,12 @@ class TodosTableState extends State<TodosTable> {
   ) {
     return SizedBox(
       width: 125,
-      child: Text(
+      child: SelectableText(
         HeliumDateTime.formatDateAndTimeForTodos(
           HeliumDateTime.toLocal(homework.start, userSettings.timeZone),
         ),
         style: AppStyles.smallSecondaryText(context),
         maxLines: 1,
-        overflow: TextOverflow.ellipsis,
       ),
     );
   }
@@ -1014,10 +1014,7 @@ class TodosTableState extends State<TodosTable> {
         );
       }
 
-      if (PlannerHelper.shouldShowEditButtonForPlannerItem(
-        context,
-        homework,
-      )) {
+      if (PlannerHelper.shouldShowEditButtonForPlannerItem(context, homework)) {
         buttons.add(
           HeliumIconButton(
             onPressed: () => widget.onTap(homework),

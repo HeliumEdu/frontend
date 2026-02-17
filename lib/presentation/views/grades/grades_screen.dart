@@ -5,11 +5,6 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-// TODO: make the thresholds for at-risk classes (and eventually progress/pace ratio) configurable by the user
-// TODO: in "Pending Impact", make the "x in y" badge clickable, and open it up to a menu where the user can switch which course is shown
-// TODO: in "Pending Impact", based on the currently selected class, show the user which ungraded item is most impactful
-// TODO: if/when a user makes a change to a grade in the open dialog (or deletes the item), grades will be recalculated, and we need to show this updated state
-
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
@@ -36,7 +31,6 @@ import 'package:heliumapp/presentation/bloc/planneritem/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/dialogs/grade_calculator_dialog.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/views/planner/planner_item_add_screen.dart';
-import 'package:heliumapp/presentation/widgets/at_risk_badge.dart';
 import 'package:heliumapp/presentation/widgets/course_title_label.dart';
 import 'package:heliumapp/presentation/widgets/empty_card.dart';
 import 'package:heliumapp/presentation/widgets/error_card.dart';
@@ -107,6 +101,47 @@ class GradesScreen extends StatelessWidget {
         ),
       ],
       child: const GradesProvidedScreen(),
+    );
+  }
+}
+
+class _AtRiskBadge extends StatelessWidget {
+  const _AtRiskBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: context.colorScheme.error.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: context.colorScheme.error.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.warning_amber_rounded,
+            size: Responsive.getIconSize(
+              context,
+              mobile: 12,
+              tablet: 13,
+              desktop: 14,
+            ),
+            color: context.colorScheme.error,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            'At-Risk',
+            style: AppStyles.smallSecondaryText(context).copyWith(
+              color: context.colorScheme.error,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -2048,7 +2083,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                       ),
                       if (course.overallGrade < _atRiskThreshold) ...[
                         const SizedBox(width: 8),
-                        const AtRiskBadge(),
+                        const _AtRiskBadge(),
                       ],
                     ],
                   ),

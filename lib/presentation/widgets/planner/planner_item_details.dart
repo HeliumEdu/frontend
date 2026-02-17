@@ -30,7 +30,7 @@ import 'package:heliumapp/presentation/controllers/core/basic_form_controller.da
 import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/dialogs/select_dialog.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
-import 'package:heliumapp/presentation/views/core/multi_step_container.dart';
+import 'package:heliumapp/presentation/widgets/multi_step_container.dart';
 import 'package:heliumapp/presentation/widgets/drop_down.dart';
 import 'package:heliumapp/presentation/widgets/grade_label.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';

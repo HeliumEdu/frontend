@@ -62,6 +62,7 @@ class UserSettingsModel {
   final int defaultReminderOffset;
   final int defaultReminderOffsetType;
   final bool colorByCategory;
+  final bool showPlannerTooltips;
   final bool rememberFilterState;
   final String? privateSlug;
 
@@ -81,6 +82,7 @@ class UserSettingsModel {
     required this.defaultReminderOffset,
     required this.defaultReminderOffsetType,
     required this.colorByCategory,
+    required this.showPlannerTooltips,
     required this.rememberFilterState,
     this.privateSlug,
   });
@@ -102,6 +104,7 @@ class UserSettingsModel {
       defaultReminderOffset: json['default_reminder_offset'],
       defaultReminderOffsetType: json['default_reminder_offset_type'],
       colorByCategory: json['calendar_use_category_colors'],
+      showPlannerTooltips: json['show_planner_tooltips'] ?? true,
       rememberFilterState: json['remember_filter_state'],
       privateSlug: json['private_slug'],
     );
@@ -123,6 +126,7 @@ class UserSettingsModel {
       'default_reminder_offset': defaultReminderOffset,
       'default_reminder_offset_type': defaultReminderOffsetType,
       'calendar_use_category_colors': colorByCategory,
+      'show_planner_tooltips': showPlannerTooltips,
       'remember_filter_state': rememberFilterState,
       'private_slug': privateSlug,
     };

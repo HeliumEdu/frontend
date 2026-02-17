@@ -153,11 +153,7 @@ abstract class MultiStepContainerState<T extends MultiStepContainer>
         final step = entry.value;
         // First step is always enabled, subsequent steps wait until save
         final isEnabled = index == 0 || enableNextSteps;
-        return StepperStep(
-          icon: step.icon,
-          isEnabled: isEnabled,
-          tooltip: step.tooltip,
-        );
+        return (icon: step.icon, isEnabled: isEnabled, tooltip: step.tooltip);
       }).toList(),
       currentStep: _currentStep,
       onStepTapped: onStepRequested,
