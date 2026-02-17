@@ -5,7 +5,6 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-// TODO: what other tooltips can we show when hovering grade point, in legacy UI we used to show the homework's title and category as well
 // TODO: make the thresholds for at-risk classes (and eventually progress/pace ratio) configurable by the user
 // TODO: in "Pending Impact", make the "x in y" badge clickable, and open it up to a menu where the user can switch which course is shown
 // TODO: in "Pending Impact", based on the currently selected class, show the user which ungraded item is most impactful
@@ -59,6 +58,7 @@ class ChartDataPoint {
   final double grade;
   final int? homeworkId;
   final String? homeworkTitle;
+  final dynamic homeworkGrade;
   final int? categoryId;
 
   ChartDataPoint({
@@ -66,6 +66,7 @@ class ChartDataPoint {
     required this.grade,
     this.homeworkId,
     this.homeworkTitle,
+    this.homeworkGrade,
     this.categoryId,
   });
 }
@@ -127,7 +128,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
   static const double _atRiskThreshold =
       70.0; // Courses below this % are flagged as at-risk
   static const double _onTrackTolerance =
-      10.0; // ±% tolerance for "on track" status (work vs time)
+      10.0; // tolerance for "on track" status (work vs time)
   static const double _defaultDesiredGradeBoost =
       5.0; // Default boost above current grade for calculator
   static const double _chartAnimationDurationMs = 250;
@@ -372,9 +373,9 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
   Widget _buildOverallGradeCard(GradeCourseGroupModel selectedGroup) {
     final grade = selectedGroup.overallGrade;
     final gradeDisplay = GradeHelper.gradeForDisplay(grade);
-    final overallGradeUrgency = grade >= 80
+    final overallGradeUrgency = grade >= _atRiskThreshold + _onTrackTolerance
         ? 1
-        : grade >= 70
+        : grade >= _atRiskThreshold
         ? 2
         : 3;
     final overallGradeColor = HeliumColors.urgencyColor(
@@ -1145,6 +1146,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     final now = DateTime.now();
     final showTodayMarker =
         now.isAfter(xAxisRange['min']!) && now.isBefore(xAxisRange['max']!);
+    final isTermView = _graphViewMode == 'term';
 
     return SizedBox(
       height: 400,
@@ -1167,14 +1169,32 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                       int seriesIndex,
                     ) {
                       final chartPoint = data as ChartDataPoint;
-                      final grade = chartPoint.grade.toStringAsFixed(1);
-                      final title =
+                      final homeworkTitle =
                           chartPoint.homeworkTitle?.trim().isNotEmpty == true
                           ? chartPoint.homeworkTitle!
                           : 'No assignment title';
+                      final homeworkGradeText = GradeHelper.gradeForDisplay(
+                        chartPoint.homeworkGrade,
+                      );
+                      final categoryTitle = _categoryTitleForId(
+                        chartPoint.categoryId,
+                      );
                       final categoryColor = _categoryColorForId(
                         chartPoint.categoryId,
                       );
+                      final seriesName =
+                          (seriesIndex >= 0 &&
+                              seriesIndex < visibleSeries.length)
+                          ? (visibleSeries[seriesIndex].name ?? '')
+                          : '';
+                      final isOverallSeries = seriesName == 'Overall Grade';
+                      final gradeLabel = isOverallSeries
+                          ? 'Overall Grade'
+                          : isTermView
+                          ? 'Class Grade'
+                          : 'Category Grade';
+                      final classGradeAtPoint =
+                          '${chartPoint.grade.toStringAsFixed(2)}%';
 
                       return Container(
                         padding: const EdgeInsets.symmetric(
@@ -1195,31 +1215,39 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '$grade%',
+                              '$homeworkTitle ($homeworkGradeText)',
                               style: AppStyles.standardBodyText(
                                 context,
                               ).copyWith(fontWeight: FontWeight.w600),
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            const SizedBox(height: 4),
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.category_outlined,
-                                  size: 13,
-                                  color: categoryColor,
-                                ),
-                                const SizedBox(width: 6),
-                                Flexible(
-                                  child: Text(
-                                    title,
-                                    style: AppStyles.smallSecondaryText(
-                                      context,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
+                            if (isTermView && categoryTitle != null) ...[
+                              const SizedBox(height: 4),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.category_outlined,
+                                    size: 13,
+                                    color: categoryColor,
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(width: 6),
+                                  Flexible(
+                                    child: Text(
+                                      categoryTitle,
+                                      style: AppStyles.smallSecondaryText(
+                                        context,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                            const SizedBox(height: 4),
+                            Text(
+                              '$gradeLabel: $classGradeAtPoint',
+                              style: AppStyles.smallSecondaryText(context),
                             ),
                           ],
                         ),
@@ -1438,6 +1466,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
       final grade = GradeHelper.parseGrade(point[1]) ?? 0.0;
       final homeworkId = point.length > 2 ? point[2] as int? : null;
       final homeworkTitle = point.length > 3 ? point[3] as String? : null;
+      final homeworkGrade = point.length > 4 ? point[4] : null;
       final categoryId = point.length > 5 ? point[5] as int? : null;
 
       return ChartDataPoint(
@@ -1445,9 +1474,31 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
         grade: grade,
         homeworkId: homeworkId,
         homeworkTitle: homeworkTitle,
+        homeworkGrade: homeworkGrade,
         categoryId: categoryId,
       );
     }).toList();
+  }
+
+  String? _categoryTitleForId(int? categoryId) {
+    if (categoryId == null || _selectedGroupId == null || _grades.isEmpty) {
+      return null;
+    }
+
+    final selectedGroup = _grades.firstWhere(
+      (g) => g.id == _selectedGroupId,
+      orElse: () => _grades.first,
+    );
+
+    for (final course in selectedGroup.courses) {
+      for (final category in course.categories) {
+        if (category.id == categoryId) {
+          return category.title;
+        }
+      }
+    }
+
+    return null;
   }
 
   Color _categoryColorForId(int? categoryId) {
