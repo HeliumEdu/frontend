@@ -21,34 +21,34 @@ void main() {
   group('PlannerHelper', () {
     group('mapHeliumViewToSfCalendarView', () {
       test('maps view types correctly', () {
-        expect(PlannerHelper.mapHeliumViewToSfCalendarView(HeliumView.month), CalendarView.month);
-        expect(PlannerHelper.mapHeliumViewToSfCalendarView(HeliumView.week), CalendarView.week);
-        expect(PlannerHelper.mapHeliumViewToSfCalendarView(HeliumView.day), CalendarView.day);
-        expect(PlannerHelper.mapHeliumViewToSfCalendarView(HeliumView.agenda), CalendarView.schedule);
-        expect(PlannerHelper.mapHeliumViewToSfCalendarView(HeliumView.todos), CalendarView.day);
+        expect(PlannerHelper.mapHeliumViewToSfCalendarView(PlannerView.month), CalendarView.month);
+        expect(PlannerHelper.mapHeliumViewToSfCalendarView(PlannerView.week), CalendarView.week);
+        expect(PlannerHelper.mapHeliumViewToSfCalendarView(PlannerView.day), CalendarView.day);
+        expect(PlannerHelper.mapHeliumViewToSfCalendarView(PlannerView.agenda), CalendarView.schedule);
+        expect(PlannerHelper.mapHeliumViewToSfCalendarView(PlannerView.todos), CalendarView.day);
       });
     });
 
     group('mapSfCalendarViewToHeliumView', () {
       test('maps view types correctly', () {
-        expect(PlannerHelper.mapSfCalendarViewToHeliumView(CalendarView.month), HeliumView.month);
-        expect(PlannerHelper.mapSfCalendarViewToHeliumView(CalendarView.week), HeliumView.week);
-        expect(PlannerHelper.mapSfCalendarViewToHeliumView(CalendarView.day), HeliumView.day);
-        expect(PlannerHelper.mapSfCalendarViewToHeliumView(CalendarView.schedule), HeliumView.agenda);
-        expect(PlannerHelper.mapSfCalendarViewToHeliumView(CalendarView.timelineDay), HeliumView.day);
-        expect(PlannerHelper.mapSfCalendarViewToHeliumView(CalendarView.timelineWeek), HeliumView.day);
-        expect(PlannerHelper.mapSfCalendarViewToHeliumView(CalendarView.timelineWorkWeek), HeliumView.day);
-        expect(PlannerHelper.mapSfCalendarViewToHeliumView(CalendarView.timelineMonth), HeliumView.day);
+        expect(PlannerHelper.mapSfCalendarViewToHeliumView(CalendarView.month), PlannerView.month);
+        expect(PlannerHelper.mapSfCalendarViewToHeliumView(CalendarView.week), PlannerView.week);
+        expect(PlannerHelper.mapSfCalendarViewToHeliumView(CalendarView.day), PlannerView.day);
+        expect(PlannerHelper.mapSfCalendarViewToHeliumView(CalendarView.schedule), PlannerView.agenda);
+        expect(PlannerHelper.mapSfCalendarViewToHeliumView(CalendarView.timelineDay), PlannerView.day);
+        expect(PlannerHelper.mapSfCalendarViewToHeliumView(CalendarView.timelineWeek), PlannerView.day);
+        expect(PlannerHelper.mapSfCalendarViewToHeliumView(CalendarView.timelineWorkWeek), PlannerView.day);
+        expect(PlannerHelper.mapSfCalendarViewToHeliumView(CalendarView.timelineMonth), PlannerView.day);
       });
     });
 
     group('mapApiViewToHeliumView', () {
       test('maps API integers to HeliumView', () {
-        expect(PlannerHelper.mapApiViewToHeliumView(0), HeliumView.month);
-        expect(PlannerHelper.mapApiViewToHeliumView(1), HeliumView.week);
-        expect(PlannerHelper.mapApiViewToHeliumView(2), HeliumView.day);
-        expect(PlannerHelper.mapApiViewToHeliumView(3), HeliumView.todos);
-        expect(PlannerHelper.mapApiViewToHeliumView(4), HeliumView.agenda);
+        expect(PlannerHelper.mapApiViewToHeliumView(0), PlannerView.month);
+        expect(PlannerHelper.mapApiViewToHeliumView(1), PlannerView.week);
+        expect(PlannerHelper.mapApiViewToHeliumView(2), PlannerView.day);
+        expect(PlannerHelper.mapApiViewToHeliumView(3), PlannerView.todos);
+        expect(PlannerHelper.mapApiViewToHeliumView(4), PlannerView.agenda);
       });
 
       test('throws HeliumException for invalid view', () {
@@ -59,11 +59,11 @@ void main() {
 
     group('mapHeliumViewToApiView', () {
       test('maps HeliumView to API integers', () {
-        expect(PlannerHelper.mapHeliumViewToApiView(HeliumView.month), 0);
-        expect(PlannerHelper.mapHeliumViewToApiView(HeliumView.week), 1);
-        expect(PlannerHelper.mapHeliumViewToApiView(HeliumView.day), 2);
-        expect(PlannerHelper.mapHeliumViewToApiView(HeliumView.todos), 3);
-        expect(PlannerHelper.mapHeliumViewToApiView(HeliumView.agenda), 4);
+        expect(PlannerHelper.mapHeliumViewToApiView(PlannerView.month), 0);
+        expect(PlannerHelper.mapHeliumViewToApiView(PlannerView.week), 1);
+        expect(PlannerHelper.mapHeliumViewToApiView(PlannerView.day), 2);
+        expect(PlannerHelper.mapHeliumViewToApiView(PlannerView.todos), 3);
+        expect(PlannerHelper.mapHeliumViewToApiView(PlannerView.agenda), 4);
       });
     });
 
@@ -79,7 +79,7 @@ void main() {
                   PlannerHelper.getAlignmentForView(
                     context,
                     false,
-                    HeliumView.month,
+                    PlannerView.month,
                   ),
                   Alignment.topLeft,
                 );
@@ -87,7 +87,7 @@ void main() {
                   PlannerHelper.getAlignmentForView(
                     context,
                     true,
-                    HeliumView.week,
+                    PlannerView.week,
                   ),
                   Alignment.topLeft,
                 );
@@ -109,7 +109,7 @@ void main() {
                   PlannerHelper.getAlignmentForView(
                     context,
                     true,
-                    HeliumView.month,
+                    PlannerView.month,
                   ),
                   Alignment.topLeft,
                 );
@@ -131,7 +131,7 @@ void main() {
                   PlannerHelper.getAlignmentForView(
                     context,
                     false,
-                    HeliumView.month,
+                    PlannerView.month,
                   ),
                   Alignment.centerLeft,
                 );
@@ -153,7 +153,7 @@ void main() {
                   PlannerHelper.getAlignmentForView(
                     context,
                     false,
-                    HeliumView.week,
+                    PlannerView.week,
                   ),
                   Alignment.topLeft,
                 );
@@ -161,7 +161,7 @@ void main() {
                   PlannerHelper.getAlignmentForView(
                     context,
                     false,
-                    HeliumView.day,
+                    PlannerView.day,
                   ),
                   Alignment.topLeft,
                 );
@@ -186,7 +186,7 @@ void main() {
                   PlannerHelper.shouldShowCheckbox(
                     context,
                     eventItem,
-                    HeliumView.month,
+                    PlannerView.month,
                   ),
                   isFalse,
                 );
@@ -210,7 +210,7 @@ void main() {
                   PlannerHelper.shouldShowCheckbox(
                     context,
                     homeworkItem,
-                    HeliumView.week,
+                    PlannerView.week,
                   ),
                   isTrue,
                 );
@@ -234,7 +234,7 @@ void main() {
                   PlannerHelper.shouldShowCheckbox(
                     context,
                     homeworkItem,
-                    HeliumView.week,
+                    PlannerView.week,
                   ),
                   isFalse,
                 );
@@ -242,7 +242,7 @@ void main() {
                   PlannerHelper.shouldShowCheckbox(
                     context,
                     homeworkItem,
-                    HeliumView.day,
+                    PlannerView.day,
                   ),
                   isFalse,
                 );
@@ -266,7 +266,7 @@ void main() {
                   PlannerHelper.shouldShowCheckbox(
                     context,
                     homeworkItem,
-                    HeliumView.month,
+                    PlannerView.month,
                   ),
                   isTrue,
                 );

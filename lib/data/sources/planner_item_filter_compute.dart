@@ -5,7 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 
 /// Lightweight representation of a calendar item for filtering/sorting in isolate.
@@ -108,13 +108,13 @@ bool _shouldIncludeByType(
 
   switch (item.type) {
     case PlannerItemType.homework:
-      return filterTypes.contains('Assignments');
+      return filterTypes.contains(PlannerFilterType.assignments.value);
     case PlannerItemType.event:
-      return filterTypes.contains('Events');
+      return filterTypes.contains(PlannerFilterType.events.value);
     case PlannerItemType.courseSchedule:
-      return filterTypes.contains('Class Schedules');
+      return filterTypes.contains(PlannerFilterType.classSchedules.value);
     case PlannerItemType.external:
-      return filterTypes.contains('External Calendars');
+      return filterTypes.contains(PlannerFilterType.externalCalendars.value);
   }
 }
 
@@ -159,20 +159,22 @@ bool _passesFilters(FilterableItem item, FilterParams params) {
     } else {
       bool matches = false;
 
-      if (params.filterStatuses.contains('Complete')) {
+      if (params.filterStatuses.contains(PlannerFilterStatus.complete.value)) {
         matches = matches || isCompleted;
       }
-      if (params.filterStatuses.contains('Incomplete')) {
+      if (params.filterStatuses.contains(
+        PlannerFilterStatus.incomplete.value,
+      )) {
         matches = matches || !isCompleted;
       }
-      if (params.filterStatuses.contains('Overdue')) {
+      if (params.filterStatuses.contains(PlannerFilterStatus.overdue.value)) {
         final isOverdue = !isCompleted && item.start.isBefore(DateTime.now());
         matches = matches || isOverdue;
       }
-      if (params.filterStatuses.contains('Graded')) {
+      if (params.filterStatuses.contains(PlannerFilterStatus.graded.value)) {
         matches = matches || item.graded;
       }
-      if (params.filterStatuses.contains('Ungraded')) {
+      if (params.filterStatuses.contains(PlannerFilterStatus.ungraded.value)) {
         matches = matches || !item.graded;
       }
 

@@ -132,6 +132,9 @@ class CalendarProvidedScreen extends StatefulWidget {
 class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   static const _agendaHeightMobile = 53.0;
   static const _agendaHeightDesktop = 57.0;
+  static const _uiAnimationDuration = Duration(milliseconds: 300);
+  static const _tooltipWaitDuration = Duration(milliseconds: 300);
+  static const _tooltipShowDuration = Duration(seconds: 8);
 
   @override
   String get screenTitle => 'Planner';
@@ -149,7 +152,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     final now = DateTime.now();
     final truncatedNow = DateTime(now.year, now.month, now.day, now.hour);
     final initialDate =
-        (_currentView == HeliumView.todos || _currentView == HeliumView.agenda)
+        (_currentView == PlannerView.todos || _currentView == PlannerView.agenda)
         ? truncatedNow
         : _calendarController.selectedDate;
 
@@ -193,10 +196,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   final List<CategoryModel> _deduplicatedCategories = [];
   bool _isSearchExpanded = false;
   bool _isFilterExpanded = false;
-  HeliumView _currentView = PlannerHelper.mapApiViewToHeliumView(
+  PlannerView _currentView = PlannerHelper.mapApiViewToHeliumView(
     FallbackConstants.defaultViewIndex,
   );
-  HeliumView? _previousView;
+  PlannerView? _previousView;
 
   // Remember state when user switches to Todos view
   DateTime? _storedSelectedDate;
@@ -225,7 +228,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     _calendarController.addPropertyChangedListener((value) {
       if (value == 'calendarView') {
         _calendarViewChanged();
-      } else if (value == 'displayDate' && _currentView == HeliumView.agenda) {
+      } else if (value == 'displayDate' && _currentView == PlannerView.agenda) {
         _log.fine('Display date change: $value');
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
@@ -479,7 +482,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                   builder: (context, _) {
                     return Stack(
                       children: [
-                        _currentView == HeliumView.todos
+                        _currentView == PlannerView.todos
                             ? _buildTodosView()
                             : _buildCalendarView(context),
                         if (_plannerItemDataSource!.isRefreshing)
@@ -576,7 +579,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           todayTextStyle: AppStyles.standardBodyText(
             context,
           ).copyWith(color: context.colorScheme.onPrimary),
-          viewHeaderHeight: _currentView == HeliumView.month ? 28 : -1,
+          viewHeaderHeight: _currentView == PlannerView.month ? 28 : -1,
           viewHeaderStyle: ViewHeaderStyle(
             dayTextStyle: AppStyles.standardBodyText(context),
             dateTextStyle: AppStyles.standardBodyText(context),
@@ -795,7 +798,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   Widget _buildCalendarDateArea() {
-    if (_currentView == HeliumView.todos) {
+    if (_currentView == PlannerView.todos) {
       return Expanded(
         child: Align(
           alignment: Alignment.centerLeft,
@@ -817,7 +820,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
     final String headerText = _buildHeaderDate();
 
-    final showNavButtons = _currentView != HeliumView.agenda;
+    final showNavButtons = _currentView != PlannerView.agenda;
 
     return Expanded(
       child: Row(
@@ -908,13 +911,13 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
     if (!isMobile) {
       return AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
+        duration: _uiAnimationDuration,
         width: expandedToolbarWidth,
         child: Stack(
           alignment: Alignment.centerRight,
           children: [
             AnimatedOpacity(
-              duration: const Duration(milliseconds: 300),
+              duration: _uiAnimationDuration,
               opacity: _isSearchExpanded ? 0.0 : 1.0,
               child: IgnorePointer(
                 ignoring: _isSearchExpanded,
@@ -922,12 +925,12 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
               ),
             ),
             AnimatedPositioned(
-              duration: const Duration(milliseconds: 300),
+              duration: _uiAnimationDuration,
               curve: Curves.easeInOut,
               right: 0,
               width: _isSearchExpanded ? expandedToolbarWidth : 46,
               child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 300),
+                duration: _uiAnimationDuration,
                 opacity: _isSearchExpanded ? 1.0 : 0.0,
                 child: IgnorePointer(
                   ignoring: !_isSearchExpanded,
@@ -940,13 +943,13 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       );
     } else {
       return AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
+        duration: _uiAnimationDuration,
         width: isExpanded ? expandedToolbarWidth : 46,
         child: Stack(
           alignment: Alignment.centerRight,
           children: [
             AnimatedOpacity(
-              duration: const Duration(milliseconds: 300),
+              duration: _uiAnimationDuration,
               opacity: (_isFilterExpanded || _isSearchExpanded) ? 0.0 : 1.0,
               child: IgnorePointer(
                 ignoring: _isFilterExpanded || _isSearchExpanded,
@@ -954,12 +957,12 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
               ),
             ),
             AnimatedPositioned(
-              duration: const Duration(milliseconds: 300),
+              duration: _uiAnimationDuration,
               curve: Curves.easeInOut,
               right: 0,
               width: _isFilterExpanded ? expandedToolbarWidth : 46,
               child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 300),
+                duration: _uiAnimationDuration,
                 opacity: _isFilterExpanded ? 1.0 : 0.0,
                 child: IgnorePointer(
                   ignoring: !_isFilterExpanded,
@@ -968,12 +971,12 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
               ),
             ),
             AnimatedPositioned(
-              duration: const Duration(milliseconds: 300),
+              duration: _uiAnimationDuration,
               curve: Curves.easeInOut,
               right: 0,
               width: _isSearchExpanded ? expandedToolbarWidth : 46,
               child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 300),
+                duration: _uiAnimationDuration,
                 opacity: _isSearchExpanded ? 1.0 : 0.0,
                 child: IgnorePointer(
                   ignoring: !_isSearchExpanded,
@@ -1352,16 +1355,16 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     }
   }
 
-  void _changeView(HeliumView newView) {
+  void _changeView(PlannerView newView) {
     _log.info('View changed: $_currentView --> $newView');
-    final isEnteringNonCalendarView = (newView == HeliumView.todos);
+    final isEnteringNonCalendarView = (newView == PlannerView.todos);
     final wasInNonCalendarView =
-        _previousView != null && _previousView == HeliumView.todos;
+        _previousView != null && _previousView == PlannerView.todos;
     final isEnteringCalendarView =
-        (newView == HeliumView.month ||
-        newView == HeliumView.week ||
-        newView == HeliumView.day);
-    final isLeavingMonthView = _currentView == HeliumView.month;
+        (newView == PlannerView.month ||
+        newView == PlannerView.week ||
+        newView == PlannerView.day);
+    final isLeavingMonthView = _currentView == PlannerView.month;
 
     // Unset selectedDate when leaving month view on mobile (if it wasn't set
     // before month view was entered)
@@ -1400,7 +1403,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
     // Only update the calendar controller's view if not switching to Todos
     // (Todos is a custom view that doesn't exist in SfCalendar)
-    if (newView != HeliumView.todos) {
+    if (newView != PlannerView.todos) {
       _calendarController.view = PlannerHelper.mapHeliumViewToSfCalendarView(
         newView,
       );
@@ -1408,7 +1411,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
     // On mobile, select a date on month view so the agenda is always shown
     if (Responsive.isMobile(context) &&
-        newView == HeliumView.month &&
+        newView == PlannerView.month &&
         _calendarController.selectedDate == null) {
       _selectedDateBeforeMobileMonth = _calendarController.selectedDate;
       _mobileMonthAutoSelectApplied = true;
@@ -1448,7 +1451,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
     // In month view, include the current hour in the date selection so
     // created items don't populate with midnight
-    if (_currentView == HeliumView.month) {
+    if (_currentView == PlannerView.month) {
       final now = DateTime.now();
       final selectedWithTime = DateTime(
         details.date!.year,
@@ -1492,7 +1495,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     final PlannerItemBaseModel plannerItem =
         tapDetails.appointments![0] as PlannerItemBaseModel;
 
-    if (_currentView == HeliumView.agenda &&
+    if (_currentView == PlannerView.agenda &&
         PlannerHelper.shouldShowEditButton(context)) {
       return;
     }
@@ -1528,10 +1531,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         dropDetails.droppingTime!.year,
         dropDetails.droppingTime!.month,
         dropDetails.droppingTime!.day,
-        _currentView == HeliumView.month
+        _currentView == PlannerView.month
             ? startDateTime.hour
             : dropDetails.droppingTime!.hour,
-        _currentView == HeliumView.month ? startDateTime.minute : roundedMinute,
+        _currentView == PlannerView.month ? startDateTime.minute : roundedMinute,
       );
       final DateTime end = start.add(duration);
 
@@ -1730,8 +1733,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
     final plannerItem = details.appointments.first as PlannerItemBaseModel;
     final isInAgenda =
-        _currentView == HeliumView.agenda ||
-        (_currentView == HeliumView.month &&
+        _currentView == PlannerView.agenda ||
+        (_currentView == PlannerView.month &&
             (details.bounds.height > 40 ||
                 (Responsive.isMobile(context) && plannerItem.allDay)));
     final homeworkId = plannerItem is HomeworkModel ? plannerItem.id : null;
@@ -1777,8 +1780,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
     return Tooltip(
       richMessage: tooltipMessage,
-      waitDuration: const Duration(milliseconds: 300),
-      showDuration: const Duration(seconds: 8),
+      waitDuration: _tooltipWaitDuration,
+      showDuration: _tooltipShowDuration,
       preferBelow: false,
       decoration: BoxDecoration(
         color: context.colorScheme.surface,
@@ -1813,7 +1816,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     final location = _plannerItemDataSource?.getLocationForItem(plannerItem);
 
     if (!hideLocation &&
-        _currentView != HeliumView.agenda &&
+        _currentView != PlannerView.agenda &&
         location != null &&
         location.isNotEmpty) {
       rows.add(
@@ -2216,10 +2219,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
       titleRowWidget = Text.rich(
         TextSpan(children: spans),
-        maxLines: _currentView == HeliumView.month || plannerItem.allDay
+        maxLines: _currentView == PlannerView.month || plannerItem.allDay
             ? 1
             : null,
-        overflow: _currentView == HeliumView.month || plannerItem.allDay
+        overflow: _currentView == PlannerView.month || plannerItem.allDay
             ? TextOverflow.ellipsis
             : null,
       );
@@ -2541,19 +2544,15 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           item,
         ) {
           final itemDate = item.allDay
-              ? DateTime(item.start.year, item.start.month, item.start.day)
+              ? HeliumDateTime.dateOnly(item.start)
               : item.start;
-          final targetDate = DateTime(date.year, date.month, date.day);
+          final targetDate = HeliumDateTime.dateOnly(date);
 
           if (item.allDay) {
             return itemDate.isAtSameMomentAs(targetDate);
           } else {
             // Check if item falls on this date
-            final itemDay = DateTime(
-              itemDate.year,
-              itemDate.month,
-              itemDate.day,
-            );
+            final itemDay = HeliumDateTime.dateOnly(itemDate);
             return itemDay.isAtSameMomentAs(targetDate);
           }
         }).toList();
@@ -2679,7 +2678,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   void _goToToday() {
     _log.info('Today button pressed (view: $_currentView)');
-    if (_currentView == HeliumView.todos) {
+    if (_currentView == PlannerView.todos) {
       if (_plannerItemDataSource != null) {
         _todosController.goToToday(_plannerItemDataSource!.filteredHomeworks);
       }
@@ -2982,26 +2981,34 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
                       const Divider(height: 20),
 
-                      if (_currentView != HeliumView.todos) ...[
+                      if (_currentView != PlannerView.todos) ...[
                         Column(
                           children: [
                             CheckboxListTile(
                               title: Text(
-                                'Assignments',
+                                PlannerFilterType.assignments.value,
                                 style: AppStyles.menuItem(context),
                               ),
                               value: _plannerItemDataSource!.filterTypes
-                                  .contains('Assignments'),
+                                  .contains(
+                                    PlannerFilterType.assignments.value,
+                                  ),
                               onChanged: (value) {
                                 final currentTypes = List<String>.from(
                                   _plannerItemDataSource!.filterTypes,
                                 );
                                 if (value == true) {
-                                  if (!currentTypes.contains('Assignments')) {
-                                    currentTypes.add('Assignments');
+                                  if (!currentTypes.contains(
+                                    PlannerFilterType.assignments.value,
+                                  )) {
+                                    currentTypes.add(
+                                      PlannerFilterType.assignments.value,
+                                    );
                                   }
                                 } else {
-                                  currentTypes.remove('Assignments');
+                                  currentTypes.remove(
+                                    PlannerFilterType.assignments.value,
+                                  );
                                 }
                                 _plannerItemDataSource!.setFilterTypes(
                                   currentTypes,
@@ -3025,23 +3032,29 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    'Events',
+                                    PlannerFilterType.events.value,
                                     style: AppStyles.menuItem(context),
                                   ),
                                 ],
                               ),
                               value: _plannerItemDataSource!.filterTypes
-                                  .contains('Events'),
+                                  .contains(PlannerFilterType.events.value),
                               onChanged: (value) {
                                 final currentTypes = List<String>.from(
                                   _plannerItemDataSource!.filterTypes,
                                 );
                                 if (value == true) {
-                                  if (!currentTypes.contains('Events')) {
-                                    currentTypes.add('Events');
+                                  if (!currentTypes.contains(
+                                    PlannerFilterType.events.value,
+                                  )) {
+                                    currentTypes.add(
+                                      PlannerFilterType.events.value,
+                                    );
                                   }
                                 } else {
-                                  currentTypes.remove('Events');
+                                  currentTypes.remove(
+                                    PlannerFilterType.events.value,
+                                  );
                                 }
                                 _plannerItemDataSource!.setFilterTypes(
                                   currentTypes,
@@ -3062,25 +3075,31 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    'Class Schedules',
+                                    PlannerFilterType.classSchedules.value,
                                     style: AppStyles.menuItem(context),
                                   ),
                                 ],
                               ),
                               value: _plannerItemDataSource!.filterTypes
-                                  .contains('Class Schedules'),
+                                  .contains(
+                                    PlannerFilterType.classSchedules.value,
+                                  ),
                               onChanged: (value) {
                                 final currentTypes = List<String>.from(
                                   _plannerItemDataSource!.filterTypes,
                                 );
                                 if (value == true) {
                                   if (!currentTypes.contains(
-                                    'Class Schedules',
+                                    PlannerFilterType.classSchedules.value,
                                   )) {
-                                    currentTypes.add('Class Schedules');
+                                    currentTypes.add(
+                                      PlannerFilterType.classSchedules.value,
+                                    );
                                   }
                                 } else {
-                                  currentTypes.remove('Class Schedules');
+                                  currentTypes.remove(
+                                    PlannerFilterType.classSchedules.value,
+                                  );
                                 }
                                 _plannerItemDataSource!.setFilterTypes(
                                   currentTypes,
@@ -3093,23 +3112,29 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                             ),
                             CheckboxListTile(
                               title: Text(
-                                'External Calendars',
+                                PlannerFilterType.externalCalendars.value,
                                 style: AppStyles.menuItem(context),
                               ),
                               value: _plannerItemDataSource!.filterTypes
-                                  .contains('External Calendars'),
+                                  .contains(
+                                    PlannerFilterType.externalCalendars.value,
+                                  ),
                               onChanged: (value) {
                                 final currentTypes = List<String>.from(
                                   _plannerItemDataSource!.filterTypes,
                                 );
                                 if (value == true) {
                                   if (!currentTypes.contains(
-                                    'External Calendars',
+                                    PlannerFilterType.externalCalendars.value,
                                   )) {
-                                    currentTypes.add('External Calendars');
+                                    currentTypes.add(
+                                      PlannerFilterType.externalCalendars.value,
+                                    );
                                   }
                                 } else {
-                                  currentTypes.remove('External Calendars');
+                                  currentTypes.remove(
+                                    PlannerFilterType.externalCalendars.value,
+                                  );
                                 }
                                 _plannerItemDataSource!.setFilterTypes(
                                   currentTypes,
@@ -3131,15 +3156,25 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                           final statuses =
                               _plannerItemDataSource!.filterStatuses;
                           final isCompleteFilterEnabled =
-                              statuses.contains('Complete') ||
-                              statuses.contains('Incomplete');
+                              statuses.contains(
+                                PlannerFilterStatus.complete.value,
+                              ) ||
+                              statuses.contains(
+                                PlannerFilterStatus.incomplete.value,
+                              );
                           final showCompletedOnly = statuses.contains(
-                            'Complete',
+                            PlannerFilterStatus.complete.value,
                           );
                           final isGradedFilterEnabled =
-                              statuses.contains('Graded') ||
-                              statuses.contains('Ungraded');
-                          final showGradedOnly = statuses.contains('Graded');
+                              statuses.contains(
+                                PlannerFilterStatus.graded.value,
+                              ) ||
+                              statuses.contains(
+                                PlannerFilterStatus.ungraded.value,
+                              );
+                          final showGradedOnly = statuses.contains(
+                            PlannerFilterStatus.graded.value,
+                          );
 
                           void setCompleteFilterMode({
                             required bool enabled,
@@ -3148,11 +3183,17 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                             final currentStatuses = Set<String>.from(
                               _plannerItemDataSource!.filterStatuses,
                             );
-                            currentStatuses.remove('Complete');
-                            currentStatuses.remove('Incomplete');
+                            currentStatuses.remove(
+                              PlannerFilterStatus.complete.value,
+                            );
+                            currentStatuses.remove(
+                              PlannerFilterStatus.incomplete.value,
+                            );
                             if (enabled) {
                               currentStatuses.add(
-                                completeOnly ? 'Complete' : 'Incomplete',
+                                completeOnly
+                                    ? PlannerFilterStatus.complete.value
+                                    : PlannerFilterStatus.incomplete.value,
                               );
                             }
                             _plannerItemDataSource!.setFilterStatuses(
@@ -3168,11 +3209,17 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                             final currentStatuses = Set<String>.from(
                               _plannerItemDataSource!.filterStatuses,
                             );
-                            currentStatuses.remove('Graded');
-                            currentStatuses.remove('Ungraded');
+                            currentStatuses.remove(
+                              PlannerFilterStatus.graded.value,
+                            );
+                            currentStatuses.remove(
+                              PlannerFilterStatus.ungraded.value,
+                            );
                             if (enabled) {
                               currentStatuses.add(
-                                gradedOnly ? 'Graded' : 'Ungraded',
+                                gradedOnly
+                                    ? PlannerFilterStatus.graded.value
+                                    : PlannerFilterStatus.ungraded.value,
                               );
                             }
                             _plannerItemDataSource!.setFilterStatuses(
@@ -3216,9 +3263,11 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                               _CheckboxToggle(
                                 isChecked: isCompleteFilterEnabled,
                                 isToggleOn: showCompletedOnly,
-                                baseLabel: 'Complete',
-                                toggleOnLabel: 'Complete',
-                                toggleOffLabel: 'Incomplete',
+                                baseLabel: PlannerFilterStatus.complete.value,
+                                toggleOnLabel:
+                                    PlannerFilterStatus.complete.value,
+                                toggleOffLabel:
+                                    PlannerFilterStatus.incomplete.value,
                                 onCheckedChanged: (value) {
                                   setCompleteFilterMode(
                                     enabled: value ?? false,
@@ -3243,9 +3292,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                               _CheckboxToggle(
                                 isChecked: isGradedFilterEnabled,
                                 isToggleOn: showGradedOnly,
-                                baseLabel: 'Graded',
-                                toggleOnLabel: 'Graded',
-                                toggleOffLabel: 'Ungraded',
+                                baseLabel: PlannerFilterStatus.graded.value,
+                                toggleOnLabel: PlannerFilterStatus.graded.value,
+                                toggleOffLabel:
+                                    PlannerFilterStatus.ungraded.value,
                                 onCheckedChanged: (value) {
                                   setGradedFilterMode(
                                     enabled: value ?? false,
@@ -3267,7 +3317,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                   );
                                 },
                               ),
-                              buildStatusTile('Overdue'),
+                              buildStatusTile(
+                                PlannerFilterStatus.overdue.value,
+                              ),
                             ],
                           );
                         },
@@ -3368,7 +3420,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                 children: [
                   StatefulBuilder(
                     builder: (innerContext, setMenuState) {
-                      return RadioGroup<HeliumView>(
+                      return RadioGroup<PlannerView>(
                         groupValue: _currentView,
                         onChanged: (value) {
                           setState(() {
@@ -3384,18 +3436,18 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                           }
                         },
                         child: Column(
-                          children: List.generate(HeliumView.values.length, (
+                          children: List.generate(PlannerView.values.length, (
                             index,
                           ) {
-                            return RadioListTile<HeliumView>(
+                            return RadioListTile<PlannerView>(
                               title: Text(
                                 CalendarConstants
                                     .defaultViews[PlannerHelper.mapHeliumViewToApiView(
-                                  HeliumView.values[index],
+                                  PlannerView.values[index],
                                 )],
                                 style: AppStyles.formText(context),
                               ),
-                              value: HeliumView.values[index],
+                              value: PlannerView.values[index],
                               controlAffinity: ListTileControlAffinity.leading,
                               dense: true,
                               contentPadding: EdgeInsets.zero,
@@ -3443,11 +3495,11 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         decorationThickness: 2.0,
       ),
       maxLines:
-          _currentView == HeliumView.month || _currentView == HeliumView.agenda
+          _currentView == PlannerView.month || _currentView == PlannerView.agenda
           ? 1
           : null,
       overflow:
-          _currentView == HeliumView.month || _currentView == HeliumView.agenda
+          _currentView == PlannerView.month || _currentView == PlannerView.agenda
           ? TextOverflow.ellipsis
           : null,
     );
@@ -3629,4 +3681,3 @@ class _CheckboxToggle extends StatelessWidget {
     );
   }
 }
-
