@@ -7,15 +7,14 @@
 
 // FIXME: overall look-and-feel of graphs is good, but their animations are slow, speed that up
 // FIXME: in the "what grade do I need" dialog, every grade reports "not achievable" saying you'd need over 100%—this is wrong, and likely just a case where we're not /100 somewhere before passing the calculation
-// FIXME: move the "auto-adjust" graph settings checkbox to the bottom instead of the top (and maybe reword)
+// FIXME: cleanup the UX on mobile (not a ton to do, but still a blocker)
+// FIXME: check how the grade point "hover" logic works on mobile (probably not at all, which is fine)
 // TODO: use CourseTitleLabel and CategoryTitleLabel in legend and in graph settings menu
-// TODO: give the legend a bit more width
-// TODO: cleanup the UX on mobile (not a ton to do, but still a blocker
 // TODO: what other tooltips can we show when hovering grade point, in legacy UI we used to show the homework's title and category as well
-// FIXME: check how the grade point "hover" logic works on mobile
 // TODO: make the thresholds for at-risk classes (and eventually progress/pace ratio) configurable by the user
 // TODO: in "Pending Impact", make the "x in y" badge clickable, and open it up to a menu where the user can switch which course is shown
 // TODO: in "Pending Impact", based on the currently selected class, show the user which ungraded item is most impactful
+// TODO: if/when a user makes a change to a grade in the open dialog (or deletes the item), grades will be recalculated, and we need to show this updated state
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
@@ -1132,8 +1131,16 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                   : [],
             ),
           ),
-          // Legend area - compact fixed width
-          SizedBox(width: 160, child: _buildLegend(series)),
+          // Legend
+          SizedBox(
+            width: Responsive.getResponsiveValue(
+              context,
+              mobile: 160,
+              tablet: 200,
+              desktop: 240,
+            ),
+            child: _buildLegend(series),
+          ),
         ],
       ),
     );
@@ -1317,8 +1324,6 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     List<ChartDataPoint> dataSource,
     charts.ChartPointDetails pointDetails,
   ) {
-    // TODO: if/when a user makes a change to a grade in the open dialog (or deletes the item), grades will be recalculated, and we need to show this updated state
-
     final pointIndex = pointDetails.pointIndex;
 
     if (pointIndex == null || pointIndex >= dataSource.length) return;
@@ -1470,23 +1475,6 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Auto-adjust checkbox
-                      CheckboxListTile(
-                        controlAffinity: ListTileControlAffinity.leading,
-                        title: Text(
-                          'Auto-adjust to graded range',
-                          style: AppStyles.formText(context),
-                        ),
-                        value: _autoAdjustToGradedRange,
-                        onChanged: (value) {
-                          setState(() {
-                            _autoAdjustToGradedRange = value ?? false;
-                          });
-                          setMenuState(() {});
-                        },
-                        dense: true,
-                      ),
-                      const Divider(height: 20),
                       // Radio group for graph view mode
                       RadioGroup<String>(
                         groupValue: _graphViewMode,
@@ -1563,6 +1551,22 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                             ),
                           ],
                         ),
+                      ),
+                      const Divider(height: 20),
+                      CheckboxListTile(
+                        controlAffinity: ListTileControlAffinity.leading,
+                        title: Text(
+                          'Auto-adjust to graded range',
+                          style: AppStyles.formText(context),
+                        ),
+                        value: _autoAdjustToGradedRange,
+                        onChanged: (value) {
+                          setState(() {
+                            _autoAdjustToGradedRange = value ?? false;
+                          });
+                          setMenuState(() {});
+                        },
+                        dense: true,
                       ),
                     ],
                   ),

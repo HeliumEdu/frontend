@@ -129,6 +129,23 @@ class Responsive {
     }
   }
 
+  static double getResponsiveValue(
+    BuildContext context, {
+    required double mobile,
+    double? tablet,
+    double? desktop,
+  }) {
+    final deviceType = getDeviceType(context);
+    switch (deviceType) {
+      case DeviceType.desktop:
+        return desktop ?? tablet ?? mobile;
+      case DeviceType.tablet:
+        return tablet ?? mobile;
+      case DeviceType.mobile:
+        return mobile;
+    }
+  }
+
   static double getDialogWidth(BuildContext context) {
     if (isMobile(context)) {
       return MediaQuery.of(context).size.width * 0.9;
