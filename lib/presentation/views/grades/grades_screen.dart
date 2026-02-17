@@ -1137,7 +1137,6 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     int groupId,
   ) {
     final courseGroup = _getCourseGroupForId(groupId);
-    final isTouchDevice = Responsive.isTouchDevice(context);
 
     // Filter to visible series only
     final visibleSeries = series
@@ -1165,7 +1164,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
           Expanded(
             child: charts.SfCartesianChart(
               tooltipBehavior: charts.TooltipBehavior(
-                enable: !isTouchDevice,
+                enable: false,
                 header: '',
                 canShowMarker: true,
                 color: context.colorScheme.surface,
@@ -1194,7 +1193,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                     },
               ),
               trackballBehavior: charts.TrackballBehavior(
-                enable: isTouchDevice,
+                enable: true,
                 activationMode: charts.ActivationMode.singleTap,
                 lineType: charts.TrackballLineType.vertical,
                 tooltipDisplayMode: charts.TrackballDisplayMode.floatAllPoints,
@@ -1350,12 +1349,10 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     );
     final categoryTitle = _categoryTitleForId(chartPoint.categoryId);
     final categoryColor = _categoryColorForId(chartPoint.categoryId);
+    final seriesColor = _seriesColorForName(seriesName);
     final isOverallSeries = seriesName == 'Overall Grade';
-    final gradeLabel = isOverallSeries
-        ? 'Overall Grade'
-        : isTermView
-        ? 'Class Grade'
-        : 'Category Grade';
+    final isCourseSeries = isTermView && !isOverallSeries;
+    final isNonOverallSeries = !isOverallSeries;
     final classGradeAtPoint = '${chartPoint.grade.toStringAsFixed(2)}%';
 
     return Container(
@@ -1371,14 +1368,30 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '$homeworkTitle ($homeworkGradeText)',
-            style: AppStyles.standardBodyText(
-              context,
-            ).copyWith(fontWeight: FontWeight.w600),
-            overflow: TextOverflow.ellipsis,
-          ),
-          if (isTermView && categoryTitle != null) ...[
+          if (isOverallSeries)
+            if (isTermView)
+              Text(
+                'Overall • $classGradeAtPoint',
+                style: AppStyles.standardBodyText(
+                  context,
+                ).copyWith(fontWeight: FontWeight.w600),
+                overflow: TextOverflow.ellipsis,
+              )
+            else
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.category_outlined, size: 14, color: categoryColor),
+                  const SizedBox(width: 4),
+                  Text(
+                    '• $classGradeAtPoint',
+                    style: AppStyles.standardBodyText(
+                      context,
+                    ).copyWith(fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+          if (isOverallSeries && isTermView && categoryTitle != null) ...[
             const SizedBox(height: 4),
             Row(
               mainAxisSize: MainAxisSize.min,
@@ -1395,11 +1408,41 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
               ],
             ),
           ],
-          const SizedBox(height: 4),
-          Text(
-            '$gradeLabel: $classGradeAtPoint',
-            style: AppStyles.smallSecondaryText(context),
-          ),
+          if (isCourseSeries)
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.school, size: 14, color: seriesColor),
+                const SizedBox(width: 4),
+                Text(
+                  '• $classGradeAtPoint',
+                  style: AppStyles.standardBodyText(
+                    context,
+                  ).copyWith(fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          if (isNonOverallSeries) ...[
+            const SizedBox(height: 4),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.assignment_outlined,
+                  size: 13,
+                  color: context.colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text(
+                    '$homeworkTitle • $homeworkGradeText',
+                    style: AppStyles.smallSecondaryText(context),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -1762,6 +1805,29 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     if (isCategory) return Icons.category_outlined;
 
     return Icons.circle;
+  }
+
+  Color _seriesColorForName(String? name) {
+    if (name == null || name.isEmpty) return context.colorScheme.onSurface;
+    if (name == 'Overall Grade') return context.colorScheme.onSurface;
+
+    final selectedGroup = _grades.firstWhere(
+      (g) => g.id == _selectedGroupId,
+      orElse: () => _grades.first,
+    );
+
+    final matchedCourse = selectedGroup.courses.firstWhereOrNull(
+      (course) => course.title == name,
+    );
+    if (matchedCourse != null) return matchedCourse.color;
+
+    final selectedCourse = _getSelectedCourse();
+    final matchedCategory = selectedCourse?.categories.firstWhereOrNull(
+      (category) => category.title == name,
+    );
+    if (matchedCategory != null) return matchedCategory.color;
+
+    return context.colorScheme.onSurface;
   }
 
   void _showGraphSettings(BuildContext buttonContext) {
