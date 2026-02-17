@@ -10,7 +10,7 @@
     "prefer_related_applications": false,
     "icons": [
         {
-            "src": "assets/img/icon.png",
+            "src": "favicon.png",
             "sizes": "250x250",
             "type": "image/png"
         }
