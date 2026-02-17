@@ -5,7 +5,6 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-// FIXME: overall look-and-feel of graphs is good, but their animations are slow, speed that up
 // FIXME: in the "what grade do I need" dialog, every grade reports "not achievable" saying you'd need over 100%—this is wrong, and likely just a case where we're not /100 somewhere before passing the calculation
 // FIXME: cleanup the UX on mobile (not a ton to do, but still a blocker)
 // FIXME: check how the grade point "hover" logic works on mobile (probably not at all, which is fine)
@@ -16,11 +15,15 @@
 // TODO: in "Pending Impact", based on the currently selected class, show the user which ungraded item is most impactful
 // TODO: if/when a user makes a change to a grade in the open dialog (or deletes the item), grades will be recalculated, and we need to show this updated state
 
+import 'dart:convert';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/grade_category_model.dart';
 import 'package:heliumapp/data/models/planner/grade_course_group_model.dart';
@@ -110,6 +113,8 @@ class GradesProvidedScreen extends StatefulWidget {
 }
 
 class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
+  static const _savedGradeGraphSettingsKey = 'saved_grades_graph_settings';
+
   @override
   String get screenTitle => 'Grades';
 
@@ -120,6 +125,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
       10.0; // ±% tolerance for "on track" status (work vs time)
   static const double _defaultDesiredGradeBoost =
       5.0; // Default boost above current grade for calculator
+  static const double _chartAnimationDurationMs = 250;
 
   // State
   List<CourseGroupModel> _courseGroups = [];
@@ -133,6 +139,15 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
   bool _autoAdjustToGradedRange =
       false; // Fit X-axis to actual grade point dates
   bool _graphExpanded = true; // Whether the graph area is expanded
+
+  @override
+  Future<UserSettingsModel?> loadSettings() {
+    return super.loadSettings().then((settings) {
+      if (!mounted || settings == null) return settings;
+      _restoreGraphSettingsIfEnabled(settings);
+      return settings;
+    });
+  }
 
   @override
   void initState() {
@@ -1222,6 +1237,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
       yValueMapper: (point, _) => point.grade,
       color: context.colorScheme.onSurface,
       width: 2,
+      animationDuration: _chartAnimationDurationMs,
       enableTooltip: true,
       onPointTap: (pointDetails) =>
           _handlePointTap(context, dataSource, pointDetails),
@@ -1244,6 +1260,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
       yValueMapper: (point, _) => point.grade,
       color: course.color,
       width: 2,
+      animationDuration: _chartAnimationDurationMs,
       enableTooltip: true,
       onPointTap: (pointDetails) =>
           _handlePointTap(context, dataSource, pointDetails),
@@ -1266,6 +1283,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
       yValueMapper: (point, _) => point.grade,
       color: context.colorScheme.onSurface,
       width: 2,
+      animationDuration: _chartAnimationDurationMs,
       enableTooltip: true,
       onPointTap: (pointDetails) =>
           _handlePointTap(context, dataSource, pointDetails),
@@ -1288,6 +1306,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
       yValueMapper: (point, _) => point.grade,
       color: category.color,
       width: 2,
+      animationDuration: _chartAnimationDurationMs,
       enableTooltip: true,
       onPointTap: (pointDetails) =>
           _handlePointTap(context, dataSource, pointDetails),
@@ -1561,9 +1580,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                         ),
                         value: _autoAdjustToGradedRange,
                         onChanged: (value) {
-                          setState(() {
-                            _autoAdjustToGradedRange = value ?? false;
-                          });
+                          _setAutoAdjustToGradedRange(value ?? false);
                           setMenuState(() {});
                         },
                         dense: true,
@@ -1726,6 +1743,42 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
         _expandedCourseIndex = index;
       }
     });
+  }
+
+  void _setAutoAdjustToGradedRange(bool value) {
+    setState(() {
+      _autoAdjustToGradedRange = value;
+    });
+    _saveGraphSettingsIfEnabled();
+  }
+
+  void _saveGraphSettingsIfEnabled() {
+    if (!(userSettings?.rememberFilterState ?? false)) return;
+
+    final graphSettings = {'autoAdjustToGradedRange': _autoAdjustToGradedRange};
+    PrefService().setString(
+      _savedGradeGraphSettingsKey,
+      jsonEncode(graphSettings),
+    );
+  }
+
+  void _restoreGraphSettingsIfEnabled(UserSettingsModel settings) {
+    if (!settings.rememberFilterState) return;
+
+    final savedState = PrefService().getString(_savedGradeGraphSettingsKey);
+    if (savedState == null || savedState.isEmpty) return;
+
+    try {
+      final graphSettings = jsonDecode(savedState) as Map<String, dynamic>;
+      final savedAutoAdjust = graphSettings['autoAdjustToGradedRange'] as bool?;
+      if (savedAutoAdjust == null) return;
+
+      setState(() {
+        _autoAdjustToGradedRange = savedAutoAdjust;
+      });
+    } catch (_) {
+      // Ignore malformed settings and keep defaults.
+    }
   }
 
   Widget _buildCourseArea(GradeCourseModel course) {
