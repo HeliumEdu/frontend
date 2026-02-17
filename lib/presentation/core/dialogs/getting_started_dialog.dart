@@ -13,6 +13,7 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
+import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -28,13 +29,10 @@ class _GettingStartedDialogWidget extends StatelessWidget {
           Navigator.pop(context);
           context.go(AppRoute.coursesScreen);
         } else if (state is AuthError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Failed to delete example schedule: ${state.message}',
-              ),
-              backgroundColor: context.colorScheme.error,
-            ),
+          SnackBarHelper.show(
+            context,
+            'Failed to delete example schedule: ${state.message}',
+            isError: true,
           );
         }
       },
@@ -223,4 +221,3 @@ Future<void> showGettingStartedDialog({required BuildContext context}) {
     },
   );
 }
-
