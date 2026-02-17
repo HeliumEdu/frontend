@@ -12,7 +12,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
-import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/core/api_url.dart';
@@ -21,8 +20,8 @@ import 'package:heliumapp/data/models/auth/request/refresh_token_request_model.d
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/data/models/auth/token_response_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/utils/app_globals.dart';
-import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
@@ -505,19 +504,7 @@ class DioClient {
       await clearStorage();
       final context = rootNavigatorKey.currentContext;
       if (context != null && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: SelectableText(
-              message,
-              style: AppStyles.standardBodyText(
-                context,
-              ).copyWith(color: context.colorScheme.onPrimary),
-            ),
-            backgroundColor: context.colorScheme.error,
-            duration: const Duration(seconds: 4),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        SnackBarHelper.show(context, message, seconds: 4, isError: true);
 
         router.go(AppRoute.loginScreen);
       }

@@ -23,6 +23,8 @@ import 'package:meta/meta.dart';
 
 final _log = Logger('presentation.views');
 
+final rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+
 /// Provider to indicate that a screen is being displayed as a dialog.
 class DialogModeProvider extends InheritedWidget {
   final double? width;
@@ -66,8 +68,8 @@ void showScreenAsDialog(
   final dialogMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
   // Capture the initial route to detect browser navigation
-  final initialLocation =
-      router.routerDelegate.currentConfiguration.uri.toString();
+  final initialLocation = router.routerDelegate.currentConfiguration.uri
+      .toString();
 
   showDialog(
     context: context,
@@ -156,8 +158,8 @@ class _DialogRouteListenerState extends State<_DialogRouteListener> {
   }
 
   void _onRouteChanged() {
-    final currentLocation =
-        router.routerDelegate.currentConfiguration.uri.toString();
+    final currentLocation = router.routerDelegate.currentConfiguration.uri
+        .toString();
     if (currentLocation != widget.initialLocation && mounted) {
       _log.info(
         'Browser navigation detected, closing dialog: '

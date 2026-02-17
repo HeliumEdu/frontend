@@ -27,8 +27,7 @@ class MobileWebScreen extends StatefulWidget {
   State<MobileWebScreen> createState() => _MobileWebScreenState();
 }
 
-class _MobileWebScreenState
-    extends BasePageScreenState<MobileWebScreen> {
+class _MobileWebScreenState extends BasePageScreenState<MobileWebScreen> {
   @override
   String get screenTitle => 'Get the Helium App';
 
@@ -208,8 +207,10 @@ class _MobileWebScreenState
     );
 
     if (!opened && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unable to open the app store link.')),
+      showSnackBar(
+        context,
+        'Unable to open the app store link.',
+        isError: true,
       );
     }
 
