@@ -28,14 +28,14 @@ import 'package:heliumapp/data/repositories/grade_repository_impl.dart';
 import 'package:heliumapp/data/sources/course_remote_data_source.dart';
 import 'package:heliumapp/data/sources/grade_remote_data_source.dart';
 import 'package:heliumapp/presentation/bloc/attachment/attachment_bloc.dart';
-import 'package:heliumapp/presentation/bloc/planneritem/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/bloc/grade/grade_bloc.dart';
 import 'package:heliumapp/presentation/bloc/grade/grade_event.dart';
 import 'package:heliumapp/presentation/bloc/grade/grade_state.dart';
+import 'package:heliumapp/presentation/bloc/planneritem/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/dialogs/grade_calculator_dialog.dart';
-import 'package:heliumapp/presentation/views/planner/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/views/planner/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/widgets/at_risk_badge.dart';
 import 'package:heliumapp/presentation/widgets/course_title_label.dart';
 import 'package:heliumapp/presentation/widgets/empty_card.dart';
@@ -1075,7 +1075,10 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
             Expanded(
               child: Row(
                 children: [
-                  Text('Grade Trend', style: AppStyles.headingText(context)),
+                  if (!Responsive.isMobile(context))
+                    Text('Grade Trend', style: AppStyles.headingText(context)),
+                  if (Responsive.isMobile(context) && course == null)
+                    Text('Entire Term', style: AppStyles.headingText(context)),
                   if (course != null) ...[
                     const SizedBox(width: 6),
                     CourseTitleLabel(title: course.title, color: course.color),

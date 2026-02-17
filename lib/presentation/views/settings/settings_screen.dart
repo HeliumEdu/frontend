@@ -250,11 +250,11 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
                     child: LabelAndTextFormField(
-                      label: 'Email',
                       initialValue: _email,
                       keyboardType: TextInputType.emailAddress,
                       readOnly: true,
