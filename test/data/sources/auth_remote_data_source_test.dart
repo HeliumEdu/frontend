@@ -74,7 +74,7 @@ void main() {
         // GIVEN
         when(() => mockDio.post(any(), data: any(named: 'data'))).thenThrow(
           givenValidationException({
-            'username': ['This username is already taken'],
+            'email': ['This email is already taken'],
           }),
         );
 
@@ -135,11 +135,7 @@ void main() {
     group('getUser', () {
       test('returns UserModel on 200 response', () async {
         // GIVEN
-        final json = givenUserJson(
-          id: 1,
-          username: 'test_user',
-          email: 'test@heliumedu.com',
-        );
+        final json = givenUserJson(id: 1, email: 'test@heliumedu.com');
         when(
           () => mockDio.get(any()),
         ).thenAnswer((_) async => givenSuccessResponse(json));

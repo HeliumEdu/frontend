@@ -50,14 +50,12 @@ Map<String, dynamic> givenUserSettingsJson({
 /// Creates JSON data representing a user object.
 Map<String, dynamic> givenUserJson({
   int id = 1,
-  String username = '🧪 test_user',
   String email = 'test@heliumedu.com',
   String? emailChanging,
   Map<String, dynamic>? settings,
 }) {
   return {
     'id': id,
-    'username': username,
     'email': email,
     'email_changing': emailChanging,
     'settings': settings ?? givenUserSettingsJson(),
@@ -96,17 +94,11 @@ Map<String, dynamic> givenLoginRequestJson({
 
 /// Creates JSON data representing a register request.
 Map<String, dynamic> givenRegisterRequestJson({
-  String username = 'new_user',
   String email = 'newuser@test.com',
   String password = 'secure_pass_1!',
   String timeZone = 'America/New_York',
 }) {
-  return {
-    'username': username,
-    'email': email,
-    'password': password,
-    'time_zone': timeZone,
-  };
+  return {'email': email, 'password': password, 'time_zone': timeZone};
 }
 
 /// Verifies that a [UserModel] matches the expected JSON data.

@@ -76,7 +76,7 @@ void main() {
         build: () {
           when(
             () => mockAuthRepository.register(any()),
-          ).thenThrow(ValidationException(message: 'Username already exists'));
+          ).thenThrow(ValidationException(message: 'Email already exists'));
           return authBloc;
         },
         act: (bloc) => bloc.add(
@@ -87,7 +87,7 @@ void main() {
           isA<AuthError>().having(
             (e) => e.message,
             'message',
-            'Username already exists',
+            'Email already exists',
           ),
         ],
       );
