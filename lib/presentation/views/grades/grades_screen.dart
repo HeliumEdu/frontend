@@ -1168,6 +1168,11 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                 enable: !isTouchDevice,
                 header: '',
                 canShowMarker: true,
+                color: context.colorScheme.surface,
+                borderColor: context.colorScheme.outline.withValues(alpha: 0.3),
+                borderWidth: 1,
+                elevation: 0,
+                shadowColor: Colors.transparent,
                 builder:
                     (
                       dynamic data,
@@ -1211,7 +1216,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                         ),
                         decoration: BoxDecoration(
                           color: context.colorScheme.surface,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(5),
                           border: Border.all(
                             color: context.colorScheme.outline.withValues(
                               alpha: 0.3,
