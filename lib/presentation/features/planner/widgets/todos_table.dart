@@ -242,25 +242,12 @@ class TodosTableState extends State<TodosTable> {
   // 6. Actions
   // 7. Class
 
-  bool _shouldShowPriorityColumn(BuildContext context) {
-    return MediaQuery.of(context).size.width >= 1150;
-  }
-
   bool _shouldShowAttachmentsColumn(BuildContext context) {
     return MediaQuery.of(context).size.width >= 1000;
   }
 
   bool _shouldShowResourcesColumn(BuildContext context) {
     return MediaQuery.of(context).size.width >= 950;
-  }
-
-  bool _shouldShowCategoryColumn(BuildContext context) {
-    return MediaQuery.of(context).size.width >= 900;
-  }
-
-  bool _shouldShowGradeColumn(BuildContext context) {
-    return MediaQuery.of(context).size.width >= 850 ||
-        Responsive.isTouchDevice(context);
   }
 
   bool _shouldHideActionsColumn(BuildContext context) {
@@ -271,11 +258,15 @@ class TodosTableState extends State<TodosTable> {
     return MediaQuery.of(context).size.width < 800;
   }
 
-  bool _shouldShowClassColumn(BuildContext context) {
-    return MediaQuery.of(context).size.width >= 625;
+  bool _shouldShowSortColumn(TodosSortColumn column) {
+    if (column.minViewportWidth == null) return true;
+    return MediaQuery.of(context).size.width >= column.minViewportWidth! ||
+        (column.showOnTouchDevice && Responsive.isTouchDevice(context));
   }
 
   Widget _buildTableHeader() {
+    final isMobile = Responsive.isMobile(context);
+
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -287,30 +278,35 @@ class TodosTableState extends State<TodosTable> {
       child: Row(
         children: [
           SizedBox(
-            width: 40,
-            child: _buildSortableHeader('', 'completed', isCheckbox: true),
+            width: TodosSortColumn.completed.widthForLayout(
+              isMobile: isMobile,
+            )!,
+            child: _buildSortableHeader(TodosSortColumn.completed),
           ),
-          Expanded(flex: 3, child: _buildSortableHeader('Title', 'title')),
+          Expanded(flex: 3, child: _buildSortableHeader(TodosSortColumn.title)),
           SizedBox(
-            width: 125,
-            child: _buildSortableHeader('Due Date', 'dueDate'),
+            width: TodosSortColumn.dueDate.widthForLayout(isMobile: isMobile)!,
+            child: _buildSortableHeader(TodosSortColumn.dueDate),
           ),
-          if (_shouldShowClassColumn(context))
-            Expanded(flex: 2, child: _buildSortableHeader('Class', 'class')),
-          if (_shouldShowCategoryColumn(context))
+          if (_shouldShowSortColumn(TodosSortColumn.className))
             Expanded(
               flex: 2,
-              child: _buildSortableHeader('Category', 'category'),
+              child: _buildSortableHeader(TodosSortColumn.className),
             ),
-          if (_shouldShowPriorityColumn(context))
+          if (_shouldShowSortColumn(TodosSortColumn.category))
             Expanded(
               flex: 2,
-              child: _buildSortableHeader('Priority', 'priority'),
+              child: _buildSortableHeader(TodosSortColumn.category),
             ),
-          if (_shouldShowGradeColumn(context))
+          if (_shouldShowSortColumn(TodosSortColumn.priority))
+            Expanded(
+              flex: 2,
+              child: _buildSortableHeader(TodosSortColumn.priority),
+            ),
+          if (_shouldShowSortColumn(TodosSortColumn.grade))
             SizedBox(
-              width: Responsive.isMobile(context) ? 90 : 98,
-              child: _buildSortableHeader('Grade', 'grade'),
+              width: TodosSortColumn.grade.widthForLayout(isMobile: isMobile)!,
+              child: _buildSortableHeader(TodosSortColumn.grade),
             ),
           if (_shouldShowResourcesColumn(context))
             const SizedBox(width: 30, child: SizedBox.shrink()),
@@ -544,11 +540,7 @@ class TodosTableState extends State<TodosTable> {
     );
   }
 
-  Widget _buildSortableHeader(
-    String label,
-    String column, {
-    bool isCheckbox = false,
-  }) {
+  Widget _buildSortableHeader(TodosSortColumn column) {
     final controller = widget.controller;
     final isActive = controller.sortColumn == column;
 
@@ -565,11 +557,11 @@ class TodosTableState extends State<TodosTable> {
           }
         },
         child: Row(
-          mainAxisAlignment: isCheckbox
+          mainAxisAlignment: column.isCheckbox
               ? MainAxisAlignment.center
               : MainAxisAlignment.start,
           children: [
-            if (isCheckbox)
+            if (column.isCheckbox)
               Icon(
                 Icons.check_box_outline_blank,
                 size: 16,
@@ -577,7 +569,7 @@ class TodosTableState extends State<TodosTable> {
               )
             else
               Text(
-                label,
+                column.label,
                 style: AppStyles.standardBodyText(
                   context,
                 ).copyWith(color: context.colorScheme.onSurface),
@@ -609,7 +601,7 @@ class TodosTableState extends State<TodosTable> {
       int comparison = 0;
 
       switch (controller.sortColumn) {
-        case 'completed':
+        case TodosSortColumn.completed:
           final isCompletedA = dataSource.isHomeworkCompleted(a);
           final isCompletedB = dataSource.isHomeworkCompleted(b);
           comparison = isCompletedA == isCompletedB
@@ -618,13 +610,13 @@ class TodosTableState extends State<TodosTable> {
               ? 1
               : -1;
           break;
-        case 'title':
+        case TodosSortColumn.title:
           comparison = a.title.toLowerCase().compareTo(b.title.toLowerCase());
           break;
-        case 'dueDate':
+        case TodosSortColumn.dueDate:
           comparison = a.start.compareTo(b.start);
           break;
-        case 'class':
+        case TodosSortColumn.className:
           final courseA = courses.firstWhere(
             (c) => c.id == a.course.id,
             orElse: () => courses.first,
@@ -637,7 +629,7 @@ class TodosTableState extends State<TodosTable> {
             courseB.title.toLowerCase(),
           );
           break;
-        case 'category':
+        case TodosSortColumn.category:
           final catA = categoriesMap.containsKey(a.category.id)
               ? categoriesMap[a.category.id]!.title
               : '';
@@ -646,10 +638,10 @@ class TodosTableState extends State<TodosTable> {
               : '';
           comparison = catA.toLowerCase().compareTo(catB.toLowerCase());
           break;
-        case 'priority':
+        case TodosSortColumn.priority:
           comparison = (a.priority).compareTo(b.priority);
           break;
-        case 'grade':
+        case TodosSortColumn.grade:
           final isCompletedA = dataSource.isHomeworkCompleted(a);
           final isCompletedB = dataSource.isHomeworkCompleted(b);
 
@@ -743,19 +735,19 @@ class TodosTableState extends State<TodosTable> {
                 _buildTitleColumn(homework, isCompleted),
                 const SizedBox(width: 4),
                 _buildDueDateColumn(homework, userSettings),
-                if (_shouldShowClassColumn(context)) ...[
+                if (_shouldShowSortColumn(TodosSortColumn.className)) ...[
                   const SizedBox(width: 4),
                   _buildClassColumn(course),
                 ],
-                if (_shouldShowCategoryColumn(context)) ...[
+                if (_shouldShowSortColumn(TodosSortColumn.category)) ...[
                   const SizedBox(width: 4),
                   _buildCategoryColumn(category),
                 ],
-                if (_shouldShowPriorityColumn(context)) ...[
+                if (_shouldShowSortColumn(TodosSortColumn.priority)) ...[
                   const SizedBox(width: 4),
                   _buildPriorityColumn(homework),
                 ],
-                if (_shouldShowGradeColumn(context)) ...[
+                if (_shouldShowSortColumn(TodosSortColumn.grade)) ...[
                   const SizedBox(width: 4),
                   _buildGradeColumn(homework, userSettings),
                 ],
@@ -806,8 +798,10 @@ class TodosTableState extends State<TodosTable> {
     dynamic course,
     UserSettingsModel userSettings,
   ) {
+    final isMobile = Responsive.isMobile(context);
+
     return SizedBox(
-      width: 40,
+      width: TodosSortColumn.completed.widthForLayout(isMobile: isMobile)!,
       child: Checkbox(
         value: isCompleted,
         onChanged: (value) {
@@ -851,8 +845,10 @@ class TodosTableState extends State<TodosTable> {
     HomeworkModel homework,
     UserSettingsModel userSettings,
   ) {
+    final isMobile = Responsive.isMobile(context);
+
     return SizedBox(
-      width: 125,
+      width: TodosSortColumn.dueDate.widthForLayout(isMobile: isMobile)!,
       child: SelectableText(
         HeliumDateTime.formatDateAndTimeForTodos(
           HeliumDateTime.toLocal(homework.start, userSettings.timeZone),
@@ -949,8 +945,10 @@ class TodosTableState extends State<TodosTable> {
     HomeworkModel homework,
     UserSettingsModel userSettings,
   ) {
+    final isMobile = Responsive.isMobile(context);
+
     return SizedBox(
-      width: Responsive.isMobile(context) ? 90 : 98,
+      width: TodosSortColumn.grade.widthForLayout(isMobile: isMobile)!,
       child: homework.completed
           ? GradeLabel(
               grade: GradeHelper.gradeForDisplay(homework.currentGrade),
