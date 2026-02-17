@@ -10,46 +10,46 @@ import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 
 void main() {
-  group('Format', () {
+  group('format helpers', () {
     group('reminderOffset', () {
       test('formats singular minute offset', () {
         final reminder = _createReminder(offset: 1, offsetType: 0);
-        expect(Format.reminderOffset(reminder), '1 minute');
+        expect(reminderOffset(reminder), '1 minute');
       });
 
       test('formats plural minutes offset', () {
         final reminder = _createReminder(offset: 15, offsetType: 0);
-        expect(Format.reminderOffset(reminder), '15 minutes');
+        expect(reminderOffset(reminder), '15 minutes');
       });
 
       test('formats singular hour offset', () {
         final reminder = _createReminder(offset: 1, offsetType: 1);
-        expect(Format.reminderOffset(reminder), '1 hour');
+        expect(reminderOffset(reminder), '1 hour');
       });
 
       test('formats plural hours offset', () {
         final reminder = _createReminder(offset: 2, offsetType: 1);
-        expect(Format.reminderOffset(reminder), '2 hours');
+        expect(reminderOffset(reminder), '2 hours');
       });
 
       test('formats singular day offset', () {
         final reminder = _createReminder(offset: 1, offsetType: 2);
-        expect(Format.reminderOffset(reminder), '1 day');
+        expect(reminderOffset(reminder), '1 day');
       });
 
       test('formats plural days offset', () {
         final reminder = _createReminder(offset: 3, offsetType: 2);
-        expect(Format.reminderOffset(reminder), '3 days');
+        expect(reminderOffset(reminder), '3 days');
       });
 
       test('formats singular week offset', () {
         final reminder = _createReminder(offset: 1, offsetType: 3);
-        expect(Format.reminderOffset(reminder), '1 week');
+        expect(reminderOffset(reminder), '1 week');
       });
 
       test('formats plural weeks offset', () {
         final reminder = _createReminder(offset: 2, offsetType: 3);
-        expect(Format.reminderOffset(reminder), '2 weeks');
+        expect(reminderOffset(reminder), '2 weeks');
       });
     });
   });
@@ -73,10 +73,7 @@ void main() {
   });
 }
 
-ReminderModel _createReminder({
-  required int offset,
-  required int offsetType,
-}) {
+ReminderModel _createReminder({required int offset, required int offsetType}) {
   return ReminderModel(
     id: 1,
     title: 'Test Reminder',

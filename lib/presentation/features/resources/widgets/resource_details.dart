@@ -24,7 +24,7 @@ import 'package:heliumapp/presentation/ui/components/drop_down.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
-import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/presentation/features/resources/constants/resource_constants.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -253,9 +253,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
     );
   }
 
-  void _populateInitialStateData(
-    ResourceScreenDataFetched state,
-  ) {
+  void _populateInitialStateData(ResourceScreenDataFetched state) {
     setState(() {
       _courses = state.courses;
       Sort.byTitle(_courses);

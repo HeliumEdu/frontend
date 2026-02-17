@@ -26,52 +26,49 @@ class TestModel extends BaseTitledModel {
 }
 
 void main() {
-  group('HeliumConversion', () {
+  group('conversion helpers', () {
     group('toDouble', () {
       test('converts numeric types to double', () {
-        expect(HeliumConversion.toDouble(42), 42.0);
-        expect(HeliumConversion.toDouble(3.14), 3.14);
-        expect(HeliumConversion.toDouble('3.14'), 3.14);
-        expect(HeliumConversion.toDouble('42'), 42.0);
-        expect(HeliumConversion.toDouble(-5), -5.0);
-        expect(HeliumConversion.toDouble('-5.5'), -5.5);
-        expect(HeliumConversion.toDouble(0), 0.0);
+        expect(toDouble(42), 42.0);
+        expect(toDouble(3.14), 3.14);
+        expect(toDouble('3.14'), 3.14);
+        expect(toDouble('42'), 42.0);
+        expect(toDouble(-5), -5.0);
+        expect(toDouble('-5.5'), -5.5);
+        expect(toDouble(0), 0.0);
       });
 
       test('returns null for invalid input', () {
-        expect(HeliumConversion.toDouble(null), isNull);
-        expect(HeliumConversion.toDouble(''), isNull);
-        expect(HeliumConversion.toDouble('not a number'), isNull);
-        expect(HeliumConversion.toDouble([1, 2, 3]), isNull);
+        expect(toDouble(null), isNull);
+        expect(toDouble(''), isNull);
+        expect(toDouble('not a number'), isNull);
+        expect(toDouble([1, 2, 3]), isNull);
       });
     });
 
     group('toInt', () {
       test('converts to int', () {
-        expect(HeliumConversion.toInt(42), 42);
-        expect(HeliumConversion.toInt(3.14), 3); // Truncates
-        expect(HeliumConversion.toInt('42'), 42);
-        expect(HeliumConversion.toInt(-5), -5);
-        expect(HeliumConversion.toInt('-5'), -5);
-        expect(HeliumConversion.toInt(0), 0);
+        expect(toInt(42), 42);
+        expect(toInt(3.14), 3); // Truncates
+        expect(toInt('42'), 42);
+        expect(toInt(-5), -5);
+        expect(toInt('-5'), -5);
+        expect(toInt(0), 0);
       });
 
       test('returns null for invalid input', () {
-        expect(HeliumConversion.toInt(null), isNull);
-        expect(HeliumConversion.toInt(''), isNull);
-        expect(HeliumConversion.toInt('3.14'), isNull); // No decimal strings
-        expect(HeliumConversion.toInt('not a number'), isNull);
-        expect(HeliumConversion.toInt({'key': 'value'}), isNull);
+        expect(toInt(null), isNull);
+        expect(toInt(''), isNull);
+        expect(toInt('3.14'), isNull); // No decimal strings
+        expect(toInt('not a number'), isNull);
+        expect(toInt({'key': 'value'}), isNull);
       });
     });
 
     group('idOrEntityFrom', () {
       test('creates IdOrEntity from int', () {
         // WHEN
-        final result = HeliumConversion.idOrEntityFrom<TestModel>(
-          42,
-          TestModel.fromJson,
-        );
+        final result = idOrEntityFrom<TestModel>(42, TestModel.fromJson);
 
         // THEN
         expect(result.id, equals(42));
@@ -80,10 +77,7 @@ void main() {
 
       test('creates IdOrEntity from String id', () {
         // WHEN
-        final result = HeliumConversion.idOrEntityFrom<TestModel>(
-          '123',
-          TestModel.fromJson,
-        );
+        final result = idOrEntityFrom<TestModel>('123', TestModel.fromJson);
 
         // THEN
         expect(result.id, equals(123));
@@ -95,10 +89,7 @@ void main() {
         final data = {'id': 1, 'title': 'Test Item', 'description': 'Desc'};
 
         // WHEN
-        final result = HeliumConversion.idOrEntityFrom<TestModel>(
-          data,
-          TestModel.fromJson,
-        );
+        final result = idOrEntityFrom<TestModel>(data, TestModel.fromJson);
 
         // THEN
         expect(result.id, equals(1));
@@ -110,10 +101,7 @@ void main() {
       test('throws HeliumException for invalid data format', () {
         // WHEN/THEN
         expect(
-          () => HeliumConversion.idOrEntityFrom<TestModel>(
-            ['invalid'],
-            TestModel.fromJson,
-          ),
+          () => idOrEntityFrom<TestModel>(['invalid'], TestModel.fromJson),
           throwsA(isA<HeliumException>()),
         );
       });
@@ -121,14 +109,11 @@ void main() {
 
     group('idOrEntityListFrom', () {
       test('creates list from mixed id types and entities', () {
-        final result = HeliumConversion.idOrEntityListFrom<TestModel>(
-          [
-            1, // int id
-            '10', // String id
-            {'id': 2, 'title': 'Item 2'}, // entity map
-          ],
-          TestModel.fromJson,
-        );
+        final result = idOrEntityListFrom<TestModel>([
+          1, // int id
+          '10', // String id
+          {'id': 2, 'title': 'Item 2'}, // entity map
+        ], TestModel.fromJson);
 
         expect(result.length, 3);
         expect(result[0].id, 1);
@@ -140,7 +125,7 @@ void main() {
       });
 
       test('returns empty list for empty input', () {
-        expect(HeliumConversion.idOrEntityListFrom<TestModel>([], TestModel.fromJson), isEmpty);
+        expect(idOrEntityListFrom<TestModel>([], TestModel.fromJson), isEmpty);
       });
     });
   });

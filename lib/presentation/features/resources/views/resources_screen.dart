@@ -36,12 +36,11 @@ import 'package:heliumapp/presentation/ui/components/resource_title_label.dart';
 import 'package:heliumapp/presentation/ui/layout/mobile_gesture_detector.dart';
 import 'package:heliumapp/presentation/ui/components/pill_badge.dart';
 import 'package:heliumapp/presentation/ui/layout/responsive_card_grid.dart';
-import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/presentation/features/resources/constants/resource_constants.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 
 class ResourcesScreen extends StatelessWidget {
   final DioClient _dioClient = DioClient();
@@ -235,13 +234,11 @@ class _ResourcesScreenState
   Widget buildMainArea(BuildContext context) {
     return BlocBuilder<ResourceBloc, ResourceState>(
       builder: (context, state) {
-        if (state is ResourcesLoading &&
-            state.origin == EventOrigin.screen) {
+        if (state is ResourcesLoading && state.origin == EventOrigin.screen) {
           return const LoadingIndicator();
         }
 
-        if (state is ResourcesError &&
-            state.origin == EventOrigin.screen) {
+        if (state is ResourcesError && state.origin == EventOrigin.screen) {
           return ErrorCard(
             message: state.message!,
             onReload: () {
@@ -288,9 +285,7 @@ class _ResourcesScreenState
     );
   }
 
-  void _populateInitialStateData(
-    ResourcesScreenDataFetched state,
-  ) {
+  void _populateInitialStateData(ResourcesScreenDataFetched state) {
     setState(() {
       _resourceGroups = state.resourceGroups;
       Sort.byTitle(_resourceGroups);
@@ -465,4 +460,3 @@ class _ResourcesScreenState
     );
   }
 }
-

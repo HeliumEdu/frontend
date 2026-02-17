@@ -6,6 +6,5 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 class AppAssets {
-  static const String iconImagePath = 'assets/img/icon.png';
   static const String logoImagePath = 'assets/img/logo.png';
 }
