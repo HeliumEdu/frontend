@@ -43,13 +43,25 @@ class CheckboxToggleWidget extends StatelessWidget {
       controlAffinity: ListTileControlAffinity.leading,
       dense: true,
       contentPadding: EdgeInsets.zero,
-      secondary: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: !isChecked ? onToggleTapWhenDisabled : null,
-        child: Switch(
-          value: isToggleOn,
-          onChanged: isChecked ? onToggleChanged : null,
-        ),
+      secondary: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Only',
+            style: AppStyles.smallSecondaryTextLight(
+              context,
+            ).copyWith(color: Theme.of(context).colorScheme.onSurface),
+          ),
+          const SizedBox(width: 6),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: !isChecked ? onToggleTapWhenDisabled : null,
+            child: Switch(
+              value: isToggleOn,
+              onChanged: isChecked ? onToggleChanged : null,
+            ),
+          ),
+        ],
       ),
     );
   }
