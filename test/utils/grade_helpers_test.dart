@@ -97,6 +97,23 @@ void main() {
         expect(result.neededGrade, closeTo(83.33, 0.01));
       });
 
+      test('supports fractional category grades (0-1 scale)', () {
+        final categories = [
+          _createCategory(id: 1, title: 'Tests', weight: 30, grade: 0.8),
+          _createCategory(id: 2, title: 'Homework', weight: 40, grade: 0.9),
+          _createCategory(id: 3, title: 'Final', weight: 30, grade: -1),
+        ];
+
+        final result = GradeHelper.calculateNeededGrade(
+          categories: categories,
+          targetCategoryId: 3,
+          desiredOverallGrade: 85,
+        );
+
+        expect(result.isAchievable, true);
+        expect(result.neededGrade, closeTo(83.33, 0.01));
+      });
+
       test('detects already above target (negative needed grade)', () {
         final categories = [
           _createCategory(id: 1, title: 'Tests', weight: 70, grade: 95),
@@ -110,8 +127,8 @@ void main() {
         );
 
         expect(result.isAchievable, true);
+        expect(result.state, NeededGradeState.aboveTarget);
         expect(result.neededGrade, lessThan(0));
-        expect(result.message, contains('already above'));
       });
 
       test('detects unachievable grade (over 100%)', () {
@@ -127,6 +144,7 @@ void main() {
         );
 
         expect(result.isAchievable, false);
+        expect(result.state, NeededGradeState.unachievable);
         expect(result.neededGrade, greaterThan(100));
       });
 
@@ -224,7 +242,7 @@ void main() {
         );
 
         expect(result.isAchievable, false);
-        expect(result.message, contains('no weight'));
+        expect(result.state, NeededGradeState.targetCategoryHasNoWeight);
 
         // Weights don't sum to 100%
         categories = [
@@ -239,7 +257,7 @@ void main() {
         );
 
         expect(result.isAchievable, false);
-        expect(result.message, contains('do not add up to 100%'));
+        expect(result.state, NeededGradeState.invalidTotalWeight);
 
         // Floating point tolerance (should succeed)
         categories = [
@@ -267,7 +285,10 @@ void main() {
           _createCategory(id: 3, title: 'Final', weight: 30, grade: 88),
         ];
 
-        expect(GradeHelper.calculateMaxPossibleGrade(categories), closeTo(87.4, 0.01));
+        expect(
+          GradeHelper.calculateMaxPossibleGrade(categories),
+          closeTo(87.4, 0.01),
+        );
 
         // Mixed graded/ungraded
         categories = [
@@ -275,7 +296,10 @@ void main() {
           _createCategory(id: 2, title: 'Final', weight: 50, grade: -1),
         ];
 
-        expect(GradeHelper.calculateMaxPossibleGrade(categories), closeTo(90, 0.01));
+        expect(
+          GradeHelper.calculateMaxPossibleGrade(categories),
+          closeTo(90, 0.01),
+        );
 
         // All ungraded
         categories = [
@@ -283,7 +307,23 @@ void main() {
           _createCategory(id: 2, title: 'Final', weight: 50, grade: -1),
         ];
 
-        expect(GradeHelper.calculateMaxPossibleGrade(categories), closeTo(100, 0.01));
+        expect(
+          GradeHelper.calculateMaxPossibleGrade(categories),
+          closeTo(100, 0.01),
+        );
+      });
+
+      test('supports fractional category grades (0-1 scale)', () {
+        final categories = [
+          _createCategory(id: 1, title: 'Tests', weight: 40, grade: 0.85),
+          _createCategory(id: 2, title: 'Homework', weight: 30, grade: 0.9),
+          _createCategory(id: 3, title: 'Final', weight: 30, grade: -1),
+        ];
+
+        expect(
+          GradeHelper.calculateMaxPossibleGrade(categories),
+          closeTo(91, 0.01),
+        );
       });
     });
 
@@ -296,7 +336,10 @@ void main() {
           _createCategory(id: 3, title: 'Final', weight: 30, grade: 88),
         ];
 
-        expect(GradeHelper.calculateMinPossibleGrade(categories), closeTo(87.4, 0.01));
+        expect(
+          GradeHelper.calculateMinPossibleGrade(categories),
+          closeTo(87.4, 0.01),
+        );
 
         // Mixed graded/ungraded
         categories = [
@@ -304,7 +347,10 @@ void main() {
           _createCategory(id: 2, title: 'Final', weight: 50, grade: -1),
         ];
 
-        expect(GradeHelper.calculateMinPossibleGrade(categories), closeTo(40, 0.01));
+        expect(
+          GradeHelper.calculateMinPossibleGrade(categories),
+          closeTo(40, 0.01),
+        );
 
         // All ungraded
         categories = [
@@ -312,7 +358,23 @@ void main() {
           _createCategory(id: 2, title: 'Final', weight: 50, grade: -1),
         ];
 
-        expect(GradeHelper.calculateMinPossibleGrade(categories), closeTo(0, 0.01));
+        expect(
+          GradeHelper.calculateMinPossibleGrade(categories),
+          closeTo(0, 0.01),
+        );
+      });
+
+      test('supports fractional category grades (0-1 scale)', () {
+        final categories = [
+          _createCategory(id: 1, title: 'Tests', weight: 40, grade: 0.85),
+          _createCategory(id: 2, title: 'Homework', weight: 30, grade: 0.9),
+          _createCategory(id: 3, title: 'Final', weight: 30, grade: -1),
+        ];
+
+        expect(
+          GradeHelper.calculateMinPossibleGrade(categories),
+          closeTo(61, 0.01),
+        );
       });
     });
   });
