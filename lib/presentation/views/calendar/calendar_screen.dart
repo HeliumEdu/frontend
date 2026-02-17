@@ -2931,8 +2931,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                 onCheckedChanged: (value) {
                                   setCompleteFilterMode(
                                     enabled: value ?? false,
-                                    // Default to incomplete-only when enabling via checkbox.
-                                    completeOnly: false,
+                                    // Default to complete-only when enabling via checkbox.
+                                    completeOnly: true,
                                   );
                                 },
                                 onToggleChanged: (value) {
@@ -2958,8 +2958,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                 onCheckedChanged: (value) {
                                   setGradedFilterMode(
                                     enabled: value ?? false,
-                                    // Default to ungraded-only when enabling via checkbox.
-                                    gradedOnly: false,
+                                    // Default to graded-only when enabling via checkbox.
+                                    gradedOnly: true,
                                   );
                                 },
                                 onToggleChanged: (value) {
