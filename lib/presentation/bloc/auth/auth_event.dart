@@ -22,10 +22,10 @@ class RegisterEvent extends AuthEvent {
 }
 
 class LoginEvent extends AuthEvent {
-  final String username;
+  final String email;
   final String password;
 
-  LoginEvent({required this.username, required this.password});
+  LoginEvent({required this.email, required this.password});
 }
 
 class GoogleLoginEvent extends AuthEvent {}
@@ -70,16 +70,16 @@ class DeleteAccountEvent extends AuthEvent {
 }
 
 class VerifyEmailEvent extends AuthEvent {
-  final String username;
+  final String email;
   final String code;
 
-  VerifyEmailEvent({required this.username, required this.code});
+  VerifyEmailEvent({required this.email, required this.code});
 }
 
 class ResendVerificationEvent extends AuthEvent {
-  final String username;
+  final String email;
 
-  ResendVerificationEvent({required this.username});
+  ResendVerificationEvent({required this.email});
 }
 
 class DeleteExampleScheduleEvent extends AuthEvent {}

@@ -44,7 +44,6 @@ class MockModels {
   /// Creates a mock [UserModel] with default or custom values.
   static UserModel createUser({
     int id = 1,
-    String username = 'testuser',
     String email = 'test@example.com',
     String? emailChanging,
     UserSettingsModel? settings,
@@ -53,7 +52,6 @@ class MockModels {
     _ensureTzInitialized();
     return UserModel(
       id: id,
-      username: username,
       email: email,
       emailChanging: emailChanging,
       settings: settings ?? createUserSettings(),

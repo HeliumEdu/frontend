@@ -116,11 +116,11 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
               seconds: 6,
             );
 
-            final username = state.username;
-            if (username == null || username.isEmpty) {
+            final email = state.email;
+            if (email == null || email.isEmpty) {
               showSnackBar(
                 context,
-                'Registration succeeded, but we could not load your username. Please log in to continue.',
+                'Registration succeeded, but we could not load your email. Please log in to continue.',
                 isError: true,
                 seconds: 6,
               );
@@ -129,7 +129,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
 
             if (!context.mounted) return;
             context.go(
-              '${AppRoute.verifyEmailScreen}?username=${Uri.encodeComponent(username)}',
+              '${AppRoute.verifyEmailScreen}?email=${Uri.encodeComponent(email)}',
             );
           } else if (state is AuthError) {
             showSnackBar(context, state.message!, isError: true, seconds: 6);

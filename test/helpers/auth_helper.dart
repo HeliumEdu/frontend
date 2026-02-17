@@ -112,7 +112,6 @@ Map<String, dynamic> givenRegisterRequestJson({
 /// Verifies that a [UserModel] matches the expected JSON data.
 void verifyUserMatchesJson(UserModel user, Map<String, dynamic> json) {
   expect(user.id, equals(json['id']));
-  expect(user.username, equals(json['username']));
   expect(user.email, equals(json['email']));
   expect(user.emailChanging, equals(json['email_changing']));
 
@@ -145,10 +144,7 @@ void verifyUserSettingsMatchesJson(
     settings.colorByCategory,
     equals(json['calendar_use_category_colors']),
   );
-  expect(
-    settings.rememberFilterState,
-    equals(json['remember_filter_state']),
-  );
+  expect(settings.rememberFilterState, equals(json['remember_filter_state']));
   expect(settings.privateSlug, equals(json['private_slug']));
 }
 

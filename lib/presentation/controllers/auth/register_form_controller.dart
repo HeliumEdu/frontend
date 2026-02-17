@@ -11,7 +11,6 @@ import 'package:heliumapp/presentation/controllers/auth/credentials_form_control
 import 'package:heliumapp/presentation/controllers/core/basic_form_controller.dart';
 
 class SignupFormController extends CredentialsFormController {
-  final TextEditingController emailController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
   bool isConfirmPasswordVisible = false;
@@ -24,7 +23,6 @@ class SignupFormController extends CredentialsFormController {
 
   @override
   void dispose() {
-    emailController.dispose();
     confirmPasswordController.dispose();
 
     super.dispose();
@@ -34,7 +32,6 @@ class SignupFormController extends CredentialsFormController {
   void clearForm() {
     super.clearForm();
 
-    emailController.clear();
     confirmPasswordController.clear();
     agreeToTerms = false;
     selectedTimeZone = 'Etc/UTC';

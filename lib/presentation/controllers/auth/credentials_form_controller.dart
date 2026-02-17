@@ -9,19 +9,19 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/presentation/controllers/core/basic_form_controller.dart';
 
 class CredentialsFormController extends BasicFormController {
-  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool isPasswordVisible = false;
 
   @mustCallSuper
   void dispose() {
-    usernameController.dispose();
+    emailController.dispose();
     passwordController.dispose();
   }
 
   @mustCallSuper
   void clearForm() {
-    usernameController.clear();
+    emailController.clear();
     passwordController.clear();
   }
 }

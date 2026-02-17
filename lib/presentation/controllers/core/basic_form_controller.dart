@@ -89,20 +89,6 @@ class BasicFormController {
     return null;
   }
 
-  static String? validateUsername(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'This field is required';
-    }
-    if (value.length >= 30) {
-      return 'Username must be less than 30 characters';
-    }
-    final usernameRegExp = RegExp(r'^[A-Za-z0-9+\-_.]+$');
-    if (!usernameRegExp.hasMatch(value)) {
-      return 'Username can only include letters, numbers, or +-_.';
-    }
-    return null;
-  }
-
   static String? validatePassword(String? value) {
     if (value == null || value.isEmpty) {
       return 'This field is required';

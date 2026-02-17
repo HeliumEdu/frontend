@@ -62,7 +62,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       final response = await authRepository.register(request);
 
-      emit(AuthRegistered(username: response.username));
+      emit(AuthRegistered(email: response.email));
     } on HeliumException catch (e) {
       emit(AuthError(message: e.message));
     } catch (e) {
@@ -77,7 +77,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
 
     try {
-      await authRepository.verifyEmail(event.username, event.code);
+      await authRepository.verifyEmail(event.email, event.code);
 
       emit(AuthLoggedIn());
     } on HeliumException catch (e) {
@@ -104,7 +104,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
 
     try {
-      await authRepository.resendVerificationEmail(event.username);
+      await authRepository.resendVerificationEmail(event.email);
 
       emit(AuthVerificationResent());
     } on HeliumException catch (e) {
@@ -158,7 +158,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     try {
       final request = LoginRequestModel(
-        username: event.username,
+        email: event.email,
         password: event.password,
       );
 
@@ -168,10 +168,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } on HeliumException catch (e) {
       // Check for inactive account error
       if (e.code == 'account_inactive') {
-        final username = e.details is Map
-            ? e.details['username'] ?? event.username
-            : event.username;
-        emit(AuthAccountInactive(message: e.message, username: username));
+        final email = e.details is Map
+            ? e.details['email'] ?? event.email
+            : event.email;
+        emit(AuthAccountInactive(message: e.message, email: email));
       } else {
         emit(
           AuthError(

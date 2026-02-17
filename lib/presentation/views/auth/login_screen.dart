@@ -111,7 +111,9 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
 
             if (!isSetupComplete) {
               if (wasOAuthFlow) {
-                context.replace('${AppRoute.setupAccountScreen}?auto_detect_tz=true');
+                context.replace(
+                  '${AppRoute.setupAccountScreen}?auto_detect_tz=true',
+                );
               } else {
                 context.replace(AppRoute.setupAccountScreen);
               }
@@ -123,7 +125,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
           } else if (state is AuthAccountInactive) {
             _showInactiveAccountSnackBar(
               context,
-              state.username,
+              state.email,
               state.message,
             );
           } else if (state is AuthVerificationResent) {
@@ -160,7 +162,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
 
   void _showInactiveAccountSnackBar(
     BuildContext context,
-    String username,
+    String email,
     String? message,
   ) {
     showSnackBar(
@@ -173,7 +175,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
         textColor: context.colorScheme.onError,
         onPressed: () {
           context.read<AuthBloc>().add(
-            ResendVerificationEvent(username: username),
+            ResendVerificationEvent(email: email),
           );
         },
       ),
@@ -204,13 +206,13 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
               const SizedBox(height: 50),
 
               LabelAndTextFormField(
-                hintText: 'Username',
+                hintText: 'Email',
                 autofocus: kIsWeb,
-                prefixIcon: Icons.person,
-                controller: _formController.usernameController,
-                validator: BasicFormController.validateRequiredField,
-                keyboardType: TextInputType.text,
-                autofillHints: const [AutofillHints.username],
+                prefixIcon: Icons.email_outlined,
+                controller: _formController.emailController,
+                validator: BasicFormController.validateRequiredEmail,
+                keyboardType: TextInputType.emailAddress,
+                autofillHints: const [AutofillHints.email],
               ),
               const SizedBox(height: 32),
 
@@ -388,7 +390,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
 
       context.read<AuthBloc>().add(
         LoginEvent(
-          username: _formController.usernameController.text.trim(),
+          email: _formController.emailController.text.trim(),
           password: _formController.passwordController.text,
         ),
       );
