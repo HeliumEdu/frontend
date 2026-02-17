@@ -22,8 +22,8 @@ import 'package:heliumapp/data/models/planner/request/course_schedule_request_mo
 import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/external_calendar_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
-import 'package:heliumapp/data/models/planner/request/material_group_request_model.dart';
-import 'package:heliumapp/data/models/planner/request/material_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/resource_group_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/resource_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/reminder_request_model.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -51,8 +51,8 @@ void registerFallbackValues() {
   registerFallbackValue(_FakeEventRequestModel());
   registerFallbackValue(_FakeHomeworkRequestModel());
   registerFallbackValue(_FakeBasicHomeworkRequestModel());
-  registerFallbackValue(_FakeMaterialRequestModel());
-  registerFallbackValue(_FakeMaterialGroupRequestModel());
+  registerFallbackValue(_FakeResourceRequestModel());
+  registerFallbackValue(_FakeResourceGroupRequestModel());
   registerFallbackValue(_FakeReminderRequestModel());
   registerFallbackValue(_FakeExternalCalendarRequestModel());
 }
@@ -94,10 +94,10 @@ class _FakeHomeworkRequestModel extends Fake implements HomeworkRequestModel {}
 class _FakeBasicHomeworkRequestModel extends Fake
     implements HomeworkRequestModel {}
 
-class _FakeMaterialRequestModel extends Fake implements MaterialRequestModel {}
+class _FakeResourceRequestModel extends Fake implements ResourceRequestModel {}
 
-class _FakeMaterialGroupRequestModel extends Fake
-    implements MaterialGroupRequestModel {}
+class _FakeResourceGroupRequestModel extends Fake
+    implements ResourceGroupRequestModel {}
 
 class _FakeReminderRequestModel extends Fake implements ReminderRequestModel {}
 

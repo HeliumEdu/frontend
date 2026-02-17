@@ -45,7 +45,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
   @override
   bool get isAuthenticatedScreen => false;
 
-  final RegisterFormController _formController = RegisterFormController();
+  final SignupFormController _formController = SignupFormController();
   bool isOAuthLoading = false;
 
   @override

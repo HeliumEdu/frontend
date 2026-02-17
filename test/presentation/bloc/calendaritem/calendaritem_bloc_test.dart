@@ -26,7 +26,7 @@ void main() {
   late MockCourseRepository mockCourseRepository;
   late MockCourseScheduleRepository mockCourseScheduleRepository;
   late MockCategoryRepository mockCategoryRepository;
-  late MockMaterialRepository mockMaterialRepository;
+  late MockResourceRepository mockResourceRepository;
   late CalendarItemBloc calendarItemBloc;
 
   setUpAll(() {
@@ -39,14 +39,14 @@ void main() {
     mockCourseRepository = MockCourseRepository();
     mockCourseScheduleRepository = MockCourseScheduleRepository();
     mockCategoryRepository = MockCategoryRepository();
-    mockMaterialRepository = MockMaterialRepository();
+    mockResourceRepository = MockResourceRepository();
     calendarItemBloc = CalendarItemBloc(
       eventRepository: mockEventRepository,
       homeworkRepository: mockHomeworkRepository,
       courseRepository: mockCourseRepository,
       courseScheduleRepository: mockCourseScheduleRepository,
       categoryRepository: mockCategoryRepository,
-      materialRepository: mockMaterialRepository,
+      resourceRepository: mockResourceRepository,
     );
   });
 
@@ -105,8 +105,8 @@ void main() {
                 () => mockHomeworkRepository.getHomework(id: 1),
           ).thenAnswer((_) async => MockModels.createHomework(id: 1));
           when(
-            () => mockMaterialRepository.getMaterials(shownOnCalendar: true),
-          ).thenAnswer((_) async => MockModels.createMaterials());
+            () => mockResourceRepository.getResources(shownOnCalendar: true),
+          ).thenAnswer((_) async => MockModels.createResources());
           return calendarItemBloc;
         },
         act: (bloc) => bloc.add(
@@ -143,8 +143,8 @@ void main() {
             () => mockCategoryRepository.getCategories(shownOnCalendar: true),
           ).thenAnswer((_) async => MockModels.createCategories());
           when(
-            () => mockMaterialRepository.getMaterials(shownOnCalendar: true),
-          ).thenAnswer((_) async => MockModels.createMaterials());
+            () => mockResourceRepository.getResources(shownOnCalendar: true),
+          ).thenAnswer((_) async => MockModels.createResources());
           return calendarItemBloc;
         },
         act: (bloc) => bloc.add(

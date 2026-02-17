@@ -10,7 +10,7 @@ import 'package:heliumapp/presentation/bloc/attachment/attachment_bloc.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
 import 'package:heliumapp/presentation/bloc/course/course_bloc.dart';
 import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_bloc.dart';
-import 'package:heliumapp/presentation/bloc/material/material_bloc.dart';
+import 'package:heliumapp/presentation/bloc/resource/resource_bloc.dart';
 
 abstract class RouteArgs {
   const RouteArgs();
@@ -119,23 +119,23 @@ class CourseAddArgs extends RouteArgs {
   }
 }
 
-class MaterialAddArgs extends RouteArgs {
-  final MaterialBloc materialBloc;
-  final int materialGroupId;
-  final int? materialId;
+class ResourceAddArgs extends RouteArgs {
+  final ResourceBloc resourceBloc;
+  final int resourceGroupId;
+  final int? resourceId;
   final bool isEdit;
 
-  const MaterialAddArgs({
-    required this.materialBloc,
-    required this.materialGroupId,
-    this.materialId,
+  const ResourceAddArgs({
+    required this.resourceBloc,
+    required this.resourceGroupId,
+    this.resourceId,
     required this.isEdit,
   });
 
   @override
   List<BlocProvider>? toProviders() {
     return [
-      BlocProvider<MaterialBloc>.value(value: materialBloc),
+      BlocProvider<ResourceBloc>.value(value: resourceBloc),
     ];
   }
 }

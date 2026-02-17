@@ -54,7 +54,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
 
   // State
   Color _selectedEventColor = const Color(0xffe74674);
-  Color _selectedMaterialColor = const Color(0xffdc7d50);
+  Color _selectedResourceColor = const Color(0xffdc7d50);
   Color _selectedGradeColor = const Color(0xff9d629d);
   String _selectedDefaultView =
       CalendarConstants.defaultViews[FallbackConstants.defaultViewIndex];
@@ -249,10 +249,10 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
                   child: GestureDetector(
                     onTap: () => showColorPickerDialog(
                       parentContext: context,
-                      initialColor: _selectedMaterialColor,
+                      initialColor: _selectedResourceColor,
                       onSelected: (color) {
                         setState(() {
-                          _selectedMaterialColor = color;
+                          _selectedResourceColor = color;
                         });
                       },
                     ),
@@ -260,7 +260,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
                       width: 33,
                       height: 33,
                       decoration: BoxDecoration(
-                        color: _selectedMaterialColor,
+                        color: _selectedResourceColor,
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: context.colorScheme.outline.withValues(
@@ -406,7 +406,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
           ReminderConstants.types[state.user.settings.defaultReminderType];
       _selectedEventColor = state.user.settings.eventsColor;
       _selectedGradeColor = state.user.settings.gradeColor;
-      _selectedMaterialColor = state.user.settings.materialColor;
+      _selectedResourceColor = state.user.settings.resourceColor;
       if (_reminderOffsetController.text !=
           state.user.settings.defaultReminderOffset.toString()) {
         _reminderOffsetController.text = state
@@ -439,11 +439,11 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
       eventsColor = '#${eventsColor.substring(3)}';
     }
     eventsColor = eventsColor.toLowerCase();
-    String materialColor = HeliumColors.colorToHex(_selectedMaterialColor);
-    if (materialColor.length == 9) {
-      materialColor = '#${materialColor.substring(3)}';
+    String resourceColor = HeliumColors.colorToHex(_selectedResourceColor);
+    if (resourceColor.length == 9) {
+      resourceColor = '#${resourceColor.substring(3)}';
     }
-    materialColor = materialColor.toLowerCase();
+    resourceColor = resourceColor.toLowerCase();
     String gradeColor = HeliumColors.colorToHex(_selectedGradeColor);
     if (gradeColor.length == 9) {
       gradeColor = '#${gradeColor.substring(3)}';
@@ -465,7 +465,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
           weekStartsOn: weekStartsOn,
           colorByCategory: colorByCategory,
           eventsColor: eventsColor,
-          materialColor: materialColor,
+          resourceColor: resourceColor,
           gradeColor: gradeColor,
           defaultReminderType: reminderType,
           defaultReminderOffset: reminderOffset,

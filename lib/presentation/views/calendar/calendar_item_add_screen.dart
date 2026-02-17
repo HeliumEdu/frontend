@@ -14,9 +14,9 @@ import 'package:heliumapp/presentation/bloc/attachment/attachment_bloc.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_state.dart';
 import 'package:heliumapp/presentation/views/core/multi_step_container.dart';
-import 'package:heliumapp/presentation/widgets/calendar/calendar_item_attachments_widget.dart';
-import 'package:heliumapp/presentation/widgets/calendar/calendar_item_details_widget.dart';
-import 'package:heliumapp/presentation/widgets/calendar/calendar_item_reminders_widget.dart';
+import 'package:heliumapp/presentation/widgets/planner/planner_item_attachments.dart';
+import 'package:heliumapp/presentation/widgets/planner/planner_item_details.dart';
+import 'package:heliumapp/presentation/widgets/planner/planner_item_reminders.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
@@ -94,7 +94,7 @@ class CalendarItemAddScreen extends MultiStepContainer {
 
 class _CalendarItemAddScreenState
     extends MultiStepContainerState<CalendarItemAddScreen> {
-  final _detailsKey = GlobalKey<CalendarItemDetailsWidgetState>();
+  final _detailsKey = GlobalKey<PlannerItemDetailsState>();
 
   // State
   int? _currentEntityId;
@@ -248,7 +248,7 @@ class _CalendarItemAddScreenState
       icon: Icons.list,
       tooltip: 'Details',
       stepScreenType: ScreenType.entityPage,
-      builder: (context) => CalendarItemDetailsWidget(
+      builder: (context) => PlannerItemDetails(
         key: _detailsKey,
         eventId: _currentIsEvent == true ? _currentEntityId : null,
         homeworkId: _currentIsEvent == false ? _currentEntityId : null,
@@ -269,7 +269,7 @@ class _CalendarItemAddScreenState
       icon: Icons.notifications_active_outlined,
       tooltip: 'Reminders',
       stepScreenType: ScreenType.subPage,
-      builder: (context) => CalendarItemRemindersWidget(
+      builder: (context) => PlannerItemReminders(
         isEvent: _currentIsEvent ?? false,
         entityId: _currentEntityId!,
         isEdit: widget.isEdit || _currentEntityId != null,
@@ -280,7 +280,7 @@ class _CalendarItemAddScreenState
       icon: Icons.attachment_outlined,
       tooltip: 'Attachments',
       stepScreenType: ScreenType.subPage,
-      builder: (context) => CalendarItemAttachmentsWidget(
+      builder: (context) => PlannerItemAttachments(
         isEvent: _currentIsEvent ?? false,
         entityId: _currentEntityId!,
         isEdit: widget.isEdit || _currentEntityId != null,

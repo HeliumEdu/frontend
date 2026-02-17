@@ -46,7 +46,7 @@ class ApiUrl {
   // Calendar
   static const plannerCoursesListUrl = '/planner/courses/';
   static const plannerCategoriesListUrl = '/planner/categories/';
-  static const plannerMaterialsListUrl = '/planner/materials/';
+  static const plannerResourcesListUrl = '/planner/materials/';
   static const plannerHomeworkListUrl = '/planner/homework/';
   static const plannerEventsListUrl = '/planner/events/';
   static const feedExternalCalendarsEventsListUrl =
@@ -115,17 +115,17 @@ class ApiUrl {
   ) =>
       '/planner/coursegroups/$groupId/courses/$courseId/categories/$categoryId/';
 
-  // Materials
-  static const plannerMaterialGroupsListUrl = '/planner/materialgroups/';
+  // Resources
+  static const plannerResourceGroupsListUrl = '/planner/materialgroups/';
 
-  static String plannerMaterialGroupsDetailsUrl(int groupId) =>
+  static String plannerResourceGroupsDetailsUrl(int groupId) =>
       '/planner/materialgroups/$groupId/';
 
-  static String plannerMaterialGroupsMaterialsListUrl(int groupId) =>
+  static String plannerResourceGroupsResourcesListUrl(int groupId) =>
       '/planner/materialgroups/$groupId/materials/';
 
-  static String plannerMaterialGroupsMaterialDetailsUrl(
+  static String plannerResourceGroupsResourceDetailsUrl(
     int groupId,
-    int materialId,
-  ) => '/planner/materialgroups/$groupId/materials/$materialId/';
+    int resourceId,
+  ) => '/planner/materialgroups/$groupId/materials/$resourceId/';
 }

@@ -14,7 +14,7 @@ import 'package:heliumapp/data/repositories/course_schedule_event_repository_imp
 import 'package:heliumapp/data/repositories/event_repository_impl.dart';
 import 'package:heliumapp/data/repositories/external_calendar_repository_impl.dart';
 import 'package:heliumapp/data/repositories/homework_repository_impl.dart';
-import 'package:heliumapp/data/repositories/material_repository_impl.dart';
+import 'package:heliumapp/data/repositories/resource_repository_impl.dart';
 import 'package:heliumapp/data/sources/attachment_remote_data_source.dart';
 import 'package:heliumapp/data/sources/category_remote_data_source.dart';
 import 'package:heliumapp/data/sources/course_remote_data_source.dart';
@@ -23,7 +23,7 @@ import 'package:heliumapp/data/sources/course_schedule_remote_data_source.dart';
 import 'package:heliumapp/data/sources/event_remote_data_source.dart';
 import 'package:heliumapp/data/sources/external_calendar_remote_data_source.dart';
 import 'package:heliumapp/data/sources/homework_remote_data_source.dart';
-import 'package:heliumapp/data/sources/material_remote_data_source.dart';
+import 'package:heliumapp/data/sources/resource_remote_data_source.dart';
 import 'package:heliumapp/presentation/bloc/attachment/attachment_bloc.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
 import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_bloc.dart';
@@ -52,8 +52,8 @@ class ProviderHelpers {
         ),
         builderSource: CourseScheduleBuilderSource(),
       ),
-      materialRepository: MaterialRepositoryImpl(
-        remoteDataSource: MaterialRemoteDataSourceImpl(dioClient: _dioClient),
+      resourceRepository: ResourceRepositoryImpl(
+        remoteDataSource: ResourceRemoteDataSourceImpl(dioClient: _dioClient),
       ),
     );
   }

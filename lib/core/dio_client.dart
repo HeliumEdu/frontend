@@ -376,8 +376,8 @@ class DioClient {
             _prefService.getString('events_color') ??
             FallbackConstants.defaultEventsColor,
         'material_color':
-            _prefService.getString('material_color') ??
-            FallbackConstants.defaultMaterialColor,
+            _prefService.getString('resource_color') ??
+            FallbackConstants.defaultResourceColor,
         'grade_color':
             _prefService.getString('grade_color') ??
             FallbackConstants.defaultGradeColor,
@@ -424,8 +424,8 @@ class DioClient {
         HeliumColors.colorToHex(settings.eventsColor),
       ),
       ?_prefService.setString(
-        'material_color',
-        HeliumColors.colorToHex(settings.materialColor),
+        'resource_color',
+        HeliumColors.colorToHex(settings.resourceColor),
       ),
       ?_prefService.setString(
         'grade_color',

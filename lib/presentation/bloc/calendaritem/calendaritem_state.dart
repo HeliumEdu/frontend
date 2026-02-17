@@ -14,7 +14,7 @@ import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
-import 'package:heliumapp/data/models/planner/material_model.dart';
+import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/presentation/bloc/core/base_state.dart';
 
 abstract class CalendarItemState extends BaseState {
@@ -91,7 +91,7 @@ class CalendarItemScreenDataFetched extends CalendarItemState {
   final List<CourseModel> courses;
   final List<CourseScheduleModel> courseSchedules;
   final List<CategoryModel> categories;
-  final List<MaterialModel> materials;
+  final List<ResourceModel> resources;
 
   CalendarItemScreenDataFetched({
     required super.origin,
@@ -100,7 +100,7 @@ class CalendarItemScreenDataFetched extends CalendarItemState {
     required this.courses,
     required this.courseSchedules,
     required this.categories,
-    required this.materials,
+    required this.resources,
   });
 }
 

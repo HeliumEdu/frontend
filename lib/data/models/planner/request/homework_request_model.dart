@@ -17,7 +17,7 @@ class HomeworkRequestModel {
   final String? currentGrade;
   final bool? completed;
   final int? category;
-  final List<int>? materials;
+  final List<int>? resources;
 
   HomeworkRequestModel({
     required this.course,
@@ -31,7 +31,7 @@ class HomeworkRequestModel {
     this.currentGrade,
     this.completed,
     this.category,
-    this.materials,
+    this.resources,
   });
 
   Map<String, dynamic> toJson() {
@@ -46,7 +46,7 @@ class HomeworkRequestModel {
     if (currentGrade != null) json['current_grade'] = currentGrade;
     if (completed != null) json['completed'] = completed;
     if (category != null) json['category'] = category;
-    if (materials != null) json['materials'] = materials;
+    if (resources != null) json['materials'] = resources;
 
     return json;
   }

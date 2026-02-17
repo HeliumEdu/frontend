@@ -19,7 +19,7 @@ import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart'
 import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/bloc/course/course_bloc.dart';
 import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_bloc.dart';
-import 'package:heliumapp/presentation/bloc/material/material_bloc.dart';
+import 'package:heliumapp/presentation/bloc/resource/resource_bloc.dart';
 import 'package:heliumapp/presentation/views/auth/forgot_password_screen.dart';
 import 'package:heliumapp/presentation/views/auth/login_screen.dart';
 import 'package:heliumapp/presentation/views/auth/setup_account_screen.dart';
@@ -31,7 +31,7 @@ import 'package:heliumapp/presentation/views/core/mobile_web_screen.dart';
 import 'package:heliumapp/presentation/views/core/navigation_shell.dart';
 import 'package:heliumapp/presentation/views/core/notification_screen.dart';
 import 'package:heliumapp/presentation/views/courses/course_add_screen.dart';
-import 'package:heliumapp/presentation/views/materials/material_add_screen.dart';
+import 'package:heliumapp/presentation/views/resources/resource_add_screen.dart';
 import 'package:heliumapp/presentation/views/settings/change_password_screen.dart';
 import 'package:heliumapp/presentation/views/settings/external_calendars_screen.dart';
 import 'package:heliumapp/presentation/views/settings/feeds_screen.dart';
@@ -122,7 +122,7 @@ void initializeRouter() {
           GoRoute(
             path: AppRoute.resourcesScreen,
             pageBuilder: (context, state) => const NoTransitionPage(
-              child: NavigationShellContent(page: NavigationPage.materials),
+              child: NavigationShellContent(page: NavigationPage.resources),
             ),
           ),
           GoRoute(
@@ -234,18 +234,18 @@ void initializeRouter() {
       GoRoute(
         path: AppRoute.resourcesAddScreen,
         pageBuilder: (context, state) {
-          final args = state.extra as MaterialAddArgs?;
+          final args = state.extra as ResourceAddArgs?;
           if (args == null) {
             return const MaterialPage(
               child: _RouteRedirect(redirectTo: AppRoute.resourcesScreen),
             );
           }
           return MaterialPage(
-            child: BlocProvider<MaterialBloc>.value(
-              value: args.materialBloc,
-              child: MaterialAddScreen(
-                materialGroupId: args.materialGroupId,
-                materialId: args.materialId,
+            child: BlocProvider<ResourceBloc>.value(
+              value: args.resourceBloc,
+              child: ResourceAddScreen(
+                resourceGroupId: args.resourceGroupId,
+                resourceId: args.resourceId,
                 isEdit: args.isEdit,
                 isNew: !args.isEdit,
               ),

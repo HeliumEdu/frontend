@@ -13,10 +13,10 @@ import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/presentation/bloc/course/course_bloc.dart';
 import 'package:heliumapp/presentation/bloc/course/course_state.dart';
 import 'package:heliumapp/presentation/views/core/multi_step_container.dart';
-import 'package:heliumapp/presentation/widgets/courses/course_attachments_widget.dart';
-import 'package:heliumapp/presentation/widgets/courses/course_categories_widget.dart';
-import 'package:heliumapp/presentation/widgets/courses/course_details_widget.dart';
-import 'package:heliumapp/presentation/widgets/courses/course_schedule_widget.dart';
+import 'package:heliumapp/presentation/widgets/courses/course_attachments.dart';
+import 'package:heliumapp/presentation/widgets/courses/course_categories.dart';
+import 'package:heliumapp/presentation/widgets/courses/course_details.dart';
+import 'package:heliumapp/presentation/widgets/courses/course_schedule.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
@@ -80,8 +80,8 @@ class CourseAddScreen extends MultiStepContainer {
 }
 
 class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
-  final _detailsKey = GlobalKey<CourseDetailsWidgetState>();
-  final _scheduleKey = GlobalKey<CourseScheduleWidgetState>();
+  final _detailsKey = GlobalKey<CourseDetailsState>();
+  final _scheduleKey = GlobalKey<CourseScheduleState>();
 
   // State
   int? _currentCourseId;
@@ -202,7 +202,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
       icon: Icons.list,
       tooltip: 'Details',
       stepScreenType: ScreenType.entityPage,
-      builder: (context) => CourseDetailsWidget(
+      builder: (context) => CourseDetails(
         key: _detailsKey,
         courseGroupId: widget.courseGroupId,
         courseId: _currentCourseId,
@@ -215,7 +215,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
       icon: Icons.date_range_outlined,
       tooltip: 'Schedule',
       stepScreenType: ScreenType.entityPage,
-      builder: (context) => CourseScheduleWidget(
+      builder: (context) => CourseSchedule(
         key: _scheduleKey,
         courseGroupId: widget.courseGroupId,
         courseId: _currentCourseId!,
@@ -228,7 +228,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
       icon: Icons.category,
       tooltip: 'Categories',
       stepScreenType: ScreenType.subPage,
-      builder: (context) => CourseCategoriesWidget(
+      builder: (context) => CourseCategories(
         courseGroupId: widget.courseGroupId,
         courseId: _currentCourseId!,
         isEdit: widget.isEdit || _currentCourseId != null,
@@ -240,7 +240,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
       icon: Icons.attachment,
       tooltip: 'Attachments',
       stepScreenType: ScreenType.subPage,
-      builder: (context) => CourseAttachmentsWidget(
+      builder: (context) => CourseAttachments(
         courseGroupId: widget.courseGroupId,
         entityId: _currentCourseId!,
         isEdit: widget.isEdit || _currentCourseId != null,

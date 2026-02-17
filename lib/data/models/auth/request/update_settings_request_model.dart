@@ -14,7 +14,7 @@ class UpdateSettingsRequestModel {
   final bool? showGettingStarted;
   final bool? colorByCategory;
   final String? eventsColor;
-  final String? materialColor;
+  final String? resourceColor;
   final String? gradeColor;
   final int? defaultReminderType;
   final int? defaultReminderOffset;
@@ -30,7 +30,7 @@ class UpdateSettingsRequestModel {
     this.showGettingStarted,
     this.colorByCategory,
     this.eventsColor,
-    this.materialColor,
+    this.resourceColor,
     this.gradeColor,
     this.defaultReminderType,
     this.defaultReminderOffset,
@@ -49,7 +49,7 @@ class UpdateSettingsRequestModel {
     if (colorByCategory != null) json['calendar_use_category_colors'] = colorByCategory;
     if (timeZone != null) json['time_zone'] = timeZone;
     if (eventsColor != null) json['events_color'] = eventsColor;
-    if (materialColor != null) json['material_color'] = materialColor;
+    if (resourceColor != null) json['material_color'] = resourceColor;
     if (gradeColor != null) json['grade_color'] = gradeColor;
     if (defaultReminderType != null) json['default_reminder_type'] = defaultReminderType;
     if (defaultReminderOffset != null) json['default_reminder_offset'] = defaultReminderOffset;

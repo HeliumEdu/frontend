@@ -103,7 +103,7 @@ void main() {
       whatsNewVersionSeen: 0,
       showGettingStarted: false,
       eventsColor: const Color(0xFF4CAF50),
-      materialColor: const Color(0xFF2196F3),
+      resourceColor: const Color(0xFF2196F3),
       gradeColor: const Color(0xFFF44336),
       defaultReminderType: 3,
       defaultReminderOffset: 0,
@@ -280,7 +280,7 @@ void main() {
           whatsNewVersionSeen: 0,
           showGettingStarted: false,
           eventsColor: const Color(0xFF4CAF50),
-          materialColor: const Color(0xFF2196F3),
+          resourceColor: const Color(0xFF2196F3),
           gradeColor: const Color(0xFFF44336),
           defaultReminderType: 3,
           defaultReminderOffset: 0,
@@ -1500,7 +1500,7 @@ HomeworkModel _createHomeworkModel({
     category: categoryEntity != null
         ? IdOrEntity<CategoryModel>(id: categoryId, entity: categoryEntity)
         : IdOrEntity<CategoryModel>(id: categoryId),
-    materials: [],
+    resources: [],
   );
 }
 

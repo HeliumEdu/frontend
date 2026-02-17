@@ -243,7 +243,7 @@ void main() {
           currentGrade: '',
           category: null,
           course: 1,
-          materials: [],
+          resources: [],
         );
 
         // WHEN
@@ -277,7 +277,7 @@ void main() {
           currentGrade: '',
           category: null,
           course: 1,
-          materials: [],
+          resources: [],
         );
 
         // WHEN/THEN
