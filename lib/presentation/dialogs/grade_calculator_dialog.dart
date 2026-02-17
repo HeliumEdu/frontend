@@ -10,6 +10,8 @@ import 'package:flutter/services.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/planner/grade_category_model.dart';
+import 'package:heliumapp/presentation/controllers/core/basic_form_controller.dart';
+import 'package:heliumapp/presentation/dialogs/base_dialog_state.dart';
 import 'package:heliumapp/presentation/widgets/course_title_label.dart';
 import 'package:heliumapp/presentation/widgets/error_container.dart';
 import 'package:heliumapp/presentation/widgets/grade_label.dart';
@@ -18,7 +20,6 @@ import 'package:heliumapp/presentation/widgets/success_container.dart';
 import 'package:heliumapp/presentation/widgets/warning_container.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
-import 'package:heliumapp/utils/responsive_helpers.dart';
 
 class GradeCalculatorDialog extends StatefulWidget {
   final List<GradeCategoryModel> categories;
@@ -42,11 +43,19 @@ class GradeCalculatorDialog extends StatefulWidget {
   State<GradeCalculatorDialog> createState() => _GradeCalculatorDialogState();
 }
 
-class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
+class _GradeCalculatorDialogState
+    extends BaseDialogState<GradeCalculatorDialog> {
+  final BasicFormController _formController = BasicFormController();
   int? _selectedCategoryId;
   final TextEditingController _desiredGradeController = TextEditingController();
   NeededGradeResult? _result;
   String? _validationErrorMessage;
+
+  @override
+  String get dialogTitle => 'What Grade Do I Need?';
+
+  @override
+  BasicFormController get formController => _formController;
 
   // Check if course has explicit weights
   bool get _hasExplicitWeights {
@@ -171,183 +180,167 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: context.colorScheme.surface,
-      title: Center(
-        child: Text(
-          'What Grade Do I Need?',
-          style: AppStyles.featureText(context),
+  Widget buildMainArea(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        CourseTitleLabel(title: widget.courseTitle, color: widget.courseColor),
+        const SizedBox(height: 8),
+        GradeLabel(
+          grade: GradeHelper.gradeForDisplay(widget.currentOverallGrade),
+          userSettings: widget.userSettings,
         ),
-      ),
-      content: SizedBox(
-        width: Responsive.getDialogWidth(context),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 12),
+        const SizedBox(height: 24),
 
-              CourseTitleLabel(
-                title: widget.courseTitle,
-                color: widget.courseColor,
+        Text('Category', style: AppStyles.formLabel(context)),
+        const SizedBox(height: 9),
+        DropdownButtonFormField<int>(
+          initialValue: _selectedCategoryId,
+          decoration: InputDecoration(
+            contentPadding: const EdgeInsets.only(left: 12),
+            filled: true,
+            fillColor: context.colorScheme.surface,
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: context.colorScheme.outline.withValues(alpha: 0.2),
               ),
-              const SizedBox(height: 8),
-              GradeLabel(
-                grade: GradeHelper.gradeForDisplay(widget.currentOverallGrade),
-                userSettings: widget.userSettings,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: context.colorScheme.outline.withValues(alpha: 0.2),
               ),
-              const SizedBox(height: 24),
-
-              Text('Category', style: AppStyles.formLabel(context)),
-              const SizedBox(height: 9),
-              DropdownButtonFormField<int>(
-                initialValue: _selectedCategoryId,
-                decoration: InputDecoration(
-                  contentPadding: const EdgeInsets.only(left: 12),
-                  filled: true,
-                  fillColor: context.colorScheme.surface,
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(
-                      color: context.colorScheme.outline.withValues(alpha: 0.2),
+            ),
+          ),
+          icon: Icon(
+            Icons.keyboard_arrow_down,
+            color: context.colorScheme.primary,
+          ),
+          dropdownColor: context.colorScheme.surface,
+          style: AppStyles.formText(context),
+          isExpanded: true,
+          items: _eligibleTargetCategories.map((category) {
+            return DropdownMenuItem<int>(
+              value: category.id,
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.category_outlined,
+                    size: 14,
+                    color: category.color,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '${category.title} (${category.weight.toStringAsFixed(0)}%)',
+                      style: AppStyles.formText(context),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(
-                      color: context.colorScheme.outline.withValues(alpha: 0.2),
-                    ),
-                  ),
-                ),
-                icon: Icon(
-                  Icons.keyboard_arrow_down,
-                  color: context.colorScheme.primary,
-                ),
-                dropdownColor: context.colorScheme.surface,
-                style: AppStyles.formText(context),
-                isExpanded: true,
-                items: _eligibleTargetCategories.map((category) {
-                  return DropdownMenuItem<int>(
-                    value: category.id,
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.category_outlined,
-                          size: 14,
-                          color: category.color,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            '${category.title} (${category.weight.toStringAsFixed(0)}%)',
-                            style: AppStyles.formText(context),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedCategoryId = value;
-                    _result = null;
-                    _validationErrorMessage = null;
-                  });
-                },
-              ),
-              const SizedBox(height: 24),
-
-              Text('Desired Class Grade', style: AppStyles.formLabel(context)),
-              const SizedBox(height: 9),
-              TextFormField(
-                controller: _desiredGradeController,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                textInputAction: TextInputAction.done,
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
                 ],
-                decoration: InputDecoration(
-                  hintText: 'e.g., 90',
-                  hintStyle: AppStyles.formHint(context),
-                  suffixText: '%',
-                  suffixStyle: AppStyles.formText(context),
-                  filled: true,
-                  fillColor: context.colorScheme.surface,
-                  contentPadding: const EdgeInsets.only(left: 12),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(
-                      color: context.colorScheme.outline.withValues(alpha: 0.2),
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(
-                      color: context.colorScheme.outline.withValues(alpha: 0.2),
-                    ),
-                  ),
-                ),
-                style: AppStyles.formText(context),
-                onChanged: (_) {
-                  setState(() {
-                    _result = null;
-                    _validationErrorMessage = null;
-                  });
-                },
-                onFieldSubmitted: (_) => _calculate(),
               ),
+            );
+          }).toList(),
+          onChanged: (value) {
+            setState(() {
+              _selectedCategoryId = value;
+              _result = null;
+              _validationErrorMessage = null;
+            });
+          },
+        ),
+        const SizedBox(height: 24),
 
-              const SizedBox(height: 12),
+        Text('Desired Class Grade', style: AppStyles.formLabel(context)),
+        const SizedBox(height: 9),
+        TextFormField(
+          controller: _desiredGradeController,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          textInputAction: TextInputAction.done,
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+          ],
+          decoration: InputDecoration(
+            hintText: 'e.g., 90',
+            hintStyle: AppStyles.formHint(context),
+            suffixText: '%',
+            suffixStyle: AppStyles.formText(context),
+            filled: true,
+            fillColor: context.colorScheme.surface,
+            contentPadding: const EdgeInsets.only(left: 12),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: context.colorScheme.outline.withValues(alpha: 0.2),
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: context.colorScheme.outline.withValues(alpha: 0.2),
+              ),
+            ),
+          ),
+          style: AppStyles.formText(context),
+          onChanged: (_) {
+            setState(() {
+              _result = null;
+              _validationErrorMessage = null;
+            });
+          },
+          onFieldSubmitted: (_) => handleSubmit(),
+        ),
 
-              if (_validationErrorMessage != null) ...[
-                ErrorContainer(
-                  text: _validationErrorMessage!,
-                  icon: Icons.warning_amber_rounded,
-                ),
-              ],
-              if (_result != null) ...[
-                if (!_result!.isAchievable)
-                  _result!.state == NeededGradeState.unachievable
-                      ? WarningContainer(text: _buildResultMessage(_result!))
-                      : ErrorContainer(
-                          text: _buildResultMessage(_result!),
-                          icon: Icons.warning_amber_rounded,
-                        )
-                else
-                  SuccessContainer(text: _buildResultMessage(_result!)),
-              ],
-            ],
+        const SizedBox(height: 12),
+
+        if (_validationErrorMessage != null) ...[
+          ErrorContainer(
+            text: _validationErrorMessage!,
+            icon: Icons.warning_amber_rounded,
+          ),
+        ],
+        if (_result != null) ...[
+          if (!_result!.isAchievable)
+            _result!.state == NeededGradeState.unachievable
+                ? WarningContainer(text: _buildResultMessage(_result!))
+                : ErrorContainer(
+                    text: _buildResultMessage(_result!),
+                    icon: Icons.warning_amber_rounded,
+                  )
+          else
+            SuccessContainer(text: _buildResultMessage(_result!)),
+        ],
+      ],
+    );
+  }
+
+  @override
+  Widget buildButtonArea() {
+    return Row(
+      children: [
+        Expanded(
+          child: HeliumElevatedButton(
+            buttonText: 'Close',
+            backgroundColor: context.colorScheme.outline,
+            onPressed: () => Navigator.pop(context),
           ),
         ),
-      ),
-      actions: [
-        SizedBox(
-          width: Responsive.getDialogWidth(context),
-          child: Row(
-            children: [
-              Expanded(
-                child: HeliumElevatedButton(
-                  buttonText: 'Close',
-                  backgroundColor: context.colorScheme.outline,
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: HeliumElevatedButton(
-                  buttonText: 'Calculate',
-                  onPressed: _calculate,
-                ),
-              ),
-            ],
+        const SizedBox(width: 12),
+        Expanded(
+          child: HeliumElevatedButton(
+            buttonText: 'Calculate',
+            onPressed: handleSubmit,
           ),
         ),
       ],
     );
+  }
+
+  @override
+  void handleSubmit() {
+    super.handleSubmit();
+    _calculate();
   }
 }
