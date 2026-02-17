@@ -57,8 +57,16 @@ class ChartDataPoint {
   final DateTime date;
   final double grade;
   final int? homeworkId;
+  final String? homeworkTitle;
+  final int? categoryId;
 
-  ChartDataPoint({required this.date, required this.grade, this.homeworkId});
+  ChartDataPoint({
+    required this.date,
+    required this.grade,
+    this.homeworkId,
+    this.homeworkTitle,
+    this.categoryId,
+  });
 }
 
 class ChartSegment {
@@ -1147,9 +1155,75 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
             child: charts.SfCartesianChart(
               tooltipBehavior: charts.TooltipBehavior(
                 enable: !isTouchDevice,
-                format: 'point.y%',
                 header: '',
                 canShowMarker: true,
+                builder:
+                    (
+                      dynamic data,
+                      dynamic point,
+                      dynamic series,
+                      int pointIndex,
+                      int seriesIndex,
+                    ) {
+                      final chartPoint = data as ChartDataPoint;
+                      final grade = chartPoint.grade.toStringAsFixed(1);
+                      final title =
+                          chartPoint.homeworkTitle?.trim().isNotEmpty == true
+                          ? chartPoint.homeworkTitle!
+                          : 'No assignment title';
+                      final categoryColor = _categoryColorForId(
+                        chartPoint.categoryId,
+                      );
+
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: context.colorScheme.surface,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: context.colorScheme.outline.withValues(
+                              alpha: 0.3,
+                            ),
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '$grade%',
+                              style: AppStyles.standardBodyText(
+                                context,
+                              ).copyWith(fontWeight: FontWeight.w600),
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.category_outlined,
+                                  size: 13,
+                                  color: categoryColor,
+                                ),
+                                const SizedBox(width: 6),
+                                Flexible(
+                                  child: Text(
+                                    title,
+                                    style: AppStyles.smallSecondaryText(
+                                      context,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      );
+                    },
               ),
               primaryXAxis: charts.DateTimeAxis(
                 minimum: xAxisRange['min'],
@@ -1349,7 +1423,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
 
   List<ChartDataPoint> _parseGradePoints(List<List<dynamic>> gradePoints) {
     return gradePoints.map((point) {
-      // point format: [date, grade_value, homework_id (optional)]
+      // point format: [date, grade_value, homework_id, homework_title, ...]
       // date can be either a timestamp (int) or ISO string
       DateTime date;
       if (point[0] is int) {
@@ -1362,9 +1436,38 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
 
       final grade = GradeHelper.parseGrade(point[1]) ?? 0.0;
       final homeworkId = point.length > 2 ? point[2] as int? : null;
+      final homeworkTitle = point.length > 3 ? point[3] as String? : null;
+      final categoryId = point.length > 5 ? point[5] as int? : null;
 
-      return ChartDataPoint(date: date, grade: grade, homeworkId: homeworkId);
+      return ChartDataPoint(
+        date: date,
+        grade: grade,
+        homeworkId: homeworkId,
+        homeworkTitle: homeworkTitle,
+        categoryId: categoryId,
+      );
     }).toList();
+  }
+
+  Color _categoryColorForId(int? categoryId) {
+    if (categoryId == null || _selectedGroupId == null || _grades.isEmpty) {
+      return context.colorScheme.onSurface.withValues(alpha: 0.6);
+    }
+
+    final selectedGroup = _grades.firstWhere(
+      (g) => g.id == _selectedGroupId,
+      orElse: () => _grades.first,
+    );
+
+    for (final course in selectedGroup.courses) {
+      for (final category in course.categories) {
+        if (category.id == categoryId) {
+          return category.color;
+        }
+      }
+    }
+
+    return context.colorScheme.onSurface.withValues(alpha: 0.6);
   }
 
   void _handlePointTap(
