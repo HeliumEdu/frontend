@@ -8,7 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/presentation/controllers/core/basic_form_controller.dart';
 
-class CalendarItemFormController extends BasicFormController {
+class PlannerItemFormController extends BasicFormController {
   final TextEditingController titleController = TextEditingController();
   final TextEditingController gradeController = TextEditingController();
   final gradeFocusNode = FocusNode();
@@ -25,7 +25,7 @@ class CalendarItemFormController extends BasicFormController {
   double priorityValue = 50.0;
   String initialNotes = '';
 
-  CalendarItemFormController() {
+  PlannerItemFormController() {
     gradeFocusNode.addListener(_onGradeFocusChange);
   }
 

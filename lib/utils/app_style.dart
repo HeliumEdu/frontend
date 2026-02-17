@@ -161,7 +161,7 @@ extension AppStyles on BuildContext {
   static TextStyle menuItemActive(BuildContext context) =>
       menuItem(context).copyWith(color: Theme.of(context).colorScheme.primary);
 
-  // Used for responsive scaling of calendar item prefixes (checkboxes, icons)
+  // Used for responsive scaling of planner item prefixes on calendar (checkboxes, icons)
   static double calendarItemPrefixScale(BuildContext context) {
     final deviceType = Responsive.getDeviceType(context);
     switch (deviceType) {

@@ -43,10 +43,10 @@ class PlannerItemAttachmentsContent extends BaseAttachmentsContent {
 
   @override
   BaseAttachmentsState<PlannerItemAttachmentsContent> createState() =>
-      _CalendarItemAttachmentsWidgetState();
+      _PlannerItemAttachmentsWidgetState();
 }
 
-class _CalendarItemAttachmentsWidgetState
+class _PlannerItemAttachmentsWidgetState
     extends BaseAttachmentsState<PlannerItemAttachmentsContent> {
   @override
   FetchAttachmentsEvent createFetchAttachmentsEvent() {

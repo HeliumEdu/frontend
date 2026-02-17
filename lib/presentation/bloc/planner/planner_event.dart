@@ -5,6 +5,6 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-abstract class CalendarEvent {}
+abstract class PlannerEvent {}
 
-class FetchCalendarScreenDataEvent extends CalendarEvent {}
+class FetchPlannerScreenDataEvent extends PlannerEvent {}

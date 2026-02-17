@@ -9,26 +9,26 @@ import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 
-abstract class CalendarState {
+abstract class PlannerState {
   final String? message;
 
-  CalendarState({this.message});
+  PlannerState({this.message});
 }
 
-class CalendarInitial extends CalendarState {}
+class PlannerInitial extends PlannerState {}
 
-class CalendarLoading extends CalendarState {}
+class PlannerLoading extends PlannerState {}
 
-class CalendarError extends CalendarState {
-  CalendarError({required super.message});
+class PlannerError extends PlannerState {
+  PlannerError({required super.message});
 }
 
-class CalendarScreenDataFetched extends CalendarState {
+class PlannerScreenDataFetched extends PlannerState {
   final List<CourseGroupModel> courseGroups;
   final List<CourseModel> courses;
   final List<CategoryModel> categories;
 
-  CalendarScreenDataFetched({
+  PlannerScreenDataFetched({
     super.message,
     required this.courseGroups,
     required this.courses,

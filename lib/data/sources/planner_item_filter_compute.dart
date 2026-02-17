@@ -13,7 +13,7 @@ import 'package:heliumapp/utils/sort_helpers.dart';
 class FilterableItem {
   final int id;
   final int index;
-  final CalendarItemType type;
+  final PlannerItemType type;
   final String title;
   final String comments;
   final DateTime start;
@@ -42,7 +42,7 @@ class FilterableItem {
   });
 }
 
-/// Parameters for filtering calendar items.
+/// Parameters for filtering planner items.
 class FilterParams {
   final List<String> filterTypes;
   final List<String> filterCategories;
@@ -107,13 +107,13 @@ bool _shouldIncludeByType(
   if (includeAllTypes) return true;
 
   switch (item.type) {
-    case CalendarItemType.homework:
+    case PlannerItemType.homework:
       return filterTypes.contains('Assignments');
-    case CalendarItemType.event:
+    case PlannerItemType.event:
       return filterTypes.contains('Events');
-    case CalendarItemType.courseSchedule:
+    case PlannerItemType.courseSchedule:
       return filterTypes.contains('Class Schedules');
-    case CalendarItemType.external:
+    case PlannerItemType.external:
       return filterTypes.contains('External Calendars');
   }
 }
@@ -121,11 +121,11 @@ bool _shouldIncludeByType(
 bool _passesFilters(FilterableItem item, FilterParams params) {
   // Course filter (applies to homework and course schedule)
   if (params.selectedCourseIds.isNotEmpty) {
-    if (item.type == CalendarItemType.homework && item.courseId != null) {
+    if (item.type == PlannerItemType.homework && item.courseId != null) {
       if (!params.selectedCourseIds.contains(item.courseId)) {
         return false;
       }
-    } else if (item.type == CalendarItemType.courseSchedule &&
+    } else if (item.type == PlannerItemType.courseSchedule &&
         item.ownerId != null) {
       // ownerId is now just the course ID (e.g., "42")
       final courseId = int.tryParse(item.ownerId!);
@@ -137,7 +137,7 @@ bool _passesFilters(FilterableItem item, FilterParams params) {
 
   // Category filter (applies to homework only)
   if (params.filterCategories.isNotEmpty &&
-      item.type == CalendarItemType.homework) {
+      item.type == PlannerItemType.homework) {
     final categoryTitle = params.categoryIdToTitle[item.categoryId];
     if (categoryTitle == null || categoryTitle.trim().isEmpty) {
       return false;
@@ -149,7 +149,7 @@ bool _passesFilters(FilterableItem item, FilterParams params) {
 
   // Status filter (applies to homework only)
   if (params.filterStatuses.isNotEmpty &&
-      item.type == CalendarItemType.homework) {
+      item.type == PlannerItemType.homework) {
     // Check for completed override first
     final isCompleted = params.completedOverrides[item.id] ?? item.completed;
 
@@ -196,7 +196,7 @@ bool _passesFilters(FilterableItem item, FilterParams params) {
 /// This ensures consistent sorting between sync and async code paths.
 void _sortByStartThenTitle(List<FilterableItem> list) {
   list.sort((a, b) {
-    return compareCalendarItems(
+    return comparePlannerItems(
       aType: a.type,
       bType: b.type,
       aAllDay: a.allDay,

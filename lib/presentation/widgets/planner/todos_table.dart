@@ -11,8 +11,8 @@ import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
-import 'package:heliumapp/data/sources/calendar_item_data_source.dart';
-import 'package:heliumapp/presentation/controllers/calendar/todos_table_controller.dart';
+import 'package:heliumapp/data/sources/planner_item_data_source.dart';
+import 'package:heliumapp/presentation/controllers/planner/todos_table_controller.dart';
 import 'package:heliumapp/presentation/widgets/category_title_label.dart';
 import 'package:heliumapp/presentation/widgets/course_title_label.dart';
 import 'package:heliumapp/presentation/widgets/drop_down.dart';
@@ -31,7 +31,7 @@ import 'package:url_launcher/url_launcher.dart';
 final _log = Logger('presentation.widgets');
 
 class TodosTable extends StatefulWidget {
-  final CalendarItemDataSource dataSource;
+  final PlannerItemDataSource dataSource;
   final TodosTableController controller;
   final Function(HomeworkModel) onTap;
   final Function(HomeworkModel, bool) onToggleCompleted;
@@ -1014,7 +1014,7 @@ class TodosTableState extends State<TodosTable> {
         );
       }
 
-      if (PlannerHelper.shouldShowEditButtonForCalendarItem(
+      if (PlannerHelper.shouldShowEditButtonForPlannerItem(
         context,
         homework,
       )) {

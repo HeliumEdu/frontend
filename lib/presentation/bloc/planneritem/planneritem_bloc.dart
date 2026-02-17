@@ -7,7 +7,7 @@
 
 import 'package:bloc/bloc.dart';
 import 'package:heliumapp/core/helium_exception.dart';
-import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
+import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
@@ -19,11 +19,11 @@ import 'package:heliumapp/domain/repositories/course_schedule_event_repository.d
 import 'package:heliumapp/domain/repositories/event_repository.dart';
 import 'package:heliumapp/domain/repositories/homework_repository.dart';
 import 'package:heliumapp/domain/repositories/resource_repository.dart';
-import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_event.dart';
-import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_state.dart';
+import 'package:heliumapp/presentation/bloc/planneritem/planneritem_event.dart';
+import 'package:heliumapp/presentation/bloc/planneritem/planneritem_state.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 
-class CalendarItemBloc extends Bloc<CalendarItemEvent, CalendarItemState> {
+class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
   final EventRepository eventRepository;
   final HomeworkRepository homeworkRepository;
   final CourseRepository courseRepository;
@@ -31,15 +31,15 @@ class CalendarItemBloc extends Bloc<CalendarItemEvent, CalendarItemState> {
   final CategoryRepository categoryRepository;
   final ResourceRepository resourceRepository;
 
-  CalendarItemBloc({
+  PlannerItemBloc({
     required this.eventRepository,
     required this.homeworkRepository,
     required this.courseRepository,
     required this.categoryRepository,
     required this.courseScheduleRepository,
     required this.resourceRepository,
-  }) : super(CalendarItemInitial(origin: EventOrigin.bloc)) {
-    on<FetchCalendarItemScreenDataEvent>(_onFetchCalendarItemScreenDataEvent);
+  }) : super(PlannerItemInitial(origin: EventOrigin.bloc)) {
+    on<FetchPlannerItemScreenDataEvent>(_onFetchPlannerItemScreenDataEvent);
     on<FetchEventEvent>(_onFetchEvent);
     on<CreateEventEvent>(_onCreateEvent);
     on<UpdateEventEvent>(_onUpdateEvent);
@@ -50,20 +50,20 @@ class CalendarItemBloc extends Bloc<CalendarItemEvent, CalendarItemState> {
     on<DeleteHomeworkEvent>(_onDeleteHomework);
   }
 
-  Future<void> _onFetchCalendarItemScreenDataEvent(
-    FetchCalendarItemScreenDataEvent event,
-    Emitter<CalendarItemState> emit,
+  Future<void> _onFetchPlannerItemScreenDataEvent(
+    FetchPlannerItemScreenDataEvent event,
+    Emitter<PlannerItemState> emit,
   ) async {
-    emit(CalendarItemsLoading(origin: event.origin));
+    emit(PlannerItemsLoading(origin: event.origin));
     try {
-      final CalendarItemBaseModel? calendarItem;
+      final PlannerItemBaseModel? plannerItem;
       final List<CourseGroupModel> courseGroups;
       final List<CourseModel> courses;
       final List<CourseScheduleModel> courseSchedules;
       final List<CategoryModel> categories;
       final List<ResourceModel> resources;
       if (event.eventId != null) {
-        calendarItem = await eventRepository.getEvent(id: event.eventId!);
+        plannerItem = await eventRepository.getEvent(id: event.eventId!);
         courseGroups = [];
         courses = [];
         courseSchedules = [];
@@ -71,11 +71,11 @@ class CalendarItemBloc extends Bloc<CalendarItemEvent, CalendarItemState> {
         resources = [];
       } else {
         if (event.homeworkId != null) {
-          calendarItem = await homeworkRepository.getHomework(
+          plannerItem = await homeworkRepository.getHomework(
             id: event.homeworkId!,
           );
         } else {
-          calendarItem = null;
+          plannerItem = null;
         }
         courseGroups = await courseRepository.getCourseGroups(
           shownOnCalendar: true,
@@ -93,9 +93,9 @@ class CalendarItemBloc extends Bloc<CalendarItemEvent, CalendarItemState> {
       }
 
       emit(
-        CalendarItemScreenDataFetched(
+        PlannerItemScreenDataFetched(
           origin: event.origin,
-          calendarItem: calendarItem,
+          plannerItem: plannerItem,
           courseGroups: courseGroups,
           courses: courses,
           courseSchedules: courseSchedules,
@@ -104,10 +104,10 @@ class CalendarItemBloc extends Bloc<CalendarItemEvent, CalendarItemState> {
         ),
       );
     } on HeliumException catch (e) {
-      emit(CalendarItemsError(origin: event.origin, message: e.message));
+      emit(PlannerItemsError(origin: event.origin, message: e.message));
     } catch (e) {
       emit(
-        CalendarItemsError(
+        PlannerItemsError(
           origin: event.origin,
           message: 'An unexpected error occurred: $e',
         ),
@@ -117,9 +117,9 @@ class CalendarItemBloc extends Bloc<CalendarItemEvent, CalendarItemState> {
 
   Future<void> _onFetchEvent(
     FetchEventEvent event,
-    Emitter<CalendarItemState> emit,
+    Emitter<PlannerItemState> emit,
   ) async {
-    emit(CalendarItemsLoading(origin: event.origin));
+    emit(PlannerItemsLoading(origin: event.origin));
     try {
       final entity = await eventRepository.getEvent(id: event.eventId);
       emit(
@@ -131,10 +131,10 @@ class CalendarItemBloc extends Bloc<CalendarItemEvent, CalendarItemState> {
         ),
       );
     } on HeliumException catch (e) {
-      emit(CalendarItemsError(origin: event.origin, message: e.message));
+      emit(PlannerItemsError(origin: event.origin, message: e.message));
     } catch (e) {
       emit(
-        CalendarItemsError(
+        PlannerItemsError(
           origin: event.origin,
           message: 'An unexpected error occurred: $e',
         ),
@@ -144,9 +144,9 @@ class CalendarItemBloc extends Bloc<CalendarItemEvent, CalendarItemState> {
 
   Future<void> _onCreateEvent(
     CreateEventEvent event,
-    Emitter<CalendarItemState> emit,
+    Emitter<PlannerItemState> emit,
   ) async {
-    emit(CalendarItemsLoading(origin: event.origin));
+    emit(PlannerItemsLoading(origin: event.origin));
     try {
       final entity = await eventRepository.createEvent(request: event.request);
       emit(
@@ -160,10 +160,10 @@ class CalendarItemBloc extends Bloc<CalendarItemEvent, CalendarItemState> {
         ),
       );
     } on HeliumException catch (e) {
-      emit(CalendarItemsError(origin: event.origin, message: e.message));
+      emit(PlannerItemsError(origin: event.origin, message: e.message));
     } catch (e) {
       emit(
-        CalendarItemsError(
+        PlannerItemsError(
           origin: event.origin,
           message: 'An unexpected error occurred: $e',
         ),
@@ -173,9 +173,9 @@ class CalendarItemBloc extends Bloc<CalendarItemEvent, CalendarItemState> {
 
   Future<void> _onUpdateEvent(
     UpdateEventEvent event,
-    Emitter<CalendarItemState> emit,
+    Emitter<PlannerItemState> emit,
   ) async {
-    emit(CalendarItemsLoading(origin: event.origin));
+    emit(PlannerItemsLoading(origin: event.origin));
     try {
       final entity = await eventRepository.updateEvent(
         eventId: event.id,
@@ -191,10 +191,10 @@ class CalendarItemBloc extends Bloc<CalendarItemEvent, CalendarItemState> {
         ),
       );
     } on HeliumException catch (e) {
-      emit(CalendarItemsError(origin: event.origin, message: e.message));
+      emit(PlannerItemsError(origin: event.origin, message: e.message));
     } catch (e) {
       emit(
-        CalendarItemsError(
+        PlannerItemsError(
           origin: event.origin,
           message: 'An unexpected error occurred: $e',
         ),
@@ -204,17 +204,17 @@ class CalendarItemBloc extends Bloc<CalendarItemEvent, CalendarItemState> {
 
   Future<void> _onDeleteEvent(
     DeleteEventEvent event,
-    Emitter<CalendarItemState> emit,
+    Emitter<PlannerItemState> emit,
   ) async {
-    emit(CalendarItemsLoading(origin: event.origin));
+    emit(PlannerItemsLoading(origin: event.origin));
     try {
       await eventRepository.deleteEvent(eventId: event.id);
       emit(EventDeleted(origin: event.origin, id: event.id));
     } on HeliumException catch (e) {
-      emit(CalendarItemsError(origin: event.origin, message: e.message));
+      emit(PlannerItemsError(origin: event.origin, message: e.message));
     } catch (e) {
       emit(
-        CalendarItemsError(
+        PlannerItemsError(
           origin: event.origin,
           message: 'An unexpected error occurred: $e',
         ),
@@ -224,9 +224,9 @@ class CalendarItemBloc extends Bloc<CalendarItemEvent, CalendarItemState> {
 
   Future<void> _onFetchHomework(
     FetchHomeworkEvent event,
-    Emitter<CalendarItemState> emit,
+    Emitter<PlannerItemState> emit,
   ) async {
-    emit(CalendarItemsLoading(origin: event.origin));
+    emit(PlannerItemsLoading(origin: event.origin));
     try {
       final homework = await homeworkRepository.getHomework(id: event.id);
       emit(
@@ -238,10 +238,10 @@ class CalendarItemBloc extends Bloc<CalendarItemEvent, CalendarItemState> {
         ),
       );
     } on HeliumException catch (e) {
-      emit(CalendarItemsError(origin: event.origin, message: e.message));
+      emit(PlannerItemsError(origin: event.origin, message: e.message));
     } catch (e) {
       emit(
-        CalendarItemsError(
+        PlannerItemsError(
           origin: event.origin,
           message: 'An unexpected error occurred: $e',
         ),
@@ -251,9 +251,9 @@ class CalendarItemBloc extends Bloc<CalendarItemEvent, CalendarItemState> {
 
   Future<void> _onCreateHomework(
     CreateHomeworkEvent event,
-    Emitter<CalendarItemState> emit,
+    Emitter<PlannerItemState> emit,
   ) async {
-    emit(CalendarItemsLoading(origin: event.origin));
+    emit(PlannerItemsLoading(origin: event.origin));
     try {
       final homework = await homeworkRepository.createHomework(
         groupId: event.courseGroupId,
@@ -271,10 +271,10 @@ class CalendarItemBloc extends Bloc<CalendarItemEvent, CalendarItemState> {
         ),
       );
     } on HeliumException catch (e) {
-      emit(CalendarItemsError(origin: event.origin, message: e.message));
+      emit(PlannerItemsError(origin: event.origin, message: e.message));
     } catch (e) {
       emit(
-        CalendarItemsError(
+        PlannerItemsError(
           origin: event.origin,
           message: 'An unexpected error occurred: $e',
         ),
@@ -284,9 +284,9 @@ class CalendarItemBloc extends Bloc<CalendarItemEvent, CalendarItemState> {
 
   Future<void> _onUpdateHomework(
     UpdateHomeworkEvent event,
-    Emitter<CalendarItemState> emit,
+    Emitter<PlannerItemState> emit,
   ) async {
-    emit(CalendarItemsLoading(origin: event.origin));
+    emit(PlannerItemsLoading(origin: event.origin));
     try {
       final homework = await homeworkRepository.updateHomework(
         groupId: event.courseGroupId,
@@ -304,10 +304,10 @@ class CalendarItemBloc extends Bloc<CalendarItemEvent, CalendarItemState> {
         ),
       );
     } on HeliumException catch (e) {
-      emit(CalendarItemsError(origin: event.origin, message: e.message));
+      emit(PlannerItemsError(origin: event.origin, message: e.message));
     } catch (e) {
       emit(
-        CalendarItemsError(
+        PlannerItemsError(
           origin: event.origin,
           message: 'An unexpected error occurred: $e',
         ),
@@ -317,9 +317,9 @@ class CalendarItemBloc extends Bloc<CalendarItemEvent, CalendarItemState> {
 
   Future<void> _onDeleteHomework(
     DeleteHomeworkEvent event,
-    Emitter<CalendarItemState> emit,
+    Emitter<PlannerItemState> emit,
   ) async {
-    emit(CalendarItemsLoading(origin: event.origin));
+    emit(PlannerItemsLoading(origin: event.origin));
     try {
       await homeworkRepository.deleteHomework(
         groupId: event.courseGroupId,
@@ -328,10 +328,10 @@ class CalendarItemBloc extends Bloc<CalendarItemEvent, CalendarItemState> {
       );
       emit(HomeworkDeleted(origin: event.origin, id: event.homeworkId));
     } on HeliumException catch (e) {
-      emit(CalendarItemsError(origin: event.origin, message: e.message));
+      emit(PlannerItemsError(origin: event.origin, message: e.message));
     } catch (e) {
       emit(
-        CalendarItemsError(
+        PlannerItemsError(
           origin: event.origin,
           message: 'An unexpected error occurred: $e',
         ),

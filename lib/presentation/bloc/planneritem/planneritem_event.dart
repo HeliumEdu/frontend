@@ -9,28 +9,28 @@ import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 
-abstract class CalendarItemEvent extends BaseEvent {
-  CalendarItemEvent({required super.origin});
+abstract class PlannerItemEvent extends BaseEvent {
+  PlannerItemEvent({required super.origin});
 }
 
-class FetchCalendarItemScreenDataEvent extends CalendarItemEvent {
+class FetchPlannerItemScreenDataEvent extends PlannerItemEvent {
   final int? eventId;
   final int? homeworkId;
 
-  FetchCalendarItemScreenDataEvent({
+  FetchPlannerItemScreenDataEvent({
     required super.origin,
     this.eventId,
     this.homeworkId,
   });
 }
 
-class FetchEventEvent extends CalendarItemEvent {
+class FetchEventEvent extends PlannerItemEvent {
   final int eventId;
 
   FetchEventEvent({required super.origin, required this.eventId});
 }
 
-class CreateEventEvent extends CalendarItemEvent {
+class CreateEventEvent extends PlannerItemEvent {
   final EventRequestModel request;
   final bool advanceNavOnSuccess;
   final bool isClone;
@@ -43,7 +43,7 @@ class CreateEventEvent extends CalendarItemEvent {
   });
 }
 
-class UpdateEventEvent extends CalendarItemEvent {
+class UpdateEventEvent extends PlannerItemEvent {
   final int id;
   final EventRequestModel request;
   final bool advanceNavOnSuccess;
@@ -56,19 +56,19 @@ class UpdateEventEvent extends CalendarItemEvent {
   });
 }
 
-class DeleteEventEvent extends CalendarItemEvent {
+class DeleteEventEvent extends PlannerItemEvent {
   final int id;
 
   DeleteEventEvent({required super.origin, required this.id});
 }
 
-class FetchHomeworkEvent extends CalendarItemEvent {
+class FetchHomeworkEvent extends PlannerItemEvent {
   final int id;
 
   FetchHomeworkEvent({required super.origin, required this.id});
 }
 
-class CreateHomeworkEvent extends CalendarItemEvent {
+class CreateHomeworkEvent extends PlannerItemEvent {
   final int courseGroupId;
   final int courseId;
   final HomeworkRequestModel request;
@@ -85,7 +85,7 @@ class CreateHomeworkEvent extends CalendarItemEvent {
   });
 }
 
-class UpdateHomeworkEvent extends CalendarItemEvent {
+class UpdateHomeworkEvent extends PlannerItemEvent {
   final int courseGroupId;
   final int courseId;
   final int homeworkId;
@@ -102,7 +102,7 @@ class UpdateHomeworkEvent extends CalendarItemEvent {
   });
 }
 
-class DeleteHomeworkEvent extends CalendarItemEvent {
+class DeleteHomeworkEvent extends PlannerItemEvent {
   final int courseGroupId;
   final int courseId;
   final int homeworkId;

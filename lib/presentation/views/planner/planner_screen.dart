@@ -17,7 +17,7 @@ import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/id_or_entity.dart';
 import 'package:heliumapp/data/models/planner/attachment_model.dart';
-import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
+import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
@@ -33,7 +33,7 @@ import 'package:heliumapp/data/repositories/course_schedule_event_repository_imp
 import 'package:heliumapp/data/repositories/event_repository_impl.dart';
 import 'package:heliumapp/data/repositories/external_calendar_repository_impl.dart';
 import 'package:heliumapp/data/repositories/homework_repository_impl.dart';
-import 'package:heliumapp/data/sources/calendar_item_data_source.dart';
+import 'package:heliumapp/data/sources/planner_item_data_source.dart';
 import 'package:heliumapp/data/sources/category_remote_data_source.dart';
 import 'package:heliumapp/data/sources/course_remote_data_source.dart';
 import 'package:heliumapp/data/sources/course_schedule_builder_source.dart';
@@ -45,29 +45,29 @@ import 'package:heliumapp/presentation/bloc/attachment/attachment_bloc.dart';
 import 'package:heliumapp/presentation/bloc/attachment/attachment_state.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_bloc.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_state.dart';
-import 'package:heliumapp/presentation/bloc/calendar/calendar_bloc.dart';
-import 'package:heliumapp/presentation/bloc/calendar/calendar_event.dart';
-import 'package:heliumapp/presentation/bloc/calendar/calendar_state.dart';
-import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
-import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_event.dart';
-import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_state.dart';
+import 'package:heliumapp/presentation/bloc/planner/planner_bloc.dart';
+import 'package:heliumapp/presentation/bloc/planner/planner_event.dart';
+import 'package:heliumapp/presentation/bloc/planner/planner_state.dart';
+import 'package:heliumapp/presentation/bloc/planneritem/planneritem_bloc.dart';
+import 'package:heliumapp/presentation/bloc/planneritem/planneritem_event.dart';
+import 'package:heliumapp/presentation/bloc/planneritem/planneritem_state.dart';
 import 'package:heliumapp/presentation/bloc/category/category_bloc.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_bloc.dart';
 import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_state.dart';
+import 'package:heliumapp/presentation/controllers/planner/todos_table_controller.dart';
 import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
-import 'package:heliumapp/presentation/views/calendar/calendar_item_add_screen.dart';
-import 'package:heliumapp/presentation/controllers/calendar/todos_table_controller.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/views/core/notification_screen.dart';
+import 'package:heliumapp/presentation/views/planner/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/views/settings/settings_screen.dart';
-import 'package:heliumapp/presentation/widgets/error_card.dart';
 import 'package:heliumapp/presentation/widgets/checkbox_toggle.dart';
+import 'package:heliumapp/presentation/widgets/error_card.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
-import 'package:heliumapp/presentation/widgets/shadow_container.dart';
 import 'package:heliumapp/presentation/widgets/planner/todos_table.dart';
+import 'package:heliumapp/presentation/widgets/shadow_container.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
@@ -92,10 +92,10 @@ class PlannerScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: _providerHelpers.createCalendarItemBloc()),
+        BlocProvider(create: _providerHelpers.createPlannerItemBloc()),
         BlocProvider(create: _providerHelpers.createAttachmentBloc()),
         BlocProvider(
-          create: (context) => CalendarBloc(
+          create: (context) => PlannerBloc(
             courseRepository: CourseRepositoryImpl(
               remoteDataSource: CourseRemoteDataSourceImpl(
                 dioClient: _dioClient,
@@ -139,9 +139,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   @override
   List<BlocProvider>? get inheritableProviders => [
-    BlocProvider<CalendarItemBloc>.value(
-      value: context.read<CalendarItemBloc>(),
-    ),
+    BlocProvider<PlannerItemBloc>.value(value: context.read<PlannerItemBloc>()),
     BlocProvider<AttachmentBloc>.value(value: context.read<AttachmentBloc>()),
   ];
 
@@ -156,16 +154,16 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         ? truncatedNow
         : _calendarController.selectedDate;
 
-    final calendarItemBloc = context.read<CalendarItemBloc>();
+    final plannerItemBloc = context.read<PlannerItemBloc>();
     final attachmentBloc = context.read<AttachmentBloc>();
 
-    showCalendarItemAdd(
+    showPlannerItemAdd(
       context,
       initialDate: initialDate,
       isFromMonthView: _calendarController.view == CalendarView.month,
       isEdit: false,
       isNew: true,
-      calendarItemBloc: calendarItemBloc,
+      plannerItemBloc: plannerItemBloc,
       attachmentBloc: attachmentBloc,
     );
   };
@@ -212,7 +210,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   List<DateTime> _visibleDates = [];
 
-  CalendarItemDataSource? _calendarItemDataSource;
+  PlannerItemDataSource? _plannerItemDataSource;
 
   @override
   void initState() {
@@ -222,7 +220,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       ..view = PlannerHelper.mapHeliumViewToSfCalendarView(_currentView);
     _todosController = TodosTableController();
 
-    context.read<CalendarBloc>().add(FetchCalendarScreenDataEvent());
+    context.read<PlannerBloc>().add(FetchPlannerScreenDataEvent());
 
     _calendarController.addPropertyChangedListener((value) {
       if (value == 'calendarView') {
@@ -251,7 +249,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   @override
   void dispose() {
-    _calendarItemDataSource?.dispose();
+    _plannerItemDataSource?.dispose();
     _todosController.dispose();
     _searchController.dispose();
     _searchFocusNode.dispose();
@@ -270,7 +268,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           );
           _changeView(defaultView);
 
-          _calendarItemDataSource = CalendarItemDataSource(
+          _plannerItemDataSource = PlannerItemDataSource(
             homeworkRepository: HomeworkRepositoryImpl(
               remoteDataSource: HomeworkRemoteDataSourceImpl(
                 dioClient: dioClient,
@@ -292,9 +290,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             ),
             userSettings: settings,
           );
-          _calendarItemDataSource!.restoreFiltersIfEnabled();
+          _plannerItemDataSource!.restoreFiltersIfEnabled();
           _todosController.itemsPerPage =
-              _calendarItemDataSource!.todosItemsPerPage;
+              _plannerItemDataSource!.todosItemsPerPage;
         });
       }
 
@@ -305,9 +303,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   @override
   List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
     return [
-      BlocListener<CalendarBloc, CalendarState>(
+      BlocListener<PlannerBloc, PlannerState>(
         listener: (context, state) {
-          if (state is CalendarScreenDataFetched) {
+          if (state is PlannerScreenDataFetched) {
             _populateInitialCalendarStateData(state);
 
             // Check if we should open a dialog based on query parameters
@@ -336,32 +334,32 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           }
         },
       ),
-      BlocListener<CalendarItemBloc, CalendarItemState>(
+      BlocListener<PlannerItemBloc, PlannerItemState>(
         listener: (context, state) {
-          if (_calendarItemDataSource == null) return;
+          if (_plannerItemDataSource == null) return;
 
           if (state is EventCreated) {
-            _calendarItemDataSource!.addCalendarItem(state.event);
+            _plannerItemDataSource!.addPlannerItem(state.event);
           } else if (state is EventUpdated) {
             // No snackbar on updates
-            _calendarItemDataSource!.updateCalendarItem(state.event);
+            _plannerItemDataSource!.updatePlannerItem(state.event);
           } else if (state is EventDeleted) {
             showSnackBar(context, 'Event deleted');
-            _calendarItemDataSource!.removeCalendarItem(state.id);
+            _plannerItemDataSource!.removePlannerItem(state.id);
           } else if (state is HomeworkCreated) {
-            _calendarItemDataSource!.addCalendarItem(state.homework);
+            _plannerItemDataSource!.addPlannerItem(state.homework);
           } else if (state is HomeworkUpdated) {
             // No snackbar on updates
-            _calendarItemDataSource!.updateCalendarItem(state.homework);
+            _plannerItemDataSource!.updatePlannerItem(state.homework);
           } else if (state is HomeworkDeleted) {
             showSnackBar(context, 'Assignment deleted');
-            _calendarItemDataSource!.removeCalendarItem(state.id);
+            _plannerItemDataSource!.removePlannerItem(state.id);
           }
         },
       ),
       BlocListener<ExternalCalendarBloc, ExternalCalendarState>(
         listener: (context, state) {
-          if (_calendarItemDataSource == null) return;
+          if (_plannerItemDataSource == null) return;
 
           if (state is ExternalCalendarCreated ||
               state is ExternalCalendarUpdated ||
@@ -375,7 +373,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                 ? _visibleDates.last
                 : null;
 
-            _calendarItemDataSource!.refreshCalendarSources(
+            _plannerItemDataSource!.refreshCalendarSources(
               visibleStart: visibleStart,
               visibleEnd: visibleEnd,
             );
@@ -387,7 +385,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           if (state is AuthProfileUpdated) {
             _log.info('User settings changed, repainting calendar');
 
-            _calendarItemDataSource?.userSettings = state.user.settings;
+            _plannerItemDataSource?.userSettings = state.user.settings;
 
             setState(() {
               userSettings = state.user.settings;
@@ -397,7 +395,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       ),
       BlocListener<AttachmentBloc, AttachmentState>(
         listener: (context, state) {
-          if (_calendarItemDataSource == null) return;
+          if (_plannerItemDataSource == null) return;
 
           if (state is AttachmentsCreated) {
             final attachment = state.attachments.firstOrNull;
@@ -408,7 +406,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                 ? attachment.homework!
                 : attachment.event!;
 
-            _updateCalendarItemAttachments(
+            _updatePlannerItemAttachments(
               itemId,
               state.attachments,
               isAdd: true,
@@ -418,7 +416,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             final isHomework = state.homeworkId != null;
             final itemId = isHomework ? state.homeworkId! : state.eventId!;
 
-            _updateCalendarItemAttachments(
+            _updatePlannerItemAttachments(
               itemId,
               state.id,
               isAdd: false,
@@ -432,17 +430,17 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   @override
   Widget buildMainArea(BuildContext context) {
-    return BlocBuilder<CalendarBloc, CalendarState>(
+    return BlocBuilder<PlannerBloc, PlannerState>(
       builder: (context, state) {
-        if (state is CalendarLoading) {
+        if (state is PlannerLoading) {
           return const LoadingIndicator();
         }
 
-        if (state is CalendarError) {
+        if (state is PlannerError) {
           return ErrorCard(
             message: state.message!,
             onReload: () {
-              FetchCalendarScreenDataEvent();
+              FetchPlannerScreenDataEvent();
             },
           );
         }
@@ -474,14 +472,14 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: ListenableBuilder(
-                  listenable: _calendarItemDataSource!.changeNotifier,
+                  listenable: _plannerItemDataSource!.changeNotifier,
                   builder: (context, _) {
                     return Stack(
                       children: [
                         _currentView == HeliumView.todos
                             ? _buildTodosView()
                             : _buildCalendarView(context),
-                        if (_calendarItemDataSource!.isRefreshing)
+                        if (_plannerItemDataSource!.isRefreshing)
                           Positioned.fill(
                             child: Container(
                               color: context.colorScheme.surface.withValues(
@@ -568,7 +566,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           ),
           allowAppointmentResize: true,
           allowedViews: _allowedViews,
-          dataSource: _calendarItemDataSource,
+          dataSource: _plannerItemDataSource,
           timeZone: userSettings!.timeZone.name,
           firstDayOfWeek:
               PlannerHelper.weekStartsOnRemap[userSettings!.weekStartsOn],
@@ -645,9 +643,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           ),
           loadMoreWidgetBuilder: _loadMoreWidgetBuilder,
           appointmentBuilder: _buildCalendarItem,
-          onTap: _openCalendarItemFromSfCalendar,
-          onDragEnd: _dropCalendarItemFromSfCalendar,
-          onAppointmentResizeEnd: _resizeCalendarItemFromSfCalendar,
+          onTap: _openCalendarItem,
+          onDragEnd: _dropCalendarItem,
+          onAppointmentResizeEnd: _resizeCalendarItem,
           onSelectionChanged: _onCalendarSelectionChanged,
           onViewChanged: (ViewChangedDetails details) {
             _visibleDates = details.visibleDates;
@@ -665,30 +663,30 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     );
   }
 
-  bool _openCalendarItem(CalendarItemBaseModel calendarItem) {
-    if (calendarItem is CourseScheduleEventModel) {
-      _showEditClassScheduleEventSnackBar(calendarItem.ownerId);
+  bool _openPlannerItem(PlannerItemBaseModel plannerItem) {
+    if (plannerItem is CourseScheduleEventModel) {
+      _showEditClassScheduleEventSnackBar(plannerItem.ownerId);
       return false;
-    } else if (calendarItem is ExternalCalendarEventModel) {
+    } else if (plannerItem is ExternalCalendarEventModel) {
       _showEditExternalCalendarEventSnackBar();
       return false;
     }
 
-    final int? eventId = calendarItem is EventModel ? calendarItem.id : null;
-    final int? homeworkId = calendarItem is HomeworkModel
-        ? calendarItem.id
+    final int? eventId = plannerItem is EventModel ? plannerItem.id : null;
+    final int? homeworkId = plannerItem is HomeworkModel
+        ? plannerItem.id
         : null;
 
-    final calendarItemBloc = context.read<CalendarItemBloc>();
+    final plannerItemBloc = context.read<PlannerItemBloc>();
     final attachmentBloc = context.read<AttachmentBloc>();
 
-    showCalendarItemAdd(
+    showPlannerItemAdd(
       context,
       eventId: eventId,
       homeworkId: homeworkId,
       isEdit: true,
       isNew: false,
-      calendarItemBloc: calendarItemBloc,
+      plannerItemBloc: plannerItemBloc,
       attachmentBloc: attachmentBloc,
     );
 
@@ -1148,12 +1146,12 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         }
 
         // Wrap in ListenableBuilder to rebuild when filters change
-        if (_calendarItemDataSource == null) {
+        if (_plannerItemDataSource == null) {
           return _buildFilterButtonsRow();
         }
 
         return ListenableBuilder(
-          listenable: _calendarItemDataSource!.changeNotifier,
+          listenable: _plannerItemDataSource!.changeNotifier,
           builder: (context, _) => _buildFilterButtonsRow(),
         );
       },
@@ -1277,9 +1275,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   bool _hasCoursesFilter() {
-    if (_calendarItemDataSource == null) return false;
+    if (_plannerItemDataSource == null) return false;
 
-    final filteredCourses = _calendarItemDataSource!.filteredCourses;
+    final filteredCourses = _plannerItemDataSource!.filteredCourses;
 
     if (filteredCourses.isEmpty) return false;
 
@@ -1303,7 +1301,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       return _deduplicatedCategories;
     }
 
-    final filteredCourseIds = _calendarItemDataSource!.filteredCourses.entries
+    final filteredCourseIds = _plannerItemDataSource!.filteredCourses.entries
         .where((e) => e.value)
         .map((e) => e.key)
         .toSet();
@@ -1316,11 +1314,11 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   bool _hasStatusFilters() {
-    if (_calendarItemDataSource == null) return false;
+    if (_plannerItemDataSource == null) return false;
 
-    final categories = _calendarItemDataSource!.filterCategories;
-    final types = _calendarItemDataSource!.filterTypes;
-    final statuses = _calendarItemDataSource!.filterStatuses;
+    final categories = _plannerItemDataSource!.filterCategories;
+    final types = _plannerItemDataSource!.filterTypes;
+    final statuses = _plannerItemDataSource!.filterStatuses;
 
     if (types.isNotEmpty) return true;
 
@@ -1332,9 +1330,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   bool _hasSearchQuery() {
-    if (_calendarItemDataSource == null) return false;
+    if (_plannerItemDataSource == null) return false;
 
-    final searchQuery = _calendarItemDataSource!.searchQuery;
+    final searchQuery = _plannerItemDataSource!.searchQuery;
     return searchQuery.isNotEmpty;
   }
 
@@ -1461,10 +1459,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   FutureBuilder<void> _loadMoreWidgetBuilder(
     BuildContext context,
-    LoadMoreCallback loadMoreCalendarItems,
+    LoadMoreCallback loadMorePlannerItems,
   ) {
     return FutureBuilder<void>(
-      future: loadMoreCalendarItems(),
+      future: loadMorePlannerItems(),
       builder: (context, snapShot) {
         return const Center(child: LoadingIndicator(expanded: false));
       },
@@ -1477,19 +1475,19 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     }
 
     _searchTypingTimer = Timer(const Duration(milliseconds: 500), () {
-      _calendarItemDataSource!.setSearchQuery(value);
+      _plannerItemDataSource!.setSearchQuery(value);
     });
   }
 
-  void _openCalendarItemFromSfCalendar(CalendarTapDetails tapDetails) {
+  void _openCalendarItem(CalendarTapDetails tapDetails) {
     if (tapDetails.appointments == null ||
         tapDetails.appointments!.isEmpty ||
         tapDetails.targetElement != CalendarElement.appointment) {
       return;
     }
 
-    final CalendarItemBaseModel calendarItem =
-        tapDetails.appointments![0] as CalendarItemBaseModel;
+    final PlannerItemBaseModel plannerItem =
+        tapDetails.appointments![0] as PlannerItemBaseModel;
 
     if (_currentView == HeliumView.agenda &&
         PlannerHelper.shouldShowEditButton(context)) {
@@ -1498,24 +1496,24 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
     Feedback.forTap(context);
 
-    _openCalendarItem(calendarItem);
+    _openPlannerItem(plannerItem);
   }
 
-  void _dropCalendarItemFromSfCalendar(AppointmentDragEndDetails dropDetails) {
+  void _dropCalendarItem(AppointmentDragEndDetails dropDetails) {
     if (dropDetails.appointment == null || dropDetails.droppingTime == null) {
       return;
     }
 
-    final CalendarItemBaseModel calendarItem =
-        dropDetails.appointment as CalendarItemBaseModel;
+    final PlannerItemBaseModel plannerItem =
+        dropDetails.appointment as PlannerItemBaseModel;
 
-    if (calendarItem is HomeworkModel || calendarItem is EventModel) {
+    if (plannerItem is HomeworkModel || plannerItem is EventModel) {
       final startDateTime = tz.TZDateTime.from(
-        calendarItem.start,
+        plannerItem.start,
         userSettings!.timeZone,
       );
       final Duration duration = tz.TZDateTime.from(
-        calendarItem.end,
+        plannerItem.end,
         userSettings!.timeZone,
       ).difference(startDateTime);
 
@@ -1535,27 +1533,27 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       final DateTime end = start.add(duration);
 
       // Set optimistic override immediately for instant visual feedback
-      _calendarItemDataSource!.setTimeOverride(
-        calendarItem.id,
+      _plannerItemDataSource!.setTimeOverride(
+        plannerItem.id,
         start.toIso8601String(),
         end.toIso8601String(),
       );
 
-      if (calendarItem is HomeworkModel) {
+      if (plannerItem is HomeworkModel) {
         final request = HomeworkRequestModel(
           start: start.toIso8601String(),
           end: end.toIso8601String(),
-          course: calendarItem.course.id,
+          course: plannerItem.course.id,
         );
 
-        context.read<CalendarItemBloc>().add(
+        context.read<PlannerItemBloc>().add(
           UpdateHomeworkEvent(
             origin: EventOrigin.screen,
             courseGroupId: _courses
-                .firstWhere((c) => c.id == calendarItem.course.id)
+                .firstWhere((c) => c.id == plannerItem.course.id)
                 .courseGroup,
-            courseId: calendarItem.course.id,
-            homeworkId: calendarItem.id,
+            courseId: plannerItem.course.id,
+            homeworkId: plannerItem.id,
             request: request,
           ),
         );
@@ -1565,36 +1563,34 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           end: end.toIso8601String(),
         );
 
-        context.read<CalendarItemBloc>().add(
+        context.read<PlannerItemBloc>().add(
           UpdateEventEvent(
             origin: EventOrigin.screen,
-            id: calendarItem.id,
+            id: plannerItem.id,
             request: request,
           ),
         );
       }
-    } else if (calendarItem is CourseScheduleEventModel) {
-      _showEditClassScheduleEventSnackBar(calendarItem.ownerId);
-    } else if (calendarItem is ExternalCalendarEventModel) {
+    } else if (plannerItem is CourseScheduleEventModel) {
+      _showEditClassScheduleEventSnackBar(plannerItem.ownerId);
+    } else if (plannerItem is ExternalCalendarEventModel) {
       _showEditExternalCalendarEventSnackBar();
     }
   }
 
-  void _resizeCalendarItemFromSfCalendar(
-    AppointmentResizeEndDetails resizeDetails,
-  ) {
+  void _resizeCalendarItem(AppointmentResizeEndDetails resizeDetails) {
     if (resizeDetails.appointment == null ||
         resizeDetails.startTime == null ||
         resizeDetails.endTime == null) {
       return;
     }
 
-    final CalendarItemBaseModel calendarItem =
-        resizeDetails.appointment as CalendarItemBaseModel;
+    final PlannerItemBaseModel plannerItem =
+        resizeDetails.appointment as PlannerItemBaseModel;
 
-    if (calendarItem is HomeworkModel || calendarItem is EventModel) {
+    if (plannerItem is HomeworkModel || plannerItem is EventModel) {
       final originalStart = tz.TZDateTime.from(
-        calendarItem.start,
+        plannerItem.start,
         userSettings!.timeZone,
       );
 
@@ -1631,32 +1627,32 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         resizeDetails.endTime!.hour,
         endMinute,
       );
-      if (calendarItem.allDay) {
+      if (plannerItem.allDay) {
         end = end.add(const Duration(days: 1));
       }
 
       // Set optimistic override immediately for instant visual feedback
-      _calendarItemDataSource!.setTimeOverride(
-        calendarItem.id,
+      _plannerItemDataSource!.setTimeOverride(
+        plannerItem.id,
         start.toIso8601String(),
         end.toIso8601String(),
       );
 
-      if (calendarItem is HomeworkModel) {
+      if (plannerItem is HomeworkModel) {
         final request = HomeworkRequestModel(
           start: start.toIso8601String(),
           end: end.toIso8601String(),
-          course: calendarItem.course.id,
+          course: plannerItem.course.id,
         );
 
-        context.read<CalendarItemBloc>().add(
+        context.read<PlannerItemBloc>().add(
           UpdateHomeworkEvent(
             origin: EventOrigin.screen,
             courseGroupId: _courses
-                .firstWhere((c) => c.id == calendarItem.course.id)
+                .firstWhere((c) => c.id == plannerItem.course.id)
                 .courseGroup,
-            courseId: calendarItem.course.id,
-            homeworkId: calendarItem.id,
+            courseId: plannerItem.course.id,
+            homeworkId: plannerItem.id,
             request: request,
           ),
         );
@@ -1666,36 +1662,36 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           end: end.toIso8601String(),
         );
 
-        context.read<CalendarItemBloc>().add(
+        context.read<PlannerItemBloc>().add(
           UpdateEventEvent(
             origin: EventOrigin.screen,
-            id: calendarItem.id,
+            id: plannerItem.id,
             request: request,
           ),
         );
       }
-    } else if (calendarItem is CourseScheduleEventModel) {
-      _showEditClassScheduleEventSnackBar(calendarItem.ownerId);
-    } else if (calendarItem is ExternalCalendarEventModel) {
+    } else if (plannerItem is CourseScheduleEventModel) {
+      _showEditClassScheduleEventSnackBar(plannerItem.ownerId);
+    } else if (plannerItem is ExternalCalendarEventModel) {
       _showEditExternalCalendarEventSnackBar();
     }
   }
 
-  void _deleteCalendarItem(
+  void _deletePlannerItem(
     BuildContext context,
-    CalendarItemBaseModel calendarItem,
+    PlannerItemBaseModel plannerItem,
   ) {
     final CourseModel? course;
-    if (calendarItem is HomeworkModel) {
-      course = _courses.firstWhere((c) => c.id == calendarItem.course.id);
+    if (plannerItem is HomeworkModel) {
+      course = _courses.firstWhere((c) => c.id == plannerItem.course.id);
     } else {
       course = null;
     }
 
-    final Function(CalendarItemBaseModel) onDelete;
-    if (calendarItem is HomeworkModel) {
+    final Function(PlannerItemBaseModel) onDelete;
+    if (plannerItem is HomeworkModel) {
       onDelete = (h) {
-        context.read<CalendarItemBloc>().add(
+        context.read<PlannerItemBloc>().add(
           DeleteHomeworkEvent(
             origin: EventOrigin.screen,
             courseGroupId: course!.courseGroup,
@@ -1704,9 +1700,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           ),
         );
       };
-    } else if (calendarItem is EventModel) {
+    } else if (plannerItem is EventModel) {
       onDelete = (e) {
-        context.read<CalendarItemBloc>().add(
+        context.read<PlannerItemBloc>().add(
           DeleteEventEvent(origin: EventOrigin.screen, id: e.id),
         );
       };
@@ -1716,7 +1712,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
     showConfirmDeleteDialog(
       parentContext: context,
-      item: calendarItem,
+      item: plannerItem,
       onDelete: onDelete,
     );
   }
@@ -1729,50 +1725,50 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       return _buildMoreIndicator(context, details);
     }
 
-    final calendarItem = details.appointments.first as CalendarItemBaseModel;
+    final plannerItem = details.appointments.first as PlannerItemBaseModel;
     final isInAgenda =
         _currentView == HeliumView.agenda ||
         (_currentView == HeliumView.month &&
             (details.bounds.height > 40 ||
-                (Responsive.isMobile(context) && calendarItem.allDay)));
-    final homeworkId = calendarItem is HomeworkModel ? calendarItem.id : null;
+                (Responsive.isMobile(context) && plannerItem.allDay)));
+    final homeworkId = plannerItem is HomeworkModel ? plannerItem.id : null;
 
     // Use KeyedSubtree to help preserve widget state across rebuilds, prevents
     // flickers for drag-and-drop and similar operations
     return KeyedSubtree(
-      key: ValueKey('calendar_item_${calendarItem.id}'),
+      key: ValueKey('planner_item_${plannerItem.id}'),
       child: _buildCalendarItemWidget(
-        calendarItem: calendarItem,
+        plannerItem: plannerItem,
         width: details.bounds.width,
         height: details.bounds.height,
         isInAgenda: isInAgenda,
         completedOverride: homeworkId != null
-            ? _calendarItemDataSource!.completedOverrides[homeworkId]
+            ? _plannerItemDataSource!.completedOverrides[homeworkId]
             : null,
       ),
     );
   }
 
   Widget _buildCalendarItemLeftForAgenda({
-    required CalendarItemBaseModel calendarItem,
+    required PlannerItemBaseModel plannerItem,
     bool? completedOverride,
   }) {
     Widget? iconWidget;
 
     final isCheckbox = PlannerHelper.shouldShowCheckbox(
       context,
-      calendarItem,
+      plannerItem,
       _currentView,
     );
 
     if (isCheckbox) {
       iconWidget = _buildCheckboxWidget(
-        homework: calendarItem as HomeworkModel,
+        homework: plannerItem as HomeworkModel,
         completedOverride: completedOverride,
       );
     } else if (PlannerHelper.shouldShowSchoolIcon(
       context,
-      calendarItem,
+      plannerItem,
       _currentView,
     )) {
       iconWidget = _buildSchoolIconWidget();
@@ -1792,7 +1788,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
     // On mobile, make the entire left area tappable for checkboxes
     if (Responsive.isTouchDevice(context) && isCheckbox) {
-      final homework = calendarItem as HomeworkModel;
+      final homework = plannerItem as HomeworkModel;
       return MouseRegion(
         cursor: SystemMouseCursors.click,
         child: GestureDetector(
@@ -1810,17 +1806,17 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   Widget? _getInlineIconWidget({
-    required CalendarItemBaseModel calendarItem,
+    required PlannerItemBaseModel plannerItem,
     bool? completedOverride,
   }) {
-    if (PlannerHelper.shouldShowCheckbox(context, calendarItem, _currentView)) {
+    if (PlannerHelper.shouldShowCheckbox(context, plannerItem, _currentView)) {
       return _buildCheckboxWidget(
-        homework: calendarItem as HomeworkModel,
+        homework: plannerItem as HomeworkModel,
         completedOverride: completedOverride,
       );
     } else if (PlannerHelper.shouldShowSchoolIcon(
       context,
-      calendarItem,
+      plannerItem,
       _currentView,
     )) {
       return _buildSchoolIconWidget();
@@ -1829,7 +1825,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   Widget _buildCalendarItemCenterForAgenda({
-    required CalendarItemBaseModel calendarItem,
+    required PlannerItemBaseModel plannerItem,
     String? location,
     bool? completedOverride,
   }) {
@@ -1837,19 +1833,19 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildCalendarItemTitle(
-          calendarItem,
+          plannerItem,
           completedOverride: completedOverride,
         ),
         if (PlannerHelper.shouldShowTimeBelowTitle(
           context,
-          calendarItem,
+          plannerItem,
           true,
           _currentView,
         ))
-          _buildCalendarItemTimeBelowTitleRow(calendarItem),
+          _buildCalendarItemTimeBelowTitleRow(plannerItem),
         if (PlannerHelper.shouldShowLocationBelowTitle(
               context,
-              calendarItem,
+              plannerItem,
               true,
               _currentView,
             ) &&
@@ -1863,14 +1859,14 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   Widget _buildCalendarItemCenterForTimeline({
-    required CalendarItemBaseModel calendarItem,
+    required PlannerItemBaseModel plannerItem,
     String? location,
     Widget? inlineIcon,
     bool? completedOverride,
   }) {
     final showTimeBeforeTitle = PlannerHelper.shouldShowTimeBeforeTitle(
       context,
-      calendarItem,
+      plannerItem,
       false,
       _currentView,
     );
@@ -1899,7 +1895,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
               padding: EdgeInsets.only(
                 right: Responsive.isMobile(context) ? 2 : 4,
               ),
-              child: _buildCalendarItemTime(calendarItem),
+              child: _buildCalendarItemTime(plannerItem),
             ),
           ),
         );
@@ -1907,11 +1903,11 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
       final isCompleted =
           completedOverride ??
-          (calendarItem is HomeworkModel && calendarItem.completed);
+          (plannerItem is HomeworkModel && plannerItem.completed);
 
       spans.add(
         TextSpan(
-          text: calendarItem.title,
+          text: plannerItem.title,
           style: AppStyles.smallSecondaryTextLight(context).copyWith(
             color: Colors.white,
             decoration: isCompleted
@@ -1925,16 +1921,16 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
       titleRowWidget = Text.rich(
         TextSpan(children: spans),
-        maxLines: _currentView == HeliumView.month || calendarItem.allDay
+        maxLines: _currentView == HeliumView.month || plannerItem.allDay
             ? 1
             : null,
-        overflow: _currentView == HeliumView.month || calendarItem.allDay
+        overflow: _currentView == HeliumView.month || plannerItem.allDay
             ? TextOverflow.ellipsis
             : null,
       );
     } else {
       titleRowWidget = _buildCalendarItemTitle(
-        calendarItem,
+        plannerItem,
         completedOverride: completedOverride,
       );
     }
@@ -1945,14 +1941,14 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         titleRowWidget,
         if (PlannerHelper.shouldShowTimeBelowTitle(
           context,
-          calendarItem,
+          plannerItem,
           false,
           _currentView,
         ))
-          _buildCalendarItemTimeBelowTitleRow(calendarItem),
+          _buildCalendarItemTimeBelowTitleRow(plannerItem),
         if (PlannerHelper.shouldShowLocationBelowTitle(
               context,
-              calendarItem,
+              plannerItem,
               false,
               _currentView,
             ) &&
@@ -1966,7 +1962,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   Widget _buildCalendarItemRight({
-    required CalendarItemBaseModel calendarItem,
+    required PlannerItemBaseModel plannerItem,
     CourseModel? course,
   }) {
     final buttons = <Widget>[];
@@ -2000,23 +1996,23 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       );
     }
 
-    if (PlannerHelper.shouldShowEditButtonForCalendarItem(
+    if (PlannerHelper.shouldShowEditButtonForPlannerItem(
       context,
-      calendarItem,
+      plannerItem,
     )) {
       buttons.add(
         HeliumIconButton(
-          onPressed: () => _openCalendarItem(calendarItem),
+          onPressed: () => _openPlannerItem(plannerItem),
           icon: Icons.edit_outlined,
           color: Colors.white,
         ),
       );
     }
 
-    if (PlannerHelper.shouldShowDeleteButton(calendarItem)) {
+    if (PlannerHelper.shouldShowDeleteButton(plannerItem)) {
       buttons.add(
         HeliumIconButton(
-          onPressed: () => _deleteCalendarItem(context, calendarItem),
+          onPressed: () => _deletePlannerItem(context, plannerItem),
           icon: Icons.delete_outline,
           color: Colors.white,
         ),
@@ -2040,7 +2036,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   Widget _buildCalendarItemWidget({
-    required CalendarItemBaseModel calendarItem,
+    required PlannerItemBaseModel plannerItem,
     required double width,
     double? height,
     required bool isInAgenda,
@@ -2048,13 +2044,13 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }) {
     if (isInAgenda) {
       return _buildCalendarItemWidgetForAgenda(
-        calendarItem: calendarItem,
+        plannerItem: plannerItem,
         width: width,
         completedOverride: completedOverride,
       );
     } else {
       return _buildCalendarItemWidgetForTimeline(
-        calendarItem: calendarItem,
+        plannerItem: plannerItem,
         width: width,
         height: height,
         completedOverride: completedOverride,
@@ -2063,27 +2059,27 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   Widget _buildCalendarItemWidgetForAgenda({
-    required CalendarItemBaseModel calendarItem,
+    required PlannerItemBaseModel plannerItem,
     required double width,
     bool? completedOverride,
   }) {
-    final color = _calendarItemDataSource!.getColorForItem(calendarItem);
-    final location = _calendarItemDataSource!.getLocationForItem(calendarItem);
-    final course = _getCourseForCalendarItem(calendarItem);
+    final color = _plannerItemDataSource!.getColorForItem(plannerItem);
+    final location = _plannerItemDataSource!.getLocationForItem(plannerItem);
+    final course = _getCourseForPlannerItem(plannerItem);
 
     final leftWidget = _buildCalendarItemLeftForAgenda(
-      calendarItem: calendarItem,
+      plannerItem: plannerItem,
       completedOverride: completedOverride,
     );
 
     final centerWidget = _buildCalendarItemCenterForAgenda(
-      calendarItem: calendarItem,
+      plannerItem: plannerItem,
       location: location,
       completedOverride: completedOverride,
     );
 
     final rightWidget = _buildCalendarItemRight(
-      calendarItem: calendarItem,
+      plannerItem: plannerItem,
       course: course,
     );
 
@@ -2115,21 +2111,21 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   Widget _buildCalendarItemWidgetForTimeline({
-    required CalendarItemBaseModel calendarItem,
+    required PlannerItemBaseModel plannerItem,
     required double width,
     double? height,
     bool? completedOverride,
   }) {
-    final color = _calendarItemDataSource!.getColorForItem(calendarItem);
-    final location = _calendarItemDataSource!.getLocationForItem(calendarItem);
+    final color = _plannerItemDataSource!.getColorForItem(plannerItem);
+    final location = _plannerItemDataSource!.getLocationForItem(plannerItem);
 
     final inlineIcon = _getInlineIconWidget(
-      calendarItem: calendarItem,
+      plannerItem: plannerItem,
       completedOverride: completedOverride,
     );
 
     final centerWidget = _buildCalendarItemCenterForTimeline(
-      calendarItem: calendarItem,
+      plannerItem: plannerItem,
       location: location,
       inlineIcon: inlineIcon,
       completedOverride: completedOverride,
@@ -2159,13 +2155,11 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     );
   }
 
-  CourseModel? _getCourseForCalendarItem(CalendarItemBaseModel calendarItem) {
-    if (calendarItem is HomeworkModel) {
-      return _courses.firstWhere((c) => c.id == calendarItem.course.id);
-    } else if (calendarItem is CourseScheduleEventModel) {
-      return _courses.firstWhere(
-        (c) => c.id.toString() == calendarItem.ownerId,
-      );
+  CourseModel? _getCourseForPlannerItem(PlannerItemBaseModel plannerItem) {
+    if (plannerItem is HomeworkModel) {
+      return _courses.firstWhere((c) => c.id == plannerItem.course.id);
+    } else if (plannerItem is CourseScheduleEventModel) {
+      return _courses.firstWhere((c) => c.id.toString() == plannerItem.ownerId);
     }
     return null;
   }
@@ -2203,7 +2197,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       onTap: () {
         _openDayPopOutDialog(
           details.date,
-          (details.appointments.cast<CalendarItemBaseModel>()).toList(),
+          (details.appointments.cast<PlannerItemBaseModel>()).toList(),
         );
       },
       child: Container(
@@ -2228,27 +2222,27 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   void _openDayPopOutDialog(
     DateTime? date,
-    List<CalendarItemBaseModel> calendarItems,
+    List<PlannerItemBaseModel> plannerItems,
   ) {
     if (date == null || Responsive.isMobile(context)) return;
 
     showDialog(
       context: context,
       builder: (dialogContext) =>
-          _buildDayPopOut(dialogContext, date, calendarItems),
+          _buildDayPopOut(dialogContext, date, plannerItems),
     );
   }
 
   Widget _buildDayPopOut(
     BuildContext dialogContext,
     DateTime date,
-    List<CalendarItemBaseModel> calendarItems,
+    List<PlannerItemBaseModel> plannerItems,
   ) {
     return ListenableBuilder(
-      listenable: _calendarItemDataSource!.changeNotifier,
+      listenable: _plannerItemDataSource!.changeNotifier,
       builder: (context, _) {
         // Get current items for this date from the data source
-        final currentItems = _calendarItemDataSource!.allCalendarItems.where((
+        final currentItems = _plannerItemDataSource!.allPlannerItems.where((
           item,
         ) {
           final itemDate = item.allDay
@@ -2313,26 +2307,26 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                     separatorBuilder: (context, index) =>
                         const SizedBox(height: 6),
                     itemBuilder: (_, index) {
-                      final calendarItem = currentItems[index];
-                      final homeworkId = calendarItem is HomeworkModel
-                          ? calendarItem.id
+                      final plannerItem = currentItems[index];
+                      final homeworkId = plannerItem is HomeworkModel
+                          ? plannerItem.id
                           : null;
                       final completedOverride = homeworkId != null
-                          ? _calendarItemDataSource!
+                          ? _plannerItemDataSource!
                                 .completedOverrides[homeworkId]
                           : null;
 
                       return GestureDetector(
                         onTap: () {
-                          if (!PlannerHelper.shouldShowEditButtonForCalendarItem(
+                          if (!PlannerHelper.shouldShowEditButtonForPlannerItem(
                             context,
-                            calendarItem,
+                            plannerItem,
                           )) {
                             return;
                           }
 
                           Feedback.forTap(context);
-                          if (_openCalendarItem(calendarItem)) {
+                          if (_openPlannerItem(plannerItem)) {
                             Navigator.of(context).pop();
                           }
                         },
@@ -2341,7 +2335,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                             maxHeight: _agendaHeightDesktop,
                           ),
                           child: _buildCalendarItemWidget(
-                            calendarItem: calendarItem,
+                            plannerItem: plannerItem,
                             width: double.infinity,
                             isInAgenda: true,
                             completedOverride: completedOverride,
@@ -2359,7 +2353,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     );
   }
 
-  void _populateInitialCalendarStateData(CalendarScreenDataFetched state) {
+  void _populateInitialCalendarStateData(PlannerScreenDataFetched state) {
     _log.info(
       'Planner screen data loaded: ${state.courses.length} courses, '
       '${state.categories.length} categories',
@@ -2371,9 +2365,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         _categoriesMap[category.id] = category;
       }
 
-      if (_calendarItemDataSource != null) {
-        _calendarItemDataSource!.courses = _courses;
-        _calendarItemDataSource!.categoriesMap = _categoriesMap;
+      if (_plannerItemDataSource != null) {
+        _plannerItemDataSource!.courses = _courses;
+        _plannerItemDataSource!.categoriesMap = _categoriesMap;
       }
 
       _deduplicatedCategories.addAll(
@@ -2387,8 +2381,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   void _goToToday() {
     _log.info('Today button pressed (view: $_currentView)');
     if (_currentView == HeliumView.todos) {
-      if (_calendarItemDataSource != null) {
-        _todosController.goToToday(_calendarItemDataSource!.filteredHomeworks);
+      if (_plannerItemDataSource != null) {
+        _todosController.goToToday(_plannerItemDataSource!.filteredHomeworks);
       }
     } else {
       _jumpToDate(DateTime.now(), offsetForVisibility: true);
@@ -2425,7 +2419,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     _log.info('Homework ${homework.id} completion toggled: $value');
 
     // Set optimistic override immediately for instant visual feedback
-    _calendarItemDataSource!.setCompletedOverride(homework.id, value);
+    _plannerItemDataSource!.setCompletedOverride(homework.id, value);
 
     final request = HomeworkRequestModel(
       completed: !homework.completed,
@@ -2434,7 +2428,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
     final course = _courses.firstWhere((c) => c.id == homework.course.id);
 
-    context.read<CalendarItemBloc>().add(
+    context.read<PlannerItemBloc>().add(
       UpdateHomeworkEvent(
         origin: EventOrigin.screen,
         courseGroupId: course.courseGroup,
@@ -2445,24 +2439,24 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     );
   }
 
-  void _updateCalendarItemAttachments(
+  void _updatePlannerItemAttachments(
     int itemId,
     dynamic attachmentData, {
     required bool isAdd,
     required bool isHomework,
   }) {
-    final CalendarItemBaseModel? calendarItem = isHomework
-        ? _calendarItemDataSource!.allHomeworks.firstWhereOrNull(
+    final PlannerItemBaseModel? plannerItem = isHomework
+        ? _plannerItemDataSource!.allHomeworks.firstWhereOrNull(
             (h) => h.id == itemId,
           )
-        : _calendarItemDataSource!.allEvents.firstWhereOrNull(
+        : _plannerItemDataSource!.allEvents.firstWhereOrNull(
             (e) => e.id == itemId,
           );
 
-    if (calendarItem == null) return;
+    if (plannerItem == null) return;
 
     final updatedAttachments = List<IdOrEntity<AttachmentModel>>.from(
-      calendarItem.attachments,
+      plannerItem.attachments,
     );
 
     if (isAdd) {
@@ -2477,15 +2471,13 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
       updatedAttachments.removeWhere((a) => a.id == attachmentId);
     }
 
-    final CalendarItemBaseModel updatedItem = isHomework
-        ? (calendarItem as HomeworkModel).copyWith(
+    final PlannerItemBaseModel updatedItem = isHomework
+        ? (plannerItem as HomeworkModel).copyWith(
             attachments: updatedAttachments,
           )
-        : (calendarItem as EventModel).copyWith(
-            attachments: updatedAttachments,
-          );
+        : (plannerItem as EventModel).copyWith(attachments: updatedAttachments);
 
-    _calendarItemDataSource!.updateCalendarItem(updatedItem);
+    _plannerItemDataSource!.updatePlannerItem(updatedItem);
   }
 
   void _openCoursesMenu(BuildContext context, List<CourseModel> courses) {
@@ -2530,7 +2522,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                           Expanded(
                             child: InkWell(
                               onTap: () {
-                                _calendarItemDataSource!.setFilteredCourses({});
+                                _plannerItemDataSource!.setFilteredCourses({});
                                 setMenuState(() {});
                               },
                               child: Padding(
@@ -2561,7 +2553,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                               builder: (context) {
                                 final course = displayCourses[i];
                                 final isSelected =
-                                    _calendarItemDataSource!
+                                    _plannerItemDataSource!
                                         .filteredCourses[course.id] ??
                                     false;
 
@@ -2599,14 +2591,14 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                   value: isSelected,
                                   onChanged: (value) {
                                     final currentFilters = Map<int, bool>.from(
-                                      _calendarItemDataSource!.filteredCourses,
+                                      _plannerItemDataSource!.filteredCourses,
                                     );
                                     if (value == true) {
                                       currentFilters[course.id] = true;
                                     } else {
                                       currentFilters.remove(course.id);
                                     }
-                                    _calendarItemDataSource!.setFilteredCourses(
+                                    _plannerItemDataSource!.setFilteredCourses(
                                       currentFilters,
                                     );
                                     setMenuState(() {});
@@ -2671,7 +2663,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                           Expanded(
                             child: InkWell(
                               onTap: () {
-                                _calendarItemDataSource!.clearFilters();
+                                _plannerItemDataSource!.clearFilters();
                                 setMenuState(() {});
                               },
                               child: Padding(
@@ -2699,11 +2691,11 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                 'Assignments',
                                 style: AppStyles.menuItem(context),
                               ),
-                              value: _calendarItemDataSource!.filterTypes
+                              value: _plannerItemDataSource!.filterTypes
                                   .contains('Assignments'),
                               onChanged: (value) {
                                 final currentTypes = List<String>.from(
-                                  _calendarItemDataSource!.filterTypes,
+                                  _plannerItemDataSource!.filterTypes,
                                 );
                                 if (value == true) {
                                   if (!currentTypes.contains('Assignments')) {
@@ -2712,7 +2704,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                 } else {
                                   currentTypes.remove('Assignments');
                                 }
-                                _calendarItemDataSource!.setFilterTypes(
+                                _plannerItemDataSource!.setFilterTypes(
                                   currentTypes,
                                 );
                                 setMenuState(() {});
@@ -2739,11 +2731,11 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                   ),
                                 ],
                               ),
-                              value: _calendarItemDataSource!.filterTypes
+                              value: _plannerItemDataSource!.filterTypes
                                   .contains('Events'),
                               onChanged: (value) {
                                 final currentTypes = List<String>.from(
-                                  _calendarItemDataSource!.filterTypes,
+                                  _plannerItemDataSource!.filterTypes,
                                 );
                                 if (value == true) {
                                   if (!currentTypes.contains('Events')) {
@@ -2752,7 +2744,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                 } else {
                                   currentTypes.remove('Events');
                                 }
-                                _calendarItemDataSource!.setFilterTypes(
+                                _plannerItemDataSource!.setFilterTypes(
                                   currentTypes,
                                 );
                                 setMenuState(() {});
@@ -2776,11 +2768,11 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                   ),
                                 ],
                               ),
-                              value: _calendarItemDataSource!.filterTypes
+                              value: _plannerItemDataSource!.filterTypes
                                   .contains('Class Schedules'),
                               onChanged: (value) {
                                 final currentTypes = List<String>.from(
-                                  _calendarItemDataSource!.filterTypes,
+                                  _plannerItemDataSource!.filterTypes,
                                 );
                                 if (value == true) {
                                   if (!currentTypes.contains(
@@ -2791,7 +2783,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                 } else {
                                   currentTypes.remove('Class Schedules');
                                 }
-                                _calendarItemDataSource!.setFilterTypes(
+                                _plannerItemDataSource!.setFilterTypes(
                                   currentTypes,
                                 );
                                 setMenuState(() {});
@@ -2805,11 +2797,11 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                 'External Calendars',
                                 style: AppStyles.menuItem(context),
                               ),
-                              value: _calendarItemDataSource!.filterTypes
+                              value: _plannerItemDataSource!.filterTypes
                                   .contains('External Calendars'),
                               onChanged: (value) {
                                 final currentTypes = List<String>.from(
-                                  _calendarItemDataSource!.filterTypes,
+                                  _plannerItemDataSource!.filterTypes,
                                 );
                                 if (value == true) {
                                   if (!currentTypes.contains(
@@ -2820,7 +2812,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                 } else {
                                   currentTypes.remove('External Calendars');
                                 }
-                                _calendarItemDataSource!.setFilterTypes(
+                                _plannerItemDataSource!.setFilterTypes(
                                   currentTypes,
                                 );
                                 setMenuState(() {});
@@ -2838,7 +2830,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                       StatefulBuilder(
                         builder: (context, setStatusMenuState) {
                           final statuses =
-                              _calendarItemDataSource!.filterStatuses;
+                              _plannerItemDataSource!.filterStatuses;
                           final isCompleteFilterEnabled =
                               statuses.contains('Complete') ||
                               statuses.contains('Incomplete');
@@ -2855,7 +2847,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                             required bool completeOnly,
                           }) {
                             final currentStatuses = Set<String>.from(
-                              _calendarItemDataSource!.filterStatuses,
+                              _plannerItemDataSource!.filterStatuses,
                             );
                             currentStatuses.remove('Complete');
                             currentStatuses.remove('Incomplete');
@@ -2864,7 +2856,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                 completeOnly ? 'Complete' : 'Incomplete',
                               );
                             }
-                            _calendarItemDataSource!.setFilterStatuses(
+                            _plannerItemDataSource!.setFilterStatuses(
                               currentStatuses,
                             );
                             setStatusMenuState(() {});
@@ -2875,7 +2867,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                             required bool gradedOnly,
                           }) {
                             final currentStatuses = Set<String>.from(
-                              _calendarItemDataSource!.filterStatuses,
+                              _plannerItemDataSource!.filterStatuses,
                             );
                             currentStatuses.remove('Graded');
                             currentStatuses.remove('Ungraded');
@@ -2884,14 +2876,14 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                 gradedOnly ? 'Graded' : 'Ungraded',
                               );
                             }
-                            _calendarItemDataSource!.setFilterStatuses(
+                            _plannerItemDataSource!.setFilterStatuses(
                               currentStatuses,
                             );
                             setStatusMenuState(() {});
                           }
 
                           Widget buildStatusTile(String label) {
-                            final isChecked = _calendarItemDataSource!
+                            final isChecked = _plannerItemDataSource!
                                 .filterStatuses
                                 .contains(label);
                             return CheckboxListTile(
@@ -2902,14 +2894,14 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                               value: isChecked,
                               onChanged: (value) {
                                 final currentStatuses = Set<String>.from(
-                                  _calendarItemDataSource!.filterStatuses,
+                                  _plannerItemDataSource!.filterStatuses,
                                 );
                                 if (value == true) {
                                   currentStatuses.add(label);
                                 } else {
                                   currentStatuses.remove(label);
                                 }
-                                _calendarItemDataSource!.setFilterStatuses(
+                                _plannerItemDataSource!.setFilterStatuses(
                                   currentStatuses,
                                 );
                                 setStatusMenuState(() {});
@@ -3001,12 +2993,12 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                       ),
                                     ],
                                   ),
-                                  value: _calendarItemDataSource!
+                                  value: _plannerItemDataSource!
                                       .filterCategories
                                       .contains(category.title),
                                   onChanged: (value) {
                                     final currentCategories = List<String>.from(
-                                      _calendarItemDataSource!.filterCategories,
+                                      _plannerItemDataSource!.filterCategories,
                                     );
                                     if (value == true) {
                                       if (!currentCategories.contains(
@@ -3017,8 +3009,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                     } else {
                                       currentCategories.remove(category.title);
                                     }
-                                    _calendarItemDataSource!
-                                        .setFilterCategories(currentCategories);
+                                    _plannerItemDataSource!.setFilterCategories(
+                                      currentCategories,
+                                    );
                                     setCategoryMenuState(() {});
                                   },
                                   controlAffinity:
@@ -3124,24 +3117,24 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   Widget _buildTodosView() {
     return TodosTable(
-      dataSource: _calendarItemDataSource!,
+      dataSource: _plannerItemDataSource!,
       controller: _todosController,
-      onTap: _openCalendarItem,
+      onTap: _openPlannerItem,
       onToggleCompleted: _onToggleCompleted,
-      onDelete: _deleteCalendarItem,
+      onDelete: _deletePlannerItem,
     );
   }
 
   Widget _buildCalendarItemTitle(
-    CalendarItemBaseModel calendarItem, {
+    PlannerItemBaseModel plannerItem, {
     bool? completedOverride,
   }) {
     final isCompleted =
         completedOverride ??
-        (calendarItem is HomeworkModel && calendarItem.completed);
+        (plannerItem is HomeworkModel && plannerItem.completed);
 
     return Text(
-      calendarItem.title,
+      plannerItem.title,
       style: AppStyles.smallSecondaryTextLight(context).copyWith(
         color: Colors.white,
         decoration: isCompleted
@@ -3167,7 +3160,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }) {
     // If UI override exists, use that, to avoid a flicker
     final isCompleted =
-        _calendarItemDataSource?.isHomeworkCompleted(homework) ??
+        _plannerItemDataSource?.isHomeworkCompleted(homework) ??
         completedOverride ??
         homework.completed;
 
@@ -3206,10 +3199,10 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     );
   }
 
-  Widget _buildCalendarItemTime(CalendarItemBaseModel calendarItem) {
+  Widget _buildCalendarItemTime(PlannerItemBaseModel plannerItem) {
     return Text(
       HeliumDateTime.formatTime(
-        HeliumDateTime.toLocal(calendarItem.start, userSettings!.timeZone),
+        HeliumDateTime.toLocal(plannerItem.start, userSettings!.timeZone),
       ),
       style: AppStyles.smallSecondaryTextLight(
         context,
@@ -3218,7 +3211,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   }
 
   Widget _buildCalendarItemTimeBelowTitleRow(
-    CalendarItemBaseModel calendarItem,
+    PlannerItemBaseModel plannerItem,
   ) {
     return Row(
       children: [
@@ -3226,11 +3219,11 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           child: Text(
             HeliumDateTime.formatTimeRange(
               HeliumDateTime.toLocal(
-                calendarItem.start,
+                plannerItem.start,
                 userSettings!.timeZone,
               ),
-              HeliumDateTime.toLocal(calendarItem.end, userSettings!.timeZone),
-              calendarItem.showEndTime,
+              HeliumDateTime.toLocal(plannerItem.end, userSettings!.timeZone),
+              plannerItem.showEndTime,
             ),
             style: AppStyles.smallSecondaryTextLight(
               context,

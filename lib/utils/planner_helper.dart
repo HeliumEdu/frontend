@@ -10,7 +10,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/notification/notification_model.dart';
-import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
+import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
@@ -170,10 +170,10 @@ class PlannerHelper {
 
   static bool shouldShowCheckbox(
     BuildContext context,
-    CalendarItemBaseModel calendarItem,
+    PlannerItemBaseModel plannerItem,
     HeliumView view,
   ) {
-    if (calendarItem is! HomeworkModel) {
+    if (plannerItem is! HomeworkModel) {
       return false;
     }
 
@@ -188,10 +188,10 @@ class PlannerHelper {
 
   static bool shouldShowSchoolIcon(
     BuildContext context,
-    CalendarItemBaseModel calendarItem,
+    PlannerItemBaseModel plannerItem,
     HeliumView view,
   ) {
-    if (calendarItem is! CourseScheduleEventModel) {
+    if (plannerItem is! CourseScheduleEventModel) {
       return false;
     }
 
@@ -200,7 +200,7 @@ class PlannerHelper {
 
   static bool shouldShowTimeBeforeTitle(
     BuildContext context,
-    calendarItem,
+    plannerItem,
     bool isInAgenda,
     HeliumView view,
   ) {
@@ -213,7 +213,7 @@ class PlannerHelper {
       return false;
     }
 
-    if (calendarItem.allDay) {
+    if (plannerItem.allDay) {
       return false;
     }
 
@@ -226,11 +226,11 @@ class PlannerHelper {
 
   static bool shouldShowTimeBelowTitle(
     BuildContext context,
-    calendarItem,
+    plannerItem,
     bool isInAgenda,
     HeliumView view,
   ) {
-    if (calendarItem.allDay) {
+    if (plannerItem.allDay) {
       return false;
     }
 
@@ -251,15 +251,15 @@ class PlannerHelper {
 
   static bool shouldShowLocationBelowTitle(
     BuildContext context,
-    calendarItem,
+    plannerItem,
     bool isInAgenda,
     HeliumView view,
   ) {
-    if (isInAgenda && calendarItem.allDay) {
+    if (isInAgenda && plannerItem.allDay) {
       return true;
     }
 
-    if (calendarItem.allDay) {
+    if (plannerItem.allDay) {
       return false;
     }
 
@@ -276,19 +276,19 @@ class PlannerHelper {
     return !Responsive.isMobile(context);
   }
 
-  static bool shouldShowEditButtonForCalendarItem(
+  static bool shouldShowEditButtonForPlannerItem(
     BuildContext context,
-    CalendarItemBaseModel calendarItem,
+    PlannerItemBaseModel plannerItem,
   ) {
     if (!shouldShowEditButton(context)) {
       return false;
     }
 
-    return calendarItem is HomeworkModel || calendarItem is EventModel;
+    return plannerItem is HomeworkModel || plannerItem is EventModel;
   }
 
-  static bool shouldShowDeleteButton(CalendarItemBaseModel calendarItem) {
-    return calendarItem is HomeworkModel || calendarItem is EventModel;
+  static bool shouldShowDeleteButton(PlannerItemBaseModel plannerItem) {
+    return plannerItem is HomeworkModel || plannerItem is EventModel;
   }
 
   static List<CourseModel> sortByGroupStartThenByTitle(

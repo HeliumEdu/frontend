@@ -7,7 +7,7 @@
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/presentation/bloc/attachment/attachment_bloc.dart';
-import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
+import 'package:heliumapp/presentation/bloc/planneritem/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/bloc/course/course_bloc.dart';
 import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_bloc.dart';
 import 'package:heliumapp/presentation/bloc/resource/resource_bloc.dart';
@@ -19,17 +19,17 @@ abstract class RouteArgs {
 }
 
 class NotificationArgs extends RouteArgs {
-  final CalendarItemBloc? calendarItemBloc;
+  final PlannerItemBloc? plannerItemBloc;
   final AttachmentBloc? attachmentBloc;
 
-  const NotificationArgs({this.calendarItemBloc, this.attachmentBloc});
+  const NotificationArgs({this.plannerItemBloc, this.attachmentBloc});
 
   @override
   List<BlocProvider>? toProviders() {
-    if (calendarItemBloc == null && attachmentBloc == null) return null;
+    if (plannerItemBloc == null && attachmentBloc == null) return null;
     return [
-      if (calendarItemBloc != null)
-        BlocProvider<CalendarItemBloc>.value(value: calendarItemBloc!),
+      if (plannerItemBloc != null)
+        BlocProvider<PlannerItemBloc>.value(value: plannerItemBloc!),
       if (attachmentBloc != null)
         BlocProvider<AttachmentBloc>.value(value: attachmentBloc!),
     ];
@@ -64,8 +64,8 @@ class SettingsArgs extends RouteArgs {
   }
 }
 
-class CalendarItemAddArgs extends RouteArgs {
-  final CalendarItemBloc calendarItemBloc;
+class PlannerItemAddArgs extends RouteArgs {
+  final PlannerItemBloc plannerItemBloc;
   final AttachmentBloc attachmentBloc;
   final int? eventId;
   final int? homeworkId;
@@ -74,8 +74,8 @@ class CalendarItemAddArgs extends RouteArgs {
   final bool isEdit;
   final bool isNew;
 
-  const CalendarItemAddArgs({
-    required this.calendarItemBloc,
+  const PlannerItemAddArgs({
+    required this.plannerItemBloc,
     required this.attachmentBloc,
     this.eventId,
     this.homeworkId,
@@ -88,7 +88,7 @@ class CalendarItemAddArgs extends RouteArgs {
   @override
   List<BlocProvider>? toProviders() {
     return [
-      BlocProvider<CalendarItemBloc>.value(value: calendarItemBloc),
+      BlocProvider<PlannerItemBloc>.value(value: plannerItemBloc),
       BlocProvider<AttachmentBloc>.value(value: attachmentBloc),
     ];
   }
