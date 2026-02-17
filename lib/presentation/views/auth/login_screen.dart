@@ -123,11 +123,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
               context.replace(destination);
             }
           } else if (state is AuthAccountInactive) {
-            _showInactiveAccountSnackBar(
-              context,
-              state.email,
-              state.message,
-            );
+            _showInactiveAccountSnackBar(context, state.email, state.message);
           } else if (state is AuthVerificationResent) {
             showSnackBar(
               context,
@@ -142,7 +138,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                 (state.httpStatusCode == 401 || state.httpStatusCode == 403);
             if (isForceLogoutError) {
               _log.info(
-                'Suppressing force logout ${state.httpStatusCode} error on login screen: ${state.message}',
+                'Suppressing force logout ${state.httpStatusCode} error on login screen',
               );
             } else {
               showSnackBar(context, state.message!, isError: true, seconds: 6);
@@ -174,9 +170,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
         label: 'Resend Email',
         textColor: context.colorScheme.onError,
         onPressed: () {
-          context.read<AuthBloc>().add(
-            ResendVerificationEvent(email: email),
-          );
+          context.read<AuthBloc>().add(ResendVerificationEvent(email: email));
         },
       ),
     );
