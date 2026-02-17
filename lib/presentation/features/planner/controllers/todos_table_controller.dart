@@ -11,8 +11,52 @@ import 'package:logging/logging.dart';
 
 final _log = Logger('presentation.views');
 
+enum TodosSortColumn {
+  completed(label: '', fixedWidth: 40, isCheckbox: true),
+  title(label: 'Title'),
+  dueDate(label: 'Due Date', fixedWidth: 125),
+  className(label: 'Class', minViewportWidth: 625),
+  category(label: 'Category', minViewportWidth: 900),
+  priority(label: 'Priority', minViewportWidth: 1150),
+  grade(
+    label: 'Grade',
+    mobileWidth: 90,
+    desktopWidth: 98,
+    minViewportWidth: 850,
+    showOnTouchDevice: true,
+  );
+
+  const TodosSortColumn({
+    required this.label,
+    this.fixedWidth,
+    this.mobileWidth,
+    this.desktopWidth,
+    this.minViewportWidth,
+    this.showOnTouchDevice = false,
+    this.isCheckbox = false,
+  });
+
+  final String label;
+  final double? fixedWidth;
+  final double? mobileWidth;
+  final double? desktopWidth;
+  final double? minViewportWidth;
+  final bool showOnTouchDevice;
+  final bool isCheckbox;
+
+  double? widthForLayout({required bool isMobile}) {
+    if (isMobile && mobileWidth != null) {
+      return mobileWidth;
+    }
+    if (!isMobile && desktopWidth != null) {
+      return desktopWidth;
+    }
+    return fixedWidth;
+  }
+}
+
 class TodosTableController extends ChangeNotifier {
-  String _sortColumn = 'dueDate';
+  TodosSortColumn _sortColumn = TodosSortColumn.dueDate;
   bool _sortAscending = true;
   int _currentPage = 1;
   int _itemsPerPage = 10;
@@ -21,9 +65,9 @@ class TodosTableController extends ChangeNotifier {
   /// Whether the initial goToToday navigation has occurred.
   bool get hasInitializedNavigation => _hasInitializedNavigation;
 
-  String get sortColumn => _sortColumn;
+  TodosSortColumn get sortColumn => _sortColumn;
 
-  set sortColumn(String value) {
+  set sortColumn(TodosSortColumn value) {
     if (_sortColumn != value) {
       _sortColumn = value;
       notifyListeners();
@@ -64,7 +108,7 @@ class TodosTableController extends ChangeNotifier {
     _hasInitializedNavigation = true;
 
     // Reset sort to due date ascending
-    _sortColumn = 'dueDate';
+    _sortColumn = TodosSortColumn.dueDate;
     _sortAscending = true;
 
     final sorted = List<HomeworkModel>.from(homeworks);
