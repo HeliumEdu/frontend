@@ -31,14 +31,14 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:sign_in_button/sign_in_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+class SignupScreen extends StatefulWidget {
+  const SignupScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  State<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
+class _SignupScreenState extends BasePageScreenState<SignupScreen> {
   @override
   String get screenTitle => 'Create an Account';
 
@@ -60,7 +60,7 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
   }
 
   Future<void> _initializeForm() async {
-    await _formController.initializeTimezones();
+    await _formController.initializeTimeZones();
     if (mounted) setState(() {});
   }
 
@@ -85,6 +85,7 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
       BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthLoggedIn) {
+            final wasOAuthFlow = isOAuthLoading;
             setState(() {
               isOAuthLoading = false;
               isSubmitting = true;
@@ -97,8 +98,13 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
                 PrefService().getBool('is_setup_complete') ?? true;
 
             if (!isSetupComplete) {
-              // New OAuth user - redirect to setup screen
-              context.replace(AppRoute.setupScreen);
+              if (wasOAuthFlow) {
+                context.replace(
+                  '${AppRoute.setupAccountScreen}?auto_detect_tz=true',
+                );
+              } else {
+                context.replace(AppRoute.setupAccountScreen);
+              }
             } else {
               context.replace(AppRoute.plannerScreen);
             }
@@ -110,9 +116,20 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
               seconds: 6,
             );
 
+            final username = state.username;
+            if (username == null || username.isEmpty) {
+              showSnackBar(
+                context,
+                'Registration succeeded, but we could not load your username. Please log in to continue.',
+                isError: true,
+                seconds: 6,
+              );
+              return;
+            }
+
             if (!context.mounted) return;
             context.go(
-              '${AppRoute.verifyScreen}?username=${Uri.encodeComponent(state.username!)}',
+              '${AppRoute.verifyEmailScreen}?username=${Uri.encodeComponent(username)}',
             );
           } else if (state is AuthError) {
             showSnackBar(context, state.message!, isError: true, seconds: 6);
@@ -181,18 +198,8 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
               const SizedBox(height: 25),
 
               LabelAndTextFormField(
-                hintText: 'Username',
-                autofocus: kIsWeb,
-                prefixIcon: Icons.person_outline,
-                controller: _formController.usernameController,
-                validator: BasicFormController.validateUsername,
-                keyboardType: TextInputType.text,
-                autofillHints: const [AutofillHints.newUsername],
-              ),
-              const SizedBox(height: 12),
-
-              LabelAndTextFormField(
                 hintText: 'Email',
+                autofocus: kIsWeb,
                 prefixIcon: Icons.email_outlined,
                 controller: _formController.emailController,
                 validator: BasicFormController.validateRequiredEmail,
@@ -251,12 +258,12 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
 
               SearchableDropdown(
                 initialValue: TimeZoneConstants.items.firstWhere(
-                  (tz) => tz.value == _formController.selectedTimezone,
+                  (tz) => tz.value == _formController.selectedTimeZone,
                 ),
                 items: TimeZoneConstants.items,
                 onChanged: (value) {
                   setState(() {
-                    _formController.selectedTimezone = value!.value!;
+                    _formController.selectedTimeZone = value!.value!;
                   });
                 },
               ),
@@ -463,10 +470,9 @@ class _RegisterScreenState extends BasePageScreenState<RegisterScreen> {
       // Dispatch register event
       context.read<AuthBloc>().add(
         RegisterEvent(
-          username: _formController.usernameController.text.trim(),
           email: _formController.emailController.text.trim(),
           password: _formController.passwordController.text,
-          timezone: _formController.selectedTimezone,
+          timezone: _formController.selectedTimeZone,
         ),
       );
     }

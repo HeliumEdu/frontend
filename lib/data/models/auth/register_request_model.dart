@@ -6,13 +6,11 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 class RegisterRequestModel {
-  final String username;
   final String email;
   final String password;
   final String timezone;
 
   RegisterRequestModel({
-    required this.username,
     required this.email,
     required this.password,
     required this.timezone,
@@ -20,7 +18,6 @@ class RegisterRequestModel {
 
   Map<String, dynamic> toJson() {
     return {
-      'username': username,
       'email': email,
       'password': password,
       'time_zone': timezone,

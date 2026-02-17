@@ -58,7 +58,6 @@ void main() {
         ).thenAnswer((_) async => givenSuccessResponse({}, statusCode: 201));
 
         final request = RegisterRequestModel(
-          username: 'new_user',
           email: 'newuser@test.com',
           password: 'password123',
           timezone: 'America/New_York',
@@ -80,7 +79,6 @@ void main() {
         );
 
         final request = RegisterRequestModel(
-          username: 'existing_user',
           email: 'existing@test.com',
           password: 'password123',
           timezone: 'America/New_York',

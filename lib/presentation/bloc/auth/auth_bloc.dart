@@ -55,15 +55,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     try {
       final request = RegisterRequestModel(
-        username: event.username,
         email: event.email,
         password: event.password,
         timezone: event.timezone,
       );
 
-      await authRepository.register(request);
+      final response = await authRepository.register(request);
 
-      emit(AuthRegistered(username: event.username));
+      emit(AuthRegistered(username: response.username));
     } on HeliumException catch (e) {
       emit(AuthError(message: e.message));
     } catch (e) {

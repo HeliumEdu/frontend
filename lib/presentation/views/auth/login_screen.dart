@@ -95,6 +95,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
       BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthLoggedIn) {
+            final wasOAuthFlow = isOAuthLoading;
             _formController.clearForm();
 
             setState(() {
@@ -109,8 +110,11 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                 PrefService().getBool('is_setup_complete') ?? true;
 
             if (!isSetupComplete) {
-              // New OAuth user - redirect to setup screen
-              context.replace(AppRoute.setupScreen);
+              if (wasOAuthFlow) {
+                context.replace('${AppRoute.setupAccountScreen}?auto_detect_tz=true');
+              } else {
+                context.replace(AppRoute.setupAccountScreen);
+              }
             } else {
               // Redirect to intended destination or default to planner
               final destination = _nextRoute ?? AppRoute.plannerScreen;
@@ -343,7 +347,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
               Center(
                 child: TextButton(
                   onPressed: () {
-                    context.go(AppRoute.signUpScreen);
+                    context.go(AppRoute.signupScreen);
                   },
                   child: Row(
                     mainAxisSize: MainAxisSize.min,

@@ -350,7 +350,7 @@ class DioClient {
       }
 
       return UserSettingsModel.fromJson({
-        'time_zone': timeZone ?? FallbackConstants.defaultTimezone,
+        'time_zone': timeZone ?? FallbackConstants.defaultTimeZone,
         'color_by_category':
             _prefService.getBool('color_by_category') ??
             FallbackConstants.defaultColorByCategory,

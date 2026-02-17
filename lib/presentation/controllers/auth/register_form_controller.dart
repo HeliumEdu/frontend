@@ -16,10 +16,10 @@ class RegisterFormController extends CredentialsFormController {
       TextEditingController();
   bool isConfirmPasswordVisible = false;
   bool agreeToTerms = false;
-  String selectedTimezone = 'Etc/UTC';
+  String selectedTimeZone = 'Etc/UTC';
 
-  Future<void> initializeTimezones() async {
-    selectedTimezone = (await FlutterTimezone.getLocalTimezone()).identifier;
+  Future<void> initializeTimeZones() async {
+    selectedTimeZone = (await FlutterTimezone.getLocalTimezone()).identifier;
   }
 
   @override
@@ -37,7 +37,7 @@ class RegisterFormController extends CredentialsFormController {
     emailController.clear();
     confirmPasswordController.clear();
     agreeToTerms = false;
-    selectedTimezone = 'Etc/UTC';
+    selectedTimeZone = 'Etc/UTC';
   }
 
   String? validateConfirmPassword(String? value) {
