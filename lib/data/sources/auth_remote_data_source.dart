@@ -107,7 +107,6 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       final response = await dioClient.dio.get(
         ApiUrl.authUserVerifyUrl,
         queryParameters: {
-          // Backend currently expects `username` query key as the identifier.
           'username': email,
           'code': code,
         },
@@ -160,7 +159,6 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       final response = await dioClient.dio.get(
         ApiUrl.authUserVerifyResendUrl,
         queryParameters: {
-          // Backend currently expects `username` query key as the identifier.
           'username': email,
         },
       );
@@ -191,7 +189,6 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       final response = await dioClient.dio.post(
         ApiUrl.authTokenUrl,
         data: {
-          // Backend currently expects `username` body key as the identifier.
           'username': request.email,
           'password': request.password,
         },
