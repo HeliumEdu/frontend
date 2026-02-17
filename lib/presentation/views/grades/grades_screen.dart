@@ -37,6 +37,7 @@ import 'package:heliumapp/presentation/bloc/grade/grade_state.dart';
 import 'package:heliumapp/presentation/dialogs/grade_calculator_dialog.dart';
 import 'package:heliumapp/presentation/views/calendar/calendar_item_add_screen.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/widgets/at_risk_badge.dart';
 import 'package:heliumapp/presentation/widgets/course_title_label.dart';
 import 'package:heliumapp/presentation/widgets/empty_card.dart';
 import 'package:heliumapp/presentation/widgets/error_card.dart';
@@ -126,7 +127,8 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
   List<CourseGroupModel> _courseGroups = [];
   List<GradeCourseGroupModel> _grades = [];
   int? _selectedGroupId;
-  int? _expandedCourseIndex;
+  final Set<int> _expandedCourseIds = {};
+  final Map<int, GlobalKey> _courseCardKeys = {};
 
   // Graph state
   String _graphViewMode = 'term'; // 'term' or course ID
@@ -186,7 +188,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
 
           setState(() {
             _selectedGroupId = value.id;
-            _expandedCourseIndex = null;
+            _expandedCourseIds.clear();
           });
         },
       ),
@@ -503,11 +505,13 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Progress vs Pace',
-                style: AppStyles.standardBodyText(
-                  context,
-                ).copyWith(fontWeight: FontWeight.w600),
+              Center(
+                child: Text(
+                  'Progress vs. Pace',
+                  style: AppStyles.standardBodyText(
+                    context,
+                  ).copyWith(fontWeight: FontWeight.w600),
+                ),
               ),
               const SizedBox(height: 16),
               // Work completion bar
@@ -664,22 +668,28 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
       child: GestureDetector(
         onTap: count > 0
             ? () {
-                // Scroll to first at-risk course
-                if (atRiskCourses.isNotEmpty) {
-                  final firstAtRiskIndex = selectedGroup.courses.indexWhere(
-                    (c) => c.id == atRiskCourses.first.id,
+                final atRiskCourseIds = atRiskCourses.map((c) => c.id).toSet();
+
+                setState(() {
+                  _expandedCourseIds
+                    ..clear()
+                    ..addAll(atRiskCourseIds);
+                });
+
+                final firstAtRiskId = atRiskCourses.first.id;
+                Future.delayed(const Duration(milliseconds: 350), () {
+                  if (!mounted) return;
+                  final firstAtRiskContext =
+                      _courseCardKeys[firstAtRiskId]?.currentContext;
+                  if (firstAtRiskContext == null) return;
+                  if (!firstAtRiskContext.mounted) return;
+                  Scrollable.ensureVisible(
+                    firstAtRiskContext,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    alignment: 0.1,
                   );
-                  if (firstAtRiskIndex != -1) {
-                    setState(() {
-                      _expandedCourseIndex = firstAtRiskIndex;
-                    });
-                    // Small delay to allow expansion animation, then scroll
-                    Future.delayed(const Duration(milliseconds: 100), () {
-                      // Note: Scrolling to specific widget would require ScrollController
-                      // For now, just expand the first at-risk course
-                    });
-                  }
-                }
+                });
               }
             : null,
         child: Card(
@@ -1673,9 +1683,10 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
   }
 
   Widget _buildCourseCard(int index, GradeCourseModel course) {
-    final isExpanded = _expandedCourseIndex == index;
+    final isExpanded = _expandedCourseIds.contains(course.id);
 
     return Card(
+      key: _courseCardKeys.putIfAbsent(course.id, () => GlobalKey()),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -1704,7 +1715,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () => _toggleExpandedCourse(index),
+        onTap: () => _toggleExpandedCourse(course.id),
         child: Row(
           children: [
             Container(
@@ -1729,10 +1740,18 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CourseTitleLabel(
-                    title: course.title,
-                    color: course.color,
-                    showIcon: false,
+                  Row(
+                    children: [
+                      CourseTitleLabel(
+                        title: course.title,
+                        color: course.color,
+                        showIcon: false,
+                      ),
+                      if (course.overallGrade < _atRiskThreshold) ...[
+                        const SizedBox(width: 8),
+                        const AtRiskBadge(),
+                      ],
+                    ],
                   ),
                   const SizedBox(height: 4),
                   Row(
@@ -1806,7 +1825,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                   ),
                 ),
               ),
-              onPressed: () => _toggleExpandedCourse(index),
+              onPressed: () => _toggleExpandedCourse(course.id),
             ),
           ],
         ),
@@ -1814,12 +1833,12 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     );
   }
 
-  void _toggleExpandedCourse(int index) {
+  void _toggleExpandedCourse(int courseId) {
     setState(() {
-      if (_expandedCourseIndex == index) {
-        _expandedCourseIndex = null;
+      if (_expandedCourseIds.contains(courseId)) {
+        _expandedCourseIds.remove(courseId);
       } else {
-        _expandedCourseIndex = index;
+        _expandedCourseIds.add(courseId);
       }
     });
   }
