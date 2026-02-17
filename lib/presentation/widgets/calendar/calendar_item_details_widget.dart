@@ -622,7 +622,7 @@ class CalendarItemDetailsWidgetState extends State<CalendarItemDetailsWidget> {
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9\./]')),
                     ],
                     focusNode: _formController.gradeFocusNode,
-                    onFieldSubmitted: (value) => onSubmit(),
+                    onFieldSubmitted: _onGradeFieldSubmitted,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -822,6 +822,21 @@ class CalendarItemDetailsWidgetState extends State<CalendarItemDetailsWidget> {
 
   int _getPriorityValue() {
     return _formController.priorityValue.round();
+  }
+
+  void _onGradeFieldSubmitted(String _) {
+    _submitAfterGradeBlur();
+  }
+
+  Future<void> _submitAfterGradeBlur() async {
+    if (_formController.gradeFocusNode.hasFocus) {
+      _formController.gradeFocusNode.unfocus();
+      // Let blur listeners normalize grade input before form validation runs.
+      await Future<void>.delayed(Duration.zero);
+    }
+
+    if (!mounted) return;
+    await onSubmit();
   }
 
   Future<void> onSubmit() async {
