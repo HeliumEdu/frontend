@@ -8,6 +8,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:heliumapp/config/app_theme.dart';
 
 class HeliumColors {
   static const List<Color> preferredColors = [
@@ -91,5 +92,17 @@ class HeliumColors {
     ];
 
     return colors[index];
+  }
+
+  static Color urgencyColor(BuildContext context, int value) {
+    switch (value.clamp(1, 3)) {
+      case 1:
+        return context.semanticColors.success;
+      case 2:
+        return context.semanticColors.warning;
+      case 3:
+      default:
+        return context.colorScheme.error;
+    }
   }
 }

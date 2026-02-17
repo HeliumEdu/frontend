@@ -45,6 +45,7 @@ import 'package:heliumapp/presentation/widgets/grade_label.dart';
 import 'package:heliumapp/presentation/widgets/group_dropdown.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
@@ -371,6 +372,15 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
   Widget _buildOverallGradeCard(GradeCourseGroupModel selectedGroup) {
     final grade = selectedGroup.overallGrade;
     final gradeDisplay = GradeHelper.gradeForDisplay(grade);
+    final overallGradeUrgency = grade >= 80
+        ? 1
+        : grade >= 70
+        ? 2
+        : 3;
+    final overallGradeColor = HeliumColors.urgencyColor(
+      context,
+      overallGradeUrgency,
+    );
 
     // Calculate trend from grade points if available
     double? trend;
@@ -415,20 +425,8 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                       cornerStyle: CornerStyle.bothCurve,
                       gradient: SweepGradient(
                         colors: <Color>[
-                          grade >= 80
-                              ? context.semanticColors.success
-                              : grade >= 70
-                              ? Colors.orange
-                              : context.colorScheme.error,
-                          grade >= 80
-                              ? context.semanticColors.success.withValues(
-                                  alpha: 0.7,
-                                )
-                              : grade >= 70
-                              ? Colors.orange.withValues(alpha: 0.7)
-                              : context.colorScheme.error.withValues(
-                                  alpha: 0.7,
-                                ),
+                          overallGradeColor,
+                          overallGradeColor.withValues(alpha: 0.7),
                         ],
                       ),
                     ),
@@ -460,9 +458,9 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                                   : Icons.trending_flat,
                               size: 20,
                               color: trend > 0
-                                  ? context.semanticColors.success
+                                  ? HeliumColors.urgencyColor(context, 1)
                                   : trend < 0
-                                  ? context.colorScheme.error
+                                  ? HeliumColors.urgencyColor(context, 3)
                                   : context.colorScheme.onSurface.withValues(
                                       alpha: 0.5,
                                     ),
@@ -503,17 +501,20 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     // Determine status: on track, ahead, or behind
     final difference = completionPercent - timePercent;
     final String status;
-    final Color statusColor;
-    if (difference >= -_onTrackTolerance && difference <= _onTrackTolerance) {
-      status = 'On Track';
-      statusColor = context.semanticColors.success;
-    } else if (difference > _onTrackTolerance) {
+    final int statusUrgency;
+    if (difference > _onTrackTolerance) {
       status = 'Ahead';
-      statusColor = Colors.blue;
+      statusUrgency = 1;
+    } else if (difference >= -_onTrackTolerance) {
+      status = 'On Track';
+      statusUrgency = 1;
     } else {
       status = 'Behind';
-      statusColor = context.colorScheme.error;
+      final expectedWorkAtRiskCutoff =
+          timePercent * (_atRiskThreshold / 100); // e.g., 70% of expected pace
+      statusUrgency = completionPercent < expectedWorkAtRiskCutoff ? 3 : 2;
     }
+    final statusColor = HeliumColors.urgencyColor(context, statusUrgency);
 
     return _buildSummaryCard(
       child: Column(
@@ -787,11 +788,11 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: ungradedCount > 0
-                  ? Colors.orange.withValues(alpha: 0.15)
+                  ? context.semanticColors.warning.withValues(alpha: 0.15)
                   : context.colorScheme.surfaceContainerHighest,
               border: Border.all(
                 color: ungradedCount > 0
-                    ? Colors.orange
+                    ? context.semanticColors.warning
                     : context.colorScheme.outline,
                 width: 3,
               ),
@@ -810,7 +811,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                         desktop: 36,
                       ),
                       color: ungradedCount > 0
-                          ? Colors.orange
+                          ? context.semanticColors.warning
                           : context.colorScheme.onSurface.withValues(
                               alpha: 0.5,
                             ),
@@ -826,7 +827,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
             'ungraded ${ungradedCount.plural('assignment')}',
             style: AppStyles.smallSecondaryText(context).copyWith(
               color: ungradedCount > 0
-                  ? Colors.orange
+                  ? context.semanticColors.warning
                   : context.colorScheme.onSurface.withValues(alpha: 0.5),
             ),
             textAlign: TextAlign.center,
