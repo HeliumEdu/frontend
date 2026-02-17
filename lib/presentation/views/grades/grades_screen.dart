@@ -13,7 +13,6 @@
 // TODO: cleanup the UX on mobile (not a ton to do, but still a blocker
 // TODO: what other tooltips can we show when hovering grade point, in legacy UI we used to show the homework's title and category as well
 // FIXME: check how the grade point "hover" logic works on mobile
-// FIXME: on mobile, make make all of header for time series or course card clickable, not just up/down arrow
 // TODO: make the thresholds for at-risk classes (and eventually progress/pace ratio) configurable by the user
 // TODO: in "Pending Impact", make the "x in y" badge clickable, and open it up to a menu where the user can switch which course is shown
 // TODO: in "Pending Impact", based on the currently selected class, show the user which ungraded item is most impactful
@@ -239,8 +238,6 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
           children: [
             _buildTermSummaryArea(),
 
-            const SizedBox(height: 12),
-
             _buildGraphArea(),
 
             const SizedBox(height: 12),
@@ -270,91 +267,34 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
       orElse: () => _grades.first,
     );
 
+    final cards = [
+      _buildOverallGradeCard(selectedGroup),
+      _buildProgressVsPaceCard(selectedGroup),
+      _buildAtRiskCoursesCard(selectedGroup),
+      _buildPendingImpactCard(selectedGroup),
+    ];
+
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Responsive layout: 4 across on desktop, 2x2 on tablet, stacked on mobile
-        final width = constraints.maxWidth;
-        final isDesktop = width > 900;
-        final isTablet = width > 600 && width <= 900;
+        const summaryCardHeight = 260.0;
+        final columnCount = Responsive.getColumnCountForWidth(
+          constraints.maxWidth,
+          mobile: 1,
+          tablet: 2,
+          desktop: 4,
+        );
 
-        final cards = [
-          _buildOverallGradeCard(selectedGroup),
-          _buildProgressVsPaceCard(selectedGroup),
-          _buildAtRiskCoursesCard(selectedGroup),
-          _buildPendingImpactCard(selectedGroup),
-        ];
-
-        if (isDesktop) {
-          // 4 cards in a row
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: cards
-                .map(
-                  (card) => Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 6),
-                      child: card,
-                    ),
-                  ),
-                )
-                .toList(),
-          );
-        } else if (isTablet) {
-          // 2x2 grid
-          return Column(
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(6),
-                      child: cards[0],
-                    ),
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(6),
-                      child: cards[1],
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(6),
-                      child: cards[2],
-                    ),
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(6),
-                      child: cards[3],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          );
-        } else {
-          // Mobile: stacked vertically
-          return Column(
-            children: cards
-                .map(
-                  (card) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: card,
-                    ),
-                  ),
-                )
-                .toList(),
-          );
-        }
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: cards.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: columnCount,
+            crossAxisSpacing: 12,
+            mainAxisExtent: summaryCardHeight,
+          ),
+          itemBuilder: (context, index) => cards[index],
+        );
       },
     );
   }
@@ -1035,7 +975,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
 
     // Full width container like other cards
     return Container(
-      margin: const EdgeInsets.only(top: 14),
+      margin: const EdgeInsets.symmetric(vertical: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: context.colorScheme.surface,
@@ -1070,54 +1010,67 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     final coursesWithCategories = gradeGroup.courses
         .where((course) => course.categories.isNotEmpty)
         .toList();
+    final course = _getSelectedCourse();
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        // Title
-        Expanded(
-          child: Text(
-            // TODO: Still shown the "Grade Trend" prefix even for courses
-            isTermView ? 'Grade Trend' : _getSelectedCourseName(),
-            style: AppStyles.headingText(context),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        // Calculator icon for grade calculator
-        if (coursesWithCategories.isNotEmpty)
-          Tooltip(
-            message: 'What Grade Do I Need?',
-            child: IconButton(
-              icon: const Icon(Icons.calculate_outlined),
-              onPressed: () => _showGradeCalculatorOptions(
-                gradeGroup,
-                coursesWithCategories,
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: _toggleGraphExpanded,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // Title
+            Expanded(
+              child: Row(
+                children: [
+                  Text('Grade Trend', style: AppStyles.headingText(context)),
+                  if (course != null) ...[
+                    const SizedBox(width: 6),
+                    CourseTitleLabel(title: course.title, color: course.color),
+                  ],
+                ],
               ),
             ),
-          ),
-        // Gear icon for settings
-        Builder(
-          builder: (buttonContext) => IconButton(
-            tooltip: 'Graph settings',
-            icon: const Icon(Icons.settings),
-            onPressed: () => _showGraphSettings(buttonContext),
-          ),
+            // Calculator icon for grade calculator
+            if (coursesWithCategories.isNotEmpty)
+              Tooltip(
+                message: 'What Grade Do I Need?',
+                child: IconButton(
+                  icon: const Icon(Icons.calculate_outlined),
+                  onPressed: () => _showGradeCalculatorOptions(
+                    gradeGroup,
+                    coursesWithCategories,
+                  ),
+                ),
+              ),
+            // Gear icon for settings
+            Builder(
+              builder: (buttonContext) => IconButton(
+                tooltip: 'Graph settings',
+                icon: const Icon(Icons.settings),
+                onPressed: () => _showGraphSettings(buttonContext),
+              ),
+            ),
+            // Expand/collapse chevron
+            IconButton(
+              icon: AnimatedRotation(
+                turns: _graphExpanded ? 0.5 : 0,
+                duration: const Duration(milliseconds: 300),
+                child: const Icon(Icons.keyboard_arrow_down),
+              ),
+              onPressed: _toggleGraphExpanded,
+            ),
+          ],
         ),
-        // Expand/collapse chevron
-        IconButton(
-          icon: AnimatedRotation(
-            turns: _graphExpanded ? 0.5 : 0,
-            duration: const Duration(milliseconds: 300),
-            child: const Icon(Icons.keyboard_arrow_down),
-          ),
-          onPressed: () {
-            setState(() {
-              _graphExpanded = !_graphExpanded;
-            });
-          },
-        ),
-      ],
+      ),
     );
+  }
+
+  void _toggleGraphExpanded() {
+    setState(() {
+      _graphExpanded = !_graphExpanded;
+    });
   }
 
   Widget _buildChart(
@@ -1465,19 +1418,17 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     return _courseGroups.firstWhere((g) => g.id == groupId);
   }
 
-  String _getSelectedCourseName() {
-    if (_graphViewMode == 'term' || _selectedGroupId == null) return '';
+  GradeCourseModel? _getSelectedCourse() {
+    if (_graphViewMode == 'term' || _selectedGroupId == null) return null;
 
     final selectedGroup = _grades.firstWhere(
       (g) => g.id == _selectedGroupId,
       orElse: () => _grades.first,
     );
 
-    final course = selectedGroup.courses.firstWhereOrNull(
+    return selectedGroup.courses.firstWhereOrNull(
       (c) => c.id.toString() == _graphViewMode,
     );
-
-    return course?.title ?? '';
   }
 
   void _showGraphSettings(BuildContext buttonContext) {
@@ -1627,21 +1578,27 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
   Widget _buildCourseCard(int index, GradeCourseModel course) {
     final isExpanded = _expandedCourseIndex == index;
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            _buildCourseSummaryArea(index, isExpanded, course),
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () => _toggleExpandedCourse(index),
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                _buildCourseSummaryArea(index, isExpanded, course),
 
-            AnimatedSize(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-              child: isExpanded && course.categories.isNotEmpty
-                  ? _buildCourseArea(course)
-                  : const SizedBox.shrink(),
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  child: isExpanded && course.categories.isNotEmpty
+                      ? _buildCourseArea(course)
+                      : const SizedBox.shrink(),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -1751,18 +1708,20 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
               ),
             ),
           ),
-          onPressed: () {
-            setState(() {
-              if (_expandedCourseIndex == index) {
-                _expandedCourseIndex = null;
-              } else {
-                _expandedCourseIndex = index;
-              }
-            });
-          },
+          onPressed: () => _toggleExpandedCourse(index),
         ),
       ],
     );
+  }
+
+  void _toggleExpandedCourse(int index) {
+    setState(() {
+      if (_expandedCourseIndex == index) {
+        _expandedCourseIndex = null;
+      } else {
+        _expandedCourseIndex = index;
+      }
+    });
   }
 
   Widget _buildCourseArea(GradeCourseModel course) {
