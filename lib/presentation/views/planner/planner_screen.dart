@@ -24,6 +24,7 @@ import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_event_model.dart';
+import 'package:heliumapp/data/models/planner/external_calendar_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
@@ -62,7 +63,6 @@ import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/views/core/notification_screen.dart';
 import 'package:heliumapp/presentation/views/planner/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/views/settings/settings_screen.dart';
-import 'package:heliumapp/presentation/widgets/checkbox_toggle.dart';
 import 'package:heliumapp/presentation/widgets/error_card.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
@@ -71,6 +71,7 @@ import 'package:heliumapp/presentation/widgets/shadow_container.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
+import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
@@ -79,8 +80,6 @@ import 'package:timezone/standalone.dart' as tz;
 import 'package:url_launcher/url_launcher.dart';
 
 final _log = Logger('presentation.views');
-
-// TODO: the legacy UI did have hover tooltips for calendar items—they were ugly and may not have provided much value, but we should analyze them as the last feature parity item missing from this page and see if we still want them
 
 class PlannerScreen extends StatelessWidget {
   final DioClient _dioClient = DioClient();
@@ -211,6 +210,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
   List<DateTime> _visibleDates = [];
 
   PlannerItemDataSource? _plannerItemDataSource;
+  final Map<int, ExternalCalendarModel> _externalCalendarsById = {};
 
   @override
   void initState() {
@@ -294,6 +294,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           _todosController.itemsPerPage =
               _plannerItemDataSource!.todosItemsPerPage;
         });
+
+        unawaited(_refreshExternalCalendarsMap());
       }
 
       return settings;
@@ -377,6 +379,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
               visibleStart: visibleStart,
               visibleEnd: visibleEnd,
             );
+            unawaited(_refreshExternalCalendarsMap());
           }
         },
       ),
@@ -1735,18 +1738,310 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
     // Use KeyedSubtree to help preserve widget state across rebuilds, prevents
     // flickers for drag-and-drop and similar operations
+    final calendarItemWidget = _buildCalendarItemWidget(
+      plannerItem: plannerItem,
+      width: details.bounds.width,
+      height: details.bounds.height,
+      isInAgenda: isInAgenda,
+      completedOverride: homeworkId != null
+          ? _plannerItemDataSource!.completedOverrides[homeworkId]
+          : null,
+    );
+
     return KeyedSubtree(
       key: ValueKey('planner_item_${plannerItem.id}'),
-      child: _buildCalendarItemWidget(
+      child: _buildPlannerItemTooltip(
         plannerItem: plannerItem,
-        width: details.bounds.width,
-        height: details.bounds.height,
-        isInAgenda: isInAgenda,
-        completedOverride: homeworkId != null
-            ? _plannerItemDataSource!.completedOverrides[homeworkId]
-            : null,
+        child: calendarItemWidget,
       ),
     );
+  }
+
+  Widget _buildPlannerItemTooltip({
+    required PlannerItemBaseModel plannerItem,
+    required Widget child,
+    bool hideLocation = false,
+  }) {
+    if (Responsive.isTouchDevice(context) ||
+        !(userSettings?.showPlannerTooltips ?? true)) {
+      return child;
+    }
+
+    final tooltipMessage = _buildPlannerItemTooltipMessage(
+      plannerItem,
+      hideLocation: hideLocation,
+    );
+    if (tooltipMessage == null) {
+      return child;
+    }
+
+    return Tooltip(
+      richMessage: tooltipMessage,
+      waitDuration: const Duration(milliseconds: 300),
+      showDuration: const Duration(seconds: 8),
+      preferBelow: false,
+      decoration: BoxDecoration(
+        color: context.colorScheme.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: context.colorScheme.outlineVariant),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: child,
+    );
+  }
+
+  InlineSpan? _buildPlannerItemTooltipMessage(
+    PlannerItemBaseModel plannerItem, {
+    bool hideLocation = false,
+  }) {
+    final titleStyle = AppStyles.formText(context).copyWith(
+      color: context.colorScheme.onSurface,
+      fontWeight: FontWeight.w600,
+    );
+    final bodyStyle = AppStyles.formText(
+      context,
+    ).copyWith(color: context.colorScheme.onSurface);
+    final mutedIconColor = context.colorScheme.onSurface.withValues(
+      alpha: 0.75,
+    );
+    final rows = <_PlannerTooltipRow>[
+      _PlannerTooltipRow.text(
+        icon: Icons.schedule_outlined,
+        text: _buildTooltipWhenLine(plannerItem),
+      ),
+    ];
+    final location = _plannerItemDataSource?.getLocationForItem(plannerItem);
+
+    if (!hideLocation &&
+        _currentView != HeliumView.agenda &&
+        location != null &&
+        location.isNotEmpty) {
+      rows.add(
+        _PlannerTooltipRow.text(
+          icon: Icons.pin_drop_outlined,
+          text: location,
+          color: plannerItem.color,
+        ),
+      );
+    }
+
+    if (plannerItem is HomeworkModel) {
+      final course = _courses.firstWhereOrNull(
+        (c) => c.id == plannerItem.course.id,
+      );
+      final categoryTitle =
+          plannerItem.category.entity?.title ??
+          _categoriesMap[plannerItem.category.id]?.title;
+
+      if (course != null) {
+        rows.add(
+          _PlannerTooltipRow.text(
+            icon: Icons.school_outlined,
+            text: course.title,
+            color: course.color,
+          ),
+        );
+      }
+      if (categoryTitle != null && categoryTitle.isNotEmpty) {
+        rows.add(
+          _PlannerTooltipRow.text(
+            icon: Icons.category_outlined,
+            text: categoryTitle,
+            color: _categoriesMap[plannerItem.category.id]?.color,
+          ),
+        );
+      }
+      if (GradeHelper.parseGrade(plannerItem.currentGrade) != null) {
+        rows.add(
+          _PlannerTooltipRow.text(
+            icon: Icons.percent,
+            text: GradeHelper.gradeForDisplay(plannerItem.currentGrade),
+            color: context.colorScheme.primary,
+          ),
+        );
+      }
+    } else if (plannerItem is EventModel) {
+      rows.add(
+        _PlannerTooltipRow.text(
+          icon: Icons.event_outlined,
+          text: 'Source: Events',
+          color: userSettings?.eventsColor,
+        ),
+      );
+    } else if (plannerItem is ExternalCalendarEventModel) {
+      final calendarId = int.tryParse(plannerItem.ownerId);
+      final externalCalendar = calendarId != null
+          ? _externalCalendarsById[calendarId]
+          : null;
+      rows.add(
+        _PlannerTooltipRow.text(
+          icon: Icons.cloud_download,
+          text: 'Source: ${externalCalendar?.title ?? 'External Calendar'}',
+          color: externalCalendar?.color ?? plannerItem.color,
+        ),
+      );
+    }
+
+    final hasResources =
+        plannerItem is HomeworkModel && plannerItem.resources.isNotEmpty;
+    final hasAttachments = plannerItem.attachments.isNotEmpty;
+    final hasReminders = plannerItem.reminders.isNotEmpty;
+    if (hasResources || hasAttachments || hasReminders) {
+      rows.add(
+        _PlannerTooltipRow.widget(
+          widget: Container(
+            width: 50,
+            height: 1,
+            color: context.colorScheme.outlineVariant.withValues(alpha: 0.7),
+          ),
+        ),
+      );
+      rows.add(
+        _PlannerTooltipRow.widget(
+          widget: _buildTooltipMetaCountsRow(plannerItem),
+        ),
+      );
+    }
+
+    if (rows.isEmpty) {
+      return null;
+    }
+
+    final children = <InlineSpan>[
+      TextSpan(text: plannerItem.title, style: titleStyle),
+      const TextSpan(text: '\n'),
+      WidgetSpan(
+        alignment: PlaceholderAlignment.middle,
+        child: Container(
+          width: 50,
+          height: 1,
+          color: context.colorScheme.outlineVariant.withValues(alpha: 0.7),
+        ),
+      ),
+      const TextSpan(text: '\n'),
+    ];
+
+    for (int i = 0; i < rows.length; i++) {
+      final row = rows[i];
+      if (row.widget != null) {
+        children.add(
+          WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: row.widget!,
+          ),
+        );
+      } else {
+        children.add(
+          WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: Icon(
+              row.icon!,
+              size: 14,
+              color: row.color ?? mutedIconColor,
+            ),
+          ),
+        );
+        children.add(TextSpan(text: ' ${row.text}', style: bodyStyle));
+      }
+      if (i != rows.length - 1) {
+        children.add(const TextSpan(text: '\n'));
+      }
+    }
+
+    return TextSpan(children: children);
+  }
+
+  String _buildTooltipWhenLine(PlannerItemBaseModel plannerItem) {
+    final localStart = HeliumDateTime.toLocal(
+      plannerItem.start,
+      userSettings!.timeZone,
+    );
+    final localEnd = HeliumDateTime.toLocal(
+      plannerItem.end,
+      userSettings!.timeZone,
+    );
+    final formattedDate = HeliumDateTime.formatDate(localStart);
+
+    if (plannerItem.allDay) {
+      return '$formattedDate • All day';
+    }
+
+    return '$formattedDate • ${HeliumDateTime.formatTimeRange(localStart, localEnd, plannerItem.showEndTime)}';
+  }
+
+  Widget _buildTooltipMetaCountsRow(PlannerItemBaseModel plannerItem) {
+    final rowTextStyle = AppStyles.formText(
+      context,
+    ).copyWith(color: context.colorScheme.onSurface);
+    final statWidgets = <Widget>[];
+
+    void addStat({
+      required IconData icon,
+      required int count,
+      required Color color,
+    }) {
+      statWidgets.addAll([
+        Icon(icon, size: 14, color: color),
+        const SizedBox(width: 4),
+        Text('$count', style: rowTextStyle.copyWith(color: color)),
+      ]);
+    }
+
+    if (plannerItem is HomeworkModel && plannerItem.resources.isNotEmpty) {
+      addStat(
+        icon: Icons.book_outlined,
+        count: plannerItem.resources.length,
+        color: userSettings?.resourceColor ?? context.colorScheme.onSurface,
+      );
+    }
+    if (plannerItem.attachments.isNotEmpty) {
+      if (statWidgets.isNotEmpty) {
+        statWidgets.add(const SizedBox(width: 12));
+      }
+      addStat(
+        icon: Icons.attachment,
+        count: plannerItem.attachments.length,
+        color: context.colorScheme.primary,
+      );
+    }
+    if (plannerItem.reminders.isNotEmpty) {
+      if (statWidgets.isNotEmpty) {
+        statWidgets.add(const SizedBox(width: 12));
+      }
+      addStat(
+        icon: Icons.notifications_active_outlined,
+        count: plannerItem.reminders.length,
+        color: context.colorScheme.secondary,
+      );
+    }
+
+    return Row(mainAxisSize: MainAxisSize.min, children: statWidgets);
+  }
+
+  Future<void> _refreshExternalCalendarsMap() async {
+    if (_plannerItemDataSource == null) {
+      return;
+    }
+
+    try {
+      final externalCalendars = await _plannerItemDataSource!
+          .externalCalendarRepository
+          .getExternalCalendars();
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _externalCalendarsById
+          ..clear()
+          ..addEntries(externalCalendars.map((c) => MapEntry(c.id, c)));
+      });
+    } catch (e, s) {
+      _log.warning(
+        'Failed to load external calendar metadata for tooltips',
+        e,
+        s,
+      );
+    }
   }
 
   Widget _buildCalendarItemLeftForAgenda({
@@ -2330,15 +2625,19 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                             Navigator.of(context).pop();
                           }
                         },
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(
-                            maxHeight: _agendaHeightDesktop,
-                          ),
-                          child: _buildCalendarItemWidget(
-                            plannerItem: plannerItem,
-                            width: double.infinity,
-                            isInAgenda: true,
-                            completedOverride: completedOverride,
+                        child: _buildPlannerItemTooltip(
+                          plannerItem: plannerItem,
+                          hideLocation: true,
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(
+                              maxHeight: _agendaHeightDesktop,
+                            ),
+                            child: _buildCalendarItemWidget(
+                              plannerItem: plannerItem,
+                              width: double.infinity,
+                              isInAgenda: true,
+                              completedOverride: completedOverride,
+                            ),
                           ),
                         ),
                       );
@@ -2914,7 +3213,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
                           return Column(
                             children: [
-                              CheckboxToggle(
+                              _CheckboxToggle(
                                 isChecked: isCompleteFilterEnabled,
                                 isToggleOn: showCompletedOnly,
                                 baseLabel: 'Complete',
@@ -2941,7 +3240,7 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
                                   );
                                 },
                               ),
-                              CheckboxToggle(
+                              _CheckboxToggle(
                                 isChecked: isGradedFilterEnabled,
                                 isToggleOn: showGradedOnly,
                                 baseLabel: 'Graded',
@@ -3210,18 +3509,13 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     );
   }
 
-  Widget _buildCalendarItemTimeBelowTitleRow(
-    PlannerItemBaseModel plannerItem,
-  ) {
+  Widget _buildCalendarItemTimeBelowTitleRow(PlannerItemBaseModel plannerItem) {
     return Row(
       children: [
         Expanded(
           child: Text(
             HeliumDateTime.formatTimeRange(
-              HeliumDateTime.toLocal(
-                plannerItem.start,
-                userSettings!.timeZone,
-              ),
+              HeliumDateTime.toLocal(plannerItem.start, userSettings!.timeZone),
               HeliumDateTime.toLocal(plannerItem.end, userSettings!.timeZone),
               plannerItem.showEndTime,
             ),
@@ -3256,6 +3550,82 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _PlannerTooltipRow {
+  final IconData? icon;
+  final String? text;
+  final Color? color;
+  final Widget? widget;
+
+  const _PlannerTooltipRow.text({
+    required this.icon,
+    required this.text,
+    this.color,
+  }) : widget = null;
+
+  const _PlannerTooltipRow.widget({required this.widget})
+    : icon = null,
+      text = null,
+      color = null;
+}
+
+class _CheckboxToggle extends StatelessWidget {
+  final bool isChecked;
+  final bool isToggleOn;
+  final String baseLabel;
+  final String toggleOnLabel;
+  final String toggleOffLabel;
+  final ValueChanged<bool?> onCheckedChanged;
+  final ValueChanged<bool> onToggleChanged;
+  final VoidCallback onToggleTapWhenDisabled;
+
+  const _CheckboxToggle({
+    required this.isChecked,
+    required this.isToggleOn,
+    required this.baseLabel,
+    required this.toggleOnLabel,
+    required this.toggleOffLabel,
+    required this.onCheckedChanged,
+    required this.onToggleChanged,
+    required this.onToggleTapWhenDisabled,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final label = isChecked
+        ? (isToggleOn ? toggleOnLabel : toggleOffLabel)
+        : baseLabel;
+
+    return CheckboxListTile(
+      title: Text(label, style: AppStyles.formText(context)),
+      value: isChecked,
+      onChanged: onCheckedChanged,
+      controlAffinity: ListTileControlAffinity.leading,
+      dense: true,
+      contentPadding: EdgeInsets.zero,
+      secondary: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Only',
+            style: AppStyles.smallSecondaryTextLight(
+              context,
+            ).copyWith(color: Theme.of(context).colorScheme.onSurface),
+          ),
+          const SizedBox(width: 6),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: !isChecked ? onToggleTapWhenDisabled : null,
+            child: Switch(
+              value: isToggleOn,
+              onChanged: isChecked ? onToggleChanged : null,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

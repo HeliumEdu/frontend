@@ -18,7 +18,7 @@ import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart'
     show SnackBarHelper;
-import 'package:heliumapp/presentation/views/core/multi_step_container.dart';
+import 'package:heliumapp/presentation/widgets/multi_step_container.dart';
 import 'package:heliumapp/presentation/widgets/empty_card.dart';
 import 'package:heliumapp/presentation/widgets/error_card.dart';
 import 'package:heliumapp/presentation/widgets/helium_elevated_button.dart';

@@ -13,7 +13,7 @@ import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/presentation/bloc/attachment/attachment_bloc.dart';
 import 'package:heliumapp/presentation/bloc/planneritem/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/bloc/planneritem/planneritem_state.dart';
-import 'package:heliumapp/presentation/views/core/multi_step_container.dart';
+import 'package:heliumapp/presentation/widgets/multi_step_container.dart';
 import 'package:heliumapp/presentation/widgets/planner/planner_item_attachments.dart';
 import 'package:heliumapp/presentation/widgets/planner/planner_item_details.dart';
 import 'package:heliumapp/presentation/widgets/planner/planner_item_reminders.dart';

@@ -109,6 +109,7 @@ void main() {
       defaultReminderOffset: 0,
       defaultReminderOffsetType: 0,
       colorByCategory: false,
+      showPlannerTooltips: true,
       rememberFilterState: false,
       isSetupComplete: true,
     );
@@ -286,6 +287,7 @@ void main() {
           defaultReminderOffset: 0,
           defaultReminderOffsetType: 0,
           colorByCategory: true,
+          showPlannerTooltips: true,
           rememberFilterState: false,
           isSetupComplete: true,
         );
@@ -1426,13 +1428,9 @@ void main() {
       test(
         'allExternalCalendarEvents returns only ExternalCalendarEventModels',
         () {
-          dataSource.addPlannerItem(
-            _createExternalCalendarEventModel(id: 110),
-          );
+          dataSource.addPlannerItem(_createExternalCalendarEventModel(id: 110));
           dataSource.addPlannerItem(_createEventModel(id: 111));
-          dataSource.addPlannerItem(
-            _createExternalCalendarEventModel(id: 112),
-          );
+          dataSource.addPlannerItem(_createExternalCalendarEventModel(id: 112));
 
           expect(dataSource.allExternalCalendarEvents, hasLength(2));
         },

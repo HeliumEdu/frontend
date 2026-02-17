@@ -12,25 +12,14 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/shadow_container.dart';
 
-/// Represents a single step in the StepperHeader.
-class StepperStep {
-  final IconData icon;
-  final bool isEnabled;
-  final String? tooltip;
-
-  const StepperStep({
-    required this.icon,
-    this.isEnabled = true,
-    this.tooltip,
-  });
-}
+typedef StepperHeaderStep = ({IconData icon, bool isEnabled, String? tooltip});
 
 /// A horizontal stepper header widget that displays step icons with
 /// connecting lines, supporting current step highlighting, disabled states,
 /// and tap navigation.
 class StepperHeader extends StatefulWidget {
   /// List of steps to display.
-  final List<StepperStep> steps;
+  final List<StepperHeaderStep> steps;
 
   /// The currently active step index (0-based).
   final int currentStep;
@@ -78,7 +67,10 @@ class _StepperHeaderState extends State<StepperHeader> {
     final totalCircleWidth = circleSize * widget.steps.length;
     final remainingWidth = contentWidth - totalCircleWidth;
     final lineLength = widget.steps.length > 1
-        ? math.min(56.0, math.max(16.0, (remainingWidth / (widget.steps.length - 1)) - 8))
+        ? math.min(
+            56.0,
+            math.max(16.0, (remainingWidth / (widget.steps.length - 1)) - 8),
+          )
         : 0.0;
 
     return Padding(
@@ -96,7 +88,7 @@ class _StepperHeaderState extends State<StepperHeader> {
     );
   }
 
-  List<StepperStep> get steps => widget.steps;
+  List<StepperHeaderStep> get steps => widget.steps;
   int get currentStep => widget.currentStep;
   ValueChanged<int>? get onStepTapped => widget.onStepTapped;
 
@@ -178,11 +170,7 @@ class _StepperHeaderState extends State<StepperHeader> {
         border: Border.all(color: borderColor, width: 2),
       ),
       child: Center(
-        child: Icon(
-          step.icon,
-          color: iconColor,
-          size: iconSize,
-        ),
+        child: Icon(step.icon, color: iconColor, size: iconSize),
       ),
     );
 
@@ -190,10 +178,7 @@ class _StepperHeaderState extends State<StepperHeader> {
     Widget result = circle;
 
     if (step.tooltip != null) {
-      result = Tooltip(
-        message: step.tooltip!,
-        child: result,
-      );
+      result = Tooltip(message: step.tooltip!, child: result);
     }
 
     if (onStepTapped != null && isEnabled) {
@@ -215,7 +200,8 @@ class _StepperHeaderState extends State<StepperHeader> {
     // Line is "completed" if the next step is at or before current step
     final isCompleted = index < currentStep;
     final isActive = index == currentStep - 1;
-    final nextStepEnabled = index + 1 < steps.length && steps[index + 1].isEnabled;
+    final nextStepEnabled =
+        index + 1 < steps.length && steps[index + 1].isEnabled;
 
     final Color lineColor;
     if (isCompleted && nextStepEnabled) {

@@ -65,6 +65,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
       .offsetTypes[FallbackConstants.defaultReminderOffsetType];
   String _selectedReminderType =
       ReminderConstants.types[FallbackConstants.defaultReminderType];
+  bool _isShowPlannerTooltips = FallbackConstants.defaultShowPlannerTooltips;
   bool _isSelectedColorByCategory = false;
   bool _isRememberFilterSelection = false;
 
@@ -281,13 +282,13 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
                 Expanded(
                   child: CheckboxListTile(
                     title: Text(
-                      'Color by category',
+                      'Show tooltips on Planner',
                       style: AppStyles.formLabel(context),
                     ),
-                    value: _isSelectedColorByCategory,
+                    value: _isShowPlannerTooltips,
                     onChanged: (value) {
                       setState(() {
-                        _isSelectedColorByCategory = value!;
+                        _isShowPlannerTooltips = value!;
                       });
                     },
                     controlAffinity: ListTileControlAffinity.leading,
@@ -309,6 +310,27 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
                     onChanged: (value) {
                       setState(() {
                         _isRememberFilterSelection = value!;
+                      });
+                    },
+                    controlAffinity: ListTileControlAffinity.leading,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ],
+            ),
+
+            Row(
+              children: [
+                Expanded(
+                  child: CheckboxListTile(
+                    title: Text(
+                      'Color by category',
+                      style: AppStyles.formLabel(context),
+                    ),
+                    value: _isSelectedColorByCategory,
+                    onChanged: (value) {
+                      setState(() {
+                        _isSelectedColorByCategory = value!;
                       });
                     },
                     controlAffinity: ListTileControlAffinity.leading,
@@ -341,8 +363,9 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
               ),
               items: ReminderConstants.typeItems
                   .where(
-                    (t) => t.value == _selectedReminderType ||
-                           (t.value != 'Text' && t.value != 'Popup'),
+                    (t) =>
+                        t.value == _selectedReminderType ||
+                        (t.value != 'Text' && t.value != 'Popup'),
                   )
                   .toList(),
               onChanged: (value) {
@@ -358,15 +381,16 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
             ),
             const SizedBox(height: 14),
 
-            Text('Default "Remind before"', style: AppStyles.formLabel(context)),
+            Text(
+              'Default "Remind before"',
+              style: AppStyles.formLabel(context),
+            ),
             const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
                   flex: 2,
-                  child: SpinnerField(
-                    controller: _reminderOffsetController,
-                  ),
+                  child: SpinnerField(controller: _reminderOffsetController),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -415,6 +439,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
             .defaultReminderOffset
             .toString();
       }
+      _isShowPlannerTooltips = state.user.settings.showPlannerTooltips;
       _isSelectedColorByCategory = state.user.settings.colorByCategory;
       _isRememberFilterSelection = state.user.settings.rememberFilterState;
 
@@ -454,6 +479,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
       _selectedReminderOffsetType,
     );
     final reminderOffset = int.parse(_reminderOffsetController.text);
+    final showPlannerTooltips = _isShowPlannerTooltips;
     final colorByCategory = _isSelectedColorByCategory;
     final rememberFilterState = _isRememberFilterSelection;
 
@@ -463,6 +489,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
           timeZone: timeZone,
           defaultView: defaultView,
           weekStartsOn: weekStartsOn,
+          showPlannerTooltips: showPlannerTooltips,
           colorByCategory: colorByCategory,
           eventsColor: eventsColor,
           resourceColor: resourceColor,

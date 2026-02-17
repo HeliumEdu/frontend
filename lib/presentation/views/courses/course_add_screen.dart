@@ -12,7 +12,7 @@ import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/presentation/bloc/course/course_bloc.dart';
 import 'package:heliumapp/presentation/bloc/course/course_state.dart';
-import 'package:heliumapp/presentation/views/core/multi_step_container.dart';
+import 'package:heliumapp/presentation/widgets/multi_step_container.dart';
 import 'package:heliumapp/presentation/widgets/courses/course_attachments.dart';
 import 'package:heliumapp/presentation/widgets/courses/course_categories.dart';
 import 'package:heliumapp/presentation/widgets/courses/course_details.dart';

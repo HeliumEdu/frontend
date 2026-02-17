@@ -28,7 +28,7 @@ import 'package:heliumapp/presentation/views/auth/verify_email_screen.dart';
 import 'package:heliumapp/presentation/views/planner/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/views/core/landing_screen.dart';
 import 'package:heliumapp/presentation/views/core/mobile_web_screen.dart';
-import 'package:heliumapp/presentation/views/core/navigation_shell.dart';
+import 'package:heliumapp/presentation/widgets/core/navigation_shell.dart';
 import 'package:heliumapp/presentation/views/core/notification_screen.dart';
 import 'package:heliumapp/presentation/views/courses/course_add_screen.dart';
 import 'package:heliumapp/presentation/views/resources/resource_add_screen.dart';

@@ -76,6 +76,7 @@ class MockModels {
     int defaultReminderOffset = 15,
     int defaultReminderOffsetType = 0,
     bool colorByCategory = false,
+    bool showPlannerTooltips = true,
     bool rememberFilterState = false,
     String? privateSlug,
   }) {
@@ -96,6 +97,7 @@ class MockModels {
       defaultReminderOffset: defaultReminderOffset,
       defaultReminderOffsetType: defaultReminderOffsetType,
       colorByCategory: colorByCategory,
+      showPlannerTooltips: showPlannerTooltips,
       rememberFilterState: rememberFilterState,
       privateSlug: privateSlug,
     );

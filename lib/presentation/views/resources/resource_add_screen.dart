@@ -12,7 +12,7 @@ import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/presentation/bloc/resource/resource_bloc.dart';
 import 'package:heliumapp/presentation/bloc/resource/resource_state.dart';
-import 'package:heliumapp/presentation/views/core/multi_step_container.dart';
+import 'package:heliumapp/presentation/widgets/multi_step_container.dart';
 import 'package:heliumapp/presentation/widgets/resources/resource_details.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';

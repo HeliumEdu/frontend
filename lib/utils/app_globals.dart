@@ -61,6 +61,7 @@ class FallbackConstants {
   static const defaultResourceColor = '#418eb9'; // seedColor hex
   static const defaultGradeColor = '#418eb9'; // seedColor hex
   static const defaultCalendarUseCategoryColors = false;
+  static const defaultShowPlannerTooltips = true;
   static const defaultRememberFilterState = false;
 }
 

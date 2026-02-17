@@ -393,6 +393,9 @@ class DioClient {
         'calendar_use_category_colors':
             _prefService.getBool('calendar_use_category_colors') ??
             FallbackConstants.defaultCalendarUseCategoryColors,
+        'show_planner_tooltips':
+            _prefService.getBool('show_planner_tooltips') ??
+            FallbackConstants.defaultShowPlannerTooltips,
         'remember_filter_state':
             _prefService.getBool('remember_filter_state') ??
             FallbackConstants.defaultRememberFilterState,
@@ -446,6 +449,10 @@ class DioClient {
       ?_prefService.setBool(
         'calendar_use_category_colors',
         settings.colorByCategory,
+      ),
+      ?_prefService.setBool(
+        'show_planner_tooltips',
+        settings.showPlannerTooltips,
       ),
       ?_prefService.setInt(
         'whats_new_version_seen',
