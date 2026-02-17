@@ -1181,89 +1181,15 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                       int pointIndex,
                       int seriesIndex,
                     ) {
-                      final chartPoint = data as ChartDataPoint;
-                      final homeworkTitle =
-                          chartPoint.homeworkTitle?.trim().isNotEmpty == true
-                          ? chartPoint.homeworkTitle!
-                          : 'No assignment title';
-                      final homeworkGradeText = GradeHelper.gradeForDisplay(
-                        chartPoint.homeworkGrade,
-                      );
-                      final categoryTitle = _categoryTitleForId(
-                        chartPoint.categoryId,
-                      );
-                      final categoryColor = _categoryColorForId(
-                        chartPoint.categoryId,
-                      );
                       final seriesName =
                           (seriesIndex >= 0 &&
                               seriesIndex < visibleSeries.length)
                           ? (visibleSeries[seriesIndex].name ?? '')
                           : '';
-                      final isOverallSeries = seriesName == 'Overall Grade';
-                      final gradeLabel = isOverallSeries
-                          ? 'Overall Grade'
-                          : isTermView
-                          ? 'Class Grade'
-                          : 'Category Grade';
-                      final classGradeAtPoint =
-                          '${chartPoint.grade.toStringAsFixed(2)}%';
-
-                      return Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: context.colorScheme.surface,
-                          borderRadius: BorderRadius.circular(5),
-                          border: Border.all(
-                            color: context.colorScheme.outline.withValues(
-                              alpha: 0.3,
-                            ),
-                          ),
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '$homeworkTitle ($homeworkGradeText)',
-                              style: AppStyles.standardBodyText(
-                                context,
-                              ).copyWith(fontWeight: FontWeight.w600),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            if (isTermView && categoryTitle != null) ...[
-                              const SizedBox(height: 4),
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.category_outlined,
-                                    size: 13,
-                                    color: categoryColor,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Flexible(
-                                    child: Text(
-                                      categoryTitle,
-                                      style: AppStyles.smallSecondaryText(
-                                        context,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                            const SizedBox(height: 4),
-                            Text(
-                              '$gradeLabel: $classGradeAtPoint',
-                              style: AppStyles.smallSecondaryText(context),
-                            ),
-                          ],
-                        ),
+                      return _buildGradeTrendTooltip(
+                        chartPoint: data as ChartDataPoint,
+                        seriesName: seriesName,
+                        isTermView: isTermView,
                       );
                     },
               ),
@@ -1272,6 +1198,13 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                 activationMode: charts.ActivationMode.singleTap,
                 lineType: charts.TrackballLineType.vertical,
                 tooltipDisplayMode: charts.TrackballDisplayMode.floatAllPoints,
+                builder: (context, trackballDetails) {
+                  return _buildTrackballTooltip(
+                    trackballDetails,
+                    visibleSeries,
+                    isTermView,
+                  );
+                },
                 tooltipSettings: charts.InteractiveTooltip(
                   enable: true,
                   color: context.colorScheme.surface,
@@ -1279,6 +1212,9 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                     alpha: 0.3,
                   ),
                   borderWidth: 1,
+                  textStyle: AppStyles.smallSecondaryText(
+                    context,
+                  ).copyWith(color: context.colorScheme.onSurface),
                 ),
                 markerSettings: const charts.TrackballMarkerSettings(
                   markerVisibility: charts.TrackballVisibilityMode.visible,
@@ -1365,6 +1301,105 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
               ),
               child: _buildLegend(series),
             ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTrackballTooltip(
+    charts.TrackballDetails trackballDetails,
+    List<charts.CartesianSeries<ChartDataPoint, DateTime>> visibleSeries,
+    bool isTermView,
+  ) {
+    final pointIndex = trackballDetails.pointIndex;
+    final seriesIndex = trackballDetails.seriesIndex;
+    if (pointIndex == null || seriesIndex == null) {
+      return const SizedBox.shrink();
+    }
+    if (seriesIndex < 0 || seriesIndex >= visibleSeries.length) {
+      return const SizedBox.shrink();
+    }
+
+    final series = visibleSeries[seriesIndex];
+    final dataSource = series.dataSource;
+    if (dataSource == null ||
+        pointIndex < 0 ||
+        pointIndex >= dataSource.length) {
+      return const SizedBox.shrink();
+    }
+
+    final pointData = dataSource[pointIndex];
+
+    return _buildGradeTrendTooltip(
+      chartPoint: pointData,
+      seriesName: series.name ?? '',
+      isTermView: isTermView,
+    );
+  }
+
+  Widget _buildGradeTrendTooltip({
+    required ChartDataPoint chartPoint,
+    required String seriesName,
+    required bool isTermView,
+  }) {
+    final homeworkTitle = chartPoint.homeworkTitle?.trim().isNotEmpty == true
+        ? chartPoint.homeworkTitle!
+        : 'No assignment title';
+    final homeworkGradeText = GradeHelper.gradeForDisplay(
+      chartPoint.homeworkGrade,
+    );
+    final categoryTitle = _categoryTitleForId(chartPoint.categoryId);
+    final categoryColor = _categoryColorForId(chartPoint.categoryId);
+    final isOverallSeries = seriesName == 'Overall Grade';
+    final gradeLabel = isOverallSeries
+        ? 'Overall Grade'
+        : isTermView
+        ? 'Class Grade'
+        : 'Category Grade';
+    final classGradeAtPoint = '${chartPoint.grade.toStringAsFixed(2)}%';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: context.colorScheme.surface,
+        borderRadius: BorderRadius.circular(5),
+        border: Border.all(
+          color: context.colorScheme.outline.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '$homeworkTitle ($homeworkGradeText)',
+            style: AppStyles.standardBodyText(
+              context,
+            ).copyWith(fontWeight: FontWeight.w600),
+            overflow: TextOverflow.ellipsis,
+          ),
+          if (isTermView && categoryTitle != null) ...[
+            const SizedBox(height: 4),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.category_outlined, size: 13, color: categoryColor),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    categoryTitle,
+                    style: AppStyles.smallSecondaryText(context),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ],
+          const SizedBox(height: 4),
+          Text(
+            '$gradeLabel: $classGradeAtPoint',
+            style: AppStyles.smallSecondaryText(context),
+          ),
         ],
       ),
     );

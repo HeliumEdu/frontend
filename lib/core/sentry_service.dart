@@ -34,27 +34,31 @@ class SentryService {
   }
 
   SentryEvent? _beforeSend(SentryEvent event, Hint? hint) {
-    final exceptions = event.exceptions;
-    if (exceptions != null && exceptions.isNotEmpty) {
-      final exceptionType = exceptions.first.type;
-      final exceptionValue = exceptions.first.value;
+    final textParts = <String>[
+      event.message?.formatted ?? '',
+      if (event.exceptions != null)
+        ...event.exceptions!.map((e) => '${e.type ?? ''} ${e.value ?? ''}'),
+    ];
+    final eventText = textParts.join(' ').toLowerCase();
 
-      if (exceptionType == 'DioException' && exceptionValue != null) {
-        // 400 on email verification = wrong/expired code (expected user error)
-        if (exceptionValue.contains('status code of 400') &&
-            exceptionValue.contains('/auth/user/verify/')) {
-          _log.info('Filtered /auth/user/verify/ 400 from Sentry');
-          return null;
-        }
+    final isVerify400 =
+        eventText.contains('/auth/user/verify/') &&
+        eventText.contains('status code of 400');
+    if (isVerify400) {
+      _log.info('Filtered /auth/user/verify/ 400 from Sentry (event text)');
+      return null;
+    }
 
-        // 401/403 on any endpoint = token invalid/expired or account deleted
-        // (expected user error, handled by Dio interceptor with logout flow)
-        if (exceptionValue.contains('status code of 401') ||
-            exceptionValue.contains('status code of 403')) {
-          _log.info('Filtered 401/403 DioException from Sentry');
-          return null;
-        }
-      }
+    final isAuthStatus =
+        eventText.contains('status code of 401') ||
+        eventText.contains('status code of 403') ||
+        eventText.contains('http 401') ||
+        eventText.contains('http 403');
+    final looksLikeDio = eventText.contains('dioexception');
+
+    if (looksLikeDio && isAuthStatus) {
+      _log.info('Filtered 401/403 DioException from Sentry (event text)');
+      return null;
     }
 
     return event;

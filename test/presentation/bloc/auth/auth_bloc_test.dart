@@ -54,22 +54,16 @@ void main() {
       blocTest<AuthBloc, AuthState>(
         'emits [AuthLoading, AuthRegistered] when registration succeeds',
         build: () {
-          when(
-            () => mockAuthRepository.register(any()),
-          ).thenAnswer(
+          when(() => mockAuthRepository.register(any())).thenAnswer(
             (_) async => NoContentResponseModel(
               message: 'Success',
-              username: 'testuser',
+              email: 'test@example.com',
             ),
           );
           return authBloc;
         },
         act: (bloc) => bloc.add(
-          RegisterEvent(
-            email: email,
-            password: password,
-            timezone: timezone,
-          ),
+          RegisterEvent(email: email, password: password, timezone: timezone),
         ),
         expect: () => [isA<AuthLoading>(), isA<AuthRegistered>()],
         verify: (_) {
@@ -86,11 +80,7 @@ void main() {
           return authBloc;
         },
         act: (bloc) => bloc.add(
-          RegisterEvent(
-            email: email,
-            password: password,
-            timezone: timezone,
-          ),
+          RegisterEvent(email: email, password: password, timezone: timezone),
         ),
         expect: () => [
           isA<AuthLoading>(),
@@ -111,11 +101,7 @@ void main() {
           return authBloc;
         },
         act: (bloc) => bloc.add(
-          RegisterEvent(
-            email: email,
-            password: password,
-            timezone: timezone,
-          ),
+          RegisterEvent(email: email, password: password, timezone: timezone),
         ),
         expect: () => [
           isA<AuthLoading>(),
@@ -129,7 +115,7 @@ void main() {
     });
 
     group('LoginEvent', () {
-      const username = 'testuser';
+      const email = 'test@example.com';
       const password = 'password123';
 
       blocTest<AuthBloc, AuthState>(
@@ -143,8 +129,7 @@ void main() {
           );
           return authBloc;
         },
-        act: (bloc) =>
-            bloc.add(LoginEvent(username: username, password: password)),
+        act: (bloc) => bloc.add(LoginEvent(email: email, password: password)),
         expect: () => [isA<AuthLoading>(), isA<AuthLoggedIn>()],
         verify: (_) {
           verify(() => mockAuthRepository.login(any())).called(1);
@@ -159,8 +144,7 @@ void main() {
           ).thenThrow(UnauthorizedException(message: 'Invalid credentials'));
           return authBloc;
         },
-        act: (bloc) =>
-            bloc.add(LoginEvent(username: username, password: password)),
+        act: (bloc) => bloc.add(LoginEvent(email: email, password: password)),
         expect: () => [
           isA<AuthLoading>(),
           isA<AuthError>().having(
@@ -179,8 +163,7 @@ void main() {
           ).thenThrow(NetworkException(message: 'Connection timeout'));
           return authBloc;
         },
-        act: (bloc) =>
-            bloc.add(LoginEvent(username: username, password: password)),
+        act: (bloc) => bloc.add(LoginEvent(email: email, password: password)),
         expect: () => [
           isA<AuthLoading>(),
           isA<AuthError>().having(
@@ -344,7 +327,6 @@ void main() {
         build: () {
           final mockUser = MockModels.createUser(
             id: 1,
-            username: 'testuser',
             email: 'test@example.com',
           );
           when(
@@ -356,9 +338,9 @@ void main() {
         expect: () => [
           isA<AuthLoading>(),
           isA<AuthProfileFetched>().having(
-            (s) => s.user.username,
-            'username',
-            'testuser',
+            (s) => s.user.email,
+            'email',
+            'test@example.com',
           ),
         ],
       );

@@ -12,7 +12,6 @@ import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:timezone/standalone.dart' as tz;
 
 class UserModel extends BaseModel {
-  final String username;
   final String email;
   final UserSettingsModel settings;
   final String? emailChanging;
@@ -20,7 +19,6 @@ class UserModel extends BaseModel {
 
   UserModel({
     required super.id,
-    required this.username,
     required this.email,
     required this.settings,
     this.emailChanging,
@@ -30,7 +28,6 @@ class UserModel extends BaseModel {
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       id: json['id'],
-      username: json['username'],
       email: json['email'],
       emailChanging: json['email_changing'],
       settings: UserSettingsModel.fromJson(json['settings']),
@@ -41,7 +38,6 @@ class UserModel extends BaseModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'username': username,
       'email': email,
       'email_changing': emailChanging,
       'settings': settings.toJson(),

@@ -27,10 +27,10 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 class VerifyEmailScreen extends StatefulWidget {
-  final String? username;
+  final String? email;
   final String? code;
 
-  const VerifyEmailScreen({super.key, this.username, this.code});
+  const VerifyEmailScreen({super.key, this.email, this.code});
 
   @override
   State<VerifyEmailScreen> createState() => _VerifyEmailScreenState();
@@ -44,7 +44,7 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
   bool get isAuthenticatedScreen => false;
 
   final BasicFormController _formController = BasicFormController();
-  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _codeController = TextEditingController();
 
   // Resend countdown timer
@@ -57,8 +57,8 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
   void initState() {
     super.initState();
 
-    if (widget.username != null) {
-      _usernameController.text = widget.username!;
+    if (widget.email != null) {
+      _emailController.text = widget.email!;
     }
     if (widget.code != null) {
       _codeController.text = widget.code!;
@@ -68,8 +68,8 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
       isLoading = false;
     });
 
-    // Auto-submit if both username and code are provided (e.g., from email link)
-    if (widget.username != null && widget.code != null) {
+    // Auto-submit if both email and code are provided (e.g., from email link)
+    if (widget.email != null && widget.code != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
 
@@ -80,7 +80,7 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
 
   @override
   void dispose() {
-    _usernameController.dispose();
+    _emailController.dispose();
     _codeController.dispose();
     _resendTimer?.cancel();
 
@@ -191,18 +191,18 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
             const SizedBox(height: 25),
 
             LabelAndTextFormField(
-              hintText: 'Username',
-              autofocus: kIsWeb && widget.username == null,
-              prefixIcon: Icons.person_outline,
-              controller: _usernameController,
-              validator: BasicFormController.validateRequiredField,
-              keyboardType: TextInputType.text,
+              hintText: 'Email',
+              autofocus: kIsWeb && widget.email == null,
+              prefixIcon: Icons.email_outlined,
+              controller: _emailController,
+              validator: BasicFormController.validateRequiredEmail,
+              keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 12),
 
             LabelAndTextFormField(
               hintText: 'Verification code',
-              autofocus: widget.username != null && widget.code == null,
+              autofocus: widget.email != null && widget.code == null,
               prefixIcon: Icons.pin,
               controller: _codeController,
               validator: _validateCode,
@@ -253,7 +253,9 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
                             ),
                             color: _canResend
                                 ? context.colorScheme.primary
-                                : context.colorScheme.onSurface.withValues(alpha: 0.38),
+                                : context.colorScheme.onSurface.withValues(
+                                    alpha: 0.38,
+                                  ),
                           ),
                           const SizedBox(width: 8),
                           Text(
@@ -261,7 +263,9 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
                             style: AppStyles.buttonText(context).copyWith(
                               color: _canResend
                                   ? context.colorScheme.primary
-                                  : context.colorScheme.onSurface.withValues(alpha: 0.38),
+                                  : context.colorScheme.onSurface.withValues(
+                                      alpha: 0.38,
+                                    ),
                             ),
                           ),
                           if (_resendCountdown > 0) ...[
@@ -269,7 +273,9 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
                             Text(
                               '($_resendCountdown)',
                               style: AppStyles.buttonText(context).copyWith(
-                                color: context.colorScheme.onSurface.withValues(alpha: 0.38),
+                                color: context.colorScheme.onSurface.withValues(
+                                  alpha: 0.38,
+                                ),
                               ),
                             ),
                           ],
@@ -333,7 +339,7 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
 
       context.read<AuthBloc>().add(
         VerifyEmailEvent(
-          username: _usernameController.text.trim(),
+          email: _emailController.text.trim(),
           code: _codeController.text.trim(),
         ),
       );
@@ -343,7 +349,7 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
   bool get _canResend =>
       _resendCountdown == 0 &&
       !_isResending &&
-      _usernameController.text.trim().isNotEmpty;
+      _emailController.text.trim().isNotEmpty;
 
   void _onResend() {
     if (!_canResend) return;
@@ -353,7 +359,7 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
     });
 
     context.read<AuthBloc>().add(
-      ResendVerificationEvent(username: _usernameController.text.trim()),
+      ResendVerificationEvent(email: _emailController.text.trim()),
     );
   }
 
