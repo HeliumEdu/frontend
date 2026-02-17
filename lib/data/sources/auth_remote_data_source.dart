@@ -155,9 +155,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
   }
 
   @override
-  Future<NoContentResponseModel> resendVerificationEmail(
-    String email,
-  ) async {
+  Future<NoContentResponseModel> resendVerificationEmail(String email) async {
     try {
       final response = await dioClient.dio.get(
         ApiUrl.authUserVerifyResendUrl,
@@ -168,7 +166,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       );
 
       if (response.statusCode == 202) {
-        _log.info('Verification email resent for $email');
+        _log.info('Verification email resend succeeded');
         return NoContentResponseModel(message: 'Verification email sent');
       } else {
         throw ServerException(
