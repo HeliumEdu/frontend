@@ -20,6 +20,7 @@ class FilterableItem {
   final DateTime end;
   final bool allDay;
   final bool completed;
+  final bool graded;
   final int? courseId;
   final int? categoryId;
   final String? ownerId;
@@ -34,6 +35,7 @@ class FilterableItem {
     required this.end,
     required this.allDay,
     this.completed = false,
+    this.graded = false,
     this.courseId,
     this.categoryId,
     this.ownerId,
@@ -66,10 +68,7 @@ class FilterComputeInput {
   final List<FilterableItem> items;
   final FilterParams params;
 
-  const FilterComputeInput({
-    required this.items,
-    required this.params,
-  });
+  const FilterComputeInput({required this.items, required this.params});
 }
 
 /// Top-level function that runs filtering and sorting in a background isolate.
@@ -169,6 +168,12 @@ bool _passesFilters(FilterableItem item, FilterParams params) {
       if (params.filterStatuses.contains('Overdue')) {
         final isOverdue = !isCompleted && item.start.isBefore(DateTime.now());
         matches = matches || isOverdue;
+      }
+      if (params.filterStatuses.contains('Graded')) {
+        matches = matches || item.graded;
+      }
+      if (params.filterStatuses.contains('Ungraded')) {
+        matches = matches || !item.graded;
       }
 
       if (!matches) return false;

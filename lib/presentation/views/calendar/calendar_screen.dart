@@ -63,6 +63,7 @@ import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/views/core/notification_screen.dart';
 import 'package:heliumapp/presentation/views/settings/settings_screen.dart';
 import 'package:heliumapp/presentation/widgets/error_card.dart';
+import 'package:heliumapp/presentation/widgets/checkbox_toggle_widget.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/shadow_container.dart';
@@ -2836,6 +2837,59 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
                       StatefulBuilder(
                         builder: (context, setStatusMenuState) {
+                          final statuses =
+                              _calendarItemDataSource!.filterStatuses;
+                          final isCompleteFilterEnabled =
+                              statuses.contains('Complete') ||
+                              statuses.contains('Incomplete');
+                          final showCompletedOnly = statuses.contains(
+                            'Complete',
+                          );
+                          final isGradedFilterEnabled =
+                              statuses.contains('Graded') ||
+                              statuses.contains('Ungraded');
+                          final showGradedOnly = statuses.contains('Graded');
+
+                          void setCompleteFilterMode({
+                            required bool enabled,
+                            required bool completeOnly,
+                          }) {
+                            final currentStatuses = Set<String>.from(
+                              _calendarItemDataSource!.filterStatuses,
+                            );
+                            currentStatuses.remove('Complete');
+                            currentStatuses.remove('Incomplete');
+                            if (enabled) {
+                              currentStatuses.add(
+                                completeOnly ? 'Complete' : 'Incomplete',
+                              );
+                            }
+                            _calendarItemDataSource!.setFilterStatuses(
+                              currentStatuses,
+                            );
+                            setStatusMenuState(() {});
+                          }
+
+                          void setGradedFilterMode({
+                            required bool enabled,
+                            required bool gradedOnly,
+                          }) {
+                            final currentStatuses = Set<String>.from(
+                              _calendarItemDataSource!.filterStatuses,
+                            );
+                            currentStatuses.remove('Graded');
+                            currentStatuses.remove('Ungraded');
+                            if (enabled) {
+                              currentStatuses.add(
+                                gradedOnly ? 'Graded' : 'Ungraded',
+                              );
+                            }
+                            _calendarItemDataSource!.setFilterStatuses(
+                              currentStatuses,
+                            );
+                            setStatusMenuState(() {});
+                          }
+
                           Widget buildStatusTile(String label) {
                             final isChecked = _calendarItemDataSource!
                                 .filterStatuses
@@ -2868,8 +2922,60 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
                           return Column(
                             children: [
-                              buildStatusTile('Complete'),
-                              buildStatusTile('Incomplete'),
+                              CheckboxToggleWidget(
+                                isChecked: isCompleteFilterEnabled,
+                                isToggleOn: showCompletedOnly,
+                                baseLabel: 'Complete',
+                                toggleOnLabel: 'Complete',
+                                toggleOffLabel: 'Incomplete',
+                                onCheckedChanged: (value) {
+                                  setCompleteFilterMode(
+                                    enabled: value ?? false,
+                                    // Default to incomplete-only when enabling via checkbox.
+                                    completeOnly: false,
+                                  );
+                                },
+                                onToggleChanged: (value) {
+                                  setCompleteFilterMode(
+                                    enabled: true,
+                                    completeOnly: value,
+                                  );
+                                },
+                                onToggleTapWhenDisabled: () {
+                                  setCompleteFilterMode(
+                                    enabled: true,
+                                    // If switch is tapped first, enable and show complete-only.
+                                    completeOnly: true,
+                                  );
+                                },
+                              ),
+                              CheckboxToggleWidget(
+                                isChecked: isGradedFilterEnabled,
+                                isToggleOn: showGradedOnly,
+                                baseLabel: 'Graded',
+                                toggleOnLabel: 'Graded',
+                                toggleOffLabel: 'Ungraded',
+                                onCheckedChanged: (value) {
+                                  setGradedFilterMode(
+                                    enabled: value ?? false,
+                                    // Default to ungraded-only when enabling via checkbox.
+                                    gradedOnly: false,
+                                  );
+                                },
+                                onToggleChanged: (value) {
+                                  setGradedFilterMode(
+                                    enabled: true,
+                                    gradedOnly: value,
+                                  );
+                                },
+                                onToggleTapWhenDisabled: () {
+                                  setGradedFilterMode(
+                                    enabled: true,
+                                    // If switch is tapped first, enable and show graded-only.
+                                    gradedOnly: true,
+                                  );
+                                },
+                              ),
                               buildStatusTile('Overdue'),
                             ],
                           );
