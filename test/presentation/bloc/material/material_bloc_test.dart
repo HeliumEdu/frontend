@@ -9,9 +9,9 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
-import 'package:heliumapp/presentation/bloc/material/material_bloc.dart';
-import 'package:heliumapp/presentation/bloc/material/material_event.dart';
-import 'package:heliumapp/presentation/bloc/material/material_state.dart';
+import 'package:heliumapp/presentation/bloc/resource/resource_bloc.dart';
+import 'package:heliumapp/presentation/bloc/resource/resource_event.dart';
+import 'package:heliumapp/presentation/bloc/resource/resource_state.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../mocks/mock_models.dart';
@@ -19,80 +19,80 @@ import '../../../mocks/mock_repositories.dart';
 import '../../../mocks/register_fallbacks.dart';
 
 void main() {
-  late MockMaterialRepository mockMaterialRepository;
+  late MockResourceRepository mockResourceRepository;
   late MockCourseRepository mockCourseRepository;
-  late MaterialBloc materialBloc;
+  late ResourceBloc resourceBloc;
 
   setUpAll(() {
     registerFallbackValues();
   });
 
   setUp(() {
-    mockMaterialRepository = MockMaterialRepository();
+    mockResourceRepository = MockResourceRepository();
     mockCourseRepository = MockCourseRepository();
-    materialBloc = MaterialBloc(
-      materialRepository: mockMaterialRepository,
+    resourceBloc = ResourceBloc(
+      resourceRepository: mockResourceRepository,
       courseRepository: mockCourseRepository,
     );
   });
 
   tearDown(() {
-    materialBloc.close();
+    resourceBloc.close();
   });
 
-  group('MaterialBloc', () {
-    test('initial state is MaterialsInitial with bloc origin', () {
-      expect(materialBloc.state, isA<MaterialsInitial>());
+  group('ResourceBloc', () {
+    test('initial state is ResourcesInitial with bloc origin', () {
+      expect(resourceBloc.state, isA<ResourcesInitial>());
     });
 
-    group('FetchMaterialsScreenDataEvent', () {
-      blocTest<MaterialBloc, MaterialState>(
-        'emits [MaterialsLoading, MaterialsScreenDataFetched] when fetch succeeds',
+    group('FetchResourcesScreenDataEvent', () {
+      blocTest<ResourceBloc, ResourceState>(
+        'emits [ResourcesLoading, ResourcesScreenDataFetched] when fetch succeeds',
         build: () {
           when(
-            () => mockMaterialRepository.getMaterialGroups(),
-          ).thenAnswer((_) async => MockModels.createMaterialGroups());
+            () => mockResourceRepository.getResourceGroups(),
+          ).thenAnswer((_) async => MockModels.createResourceGroups());
           when(
-            () => mockMaterialRepository.getMaterials(),
-          ).thenAnswer((_) async => MockModels.createMaterials());
+            () => mockResourceRepository.getResources(),
+          ).thenAnswer((_) async => MockModels.createResources());
           when(
             () => mockCourseRepository.getCourses(),
           ).thenAnswer((_) async => MockModels.createCourses());
-          return materialBloc;
+          return resourceBloc;
         },
         act: (bloc) =>
-            bloc.add(FetchMaterialsScreenDataEvent(origin: EventOrigin.screen)),
+            bloc.add(FetchResourcesScreenDataEvent(origin: EventOrigin.screen)),
         expect: () => [
-          isA<MaterialsLoading>(),
-          isA<MaterialsScreenDataFetched>()
+          isA<ResourcesLoading>(),
+          isA<ResourcesScreenDataFetched>()
               .having(
-                (s) => s.materialGroups.length,
-                'materialGroups length',
+                (s) => s.resourceGroups.length,
+                'resourceGroups length',
                 2,
               )
-              .having((s) => s.materials.length, 'materials length', 3)
+              .having((s) => s.resources.length, 'resources length', 3)
               .having((s) => s.courses.length, 'courses length', 3),
         ],
         verify: (_) {
-          verify(() => mockMaterialRepository.getMaterialGroups()).called(1);
-          verify(() => mockMaterialRepository.getMaterials()).called(1);
+          verify(() => mockResourceRepository.getResourceGroups()).called(1);
+          verify(() => mockResourceRepository.getResources()).called(1);
           verify(() => mockCourseRepository.getCourses()).called(1);
         },
       );
 
-      blocTest<MaterialBloc, MaterialState>(
-        'emits [MaterialsLoading, MaterialsError] when getMaterialGroups fails',
+      blocTest<ResourceBloc, ResourceState>(
+        'emits [ResourcesLoading, ResourcesError] when getResourceGroups fails',
         build: () {
           when(
-            () => mockMaterialRepository.getMaterialGroups(),
+            () => mockResourceRepository.getResourceGroups(),
           ).thenThrow(ServerException(message: 'Server error'));
-          return materialBloc;
+          return resourceBloc;
         },
         act: (bloc) =>
-            bloc.add(FetchMaterialsScreenDataEvent(origin: EventOrigin.screen)),
+            bloc.add(FetchResourcesScreenDataEvent(origin: EventOrigin.screen)),
         expect: () => [
-          isA<MaterialsLoading>(),
-          isA<MaterialsError>().having(
+          isA<ResourcesLoading>(),
+          isA<ResourcesError>().having(
             (e) => e.message,
             'message',
             'Server error',
@@ -100,22 +100,22 @@ void main() {
         ],
       );
 
-      blocTest<MaterialBloc, MaterialState>(
-        'emits [MaterialsLoading, MaterialsError] when getMaterials fails',
+      blocTest<ResourceBloc, ResourceState>(
+        'emits [ResourcesLoading, ResourcesError] when getResources fails',
         build: () {
           when(
-            () => mockMaterialRepository.getMaterialGroups(),
-          ).thenAnswer((_) async => MockModels.createMaterialGroups());
+            () => mockResourceRepository.getResourceGroups(),
+          ).thenAnswer((_) async => MockModels.createResourceGroups());
           when(
-            () => mockMaterialRepository.getMaterials(),
+            () => mockResourceRepository.getResources(),
           ).thenThrow(NetworkException(message: 'Network error'));
-          return materialBloc;
+          return resourceBloc;
         },
         act: (bloc) =>
-            bloc.add(FetchMaterialsScreenDataEvent(origin: EventOrigin.screen)),
+            bloc.add(FetchResourcesScreenDataEvent(origin: EventOrigin.screen)),
         expect: () => [
-          isA<MaterialsLoading>(),
-          isA<MaterialsError>().having(
+          isA<ResourcesLoading>(),
+          isA<ResourcesError>().having(
             (e) => e.message,
             'message',
             'Network error',
@@ -123,19 +123,19 @@ void main() {
         ],
       );
 
-      blocTest<MaterialBloc, MaterialState>(
-        'emits [MaterialsLoading, MaterialsError] with generic message for unexpected errors',
+      blocTest<ResourceBloc, ResourceState>(
+        'emits [ResourcesLoading, ResourcesError] with generic message for unexpected errors',
         build: () {
           when(
-            () => mockMaterialRepository.getMaterialGroups(),
+            () => mockResourceRepository.getResourceGroups(),
           ).thenThrow(Exception('Unknown error'));
-          return materialBloc;
+          return resourceBloc;
         },
         act: (bloc) =>
-            bloc.add(FetchMaterialsScreenDataEvent(origin: EventOrigin.screen)),
+            bloc.add(FetchResourcesScreenDataEvent(origin: EventOrigin.screen)),
         expect: () => [
-          isA<MaterialsLoading>(),
-          isA<MaterialsError>().having(
+          isA<ResourcesLoading>(),
+          isA<ResourcesError>().having(
             (e) => e.message,
             'message',
             contains('unexpected'),
@@ -144,144 +144,144 @@ void main() {
       );
     });
 
-    group('FetchMaterialScreenDataEvent', () {
-      const materialGroupId = 1;
-      const materialId = 2;
+    group('FetchResourceScreenDataEvent', () {
+      const resourceGroupId = 1;
+      const resourceId = 2;
 
-      blocTest<MaterialBloc, MaterialState>(
-        'emits [MaterialsLoading, MaterialScreenDataFetched] with material when materialId is provided',
+      blocTest<ResourceBloc, ResourceState>(
+        'emits [ResourcesLoading, ResourceScreenDataFetched] with resource when resourceId is provided',
         build: () {
           when(
             () =>
-                mockMaterialRepository.getMaterial(materialGroupId, materialId),
-          ).thenAnswer((_) async => MockModels.createMaterial(id: materialId));
+                mockResourceRepository.getResource(resourceGroupId, resourceId),
+          ).thenAnswer((_) async => MockModels.createResource(id: resourceId));
           when(
             () => mockCourseRepository.getCourses(),
           ).thenAnswer((_) async => MockModels.createCourses());
-          return materialBloc;
+          return resourceBloc;
         },
         act: (bloc) => bloc.add(
-          FetchMaterialScreenDataEvent(
+          FetchResourceScreenDataEvent(
             origin: EventOrigin.screen,
-            materialGroupId: materialGroupId,
-            materialId: materialId,
+            resourceGroupId: resourceGroupId,
+            resourceId: resourceId,
           ),
         ),
         expect: () => [
-          isA<MaterialsLoading>(),
-          isA<MaterialScreenDataFetched>().having(
-            (s) => s.material?.id,
-            'material id',
-            materialId,
+          isA<ResourcesLoading>(),
+          isA<ResourceScreenDataFetched>().having(
+            (s) => s.resource?.id,
+            'resource id',
+            resourceId,
           ),
         ],
       );
 
-      blocTest<MaterialBloc, MaterialState>(
-        'emits [MaterialsLoading, MaterialScreenDataFetched] with null material when materialId is null',
+      blocTest<ResourceBloc, ResourceState>(
+        'emits [ResourcesLoading, ResourceScreenDataFetched] with null resource when resourceId is null',
         build: () {
           when(
             () => mockCourseRepository.getCourses(),
           ).thenAnswer((_) async => MockModels.createCourses());
-          return materialBloc;
+          return resourceBloc;
         },
         act: (bloc) => bloc.add(
-          FetchMaterialScreenDataEvent(
+          FetchResourceScreenDataEvent(
             origin: EventOrigin.screen,
-            materialGroupId: materialGroupId,
-            materialId: null,
+            resourceGroupId: resourceGroupId,
+            resourceId: null,
           ),
         ),
         expect: () => [
-          isA<MaterialsLoading>(),
-          isA<MaterialScreenDataFetched>().having(
-            (s) => s.material,
-            'material',
+          isA<ResourcesLoading>(),
+          isA<ResourceScreenDataFetched>().having(
+            (s) => s.resource,
+            'resource',
             isNull,
           ),
         ],
       );
 
-      blocTest<MaterialBloc, MaterialState>(
-        'emits [MaterialsLoading, MaterialsError] when getMaterial fails',
+      blocTest<ResourceBloc, ResourceState>(
+        'emits [ResourcesLoading, ResourcesError] when getResource fails',
         build: () {
           when(
             () =>
-                mockMaterialRepository.getMaterial(materialGroupId, materialId),
-          ).thenThrow(NotFoundException(message: 'Material not found'));
-          return materialBloc;
+                mockResourceRepository.getResource(resourceGroupId, resourceId),
+          ).thenThrow(NotFoundException(message: 'Resource not found'));
+          return resourceBloc;
         },
         act: (bloc) => bloc.add(
-          FetchMaterialScreenDataEvent(
+          FetchResourceScreenDataEvent(
             origin: EventOrigin.screen,
-            materialGroupId: materialGroupId,
-            materialId: materialId,
+            resourceGroupId: resourceGroupId,
+            resourceId: resourceId,
           ),
         ),
         expect: () => [
-          isA<MaterialsLoading>(),
-          isA<MaterialsError>().having(
+          isA<ResourcesLoading>(),
+          isA<ResourcesError>().having(
             (e) => e.message,
             'message',
-            'Material not found',
+            'Resource not found',
           ),
         ],
       );
     });
 
-    group('FetchMaterialsEvent', () {
-      blocTest<MaterialBloc, MaterialState>(
-        'emits [MaterialsLoading, MaterialsFetched] when fetch succeeds without filters',
+    group('FetchResourcesEvent', () {
+      blocTest<ResourceBloc, ResourceState>(
+        'emits [ResourcesLoading, ResourcesFetched] when fetch succeeds without filters',
         build: () {
           when(
-            () => mockMaterialRepository.getMaterials(
+            () => mockResourceRepository.getResources(
               groupId: null,
               shownOnCalendar: null,
             ),
-          ).thenAnswer((_) async => MockModels.createMaterials());
-          return materialBloc;
+          ).thenAnswer((_) async => MockModels.createResources());
+          return resourceBloc;
         },
         act: (bloc) =>
-            bloc.add(FetchMaterialsEvent(origin: EventOrigin.screen)),
+            bloc.add(FetchResourcesEvent(origin: EventOrigin.screen)),
         expect: () => [
-          isA<MaterialsLoading>(),
-          isA<MaterialsFetched>().having(
-            (s) => s.materials.length,
-            'materials length',
+          isA<ResourcesLoading>(),
+          isA<ResourcesFetched>().having(
+            (s) => s.resources.length,
+            'resources length',
             3,
           ),
         ],
       );
 
-      blocTest<MaterialBloc, MaterialState>(
-        'emits [MaterialsLoading, MaterialsFetched] with filtered materials',
+      blocTest<ResourceBloc, ResourceState>(
+        'emits [ResourcesLoading, ResourcesFetched] with filtered resources',
         build: () {
           when(
-            () => mockMaterialRepository.getMaterials(
+            () => mockResourceRepository.getResources(
               groupId: 1,
               shownOnCalendar: true,
             ),
-          ).thenAnswer((_) async => MockModels.createMaterials(count: 1));
-          return materialBloc;
+          ).thenAnswer((_) async => MockModels.createResources(count: 1));
+          return resourceBloc;
         },
         act: (bloc) => bloc.add(
-          FetchMaterialsEvent(
+          FetchResourcesEvent(
             origin: EventOrigin.screen,
-            materialGroupId: 1,
+            resourceGroupId: 1,
             shownOnCalendar: true,
           ),
         ),
         expect: () => [
-          isA<MaterialsLoading>(),
-          isA<MaterialsFetched>().having(
-            (s) => s.materials.length,
-            'materials length',
+          isA<ResourcesLoading>(),
+          isA<ResourcesFetched>().having(
+            (s) => s.resources.length,
+            'resources length',
             1,
           ),
         ],
         verify: (_) {
           verify(
-            () => mockMaterialRepository.getMaterials(
+            () => mockResourceRepository.getResources(
               groupId: 1,
               shownOnCalendar: true,
             ),
@@ -289,22 +289,22 @@ void main() {
         },
       );
 
-      blocTest<MaterialBloc, MaterialState>(
-        'emits [MaterialsLoading, MaterialsError] when fetch fails',
+      blocTest<ResourceBloc, ResourceState>(
+        'emits [ResourcesLoading, ResourcesError] when fetch fails',
         build: () {
           when(
-            () => mockMaterialRepository.getMaterials(
+            () => mockResourceRepository.getResources(
               groupId: null,
               shownOnCalendar: null,
             ),
           ).thenThrow(ServerException(message: 'Failed to fetch'));
-          return materialBloc;
+          return resourceBloc;
         },
         act: (bloc) =>
-            bloc.add(FetchMaterialsEvent(origin: EventOrigin.screen)),
+            bloc.add(FetchResourcesEvent(origin: EventOrigin.screen)),
         expect: () => [
-          isA<MaterialsLoading>(),
-          isA<MaterialsError>().having(
+          isA<ResourcesLoading>(),
+          isA<ResourcesError>().having(
             (e) => e.message,
             'message',
             'Failed to fetch',
@@ -313,112 +313,112 @@ void main() {
       );
     });
 
-    group('FetchMaterialEvent', () {
-      const materialGroupId = 1;
-      const materialId = 2;
+    group('FetchResourceEvent', () {
+      const resourceGroupId = 1;
+      const resourceId = 2;
 
-      blocTest<MaterialBloc, MaterialState>(
-        'emits [MaterialsLoading, MaterialFetched] when fetch succeeds',
+      blocTest<ResourceBloc, ResourceState>(
+        'emits [ResourcesLoading, ResourceFetched] when fetch succeeds',
         build: () {
           when(
             () =>
-                mockMaterialRepository.getMaterial(materialGroupId, materialId),
-          ).thenAnswer((_) async => MockModels.createMaterial(id: materialId));
-          return materialBloc;
+                mockResourceRepository.getResource(resourceGroupId, resourceId),
+          ).thenAnswer((_) async => MockModels.createResource(id: resourceId));
+          return resourceBloc;
         },
         act: (bloc) => bloc.add(
-          FetchMaterialEvent(
+          FetchResourceEvent(
             origin: EventOrigin.screen,
-            materialGroupId: materialGroupId,
-            materialId: materialId,
+            resourceGroupId: resourceGroupId,
+            resourceId: resourceId,
           ),
         ),
         expect: () => [
-          isA<MaterialsLoading>(),
-          isA<MaterialFetched>().having(
-            (s) => s.material.id,
-            'material id',
-            materialId,
+          isA<ResourcesLoading>(),
+          isA<ResourceFetched>().having(
+            (s) => s.resource.id,
+            'resource id',
+            resourceId,
           ),
         ],
       );
 
-      blocTest<MaterialBloc, MaterialState>(
-        'emits [MaterialsLoading, MaterialsError] when material not found',
+      blocTest<ResourceBloc, ResourceState>(
+        'emits [ResourcesLoading, ResourcesError] when resource not found',
         build: () {
           when(
             () =>
-                mockMaterialRepository.getMaterial(materialGroupId, materialId),
-          ).thenThrow(NotFoundException(message: 'Material not found'));
-          return materialBloc;
+                mockResourceRepository.getResource(resourceGroupId, resourceId),
+          ).thenThrow(NotFoundException(message: 'Resource not found'));
+          return resourceBloc;
         },
         act: (bloc) => bloc.add(
-          FetchMaterialEvent(
+          FetchResourceEvent(
             origin: EventOrigin.screen,
-            materialGroupId: materialGroupId,
-            materialId: materialId,
+            resourceGroupId: resourceGroupId,
+            resourceId: resourceId,
           ),
         ),
         expect: () => [
-          isA<MaterialsLoading>(),
-          isA<MaterialsError>().having(
+          isA<ResourcesLoading>(),
+          isA<ResourcesError>().having(
             (e) => e.message,
             'message',
-            'Material not found',
+            'Resource not found',
           ),
         ],
       );
     });
 
-    group('DeleteMaterialGroupEvent', () {
-      const materialGroupId = 1;
+    group('DeleteResourceGroupEvent', () {
+      const resourceGroupId = 1;
 
-      blocTest<MaterialBloc, MaterialState>(
-        'emits [MaterialsLoading, MaterialGroupDeleted] when deletion succeeds',
+      blocTest<ResourceBloc, ResourceState>(
+        'emits [ResourcesLoading, ResourceGroupDeleted] when deletion succeeds',
         build: () {
           when(
-            () => mockMaterialRepository.deleteMaterialGroup(materialGroupId),
+            () => mockResourceRepository.deleteResourceGroup(resourceGroupId),
           ).thenAnswer((_) async {});
-          return materialBloc;
+          return resourceBloc;
         },
         act: (bloc) => bloc.add(
-          DeleteMaterialGroupEvent(
+          DeleteResourceGroupEvent(
             origin: EventOrigin.dialog,
-            materialGroupId: materialGroupId,
+            resourceGroupId: resourceGroupId,
           ),
         ),
         expect: () => [
-          isA<MaterialsLoading>(),
-          isA<MaterialGroupDeleted>().having(
+          isA<ResourcesLoading>(),
+          isA<ResourceGroupDeleted>().having(
             (s) => s.id,
             'id',
-            materialGroupId,
+            resourceGroupId,
           ),
         ],
         verify: (_) {
           verify(
-            () => mockMaterialRepository.deleteMaterialGroup(materialGroupId),
+            () => mockResourceRepository.deleteResourceGroup(resourceGroupId),
           ).called(1);
         },
       );
 
-      blocTest<MaterialBloc, MaterialState>(
-        'emits [MaterialsLoading, MaterialsError] when deletion fails',
+      blocTest<ResourceBloc, ResourceState>(
+        'emits [ResourcesLoading, ResourcesError] when deletion fails',
         build: () {
           when(
-            () => mockMaterialRepository.deleteMaterialGroup(materialGroupId),
+            () => mockResourceRepository.deleteResourceGroup(resourceGroupId),
           ).thenThrow(ServerException(message: 'Cannot delete'));
-          return materialBloc;
+          return resourceBloc;
         },
         act: (bloc) => bloc.add(
-          DeleteMaterialGroupEvent(
+          DeleteResourceGroupEvent(
             origin: EventOrigin.dialog,
-            materialGroupId: materialGroupId,
+            resourceGroupId: resourceGroupId,
           ),
         ),
         expect: () => [
-          isA<MaterialsLoading>(),
-          isA<MaterialsError>().having(
+          isA<ResourcesLoading>(),
+          isA<ResourcesError>().having(
             (e) => e.message,
             'message',
             'Cannot delete',
@@ -427,66 +427,66 @@ void main() {
       );
     });
 
-    group('DeleteMaterialEvent', () {
-      const materialGroupId = 1;
-      const materialId = 2;
+    group('DeleteResourceEvent', () {
+      const resourceGroupId = 1;
+      const resourceId = 2;
 
-      blocTest<MaterialBloc, MaterialState>(
-        'emits [MaterialsLoading, MaterialDeleted] when deletion succeeds',
+      blocTest<ResourceBloc, ResourceState>(
+        'emits [ResourcesLoading, ResourceDeleted] when deletion succeeds',
         build: () {
           when(
-            () => mockMaterialRepository.deleteMaterial(
-              materialGroupId,
-              materialId,
+            () => mockResourceRepository.deleteResource(
+              resourceGroupId,
+              resourceId,
             ),
           ).thenAnswer((_) async {});
-          return materialBloc;
+          return resourceBloc;
         },
         act: (bloc) => bloc.add(
-          DeleteMaterialEvent(
+          DeleteResourceEvent(
             origin: EventOrigin.dialog,
-            materialGroupId: materialGroupId,
-            materialId: materialId,
+            resourceGroupId: resourceGroupId,
+            resourceId: resourceId,
           ),
         ),
         expect: () => [
-          isA<MaterialsLoading>(),
-          isA<MaterialDeleted>().having((s) => s.id, 'id', materialId),
+          isA<ResourcesLoading>(),
+          isA<ResourceDeleted>().having((s) => s.id, 'id', resourceId),
         ],
         verify: (_) {
           verify(
-            () => mockMaterialRepository.deleteMaterial(
-              materialGroupId,
-              materialId,
+            () => mockResourceRepository.deleteResource(
+              resourceGroupId,
+              resourceId,
             ),
           ).called(1);
         },
       );
 
-      blocTest<MaterialBloc, MaterialState>(
-        'emits [MaterialsLoading, MaterialsError] when deletion fails',
+      blocTest<ResourceBloc, ResourceState>(
+        'emits [ResourcesLoading, ResourcesError] when deletion fails',
         build: () {
           when(
-            () => mockMaterialRepository.deleteMaterial(
-              materialGroupId,
-              materialId,
+            () => mockResourceRepository.deleteResource(
+              resourceGroupId,
+              resourceId,
             ),
-          ).thenThrow(NotFoundException(message: 'Material not found'));
-          return materialBloc;
+          ).thenThrow(NotFoundException(message: 'Resource not found'));
+          return resourceBloc;
         },
         act: (bloc) => bloc.add(
-          DeleteMaterialEvent(
+          DeleteResourceEvent(
             origin: EventOrigin.dialog,
-            materialGroupId: materialGroupId,
-            materialId: materialId,
+            resourceGroupId: resourceGroupId,
+            resourceId: resourceId,
           ),
         ),
         expect: () => [
-          isA<MaterialsLoading>(),
-          isA<MaterialsError>().having(
+          isA<ResourcesLoading>(),
+          isA<ResourcesError>().having(
             (e) => e.message,
             'message',
-            'Material not found',
+            'Resource not found',
           ),
         ],
       );

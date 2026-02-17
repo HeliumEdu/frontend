@@ -12,7 +12,7 @@ import 'package:heliumapp/utils/planner_helper.dart';
 
 final rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
-enum CalendarItemType { event, homework, external, courseSchedule }
+enum PlannerItemType { event, homework, external, courseSchedule }
 
 enum HeliumView { month, week, day, agenda, todos }
 
@@ -48,7 +48,7 @@ class FallbackConstants {
 
   static const defaultViewIndex = 2; // Day view
   static const defaultWeekStartsOn = 0; // Sunday
-  static const defaultTimezone = 'Etc/UTC';
+  static const defaultTimeZone = 'Etc/UTC';
   static const defaultReminderType = 3; // Push
   static const defaultReminderOffset = 30; // 30 minutes
   static const defaultReminderOffsetType = 0; // Minutes
@@ -58,7 +58,7 @@ class FallbackConstants {
   static const defaultWhatsNewVersionSeen = 0;
   static const defaultShowGettingStarted = false;
   static const defaultEventsColor = '#418eb9'; // seedColor hex
-  static const defaultMaterialColor = '#418eb9'; // seedColor hex
+  static const defaultResourceColor = '#418eb9'; // seedColor hex
   static const defaultGradeColor = '#418eb9'; // seedColor hex
   static const defaultCalendarUseCategoryColors = false;
   static const defaultRememberFilterState = false;
@@ -123,7 +123,7 @@ class ReminderConstants {
       _listToDropDownItems(offsetTypes);
 }
 
-class MaterialConstants {
+class ResourceConstants {
   static final List<String> status = [
     'Owned',
     'Rented',

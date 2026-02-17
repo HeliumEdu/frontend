@@ -10,16 +10,16 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:heliumapp/presentation/controllers/auth/credentials_form_controller.dart';
 import 'package:heliumapp/presentation/controllers/core/basic_form_controller.dart';
 
-class RegisterFormController extends CredentialsFormController {
+class SignupFormController extends CredentialsFormController {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
   bool isConfirmPasswordVisible = false;
   bool agreeToTerms = false;
-  String selectedTimezone = 'Etc/UTC';
+  String selectedTimeZone = 'Etc/UTC';
 
-  Future<void> initializeTimezones() async {
-    selectedTimezone = (await FlutterTimezone.getLocalTimezone()).identifier;
+  Future<void> initializeTimeZones() async {
+    selectedTimeZone = (await FlutterTimezone.getLocalTimezone()).identifier;
   }
 
   @override
@@ -37,7 +37,7 @@ class RegisterFormController extends CredentialsFormController {
     emailController.clear();
     confirmPasswordController.clear();
     agreeToTerms = false;
-    selectedTimezone = 'Etc/UTC';
+    selectedTimeZone = 'Etc/UTC';
   }
 
   String? validateConfirmPassword(String? value) {

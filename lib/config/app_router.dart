@@ -15,23 +15,23 @@ import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/presentation/bloc/attachment/attachment_bloc.dart';
-import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
+import 'package:heliumapp/presentation/bloc/planneritem/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/bloc/course/course_bloc.dart';
 import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_bloc.dart';
-import 'package:heliumapp/presentation/bloc/material/material_bloc.dart';
+import 'package:heliumapp/presentation/bloc/resource/resource_bloc.dart';
 import 'package:heliumapp/presentation/views/auth/forgot_password_screen.dart';
 import 'package:heliumapp/presentation/views/auth/login_screen.dart';
-import 'package:heliumapp/presentation/views/auth/register_screen.dart';
-import 'package:heliumapp/presentation/views/auth/setup_screen.dart';
-import 'package:heliumapp/presentation/views/auth/verify_screen.dart';
-import 'package:heliumapp/presentation/views/calendar/calendar_item_add_screen.dart';
+import 'package:heliumapp/presentation/views/auth/setup_account_screen.dart';
+import 'package:heliumapp/presentation/views/auth/signup_screen.dart';
+import 'package:heliumapp/presentation/views/auth/verify_email_screen.dart';
+import 'package:heliumapp/presentation/views/planner/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/views/core/landing_screen.dart';
-import 'package:heliumapp/presentation/views/core/mobile_screen.dart';
+import 'package:heliumapp/presentation/views/core/mobile_web_screen.dart';
 import 'package:heliumapp/presentation/views/core/navigation_shell.dart';
 import 'package:heliumapp/presentation/views/core/notification_screen.dart';
 import 'package:heliumapp/presentation/views/courses/course_add_screen.dart';
-import 'package:heliumapp/presentation/views/materials/material_add_screen.dart';
+import 'package:heliumapp/presentation/views/resources/resource_add_screen.dart';
 import 'package:heliumapp/presentation/views/settings/change_password_screen.dart';
 import 'package:heliumapp/presentation/views/settings/external_calendars_screen.dart';
 import 'package:heliumapp/presentation/views/settings/feeds_screen.dart';
@@ -64,9 +64,9 @@ void initializeRouter() {
             const MaterialPage(child: LoginScreen()),
       ),
       GoRoute(
-        path: AppRoute.signUpScreen,
+        path: AppRoute.signupScreen,
         pageBuilder: (context, state) =>
-            const MaterialPage(child: RegisterScreen()),
+            const MaterialPage(child: SignupScreen()),
       ),
       GoRoute(
         path: AppRoute.forgotPasswordScreen,
@@ -74,28 +74,31 @@ void initializeRouter() {
             const MaterialPage(child: ForgotPasswordScreen()),
       ),
       GoRoute(
-        path: AppRoute.verifyScreen,
+        path: AppRoute.verifyEmailScreen,
         pageBuilder: (context, state) {
           final username = state.uri.queryParameters['username'];
           final code = state.uri.queryParameters['code'];
           return MaterialPage(
-            child: VerifyScreen(username: username, code: code),
+            child: VerifyEmailScreen(username: username, code: code),
           );
         },
       ),
       GoRoute(
-        path: AppRoute.setupScreen,
-        pageBuilder: (context, state) =>
-            const MaterialPage(child: SetupScreen()),
+        path: AppRoute.setupAccountScreen,
+        pageBuilder: (context, state) {
+          final autoDetectTimeZone =
+              state.uri.queryParameters['auto_detect_tz'] == 'true';
+          return MaterialPage(
+            child: SetupAccountScreen(autoDetectTimeZone: autoDetectTimeZone),
+          );
+        },
       ),
       GoRoute(
-        path: AppRoute.mobileWebPromptScreen,
+        path: AppRoute.mobileWebScreen,
         pageBuilder: (context, state) {
           final nextRoute =
               state.uri.queryParameters['next'] ?? AppRoute.landingScreen;
-          return MaterialPage(
-            child: MobileWebPromptScreen(nextRoute: nextRoute),
-          );
+          return MaterialPage(child: MobileWebScreen(nextRoute: nextRoute));
         },
       ),
 
@@ -107,7 +110,7 @@ void initializeRouter() {
           GoRoute(
             path: AppRoute.plannerScreen,
             pageBuilder: (context, state) => const NoTransitionPage(
-              child: NavigationShellContent(page: NavigationPage.calendar),
+              child: NavigationShellContent(page: NavigationPage.planner),
             ),
           ),
           GoRoute(
@@ -119,7 +122,7 @@ void initializeRouter() {
           GoRoute(
             path: AppRoute.resourcesScreen,
             pageBuilder: (context, state) => const NoTransitionPage(
-              child: NavigationShellContent(page: NavigationPage.materials),
+              child: NavigationShellContent(page: NavigationPage.resources),
             ),
           ),
           GoRoute(
@@ -145,13 +148,13 @@ void initializeRouter() {
           }
 
           final args = state.extra as NotificationArgs?;
-          final child = (args?.calendarItemBloc != null)
-              ? BlocProvider<CalendarItemBloc>.value(
-                  value: args!.calendarItemBloc!,
+          final child = (args?.plannerItemBloc != null)
+              ? BlocProvider<PlannerItemBloc>.value(
+                  value: args!.plannerItemBloc!,
                   child: NotificationsScreen(),
                 )
-              : BlocProvider<CalendarItemBloc>(
-                  create: ProviderHelpers().createCalendarItemBloc(),
+              : BlocProvider<PlannerItemBloc>(
+                  create: ProviderHelpers().createPlannerItemBloc(),
                   child: NotificationsScreen(),
                 );
           return MaterialPage(child: child);
@@ -161,7 +164,7 @@ void initializeRouter() {
       GoRoute(
         path: AppRoute.plannerItemAddScreen,
         pageBuilder: (context, state) {
-          final args = state.extra as CalendarItemAddArgs?;
+          final args = state.extra as PlannerItemAddArgs?;
           if (args == null) {
             return const MaterialPage(
               child: _RouteRedirect(redirectTo: AppRoute.plannerScreen),
@@ -170,12 +173,12 @@ void initializeRouter() {
           return MaterialPage(
             child: MultiBlocProvider(
               providers: [
-                BlocProvider<CalendarItemBloc>.value(
-                  value: args.calendarItemBloc,
+                BlocProvider<PlannerItemBloc>.value(
+                  value: args.plannerItemBloc,
                 ),
                 BlocProvider<AttachmentBloc>.value(value: args.attachmentBloc),
               ],
-              child: CalendarItemAddScreen(
+              child: PlannerItemAddScreen(
                 eventId: args.eventId,
                 homeworkId: args.homeworkId,
                 initialDate: args.initialDate,
@@ -231,18 +234,18 @@ void initializeRouter() {
       GoRoute(
         path: AppRoute.resourcesAddScreen,
         pageBuilder: (context, state) {
-          final args = state.extra as MaterialAddArgs?;
+          final args = state.extra as ResourceAddArgs?;
           if (args == null) {
             return const MaterialPage(
               child: _RouteRedirect(redirectTo: AppRoute.resourcesScreen),
             );
           }
           return MaterialPage(
-            child: BlocProvider<MaterialBloc>.value(
-              value: args.materialBloc,
-              child: MaterialAddScreen(
-                materialGroupId: args.materialGroupId,
-                materialId: args.materialId,
+            child: BlocProvider<ResourceBloc>.value(
+              value: args.resourceBloc,
+              child: ResourceAddScreen(
+                resourceGroupId: args.resourceGroupId,
+                resourceId: args.resourceId,
                 isEdit: args.isEdit,
                 isNew: !args.isEdit,
               ),
@@ -309,9 +312,9 @@ void initializeRouter() {
 /// Auth redirect logic for go_router.
 Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
   if (_shouldShowMobileWebPrompt(context, state)) {
-    if (state.matchedLocation != AppRoute.mobileWebPromptScreen) {
+    if (state.matchedLocation != AppRoute.mobileWebScreen) {
       final encodedNext = Uri.encodeComponent(state.uri.toString());
-      return '${AppRoute.mobileWebPromptScreen}?next=$encodedNext';
+      return '${AppRoute.mobileWebScreen}?next=$encodedNext';
     }
     return null;
   }
@@ -321,10 +324,10 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
   final publicRoutes = [
     AppRoute.landingScreen,
     AppRoute.loginScreen,
-    AppRoute.signUpScreen,
+    AppRoute.signupScreen,
     AppRoute.forgotPasswordScreen,
-    AppRoute.verifyScreen,
-    AppRoute.mobileWebPromptScreen,
+    AppRoute.verifyEmailScreen,
+    AppRoute.mobileWebScreen,
   ];
 
   final matchedLocation = state.matchedLocation;
@@ -345,11 +348,13 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
 
     // On public routes: redirect to setup or planner based on setup status
     if (publicRoutes.contains(matchedLocation)) {
-      return isSetupComplete ? AppRoute.plannerScreen : AppRoute.setupScreen;
+      return isSetupComplete
+          ? AppRoute.plannerScreen
+          : AppRoute.setupAccountScreen;
     }
 
     // On setup screen: redirect to planner if setup is complete
-    if (matchedLocation == AppRoute.setupScreen && isSetupComplete) {
+    if (matchedLocation == AppRoute.setupAccountScreen && isSetupComplete) {
       return AppRoute.plannerScreen;
     }
   }
@@ -370,7 +375,7 @@ bool _shouldShowMobileWebPrompt(BuildContext context, GoRouterState state) {
   if (!isMobileWebPlatform) return false;
 
   final requestedPath = state.matchedLocation;
-  if (requestedPath == AppRoute.mobileWebPromptScreen) return true;
+  if (requestedPath == AppRoute.mobileWebScreen) return true;
 
   return true;
 }

@@ -6,13 +6,13 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:heliumapp/data/models/planner/attachment_model.dart';
-import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
+import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 
-class CourseScheduleEventModel extends CalendarItemBaseModel {
+class CourseScheduleEventModel extends PlannerItemBaseModel {
   final String ownerId;
   final String? recurrenceRule;
 
@@ -31,7 +31,7 @@ class CourseScheduleEventModel extends CalendarItemBaseModel {
     required super.color,
     required this.ownerId,
     this.recurrenceRule,
-  }) : super(calendarItemType: CalendarItemType.courseSchedule);
+  }) : super(plannerItemType: PlannerItemType.courseSchedule);
 
   factory CourseScheduleEventModel.fromJson(Map<String, dynamic> json) {
     return CourseScheduleEventModel(

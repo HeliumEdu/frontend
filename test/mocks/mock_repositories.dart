@@ -15,7 +15,7 @@ import 'package:heliumapp/domain/repositories/event_repository.dart';
 import 'package:heliumapp/domain/repositories/external_calendar_repository.dart';
 import 'package:heliumapp/domain/repositories/grade_repository.dart';
 import 'package:heliumapp/domain/repositories/homework_repository.dart';
-import 'package:heliumapp/domain/repositories/material_repository.dart';
+import 'package:heliumapp/domain/repositories/resource_repository.dart';
 import 'package:heliumapp/domain/repositories/push_notification_repository.dart';
 import 'package:heliumapp/domain/repositories/reminder_repository.dart';
 import 'package:mocktail/mocktail.dart';
@@ -42,8 +42,8 @@ class MockHomeworkRepository extends Mock implements HomeworkRepository {}
 /// Mock implementation of [GradeRepository] for testing.
 class MockGradeRepository extends Mock implements GradeRepository {}
 
-/// Mock implementation of [MaterialRepository] for testing.
-class MockMaterialRepository extends Mock implements MaterialRepository {}
+/// Mock implementation of [ResourceRepository] for testing.
+class MockResourceRepository extends Mock implements ResourceRepository {}
 
 /// Mock implementation of [ReminderRepository] for testing.
 class MockReminderRepository extends Mock implements ReminderRepository {}

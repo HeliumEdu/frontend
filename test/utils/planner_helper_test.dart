@@ -313,6 +313,6 @@ HomeworkModel _createHomeworkModel({bool allDay = false}) {
     currentGrade: '-1/100',
     course: IdOrEntity<CourseModel>(id: 1),
     category: IdOrEntity<CategoryModel>(id: 1),
-    materials: [],
+    resources: [],
   );
 }

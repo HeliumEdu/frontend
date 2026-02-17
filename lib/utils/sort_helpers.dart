@@ -6,7 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:heliumapp/data/models/base_model.dart';
-import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
+import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
@@ -15,10 +15,10 @@ import 'package:heliumapp/utils/app_globals.dart';
 /// Priority order for calendar item types when times are equal.
 /// Lower values appear first: Homework --> ClassSchedule --> Event --> External
 const typeSortPriority = {
-  CalendarItemType.homework: 0,
-  CalendarItemType.courseSchedule: 1,
-  CalendarItemType.event: 2,
-  CalendarItemType.external: 3,
+  PlannerItemType.homework: 0,
+  PlannerItemType.courseSchedule: 1,
+  PlannerItemType.event: 2,
+  PlannerItemType.external: 3,
 };
 
 /// Calculates seconds to subtract from start time to encode sort order for timed events.
@@ -69,7 +69,7 @@ bool isSameDate(DateTime a, DateTime b) {
 /// Shared by both Sort.byStartThenTitle() and background isolate filtering.
 ///
 /// IMPORTANT: This comparison logic is used to sort items, but the actual
-/// times seen by SfCalendar come from CalendarItemDataSource.getStartTime()
+/// times seen by SfCalendar come from PlannerItemDataSource.getStartTime()
 /// and getEndTime(). Those methods apply time adjustments to encode the full
 /// sort order (type --> course --> title) into the times.
 ///
@@ -80,9 +80,9 @@ bool isSameDate(DateTime a, DateTime b) {
 /// - Type priority uses 1000s of seconds, position uses 1-100 seconds
 ///
 /// This ensures SfCalendar's re-sorting maintains our desired order.
-int compareCalendarItems({
-  required CalendarItemType aType,
-  required CalendarItemType bType,
+int comparePlannerItems({
+  required PlannerItemType aType,
+  required PlannerItemType bType,
   required bool aAllDay,
   required bool bAllDay,
   required DateTime aStart,
@@ -133,7 +133,7 @@ int compareCalendarItems({
   if (priorityCompare != 0) return priorityCompare;
 
   // 5. For homework items with same priority, group by course
-  if (aType == CalendarItemType.homework && bType == CalendarItemType.homework) {
+  if (aType == PlannerItemType.homework && bType == PlannerItemType.homework) {
     if (aCourseId != null && bCourseId != null) {
       final courseCompare = aCourseId.compareTo(bCourseId);
       if (courseCompare != 0) return courseCompare;
@@ -157,11 +157,11 @@ class Sort {
     list.sort((a, b) => b.startOfRange.compareTo(a.startOfRange));
   }
 
-  static void byStartThenTitle(List<CalendarItemBaseModel> list) {
+  static void byStartThenTitle(List<PlannerItemBaseModel> list) {
     list.sort((a, b) {
-      return compareCalendarItems(
-        aType: a.calendarItemType,
-        bType: b.calendarItemType,
+      return comparePlannerItems(
+        aType: a.plannerItemType,
+        bType: b.plannerItemType,
         aAllDay: a.allDay,
         bAllDay: b.allDay,
         aStart: a.start,
