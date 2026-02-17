@@ -145,6 +145,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
   final Map<String, bool> _visibleSeries = {}; // series ID -> visibility
   bool _autoAdjustToGradedRange =
       false; // Fit X-axis to actual grade point dates
+  bool _hideLegend = false;
   bool _graphExpanded = true; // Whether the graph area is expanded
 
   @override
@@ -511,8 +512,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
       statusUrgency = 1;
     } else {
       status = 'Behind';
-      final expectedWorkAtRiskCutoff =
-          timePercent * (_atRiskThreshold / 100); // e.g., 70% of expected pace
+      final expectedWorkAtRiskCutoff = timePercent * (_atRiskThreshold / 100);
       statusUrgency = completionPercent < expectedWorkAtRiskCutoff ? 3 : 2;
     }
     final statusColor = HeliumColors.urgencyColor(context, statusUrgency);
@@ -1355,15 +1355,16 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
             ),
           ),
           // Legend
-          SizedBox(
-            width: Responsive.getResponsiveValue(
-              context,
-              mobile: 160,
-              tablet: 200,
-              desktop: 240,
+          if (!_hideLegend)
+            SizedBox(
+              width: Responsive.getResponsiveValue(
+                context,
+                mobile: 160,
+                tablet: 200,
+                desktop: 240,
+              ),
+              child: _buildLegend(series),
             ),
-            child: _buildLegend(series),
-          ),
         ],
       ),
     );
@@ -1848,9 +1849,22 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                           'Auto-adjust to graded range',
                           style: AppStyles.formText(context),
                         ),
-                        value: _autoAdjustToGradedRange,
+                        value: _autoAdjustToGradedRange == true,
                         onChanged: (value) {
                           _setAutoAdjustToGradedRange(value ?? false);
+                          setMenuState(() {});
+                        },
+                        dense: true,
+                      ),
+                      CheckboxListTile(
+                        controlAffinity: ListTileControlAffinity.leading,
+                        title: Text(
+                          'Hide legend',
+                          style: AppStyles.formText(context),
+                        ),
+                        value: _hideLegend == true,
+                        onChanged: (value) {
+                          _setHideLegend(value ?? false);
                           setMenuState(() {});
                         },
                         dense: true,
@@ -2034,10 +2048,20 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     _saveGraphSettingsIfEnabled();
   }
 
+  void _setHideLegend(bool value) {
+    setState(() {
+      _hideLegend = value;
+    });
+    _saveGraphSettingsIfEnabled();
+  }
+
   void _saveGraphSettingsIfEnabled() {
     if (!(userSettings?.rememberFilterState ?? false)) return;
 
-    final graphSettings = {'autoAdjustToGradedRange': _autoAdjustToGradedRange};
+    final graphSettings = {
+      'autoAdjustToGradedRange': _autoAdjustToGradedRange,
+      'hideLegend': _hideLegend,
+    };
     PrefService().setString(
       _savedGradeGraphSettingsKey,
       jsonEncode(graphSettings),
@@ -2053,10 +2077,16 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     try {
       final graphSettings = jsonDecode(savedState) as Map<String, dynamic>;
       final savedAutoAdjust = graphSettings['autoAdjustToGradedRange'] as bool?;
-      if (savedAutoAdjust == null) return;
+      final savedHideLegend = graphSettings['hideLegend'] as bool?;
+      if (savedAutoAdjust == null && savedHideLegend == null) return;
 
       setState(() {
-        _autoAdjustToGradedRange = savedAutoAdjust;
+        if (savedAutoAdjust != null) {
+          _autoAdjustToGradedRange = savedAutoAdjust;
+        }
+        if (savedHideLegend != null) {
+          _hideLegend = savedHideLegend;
+        }
       });
     } catch (_) {
       // Ignore malformed settings and keep defaults.
