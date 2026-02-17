@@ -8,9 +8,9 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/core/helium_exception.dart';
-import 'package:heliumapp/presentation/bloc/grade/grade_bloc.dart';
-import 'package:heliumapp/presentation/bloc/grade/grade_event.dart';
-import 'package:heliumapp/presentation/bloc/grade/grade_state.dart';
+import 'package:heliumapp/presentation/features/grades/bloc/grade_bloc.dart';
+import 'package:heliumapp/presentation/features/grades/bloc/grade_event.dart';
+import 'package:heliumapp/presentation/features/grades/bloc/grade_state.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../mocks/mock_models.dart';

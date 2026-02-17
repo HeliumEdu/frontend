@@ -6,11 +6,11 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:heliumapp/presentation/bloc/attachment/attachment_bloc.dart';
-import 'package:heliumapp/presentation/bloc/planneritem/planneritem_bloc.dart';
-import 'package:heliumapp/presentation/bloc/course/course_bloc.dart';
-import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_bloc.dart';
-import 'package:heliumapp/presentation/bloc/resource/resource_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
+import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
+import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
 
 abstract class RouteArgs {
   const RouteArgs();
