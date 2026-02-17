@@ -1625,27 +1625,21 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
   Widget _buildCourseCard(int index, GradeCourseModel course) {
     final isExpanded = _expandedCourseIndex == index;
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: () => _toggleExpandedCourse(index),
-        child: Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                _buildCourseSummaryArea(index, isExpanded, course),
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            _buildCourseSummaryArea(index, isExpanded, course),
 
-                AnimatedSize(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                  child: isExpanded && course.categories.isNotEmpty
-                      ? _buildCourseArea(course)
-                      : const SizedBox.shrink(),
-                ),
-              ],
+            AnimatedSize(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              child: isExpanded && course.categories.isNotEmpty
+                  ? _buildCourseArea(course)
+                  : const SizedBox.shrink(),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -1656,108 +1650,117 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     bool isExpanded,
     GradeCourseModel course,
   ) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: course.color.withValues(alpha: 0.15),
-          ),
-          child: Icon(
-            Icons.school_outlined,
-            color: course.color,
-            size: Responsive.getIconSize(
-              context,
-              mobile: 24,
-              tablet: 26,
-              desktop: 28,
-            ),
-          ),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CourseTitleLabel(
-                title: course.title,
-                color: course.color,
-                showIcon: false,
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => _toggleExpandedCourse(index),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: course.color.withValues(alpha: 0.15),
               ),
-              const SizedBox(height: 4),
-              Row(
+              child: Icon(
+                Icons.school_outlined,
+                color: course.color,
+                size: Responsive.getIconSize(
+                  context,
+                  mobile: 24,
+                  tablet: 26,
+                  desktop: 28,
+                ),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  GradeLabel(
-                    grade: GradeHelper.gradeForDisplay(course.overallGrade),
-                    userSettings: userSettings!,
+                  CourseTitleLabel(
+                    title: course.title,
+                    color: course.color,
+                    showIcon: false,
                   ),
-                  if (course.trend != null) ...[
-                    const SizedBox(width: 4),
-                    Icon(
-                      course.trend! > 0
-                          ? Icons.trending_up
-                          : course.trend! < 0
-                          ? Icons.trending_down
-                          : Icons.trending_flat,
-                      size: Responsive.getIconSize(
-                        context,
-                        mobile: 14,
-                        tablet: 16,
-                        desktop: 18,
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      GradeLabel(
+                        grade: GradeHelper.gradeForDisplay(course.overallGrade),
+                        userSettings: userSettings!,
                       ),
-                      color: course.trend! > 0
-                          ? context.semanticColors.success
-                          : course.trend! < 0
-                          ? context.colorScheme.error
-                          : context.colorScheme.onSurface.withValues(
-                              alpha: 0.5,
-                            ),
-                    ),
-                  ],
-                  const SizedBox(width: 8),
-                  Icon(
-                    Icons.circle,
-                    size: Responsive.getIconSize(
-                      context,
-                      mobile: 6,
-                      tablet: 7,
-                      desktop: 8,
-                    ),
-                    color: context.colorScheme.onSurface.withValues(alpha: 0.3),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    '${course.numHomeworkGraded} graded',
-                    style: AppStyles.standardBodyText(context).copyWith(
-                      color: context.colorScheme.onSurface.withValues(
-                        alpha: 0.6,
+                      if (course.trend != null) ...[
+                        const SizedBox(width: 4),
+                        Icon(
+                          course.trend! > 0
+                              ? Icons.trending_up
+                              : course.trend! < 0
+                              ? Icons.trending_down
+                              : Icons.trending_flat,
+                          size: Responsive.getIconSize(
+                            context,
+                            mobile: 14,
+                            tablet: 16,
+                            desktop: 18,
+                          ),
+                          color: course.trend! > 0
+                              ? context.semanticColors.success
+                              : course.trend! < 0
+                              ? context.colorScheme.error
+                              : context.colorScheme.onSurface.withValues(
+                                  alpha: 0.5,
+                                ),
+                        ),
+                      ],
+                      const SizedBox(width: 8),
+                      Icon(
+                        Icons.circle,
+                        size: Responsive.getIconSize(
+                          context,
+                          mobile: 6,
+                          tablet: 7,
+                          desktop: 8,
+                        ),
+                        color: context.colorScheme.onSurface.withValues(
+                          alpha: 0.3,
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${course.numHomeworkGraded} graded',
+                        style: AppStyles.standardBodyText(context).copyWith(
+                          color: context.colorScheme.onSurface.withValues(
+                            alpha: 0.6,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
-        ),
-        IconButton(
-          icon: AnimatedRotation(
-            turns: isExpanded ? 0.5 : 0,
-            duration: const Duration(milliseconds: 300),
-            child: Icon(
-              Icons.keyboard_arrow_down,
-              color: context.colorScheme.primary,
-              size: Responsive.getIconSize(
-                context,
-                mobile: 20,
-                tablet: 22,
-                desktop: 24,
-              ),
             ),
-          ),
-          onPressed: () => _toggleExpandedCourse(index),
+            IconButton(
+              icon: AnimatedRotation(
+                turns: isExpanded ? 0.5 : 0,
+                duration: const Duration(milliseconds: 300),
+                child: Icon(
+                  Icons.keyboard_arrow_down,
+                  color: context.colorScheme.primary,
+                  size: Responsive.getIconSize(
+                    context,
+                    mobile: 20,
+                    tablet: 22,
+                    desktop: 24,
+                  ),
+                ),
+              ),
+              onPressed: () => _toggleExpandedCourse(index),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 
