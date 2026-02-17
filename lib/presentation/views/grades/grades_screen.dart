@@ -116,7 +116,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
 
   // Decision variables - adjust these to tune the grade insights
   static const double _atRiskThreshold =
-      90.0; // Courses below this % are flagged as at-risk
+      70.0; // Courses below this % are flagged as at-risk
   static const double _onTrackTolerance =
       10.0; // ±% tolerance for "on track" status (work vs time)
   static const double _defaultDesiredGradeBoost =
@@ -337,6 +337,29 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     desktop: 140,
   );
 
+  Widget _buildSummaryCard({required Widget child}) {
+    return Card(
+      elevation: 2,
+      child: SizedBox(
+        height: _summaryCardHeight,
+        child: Padding(
+          padding: EdgeInsets.all(_summaryCardPadding),
+          child: child,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSummaryTitle(String title) {
+    return Text(
+      title,
+      style: AppStyles.standardBodyText(
+        context,
+      ).copyWith(fontWeight: FontWeight.w600),
+      textAlign: TextAlign.center,
+    );
+  }
+
   Widget _buildOverallGradeCard(GradeCourseGroupModel selectedGroup) {
     final grade = selectedGroup.overallGrade;
     final gradeDisplay = GradeHelper.gradeForDisplay(grade);
@@ -354,111 +377,100 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
       trend = recent - previous;
     }
 
-    return Card(
-      elevation: 2,
-      child: SizedBox(
-        height: _summaryCardHeight,
-        child: Padding(
-          padding: EdgeInsets.all(_summaryCardPadding),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Overall Grade',
-                style: AppStyles.standardBodyText(
-                  context,
-                ).copyWith(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                height: _summaryGaugeHeight,
-                child: SfRadialGauge(
-                  axes: <RadialAxis>[
-                    RadialAxis(
-                      minimum: 0,
-                      maximum: 100,
-                      startAngle: 180,
-                      endAngle: 0,
-                      showLabels: false,
-                      showTicks: false,
-                      axisLineStyle: const AxisLineStyle(
-                        thickness: 0.15,
-                        cornerStyle: CornerStyle.bothCurve,
-                        thicknessUnit: GaugeSizeUnit.factor,
+    return _buildSummaryCard(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildSummaryTitle('Overall Grade'),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: _summaryGaugeHeight,
+            child: SfRadialGauge(
+              axes: <RadialAxis>[
+                RadialAxis(
+                  minimum: 0,
+                  maximum: 100,
+                  startAngle: 180,
+                  endAngle: 0,
+                  showLabels: false,
+                  showTicks: false,
+                  axisLineStyle: const AxisLineStyle(
+                    thickness: 0.15,
+                    cornerStyle: CornerStyle.bothCurve,
+                    thicknessUnit: GaugeSizeUnit.factor,
+                  ),
+                  pointers: <GaugePointer>[
+                    RangePointer(
+                      value: grade,
+                      width: 0.15,
+                      sizeUnit: GaugeSizeUnit.factor,
+                      cornerStyle: CornerStyle.bothCurve,
+                      gradient: SweepGradient(
+                        colors: <Color>[
+                          grade >= 80
+                              ? context.semanticColors.success
+                              : grade >= 70
+                              ? Colors.orange
+                              : context.colorScheme.error,
+                          grade >= 80
+                              ? context.semanticColors.success.withValues(
+                                  alpha: 0.7,
+                                )
+                              : grade >= 70
+                              ? Colors.orange.withValues(alpha: 0.7)
+                              : context.colorScheme.error.withValues(
+                                  alpha: 0.7,
+                                ),
+                        ],
                       ),
-                      pointers: <GaugePointer>[
-                        RangePointer(
-                          value: grade,
-                          width: 0.15,
-                          sizeUnit: GaugeSizeUnit.factor,
-                          cornerStyle: CornerStyle.bothCurve,
-                          gradient: SweepGradient(
-                            colors: <Color>[
-                              grade >= 80
-                                  ? context.semanticColors.success
-                                  : grade >= 70
-                                  ? Colors.orange
-                                  : context.colorScheme.error,
-                              grade >= 80
-                                  ? context.semanticColors.success.withValues(
-                                      alpha: 0.7,
-                                    )
-                                  : grade >= 70
-                                  ? Colors.orange.withValues(alpha: 0.7)
-                                  : context.colorScheme.error.withValues(
-                                      alpha: 0.7,
-                                    ),
-                            ],
-                          ),
-                        ),
-                      ],
-                      annotations: <GaugeAnnotation>[
-                        GaugeAnnotation(
-                          widget: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                gradeDisplay,
-                                style: AppStyles.headingText(context).copyWith(
-                                  fontSize: Responsive.getFontSize(
-                                    context,
-                                    mobile: 28,
-                                    tablet: 32,
-                                    desktop: 36,
-                                  ),
-                                  fontWeight: FontWeight.bold,
-                                ),
+                    ),
+                  ],
+                  annotations: <GaugeAnnotation>[
+                    GaugeAnnotation(
+                      widget: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            gradeDisplay,
+                            style: AppStyles.headingText(context).copyWith(
+                              fontSize: Responsive.getFontSize(
+                                context,
+                                mobile: 28,
+                                tablet: 32,
+                                desktop: 36,
                               ),
-                              if (trend != null) ...[
-                                const SizedBox(height: 4),
-                                Icon(
-                                  trend > 0
-                                      ? Icons.trending_up
-                                      : trend < 0
-                                      ? Icons.trending_down
-                                      : Icons.trending_flat,
-                                  size: 20,
-                                  color: trend > 0
-                                      ? context.semanticColors.success
-                                      : trend < 0
-                                      ? context.colorScheme.error
-                                      : context.colorScheme.onSurface
-                                            .withValues(alpha: 0.5),
-                                ),
-                              ],
-                            ],
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                          angle: 90,
-                          positionFactor: 0.7,
-                        ),
-                      ],
+                          if (trend != null) ...[
+                            const SizedBox(height: 4),
+                            Icon(
+                              trend > 0
+                                  ? Icons.trending_up
+                                  : trend < 0
+                                  ? Icons.trending_down
+                                  : Icons.trending_flat,
+                              size: 20,
+                              color: trend > 0
+                                  ? context.semanticColors.success
+                                  : trend < 0
+                                  ? context.colorScheme.error
+                                  : context.colorScheme.onSurface.withValues(
+                                      alpha: 0.5,
+                                    ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      angle: 90,
+                      positionFactor: 0.7,
                     ),
                   ],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -495,164 +507,144 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
       statusColor = context.colorScheme.error;
     }
 
-    return Card(
-      elevation: 2,
-      child: SizedBox(
-        height: _summaryCardHeight,
-        child: Padding(
-          padding: EdgeInsets.all(_summaryCardPadding),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return _buildSummaryCard(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(child: _buildSummaryTitle('Progress vs. Pace')),
+          const SizedBox(height: 16),
+          // Work completion bar
+          Row(
             children: [
-              Center(
+              SizedBox(
+                width: 60,
                 child: Text(
-                  'Progress vs. Pace',
-                  style: AppStyles.standardBodyText(
-                    context,
-                  ).copyWith(fontWeight: FontWeight.w600),
+                  'Work',
+                  style: AppStyles.smallSecondaryText(context),
                 ),
               ),
-              const SizedBox(height: 16),
-              // Work completion bar
-              Row(
-                children: [
-                  SizedBox(
-                    width: 60,
-                    child: Text(
-                      'Work',
-                      style: AppStyles.smallSecondaryText(context),
-                    ),
-                  ),
-                  Expanded(
-                    child: Stack(
-                      children: [
-                        Container(
-                          height: 24,
-                          decoration: BoxDecoration(
-                            color: context.colorScheme.surfaceContainerHighest,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        FractionallySizedBox(
-                          widthFactor: completionPercent / 100,
-                          child: Container(
-                            height: 24,
-                            decoration: BoxDecoration(
-                              color: statusColor,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        ),
-                        Container(
-                          height: 24,
-                          alignment: Alignment.center,
-                          child: Text(
-                            '$completionPercent%',
-                            style: AppStyles.smallSecondaryText(context)
-                                .copyWith(
-                                  color: completionPercent > 50
-                                      ? Colors.white
-                                      : context.colorScheme.onSurface,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              // Time passed bar
-              Row(
-                children: [
-                  SizedBox(
-                    width: 60,
-                    child: Text(
-                      'Time',
-                      style: AppStyles.smallSecondaryText(context),
-                    ),
-                  ),
-                  Expanded(
-                    child: Stack(
-                      children: [
-                        Container(
-                          height: 24,
-                          decoration: BoxDecoration(
-                            color: context.colorScheme.surfaceContainerHighest,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        FractionallySizedBox(
-                          widthFactor: timePercent / 100,
-                          child: Container(
-                            height: 24,
-                            decoration: BoxDecoration(
-                              color: context.colorScheme.outline,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        ),
-                        Container(
-                          height: 24,
-                          alignment: Alignment.center,
-                          child: Text(
-                            '$timePercent%',
-                            style: AppStyles.smallSecondaryText(context)
-                                .copyWith(
-                                  color: timePercent > 50
-                                      ? Colors.white
-                                      : context.colorScheme.onSurface,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              // Status indicator
-              Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: statusColor, width: 1.5),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        status == 'Ahead'
-                            ? Icons.fast_forward
-                            : status == 'Behind'
-                            ? Icons.warning_outlined
-                            : Icons.check_circle_outline,
-                        size: 18,
-                        color: statusColor,
+              Expanded(
+                child: Stack(
+                  children: [
+                    Container(
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: context.colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      const SizedBox(width: 6),
-                      Text(
-                        status,
-                        style: AppStyles.standardBodyText(context).copyWith(
+                    ),
+                    FractionallySizedBox(
+                      widthFactor: completionPercent / 100,
+                      child: Container(
+                        height: 24,
+                        decoration: BoxDecoration(
                           color: statusColor,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      height: 24,
+                      alignment: Alignment.center,
+                      child: Text(
+                        '$completionPercent%',
+                        style: AppStyles.smallSecondaryText(context).copyWith(
+                          color: completionPercent > 50
+                              ? Colors.white
+                              : context.colorScheme.onSurface,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 12),
+          // Time passed bar
+          Row(
+            children: [
+              SizedBox(
+                width: 60,
+                child: Text(
+                  'Time',
+                  style: AppStyles.smallSecondaryText(context),
+                ),
+              ),
+              Expanded(
+                child: Stack(
+                  children: [
+                    Container(
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: context.colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    FractionallySizedBox(
+                      widthFactor: timePercent / 100,
+                      child: Container(
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: context.colorScheme.outline,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      height: 24,
+                      alignment: Alignment.center,
+                      child: Text(
+                        '$timePercent%',
+                        style: AppStyles.smallSecondaryText(context).copyWith(
+                          color: timePercent > 50
+                              ? Colors.white
+                              : context.colorScheme.onSurface,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Status indicator
+          Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: statusColor.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: statusColor, width: 1.5),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    status == 'Ahead'
+                        ? Icons.fast_forward
+                        : status == 'Behind'
+                        ? Icons.warning_outlined
+                        : Icons.check_circle_outline,
+                    size: 18,
+                    color: statusColor,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    status,
+                    style: AppStyles.standardBodyText(
+                      context,
+                    ).copyWith(color: statusColor, fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -692,82 +684,67 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                 });
               }
             : null,
-        child: Card(
-          elevation: 2,
-          color: context.colorScheme.surface,
-          child: SizedBox(
-            height: _summaryCardHeight,
-            child: Padding(
-              padding: EdgeInsets.all(_summaryCardPadding),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'At-Risk Classes',
-                    style: AppStyles.standardBodyText(
-                      context,
-                    ).copyWith(fontWeight: FontWeight.w600),
+        child: _buildSummaryCard(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildSummaryTitle('At-Risk Classes'),
+              const SizedBox(height: 12),
+              Container(
+                width: _summaryCircleSize,
+                height: _summaryCircleSize,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: count > 0
+                      ? context.colorScheme.error.withValues(alpha: 0.15)
+                      : context.semanticColors.success.withValues(alpha: 0.15),
+                  border: Border.all(
+                    color: count > 0
+                        ? context.colorScheme.error
+                        : context.semanticColors.success,
+                    width: 3,
                   ),
-                  const SizedBox(height: 12),
-                  Container(
-                    width: _summaryCircleSize,
-                    height: _summaryCircleSize,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: count > 0
-                          ? context.colorScheme.error.withValues(alpha: 0.15)
-                          : context.semanticColors.success.withValues(
-                              alpha: 0.15,
-                            ),
-                      border: Border.all(
-                        color: count > 0
-                            ? context.colorScheme.error
-                            : context.semanticColors.success,
-                        width: 3,
+                ),
+                child: Center(
+                  child: Text(
+                    count.toString(),
+                    style: AppStyles.headingText(context).copyWith(
+                      fontSize: Responsive.getFontSize(
+                        context,
+                        mobile: 32,
+                        tablet: 26,
+                        desktop: 40,
                       ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        count.toString(),
-                        style: AppStyles.headingText(context).copyWith(
-                          fontSize: Responsive.getFontSize(
-                            context,
-                            mobile: 32,
-                            tablet: 26,
-                            desktop: 40,
-                          ),
-                          color: count > 0
-                              ? context.colorScheme.error
-                              : context.semanticColors.success,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    count == 0
-                        ? 'All classes passing!'
-                        : 'below ${_atRiskThreshold.toInt()}%',
-                    style: AppStyles.smallSecondaryText(context).copyWith(
                       color: count > 0
                           ? context.colorScheme.error
                           : context.semanticColors.success,
+                      fontWeight: FontWeight.bold,
                     ),
-                    textAlign: TextAlign.center,
                   ),
-                  if (count > 0) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      'Tap to view',
-                      style: AppStyles.smallSecondaryText(
-                        context,
-                      ).copyWith(fontStyle: FontStyle.italic),
-                    ),
-                  ],
-                ],
+                ),
               ),
-            ),
+              const SizedBox(height: 12),
+              Text(
+                count == 0
+                    ? 'All classes passing!'
+                    : 'below ${_atRiskThreshold.toInt()}%',
+                style: AppStyles.smallSecondaryText(context).copyWith(
+                  color: count > 0
+                      ? context.colorScheme.error
+                      : context.semanticColors.success,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              if (count > 0) ...[
+                const SizedBox(height: 8),
+                Text(
+                  'Tap to view',
+                  style: AppStyles.smallSecondaryText(
+                    context,
+                  ).copyWith(fontStyle: FontStyle.italic),
+                ),
+              ],
+            ],
           ),
         ),
       ),
@@ -790,109 +767,94 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
       }
     }
 
-    return Card(
-      elevation: 2,
-      child: SizedBox(
-        height: _summaryCardHeight,
-        child: Padding(
-          padding: EdgeInsets.all(_summaryCardPadding),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Pending Impact',
-                style: AppStyles.standardBodyText(
-                  context,
-                ).copyWith(fontWeight: FontWeight.w600),
+    return _buildSummaryCard(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildSummaryTitle('Pending Impact'),
+          const SizedBox(height: 12),
+          Container(
+            width: _summaryCircleSize,
+            height: _summaryCircleSize,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: ungradedCount > 0
+                  ? Colors.orange.withValues(alpha: 0.15)
+                  : context.colorScheme.surfaceContainerHighest,
+              border: Border.all(
+                color: ungradedCount > 0
+                    ? Colors.orange
+                    : context.colorScheme.outline,
+                width: 3,
               ),
-              const SizedBox(height: 12),
-              Container(
-                width: _summaryCircleSize,
-                height: _summaryCircleSize,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: ungradedCount > 0
-                      ? Colors.orange.withValues(alpha: 0.15)
-                      : context.colorScheme.surfaceContainerHighest,
-                  border: Border.all(
-                    color: ungradedCount > 0
-                        ? Colors.orange
-                        : context.colorScheme.outline,
-                    width: 3,
-                  ),
-                ),
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        ungradedCount.toString(),
-                        style: AppStyles.headingText(context).copyWith(
-                          fontSize: Responsive.getFontSize(
-                            context,
-                            mobile: 28,
-                            tablet: 24,
-                            desktop: 36,
-                          ),
-                          color: ungradedCount > 0
-                              ? Colors.orange
-                              : context.colorScheme.onSurface.withValues(
-                                  alpha: 0.5,
-                                ),
-                          fontWeight: FontWeight.bold,
-                        ),
+            ),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    ungradedCount.toString(),
+                    style: AppStyles.headingText(context).copyWith(
+                      fontSize: Responsive.getFontSize(
+                        context,
+                        mobile: 28,
+                        tablet: 24,
+                        desktop: 36,
                       ),
-                    ],
+                      color: ungradedCount > 0
+                          ? Colors.orange
+                          : context.colorScheme.onSurface.withValues(
+                              alpha: 0.5,
+                            ),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
+                ],
               ),
-              const SizedBox(height: 12),
-              Text(
-                'ungraded ${ungradedCount.plural('assignment')}',
-                style: AppStyles.smallSecondaryText(context).copyWith(
-                  color: ungradedCount > 0
-                      ? Colors.orange
-                      : context.colorScheme.onSurface.withValues(alpha: 0.5),
-                ),
-                textAlign: TextAlign.center,
-              ),
-              if (topCourse != null && maxUngraded > 0) ...[
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: topCourse.color.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: topCourse.color,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Flexible(
-                        child: Text(
-                          '$maxUngraded in ${topCourse.title}',
-                          style: AppStyles.smallSecondaryText(context),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ],
+            ),
           ),
-        ),
+          const SizedBox(height: 12),
+          Text(
+            'ungraded ${ungradedCount.plural('assignment')}',
+            style: AppStyles.smallSecondaryText(context).copyWith(
+              color: ungradedCount > 0
+                  ? Colors.orange
+                  : context.colorScheme.onSurface.withValues(alpha: 0.5),
+            ),
+            textAlign: TextAlign.center,
+          ),
+          if (topCourse != null && maxUngraded > 0) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: topCourse.color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: topCourse.color,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      '$maxUngraded in ${topCourse.title}',
+                      style: AppStyles.smallSecondaryText(context),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -1797,7 +1759,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Text(
+                      SelectableText(
                         '${course.numHomeworkGraded} graded',
                         style: AppStyles.standardBodyText(context).copyWith(
                           color: context.colorScheme.onSurface.withValues(
