@@ -14,29 +14,29 @@ import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
-import 'package:heliumapp/presentation/bloc/attachment/attachment_bloc.dart';
-import 'package:heliumapp/presentation/bloc/planneritem/planneritem_bloc.dart';
-import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
-import 'package:heliumapp/presentation/bloc/course/course_bloc.dart';
-import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_bloc.dart';
-import 'package:heliumapp/presentation/bloc/resource/resource_bloc.dart';
-import 'package:heliumapp/presentation/views/auth/forgot_password_screen.dart';
-import 'package:heliumapp/presentation/views/auth/login_screen.dart';
-import 'package:heliumapp/presentation/views/auth/setup_account_screen.dart';
-import 'package:heliumapp/presentation/views/auth/signup_screen.dart';
-import 'package:heliumapp/presentation/views/auth/verify_email_screen.dart';
-import 'package:heliumapp/presentation/views/planner/planner_item_add_screen.dart';
-import 'package:heliumapp/presentation/views/core/landing_screen.dart';
-import 'package:heliumapp/presentation/views/core/mobile_web_screen.dart';
-import 'package:heliumapp/presentation/widgets/core/navigation_shell.dart';
-import 'package:heliumapp/presentation/views/core/notification_screen.dart';
-import 'package:heliumapp/presentation/views/courses/course_add_screen.dart';
-import 'package:heliumapp/presentation/views/resources/resource_add_screen.dart';
-import 'package:heliumapp/presentation/views/settings/change_password_screen.dart';
-import 'package:heliumapp/presentation/views/settings/external_calendars_screen.dart';
-import 'package:heliumapp/presentation/views/settings/feeds_screen.dart';
-import 'package:heliumapp/presentation/views/settings/preferences_screen.dart';
-import 'package:heliumapp/presentation/views/settings/settings_screen.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
+import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
+import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
+import 'package:heliumapp/presentation/features/auth/views/forgot_password_screen.dart';
+import 'package:heliumapp/presentation/features/auth/views/login_screen.dart';
+import 'package:heliumapp/presentation/features/auth/views/setup_account_screen.dart';
+import 'package:heliumapp/presentation/features/auth/views/signup_screen.dart';
+import 'package:heliumapp/presentation/features/auth/views/verify_email_screen.dart';
+import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
+import 'package:heliumapp/presentation/core/views/landing_screen.dart';
+import 'package:heliumapp/presentation/core/views/mobile_web_screen.dart';
+import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
+import 'package:heliumapp/presentation/core/views/notification_screen.dart';
+import 'package:heliumapp/presentation/features/courses/views/course_add_screen.dart';
+import 'package:heliumapp/presentation/features/resources/views/resource_add_screen.dart';
+import 'package:heliumapp/presentation/features/settings/views/change_password_screen.dart';
+import 'package:heliumapp/presentation/features/settings/views/external_calendars_screen.dart';
+import 'package:heliumapp/presentation/features/settings/views/feeds_screen.dart';
+import 'package:heliumapp/presentation/features/settings/views/preferences_screen.dart';
+import 'package:heliumapp/presentation/features/settings/views/settings_screen.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -405,3 +405,4 @@ class _RouteRedirect extends StatelessWidget {
     return const Scaffold(body: SizedBox.shrink());
   }
 }
+

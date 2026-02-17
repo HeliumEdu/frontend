@@ -10,10 +10,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
-import 'package:heliumapp/presentation/bloc/planneritem/planneritem_bloc.dart';
-import 'package:heliumapp/presentation/bloc/planneritem/planneritem_event.dart';
-import 'package:heliumapp/presentation/bloc/planneritem/planneritem_state.dart';
-import 'package:heliumapp/presentation/bloc/core/base_event.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/planneritem_event.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../mocks/mock_models.dart';
