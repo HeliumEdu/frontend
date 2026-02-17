@@ -1081,7 +1081,12 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                     Text('Entire Term', style: AppStyles.headingText(context)),
                   if (course != null) ...[
                     const SizedBox(width: 6),
-                    CourseTitleLabel(title: course.title, color: course.color),
+                    Flexible(
+                      child: CourseTitleLabel(
+                        title: course.title,
+                        color: course.color,
+                      ),
+                    ),
                   ],
                 ],
               ),
