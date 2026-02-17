@@ -622,6 +622,7 @@ class CalendarItemDetailsWidgetState extends State<CalendarItemDetailsWidget> {
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9\./]')),
                     ],
                     focusNode: _formController.gradeFocusNode,
+                    onFieldSubmitted: (value) => onSubmit(),
                   ),
                 ),
                 const SizedBox(width: 8),

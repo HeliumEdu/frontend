@@ -39,7 +39,6 @@ import 'package:heliumapp/presentation/bloc/grade/grade_state.dart';
 import 'package:heliumapp/presentation/dialogs/grade_calculator_dialog.dart';
 import 'package:heliumapp/presentation/views/calendar/calendar_item_add_screen.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
-import 'package:heliumapp/presentation/widgets/category_title_label.dart';
 import 'package:heliumapp/presentation/widgets/course_title_label.dart';
 import 'package:heliumapp/presentation/widgets/empty_card.dart';
 import 'package:heliumapp/presentation/widgets/error_card.dart';
@@ -118,7 +117,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
 
   // Decision variables - adjust these to tune the grade insights
   static const double _atRiskThreshold =
-      70.0; // Courses below this % are flagged as at-risk
+      90.0; // Courses below this % are flagged as at-risk
   static const double _onTrackTolerance =
       10.0; // ±% tolerance for "on track" status (work vs time)
   static const double _defaultDesiredGradeBoost =
@@ -896,41 +895,67 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     GradeCourseGroupModel selectedGroup,
     List<GradeCourseModel> courses,
   ) {
-    // If only one course, open calculator directly
-    if (courses.length == 1) {
-      _openGradeCalculator(courses.first);
+    final eligibleCourses = courses
+        .where(_courseHasEligibleGradeCalculatorCategory)
+        .toList();
+
+    if (eligibleCourses.isEmpty) {
+      showSnackBar(
+        context,
+        'No classes have exactly one remaining graded item.',
+      );
       return;
     }
 
-    // Multiple courses - show selection dialog
+    if (eligibleCourses.length == 1) {
+      _openGradeCalculator(eligibleCourses.first);
+      return;
+    }
+
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: context.colorScheme.surface,
-        title: Text('Select a Class', style: AppStyles.headingText(context)),
         content: SizedBox(
           width: Responsive.getDialogWidth(context),
           child: ListView.builder(
             shrinkWrap: true,
-            itemCount: courses.length,
+            itemCount: eligibleCourses.length,
             itemBuilder: (context, index) {
-              final course = courses[index];
+              final course = eligibleCourses[index];
               return ListTile(
-                leading: Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: course.color,
-                    shape: BoxShape.circle,
+                title: Row(
+                  children: [
+                    Icon(
+                      Icons.school,
+                      size: Responsive.getIconSize(
+                        context,
+                        mobile: 14,
+                        tablet: 16,
+                        desktop: 18,
+                      ),
+                      color: course.color,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        course.title,
+                        style: AppStyles.formText(
+                          context,
+                        ).copyWith(color: context.colorScheme.onSurface),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: GradeLabel(
+                    grade: GradeHelper.gradeForDisplay(course.overallGrade),
+                    userSettings: userSettings!,
+                    compact: true,
+                    selectable: false,
                   ),
-                ),
-                title: Text(
-                  course.title,
-                  style: AppStyles.standardBodyText(context),
-                ),
-                subtitle: Text(
-                  'Current: ${GradeHelper.gradeForDisplay(course.overallGrade)}',
-                  style: AppStyles.smallSecondaryText(context),
                 ),
                 onTap: () {
                   Navigator.of(dialogContext).pop();
@@ -944,6 +969,13 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     );
   }
 
+  bool _courseHasEligibleGradeCalculatorCategory(GradeCourseModel course) {
+    return course.categories.any((category) {
+      final remainingItems = category.numHomework - category.numHomeworkGraded;
+      return category.weight > 0 && remainingItems == 1;
+    });
+  }
+
   void _openGradeCalculator(GradeCourseModel course) {
     showDialog(
       context: context,
@@ -951,6 +983,8 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
         categories: course.categories,
         currentOverallGrade: course.overallGrade,
         courseTitle: course.title,
+        courseColor: course.color,
+        userSettings: userSettings!,
         defaultDesiredGradeBoost: _defaultDesiredGradeBoost,
       ),
     );
@@ -1499,7 +1533,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     final isCategory =
         selectedCourse?.categories.any((category) => category.title == name) ??
         false;
-    if (isCategory) return Icons.category;
+    if (isCategory) return Icons.category_outlined;
 
     return Icons.circle;
   }
@@ -1937,19 +1971,21 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                 // Category label
                 Row(
                   children: [
-                    Container(
-                      width: 10,
-                      height: 10,
-                      decoration: BoxDecoration(
-                        color: segment.color,
-                        shape: BoxShape.circle,
+                    Icon(
+                      Icons.category_outlined,
+                      size: Responsive.getIconSize(
+                        context,
+                        mobile: 14,
+                        tablet: 16,
+                        desktop: 18,
                       ),
+                      color: segment.color,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         segment.label,
-                        style: AppStyles.smallSecondaryText(
+                        style: AppStyles.smallSecondaryTextLight(
                           context,
                         ).copyWith(fontWeight: FontWeight.w600),
                         overflow: TextOverflow.ellipsis,
@@ -1957,10 +1993,11 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                     ),
                     Text(
                       '${segment.value.toStringAsFixed(1)}%',
-                      style: AppStyles.smallSecondaryText(context).copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: segment.color,
-                      ),
+                      style: AppStyles.smallSecondaryTextLight(context)
+                          .copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: segment.color,
+                          ),
                     ),
                   ],
                 ),
@@ -2038,10 +2075,24 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
             child: Row(
               children: [
                 const SizedBox(width: 8),
+                Icon(
+                  Icons.category_outlined,
+                  size: Responsive.getIconSize(
+                    context,
+                    mobile: 14,
+                    tablet: 16,
+                    desktop: 18,
+                  ),
+                  color: category.color,
+                ),
+                const SizedBox(width: 8),
                 Flexible(
-                  child: CategoryTitleLabel(
-                    title: category.title,
-                    color: category.color,
+                  child: Text(
+                    category.title,
+                    style: AppStyles.standardBodyText(
+                      context,
+                    ).copyWith(color: context.colorScheme.onSurface),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],

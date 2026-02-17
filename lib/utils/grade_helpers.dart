@@ -8,19 +8,40 @@
 import 'package:heliumapp/data/models/planner/grade_category_model.dart';
 
 /// Result of a "what grade do I need" calculation
+enum NeededGradeState {
+  achievable,
+  aboveTarget,
+  unachievable,
+  targetCategoryHasNoWeight,
+  invalidTotalWeight,
+}
+
 class NeededGradeResult {
   final double neededGrade;
-  final bool isAchievable;
-  final String message;
+  final NeededGradeState state;
+  final double? totalWeightAccountedFor;
+
+  bool get isAchievable =>
+      state == NeededGradeState.achievable ||
+      state == NeededGradeState.aboveTarget;
 
   NeededGradeResult({
     required this.neededGrade,
-    required this.isAchievable,
-    required this.message,
+    required this.state,
+    this.totalWeightAccountedFor,
   });
 }
 
 class GradeHelper {
+  // Category grades may come in either 0-100 or 0-1 scale depending on source.
+  // Normalize into percentage before weighted-grade math.
+  static double _normalizedCategoryGrade(double overallGrade) {
+    if (overallGrade < 0) {
+      return overallGrade;
+    }
+    return overallGrade <= 1 ? overallGrade * 100 : overallGrade;
+  }
+
   /// Calculates what grade is needed in a specific category to achieve
   /// a desired overall grade.
   ///
@@ -44,8 +65,7 @@ class GradeHelper {
   ///
   /// Returns a [NeededGradeResult] with:
   /// - neededGrade: The grade needed in the target category
-  /// - isAchievable: Whether the needed grade is possible (0-100)
-  /// - message: Human-readable explanation
+  /// - state: Outcome state used by the UI to construct messaging
   static NeededGradeResult calculateNeededGrade({
     required List<GradeCategoryModel> categories,
     required int targetCategoryId,
@@ -61,8 +81,7 @@ class GradeHelper {
     if (targetCategory.weight <= 0) {
       return NeededGradeResult(
         neededGrade: 0,
-        isAchievable: false,
-        message: 'Selected category has no weight in the grade calculation',
+        state: NeededGradeState.targetCategoryHasNoWeight,
       );
     }
 
@@ -81,7 +100,8 @@ class GradeHelper {
 
         // If category has a grade, include it in calculation
         if (category.overallGrade >= 0) {
-          sumOfOtherWeightedGrades += category.weight * category.overallGrade;
+          sumOfOtherWeightedGrades +=
+              category.weight * _normalizedCategoryGrade(category.overallGrade);
         }
         // If no grade yet, we assume 0 (worst case scenario)
       }
@@ -91,9 +111,8 @@ class GradeHelper {
     if ((totalWeightAccountedFor - 100).abs() > 0.01) {
       return NeededGradeResult(
         neededGrade: 0,
-        isAchievable: false,
-        message:
-            'Category weights do not add up to 100% (current total: ${totalWeightAccountedFor.toStringAsFixed(1)}%)',
+        state: NeededGradeState.invalidTotalWeight,
+        totalWeightAccountedFor: totalWeightAccountedFor,
       );
     }
 
@@ -107,23 +126,17 @@ class GradeHelper {
     if (neededGrade < 0) {
       return NeededGradeResult(
         neededGrade: neededGrade,
-        isAchievable: true,
-        message:
-            'You\'re already above your target! You can score as low as 0% and still achieve ${desiredOverallGrade.toStringAsFixed(1)}%.',
+        state: NeededGradeState.aboveTarget,
       );
     } else if (neededGrade > 100) {
       return NeededGradeResult(
         neededGrade: neededGrade,
-        isAchievable: false,
-        message:
-            'Not achievable - you would need ${neededGrade.toStringAsFixed(1)}% (over 100%).',
+        state: NeededGradeState.unachievable,
       );
     } else {
       return NeededGradeResult(
         neededGrade: neededGrade,
-        isAchievable: true,
-        message:
-            'You need to score ${neededGrade.toStringAsFixed(1)}% in ${targetCategory.title} to achieve ${desiredOverallGrade.toStringAsFixed(1)}% overall.',
+        state: NeededGradeState.achievable,
       );
     }
   }
@@ -137,7 +150,8 @@ class GradeHelper {
       if (category.weight > 0) {
         if (category.overallGrade >= 0) {
           // Category has a grade, use it
-          totalWeightedGrade += category.weight * category.overallGrade;
+          totalWeightedGrade +=
+              category.weight * _normalizedCategoryGrade(category.overallGrade);
         } else {
           // No grade yet, assume perfect 100%
           totalWeightedGrade += category.weight * 100;
@@ -157,7 +171,8 @@ class GradeHelper {
       if (category.weight > 0) {
         if (category.overallGrade >= 0) {
           // Category has a grade, use it
-          totalWeightedGrade += category.weight * category.overallGrade;
+          totalWeightedGrade +=
+              category.weight * _normalizedCategoryGrade(category.overallGrade);
         }
         // No grade yet, assume 0% (don't add anything)
       }
