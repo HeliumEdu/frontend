@@ -684,9 +684,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
             : null,
         child: Card(
           elevation: 2,
-          color: count > 0
-              ? context.colorScheme.error.withValues(alpha: 0.05)
-              : context.colorScheme.surface,
+          color: context.colorScheme.surface,
           child: SizedBox(
             height: _summaryCardHeight,
             child: Padding(
