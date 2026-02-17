@@ -980,7 +980,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
 
     // Determine what to display based on view mode
     final isTermView = _graphViewMode == 'term';
-    final List<charts.LineSeries<ChartDataPoint, DateTime>> series = [];
+    final List<charts.CartesianSeries<ChartDataPoint, DateTime>> series = [];
 
     if (isTermView) {
       // Show overall grade + all courses
@@ -1125,7 +1125,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
   }
 
   Widget _buildChart(
-    List<charts.LineSeries<ChartDataPoint, DateTime>> series,
+    List<charts.CartesianSeries<ChartDataPoint, DateTime>> series,
     int groupId,
   ) {
     final courseGroup = _getCourseGroupForId(groupId);
@@ -1254,27 +1254,91 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                       );
                     },
               ),
+              trackballBehavior: charts.TrackballBehavior(
+                enable: isTouchDevice,
+                activationMode: charts.ActivationMode.singleTap,
+                lineType: charts.TrackballLineType.vertical,
+                tooltipDisplayMode: charts.TrackballDisplayMode.floatAllPoints,
+                tooltipSettings: charts.InteractiveTooltip(
+                  enable: true,
+                  color: context.colorScheme.surface,
+                  borderColor: context.colorScheme.outline.withValues(
+                    alpha: 0.3,
+                  ),
+                  borderWidth: 1,
+                ),
+                markerSettings: const charts.TrackballMarkerSettings(
+                  markerVisibility: charts.TrackballVisibilityMode.visible,
+                  width: 6,
+                  height: 6,
+                ),
+              ),
               primaryXAxis: charts.DateTimeAxis(
                 minimum: xAxisRange['min'],
                 maximum: xAxisRange['max'],
                 dateFormat: DateFormat('MMM dd'),
                 intervalType: charts.DateTimeIntervalType.days,
-                majorGridLines: const charts.MajorGridLines(width: 0.5),
+                majorGridLines: charts.MajorGridLines(
+                  width: 0.35,
+                  color: context.colorScheme.outline.withValues(alpha: 0.22),
+                ),
+                axisLine: charts.AxisLine(
+                  width: 0.5,
+                  color: context.colorScheme.outline.withValues(alpha: 0.3),
+                ),
+                majorTickLines: const charts.MajorTickLines(size: 0),
+                plotBands: showTodayMarker
+                    ? [
+                        charts.PlotBand(
+                          isVisible: true,
+                          start: now,
+                          end: now,
+                          borderWidth: 1.5,
+                          borderColor: context.colorScheme.error.withValues(
+                            alpha: 0.7,
+                          ),
+                          dashArray: const [6, 4],
+                        ),
+                      ]
+                    : const [],
               ),
               primaryYAxis: charts.NumericAxis(
                 minimum: yAxisRange['min'],
                 maximum: yAxisRange['max'],
                 labelFormat: '{value}%',
-                majorGridLines: const charts.MajorGridLines(width: 0.5),
+                majorGridLines: charts.MajorGridLines(
+                  width: 0.35,
+                  color: context.colorScheme.outline.withValues(alpha: 0.22),
+                ),
                 decimalPlaces: 0,
+                axisLine: charts.AxisLine(
+                  width: 0.5,
+                  color: context.colorScheme.outline.withValues(alpha: 0.3),
+                ),
+                majorTickLines: const charts.MajorTickLines(size: 0),
+                plotBands: [
+                  charts.PlotBand(
+                    isVisible: true,
+                    start: 0,
+                    end: _atRiskThreshold,
+                    color: context.semanticColors.warning.withValues(
+                      alpha: 0.1,
+                    ),
+                    text: 'At-Risk Zone',
+                    textStyle: AppStyles.smallSecondaryText(context).copyWith(
+                      color: context.semanticColors.warning.withValues(
+                        alpha: 0.8,
+                      ),
+                    ),
+                    horizontalTextAlignment: charts.TextAnchor.start,
+                  ),
+                ],
               ),
               series: visibleSeries,
-              plotAreaBorderWidth: 1,
-              annotations: showTodayMarker
-                  ? <charts.CartesianChartAnnotation>[
-                      _buildCurrentDateMarker(yAxisRange), // Red vertical line
-                    ]
-                  : [],
+              plotAreaBorderWidth: 0.5,
+              plotAreaBorderColor: context.colorScheme.outline.withValues(
+                alpha: 0.2,
+              ),
             ),
           ),
           // Legend
@@ -1292,26 +1356,8 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     );
   }
 
-  charts.CartesianChartAnnotation _buildCurrentDateMarker(
-    Map<String, double> yAxisRange,
-  ) {
-    // Position at the middle of the visible y-axis range
-    final middleY = (yAxisRange['min']! + yAxisRange['max']!) / 2;
-
-    return charts.CartesianChartAnnotation(
-      widget: Container(
-        width: 2,
-        height: 9999, // Very tall to span the full chart height
-        color: Colors.red,
-      ),
-      coordinateUnit: charts.CoordinateUnit.point,
-      x: DateTime.now(),
-      y: middleY,
-    );
-  }
-
   Widget _buildLegend(
-    List<charts.LineSeries<ChartDataPoint, DateTime>> series,
+    List<charts.CartesianSeries<ChartDataPoint, DateTime>> series,
   ) {
     return ListView(
       padding: EdgeInsets.zero,
@@ -1358,94 +1404,102 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     );
   }
 
-  charts.LineSeries<ChartDataPoint, DateTime> _buildOverallSeries(
+  charts.SplineSeries<ChartDataPoint, DateTime> _buildOverallSeries(
     GradeCourseGroupModel group,
   ) {
     final dataSource = _parseGradePoints(group.gradePoints);
-    return charts.LineSeries<ChartDataPoint, DateTime>(
+    return charts.SplineSeries<ChartDataPoint, DateTime>(
       name: 'Overall Grade',
       dataSource: dataSource,
       xValueMapper: (point, _) => point.date,
       yValueMapper: (point, _) => point.grade,
       color: context.colorScheme.onSurface,
-      width: 2,
+      width: 3,
+      opacity: 1,
+      splineType: charts.SplineType.monotonic,
       animationDuration: _chartAnimationDurationMs,
       enableTooltip: true,
       onPointTap: (pointDetails) =>
           _handlePointTap(context, dataSource, pointDetails),
       markerSettings: const charts.MarkerSettings(
         isVisible: true,
-        height: 6,
-        width: 6,
+        height: 4,
+        width: 4,
       ),
     );
   }
 
-  charts.LineSeries<ChartDataPoint, DateTime> _buildCourseSeries(
+  charts.SplineSeries<ChartDataPoint, DateTime> _buildCourseSeries(
     GradeCourseModel course,
   ) {
     final dataSource = _parseGradePoints(course.gradePoints);
-    return charts.LineSeries<ChartDataPoint, DateTime>(
+    return charts.SplineSeries<ChartDataPoint, DateTime>(
       name: course.title,
       dataSource: dataSource,
       xValueMapper: (point, _) => point.date,
       yValueMapper: (point, _) => point.grade,
       color: course.color,
-      width: 2,
+      width: 1.75,
+      opacity: 0.88,
+      splineType: charts.SplineType.monotonic,
       animationDuration: _chartAnimationDurationMs,
       enableTooltip: true,
       onPointTap: (pointDetails) =>
           _handlePointTap(context, dataSource, pointDetails),
       markerSettings: const charts.MarkerSettings(
         isVisible: true,
-        height: 6,
-        width: 6,
+        height: 4,
+        width: 4,
       ),
     );
   }
 
-  charts.LineSeries<ChartDataPoint, DateTime> _buildCourseOverallSeries(
+  charts.SplineSeries<ChartDataPoint, DateTime> _buildCourseOverallSeries(
     GradeCourseModel course,
   ) {
     final dataSource = _parseGradePoints(course.gradePoints);
-    return charts.LineSeries<ChartDataPoint, DateTime>(
+    return charts.SplineSeries<ChartDataPoint, DateTime>(
       name: 'Overall Grade',
       dataSource: dataSource,
       xValueMapper: (point, _) => point.date,
       yValueMapper: (point, _) => point.grade,
       color: context.colorScheme.onSurface,
-      width: 2,
+      width: 3,
+      opacity: 1,
+      splineType: charts.SplineType.monotonic,
       animationDuration: _chartAnimationDurationMs,
       enableTooltip: true,
       onPointTap: (pointDetails) =>
           _handlePointTap(context, dataSource, pointDetails),
       markerSettings: const charts.MarkerSettings(
         isVisible: true,
-        height: 6,
-        width: 6,
+        height: 4,
+        width: 4,
       ),
     );
   }
 
-  charts.LineSeries<ChartDataPoint, DateTime> _buildCategorySeries(
+  charts.SplineSeries<ChartDataPoint, DateTime> _buildCategorySeries(
     GradeCategoryModel category,
   ) {
     final dataSource = _parseGradePoints(category.gradePoints);
-    return charts.LineSeries<ChartDataPoint, DateTime>(
+    return charts.SplineSeries<ChartDataPoint, DateTime>(
       name: category.title,
       dataSource: dataSource,
       xValueMapper: (point, _) => point.date,
       yValueMapper: (point, _) => point.grade,
       color: category.color,
-      width: 2,
+      width: 1.75,
+      opacity: 0.9,
+      splineType: charts.SplineType.monotonic,
       animationDuration: _chartAnimationDurationMs,
       enableTooltip: true,
       onPointTap: (pointDetails) =>
           _handlePointTap(context, dataSource, pointDetails),
       markerSettings: const charts.MarkerSettings(
         isVisible: true,
-        height: 6,
-        width: 6,
+        height: 4,
+        width: 4,
       ),
     );
   }
@@ -1554,7 +1608,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
   }
 
   Map<String, double> _calculateYAxisRange(
-    List<charts.LineSeries<ChartDataPoint, DateTime>> visibleSeries,
+    List<charts.CartesianSeries<ChartDataPoint, DateTime>> visibleSeries,
   ) {
     if (visibleSeries.isEmpty) {
       return {'min': 0.0, 'max': 100.0};
@@ -1588,7 +1642,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
   }
 
   Map<String, DateTime> _calculateXAxisRange(
-    List<charts.LineSeries<ChartDataPoint, DateTime>> visibleSeries,
+    List<charts.CartesianSeries<ChartDataPoint, DateTime>> visibleSeries,
     CourseGroupModel courseGroup,
   ) {
     // If auto-adjust is disabled, use the full course group date range
