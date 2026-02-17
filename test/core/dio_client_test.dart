@@ -225,7 +225,7 @@ void main() {
         when(() => mockPrefService.getInt('whats_new_version_seen')).thenReturn(0);
         when(() => mockPrefService.getString('events_color'))
             .thenReturn('#FF0000');
-        when(() => mockPrefService.getString('material_color'))
+        when(() => mockPrefService.getString('resource_color'))
             .thenReturn('#00FF00');
         when(() => mockPrefService.getString('grade_color'))
             .thenReturn('#0000FF');

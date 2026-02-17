@@ -442,7 +442,7 @@ HomeworkModel _createHomework({
     currentGrade: '-1/100',
     course: IdOrEntity<CourseModel>(id: courseId),
     category: IdOrEntity<CategoryModel>(id: 1),
-    materials: [],
+    resources: [],
   );
 }
 

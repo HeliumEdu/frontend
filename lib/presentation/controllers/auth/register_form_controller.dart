@@ -10,7 +10,7 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:heliumapp/presentation/controllers/auth/credentials_form_controller.dart';
 import 'package:heliumapp/presentation/controllers/core/basic_form_controller.dart';
 
-class RegisterFormController extends CredentialsFormController {
+class SignupFormController extends CredentialsFormController {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();

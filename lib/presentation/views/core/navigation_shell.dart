@@ -19,10 +19,10 @@ import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_bloc.dart';
 import 'package:heliumapp/presentation/dialogs/getting_started_dialog.dart';
 import 'package:heliumapp/presentation/dialogs/whats_new_dialog.dart';
-import 'package:heliumapp/presentation/views/calendar/calendar_screen.dart';
+import 'package:heliumapp/presentation/views/calendar/planner_screen.dart';
 import 'package:heliumapp/presentation/views/courses/courses_screen.dart';
 import 'package:heliumapp/presentation/views/grades/grades_screen.dart';
-import 'package:heliumapp/presentation/views/materials/materials_screen.dart';
+import 'package:heliumapp/presentation/views/resources/resources_screen.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/page_header.dart';
 import 'package:heliumapp/presentation/widgets/settings_button.dart';
@@ -81,7 +81,7 @@ class NavigationShellProvider extends InheritedWidget {
 enum NavigationPage {
   calendar('Planner', Icons.calendar_month, AppRoute.plannerScreen),
   courses('Classes', Icons.school, AppRoute.coursesScreen),
-  materials('Resources', Icons.book, AppRoute.resourcesScreen),
+  resources('Resources', Icons.book, AppRoute.resourcesScreen),
   grades('Grades', Icons.bar_chart, AppRoute.gradesScreen);
 
   final String label;
@@ -101,11 +101,11 @@ enum NavigationPage {
   Widget buildScreen() {
     switch (this) {
       case NavigationPage.calendar:
-        return CalendarScreen();
+        return PlannerScreen();
       case NavigationPage.courses:
         return CoursesScreen();
-      case NavigationPage.materials:
-        return MaterialsScreen();
+      case NavigationPage.resources:
+        return ResourcesScreen();
       case NavigationPage.grades:
         return GradesScreen();
     }

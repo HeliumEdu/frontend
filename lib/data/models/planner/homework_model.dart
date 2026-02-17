@@ -10,7 +10,7 @@ import 'package:heliumapp/data/models/planner/attachment_model.dart';
 import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
-import 'package:heliumapp/data/models/planner/material_model.dart';
+import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
@@ -19,7 +19,7 @@ class HomeworkModel extends CalendarItemBaseModel {
   final bool completed;
   final IdOrEntity<CourseModel> course;
   final IdOrEntity<CategoryModel> category;
-  final List<IdOrEntity<MaterialModel>> materials;
+  final List<IdOrEntity<ResourceModel>> resources;
   final String? currentGrade;
 
   HomeworkModel({
@@ -35,7 +35,7 @@ class HomeworkModel extends CalendarItemBaseModel {
     required super.reminders,
     required this.completed,
     required this.course,
-    required this.materials,
+    required this.resources,
     required this.category,
     this.currentGrade,
   }) : super(calendarItemType: CalendarItemType.homework);
@@ -68,10 +68,10 @@ class HomeworkModel extends CalendarItemBaseModel {
         json['category'],
         CategoryModel.fromJson,
       ),
-      materials: json['materials'] != null
+      resources: json['materials'] != null
           ? HeliumConversion.idOrEntityListFrom(
               json['materials'],
-              MaterialModel.fromJson,
+              ResourceModel.fromJson,
             )
           : [],
       course: HeliumConversion.idOrEntityFrom(
@@ -88,7 +88,7 @@ class HomeworkModel extends CalendarItemBaseModel {
     data['completed'] = completed;
     data['course'] = course;
     data['category'] = category;
-    data['materials'] = materials;
+    data['materials'] = resources;
     data['current_grade'] = currentGrade;
 
     return data;
@@ -108,7 +108,7 @@ class HomeworkModel extends CalendarItemBaseModel {
     bool? completed,
     IdOrEntity<CourseModel>? course,
     IdOrEntity<CategoryModel>? category,
-    List<IdOrEntity<MaterialModel>>? materials,
+    List<IdOrEntity<ResourceModel>>? resources,
     String? currentGrade,
   }) {
     return HomeworkModel(
@@ -125,7 +125,7 @@ class HomeworkModel extends CalendarItemBaseModel {
       completed: completed ?? this.completed,
       course: course ?? this.course,
       category: category ?? this.category,
-      materials: materials ?? this.materials,
+      resources: resources ?? this.resources,
       currentGrade: currentGrade ?? this.currentGrade,
     );
   }

@@ -18,8 +18,8 @@ import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/request/external_calendar_request_model.dart';
 import 'package:heliumapp/data/models/planner/grade_course_group_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
-import 'package:heliumapp/data/models/planner/material_group_model.dart';
-import 'package:heliumapp/data/models/planner/material_model.dart';
+import 'package:heliumapp/data/models/planner/resource_group_model.dart';
+import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 
@@ -419,7 +419,7 @@ Map<String, dynamic> givenHomeworkJson({
   bool completed = false,
   int course = 1,
   int category = 1,
-  List<int>? materials,
+  List<int>? resources,
   String? currentGrade,
   List<dynamic>? attachments,
   List<dynamic>? reminders,
@@ -437,7 +437,7 @@ Map<String, dynamic> givenHomeworkJson({
     'completed': completed,
     'course': course,
     'category': category,
-    'materials': materials ?? [],
+    'materials': resources ?? [],
     'current_grade': currentGrade,
     'attachments': attachments ?? [],
     'reminders': reminders ?? [],
@@ -474,11 +474,11 @@ void verifyHomeworkMatchesJson(
 }
 
 // ============================================================================
-// GIVEN: Material Group JSON Fixtures
+// GIVEN: Resource Group JSON Fixtures
 // ============================================================================
 
-/// Creates JSON data representing a material group.
-Map<String, dynamic> givenMaterialGroupJson({
+/// Creates JSON data representing a resource group.
+Map<String, dynamic> givenResourceGroupJson({
   int id = 1,
   String title = '📖 Textbooks',
   bool shownOnCalendar = true,
@@ -486,22 +486,22 @@ Map<String, dynamic> givenMaterialGroupJson({
   return {'id': id, 'title': title, 'shown_on_calendar': shownOnCalendar};
 }
 
-/// Verifies that a [MaterialGroupModel] matches the expected JSON data.
-void verifyMaterialGroupMatchesJson(
-  MaterialGroupModel materialGroup,
+/// Verifies that a [ResourceGroupModel] matches the expected JSON data.
+void verifyResourceGroupMatchesJson(
+  ResourceGroupModel resourceGroup,
   Map<String, dynamic> json,
 ) {
-  expect(materialGroup.id, equals(json['id']));
-  expect(materialGroup.title, equals(json['title']));
-  expect(materialGroup.shownOnCalendar, equals(json['shown_on_calendar']));
+  expect(resourceGroup.id, equals(json['id']));
+  expect(resourceGroup.title, equals(json['title']));
+  expect(resourceGroup.shownOnCalendar, equals(json['shown_on_calendar']));
 }
 
 // ============================================================================
-// GIVEN: Material JSON Fixtures
+// GIVEN: Resource JSON Fixtures
 // ============================================================================
 
-/// Creates JSON data representing a material.
-Map<String, dynamic> givenMaterialJson({
+/// Creates JSON data representing a resource.
+Map<String, dynamic> givenResourceJson({
   int id = 1,
   String title = '📕 Introduction to Algorithms',
   int status = 0,
@@ -509,7 +509,7 @@ Map<String, dynamic> givenMaterialJson({
   String? details,
   String website = 'https://example.com/course',
   String? price,
-  int materialGroup = 1,
+  int resourceGroup = 1,
   List<int>? courses,
 }) {
   return {
@@ -520,25 +520,25 @@ Map<String, dynamic> givenMaterialJson({
     'details': details,
     'website': website,
     'price': price,
-    'material_group': materialGroup,
+    'material_group': resourceGroup,
     'courses': courses ?? [],
   };
 }
 
-/// Verifies that a [MaterialModel] matches the expected JSON data.
-void verifyMaterialMatchesJson(
-  MaterialModel material,
+/// Verifies that a [ResourceModel] matches the expected JSON data.
+void verifyResourceMatchesJson(
+  ResourceModel resource,
   Map<String, dynamic> json,
 ) {
-  expect(material.id, equals(json['id']));
-  expect(material.title, equals(json['title']));
-  expect(material.status, equals(json['status']));
-  expect(material.condition, equals(json['condition']));
-  expect(material.details, equals(json['details']));
-  expect(material.website, equals(json['website']));
-  expect(material.price, equals(json['price']));
-  expect(material.materialGroup, equals(json['material_group']));
-  expect(material.courses, equals(json['courses']));
+  expect(resource.id, equals(json['id']));
+  expect(resource.title, equals(json['title']));
+  expect(resource.status, equals(json['status']));
+  expect(resource.condition, equals(json['condition']));
+  expect(resource.details, equals(json['details']));
+  expect(resource.website, equals(json['website']));
+  expect(resource.price, equals(json['price']));
+  expect(resource.resourceGroup, equals(json['material_group']));
+  expect(resource.courses, equals(json['courses']));
 }
 
 // ============================================================================

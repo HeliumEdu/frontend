@@ -14,7 +14,7 @@ class CalendarItemFormController extends BasicFormController {
   final gradeFocusNode = FocusNode();
   int? selectedCourse;
   int? selectedCategory;
-  List<int> selectedMaterials = [];
+  List<int> selectedResources = [];
   bool isAllDay = false;
   bool isCompleted = false;
   bool showEndDateTime = false;

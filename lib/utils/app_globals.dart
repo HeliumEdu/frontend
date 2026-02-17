@@ -58,7 +58,7 @@ class FallbackConstants {
   static const defaultWhatsNewVersionSeen = 0;
   static const defaultShowGettingStarted = false;
   static const defaultEventsColor = '#418eb9'; // seedColor hex
-  static const defaultMaterialColor = '#418eb9'; // seedColor hex
+  static const defaultResourceColor = '#418eb9'; // seedColor hex
   static const defaultGradeColor = '#418eb9'; // seedColor hex
   static const defaultCalendarUseCategoryColors = false;
   static const defaultRememberFilterState = false;
@@ -123,7 +123,7 @@ class ReminderConstants {
       _listToDropDownItems(offsetTypes);
 }
 
-class MaterialConstants {
+class ResourceConstants {
   static final List<String> status = [
     'Owned',
     'Rented',

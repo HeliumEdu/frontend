@@ -24,8 +24,8 @@ import 'package:heliumapp/data/models/planner/external_calendar_event_model.dart
 import 'package:heliumapp/data/models/planner/external_calendar_model.dart';
 import 'package:heliumapp/data/models/planner/grade_course_group_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
-import 'package:heliumapp/data/models/planner/material_group_model.dart';
-import 'package:heliumapp/data/models/planner/material_model.dart';
+import 'package:heliumapp/data/models/planner/resource_group_model.dart';
+import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/standalone.dart' as tz;
@@ -72,7 +72,7 @@ class MockModels {
     bool showGettingStarted = false,
     bool isSetupComplete = true,
     Color eventsColor = const Color(0xFF4CAF50),
-    Color materialColor = const Color(0xFF2196F3),
+    Color resourceColor = const Color(0xFF2196F3),
     Color gradeColor = const Color(0xFFFF9800),
     int defaultReminderType = 3,
     int defaultReminderOffset = 15,
@@ -92,7 +92,7 @@ class MockModels {
       showGettingStarted: showGettingStarted,
       isSetupComplete: isSetupComplete,
       eventsColor: eventsColor,
-      materialColor: materialColor,
+      resourceColor: resourceColor,
       gradeColor: gradeColor,
       defaultReminderType: defaultReminderType,
       defaultReminderOffset: defaultReminderOffset,
@@ -314,21 +314,21 @@ class MockModels {
     );
   }
 
-  /// Creates a mock [MaterialGroupModel] with default or custom values.
-  static MaterialGroupModel createMaterialGroup({
+  /// Creates a mock [ResourceGroupModel] with default or custom values.
+  static ResourceGroupModel createResourceGroup({
     int id = 1,
     String title = 'Textbooks',
     bool shownOnCalendar = true,
   }) {
-    return MaterialGroupModel(
+    return ResourceGroupModel(
       id: id,
       title: title,
       shownOnCalendar: shownOnCalendar,
     );
   }
 
-  /// Creates a mock [MaterialModel] with default or custom values.
-  static MaterialModel createMaterial({
+  /// Creates a mock [ResourceModel] with default or custom values.
+  static ResourceModel createResource({
     int id = 1,
     String title = 'Introduction to Algorithms',
     int status = 0,
@@ -336,10 +336,10 @@ class MockModels {
     String? details,
     String website = 'https://example.com/material',
     String? price,
-    int materialGroup = 1,
+    int resourceGroup = 1,
     List<int>? courses,
   }) {
-    return MaterialModel(
+    return ResourceModel(
       id: id,
       title: title,
       status: status,
@@ -347,27 +347,27 @@ class MockModels {
       details: details,
       website: website,
       price: price,
-      materialGroup: materialGroup,
+      resourceGroup: resourceGroup,
       courses: courses ?? [],
     );
   }
 
-  /// Creates a list of mock [MaterialGroupModel] instances.
-  static List<MaterialGroupModel> createMaterialGroups({int count = 2}) {
+  /// Creates a list of mock [ResourceGroupModel] instances.
+  static List<ResourceGroupModel> createResourceGroups({int count = 2}) {
     final titles = ['Textbooks', 'Course Materials', 'Lab Equipment'];
     return List.generate(
       count,
-      (index) => createMaterialGroup(
+      (index) => createResourceGroup(
         id: index + 1,
         title: titles[index % titles.length],
       ),
     );
   }
 
-  /// Creates a list of mock [MaterialModel] instances.
-  static List<MaterialModel> createMaterials({
+  /// Creates a list of mock [ResourceModel] instances.
+  static List<ResourceModel> createResources({
     int count = 3,
-    int materialGroup = 1,
+    int resourceGroup = 1,
   }) {
     final titles = [
       'Introduction to Algorithms',
@@ -376,10 +376,10 @@ class MockModels {
     ];
     return List.generate(
       count,
-      (index) => createMaterial(
+      (index) => createResource(
         id: index + 1,
         title: titles[index % titles.length],
-        materialGroup: materialGroup,
+        resourceGroup: resourceGroup,
       ),
     );
   }
@@ -555,7 +555,7 @@ class MockModels {
       currentGrade: currentGrade,
       course: IdOrEntity<CourseModel>(id: courseId),
       category: IdOrEntity<CategoryModel>(id: categoryId),
-      materials: [],
+      resources: [],
     );
   }
 

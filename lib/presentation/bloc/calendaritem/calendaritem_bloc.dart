@@ -12,13 +12,13 @@ import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
-import 'package:heliumapp/data/models/planner/material_model.dart';
+import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/domain/repositories/category_repository.dart';
 import 'package:heliumapp/domain/repositories/course_repository.dart';
 import 'package:heliumapp/domain/repositories/course_schedule_event_repository.dart';
 import 'package:heliumapp/domain/repositories/event_repository.dart';
 import 'package:heliumapp/domain/repositories/homework_repository.dart';
-import 'package:heliumapp/domain/repositories/material_repository.dart';
+import 'package:heliumapp/domain/repositories/resource_repository.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_event.dart';
 import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_state.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
@@ -29,7 +29,7 @@ class CalendarItemBloc extends Bloc<CalendarItemEvent, CalendarItemState> {
   final CourseRepository courseRepository;
   final CourseScheduleRepository courseScheduleRepository;
   final CategoryRepository categoryRepository;
-  final MaterialRepository materialRepository;
+  final ResourceRepository resourceRepository;
 
   CalendarItemBloc({
     required this.eventRepository,
@@ -37,7 +37,7 @@ class CalendarItemBloc extends Bloc<CalendarItemEvent, CalendarItemState> {
     required this.courseRepository,
     required this.categoryRepository,
     required this.courseScheduleRepository,
-    required this.materialRepository,
+    required this.resourceRepository,
   }) : super(CalendarItemInitial(origin: EventOrigin.bloc)) {
     on<FetchCalendarItemScreenDataEvent>(_onFetchCalendarItemScreenDataEvent);
     on<FetchEventEvent>(_onFetchEvent);
@@ -61,14 +61,14 @@ class CalendarItemBloc extends Bloc<CalendarItemEvent, CalendarItemState> {
       final List<CourseModel> courses;
       final List<CourseScheduleModel> courseSchedules;
       final List<CategoryModel> categories;
-      final List<MaterialModel> materials;
+      final List<ResourceModel> resources;
       if (event.eventId != null) {
         calendarItem = await eventRepository.getEvent(id: event.eventId!);
         courseGroups = [];
         courses = [];
         courseSchedules = [];
         categories = [];
-        materials = [];
+        resources = [];
       } else {
         if (event.homeworkId != null) {
           calendarItem = await homeworkRepository.getHomework(
@@ -87,7 +87,7 @@ class CalendarItemBloc extends Bloc<CalendarItemEvent, CalendarItemState> {
         categories = await categoryRepository.getCategories(
           shownOnCalendar: true,
         );
-        materials = await materialRepository.getMaterials(
+        resources = await resourceRepository.getResources(
           shownOnCalendar: true,
         );
       }
@@ -100,7 +100,7 @@ class CalendarItemBloc extends Bloc<CalendarItemEvent, CalendarItemState> {
           courses: courses,
           courseSchedules: courseSchedules,
           categories: categories,
-          materials: materials,
+          resources: resources,
         ),
       );
     } on HeliumException catch (e) {

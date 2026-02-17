@@ -60,7 +60,7 @@ class UserSettingsModel {
   final bool showGettingStarted;
   final bool isSetupComplete;
   final Color eventsColor;
-  final Color materialColor;
+  final Color resourceColor;
   final Color gradeColor;
   final int defaultReminderType;
   final int defaultReminderOffset;
@@ -79,7 +79,7 @@ class UserSettingsModel {
     required this.showGettingStarted,
     required this.isSetupComplete,
     required this.eventsColor,
-    required this.materialColor,
+    required this.resourceColor,
     required this.gradeColor,
     required this.defaultReminderType,
     required this.defaultReminderOffset,
@@ -100,7 +100,7 @@ class UserSettingsModel {
       showGettingStarted: json['show_getting_started'] ?? false,
       isSetupComplete: json['is_setup_complete'] ?? true,
       eventsColor: HeliumColors.hexToColor(json['events_color']),
-      materialColor: HeliumColors.hexToColor(json['material_color']),
+      resourceColor: HeliumColors.hexToColor(json['material_color']),
       gradeColor: HeliumColors.hexToColor(json['grade_color']),
       defaultReminderType: json['default_reminder_type'],
       defaultReminderOffset: json['default_reminder_offset'],
@@ -121,7 +121,7 @@ class UserSettingsModel {
       'show_getting_started': showGettingStarted,
       'is_setup_complete': isSetupComplete,
       'events_color': eventsColor,
-      'material_color': materialColor,
+      'material_color': resourceColor,
       'grade_color': gradeColor,
       'default_reminder_type': defaultReminderOffset,
       'default_reminder_offset': defaultReminderOffset,
