@@ -66,7 +66,7 @@ class CourseModel extends BaseTitledModel {
       startDate: DateTime.parse(json['start_date']),
       endDate: DateTime.parse(json['end_date']),
       room: json['room'],
-      credits: HeliumConversion.toDouble(json['credits'])!,
+      credits: toDouble(json['credits'])!,
       color: HeliumColors.hexToColor(json['color']),
       website: json['website'],
       isOnline: json['is_online'],
@@ -78,8 +78,8 @@ class CourseModel extends BaseTitledModel {
               ?.map((schedule) => CourseScheduleModel.fromJson(schedule))
               .toList() ??
           [],
-      currentGrade: HeliumConversion.toDouble(json['current_grade']),
-      trend: HeliumConversion.toDouble(json['trend']),
+      currentGrade: toDouble(json['current_grade']),
+      trend: toDouble(json['trend']),
       numDays: json['num_days'],
       numDaysCompleted: json['num_days_completed'],
       hasWeightedGrading: json['has_weighted_grading'],

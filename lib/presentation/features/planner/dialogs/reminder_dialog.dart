@@ -122,9 +122,11 @@ class _ReminderWidgetState extends BaseDialogState<_ReminderProvidedWidget> {
             (rt) => rt.id == _formController.reminderType,
           ),
           items: ReminderConstants.typeItems
-              .where((t) =>
-                  t.id == _formController.reminderType ||
-                  (t.id != 2 && t.id != 0))
+              .where(
+                (t) =>
+                    t.id == _formController.reminderType ||
+                    (t.id != 2 && t.id != 0),
+              )
               .toList(),
           onChanged: (value) {
             setState(() {
@@ -139,9 +141,7 @@ class _ReminderWidgetState extends BaseDialogState<_ReminderProvidedWidget> {
           children: [
             Expanded(
               flex: 2,
-              child: SpinnerField(
-                controller: _formController.offsetController,
-              ),
+              child: SpinnerField(controller: _formController.offsetController),
             ),
             const SizedBox(width: 8),
             Expanded(
@@ -171,7 +171,7 @@ class _ReminderWidgetState extends BaseDialogState<_ReminderProvidedWidget> {
     if (_formController.formKey.currentState!.validate()) {
       final request = widget.createReminderRequest(
         _formController.messageController.text.trim(),
-        HeliumConversion.toInt(_formController.offsetController.text.trim())!,
+        toInt(_formController.offsetController.text.trim())!,
         _formController.reminderOffsetType,
         _formController.reminderType,
       );

@@ -32,7 +32,7 @@ class GradeCourseGroupModel extends BaseTitledModel {
     return GradeCourseGroupModel(
       id: json['id'],
       title: json['title'],
-      overallGrade: HeliumConversion.toDouble(json['overall_grade'])!,
+      overallGrade: toDouble(json['overall_grade'])!,
       gradePoints:
           (json['grade_points'] as List<dynamic>?)
               ?.map((point) => point as List<dynamic>)

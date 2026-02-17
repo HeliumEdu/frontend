@@ -246,7 +246,7 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${ReminderConstants.types[reminder.type]} ${Format.reminderOffset(reminder)} before',
+                      '${ReminderConstants.types[reminder.type]} ${reminderOffset(reminder)} before',
                       style: AppStyles.standardBodyTextLight(context).copyWith(
                         color: context.colorScheme.onSurface.withValues(
                           alpha: 0.9,

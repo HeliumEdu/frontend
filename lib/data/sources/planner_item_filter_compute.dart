@@ -198,7 +198,7 @@ bool _passesFilters(FilterableItem item, FilterParams params) {
 /// This ensures consistent sorting between sync and async code paths.
 void _sortByStartThenTitle(List<FilterableItem> list) {
   list.sort((a, b) {
-    return PlannerSortHelpers.comparePlannerItems(
+    return Sort.comparePlannerItems(
       aType: a.type,
       bType: b.type,
       aAllDay: a.allDay,
