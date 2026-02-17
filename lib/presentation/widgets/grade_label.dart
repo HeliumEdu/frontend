@@ -14,16 +14,27 @@ class GradeLabel extends StatelessWidget {
   final String grade;
   final UserSettingsModel userSettings;
   final bool compact;
+  final bool selectable;
 
   const GradeLabel({
     super.key,
     required this.grade,
     required this.userSettings,
     this.compact = false,
+    this.selectable = true,
   });
 
   @override
   Widget build(BuildContext context) {
+    final gradeTextStyle =
+        (compact
+                ? AppStyles.smallSecondaryText(context)
+                : AppStyles.standardBodyText(context))
+            .copyWith(color: userSettings.gradeColor);
+    final Widget gradeTextWidget = selectable
+        ? SelectableText(grade, style: gradeTextStyle)
+        : Text(grade, style: gradeTextStyle);
+
     return IntrinsicHeight(
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -64,16 +75,7 @@ class GradeLabel extends StatelessWidget {
                 color: userSettings.gradeColor.withValues(alpha: 0.2),
               ),
             ),
-            child: Center(
-              child: SelectableText(
-                grade,
-                style:
-                    (compact
-                            ? AppStyles.smallSecondaryText(context)
-                            : AppStyles.standardBodyText(context))
-                        .copyWith(color: userSettings.gradeColor),
-              ),
-            ),
+            child: Center(child: gradeTextWidget),
           ),
         ],
       ),

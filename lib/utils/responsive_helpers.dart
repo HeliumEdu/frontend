@@ -20,34 +20,58 @@ class ResponsiveBreakpoints {
 enum DeviceType { mobile, tablet, desktop }
 
 class Responsive {
+  static bool isIOSPlatform() => defaultTargetPlatform == TargetPlatform.iOS;
+
+  static bool isAndroidPlatform() =>
+      defaultTargetPlatform == TargetPlatform.android;
+
   static bool isMobile(BuildContext context) {
-    return MediaQuery.of(context).size.width < ResponsiveBreakpoints.mobile;
+    return isMobileWidth(MediaQuery.of(context).size.width);
   }
 
   static bool isTablet(BuildContext context) {
-    final double width = MediaQuery.of(context).size.width;
+    return isTabletWidth(MediaQuery.of(context).size.width);
+  }
+
+  static bool isDesktop(BuildContext context) {
+    return isDesktopWidth(MediaQuery.of(context).size.width);
+  }
+
+  static bool isMobileWidth(double width) {
+    return width < ResponsiveBreakpoints.mobile;
+  }
+
+  static bool isTabletWidth(double width) {
     return width >= ResponsiveBreakpoints.mobile &&
         width < ResponsiveBreakpoints.tablet;
   }
 
-  static bool isDesktop(BuildContext context) {
-    return MediaQuery.of(context).size.width >= ResponsiveBreakpoints.tablet;
+  static bool isDesktopWidth(double width) {
+    return width >= ResponsiveBreakpoints.tablet;
+  }
+
+  static int getColumnCountForWidth(
+    double width, {
+    required int mobile,
+    required int tablet,
+    required int desktop,
+  }) {
+    final deviceType = getDeviceTypeFromSize(Size(width, 0));
+    switch (deviceType) {
+      case DeviceType.desktop:
+        return desktop;
+      case DeviceType.tablet:
+        return tablet;
+      case DeviceType.mobile:
+        return mobile;
+    }
   }
 
   /// - Native iOS/Android → true
   /// - Web on mobile/tablet browser → true (Flutter detects the platform)
   /// - Desktop (native or web) → false
   static bool isTouchDevice(BuildContext context) {
-    switch (defaultTargetPlatform) {
-      case TargetPlatform.iOS:
-      case TargetPlatform.android:
-        return true;
-      case TargetPlatform.macOS:
-      case TargetPlatform.windows:
-      case TargetPlatform.linux:
-      case TargetPlatform.fuchsia:
-        return false;
-    }
+    return isIOSPlatform() || isAndroidPlatform();
   }
 
   static DeviceType getDeviceType(BuildContext context) {
@@ -89,6 +113,23 @@ class Responsive {
   }
 
   static double getFontSize(
+    BuildContext context, {
+    required double mobile,
+    double? tablet,
+    double? desktop,
+  }) {
+    final deviceType = getDeviceType(context);
+    switch (deviceType) {
+      case DeviceType.desktop:
+        return desktop ?? tablet ?? mobile;
+      case DeviceType.tablet:
+        return tablet ?? mobile;
+      case DeviceType.mobile:
+        return mobile;
+    }
+  }
+
+  static double getResponsiveValue(
     BuildContext context, {
     required double mobile,
     double? tablet,

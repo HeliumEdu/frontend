@@ -63,6 +63,7 @@ import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/views/core/notification_screen.dart';
 import 'package:heliumapp/presentation/views/settings/settings_screen.dart';
 import 'package:heliumapp/presentation/widgets/error_card.dart';
+import 'package:heliumapp/presentation/widgets/checkbox_toggle_widget.dart';
 import 'package:heliumapp/presentation/widgets/helium_icon_button.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/shadow_container.dart';
@@ -78,6 +79,8 @@ import 'package:timezone/standalone.dart' as tz;
 import 'package:url_launcher/url_launcher.dart';
 
 final _log = Logger('presentation.views');
+
+// TODO: the legacy UI did have hover tooltips for calendar items—they were ugly and may not have provided much value, but we should analyze them as the last feature parity item missing from this page and see if we still want them
 
 class CalendarScreen extends StatelessWidget {
   final DioClient _dioClient = DioClient();
@@ -209,8 +212,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
   List<DateTime> _visibleDates = [];
 
-  bool _forceRefreshCalendarSource = false;
-
   CalendarItemDataSource? _calendarItemDataSource;
 
   @override
@@ -309,20 +310,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           if (state is CalendarScreenDataFetched) {
             _populateInitialCalendarStateData(state);
 
-            if (_forceRefreshCalendarSource) {
-              final visibleStart = _visibleDates.isNotEmpty
-                  ? _visibleDates.first
-                  : null;
-              final visibleEnd = _visibleDates.isNotEmpty
-                  ? _visibleDates.last
-                  : null;
-
-              _calendarItemDataSource!.refreshCalendarSources(
-                visibleStart: visibleStart,
-                visibleEnd: visibleEnd,
-              );
-            }
-
             // Check if we should open a dialog based on query parameters
             final openDialog = GoRouterState.of(
               context,
@@ -354,7 +341,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
           if (_calendarItemDataSource == null) return;
 
           if (state is EventCreated) {
-            showSnackBar(context, 'Event created');
             _calendarItemDataSource!.addCalendarItem(state.event);
           } else if (state is EventUpdated) {
             // No snackbar on updates
@@ -363,7 +349,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             showSnackBar(context, 'Event deleted');
             _calendarItemDataSource!.removeCalendarItem(state.id);
           } else if (state is HomeworkCreated) {
-            showSnackBar(context, 'Assignment created');
             _calendarItemDataSource!.addCalendarItem(state.homework);
           } else if (state is HomeworkUpdated) {
             // No snackbar on updates
@@ -407,12 +392,6 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
             setState(() {
               userSettings = state.user.settings;
             });
-          } else if (state is AuthExampleScheduleDeleted) {
-            _log.info('Example schedule deleted, refreshing the calendar');
-
-            _forceRefreshCalendarSource = true;
-
-            context.read<CalendarBloc>().add(FetchCalendarScreenDataEvent());
           }
         },
       ),
@@ -2858,6 +2837,59 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
                       StatefulBuilder(
                         builder: (context, setStatusMenuState) {
+                          final statuses =
+                              _calendarItemDataSource!.filterStatuses;
+                          final isCompleteFilterEnabled =
+                              statuses.contains('Complete') ||
+                              statuses.contains('Incomplete');
+                          final showCompletedOnly = statuses.contains(
+                            'Complete',
+                          );
+                          final isGradedFilterEnabled =
+                              statuses.contains('Graded') ||
+                              statuses.contains('Ungraded');
+                          final showGradedOnly = statuses.contains('Graded');
+
+                          void setCompleteFilterMode({
+                            required bool enabled,
+                            required bool completeOnly,
+                          }) {
+                            final currentStatuses = Set<String>.from(
+                              _calendarItemDataSource!.filterStatuses,
+                            );
+                            currentStatuses.remove('Complete');
+                            currentStatuses.remove('Incomplete');
+                            if (enabled) {
+                              currentStatuses.add(
+                                completeOnly ? 'Complete' : 'Incomplete',
+                              );
+                            }
+                            _calendarItemDataSource!.setFilterStatuses(
+                              currentStatuses,
+                            );
+                            setStatusMenuState(() {});
+                          }
+
+                          void setGradedFilterMode({
+                            required bool enabled,
+                            required bool gradedOnly,
+                          }) {
+                            final currentStatuses = Set<String>.from(
+                              _calendarItemDataSource!.filterStatuses,
+                            );
+                            currentStatuses.remove('Graded');
+                            currentStatuses.remove('Ungraded');
+                            if (enabled) {
+                              currentStatuses.add(
+                                gradedOnly ? 'Graded' : 'Ungraded',
+                              );
+                            }
+                            _calendarItemDataSource!.setFilterStatuses(
+                              currentStatuses,
+                            );
+                            setStatusMenuState(() {});
+                          }
+
                           Widget buildStatusTile(String label) {
                             final isChecked = _calendarItemDataSource!
                                 .filterStatuses
@@ -2890,8 +2922,60 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
 
                           return Column(
                             children: [
-                              buildStatusTile('Complete'),
-                              buildStatusTile('Incomplete'),
+                              CheckboxToggleWidget(
+                                isChecked: isCompleteFilterEnabled,
+                                isToggleOn: showCompletedOnly,
+                                baseLabel: 'Complete',
+                                toggleOnLabel: 'Complete',
+                                toggleOffLabel: 'Incomplete',
+                                onCheckedChanged: (value) {
+                                  setCompleteFilterMode(
+                                    enabled: value ?? false,
+                                    // Default to complete-only when enabling via checkbox.
+                                    completeOnly: true,
+                                  );
+                                },
+                                onToggleChanged: (value) {
+                                  setCompleteFilterMode(
+                                    enabled: true,
+                                    completeOnly: value,
+                                  );
+                                },
+                                onToggleTapWhenDisabled: () {
+                                  setCompleteFilterMode(
+                                    enabled: true,
+                                    // If switch is tapped first, enable and show complete-only.
+                                    completeOnly: true,
+                                  );
+                                },
+                              ),
+                              CheckboxToggleWidget(
+                                isChecked: isGradedFilterEnabled,
+                                isToggleOn: showGradedOnly,
+                                baseLabel: 'Graded',
+                                toggleOnLabel: 'Graded',
+                                toggleOffLabel: 'Ungraded',
+                                onCheckedChanged: (value) {
+                                  setGradedFilterMode(
+                                    enabled: value ?? false,
+                                    // Default to graded-only when enabling via checkbox.
+                                    gradedOnly: true,
+                                  );
+                                },
+                                onToggleChanged: (value) {
+                                  setGradedFilterMode(
+                                    enabled: true,
+                                    gradedOnly: value,
+                                  );
+                                },
+                                onToggleTapWhenDisabled: () {
+                                  setGradedFilterMode(
+                                    enabled: true,
+                                    // If switch is tapped first, enable and show graded-only.
+                                    gradedOnly: true,
+                                  );
+                                },
+                              ),
                               buildStatusTile('Overdue'),
                             ],
                           );

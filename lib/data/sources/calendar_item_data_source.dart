@@ -26,6 +26,7 @@ import 'package:heliumapp/domain/repositories/event_repository.dart';
 import 'package:heliumapp/domain/repositories/external_calendar_repository.dart';
 import 'package:heliumapp/domain/repositories/homework_repository.dart';
 import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
@@ -62,6 +63,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   int _todosItemsPerPage = 10;
   final Map<int, bool> _completedOverrides = {};
   final Map<int, CalendarItemTimeOverride> _timeOverrides = {};
+
   /// Maps calendar item ID to its position in the sorted list for items at the
   /// same base time. Used to apply seconds-based adjustments that encode the full
   /// sort order (type --> course --> title) into times seen by SfCalendar.
@@ -202,7 +204,10 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     // Timed events: subtract seconds to encode sort order
     final priority = typeSortPriority[item.calendarItemType] ?? 0;
     final position = _sortPositions[item.id] ?? 0;
-    final adjustment = getTimedEventStartTimeAdjustmentSeconds(priority, position);
+    final adjustment = getTimedEventStartTimeAdjustmentSeconds(
+      priority,
+      position,
+    );
     return baseTime.subtract(Duration(seconds: adjustment));
   }
 
@@ -300,11 +305,17 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   }
 
   @override
-  Future<void> handleLoadMore(DateTime startDate, DateTime endDate, {bool forceRefresh = false}) async {
+  Future<void> handleLoadMore(
+    DateTime startDate,
+    DateTime endDate, {
+    bool forceRefresh = false,
+  }) async {
     final key = _cacheKey(startDate, endDate);
 
     if (forceRefresh || !_dateRangeCache.containsKey(key)) {
-      _log.info('Fetching data for range: $startDate to $endDate${forceRefresh ? ' (force refresh)' : ''}');
+      _log.info(
+        'Fetching data for range: $startDate to $endDate${forceRefresh ? ' (force refresh)' : ''}',
+      );
 
       final homeworks = await homeworkRepository.getHomeworks(
         from: startDate,
@@ -719,6 +730,10 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     return cachedHomework?.completed ?? homework.completed;
   }
 
+  bool _isHomeworkGraded(HomeworkModel homework) {
+    return GradeHelper.parseGrade(homework.currentGrade) != null;
+  }
+
   /// Schedules filter application with debouncing to prevent the UI from
   /// hanging. Use compute() to run filtering on a background isolate.
   void _applyFiltersAndNotify() {
@@ -830,12 +845,14 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
       int? categoryId;
       String? ownerId;
       bool completed = false;
+      bool graded = false;
 
       if (item is HomeworkModel) {
         type = CalendarItemType.homework;
         courseId = item.course.id;
         categoryId = item.category.id;
         completed = item.completed;
+        graded = _isHomeworkGraded(item);
       } else if (item is EventModel) {
         type = CalendarItemType.event;
       } else if (item is CourseScheduleEventModel) {
@@ -858,6 +875,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
         end: item.end,
         allDay: item.allDay,
         completed: completed,
+        graded: graded,
         courseId: courseId,
         categoryId: categoryId,
         ownerId: ownerId,
@@ -976,6 +994,12 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
         final bool isOverdue =
             !isCompleted && homework.start.isBefore(DateTime.now());
         matches = matches || isOverdue;
+      }
+      if (_filterStatuses.contains('Graded')) {
+        matches = matches || _isHomeworkGraded(homework);
+      }
+      if (_filterStatuses.contains('Ungraded')) {
+        matches = matches || !_isHomeworkGraded(homework);
       }
       return matches;
     }).toList();

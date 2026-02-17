@@ -36,7 +36,7 @@ class HeliumElevatedButton extends StatelessWidget {
 
     return ElevatedButton.icon(
       onPressed: isLoading || !enabled ? null : () => {onPressed()},
-      icon: icon != null
+      icon: !isLoading && icon != null
           ? Icon(icon, size: 16, color: effectiveIconColor)
           : null,
       style: ElevatedButton.styleFrom(
@@ -58,7 +58,9 @@ class HeliumElevatedButton extends StatelessWidget {
               style: enabled
                   ? AppStyles.buttonText(context)
                   : AppStyles.buttonText(context).copyWith(
-                      color: context.colorScheme.onSurface.withValues(alpha: 0.38),
+                      color: context.colorScheme.onSurface.withValues(
+                        alpha: 0.38,
+                      ),
                     ),
             ),
     );

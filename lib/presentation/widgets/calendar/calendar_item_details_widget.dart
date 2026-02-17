@@ -40,7 +40,7 @@ import 'package:heliumapp/presentation/widgets/material_title_label.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
-import 'package:heliumapp/utils/format_helpers.dart';
+import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:timezone/standalone.dart' as tz;
@@ -622,13 +622,14 @@ class CalendarItemDetailsWidgetState extends State<CalendarItemDetailsWidget> {
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9\./]')),
                     ],
                     focusNode: _formController.gradeFocusNode,
+                    onFieldSubmitted: _onGradeFieldSubmitted,
                   ),
                 ),
                 const SizedBox(width: 8),
                 SizedBox(
                   width: 98,
                   child: GradeLabel(
-                    grade: Format.gradeForDisplay(
+                    grade: GradeHelper.gradeForDisplay(
                       _formController.gradeController.text.trim(),
                     ),
                     userSettings: widget.userSettings!,
@@ -821,6 +822,21 @@ class CalendarItemDetailsWidgetState extends State<CalendarItemDetailsWidget> {
 
   int _getPriorityValue() {
     return _formController.priorityValue.round();
+  }
+
+  void _onGradeFieldSubmitted(String _) {
+    _submitAfterGradeBlur();
+  }
+
+  Future<void> _submitAfterGradeBlur() async {
+    if (_formController.gradeFocusNode.hasFocus) {
+      _formController.gradeFocusNode.unfocus();
+      // Let blur listeners normalize grade input before form validation runs.
+      await Future<void>.delayed(Duration.zero);
+    }
+
+    if (!mounted) return;
+    await onSubmit();
   }
 
   Future<void> onSubmit() async {

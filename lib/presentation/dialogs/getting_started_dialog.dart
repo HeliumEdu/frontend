@@ -7,6 +7,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_bloc.dart';
 import 'package:heliumapp/presentation/bloc/auth/auth_event.dart';
@@ -24,6 +26,7 @@ class _GettingStartedDialogWidget extends StatelessWidget {
       listener: (context, state) {
         if (state is AuthExampleScheduleDeleted) {
           Navigator.pop(context);
+          context.go(AppRoute.coursesScreen);
         } else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -92,7 +95,7 @@ class _GettingStartedDialogWidget extends StatelessWidget {
                             icon: Icons.bar_chart_outlined,
                             title: 'Track your grades',
                             description:
-                                'Check out Grades to see how your scores break down by class—great for staying on top of your progress.',
+                                'Check out Grades to see how your scores break down by class—great for seeing your progress and helping you decide where to focus next.',
                           ),
                           const SizedBox(height: 12),
                           _buildFeatureItem(
