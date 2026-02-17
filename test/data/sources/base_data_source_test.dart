@@ -86,8 +86,8 @@ void main() {
         test('parses Map validation errors with List values', () {
           // GIVEN
           final error = givenValidationException({
-            'username': ['Username is required', 'Username must be unique'],
-            'email': ['Invalid email format'],
+            'email': ['Email is required', 'Email must be unique'],
+            'password': ['Password is too short'],
           });
 
           // WHEN
@@ -96,8 +96,8 @@ void main() {
           // THEN
           expect(result, isA<ValidationException>());
           expect(result.code, equals('400'));
-          expect(result.message, contains('username'));
           expect(result.message, contains('email'));
+          expect(result.message, contains('password'));
         });
 
         test('parses Map validation errors with String values', () {
@@ -168,7 +168,9 @@ void main() {
 
         test('includes details in ValidationException', () {
           // GIVEN
-          final responseData = {'username': ['Required']};
+          final responseData = {
+            'email': ['Required'],
+          };
           final error = givenValidationException(responseData);
 
           // WHEN
@@ -315,36 +317,42 @@ void main() {
       });
 
       group('unknown errors', () {
-        test('returns NetworkException with NO_INTERNET for SocketException', () {
-          // GIVEN
-          final error = givenDioException(
-            type: DioExceptionType.unknown,
-            message: 'SocketException: Connection refused',
-          );
+        test(
+          'returns NetworkException with NO_INTERNET for SocketException',
+          () {
+            // GIVEN
+            final error = givenDioException(
+              type: DioExceptionType.unknown,
+              message: 'SocketException: Connection refused',
+            );
 
-          // WHEN
-          final result = dataSource.handleDioError(error, StackTrace.current);
+            // WHEN
+            final result = dataSource.handleDioError(error, StackTrace.current);
 
-          // THEN
-          expect(result, isA<NetworkException>());
-          expect(result.code, equals('NO_INTERNET'));
-          expect(result.message, contains('No internet'));
-        });
+            // THEN
+            expect(result, isA<NetworkException>());
+            expect(result.code, equals('NO_INTERNET'));
+            expect(result.message, contains('No internet'));
+          },
+        );
 
-        test('returns NetworkException with UNKNOWN for other unknown errors', () {
-          // GIVEN
-          final error = givenDioException(
-            type: DioExceptionType.unknown,
-            message: 'Some other error',
-          );
+        test(
+          'returns NetworkException with UNKNOWN for other unknown errors',
+          () {
+            // GIVEN
+            final error = givenDioException(
+              type: DioExceptionType.unknown,
+              message: 'Some other error',
+            );
 
-          // WHEN
-          final result = dataSource.handleDioError(error, StackTrace.current);
+            // WHEN
+            final result = dataSource.handleDioError(error, StackTrace.current);
 
-          // THEN
-          expect(result, isA<NetworkException>());
-          expect(result.code, equals('UNKNOWN'));
-        });
+            // THEN
+            expect(result, isA<NetworkException>());
+            expect(result.code, equals('UNKNOWN'));
+          },
+        );
 
         test('handles null message in unknown error', () {
           // GIVEN
