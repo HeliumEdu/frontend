@@ -13,14 +13,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
-import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
+import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
-import 'package:heliumapp/data/sources/calendar_item_filter_compute.dart';
+import 'package:heliumapp/data/sources/planner_item_filter_compute.dart';
 import 'package:heliumapp/domain/repositories/course_schedule_event_repository.dart';
 import 'package:heliumapp/domain/repositories/event_repository.dart';
 import 'package:heliumapp/domain/repositories/external_calendar_repository.dart';
@@ -33,15 +33,15 @@ import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 final _log = Logger('data.sources');
 
-/// Optimistic override for calendar item start/end times during drag-drop/resize.
-class CalendarItemTimeOverride {
+/// Optimistic override for planner item start/end times during drag-drop/resize.
+class PlannerItemTimeOverride {
   final String start;
   final String end;
 
-  const CalendarItemTimeOverride({required this.start, required this.end});
+  const PlannerItemTimeOverride({required this.start, required this.end});
 }
 
-class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
+class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   final EventRepository eventRepository;
   final HomeworkRepository homeworkRepository;
   final CourseScheduleRepository courseScheduleRepository;
@@ -51,7 +51,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   List<CourseModel>? courses;
   Map<int, CategoryModel>? categoriesMap;
 
-  final Map<String, List<CalendarItemBaseModel>> _dateRangeCache = {};
+  final Map<String, List<PlannerItemBaseModel>> _dateRangeCache = {};
 
   // State
   bool _hasLoadedInitialData = false;
@@ -62,7 +62,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   String _searchQuery = '';
   int _todosItemsPerPage = 10;
   final Map<int, bool> _completedOverrides = {};
-  final Map<int, CalendarItemTimeOverride> _timeOverrides = {};
+  final Map<int, PlannerItemTimeOverride> _timeOverrides = {};
 
   /// Maps calendar item ID to its position in the sorted list for items at the
   /// same base time. Used to apply seconds-based adjustments that encode the full
@@ -78,7 +78,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   @visibleForTesting
   static Duration filterDebounceDuration = const Duration(milliseconds: 16);
 
-  CalendarItemDataSource({
+  PlannerItemDataSource({
     required this.eventRepository,
     required this.homeworkRepository,
     required this.courseScheduleRepository,
@@ -118,7 +118,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     _notifyChangeListeners();
 
     try {
-      _log.info('Refreshing calendar sources - clearing cache');
+      _log.info('Refreshing planner sources - clearing cache');
       _dateRangeCache.clear();
       _hasLoadedInitialData = false;
 
@@ -164,10 +164,10 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   Map<int, bool> get completedOverrides =>
       Map.unmodifiable(_completedOverrides);
 
-  /// Returns all calendar items from all cached date ranges, deduplicated by id.
-  List<CalendarItemBaseModel> get allCalendarItems {
+  /// Returns all planner items from all cached date ranges, deduplicated by id.
+  List<PlannerItemBaseModel> get allPlannerItems {
     final seen = <int>{};
-    final items = <CalendarItemBaseModel>[];
+    final items = <PlannerItemBaseModel>[];
     for (final rangeItems in _dateRangeCache.values) {
       for (final item in rangeItems) {
         if (seen.add(item.id)) {
@@ -179,8 +179,8 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   }
 
   @override
-  CalendarItemBaseModel? convertAppointmentToObject(
-    CalendarItemBaseModel? customData,
+  PlannerItemBaseModel? convertAppointmentToObject(
+    PlannerItemBaseModel? customData,
     Appointment appointment,
   ) {
     return customData;
@@ -202,7 +202,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     }
 
     // Timed events: subtract seconds to encode sort order
-    final priority = typeSortPriority[item.calendarItemType] ?? 0;
+    final priority = typeSortPriority[item.plannerItemType] ?? 0;
     final position = _sortPositions[item.id] ?? 0;
     final adjustment = getTimedEventStartTimeAdjustmentSeconds(
       priority,
@@ -213,26 +213,26 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
 
   @override
   DateTime getEndTime(int index) {
-    final calendarItem = _getData(index);
+    final plannerItem = _getData(index);
 
     // Check for optimistic override first (drag-drop/resize - still strings)
-    final override = _timeOverrides[calendarItem.id];
+    final override = _timeOverrides[plannerItem.id];
     final startTime = override != null
         ? DateTime.parse(override.start)
-        : calendarItem.start;
+        : plannerItem.start;
     final endTime = override != null
         ? DateTime.parse(override.end)
-        : calendarItem.end;
+        : plannerItem.end;
 
     // All-day events: sort order is encoded in start time, just adjust end for display
-    if (calendarItem.allDay) {
+    if (plannerItem.allDay) {
       final adjustedEnd = endTime.subtract(const Duration(days: 1));
       return adjustedEnd.isBefore(startTime) ? startTime : adjustedEnd;
     }
 
     // Timed events: subtract to encode sort order (uses minutes to avoid visible shortening)
-    final priority = typeSortPriority[calendarItem.calendarItemType] ?? 0;
-    final position = _sortPositions[calendarItem.id] ?? 0;
+    final priority = typeSortPriority[plannerItem.plannerItemType] ?? 0;
+    final position = _sortPositions[plannerItem.id] ?? 0;
     final adjustment = getTimedEventEndTimeAdjustment(priority, position);
     return endTime.subtract(adjustment);
   }
@@ -261,12 +261,12 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     return null;
   }
 
-  Color getColorForItem(CalendarItemBaseModel calendarItem) {
-    if (calendarItem is EventModel) {
+  Color getColorForItem(PlannerItemBaseModel plannerItem) {
+    if (plannerItem is EventModel) {
       return userSettings.eventsColor;
-    } else if (calendarItem is HomeworkModel) {
+    } else if (plannerItem is HomeworkModel) {
       if (userSettings.colorByCategory) {
-        final category = categoriesMap?[calendarItem.category.id];
+        final category = categoriesMap?[plannerItem.category.id];
         if (category != null) {
           return category.color;
         }
@@ -274,11 +274,11 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
 
       // Get course color, or fallback
       final course = courses?.firstWhereOrNull(
-        (c) => c.id == calendarItem.course.id,
+        (c) => c.id == plannerItem.course.id,
       );
       return course?.color ?? FallbackConstants.fallbackColor;
     } else {
-      return calendarItem.color ?? FallbackConstants.fallbackColor;
+      return plannerItem.color ?? FallbackConstants.fallbackColor;
     }
   }
 
@@ -289,18 +289,18 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     return '${fromKey.toIso8601String()}_${toKey.toIso8601String()}';
   }
 
-  String? getLocationForItem(CalendarItemBaseModel calendarItem) {
-    if (calendarItem is HomeworkModel) {
+  String? getLocationForItem(PlannerItemBaseModel plannerItem) {
+    if (plannerItem is HomeworkModel) {
       final course = courses?.firstWhereOrNull(
-        (c) => c.id == calendarItem.course.id,
+        (c) => c.id == plannerItem.course.id,
       );
       return course?.room;
-    } else if (calendarItem is CourseScheduleEventModel) {
-      final courseId = int.tryParse(calendarItem.ownerId);
+    } else if (plannerItem is CourseScheduleEventModel) {
+      final courseId = int.tryParse(plannerItem.ownerId);
       final course = courses?.firstWhereOrNull((c) => c.id == courseId);
       return course?.room;
     } else {
-      return calendarItem.location;
+      return plannerItem.location;
     }
   }
 
@@ -344,7 +344,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
             forceRefresh: forceRefresh,
           );
 
-      final calendarItems = [
+      final plannerItems = [
         ...events,
         ...homeworks,
         ...courseScheduleEvents,
@@ -356,7 +356,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
         '${externalCalendarEvents.length} external events',
       );
 
-      _dateRangeCache[key] = calendarItems;
+      _dateRangeCache[key] = plannerItems;
     } else {
       _log.fine('Items for date range already cached: $startDate to $endDate');
     }
@@ -380,22 +380,22 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     }
   }
 
-  CalendarItemBaseModel _getData(int index) {
-    return appointments![index] as CalendarItemBaseModel;
+  PlannerItemBaseModel _getData(int index) {
+    return appointments![index] as PlannerItemBaseModel;
   }
 
   // Typed getters for all items
   List<HomeworkModel> get allHomeworks =>
-      allCalendarItems.whereType<HomeworkModel>().toList();
+      allPlannerItems.whereType<HomeworkModel>().toList();
 
   List<EventModel> get allEvents =>
-      allCalendarItems.whereType<EventModel>().toList();
+      allPlannerItems.whereType<EventModel>().toList();
 
   List<CourseScheduleEventModel> get allCourseScheduleEvents =>
-      allCalendarItems.whereType<CourseScheduleEventModel>().toList();
+      allPlannerItems.whereType<CourseScheduleEventModel>().toList();
 
   List<ExternalCalendarEventModel> get allExternalCalendarEvents =>
-      allCalendarItems.whereType<ExternalCalendarEventModel>().toList();
+      allPlannerItems.whereType<ExternalCalendarEventModel>().toList();
 
   List<HomeworkModel> get filteredHomeworks {
     var homeworks = allHomeworks;
@@ -408,8 +408,8 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     return homeworks;
   }
 
-  List<CalendarItemBaseModel> get _filteredCalendarItems {
-    final items = <CalendarItemBaseModel>[];
+  List<PlannerItemBaseModel> get _filteredPlannerItems {
+    final items = <PlannerItemBaseModel>[];
     final includeAllTypes = _filterTypes.isEmpty;
 
     // Homeworks - use filteredHomeworks, which already has all filters applied
@@ -440,7 +440,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     return items;
   }
 
-  List<T> _applySearchFilterToItems<T extends CalendarItemBaseModel>(
+  List<T> _applySearchFilterToItems<T extends PlannerItemBaseModel>(
     List<T> items,
   ) {
     if (_searchQuery.isEmpty) return items;
@@ -564,21 +564,21 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     }
   }
 
-  void addCalendarItem(CalendarItemBaseModel calendarItem) {
+  void addPlannerItem(PlannerItemBaseModel plannerItem) {
     // Check if already exists in any cache entry
     for (final items in _dateRangeCache.values) {
-      if (items.any((existing) => existing.id == calendarItem.id)) {
+      if (items.any((existing) => existing.id == plannerItem.id)) {
         return;
       }
     }
 
     _log.info(
-      'Calendar item added: ${calendarItem.runtimeType} ${calendarItem.id} "${calendarItem.title}"',
+      'Calendar item added: ${plannerItem.runtimeType} ${plannerItem.id} "${plannerItem.title}"',
     );
 
     // Add to all cache entries whose range overlaps with this item's dates
-    final itemStart = calendarItem.start;
-    final itemEnd = calendarItem.end;
+    final itemStart = plannerItem.start;
+    final itemEnd = plannerItem.end;
 
     for (final entry in _dateRangeCache.entries) {
       final parts = entry.key.split('_');
@@ -587,7 +587,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
 
       // Check if item overlaps with this cached range
       if (itemStart.isBefore(rangeEnd) && itemEnd.isAfter(rangeStart)) {
-        entry.value.add(calendarItem);
+        entry.value.add(plannerItem);
       }
     }
 
@@ -595,47 +595,47 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     // async refilter for proper sorting. This provides better UX as users
     // see their added items immediately.
     if (!appointments!.any(
-      (item) => (item as CalendarItemBaseModel).id == calendarItem.id,
+      (item) => (item as PlannerItemBaseModel).id == plannerItem.id,
     )) {
-      appointments!.add(calendarItem);
-      Sort.byStartThenTitle(appointments!.cast<CalendarItemBaseModel>());
-      _buildSortPositions(appointments!.cast<CalendarItemBaseModel>());
-      notifyListeners(CalendarDataSourceAction.add, [calendarItem]);
+      appointments!.add(plannerItem);
+      Sort.byStartThenTitle(appointments!.cast<PlannerItemBaseModel>());
+      _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
+      notifyListeners(CalendarDataSourceAction.add, [plannerItem]);
     }
 
     _applyFiltersAndNotify();
   }
 
-  void updateCalendarItem(CalendarItemBaseModel calendarItem) {
+  void updatePlannerItem(PlannerItemBaseModel plannerItem) {
     bool updated = false;
 
     // Update in all cache entries where the item exists
     for (final items in _dateRangeCache.values) {
       final index = items.indexWhere(
-        (existing) => existing.id == calendarItem.id,
+        (existing) => existing.id == plannerItem.id,
       );
       if (index != -1) {
-        items[index] = calendarItem;
+        items[index] = plannerItem;
         updated = true;
       }
     }
 
     if (updated) {
       _log.info(
-        'Calendar item updated: ${calendarItem.runtimeType} ${calendarItem.id} "${calendarItem.title}"',
+        'Calendar item updated: ${plannerItem.runtimeType} ${plannerItem.id} "${plannerItem.title}"',
       );
     }
 
     // Clear any overrides since we have real data now
-    if (calendarItem is HomeworkModel) {
-      _completedOverrides.remove(calendarItem.id);
+    if (plannerItem is HomeworkModel) {
+      _completedOverrides.remove(plannerItem.id);
     }
-    _timeOverrides.remove(calendarItem.id);
+    _timeOverrides.remove(plannerItem.id);
 
     // Find and update the item directly, using targeted, to reduce unnecessary
     // rebuilds and reduce the potential for UI flickers
     final oldIndex = appointments!.indexWhere(
-      (item) => (item as CalendarItemBaseModel).id == calendarItem.id,
+      (item) => (item as PlannerItemBaseModel).id == plannerItem.id,
     );
 
     if (oldIndex != -1) {
@@ -644,10 +644,10 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
       notifyListeners(CalendarDataSourceAction.remove, [oldItem]);
 
       // Re-add at correct sorted position
-      appointments!.add(calendarItem);
-      Sort.byStartThenTitle(appointments!.cast<CalendarItemBaseModel>());
-      _buildSortPositions(appointments!.cast<CalendarItemBaseModel>());
-      notifyListeners(CalendarDataSourceAction.add, [calendarItem]);
+      appointments!.add(plannerItem);
+      Sort.byStartThenTitle(appointments!.cast<PlannerItemBaseModel>());
+      _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
+      notifyListeners(CalendarDataSourceAction.add, [plannerItem]);
     } else {
       // Item not in current view, do full refresh
       _applyFiltersAndNotify();
@@ -656,13 +656,13 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     _notifyChangeListeners();
   }
 
-  void removeCalendarItem(int calendarItemId) {
-    CalendarItemBaseModel? removedItem;
+  void removePlannerItem(int plannerItemId) {
+    PlannerItemBaseModel? removedItem;
 
     // Remove from all cache entries where the item exists
     for (final items in _dateRangeCache.values) {
       final index = items.indexWhere(
-        (existing) => existing.id == calendarItemId,
+        (existing) => existing.id == plannerItemId,
       );
       if (index != -1) {
         removedItem ??= items[index];
@@ -672,12 +672,12 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
 
     if (removedItem != null) {
       _log.info(
-        'Calendar item removed: ${removedItem.runtimeType} $calendarItemId "${removedItem.title}"',
+        'Calendar item removed: ${removedItem.runtimeType} $plannerItemId "${removedItem.title}"',
       );
       appointments!.remove(removedItem);
-      _completedOverrides.remove(calendarItemId);
-      _sortPositions.remove(calendarItemId);
-      _buildSortPositions(appointments!.cast<CalendarItemBaseModel>());
+      _completedOverrides.remove(plannerItemId);
+      _sortPositions.remove(plannerItemId);
+      _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
       notifyListeners(CalendarDataSourceAction.remove, [removedItem]);
       _notifyChangeListeners();
     }
@@ -698,11 +698,11 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
 
   // Optimistic UI methods for drag-drop/resize
   void setTimeOverride(int itemId, String start, String end) {
-    _timeOverrides[itemId] = CalendarItemTimeOverride(start: start, end: end);
+    _timeOverrides[itemId] = PlannerItemTimeOverride(start: start, end: end);
 
     // Re-sort and rebuild positions to maintain correct order with new time
-    Sort.byStartThenTitle(appointments!.cast<CalendarItemBaseModel>());
-    _buildSortPositions(appointments!.cast<CalendarItemBaseModel>());
+    Sort.byStartThenTitle(appointments!.cast<PlannerItemBaseModel>());
+    _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
 
     notifyListeners(CalendarDataSourceAction.reset, appointments!);
     _notifyChangeListeners();
@@ -712,7 +712,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     _timeOverrides.remove(itemId);
   }
 
-  CalendarItemTimeOverride? getTimeOverride(int itemId) =>
+  PlannerItemTimeOverride? getTimeOverride(int itemId) =>
       _timeOverrides[itemId];
 
   bool isHomeworkCompleted(HomeworkModel homework) {
@@ -754,13 +754,13 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   /// but runs on the main thread without compute().
   void _applyFiltersSynchronously() {
     appointments!.clear();
-    appointments!.addAll(_filteredCalendarItems);
+    appointments!.addAll(_filteredPlannerItems);
 
     // Build sort position map to encode full sort order in time adjustments
-    _buildSortPositions(_filteredCalendarItems);
+    _buildSortPositions(_filteredPlannerItems);
 
     _log.fine(
-      'Filters applied (sync): ${appointments!.length} of ${allCalendarItems.length} items visible',
+      'Filters applied (sync): ${appointments!.length} of ${allPlannerItems.length} items visible',
     );
     notifyListeners(CalendarDataSourceAction.reset, appointments!);
     _notifyChangeListeners();
@@ -789,7 +789,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     _filterCompleter = null;
 
     try {
-      final items = allCalendarItems;
+      final items = allPlannerItems;
       final filterableItems = _convertToFilterableItems(items);
 
       final params = FilterParams(
@@ -834,13 +834,13 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   }
 
   List<FilterableItem> _convertToFilterableItems(
-    List<CalendarItemBaseModel> items,
+    List<PlannerItemBaseModel> items,
   ) {
     return items.asMap().entries.map((entry) {
       final index = entry.key;
       final item = entry.value;
 
-      CalendarItemType type;
+      PlannerItemType type;
       int? courseId;
       int? categoryId;
       String? ownerId;
@@ -848,21 +848,21 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
       bool graded = false;
 
       if (item is HomeworkModel) {
-        type = CalendarItemType.homework;
+        type = PlannerItemType.homework;
         courseId = item.course.id;
         categoryId = item.category.id;
         completed = item.completed;
         graded = _isHomeworkGraded(item);
       } else if (item is EventModel) {
-        type = CalendarItemType.event;
+        type = PlannerItemType.event;
       } else if (item is CourseScheduleEventModel) {
-        type = CalendarItemType.courseSchedule;
+        type = PlannerItemType.courseSchedule;
         ownerId = item.ownerId;
       } else if (item is ExternalCalendarEventModel) {
-        type = CalendarItemType.external;
+        type = PlannerItemType.external;
         ownerId = item.ownerId;
       } else {
-        type = CalendarItemType.event;
+        type = PlannerItemType.event;
       }
 
       return FilterableItem(
@@ -891,11 +891,11 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
   /// Builds a map of item IDs to their position within items at the same time.
   /// This position is used to apply seconds-based adjustments that encode the full
   /// sort order (type --> course --> title) into the times seen by SfCalendar.
-  void _buildSortPositions(List<CalendarItemBaseModel> sortedItems) {
+  void _buildSortPositions(List<PlannerItemBaseModel> sortedItems) {
     _sortPositions.clear();
 
     // Group items by their base time (without any adjustments)
-    final itemsByBaseTime = <String, List<CalendarItemBaseModel>>{};
+    final itemsByBaseTime = <String, List<PlannerItemBaseModel>>{};
 
     for (final item in sortedItems) {
       // Use only date + hour + minute for grouping (ignore seconds/milliseconds)
@@ -1014,7 +1014,7 @@ class CalendarItemDataSource extends CalendarDataSource<CalendarItemBaseModel> {
     }).toList();
   }
 
-  bool _matchesSearch(CalendarItemBaseModel item, String query) {
+  bool _matchesSearch(PlannerItemBaseModel item, String query) {
     if (item.title.toLowerCase().contains(query)) {
       return true;
     }

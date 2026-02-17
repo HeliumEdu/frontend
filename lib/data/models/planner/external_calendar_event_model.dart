@@ -6,13 +6,13 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:heliumapp/data/models/planner/attachment_model.dart';
-import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
+import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 
-class ExternalCalendarEventModel extends CalendarItemBaseModel {
+class ExternalCalendarEventModel extends PlannerItemBaseModel {
   final String ownerId;
 
   ExternalCalendarEventModel({
@@ -29,7 +29,7 @@ class ExternalCalendarEventModel extends CalendarItemBaseModel {
     required super.reminders,
     required super.color,
     required this.ownerId,
-  }) : super(calendarItemType: CalendarItemType.external);
+  }) : super(plannerItemType: PlannerItemType.external);
 
   factory ExternalCalendarEventModel.fromJson(Map<String, dynamic> json) {
     return ExternalCalendarEventModel(

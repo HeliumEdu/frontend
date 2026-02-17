@@ -13,7 +13,7 @@ import 'package:heliumapp/data/models/planner/attachment_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 
-abstract class CalendarItemBaseModel extends BaseTitledModel {
+abstract class PlannerItemBaseModel extends BaseTitledModel {
   final bool allDay;
   final bool showEndTime;
   final DateTime start;
@@ -23,11 +23,11 @@ abstract class CalendarItemBaseModel extends BaseTitledModel {
   final String comments;
   final Color? color;
   final String? location;
-  final CalendarItemType calendarItemType;
+  final PlannerItemType plannerItemType;
   final List<IdOrEntity<AttachmentModel>> attachments;
   final List<IdOrEntity<ReminderModel>> reminders;
 
-  CalendarItemBaseModel({
+  PlannerItemBaseModel({
     required super.id,
     required super.title,
     required this.allDay,
@@ -39,7 +39,7 @@ abstract class CalendarItemBaseModel extends BaseTitledModel {
     required this.comments,
     this.color,
     this.location,
-    required this.calendarItemType,
+    required this.plannerItemType,
     required this.attachments,
     required this.reminders,
   });
@@ -57,7 +57,7 @@ abstract class CalendarItemBaseModel extends BaseTitledModel {
       'comments': comments,
       'attachments': attachments,
       'reminders': reminders,
-      'calendar_item_type': calendarItemType,
+      'calendar_item_type': plannerItemType,
     };
   }
 }

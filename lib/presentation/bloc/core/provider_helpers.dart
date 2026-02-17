@@ -25,15 +25,15 @@ import 'package:heliumapp/data/sources/external_calendar_remote_data_source.dart
 import 'package:heliumapp/data/sources/homework_remote_data_source.dart';
 import 'package:heliumapp/data/sources/resource_remote_data_source.dart';
 import 'package:heliumapp/presentation/bloc/attachment/attachment_bloc.dart';
-import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
+import 'package:heliumapp/presentation/bloc/planneritem/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_bloc.dart';
 
 
 class ProviderHelpers {
   final DioClient _dioClient = DioClient();
 
-  CalendarItemBloc Function(BuildContext context) createCalendarItemBloc() {
-    return (context) => CalendarItemBloc(
+  PlannerItemBloc Function(BuildContext context) createPlannerItemBloc() {
+    return (context) => PlannerItemBloc(
       eventRepository: EventRepositoryImpl(
         remoteDataSource: EventRemoteDataSourceImpl(dioClient: _dioClient),
       ),

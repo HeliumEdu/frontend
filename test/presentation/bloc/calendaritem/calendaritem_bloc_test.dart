@@ -10,9 +10,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
-import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
-import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_event.dart';
-import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_state.dart';
+import 'package:heliumapp/presentation/bloc/planneritem/planneritem_bloc.dart';
+import 'package:heliumapp/presentation/bloc/planneritem/planneritem_event.dart';
+import 'package:heliumapp/presentation/bloc/planneritem/planneritem_state.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -27,7 +27,7 @@ void main() {
   late MockCourseScheduleRepository mockCourseScheduleRepository;
   late MockCategoryRepository mockCategoryRepository;
   late MockResourceRepository mockResourceRepository;
-  late CalendarItemBloc calendarItemBloc;
+  late PlannerItemBloc plannerItemBloc;
 
   setUpAll(() {
     registerFallbackValues();
@@ -40,7 +40,7 @@ void main() {
     mockCourseScheduleRepository = MockCourseScheduleRepository();
     mockCategoryRepository = MockCategoryRepository();
     mockResourceRepository = MockResourceRepository();
-    calendarItemBloc = CalendarItemBloc(
+    plannerItemBloc = PlannerItemBloc(
       eventRepository: mockEventRepository,
       homeworkRepository: mockHomeworkRepository,
       courseRepository: mockCourseRepository,
@@ -51,41 +51,41 @@ void main() {
   });
 
   tearDown(() {
-    calendarItemBloc.close();
+    plannerItemBloc.close();
   });
 
-  group('CalendarItemBloc', () {
-    test('initial state is CalendarItemInitial with bloc origin', () {
-      expect(calendarItemBloc.state, isA<CalendarItemInitial>());
+  group('PlannerItemBloc', () {
+    test('initial state is PlannerItemInitial with bloc origin', () {
+      expect(plannerItemBloc.state, isA<PlannerItemInitial>());
     });
 
-    group('FetchCalendarItemScreenDataEvent', () {
-      blocTest<CalendarItemBloc, CalendarItemState>(
-        'emits [CalendarItemsLoading, CalendarItemScreenDataFetched] for event',
+    group('FetchPlannerItemScreenDataEvent', () {
+      blocTest<PlannerItemBloc, PlannerItemState>(
+        'emits [PlannerItemsLoading, PlannerItemScreenDataFetched] for event',
         build: () {
           when(
             () => mockEventRepository.getEvent(id: 1),
           ).thenAnswer((_) async => MockModels.createEvent(id: 1));
-          return calendarItemBloc;
+          return plannerItemBloc;
         },
         act: (bloc) => bloc.add(
-          FetchCalendarItemScreenDataEvent(
+          FetchPlannerItemScreenDataEvent(
             origin: EventOrigin.screen,
             eventId: 1,
           ),
         ),
         expect: () => [
-          isA<CalendarItemsLoading>(),
-          isA<CalendarItemScreenDataFetched>()
-              .having((s) => s.calendarItem?.id, 'event id', 1)
+          isA<PlannerItemsLoading>(),
+          isA<PlannerItemScreenDataFetched>()
+              .having((s) => s.plannerItem?.id, 'event id', 1)
               .having((s) => s.courseGroups, 'courseGroups', isEmpty)
               .having((s) => s.courses, 'courses', isEmpty)
               .having((s) => s.categories, 'categories', isEmpty),
         ],
       );
 
-      blocTest<CalendarItemBloc, CalendarItemState>(
-        'emits [CalendarItemsLoading, CalendarItemScreenDataFetched] for homework with related data',
+      blocTest<PlannerItemBloc, PlannerItemState>(
+        'emits [PlannerItemsLoading, PlannerItemScreenDataFetched] for homework with related data',
         build: () {
           when(
                 () => mockCourseRepository.getCourseGroups(shownOnCalendar: true),
@@ -107,26 +107,26 @@ void main() {
           when(
             () => mockResourceRepository.getResources(shownOnCalendar: true),
           ).thenAnswer((_) async => MockModels.createResources());
-          return calendarItemBloc;
+          return plannerItemBloc;
         },
         act: (bloc) => bloc.add(
-          FetchCalendarItemScreenDataEvent(
+          FetchPlannerItemScreenDataEvent(
             origin: EventOrigin.screen,
             homeworkId: 1,
           ),
         ),
         expect: () => [
-          isA<CalendarItemsLoading>(),
-          isA<CalendarItemScreenDataFetched>()
-              .having((s) => s.calendarItem?.id, 'homework id', 1)
+          isA<PlannerItemsLoading>(),
+          isA<PlannerItemScreenDataFetched>()
+              .having((s) => s.plannerItem?.id, 'homework id', 1)
               .having((s) => s.courseGroups.length, 'courseGroups length', 2)
               .having((s) => s.courses.length, 'courses length', 3)
               .having((s) => s.categories.length, 'categories length', 3),
         ],
       );
 
-      blocTest<CalendarItemBloc, CalendarItemState>(
-        'emits [CalendarItemsLoading, CalendarItemScreenDataFetched] for new homework (no id)',
+      blocTest<PlannerItemBloc, PlannerItemState>(
+        'emits [PlannerItemsLoading, PlannerItemScreenDataFetched] for new homework (no id)',
         build: () {
           when(
                 () => mockCourseRepository.getCourseGroups(shownOnCalendar: true),
@@ -145,37 +145,37 @@ void main() {
           when(
             () => mockResourceRepository.getResources(shownOnCalendar: true),
           ).thenAnswer((_) async => MockModels.createResources());
-          return calendarItemBloc;
+          return plannerItemBloc;
         },
         act: (bloc) => bloc.add(
-          FetchCalendarItemScreenDataEvent(origin: EventOrigin.screen),
+          FetchPlannerItemScreenDataEvent(origin: EventOrigin.screen),
         ),
         expect: () => [
-          isA<CalendarItemsLoading>(),
-          isA<CalendarItemScreenDataFetched>()
-              .having((s) => s.calendarItem, 'calendar item', isNull)
+          isA<PlannerItemsLoading>(),
+          isA<PlannerItemScreenDataFetched>()
+              .having((s) => s.plannerItem, 'calendar item', isNull)
               .having((s) => s.courseGroups.length, 'courseGroups length', 2)
               .having((s) => s.courses.length, 'courses length', 3),
         ],
       );
 
-      blocTest<CalendarItemBloc, CalendarItemState>(
-        'emits [CalendarItemsLoading, CalendarItemsError] when fetch fails',
+      blocTest<PlannerItemBloc, PlannerItemState>(
+        'emits [PlannerItemsLoading, PlannerItemsError] when fetch fails',
         build: () {
           when(
             () => mockEventRepository.getEvent(id: 999),
           ).thenThrow(NotFoundException(message: 'Event not found'));
-          return calendarItemBloc;
+          return plannerItemBloc;
         },
         act: (bloc) => bloc.add(
-          FetchCalendarItemScreenDataEvent(
+          FetchPlannerItemScreenDataEvent(
             origin: EventOrigin.screen,
             eventId: 999,
           ),
         ),
         expect: () => [
-          isA<CalendarItemsLoading>(),
-          isA<CalendarItemsError>().having(
+          isA<PlannerItemsLoading>(),
+          isA<PlannerItemsError>().having(
             (e) => e.message,
             'message',
             'Event not found',
@@ -186,39 +186,39 @@ void main() {
 
     group('Event CRUD operations', () {
       group('FetchEventEvent', () {
-        blocTest<CalendarItemBloc, CalendarItemState>(
-          'emits [CalendarItemsLoading, EventFetched] when fetch succeeds',
+        blocTest<PlannerItemBloc, PlannerItemState>(
+          'emits [PlannerItemsLoading, EventFetched] when fetch succeeds',
           build: () {
             when(
               () => mockEventRepository.getEvent(id: 1),
             ).thenAnswer((_) async => MockModels.createEvent(id: 1));
-            return calendarItemBloc;
+            return plannerItemBloc;
           },
           act: (bloc) => bloc.add(
             FetchEventEvent(origin: EventOrigin.screen, eventId: 1),
           ),
           expect: () => [
-            isA<CalendarItemsLoading>(),
+            isA<PlannerItemsLoading>(),
             isA<EventFetched>()
                 .having((s) => s.event.id, 'event id', 1)
                 .having((s) => s.isEvent, 'isEvent', isTrue),
           ],
         );
 
-        blocTest<CalendarItemBloc, CalendarItemState>(
-          'emits [CalendarItemsLoading, CalendarItemsError] when event not found',
+        blocTest<PlannerItemBloc, PlannerItemState>(
+          'emits [PlannerItemsLoading, PlannerItemsError] when event not found',
           build: () {
             when(
               () => mockEventRepository.getEvent(id: 999),
             ).thenThrow(NotFoundException(message: 'Event not found'));
-            return calendarItemBloc;
+            return plannerItemBloc;
           },
           act: (bloc) => bloc.add(
             FetchEventEvent(origin: EventOrigin.screen, eventId: 999),
           ),
           expect: () => [
-            isA<CalendarItemsLoading>(),
-            isA<CalendarItemsError>().having(
+            isA<PlannerItemsLoading>(),
+            isA<PlannerItemsError>().having(
               (e) => e.message,
               'message',
               'Event not found',
@@ -236,41 +236,41 @@ void main() {
           end: '2025-01-15T11:00:00Z',
         );
 
-        blocTest<CalendarItemBloc, CalendarItemState>(
-          'emits [CalendarItemsLoading, EventCreated] when creation succeeds',
+        blocTest<PlannerItemBloc, PlannerItemState>(
+          'emits [PlannerItemsLoading, EventCreated] when creation succeeds',
           build: () {
             when(
               () => mockEventRepository.createEvent(request: any(named: 'request')),
             ).thenAnswer(
               (_) async => MockModels.createEvent(id: 10, title: 'New Event'),
             );
-            return calendarItemBloc;
+            return plannerItemBloc;
           },
           act: (bloc) => bloc.add(
             CreateEventEvent(origin: EventOrigin.dialog, request: request),
           ),
           expect: () => [
-            isA<CalendarItemsLoading>(),
+            isA<PlannerItemsLoading>(),
             isA<EventCreated>()
                 .having((s) => s.event.id, 'event id', 10)
                 .having((s) => s.advanceNavOnSuccess, 'advanceNavOnSuccess', isTrue),
           ],
         );
 
-        blocTest<CalendarItemBloc, CalendarItemState>(
-          'emits [CalendarItemsLoading, CalendarItemsError] when creation fails',
+        blocTest<PlannerItemBloc, PlannerItemState>(
+          'emits [PlannerItemsLoading, PlannerItemsError] when creation fails',
           build: () {
             when(
               () => mockEventRepository.createEvent(request: any(named: 'request')),
             ).thenThrow(ValidationException(message: 'Invalid event data'));
-            return calendarItemBloc;
+            return plannerItemBloc;
           },
           act: (bloc) => bloc.add(
             CreateEventEvent(origin: EventOrigin.dialog, request: request),
           ),
           expect: () => [
-            isA<CalendarItemsLoading>(),
-            isA<CalendarItemsError>().having(
+            isA<PlannerItemsLoading>(),
+            isA<PlannerItemsError>().having(
               (e) => e.message,
               'message',
               'Invalid event data',
@@ -289,8 +289,8 @@ void main() {
           end: '2025-01-15T12:00:00Z',
         );
 
-        blocTest<CalendarItemBloc, CalendarItemState>(
-          'emits [CalendarItemsLoading, EventUpdated] when update succeeds',
+        blocTest<PlannerItemBloc, PlannerItemState>(
+          'emits [PlannerItemsLoading, EventUpdated] when update succeeds',
           build: () {
             when(
               () => mockEventRepository.updateEvent(
@@ -303,7 +303,7 @@ void main() {
                 title: 'Updated Event',
               ),
             );
-            return calendarItemBloc;
+            return plannerItemBloc;
           },
           act: (bloc) => bloc.add(
             UpdateEventEvent(
@@ -313,15 +313,15 @@ void main() {
             ),
           ),
           expect: () => [
-            isA<CalendarItemsLoading>(),
+            isA<PlannerItemsLoading>(),
             isA<EventUpdated>()
                 .having((s) => s.event.id, 'event id', eventId)
                 .having((s) => s.event.title, 'title', 'Updated Event'),
           ],
         );
 
-        blocTest<CalendarItemBloc, CalendarItemState>(
-          'emits [CalendarItemsLoading, CalendarItemsError] when update fails',
+        blocTest<PlannerItemBloc, PlannerItemState>(
+          'emits [PlannerItemsLoading, PlannerItemsError] when update fails',
           build: () {
             when(
               () => mockEventRepository.updateEvent(
@@ -329,7 +329,7 @@ void main() {
                 request: any(named: 'request'),
               ),
             ).thenThrow(NotFoundException(message: 'Event not found'));
-            return calendarItemBloc;
+            return plannerItemBloc;
           },
           act: (bloc) => bloc.add(
             UpdateEventEvent(
@@ -339,8 +339,8 @@ void main() {
             ),
           ),
           expect: () => [
-            isA<CalendarItemsLoading>(),
-            isA<CalendarItemsError>().having(
+            isA<PlannerItemsLoading>(),
+            isA<PlannerItemsError>().having(
               (e) => e.message,
               'message',
               'Event not found',
@@ -352,37 +352,37 @@ void main() {
       group('DeleteEventEvent', () {
         const eventId = 5;
 
-        blocTest<CalendarItemBloc, CalendarItemState>(
-          'emits [CalendarItemsLoading, EventDeleted] when deletion succeeds',
+        blocTest<PlannerItemBloc, PlannerItemState>(
+          'emits [PlannerItemsLoading, EventDeleted] when deletion succeeds',
           build: () {
             when(
               () => mockEventRepository.deleteEvent(eventId: eventId),
             ).thenAnswer((_) async {});
-            return calendarItemBloc;
+            return plannerItemBloc;
           },
           act: (bloc) => bloc.add(
             DeleteEventEvent(origin: EventOrigin.dialog, id: eventId),
           ),
           expect: () => [
-            isA<CalendarItemsLoading>(),
+            isA<PlannerItemsLoading>(),
             isA<EventDeleted>().having((s) => s.id, 'id', eventId),
           ],
         );
 
-        blocTest<CalendarItemBloc, CalendarItemState>(
-          'emits [CalendarItemsLoading, CalendarItemsError] when deletion fails',
+        blocTest<PlannerItemBloc, PlannerItemState>(
+          'emits [PlannerItemsLoading, PlannerItemsError] when deletion fails',
           build: () {
             when(
               () => mockEventRepository.deleteEvent(eventId: eventId),
             ).thenThrow(ServerException(message: 'Cannot delete event'));
-            return calendarItemBloc;
+            return plannerItemBloc;
           },
           act: (bloc) => bloc.add(
             DeleteEventEvent(origin: EventOrigin.dialog, id: eventId),
           ),
           expect: () => [
-            isA<CalendarItemsLoading>(),
-            isA<CalendarItemsError>().having(
+            isA<PlannerItemsLoading>(),
+            isA<PlannerItemsError>().having(
               (e) => e.message,
               'message',
               'Cannot delete event',
@@ -394,39 +394,39 @@ void main() {
 
     group('Homework CRUD operations', () {
       group('FetchHomeworkEvent', () {
-        blocTest<CalendarItemBloc, CalendarItemState>(
-          'emits [CalendarItemsLoading, HomeworkFetched] when fetch succeeds',
+        blocTest<PlannerItemBloc, PlannerItemState>(
+          'emits [PlannerItemsLoading, HomeworkFetched] when fetch succeeds',
           build: () {
             when(
               () => mockHomeworkRepository.getHomework(id: 1),
             ).thenAnswer((_) async => MockModels.createHomework(id: 1));
-            return calendarItemBloc;
+            return plannerItemBloc;
           },
           act: (bloc) => bloc.add(
             FetchHomeworkEvent(origin: EventOrigin.screen, id: 1),
           ),
           expect: () => [
-            isA<CalendarItemsLoading>(),
+            isA<PlannerItemsLoading>(),
             isA<HomeworkFetched>()
                 .having((s) => s.homework.id, 'homework id', 1)
                 .having((s) => s.isEvent, 'isEvent', isFalse),
           ],
         );
 
-        blocTest<CalendarItemBloc, CalendarItemState>(
-          'emits [CalendarItemsLoading, CalendarItemsError] when homework not found',
+        blocTest<PlannerItemBloc, PlannerItemState>(
+          'emits [PlannerItemsLoading, PlannerItemsError] when homework not found',
           build: () {
             when(
               () => mockHomeworkRepository.getHomework(id: 999),
             ).thenThrow(NotFoundException(message: 'Homework not found'));
-            return calendarItemBloc;
+            return plannerItemBloc;
           },
           act: (bloc) => bloc.add(
             FetchHomeworkEvent(origin: EventOrigin.screen, id: 999),
           ),
           expect: () => [
-            isA<CalendarItemsLoading>(),
-            isA<CalendarItemsError>().having(
+            isA<PlannerItemsLoading>(),
+            isA<PlannerItemsError>().having(
               (e) => e.message,
               'message',
               'Homework not found',
@@ -449,8 +449,8 @@ void main() {
           completed: false,
         );
 
-        blocTest<CalendarItemBloc, CalendarItemState>(
-          'emits [CalendarItemsLoading, HomeworkCreated] when creation succeeds',
+        blocTest<PlannerItemBloc, PlannerItemState>(
+          'emits [PlannerItemsLoading, HomeworkCreated] when creation succeeds',
           build: () {
             when(
               () => mockHomeworkRepository.createHomework(
@@ -464,7 +464,7 @@ void main() {
                 title: 'New Homework',
               ),
             );
-            return calendarItemBloc;
+            return plannerItemBloc;
           },
           act: (bloc) => bloc.add(
             CreateHomeworkEvent(
@@ -475,15 +475,15 @@ void main() {
             ),
           ),
           expect: () => [
-            isA<CalendarItemsLoading>(),
+            isA<PlannerItemsLoading>(),
             isA<HomeworkCreated>()
                 .having((s) => s.homework.id, 'homework id', 10)
                 .having((s) => s.isEvent, 'isEvent', isFalse),
           ],
         );
 
-        blocTest<CalendarItemBloc, CalendarItemState>(
-          'emits [CalendarItemsLoading, CalendarItemsError] when creation fails',
+        blocTest<PlannerItemBloc, PlannerItemState>(
+          'emits [PlannerItemsLoading, PlannerItemsError] when creation fails',
           build: () {
             when(
               () => mockHomeworkRepository.createHomework(
@@ -492,7 +492,7 @@ void main() {
                 request: any(named: 'request'),
               ),
             ).thenThrow(ValidationException(message: 'Invalid homework data'));
-            return calendarItemBloc;
+            return plannerItemBloc;
           },
           act: (bloc) => bloc.add(
             CreateHomeworkEvent(
@@ -503,8 +503,8 @@ void main() {
             ),
           ),
           expect: () => [
-            isA<CalendarItemsLoading>(),
-            isA<CalendarItemsError>().having(
+            isA<PlannerItemsLoading>(),
+            isA<PlannerItemsError>().having(
               (e) => e.message,
               'message',
               'Invalid homework data',
@@ -528,8 +528,8 @@ void main() {
           completed: true,
         );
 
-        blocTest<CalendarItemBloc, CalendarItemState>(
-          'emits [CalendarItemsLoading, HomeworkUpdated] when update succeeds',
+        blocTest<PlannerItemBloc, PlannerItemState>(
+          'emits [PlannerItemsLoading, HomeworkUpdated] when update succeeds',
           build: () {
             when(
               () => mockHomeworkRepository.updateHomework(
@@ -545,7 +545,7 @@ void main() {
                 completed: true,
               ),
             );
-            return calendarItemBloc;
+            return plannerItemBloc;
           },
           act: (bloc) => bloc.add(
             UpdateHomeworkEvent(
@@ -557,15 +557,15 @@ void main() {
             ),
           ),
           expect: () => [
-            isA<CalendarItemsLoading>(),
+            isA<PlannerItemsLoading>(),
             isA<HomeworkUpdated>()
                 .having((s) => s.homework.id, 'homework id', homeworkId)
                 .having((s) => s.homework.completed, 'completed', isTrue),
           ],
         );
 
-        blocTest<CalendarItemBloc, CalendarItemState>(
-          'emits [CalendarItemsLoading, CalendarItemsError] when update fails',
+        blocTest<PlannerItemBloc, PlannerItemState>(
+          'emits [PlannerItemsLoading, PlannerItemsError] when update fails',
           build: () {
             when(
               () => mockHomeworkRepository.updateHomework(
@@ -575,7 +575,7 @@ void main() {
                 request: any(named: 'request'),
               ),
             ).thenThrow(NotFoundException(message: 'Homework not found'));
-            return calendarItemBloc;
+            return plannerItemBloc;
           },
           act: (bloc) => bloc.add(
             UpdateHomeworkEvent(
@@ -587,8 +587,8 @@ void main() {
             ),
           ),
           expect: () => [
-            isA<CalendarItemsLoading>(),
-            isA<CalendarItemsError>().having(
+            isA<PlannerItemsLoading>(),
+            isA<PlannerItemsError>().having(
               (e) => e.message,
               'message',
               'Homework not found',
@@ -602,8 +602,8 @@ void main() {
         const courseId = 2;
         const homeworkId = 5;
 
-        blocTest<CalendarItemBloc, CalendarItemState>(
-          'emits [CalendarItemsLoading, HomeworkDeleted] when deletion succeeds',
+        blocTest<PlannerItemBloc, PlannerItemState>(
+          'emits [PlannerItemsLoading, HomeworkDeleted] when deletion succeeds',
           build: () {
             when(
               () => mockHomeworkRepository.deleteHomework(
@@ -612,7 +612,7 @@ void main() {
                 homeworkId: homeworkId,
               ),
             ).thenAnswer((_) async {});
-            return calendarItemBloc;
+            return plannerItemBloc;
           },
           act: (bloc) => bloc.add(
             DeleteHomeworkEvent(
@@ -623,13 +623,13 @@ void main() {
             ),
           ),
           expect: () => [
-            isA<CalendarItemsLoading>(),
+            isA<PlannerItemsLoading>(),
             isA<HomeworkDeleted>().having((s) => s.id, 'id', homeworkId),
           ],
         );
 
-        blocTest<CalendarItemBloc, CalendarItemState>(
-          'emits [CalendarItemsLoading, CalendarItemsError] when deletion fails',
+        blocTest<PlannerItemBloc, PlannerItemState>(
+          'emits [PlannerItemsLoading, PlannerItemsError] when deletion fails',
           build: () {
             when(
               () => mockHomeworkRepository.deleteHomework(
@@ -638,7 +638,7 @@ void main() {
                 homeworkId: homeworkId,
               ),
             ).thenThrow(ServerException(message: 'Cannot delete homework'));
-            return calendarItemBloc;
+            return plannerItemBloc;
           },
           act: (bloc) => bloc.add(
             DeleteHomeworkEvent(
@@ -649,8 +649,8 @@ void main() {
             ),
           ),
           expect: () => [
-            isA<CalendarItemsLoading>(),
-            isA<CalendarItemsError>().having(
+            isA<PlannerItemsLoading>(),
+            isA<PlannerItemsError>().having(
               (e) => e.message,
               'message',
               'Cannot delete homework',

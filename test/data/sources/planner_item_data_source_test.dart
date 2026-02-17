@@ -16,7 +16,7 @@ import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
-import 'package:heliumapp/data/sources/calendar_item_data_source.dart';
+import 'package:heliumapp/data/sources/planner_item_data_source.dart';
 import 'package:heliumapp/domain/repositories/course_schedule_event_repository.dart';
 import 'package:heliumapp/domain/repositories/event_repository.dart';
 import 'package:heliumapp/domain/repositories/external_calendar_repository.dart';
@@ -37,7 +37,7 @@ class MockExternalCalendarRepository extends Mock
     implements ExternalCalendarRepository {}
 
 void main() {
-  late CalendarItemDataSource dataSource;
+  late PlannerItemDataSource dataSource;
   late MockEventRepository mockEventRepository;
   late MockHomeworkRepository mockHomeworkRepository;
   late MockCourseScheduleRepository mockCourseScheduleRepository;
@@ -48,12 +48,12 @@ void main() {
     TestWidgetsFlutterBinding.ensureInitialized();
     tz.initializeTimeZones();
     // Use synchronous filtering in tests
-    CalendarItemDataSource.filterDebounceDuration = Duration.zero;
+    PlannerItemDataSource.filterDebounceDuration = Duration.zero;
   });
 
   tearDownAll(() {
     // Restore default debounce duration
-    CalendarItemDataSource.filterDebounceDuration = const Duration(
+    PlannerItemDataSource.filterDebounceDuration = const Duration(
       milliseconds: 16,
     );
   });
@@ -113,7 +113,7 @@ void main() {
       isSetupComplete: true,
     );
 
-    dataSource = CalendarItemDataSource(
+    dataSource = PlannerItemDataSource(
       eventRepository: mockEventRepository,
       homeworkRepository: mockHomeworkRepository,
       courseScheduleRepository: mockCourseScheduleRepository,
@@ -121,18 +121,18 @@ void main() {
       userSettings: userSettings,
     );
 
-    // Initialize cache with a wide date range so addCalendarItem works
+    // Initialize cache with a wide date range so addPlannerItem works
     await dataSource.handleLoadMore(
       DateTime(2024, 1, 1),
       DateTime(2026, 12, 31),
     );
   });
 
-  group('CalendarItemDataSource', () {
+  group('PlannerItemDataSource', () {
     group('initialization', () {
       test('initializes with empty appointments', () {
         // Create a fresh data source without setUp's handleLoadMore call
-        final freshDataSource = CalendarItemDataSource(
+        final freshDataSource = PlannerItemDataSource(
           eventRepository: mockEventRepository,
           homeworkRepository: mockHomeworkRepository,
           courseScheduleRepository: mockCourseScheduleRepository,
@@ -141,13 +141,13 @@ void main() {
         );
 
         expect(freshDataSource.appointments, isEmpty);
-        expect(freshDataSource.allCalendarItems, isEmpty);
+        expect(freshDataSource.allPlannerItems, isEmpty);
         expect(freshDataSource.hasLoadedInitialData, isFalse);
       });
 
       test('initializes with empty filter state', () {
         // Create a fresh data source without setUp's handleLoadMore call
-        final freshDataSource = CalendarItemDataSource(
+        final freshDataSource = PlannerItemDataSource(
           eventRepository: mockEventRepository,
           homeworkRepository: mockHomeworkRepository,
           courseScheduleRepository: mockCourseScheduleRepository,
@@ -184,8 +184,8 @@ void main() {
           allDay: false,
         );
 
-        dataSource.addCalendarItem(homework);
-        dataSource.addCalendarItem(event);
+        dataSource.addPlannerItem(homework);
+        dataSource.addPlannerItem(event);
       });
 
       test('getStartTime returns DateTime with priority adjustment', () {
@@ -290,7 +290,7 @@ void main() {
           isSetupComplete: true,
         );
 
-        final colorByCategoryDataSource = CalendarItemDataSource(
+        final colorByCategoryDataSource = PlannerItemDataSource(
           eventRepository: mockEventRepository,
           homeworkRepository: mockHomeworkRepository,
           courseScheduleRepository: mockCourseScheduleRepository,
@@ -372,9 +372,9 @@ void main() {
         homework3 = _createHomeworkModel(id: 3, courseId: 1);
 
         dataSource.courses = [course1, course2];
-        dataSource.addCalendarItem(homework1);
-        dataSource.addCalendarItem(homework2);
-        dataSource.addCalendarItem(homework3);
+        dataSource.addPlannerItem(homework1);
+        dataSource.addPlannerItem(homework2);
+        dataSource.addPlannerItem(homework3);
       });
 
       test('returns all homeworks when no courses selected', () {
@@ -420,8 +420,8 @@ void main() {
           id: 11,
           ownerId: '2',
         );
-        dataSource.addCalendarItem(scheduleEvent1);
-        dataSource.addCalendarItem(scheduleEvent2);
+        dataSource.addPlannerItem(scheduleEvent1);
+        dataSource.addPlannerItem(scheduleEvent2);
 
         dataSource.setFilteredCourses({1: true});
         dataSource.setFilterTypes(['Class Schedules']);
@@ -450,9 +450,9 @@ void main() {
         homework3 = _createHomeworkModel(id: 3, categoryId: 1);
 
         dataSource.categoriesMap = {1: category1, 2: category2};
-        dataSource.addCalendarItem(homework1);
-        dataSource.addCalendarItem(homework2);
-        dataSource.addCalendarItem(homework3);
+        dataSource.addPlannerItem(homework1);
+        dataSource.addPlannerItem(homework2);
+        dataSource.addPlannerItem(homework3);
       });
 
       test('returns all homeworks when no categories filtered', () {
@@ -486,7 +486,7 @@ void main() {
           id: 4,
           categoryEntity: category1,
         );
-        dataSource.addCalendarItem(homeworkWithEntity);
+        dataSource.addPlannerItem(homeworkWithEntity);
 
         dataSource.setFilterCategories(['Assignments']);
         final filtered = dataSource.filteredHomeworks;
@@ -499,7 +499,7 @@ void main() {
         final emptyCategory = _createCategoryModel(id: 3, title: '  ');
         final homework = _createHomeworkModel(id: 5, categoryId: 3);
         dataSource.categoriesMap![3] = emptyCategory;
-        dataSource.addCalendarItem(homework);
+        dataSource.addPlannerItem(homework);
 
         dataSource.setFilterCategories(['Assignments']);
         final filtered = dataSource.filteredHomeworks;
@@ -532,9 +532,9 @@ void main() {
           start: now.subtract(const Duration(days: 1)),
         );
 
-        dataSource.addCalendarItem(completedHomework);
-        dataSource.addCalendarItem(incompleteHomework);
-        dataSource.addCalendarItem(overdueHomework);
+        dataSource.addPlannerItem(completedHomework);
+        dataSource.addPlannerItem(incompleteHomework);
+        dataSource.addPlannerItem(overdueHomework);
       });
 
       test('returns all homeworks when no status filter', () {
@@ -578,7 +578,7 @@ void main() {
           completed: true,
           start: now.subtract(const Duration(days: 1)),
         );
-        dataSource.addCalendarItem(completedOverdue);
+        dataSource.addPlannerItem(completedOverdue);
 
         dataSource.setFilterStatuses({'Overdue'});
         final filtered = dataSource.filteredHomeworks;
@@ -620,9 +620,9 @@ void main() {
           comments: 'Review math notes',
         );
 
-        dataSource.addCalendarItem(homework1);
-        dataSource.addCalendarItem(homework2);
-        dataSource.addCalendarItem(event1);
+        dataSource.addPlannerItem(homework1);
+        dataSource.addPlannerItem(homework2);
+        dataSource.addPlannerItem(event1);
       });
 
       test('returns all items when search query is empty', () {
@@ -683,10 +683,10 @@ void main() {
         scheduleEvent = _createCourseScheduleEventModel(id: 3);
         externalEvent = _createExternalCalendarEventModel(id: 4);
 
-        dataSource.addCalendarItem(homework);
-        dataSource.addCalendarItem(event);
-        dataSource.addCalendarItem(scheduleEvent);
-        dataSource.addCalendarItem(externalEvent);
+        dataSource.addPlannerItem(homework);
+        dataSource.addPlannerItem(event);
+        dataSource.addPlannerItem(scheduleEvent);
+        dataSource.addPlannerItem(externalEvent);
       });
 
       test('returns all items when no type filter', () {
@@ -756,9 +756,9 @@ void main() {
 
         dataSource.courses = [course1];
         dataSource.categoriesMap = {1: category1};
-        dataSource.addCalendarItem(matchingHomework);
-        dataSource.addCalendarItem(nonMatchingCourse);
-        dataSource.addCalendarItem(nonMatchingCategory);
+        dataSource.addPlannerItem(matchingHomework);
+        dataSource.addPlannerItem(nonMatchingCourse);
+        dataSource.addPlannerItem(nonMatchingCategory);
       });
 
       test('applies course and category filters together', () {
@@ -790,66 +790,66 @@ void main() {
     });
 
     group('calendar item management', () {
-      test('addCalendarItem adds new item', () {
+      test('addPlannerItem adds new item', () {
         final homework = _createHomeworkModel(id: 1);
-        dataSource.addCalendarItem(homework);
+        dataSource.addPlannerItem(homework);
 
-        expect(dataSource.allCalendarItems, hasLength(1));
+        expect(dataSource.allPlannerItems, hasLength(1));
         expect(dataSource.appointments, hasLength(1));
-        expect(dataSource.allCalendarItems[0].id, 1);
+        expect(dataSource.allPlannerItems[0].id, 1);
       });
 
-      test('addCalendarItem ignores duplicate', () {
+      test('addPlannerItem ignores duplicate', () {
         final homework = _createHomeworkModel(id: 1);
-        dataSource.addCalendarItem(homework);
-        dataSource.addCalendarItem(homework);
+        dataSource.addPlannerItem(homework);
+        dataSource.addPlannerItem(homework);
 
-        expect(dataSource.allCalendarItems, hasLength(1));
+        expect(dataSource.allPlannerItems, hasLength(1));
       });
 
-      test('updateCalendarItem updates existing item', () {
+      test('updatePlannerItem updates existing item', () {
         final homework = _createHomeworkModel(id: 1, title: 'Original');
-        dataSource.addCalendarItem(homework);
+        dataSource.addPlannerItem(homework);
 
         final updated = _createHomeworkModel(id: 1, title: 'Updated');
-        dataSource.updateCalendarItem(updated);
+        dataSource.updatePlannerItem(updated);
 
-        expect(dataSource.allCalendarItems, hasLength(1));
-        expect(dataSource.allCalendarItems[0].title, 'Updated');
+        expect(dataSource.allPlannerItems, hasLength(1));
+        expect(dataSource.allPlannerItems[0].title, 'Updated');
       });
 
-      test('updateCalendarItem clears completed override', () {
+      test('updatePlannerItem clears completed override', () {
         final homework = _createHomeworkModel(id: 1, completed: false);
-        dataSource.addCalendarItem(homework);
+        dataSource.addPlannerItem(homework);
         dataSource.setCompletedOverride(1, true);
 
         final updated = _createHomeworkModel(id: 1, completed: true);
-        dataSource.updateCalendarItem(updated);
+        dataSource.updatePlannerItem(updated);
 
         expect(dataSource.completedOverrides, isEmpty);
       });
 
-      test('removeCalendarItem removes item', () {
+      test('removePlannerItem removes item', () {
         final homework = _createHomeworkModel(id: 1);
-        dataSource.addCalendarItem(homework);
-        dataSource.removeCalendarItem(1);
+        dataSource.addPlannerItem(homework);
+        dataSource.removePlannerItem(1);
 
-        expect(dataSource.allCalendarItems, isEmpty);
+        expect(dataSource.allPlannerItems, isEmpty);
         expect(dataSource.appointments, isEmpty);
       });
 
-      test('removeCalendarItem clears completed override', () {
+      test('removePlannerItem clears completed override', () {
         final homework = _createHomeworkModel(id: 1);
-        dataSource.addCalendarItem(homework);
+        dataSource.addPlannerItem(homework);
         dataSource.setCompletedOverride(1, true);
-        dataSource.removeCalendarItem(1);
+        dataSource.removePlannerItem(1);
 
         expect(dataSource.completedOverrides, isEmpty);
       });
 
-      test('removeCalendarItem handles non-existent item', () {
-        dataSource.removeCalendarItem(999);
-        expect(dataSource.allCalendarItems, isEmpty);
+      test('removePlannerItem handles non-existent item', () {
+        dataSource.removePlannerItem(999);
+        expect(dataSource.allPlannerItems, isEmpty);
       });
     });
 
@@ -858,7 +858,7 @@ void main() {
 
       setUp(() {
         homework = _createHomeworkModel(id: 1, completed: false);
-        dataSource.addCalendarItem(homework);
+        dataSource.addPlannerItem(homework);
       });
 
       test('setCompletedOverride sets override', () {
@@ -898,7 +898,7 @@ void main() {
           start: DateTime.parse('2025-01-15T10:00:00Z'),
           end: DateTime.parse('2025-01-15T11:00:00Z'),
         );
-        dataSource.addCalendarItem(homework);
+        dataSource.addPlannerItem(homework);
       });
 
       test('setTimeOverride stores override', () {
@@ -963,7 +963,7 @@ void main() {
         );
       });
 
-      test('updateCalendarItem clears time override', () {
+      test('updatePlannerItem clears time override', () {
         dataSource.setTimeOverride(
           1,
           '2025-01-20T09:00:00Z',
@@ -976,7 +976,7 @@ void main() {
           start: DateTime.parse('2025-01-20T09:00:00Z'),
           end: DateTime.parse('2025-01-20T10:00:00Z'),
         );
-        dataSource.updateCalendarItem(updated);
+        dataSource.updatePlannerItem(updated);
 
         expect(dataSource.getTimeOverride(1), isNull);
       });
@@ -987,7 +987,7 @@ void main() {
           start: DateTime.parse('2025-01-15T14:00:00Z'),
           end: DateTime.parse('2025-01-15T15:00:00Z'),
         );
-        dataSource.addCalendarItem(event);
+        dataSource.addPlannerItem(event);
 
         dataSource.setTimeOverride(
           2,
@@ -1008,7 +1008,7 @@ void main() {
           start: DateTime.parse('2025-01-15T10:00:00Z'),
           end: DateTime.parse('2025-01-15T11:00:00Z'),
         );
-        dataSource.addCalendarItem(homework);
+        dataSource.addPlannerItem(homework);
 
         final startTime = dataSource.getStartTime(0);
         // Homework: (3-0)*1000 + (100-0) = 3100 seconds
@@ -1022,7 +1022,7 @@ void main() {
 
       test('course schedule gets 2100 seconds subtracted from start time', () {
         final schedule = _createCourseScheduleEventModel(id: 1);
-        dataSource.addCalendarItem(schedule);
+        dataSource.addPlannerItem(schedule);
 
         final startTime = dataSource.getStartTime(0);
         // CourseSchedule: (3-1)*1000 + (100-0) = 2100 seconds
@@ -1040,7 +1040,7 @@ void main() {
           start: DateTime.parse('2025-01-15T10:00:00Z'),
           end: DateTime.parse('2025-01-15T11:00:00Z'),
         );
-        dataSource.addCalendarItem(event);
+        dataSource.addPlannerItem(event);
 
         final startTime = dataSource.getStartTime(0);
         // Event: (3-2)*1000 + (100-0) = 1100 seconds
@@ -1054,7 +1054,7 @@ void main() {
 
       test('external event gets 100 seconds subtracted from start time', () {
         final external = _createExternalCalendarEventModel(id: 1);
-        dataSource.addCalendarItem(external);
+        dataSource.addPlannerItem(external);
 
         final startTime = dataSource.getStartTime(0);
         // External: (3-3)*1000 + (100-0) = 100 seconds
@@ -1073,7 +1073,7 @@ void main() {
           end: DateTime.parse('2025-01-16T00:00:00Z'),
           allDay: true,
         );
-        dataSource.addCalendarItem(allDayHomework);
+        dataSource.addPlannerItem(allDayHomework);
 
         final startTime = dataSource.getStartTime(0);
         // All-day events should NOT have seconds subtracted (would push to previous day)
@@ -1086,7 +1086,7 @@ void main() {
           start: DateTime.parse('2025-01-15T10:00:00Z'),
           end: DateTime.parse('2025-01-15T11:00:00Z'),
         );
-        dataSource.addCalendarItem(homework);
+        dataSource.addPlannerItem(homework);
 
         final endTime = dataSource.getEndTime(0);
         // Homework: 3 + (100/60) = 4.667 → 4min 40sec
@@ -1104,7 +1104,7 @@ void main() {
           start: DateTime.parse('2025-01-15T10:00:00Z'),
           end: DateTime.parse('2025-01-15T11:00:00Z'),
         );
-        dataSource.addCalendarItem(event);
+        dataSource.addPlannerItem(event);
 
         final endTime = dataSource.getEndTime(0);
         // Event: 1 + (100/60) = 2.667 → 2min 40sec
@@ -1129,8 +1129,8 @@ void main() {
             start: DateTime.parse('2025-01-15T10:00:00Z'),
             end: DateTime.parse('2025-01-15T11:00:00Z'),
           );
-          dataSource.addCalendarItem(event);
-          dataSource.addCalendarItem(homework);
+          dataSource.addPlannerItem(event);
+          dataSource.addPlannerItem(homework);
 
           // Homework (priority 0) gets -3 seconds, Event (priority 2) gets -1 second
           // So homework's adjusted start is earlier and should sort first
@@ -1173,7 +1173,7 @@ void main() {
     });
 
     group('handleLoadMore', () {
-      late CalendarItemDataSource freshDataSource;
+      late PlannerItemDataSource freshDataSource;
 
       setUp(() {
         // Reset mocks to clear calls from outer setUp
@@ -1213,7 +1213,7 @@ void main() {
         ).thenAnswer((_) async => []);
 
         // Create a fresh data source without the pre-loaded cache
-        freshDataSource = CalendarItemDataSource(
+        freshDataSource = PlannerItemDataSource(
           eventRepository: mockEventRepository,
           homeworkRepository: mockHomeworkRepository,
           courseScheduleRepository: mockCourseScheduleRepository,
@@ -1350,7 +1350,7 @@ void main() {
           DateTime(2025, 1, 31),
         );
 
-        expect(freshDataSource.allCalendarItems, hasLength(4));
+        expect(freshDataSource.allPlannerItems, hasLength(4));
         expect(freshDataSource.appointments, hasLength(4));
       });
 
@@ -1375,8 +1375,8 @@ void main() {
           DateTime(2025, 2, 15),
         );
 
-        // allCalendarItems should deduplicate
-        expect(freshDataSource.allCalendarItems, hasLength(1));
+        // allPlannerItems should deduplicate
+        expect(freshDataSource.allPlannerItems, hasLength(1));
       });
 
       test('fetches with shownOnCalendar=true for homework', () async {
@@ -1397,17 +1397,17 @@ void main() {
 
     group('typed getters', () {
       test('allHomeworks returns only HomeworkModels', () {
-        dataSource.addCalendarItem(_createHomeworkModel(id: 101));
-        dataSource.addCalendarItem(_createEventModel(id: 102));
-        dataSource.addCalendarItem(_createHomeworkModel(id: 103));
+        dataSource.addPlannerItem(_createHomeworkModel(id: 101));
+        dataSource.addPlannerItem(_createEventModel(id: 102));
+        dataSource.addPlannerItem(_createHomeworkModel(id: 103));
 
         expect(dataSource.allHomeworks, hasLength(2));
       });
 
       test('allEvents returns only EventModels', () {
-        dataSource.addCalendarItem(_createHomeworkModel(id: 104));
-        dataSource.addCalendarItem(_createEventModel(id: 105));
-        dataSource.addCalendarItem(_createEventModel(id: 106));
+        dataSource.addPlannerItem(_createHomeworkModel(id: 104));
+        dataSource.addPlannerItem(_createEventModel(id: 105));
+        dataSource.addPlannerItem(_createEventModel(id: 106));
 
         expect(dataSource.allEvents, hasLength(2));
       });
@@ -1415,9 +1415,9 @@ void main() {
       test(
         'allCourseScheduleEvents returns only CourseScheduleEventModels',
         () {
-          dataSource.addCalendarItem(_createCourseScheduleEventModel(id: 107));
-          dataSource.addCalendarItem(_createEventModel(id: 108));
-          dataSource.addCalendarItem(_createCourseScheduleEventModel(id: 109));
+          dataSource.addPlannerItem(_createCourseScheduleEventModel(id: 107));
+          dataSource.addPlannerItem(_createEventModel(id: 108));
+          dataSource.addPlannerItem(_createCourseScheduleEventModel(id: 109));
 
           expect(dataSource.allCourseScheduleEvents, hasLength(2));
         },
@@ -1426,11 +1426,11 @@ void main() {
       test(
         'allExternalCalendarEvents returns only ExternalCalendarEventModels',
         () {
-          dataSource.addCalendarItem(
+          dataSource.addPlannerItem(
             _createExternalCalendarEventModel(id: 110),
           );
-          dataSource.addCalendarItem(_createEventModel(id: 111));
-          dataSource.addCalendarItem(
+          dataSource.addPlannerItem(_createEventModel(id: 111));
+          dataSource.addPlannerItem(
             _createExternalCalendarEventModel(id: 112),
           );
 

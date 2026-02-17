@@ -19,7 +19,7 @@ import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_bloc.dart';
 import 'package:heliumapp/presentation/dialogs/getting_started_dialog.dart';
 import 'package:heliumapp/presentation/dialogs/whats_new_dialog.dart';
-import 'package:heliumapp/presentation/views/calendar/planner_screen.dart';
+import 'package:heliumapp/presentation/views/planner/planner_screen.dart';
 import 'package:heliumapp/presentation/views/courses/courses_screen.dart';
 import 'package:heliumapp/presentation/views/grades/grades_screen.dart';
 import 'package:heliumapp/presentation/views/resources/resources_screen.dart';
@@ -79,7 +79,7 @@ class NavigationShellProvider extends InheritedWidget {
 }
 
 enum NavigationPage {
-  calendar('Planner', Icons.calendar_month, AppRoute.plannerScreen),
+  planner('Planner', Icons.calendar_month, AppRoute.plannerScreen),
   courses('Classes', Icons.school, AppRoute.coursesScreen),
   resources('Resources', Icons.book, AppRoute.resourcesScreen),
   grades('Grades', Icons.bar_chart, AppRoute.gradesScreen);
@@ -100,7 +100,7 @@ enum NavigationPage {
 
   Widget buildScreen() {
     switch (this) {
-      case NavigationPage.calendar:
+      case NavigationPage.planner:
         return PlannerScreen();
       case NavigationPage.courses:
         return CoursesScreen();
@@ -198,7 +198,7 @@ class _NavigationShellState extends State<NavigationShell> {
 
   NavigationPage _getCurrentPage(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
-    return NavigationPage.fromRoute(location) ?? NavigationPage.calendar;
+    return NavigationPage.fromRoute(location) ?? NavigationPage.planner;
   }
 
   void _onDestinationSelected(BuildContext context, int index) {

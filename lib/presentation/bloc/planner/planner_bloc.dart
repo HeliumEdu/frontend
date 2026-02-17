@@ -9,35 +9,35 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/domain/repositories/category_repository.dart';
 import 'package:heliumapp/domain/repositories/course_repository.dart';
-import 'package:heliumapp/presentation/bloc/calendar/calendar_event.dart';
-import 'package:heliumapp/presentation/bloc/calendar/calendar_state.dart';
+import 'package:heliumapp/presentation/bloc/planner/planner_event.dart';
+import 'package:heliumapp/presentation/bloc/planner/planner_state.dart';
 
-class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
+class PlannerBloc extends Bloc<PlannerEvent, PlannerState> {
   final CourseRepository courseRepository;
   final CategoryRepository categoryRepository;
 
-  CalendarBloc({
+  PlannerBloc({
     required this.courseRepository,
     required this.categoryRepository,
-  }) : super(CalendarInitial()) {
-    on<FetchCalendarScreenDataEvent>(_onFetchCalendarScreenDataEvent);
+  }) : super(PlannerInitial()) {
+    on<FetchPlannerScreenDataEvent>(_onFetchPlannerScreenDataEvent);
   }
 
-  Future<void> _onFetchCalendarScreenDataEvent(
-    FetchCalendarScreenDataEvent event,
-    Emitter<CalendarState> emit,
+  Future<void> _onFetchPlannerScreenDataEvent(
+    FetchPlannerScreenDataEvent event,
+    Emitter<PlannerState> emit,
   ) async {
-    emit(CalendarLoading());
+    emit(PlannerLoading());
     try {
       final courseGroups = await courseRepository.getCourseGroups(shownOnCalendar: true);
       final courses = await courseRepository.getCourses(shownOnCalendar: true);
       final categories = await categoryRepository.getCategories(shownOnCalendar: true);
 
-      emit(CalendarScreenDataFetched(courseGroups: courseGroups, courses: courses, categories: categories));
+      emit(PlannerScreenDataFetched(courseGroups: courseGroups, courses: courses, categories: categories));
     } on HeliumException catch (e) {
-      emit(CalendarError(message: e.message));
+      emit(PlannerError(message: e.message));
     } catch (e) {
-      emit(CalendarError(message: 'An unexpected error occurred: $e'));
+      emit(PlannerError(message: 'An unexpected error occurred: $e'));
     }
   }
 }

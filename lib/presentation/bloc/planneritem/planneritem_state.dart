@@ -5,7 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
+import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
@@ -17,11 +17,11 @@ import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/presentation/bloc/core/base_state.dart';
 
-abstract class CalendarItemState extends BaseState {
-  CalendarItemState({required super.origin, super.message});
+abstract class PlannerItemState extends BaseState {
+  PlannerItemState({required super.origin, super.message});
 }
 
-abstract class BaseEntityState extends CalendarItemState {
+abstract class BaseEntityState extends PlannerItemState {
   final int entityId;
   final bool isEvent;
   final bool advanceNavOnSuccess;
@@ -58,25 +58,25 @@ abstract class EventEntityState extends BaseEntityState {
   });
 }
 
-class CalendarItemInitial extends CalendarItemState {
-  CalendarItemInitial({required super.origin});
+class PlannerItemInitial extends PlannerItemState {
+  PlannerItemInitial({required super.origin});
 }
 
-class CalendarItemsLoading extends CalendarItemState {
-  CalendarItemsLoading({required super.origin});
+class PlannerItemsLoading extends PlannerItemState {
+  PlannerItemsLoading({required super.origin});
 }
 
-class CalendarItemsError extends CalendarItemState {
-  CalendarItemsError({required super.origin, required super.message});
+class PlannerItemsError extends PlannerItemState {
+  PlannerItemsError({required super.origin, required super.message});
 }
 
-class CalendarItemsFetched extends CalendarItemState {
+class PlannerItemsFetched extends PlannerItemState {
   final List<EventModel> events;
   final List<HomeworkModel> homeworks;
   final List<CourseScheduleEventModel> courseScheduleEvents;
   final List<ExternalCalendarEventModel> externalCalendarEvents;
 
-  CalendarItemsFetched({
+  PlannerItemsFetched({
     required super.origin,
     required this.events,
     required this.homeworks,
@@ -85,17 +85,17 @@ class CalendarItemsFetched extends CalendarItemState {
   });
 }
 
-class CalendarItemScreenDataFetched extends CalendarItemState {
-  final CalendarItemBaseModel? calendarItem;
+class PlannerItemScreenDataFetched extends PlannerItemState {
+  final PlannerItemBaseModel? plannerItem;
   final List<CourseGroupModel> courseGroups;
   final List<CourseModel> courses;
   final List<CourseScheduleModel> courseSchedules;
   final List<CategoryModel> categories;
   final List<ResourceModel> resources;
 
-  CalendarItemScreenDataFetched({
+  PlannerItemScreenDataFetched({
     required super.origin,
-    required this.calendarItem,
+    required this.plannerItem,
     required this.courseGroups,
     required this.courses,
     required this.courseSchedules,
@@ -137,7 +137,7 @@ class EventUpdated extends EventEntityState {
   });
 }
 
-class EventDeleted extends CalendarItemState {
+class EventDeleted extends PlannerItemState {
   final int id;
 
   EventDeleted({required super.origin, required this.id});
@@ -176,7 +176,7 @@ class HomeworkUpdated extends HomeworkEntityState {
   });
 }
 
-class HomeworkDeleted extends CalendarItemState {
+class HomeworkDeleted extends PlannerItemState {
   final int id;
 
   HomeworkDeleted({required super.origin, required this.id});

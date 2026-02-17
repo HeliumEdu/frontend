@@ -11,7 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
-import 'package:heliumapp/data/models/planner/calendar_item_base_model.dart';
+import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
@@ -21,11 +21,11 @@ import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
-import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
-import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_event.dart';
-import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_state.dart';
+import 'package:heliumapp/presentation/bloc/planneritem/planneritem_bloc.dart';
+import 'package:heliumapp/presentation/bloc/planneritem/planneritem_event.dart';
+import 'package:heliumapp/presentation/bloc/planneritem/planneritem_state.dart';
 import 'package:heliumapp/presentation/bloc/core/base_event.dart';
-import 'package:heliumapp/presentation/controllers/calendar/calendar_item_form_controller.dart';
+import 'package:heliumapp/presentation/controllers/planner/planner_item_form_controller.dart';
 import 'package:heliumapp/presentation/controllers/core/basic_form_controller.dart';
 import 'package:heliumapp/presentation/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/dialogs/select_dialog.dart';
@@ -75,8 +75,8 @@ class PlannerItemDetails extends StatefulWidget {
 }
 
 class PlannerItemDetailsState extends State<PlannerItemDetails> {
-  final CalendarItemFormController _formController =
-      CalendarItemFormController();
+  final PlannerItemFormController _formController =
+      PlannerItemFormController();
 
   // Entity IDs (can be updated for clone)
   int? _eventId;
@@ -86,7 +86,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   bool isLoading = true;
   bool isSubmitting = false;
   bool _isEvent = false;
-  CalendarItemBaseModel? _calendarItem;
+  PlannerItemBaseModel? _plannerItem;
   List<CourseGroupModel> _courseGroups = [];
   List<CourseModel> _courses = [];
   List<DropDownItem<CourseModel>> _courseItems = [];
@@ -110,8 +110,8 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       }
     });
 
-    context.read<CalendarItemBloc>().add(
-      FetchCalendarItemScreenDataEvent(
+    context.read<PlannerItemBloc>().add(
+      FetchPlannerItemScreenDataEvent(
         origin: EventOrigin.subScreen,
         eventId: _eventId,
         homeworkId: _homeworkId,
@@ -125,11 +125,11 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       _eventId = eventId;
       _homeworkId = homeworkId;
       isLoading = true;
-      _calendarItem = null;
+      _plannerItem = null;
     });
 
-    context.read<CalendarItemBloc>().add(
-      FetchCalendarItemScreenDataEvent(
+    context.read<PlannerItemBloc>().add(
+      FetchPlannerItemScreenDataEvent(
         origin: EventOrigin.subScreen,
         eventId: eventId,
         homeworkId: homeworkId,
@@ -145,13 +145,13 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<CalendarItemBloc, CalendarItemState>(
+    return BlocListener<PlannerItemBloc, PlannerItemState>(
       listener: (context, state) {
-        if (state is CalendarItemScreenDataFetched) {
-          _populateInitialCalendarItemStateData(state);
+        if (state is PlannerItemScreenDataFetched) {
+          _populateInitialPlannerItemStateData(state);
         }
 
-        if (state is! CalendarItemsLoading) {
+        if (state is! PlannerItemsLoading) {
           setState(() {
             isSubmitting = false;
           });
@@ -206,7 +206,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text('Details', style: AppStyles.featureText(context)),
-                      if (widget.isEdit && _calendarItem != null)
+                      if (widget.isEdit && _plannerItem != null)
                         Row(
                           children: [
                             HeliumIconButton(
@@ -644,8 +644,8 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     );
   }
 
-  Future<void> _populateInitialCalendarItemStateData(
-    CalendarItemScreenDataFetched state,
+  Future<void> _populateInitialPlannerItemStateData(
+    PlannerItemScreenDataFetched state,
   ) async {
     setState(() {
       _courseGroups = state.courseGroups;
@@ -689,18 +689,18 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     });
 
     if (widget.isEdit) {
-      final calendarItem = state.calendarItem!;
-      _calendarItem = calendarItem;
+      final plannerItem = state.plannerItem!;
+      _plannerItem = plannerItem;
 
       setState(() {
-        _formController.titleController.text = calendarItem.title;
-        _formController.isAllDay = calendarItem.allDay;
-        _formController.showEndDateTime = calendarItem.showEndTime;
-        _formController.priorityValue = calendarItem.priority.toDouble();
-        _formController.initialNotes = calendarItem.comments;
+        _formController.titleController.text = plannerItem.title;
+        _formController.isAllDay = plannerItem.allDay;
+        _formController.showEndDateTime = plannerItem.showEndTime;
+        _formController.priorityValue = plannerItem.priority.toDouble();
+        _formController.initialNotes = plannerItem.comments;
 
         final startDateTime = HeliumDateTime.toLocal(
-          calendarItem.start,
+          plannerItem.start,
           widget.userSettings!.timeZone,
         );
         _formController.startDate = startDateTime;
@@ -709,7 +709,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
         }
 
         final endDateTime = HeliumDateTime.toLocal(
-          calendarItem.end,
+          plannerItem.end,
           widget.userSettings!.timeZone,
         );
         if (_formController.isAllDay) {
@@ -721,22 +721,22 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
           _formController.endTime = TimeOfDay.fromDateTime(endDateTime);
         }
 
-        if (calendarItem is HomeworkModel) {
-          _formController.selectedCourse = calendarItem.course.id;
-          _formController.isCompleted = calendarItem.completed;
-          if (calendarItem.currentGrade != null &&
-              calendarItem.currentGrade!.isNotEmpty) {
-            if (calendarItem.currentGrade == '-1/100') {
+        if (plannerItem is HomeworkModel) {
+          _formController.selectedCourse = plannerItem.course.id;
+          _formController.isCompleted = plannerItem.completed;
+          if (plannerItem.currentGrade != null &&
+              plannerItem.currentGrade!.isNotEmpty) {
+            if (plannerItem.currentGrade == '-1/100') {
               _formController.gradeController.text = '';
             } else {
-              _formController.gradeController.text = calendarItem.currentGrade!;
+              _formController.gradeController.text = plannerItem.currentGrade!;
             }
           }
 
-          _formController.selectedCategory = calendarItem.category.id;
+          _formController.selectedCategory = plannerItem.category.id;
 
-          if (calendarItem.resources.isNotEmpty) {
-            _formController.selectedResources = calendarItem.resources
+          if (plannerItem.resources.isNotEmpty) {
+            _formController.selectedResources = plannerItem.resources
                 .where((e) => _resources.any((m) => m.id == e.id))
                 .map((e) => e.id)
                 .toList();
@@ -898,7 +898,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
         if (!mounted) return;
         if (widget.isEdit && widget.eventId != null) {
-          context.read<CalendarItemBloc>().add(
+          context.read<PlannerItemBloc>().add(
             UpdateEventEvent(
               origin: EventOrigin.subScreen,
               id: widget.eventId!,
@@ -906,7 +906,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
             ),
           );
         } else {
-          context.read<CalendarItemBloc>().add(
+          context.read<PlannerItemBloc>().add(
             CreateEventEvent(origin: EventOrigin.subScreen, request: request),
           );
         }
@@ -940,7 +940,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
         if (!mounted) return;
         if (widget.isEdit && widget.homeworkId != null) {
-          context.read<CalendarItemBloc>().add(
+          context.read<PlannerItemBloc>().add(
             UpdateHomeworkEvent(
               origin: EventOrigin.subScreen,
               courseGroupId: selectedCourse.courseGroup,
@@ -950,7 +950,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
             ),
           );
         } else {
-          context.read<CalendarItemBloc>().add(
+          context.read<PlannerItemBloc>().add(
             CreateHomeworkEvent(
               origin: EventOrigin.subScreen,
               courseGroupId: selectedCourse.courseGroup,
@@ -1059,22 +1059,22 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   }
 
   void _onDelete() {
-    if (_calendarItem == null) return;
+    if (_plannerItem == null) return;
 
     final CourseModel? course;
-    if (_calendarItem is HomeworkModel) {
+    if (_plannerItem is HomeworkModel) {
       course = _courses.firstWhere(
-        (c) => c.id == (_calendarItem as HomeworkModel).course.id,
+        (c) => c.id == (_plannerItem as HomeworkModel).course.id,
       );
     } else {
       course = null;
     }
 
-    final Function(CalendarItemBaseModel) onDelete;
-    if (_calendarItem is HomeworkModel) {
+    final Function(PlannerItemBaseModel) onDelete;
+    if (_plannerItem is HomeworkModel) {
       onDelete = (item) {
         widget.onActionStarted?.call();
-        context.read<CalendarItemBloc>().add(
+        context.read<PlannerItemBloc>().add(
           DeleteHomeworkEvent(
             origin: EventOrigin.subScreen,
             courseGroupId: course!.courseGroup,
@@ -1083,10 +1083,10 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
           ),
         );
       };
-    } else if (_calendarItem is EventModel) {
+    } else if (_plannerItem is EventModel) {
       onDelete = (item) {
         widget.onActionStarted?.call();
-        context.read<CalendarItemBloc>().add(
+        context.read<PlannerItemBloc>().add(
           DeleteEventEvent(origin: EventOrigin.subScreen, id: item.id),
         );
       };
@@ -1096,20 +1096,20 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
     showConfirmDeleteDialog(
       parentContext: context,
-      item: _calendarItem!,
+      item: _plannerItem!,
       onDelete: onDelete,
     );
   }
 
   Future<void> _onClone() async {
-    if (_calendarItem == null) return;
+    if (_plannerItem == null) return;
 
     widget.onActionStarted?.call();
     setState(() {
       isSubmitting = true;
     });
 
-    final clonedTitle = PlannerHelper.generateClonedTitle(_calendarItem!.title);
+    final clonedTitle = PlannerHelper.generateClonedTitle(_plannerItem!.title);
 
     final start = HeliumDateTime.formatDateAndTimeForApi(
       _formController.startDate,
@@ -1140,7 +1140,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       }
     }
 
-    if (_calendarItem is EventModel) {
+    if (_plannerItem is EventModel) {
       final request = EventRequestModel(
         title: clonedTitle,
         allDay: _formController.isAllDay,
@@ -1152,15 +1152,15 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       );
 
       if (!mounted) return;
-      context.read<CalendarItemBloc>().add(
+      context.read<PlannerItemBloc>().add(
         CreateEventEvent(
           origin: EventOrigin.subScreen,
           request: request,
           isClone: true,
         ),
       );
-    } else if (_calendarItem is HomeworkModel) {
-      final homework = _calendarItem as HomeworkModel;
+    } else if (_plannerItem is HomeworkModel) {
+      final homework = _plannerItem as HomeworkModel;
       final selectedCourse = _courses.firstWhere(
         (c) => c.id == homework.course.id,
       );
@@ -1181,7 +1181,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       );
 
       if (!mounted) return;
-      context.read<CalendarItemBloc>().add(
+      context.read<PlannerItemBloc>().add(
         CreateHomeworkEvent(
           origin: EventOrigin.subScreen,
           courseGroupId: selectedCourse.courseGroup,

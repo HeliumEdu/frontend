@@ -11,8 +11,8 @@ import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/presentation/bloc/attachment/attachment_bloc.dart';
-import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
-import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_state.dart';
+import 'package:heliumapp/presentation/bloc/planneritem/planneritem_bloc.dart';
+import 'package:heliumapp/presentation/bloc/planneritem/planneritem_state.dart';
 import 'package:heliumapp/presentation/views/core/multi_step_container.dart';
 import 'package:heliumapp/presentation/widgets/planner/planner_item_attachments.dart';
 import 'package:heliumapp/presentation/widgets/planner/planner_item_details.dart';
@@ -20,8 +20,8 @@ import 'package:heliumapp/presentation/widgets/planner/planner_item_reminders.da
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
-/// Shows calendar item add/edit as a dialog on desktop, or navigates on mobile
-void showCalendarItemAdd(
+/// Shows planner item add/edit as a dialog on desktop, or navigates on mobile
+void showPlannerItemAdd(
   BuildContext context, {
   int? eventId,
   int? homeworkId,
@@ -30,14 +30,14 @@ void showCalendarItemAdd(
   required bool isEdit,
   required bool isNew,
   int initialStep = 0,
-  required CalendarItemBloc calendarItemBloc,
+  required PlannerItemBloc plannerItemBloc,
   required AttachmentBloc attachmentBloc,
 }) {
   if (Responsive.isMobile(context)) {
     context.push(
       AppRoute.plannerItemAddScreen,
-      extra: CalendarItemAddArgs(
-        calendarItemBloc: calendarItemBloc,
+      extra: PlannerItemAddArgs(
+        plannerItemBloc: plannerItemBloc,
         attachmentBloc: attachmentBloc,
         eventId: eventId,
         homeworkId: homeworkId,
@@ -52,10 +52,10 @@ void showCalendarItemAdd(
       context,
       child: MultiBlocProvider(
         providers: [
-          BlocProvider<CalendarItemBloc>.value(value: calendarItemBloc),
+          BlocProvider<PlannerItemBloc>.value(value: plannerItemBloc),
           BlocProvider<AttachmentBloc>.value(value: attachmentBloc),
         ],
-        child: CalendarItemAddScreen(
+        child: PlannerItemAddScreen(
           eventId: eventId,
           homeworkId: homeworkId,
           initialDate: initialDate,
@@ -71,13 +71,13 @@ void showCalendarItemAdd(
   }
 }
 
-class CalendarItemAddScreen extends MultiStepContainer {
+class PlannerItemAddScreen extends MultiStepContainer {
   final int? eventId;
   final int? homeworkId;
   final DateTime? initialDate;
   final bool isFromMonthView;
 
-  const CalendarItemAddScreen({
+  const PlannerItemAddScreen({
     super.key,
     this.eventId,
     this.homeworkId,
@@ -89,11 +89,11 @@ class CalendarItemAddScreen extends MultiStepContainer {
   });
 
   @override
-  State<CalendarItemAddScreen> createState() => _CalendarItemAddScreenState();
+  State<PlannerItemAddScreen> createState() => _PlannerItemAddScreenState();
 }
 
-class _CalendarItemAddScreenState
-    extends MultiStepContainerState<CalendarItemAddScreen> {
+class _PlannerItemAddScreenState
+    extends MultiStepContainerState<PlannerItemAddScreen> {
   final _detailsKey = GlobalKey<PlannerItemDetailsState>();
 
   // State
@@ -180,9 +180,9 @@ class _CalendarItemAddScreenState
   @override
   List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
     return [
-      BlocListener<CalendarItemBloc, CalendarItemState>(
+      BlocListener<PlannerItemBloc, PlannerItemState>(
         listener: (context, state) {
-          if (state is CalendarItemsError) {
+          if (state is PlannerItemsError) {
             showSnackBar(context, state.message!, isError: true);
             setState(() => isSubmitting = false);
           } else if (state is EventDeleted || state is HomeworkDeleted) {

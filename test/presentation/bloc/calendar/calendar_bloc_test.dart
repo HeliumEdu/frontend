@@ -8,9 +8,9 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/core/helium_exception.dart';
-import 'package:heliumapp/presentation/bloc/calendar/calendar_bloc.dart';
-import 'package:heliumapp/presentation/bloc/calendar/calendar_event.dart';
-import 'package:heliumapp/presentation/bloc/calendar/calendar_state.dart';
+import 'package:heliumapp/presentation/bloc/planner/planner_bloc.dart';
+import 'package:heliumapp/presentation/bloc/planner/planner_event.dart';
+import 'package:heliumapp/presentation/bloc/planner/planner_state.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../mocks/mock_models.dart';
@@ -20,7 +20,7 @@ import '../../../mocks/register_fallbacks.dart';
 void main() {
   late MockCourseRepository mockCourseRepository;
   late MockCategoryRepository mockCategoryRepository;
-  late CalendarBloc calendarBloc;
+  late PlannerBloc calendarBloc;
 
   setUpAll(() {
     registerFallbackValues();
@@ -29,7 +29,7 @@ void main() {
   setUp(() {
     mockCourseRepository = MockCourseRepository();
     mockCategoryRepository = MockCategoryRepository();
-    calendarBloc = CalendarBloc(
+    calendarBloc = PlannerBloc(
       courseRepository: mockCourseRepository,
       categoryRepository: mockCategoryRepository,
     );
@@ -41,11 +41,11 @@ void main() {
 
   group('CalendarBloc', () {
     test('initial state is CalendarInitial', () {
-      expect(calendarBloc.state, isA<CalendarInitial>());
+      expect(calendarBloc.state, isA<PlannerInitial>());
     });
 
     group('FetchCalendarScreenDataEvent', () {
-      blocTest<CalendarBloc, CalendarState>(
+      blocTest<PlannerBloc, PlannerState>(
         'emits [CalendarLoading, CalendarScreenDataFetched] when data fetch succeeds',
         build: () {
           when(
@@ -62,10 +62,10 @@ void main() {
           );
           return calendarBloc;
         },
-        act: (bloc) => bloc.add(FetchCalendarScreenDataEvent()),
+        act: (bloc) => bloc.add(FetchPlannerScreenDataEvent()),
         expect: () => [
-          isA<CalendarLoading>(),
-          isA<CalendarScreenDataFetched>()
+          isA<PlannerLoading>(),
+          isA<PlannerScreenDataFetched>()
               .having((s) => s.courses.length, 'courses length', 2)
               .having((s) => s.categories.length, 'categories length', 2),
         ],
@@ -77,7 +77,7 @@ void main() {
         },
       );
 
-      blocTest<CalendarBloc, CalendarState>(
+      blocTest<PlannerBloc, PlannerState>(
         'emits [CalendarLoading, CalendarError] when getCourses fails',
         build: () {
           when(
@@ -88,10 +88,10 @@ void main() {
           ).thenThrow(NetworkException(message: 'Network error'));
           return calendarBloc;
         },
-        act: (bloc) => bloc.add(FetchCalendarScreenDataEvent()),
+        act: (bloc) => bloc.add(FetchPlannerScreenDataEvent()),
         expect: () => [
-          isA<CalendarLoading>(),
-          isA<CalendarError>().having(
+          isA<PlannerLoading>(),
+          isA<PlannerError>().having(
             (e) => e.message,
             'message',
             'Network error',
@@ -99,7 +99,7 @@ void main() {
         ],
       );
 
-      blocTest<CalendarBloc, CalendarState>(
+      blocTest<PlannerBloc, PlannerState>(
         'emits [CalendarLoading, CalendarError] when getCategories fails',
         build: () {
           when(
@@ -113,10 +113,10 @@ void main() {
           ).thenThrow(ServerException(message: 'Server unavailable'));
           return calendarBloc;
         },
-        act: (bloc) => bloc.add(FetchCalendarScreenDataEvent()),
+        act: (bloc) => bloc.add(FetchPlannerScreenDataEvent()),
         expect: () => [
-          isA<CalendarLoading>(),
-          isA<CalendarError>().having(
+          isA<PlannerLoading>(),
+          isA<PlannerError>().having(
             (e) => e.message,
             'message',
             'Server unavailable',
@@ -124,7 +124,7 @@ void main() {
         ],
       );
 
-      blocTest<CalendarBloc, CalendarState>(
+      blocTest<PlannerBloc, PlannerState>(
         'emits [CalendarLoading, CalendarError] with generic message for unexpected errors',
         build: () {
           when(
@@ -132,10 +132,10 @@ void main() {
           ).thenThrow(Exception('Something went wrong'));
           return calendarBloc;
         },
-        act: (bloc) => bloc.add(FetchCalendarScreenDataEvent()),
+        act: (bloc) => bloc.add(FetchPlannerScreenDataEvent()),
         expect: () => [
-          isA<CalendarLoading>(),
-          isA<CalendarError>().having(
+          isA<PlannerLoading>(),
+          isA<PlannerError>().having(
             (e) => e.message,
             'message',
             contains('unexpected'),
@@ -143,7 +143,7 @@ void main() {
         ],
       );
 
-      blocTest<CalendarBloc, CalendarState>(
+      blocTest<PlannerBloc, PlannerState>(
         'handles empty courses and categories',
         build: () {
           when(
@@ -157,10 +157,10 @@ void main() {
           ).thenAnswer((_) async => []);
           return calendarBloc;
         },
-        act: (bloc) => bloc.add(FetchCalendarScreenDataEvent()),
+        act: (bloc) => bloc.add(FetchPlannerScreenDataEvent()),
         expect: () => [
-          isA<CalendarLoading>(),
-          isA<CalendarScreenDataFetched>()
+          isA<PlannerLoading>(),
+          isA<PlannerScreenDataFetched>()
               .having((s) => s.courseGroups, 'courseGroups', isEmpty)
               .having((s) => s.courses, 'courses', isEmpty)
               .having((s) => s.categories, 'categories', isEmpty),

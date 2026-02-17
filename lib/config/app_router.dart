@@ -15,7 +15,7 @@ import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/presentation/bloc/attachment/attachment_bloc.dart';
-import 'package:heliumapp/presentation/bloc/calendaritem/calendaritem_bloc.dart';
+import 'package:heliumapp/presentation/bloc/planneritem/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/bloc/course/course_bloc.dart';
 import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_bloc.dart';
@@ -25,7 +25,7 @@ import 'package:heliumapp/presentation/views/auth/login_screen.dart';
 import 'package:heliumapp/presentation/views/auth/setup_account_screen.dart';
 import 'package:heliumapp/presentation/views/auth/signup_screen.dart';
 import 'package:heliumapp/presentation/views/auth/verify_email_screen.dart';
-import 'package:heliumapp/presentation/views/calendar/calendar_item_add_screen.dart';
+import 'package:heliumapp/presentation/views/planner/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/views/core/landing_screen.dart';
 import 'package:heliumapp/presentation/views/core/mobile_web_screen.dart';
 import 'package:heliumapp/presentation/views/core/navigation_shell.dart';
@@ -110,7 +110,7 @@ void initializeRouter() {
           GoRoute(
             path: AppRoute.plannerScreen,
             pageBuilder: (context, state) => const NoTransitionPage(
-              child: NavigationShellContent(page: NavigationPage.calendar),
+              child: NavigationShellContent(page: NavigationPage.planner),
             ),
           ),
           GoRoute(
@@ -148,13 +148,13 @@ void initializeRouter() {
           }
 
           final args = state.extra as NotificationArgs?;
-          final child = (args?.calendarItemBloc != null)
-              ? BlocProvider<CalendarItemBloc>.value(
-                  value: args!.calendarItemBloc!,
+          final child = (args?.plannerItemBloc != null)
+              ? BlocProvider<PlannerItemBloc>.value(
+                  value: args!.plannerItemBloc!,
                   child: NotificationsScreen(),
                 )
-              : BlocProvider<CalendarItemBloc>(
-                  create: ProviderHelpers().createCalendarItemBloc(),
+              : BlocProvider<PlannerItemBloc>(
+                  create: ProviderHelpers().createPlannerItemBloc(),
                   child: NotificationsScreen(),
                 );
           return MaterialPage(child: child);
@@ -164,7 +164,7 @@ void initializeRouter() {
       GoRoute(
         path: AppRoute.plannerItemAddScreen,
         pageBuilder: (context, state) {
-          final args = state.extra as CalendarItemAddArgs?;
+          final args = state.extra as PlannerItemAddArgs?;
           if (args == null) {
             return const MaterialPage(
               child: _RouteRedirect(redirectTo: AppRoute.plannerScreen),
@@ -173,12 +173,12 @@ void initializeRouter() {
           return MaterialPage(
             child: MultiBlocProvider(
               providers: [
-                BlocProvider<CalendarItemBloc>.value(
-                  value: args.calendarItemBloc,
+                BlocProvider<PlannerItemBloc>.value(
+                  value: args.plannerItemBloc,
                 ),
                 BlocProvider<AttachmentBloc>.value(value: args.attachmentBloc),
               ],
-              child: CalendarItemAddScreen(
+              child: PlannerItemAddScreen(
                 eventId: args.eventId,
                 homeworkId: args.homeworkId,
                 initialDate: args.initialDate,
