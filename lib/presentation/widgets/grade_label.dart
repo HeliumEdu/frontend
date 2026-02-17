@@ -32,8 +32,14 @@ class GradeLabel extends StatelessWidget {
                 : AppStyles.standardBodyText(context))
             .copyWith(color: userSettings.gradeColor);
     final Widget gradeTextWidget = selectable
-        ? SelectableText(grade, style: gradeTextStyle)
-        : Text(grade, style: gradeTextStyle);
+        ? SelectableText(grade, style: gradeTextStyle, maxLines: 1)
+        : Text(
+            grade,
+            style: gradeTextStyle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            softWrap: false,
+          );
 
     return IntrinsicHeight(
       child: Row(
@@ -62,20 +68,24 @@ class GradeLabel extends StatelessWidget {
               ),
             ),
           ),
-          Container(
-            width: Responsive.isMobile(context) ? 64 : 70,
-            padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
-            decoration: BoxDecoration(
-              color: userSettings.gradeColor.withValues(alpha: 0.1),
-              borderRadius: const BorderRadius.only(
-                topRight: Radius.circular(6),
-                bottomRight: Radius.circular(6),
+          Flexible(
+            child: Container(
+              constraints: BoxConstraints(
+                maxWidth: Responsive.isMobile(context) ? 64 : 70,
               ),
-              border: Border.all(
-                color: userSettings.gradeColor.withValues(alpha: 0.2),
+              padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+              decoration: BoxDecoration(
+                color: userSettings.gradeColor.withValues(alpha: 0.1),
+                borderRadius: const BorderRadius.only(
+                  topRight: Radius.circular(6),
+                  bottomRight: Radius.circular(6),
+                ),
+                border: Border.all(
+                  color: userSettings.gradeColor.withValues(alpha: 0.2),
+                ),
               ),
+              child: ClipRect(child: Center(child: gradeTextWidget)),
             ),
-            child: Center(child: gradeTextWidget),
           ),
         ],
       ),
