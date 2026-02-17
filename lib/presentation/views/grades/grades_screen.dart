@@ -1224,11 +1224,12 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
+                  width: 20,
+                  alignment: Alignment.center,
+                  child: Icon(
+                    _seriesIconForName(s.name),
+                    size: 16,
                     color: s.color,
-                    shape: BoxShape.circle,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -1481,6 +1482,28 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     );
   }
 
+  IconData _seriesIconForName(String? name) {
+    if (name == null || name.isEmpty) return Icons.circle;
+
+    final selectedGroup = _grades.firstWhere(
+      (g) => g.id == _selectedGroupId,
+      orElse: () => _grades.first,
+    );
+
+    final isCourse = selectedGroup.courses.any(
+      (course) => course.title == name,
+    );
+    if (isCourse) return Icons.school;
+
+    final selectedCourse = _getSelectedCourse();
+    final isCategory =
+        selectedCourse?.categories.any((category) => category.title == name) ??
+        false;
+    if (isCategory) return Icons.category;
+
+    return Icons.circle;
+  }
+
   void _showGraphSettings(BuildContext buttonContext) {
     final selectedGroup = _grades.firstWhere(
       (g) => g.id == _selectedGroupId,
@@ -1574,13 +1597,10 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                                       Radio<String>(
                                         value: course.id.toString(),
                                       ),
-                                      Container(
-                                        width: 12,
-                                        height: 12,
-                                        decoration: BoxDecoration(
-                                          color: course.color,
-                                          shape: BoxShape.circle,
-                                        ),
+                                      Icon(
+                                        Icons.school,
+                                        size: 16,
+                                        color: course.color,
                                       ),
                                       const SizedBox(width: 8),
                                       Expanded(
