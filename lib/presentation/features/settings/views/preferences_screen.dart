@@ -12,15 +12,15 @@ import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
+import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
-import 'package:heliumapp/presentation/ui/dialogs/color_picker_dialog.dart';
-import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/ui/components/drop_down.dart';
-import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/presentation/ui/components/searchable_dropdown.dart';
 import 'package:heliumapp/presentation/ui/components/spinner_field.dart';
+import 'package:heliumapp/presentation/ui/dialogs/color_picker_dialog.dart';
+import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
@@ -53,9 +53,9 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
       TextEditingController();
 
   // State
-  Color _selectedEventColor = const Color(0xffe74674);
-  Color _selectedResourceColor = const Color(0xffdc7d50);
-  Color _selectedGradeColor = const Color(0xff9d629d);
+  Color _selectedEventColor = FallbackConstants.defaultEventsColor;
+  Color _selectedResourceColor = FallbackConstants.defaultResourceColor;
+  Color _selectedGradeColor = FallbackConstants.defaultGradeColor;
   String _selectedDefaultView =
       CalendarConstants.defaultViews[FallbackConstants.defaultViewIndex];
   String _selectedWeekStartsOn =
@@ -66,8 +66,9 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
   String _selectedReminderType =
       ReminderConstants.types[FallbackConstants.defaultReminderType];
   bool _isShowPlannerTooltips = FallbackConstants.defaultShowPlannerTooltips;
-  bool _isSelectedColorByCategory = false;
-  bool _isRememberFilterSelection = false;
+  bool _isSelectedColorByCategory = FallbackConstants.defaultColorByCategory;
+  bool _isRememberFilterSelection =
+      FallbackConstants.defaultRememberFilterState;
 
   @override
   String get screenTitle => 'Preferences';
@@ -503,4 +504,3 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
     );
   }
 }
-
