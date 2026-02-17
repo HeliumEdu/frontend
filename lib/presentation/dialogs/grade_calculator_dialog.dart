@@ -174,9 +174,11 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       backgroundColor: context.colorScheme.surface,
-      title: Text(
-        'What Grade Do I Need?',
-        style: AppStyles.headingText(context),
+      title: Center(
+        child: Text(
+          'What Grade Do I Need?',
+          style: AppStyles.featureText(context),
+        ),
       ),
       content: SizedBox(
         width: Responsive.getDialogWidth(context),
@@ -185,7 +187,8 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Course info
+              const SizedBox(height: 12),
+
               CourseTitleLabel(
                 title: widget.courseTitle,
                 color: widget.courseColor,
@@ -197,7 +200,6 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
               ),
               const SizedBox(height: 24),
 
-              // Category selection
               Text('Category', style: AppStyles.formLabel(context)),
               const SizedBox(height: 9),
               DropdownButtonFormField<int>(
@@ -293,13 +295,14 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
                 style: AppStyles.formText(context),
                 onChanged: (_) {
                   setState(() {
-                    _result = null; // Clear result when input changes
+                    _result = null;
                     _validationErrorMessage = null;
                   });
                 },
                 onFieldSubmitted: (_) => _calculate(),
               ),
-              const SizedBox(height: 24),
+
+              const SizedBox(height: 12),
 
               if (_validationErrorMessage != null) ...[
                 ErrorContainer(
