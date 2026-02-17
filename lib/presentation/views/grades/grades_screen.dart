@@ -6,8 +6,6 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 // FIXME: in the "what grade do I need" dialog, every grade reports "not achievable" saying you'd need over 100%—this is wrong, and likely just a case where we're not /100 somewhere before passing the calculation
-// FIXME: cleanup the UX on mobile (not a ton to do, but still a blocker)
-// FIXME: check how the grade point "hover" logic works on mobile (probably not at all, which is fine)
 // TODO: use CourseTitleLabel and CategoryTitleLabel in legend and in graph settings menu
 // TODO: what other tooltips can we show when hovering grade point, in legacy UI we used to show the homework's title and category as well
 // TODO: make the thresholds for at-risk classes (and eventually progress/pace ratio) configurable by the user
@@ -290,10 +288,9 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        const summaryCardHeight = 260.0;
         final columnCount = Responsive.getColumnCountForWidth(
           constraints.maxWidth,
-          mobile: 1,
+          mobile: 2,
           tablet: 2,
           desktop: 4,
         );
@@ -305,13 +302,41 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: columnCount,
             crossAxisSpacing: 12,
-            mainAxisExtent: summaryCardHeight,
+            mainAxisExtent: _summaryCardHeight,
           ),
           itemBuilder: (context, index) => cards[index],
         );
       },
     );
   }
+
+  double get _summaryCardHeight => Responsive.getResponsiveValue(
+    context,
+    mobile: 200,
+    tablet: 190,
+    desktop: 260,
+  );
+
+  double get _summaryCardPadding => Responsive.getResponsiveValue(
+    context,
+    mobile: 12,
+    tablet: 12,
+    desktop: 16,
+  );
+
+  double get _summaryCircleSize => Responsive.getResponsiveValue(
+    context,
+    mobile: 60,
+    tablet: 50,
+    desktop: 80,
+  );
+
+  double get _summaryGaugeHeight => Responsive.getResponsiveValue(
+    context,
+    mobile: 100,
+    tablet: 110,
+    desktop: 140,
+  );
 
   Widget _buildOverallGradeCard(GradeCourseGroupModel selectedGroup) {
     final grade = selectedGroup.overallGrade;
@@ -333,9 +358,9 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     return Card(
       elevation: 2,
       child: SizedBox(
-        height: 260,
+        height: _summaryCardHeight,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(_summaryCardPadding),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -347,7 +372,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
               ),
               const SizedBox(height: 12),
               SizedBox(
-                height: 140,
+                height: _summaryGaugeHeight,
                 child: SfRadialGauge(
                   axes: <RadialAxis>[
                     RadialAxis(
@@ -474,9 +499,9 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     return Card(
       elevation: 2,
       child: SizedBox(
-        height: 260,
+        height: _summaryCardHeight,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(_summaryCardPadding),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -666,9 +691,9 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
               ? context.colorScheme.error.withValues(alpha: 0.05)
               : context.colorScheme.surface,
           child: SizedBox(
-            height: 260,
+            height: _summaryCardHeight,
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(_summaryCardPadding),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -680,8 +705,8 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                   ),
                   const SizedBox(height: 12),
                   Container(
-                    width: 80,
-                    height: 80,
+                    width: _summaryCircleSize,
+                    height: _summaryCircleSize,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: count > 0
@@ -703,7 +728,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                           fontSize: Responsive.getFontSize(
                             context,
                             mobile: 32,
-                            tablet: 36,
+                            tablet: 26,
                             desktop: 40,
                           ),
                           color: count > 0
@@ -763,9 +788,9 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     return Card(
       elevation: 2,
       child: SizedBox(
-        height: 260,
+        height: _summaryCardHeight,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(_summaryCardPadding),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -777,8 +802,8 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
               ),
               const SizedBox(height: 12),
               Container(
-                width: 80,
-                height: 80,
+                width: _summaryCircleSize,
+                height: _summaryCircleSize,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: ungradedCount > 0
@@ -801,7 +826,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                           fontSize: Responsive.getFontSize(
                             context,
                             mobile: 28,
-                            tablet: 32,
+                            tablet: 24,
                             desktop: 36,
                           ),
                           color: ungradedCount > 0
@@ -1092,6 +1117,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     int groupId,
   ) {
     final courseGroup = _getCourseGroupForId(groupId);
+    final isTouchDevice = Responsive.isTouchDevice(context);
 
     // Filter to visible series only
     final visibleSeries = series
@@ -1118,7 +1144,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
           Expanded(
             child: charts.SfCartesianChart(
               tooltipBehavior: charts.TooltipBehavior(
-                enable: true,
+                enable: !isTouchDevice,
                 format: 'point.y%',
                 header: '',
                 canShowMarker: true,
@@ -1783,6 +1809,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
 
   Widget _buildCourseArea(GradeCourseModel course) {
     final hasWeightedGrading = course.categories.any((cat) => cat.weight > 0);
+    final isMobile = Responsive.isMobile(context);
 
     return Container(
       margin: const EdgeInsets.only(top: 14),
@@ -1798,7 +1825,10 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
               children: [
                 Expanded(child: _buildPieCharts(course)),
                 const SizedBox(width: 16),
-                Expanded(flex: 2, child: _buildCategoryTable(course)),
+                Expanded(
+                  flex: isMobile ? 3 : 2,
+                  child: _buildCategoryTable(course),
+                ),
               ],
             )
           : _buildCategoryTable(course),
