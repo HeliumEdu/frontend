@@ -27,8 +27,10 @@ abstract class BaseDataSource {
       case DioExceptionType.badResponse:
         final statusCode = e.response?.statusCode;
         final responseData = e.response?.data;
-
-        _log.info('Dio bad response received, status: $statusCode, data: $responseData');
+        final responseType = responseData?.runtimeType;
+        _log.info(
+          'Dio bad response received, status: $statusCode, dataType: $responseType',
+        );
 
         if (statusCode == 401) {
           return UnauthorizedException(

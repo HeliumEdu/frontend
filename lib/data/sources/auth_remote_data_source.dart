@@ -29,9 +29,9 @@ final _log = Logger('data.sources');
 abstract class AuthRemoteDataSource extends BaseDataSource {
   Future<NoContentResponseModel> register(RegisterRequestModel request);
 
-  Future<TokenResponseModel> verifyEmail(String username, String code);
+  Future<TokenResponseModel> verifyEmail(String email, String code);
 
-  Future<NoContentResponseModel> resendVerificationEmail(String username);
+  Future<NoContentResponseModel> resendVerificationEmail(String email);
 
   Future<TokenResponseModel> login(LoginRequestModel request);
 
@@ -82,7 +82,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       if (response.statusCode == 201) {
         return NoContentResponseModel(
           message: 'account registered',
-          username: response.data['username'],
+          email: response.data['email'],
         );
       } else {
         throw ServerException(
@@ -102,11 +102,14 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
   }
 
   @override
-  Future<TokenResponseModel> verifyEmail(String username, String code) async {
+  Future<TokenResponseModel> verifyEmail(String email, String code) async {
     try {
       final response = await dioClient.dio.get(
         ApiUrl.authUserVerifyUrl,
-        queryParameters: {'username': username, 'code': code},
+        queryParameters: {
+          'username': email,
+          'code': code,
+        },
       );
 
       if (response.statusCode == 202) {
@@ -151,17 +154,17 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
   }
 
   @override
-  Future<NoContentResponseModel> resendVerificationEmail(
-    String username,
-  ) async {
+  Future<NoContentResponseModel> resendVerificationEmail(String email) async {
     try {
       final response = await dioClient.dio.get(
         ApiUrl.authUserVerifyResendUrl,
-        queryParameters: {'username': username},
+        queryParameters: {
+          'username': email,
+        },
       );
 
       if (response.statusCode == 202) {
-        _log.info('Verification email resent for $username');
+        _log.info('Verification email resend succeeded');
         return NoContentResponseModel(message: 'Verification email sent');
       } else {
         throw ServerException(
@@ -185,7 +188,10 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
     try {
       final response = await dioClient.dio.post(
         ApiUrl.authTokenUrl,
-        data: request.toJson(),
+        data: {
+          'username': request.email,
+          'password': request.password,
+        },
       );
 
       if (response.statusCode == 200) {

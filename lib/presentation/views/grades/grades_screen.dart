@@ -28,14 +28,14 @@ import 'package:heliumapp/data/repositories/grade_repository_impl.dart';
 import 'package:heliumapp/data/sources/course_remote_data_source.dart';
 import 'package:heliumapp/data/sources/grade_remote_data_source.dart';
 import 'package:heliumapp/presentation/bloc/attachment/attachment_bloc.dart';
-import 'package:heliumapp/presentation/bloc/planneritem/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/bloc/grade/grade_bloc.dart';
 import 'package:heliumapp/presentation/bloc/grade/grade_event.dart';
 import 'package:heliumapp/presentation/bloc/grade/grade_state.dart';
+import 'package:heliumapp/presentation/bloc/planneritem/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/dialogs/grade_calculator_dialog.dart';
-import 'package:heliumapp/presentation/views/planner/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/views/planner/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/widgets/at_risk_badge.dart';
 import 'package:heliumapp/presentation/widgets/course_title_label.dart';
 import 'package:heliumapp/presentation/widgets/empty_card.dart';
@@ -145,6 +145,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
   final Map<String, bool> _visibleSeries = {}; // series ID -> visibility
   bool _autoAdjustToGradedRange =
       false; // Fit X-axis to actual grade point dates
+  bool _hideLegend = false;
   bool _graphExpanded = true; // Whether the graph area is expanded
 
   @override
@@ -511,8 +512,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
       statusUrgency = 1;
     } else {
       status = 'Behind';
-      final expectedWorkAtRiskCutoff =
-          timePercent * (_atRiskThreshold / 100); // e.g., 70% of expected pace
+      final expectedWorkAtRiskCutoff = timePercent * (_atRiskThreshold / 100);
       statusUrgency = completionPercent < expectedWorkAtRiskCutoff ? 3 : 2;
     }
     final statusColor = HeliumColors.urgencyColor(context, statusUrgency);
@@ -1075,10 +1075,18 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
             Expanded(
               child: Row(
                 children: [
-                  Text('Grade Trend', style: AppStyles.headingText(context)),
+                  if (!Responsive.isMobile(context))
+                    Text('Grade Trend', style: AppStyles.headingText(context)),
+                  if (Responsive.isMobile(context) && course == null)
+                    Text('Entire Term', style: AppStyles.headingText(context)),
                   if (course != null) ...[
                     const SizedBox(width: 6),
-                    CourseTitleLabel(title: course.title, color: course.color),
+                    Flexible(
+                      child: CourseTitleLabel(
+                        title: course.title,
+                        color: course.color,
+                      ),
+                    ),
                   ],
                 ],
               ),
@@ -1129,7 +1137,6 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     int groupId,
   ) {
     final courseGroup = _getCourseGroupForId(groupId);
-    final isTouchDevice = Responsive.isTouchDevice(context);
 
     // Filter to visible series only
     final visibleSeries = series
@@ -1157,9 +1164,14 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
           Expanded(
             child: charts.SfCartesianChart(
               tooltipBehavior: charts.TooltipBehavior(
-                enable: !isTouchDevice,
+                enable: false,
                 header: '',
                 canShowMarker: true,
+                color: context.colorScheme.surface,
+                borderColor: context.colorScheme.outline.withValues(alpha: 0.3),
+                borderWidth: 1,
+                elevation: 0,
+                shadowColor: Colors.transparent,
                 builder:
                     (
                       dynamic data,
@@ -1168,97 +1180,30 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                       int pointIndex,
                       int seriesIndex,
                     ) {
-                      final chartPoint = data as ChartDataPoint;
-                      final homeworkTitle =
-                          chartPoint.homeworkTitle?.trim().isNotEmpty == true
-                          ? chartPoint.homeworkTitle!
-                          : 'No assignment title';
-                      final homeworkGradeText = GradeHelper.gradeForDisplay(
-                        chartPoint.homeworkGrade,
-                      );
-                      final categoryTitle = _categoryTitleForId(
-                        chartPoint.categoryId,
-                      );
-                      final categoryColor = _categoryColorForId(
-                        chartPoint.categoryId,
-                      );
                       final seriesName =
                           (seriesIndex >= 0 &&
                               seriesIndex < visibleSeries.length)
                           ? (visibleSeries[seriesIndex].name ?? '')
                           : '';
-                      final isOverallSeries = seriesName == 'Overall Grade';
-                      final gradeLabel = isOverallSeries
-                          ? 'Overall Grade'
-                          : isTermView
-                          ? 'Class Grade'
-                          : 'Category Grade';
-                      final classGradeAtPoint =
-                          '${chartPoint.grade.toStringAsFixed(2)}%';
-
-                      return Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: context.colorScheme.surface,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: context.colorScheme.outline.withValues(
-                              alpha: 0.3,
-                            ),
-                          ),
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '$homeworkTitle ($homeworkGradeText)',
-                              style: AppStyles.standardBodyText(
-                                context,
-                              ).copyWith(fontWeight: FontWeight.w600),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            if (isTermView && categoryTitle != null) ...[
-                              const SizedBox(height: 4),
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.category_outlined,
-                                    size: 13,
-                                    color: categoryColor,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Flexible(
-                                    child: Text(
-                                      categoryTitle,
-                                      style: AppStyles.smallSecondaryText(
-                                        context,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                            const SizedBox(height: 4),
-                            Text(
-                              '$gradeLabel: $classGradeAtPoint',
-                              style: AppStyles.smallSecondaryText(context),
-                            ),
-                          ],
-                        ),
+                      return _buildGradeTrendTooltip(
+                        chartPoint: data as ChartDataPoint,
+                        seriesName: seriesName,
+                        isTermView: isTermView,
                       );
                     },
               ),
               trackballBehavior: charts.TrackballBehavior(
-                enable: isTouchDevice,
+                enable: true,
                 activationMode: charts.ActivationMode.singleTap,
                 lineType: charts.TrackballLineType.vertical,
                 tooltipDisplayMode: charts.TrackballDisplayMode.floatAllPoints,
+                builder: (context, trackballDetails) {
+                  return _buildTrackballTooltip(
+                    trackballDetails,
+                    visibleSeries,
+                    isTermView,
+                  );
+                },
                 tooltipSettings: charts.InteractiveTooltip(
                   enable: true,
                   color: context.colorScheme.surface,
@@ -1266,6 +1211,9 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                     alpha: 0.3,
                   ),
                   borderWidth: 1,
+                  textStyle: AppStyles.smallSecondaryText(
+                    context,
+                  ).copyWith(color: context.colorScheme.onSurface),
                 ),
                 markerSettings: const charts.TrackballMarkerSettings(
                   markerVisibility: charts.TrackballVisibilityMode.visible,
@@ -1342,15 +1290,159 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
             ),
           ),
           // Legend
-          SizedBox(
-            width: Responsive.getResponsiveValue(
-              context,
-              mobile: 160,
-              tablet: 200,
-              desktop: 240,
+          if (!_hideLegend)
+            SizedBox(
+              width: Responsive.getResponsiveValue(
+                context,
+                mobile: 160,
+                tablet: 200,
+                desktop: 240,
+              ),
+              child: _buildLegend(series),
             ),
-            child: _buildLegend(series),
-          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTrackballTooltip(
+    charts.TrackballDetails trackballDetails,
+    List<charts.CartesianSeries<ChartDataPoint, DateTime>> visibleSeries,
+    bool isTermView,
+  ) {
+    final pointIndex = trackballDetails.pointIndex;
+    final seriesIndex = trackballDetails.seriesIndex;
+    if (pointIndex == null || seriesIndex == null) {
+      return const SizedBox.shrink();
+    }
+    if (seriesIndex < 0 || seriesIndex >= visibleSeries.length) {
+      return const SizedBox.shrink();
+    }
+
+    final series = visibleSeries[seriesIndex];
+    final dataSource = series.dataSource;
+    if (dataSource == null ||
+        pointIndex < 0 ||
+        pointIndex >= dataSource.length) {
+      return const SizedBox.shrink();
+    }
+
+    final pointData = dataSource[pointIndex];
+
+    return _buildGradeTrendTooltip(
+      chartPoint: pointData,
+      seriesName: series.name ?? '',
+      isTermView: isTermView,
+    );
+  }
+
+  Widget _buildGradeTrendTooltip({
+    required ChartDataPoint chartPoint,
+    required String seriesName,
+    required bool isTermView,
+  }) {
+    final homeworkTitle = chartPoint.homeworkTitle?.trim().isNotEmpty == true
+        ? chartPoint.homeworkTitle!
+        : 'No assignment title';
+    final homeworkGradeText = GradeHelper.gradeForDisplay(
+      chartPoint.homeworkGrade,
+    );
+    final categoryTitle = _categoryTitleForId(chartPoint.categoryId);
+    final categoryColor = _categoryColorForId(chartPoint.categoryId);
+    final seriesColor = _seriesColorForName(seriesName);
+    final isOverallSeries = seriesName == 'Overall Grade';
+    final isCourseSeries = isTermView && !isOverallSeries;
+    final isNonOverallSeries = !isOverallSeries;
+    final classGradeAtPoint = '${chartPoint.grade.toStringAsFixed(2)}%';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: context.colorScheme.surface,
+        borderRadius: BorderRadius.circular(5),
+        border: Border.all(
+          color: context.colorScheme.outline.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (isOverallSeries)
+            if (isTermView)
+              Text(
+                'Overall • $classGradeAtPoint',
+                style: AppStyles.standardBodyText(
+                  context,
+                ).copyWith(fontWeight: FontWeight.w600),
+                overflow: TextOverflow.ellipsis,
+              )
+            else
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.category_outlined, size: 14, color: categoryColor),
+                  const SizedBox(width: 4),
+                  Text(
+                    '• $classGradeAtPoint',
+                    style: AppStyles.standardBodyText(
+                      context,
+                    ).copyWith(fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+          if (isOverallSeries && isTermView && categoryTitle != null) ...[
+            const SizedBox(height: 4),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.category_outlined, size: 13, color: categoryColor),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    categoryTitle,
+                    style: AppStyles.smallSecondaryText(context),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (isCourseSeries)
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.school, size: 14, color: seriesColor),
+                const SizedBox(width: 4),
+                Text(
+                  '• $classGradeAtPoint',
+                  style: AppStyles.standardBodyText(
+                    context,
+                  ).copyWith(fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          if (isNonOverallSeries) ...[
+            const SizedBox(height: 4),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.assignment_outlined,
+                  size: 13,
+                  color: context.colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text(
+                    '$homeworkTitle • $homeworkGradeText',
+                    style: AppStyles.smallSecondaryText(context),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -1715,6 +1807,29 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     return Icons.circle;
   }
 
+  Color _seriesColorForName(String? name) {
+    if (name == null || name.isEmpty) return context.colorScheme.onSurface;
+    if (name == 'Overall Grade') return context.colorScheme.onSurface;
+
+    final selectedGroup = _grades.firstWhere(
+      (g) => g.id == _selectedGroupId,
+      orElse: () => _grades.first,
+    );
+
+    final matchedCourse = selectedGroup.courses.firstWhereOrNull(
+      (course) => course.title == name,
+    );
+    if (matchedCourse != null) return matchedCourse.color;
+
+    final selectedCourse = _getSelectedCourse();
+    final matchedCategory = selectedCourse?.categories.firstWhereOrNull(
+      (category) => category.title == name,
+    );
+    if (matchedCategory != null) return matchedCategory.color;
+
+    return context.colorScheme.onSurface;
+  }
+
   void _showGraphSettings(BuildContext buttonContext) {
     final selectedGroup = _grades.firstWhere(
       (g) => g.id == _selectedGroupId,
@@ -1835,9 +1950,22 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                           'Auto-adjust to graded range',
                           style: AppStyles.formText(context),
                         ),
-                        value: _autoAdjustToGradedRange,
+                        value: _autoAdjustToGradedRange == true,
                         onChanged: (value) {
                           _setAutoAdjustToGradedRange(value ?? false);
+                          setMenuState(() {});
+                        },
+                        dense: true,
+                      ),
+                      CheckboxListTile(
+                        controlAffinity: ListTileControlAffinity.leading,
+                        title: Text(
+                          'Hide legend',
+                          style: AppStyles.formText(context),
+                        ),
+                        value: _hideLegend == true,
+                        onChanged: (value) {
+                          _setHideLegend(value ?? false);
                           setMenuState(() {});
                         },
                         dense: true,
@@ -2021,10 +2149,20 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     _saveGraphSettingsIfEnabled();
   }
 
+  void _setHideLegend(bool value) {
+    setState(() {
+      _hideLegend = value;
+    });
+    _saveGraphSettingsIfEnabled();
+  }
+
   void _saveGraphSettingsIfEnabled() {
     if (!(userSettings?.rememberFilterState ?? false)) return;
 
-    final graphSettings = {'autoAdjustToGradedRange': _autoAdjustToGradedRange};
+    final graphSettings = {
+      'autoAdjustToGradedRange': _autoAdjustToGradedRange,
+      'hideLegend': _hideLegend,
+    };
     PrefService().setString(
       _savedGradeGraphSettingsKey,
       jsonEncode(graphSettings),
@@ -2040,10 +2178,16 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     try {
       final graphSettings = jsonDecode(savedState) as Map<String, dynamic>;
       final savedAutoAdjust = graphSettings['autoAdjustToGradedRange'] as bool?;
-      if (savedAutoAdjust == null) return;
+      final savedHideLegend = graphSettings['hideLegend'] as bool?;
+      if (savedAutoAdjust == null && savedHideLegend == null) return;
 
       setState(() {
-        _autoAdjustToGradedRange = savedAutoAdjust;
+        if (savedAutoAdjust != null) {
+          _autoAdjustToGradedRange = savedAutoAdjust;
+        }
+        if (savedHideLegend != null) {
+          _hideLegend = savedHideLegend;
+        }
       });
     } catch (_) {
       // Ignore malformed settings and keep defaults.

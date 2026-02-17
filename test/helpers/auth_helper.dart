@@ -50,14 +50,12 @@ Map<String, dynamic> givenUserSettingsJson({
 /// Creates JSON data representing a user object.
 Map<String, dynamic> givenUserJson({
   int id = 1,
-  String username = '🧪 test_user',
   String email = 'test@heliumedu.com',
   String? emailChanging,
   Map<String, dynamic>? settings,
 }) {
   return {
     'id': id,
-    'username': username,
     'email': email,
     'email_changing': emailChanging,
     'settings': settings ?? givenUserSettingsJson(),
@@ -96,23 +94,16 @@ Map<String, dynamic> givenLoginRequestJson({
 
 /// Creates JSON data representing a register request.
 Map<String, dynamic> givenRegisterRequestJson({
-  String username = 'new_user',
   String email = 'newuser@test.com',
   String password = 'secure_pass_1!',
   String timeZone = 'America/New_York',
 }) {
-  return {
-    'username': username,
-    'email': email,
-    'password': password,
-    'time_zone': timeZone,
-  };
+  return {'email': email, 'password': password, 'time_zone': timeZone};
 }
 
 /// Verifies that a [UserModel] matches the expected JSON data.
 void verifyUserMatchesJson(UserModel user, Map<String, dynamic> json) {
   expect(user.id, equals(json['id']));
-  expect(user.username, equals(json['username']));
   expect(user.email, equals(json['email']));
   expect(user.emailChanging, equals(json['email_changing']));
 
@@ -145,10 +136,7 @@ void verifyUserSettingsMatchesJson(
     settings.colorByCategory,
     equals(json['calendar_use_category_colors']),
   );
-  expect(
-    settings.rememberFilterState,
-    equals(json['remember_filter_state']),
-  );
+  expect(settings.rememberFilterState, equals(json['remember_filter_state']));
   expect(settings.privateSlug, equals(json['private_slug']));
 }
 

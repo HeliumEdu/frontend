@@ -87,7 +87,6 @@ class ErrorResponseModel {
     final Map<String, String> fieldMapping = {
       'password': 'Password',
       'email': 'Email',
-      'username': 'Username',
       'old_password': 'Current Password',
       'new_password': 'New Password',
       'confirm_password': 'Confirm Password',

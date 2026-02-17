@@ -76,10 +76,10 @@ void initializeRouter() {
       GoRoute(
         path: AppRoute.verifyEmailScreen,
         pageBuilder: (context, state) {
-          final username = state.uri.queryParameters['username'];
+          final email = state.uri.queryParameters['email'];
           final code = state.uri.queryParameters['code'];
           return MaterialPage(
-            child: VerifyEmailScreen(username: username, code: code),
+            child: VerifyEmailScreen(email: email, code: code),
           );
         },
       ),

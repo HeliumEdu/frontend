@@ -7,7 +7,7 @@
 
 class NoContentResponseModel {
   final String message;
-  final String? username;
+  final String? email;
 
-  NoContentResponseModel({required this.message, this.username});
+  NoContentResponseModel({required this.message, this.email});
 }

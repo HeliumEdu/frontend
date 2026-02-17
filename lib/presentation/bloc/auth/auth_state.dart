@@ -30,9 +30,9 @@ class AuthProfileUpdated extends AuthState {
 }
 
 class AuthRegistered extends AuthState {
-  final String? username;
+  final String? email;
 
-  AuthRegistered({this.username});
+  AuthRegistered({this.email});
 }
 
 class AuthEmailVerified extends AuthState {}
@@ -40,9 +40,9 @@ class AuthEmailVerified extends AuthState {}
 class AuthVerificationResent extends AuthState {}
 
 class AuthAccountInactive extends AuthState {
-  final String username;
+  final String email;
 
-  AuthAccountInactive({required super.message, required this.username});
+  AuthAccountInactive({required super.message, required this.email});
 }
 
 class AuthLoggedIn extends AuthState {}

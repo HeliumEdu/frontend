@@ -111,7 +111,9 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
 
             if (!isSetupComplete) {
               if (wasOAuthFlow) {
-                context.replace('${AppRoute.setupAccountScreen}?auto_detect_tz=true');
+                context.replace(
+                  '${AppRoute.setupAccountScreen}?auto_detect_tz=true',
+                );
               } else {
                 context.replace(AppRoute.setupAccountScreen);
               }
@@ -121,11 +123,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
               context.replace(destination);
             }
           } else if (state is AuthAccountInactive) {
-            _showInactiveAccountSnackBar(
-              context,
-              state.username,
-              state.message,
-            );
+            _showInactiveAccountSnackBar(context, state.email, state.message);
           } else if (state is AuthVerificationResent) {
             showSnackBar(
               context,
@@ -140,7 +138,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                 (state.httpStatusCode == 401 || state.httpStatusCode == 403);
             if (isForceLogoutError) {
               _log.info(
-                'Suppressing force logout ${state.httpStatusCode} error on login screen: ${state.message}',
+                'Suppressing force logout ${state.httpStatusCode} error on login screen',
               );
             } else {
               showSnackBar(context, state.message!, isError: true, seconds: 6);
@@ -160,7 +158,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
 
   void _showInactiveAccountSnackBar(
     BuildContext context,
-    String username,
+    String email,
     String? message,
   ) {
     showSnackBar(
@@ -172,9 +170,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
         label: 'Resend Email',
         textColor: context.colorScheme.onError,
         onPressed: () {
-          context.read<AuthBloc>().add(
-            ResendVerificationEvent(username: username),
-          );
+          context.read<AuthBloc>().add(ResendVerificationEvent(email: email));
         },
       ),
     );
@@ -204,13 +200,13 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
               const SizedBox(height: 50),
 
               LabelAndTextFormField(
-                hintText: 'Username',
+                hintText: 'Email',
                 autofocus: kIsWeb,
-                prefixIcon: Icons.person,
-                controller: _formController.usernameController,
-                validator: BasicFormController.validateRequiredField,
-                keyboardType: TextInputType.text,
-                autofillHints: const [AutofillHints.username],
+                prefixIcon: Icons.email_outlined,
+                controller: _formController.emailController,
+                validator: BasicFormController.validateRequiredEmail,
+                keyboardType: TextInputType.emailAddress,
+                autofillHints: const [AutofillHints.email],
               ),
               const SizedBox(height: 32),
 
@@ -388,7 +384,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
 
       context.read<AuthBloc>().add(
         LoginEvent(
-          username: _formController.usernameController.text.trim(),
+          email: _formController.emailController.text.trim(),
           password: _formController.passwordController.text,
         ),
       );
