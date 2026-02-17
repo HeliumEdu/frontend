@@ -57,9 +57,9 @@ class FallbackConstants {
   static const defaultAllDayOffset = 0;
   static const defaultWhatsNewVersionSeen = 0;
   static const defaultShowGettingStarted = false;
-  static const defaultEventsColor = '#418eb9'; // seedColor hex
-  static const defaultResourceColor = '#418eb9'; // seedColor hex
-  static const defaultGradeColor = '#418eb9'; // seedColor hex
+  static const defaultEventsColor = Color(0xffe74674);
+  static const defaultResourceColor = Color(0xffdc7d50);
+  static const defaultGradeColor = Color(0xff9d629d);
   static const defaultCalendarUseCategoryColors = false;
   static const defaultShowPlannerTooltips = true;
   static const defaultRememberFilterState = false;
