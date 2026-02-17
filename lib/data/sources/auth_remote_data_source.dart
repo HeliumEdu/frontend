@@ -80,7 +80,10 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       );
 
       if (response.statusCode == 201) {
-        return NoContentResponseModel(message: 'account registered');
+        return NoContentResponseModel(
+          message: 'account registered',
+          username: response.data['username'],
+        );
       } else {
         throw ServerException(
           message: 'Registration failed',

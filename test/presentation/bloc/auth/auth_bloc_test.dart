@@ -47,7 +47,6 @@ void main() {
     });
 
     group('RegisterEvent', () {
-      const username = 'testuser';
       const email = 'test@example.com';
       const password = 'password123';
       const timezone = 'America/New_York';
@@ -57,12 +56,16 @@ void main() {
         build: () {
           when(
             () => mockAuthRepository.register(any()),
-          ).thenAnswer((_) async => NoContentResponseModel(message: 'Success'));
+          ).thenAnswer(
+            (_) async => NoContentResponseModel(
+              message: 'Success',
+              username: 'testuser',
+            ),
+          );
           return authBloc;
         },
         act: (bloc) => bloc.add(
           RegisterEvent(
-            username: username,
             email: email,
             password: password,
             timezone: timezone,
@@ -84,7 +87,6 @@ void main() {
         },
         act: (bloc) => bloc.add(
           RegisterEvent(
-            username: username,
             email: email,
             password: password,
             timezone: timezone,
@@ -110,7 +112,6 @@ void main() {
         },
         act: (bloc) => bloc.add(
           RegisterEvent(
-            username: username,
             email: email,
             password: password,
             timezone: timezone,

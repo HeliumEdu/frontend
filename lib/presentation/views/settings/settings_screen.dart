@@ -83,7 +83,6 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
   final themeNotifier = ThemeNotifier();
 
   // State
-  String _username = '';
   String _email = '';
   String _version = '';
   bool _hasUsablePassword = true;
@@ -115,7 +114,6 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
             setState(() {
               _version = 'v${platform.version}';
 
-              _username = state.user.username;
               _email = state.user.email;
               _hasUsablePassword = state.user.hasUsablePassword;
 
@@ -249,25 +247,6 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
               ),
             ],
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: LabelAndTextFormField(
-                      label: 'Username',
-                      initialValue: _username,
-                      readOnly: true,
-                      prefixIcon: Icons.person_outline,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

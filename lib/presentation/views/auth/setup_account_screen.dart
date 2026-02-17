@@ -8,10 +8,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/presentation/views/core/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/widgets/loading_indicator.dart';
 import 'package:heliumapp/presentation/widgets/responsive_center_card.dart';
@@ -22,14 +24,16 @@ import 'package:logging/logging.dart';
 
 final _log = Logger('presentation.views');
 
-class SetupScreen extends StatefulWidget {
-  const SetupScreen({super.key});
+class SetupAccountScreen extends StatefulWidget {
+  final bool autoDetectTimeZone;
+
+  const SetupAccountScreen({super.key, this.autoDetectTimeZone = false});
 
   @override
-  State<SetupScreen> createState() => _SetupScreenState();
+  State<SetupAccountScreen> createState() => _SetupAccountScreenState();
 }
 
-class _SetupScreenState extends BasePageScreenState<SetupScreen> {
+class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
   @override
   String get screenTitle => '';
 
@@ -39,7 +43,7 @@ class _SetupScreenState extends BasePageScreenState<SetupScreen> {
   @override
   void initState() {
     super.initState();
-    _startPolling();
+    _initializeSetupFlow();
   }
 
   @override
@@ -72,7 +76,7 @@ class _SetupScreenState extends BasePageScreenState<SetupScreen> {
           const SizedBox(height: 32),
 
           Text(
-            'Getting things ready...',
+            'Getting things ready ...',
             style: AppStyles.standardBodyText(
               context,
             ).copyWith(fontSize: 18, fontWeight: FontWeight.w500),
@@ -87,10 +91,34 @@ class _SetupScreenState extends BasePageScreenState<SetupScreen> {
     _log.info('Starting setup status polling');
     _checkSetupStatus();
 
-    // Poll every 3 seconds
     _pollTimer = Timer.periodic(const Duration(milliseconds: 1500), (_) {
       _checkSetupStatus();
     });
+  }
+
+  Future<void> _initializeSetupFlow() async {
+    if (widget.autoDetectTimeZone) {
+      await _updateDetectedTimeZone();
+    } else {
+      _log.info(
+        'Setup started from non-OAuth flow, skipping timezone auto-update',
+      );
+    }
+    _startPolling();
+  }
+
+  Future<void> _updateDetectedTimeZone() async {
+    try {
+      final detectedTimeZone =
+          (await FlutterTimezone.getLocalTimezone()).identifier;
+
+      await DioClient().updateSettings(
+        UpdateSettingsRequestModel(timeZone: detectedTimeZone),
+      );
+      _log.info('Updated user timezone from setup flow');
+    } catch (e) {
+      _log.warning('Failed to auto-detect or update timezone: $e');
+    }
   }
 
   Future<void> _checkSetupStatus() async {
@@ -98,19 +126,19 @@ class _SetupScreenState extends BasePageScreenState<SetupScreen> {
     _isPolling = true;
 
     try {
-      _log.info('Checking setup status...');
+      _log.info('Checking setup status ...');
 
       final settings = await DioClient().fetchSettings(forceRefresh: true);
 
       if (settings != null && settings.isSetupComplete) {
-        _log.info('Setup complete, navigating to planner');
+        _log.info('... setup complete, navigating to planner');
         _pollTimer?.cancel();
 
         if (mounted) {
           context.replace(AppRoute.plannerScreen);
         }
       } else {
-        _log.info('Setup not yet complete, continuing to poll');
+        _log.info('--> Setup not yet complete, continuing to poll');
       }
     } catch (e) {
       _log.warning('Error checking setup status: $e');

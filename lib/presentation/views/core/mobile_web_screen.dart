@@ -18,17 +18,17 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:sign_in_button/sign_in_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class MobileWebPromptScreen extends StatefulWidget {
+class MobileWebScreen extends StatefulWidget {
   final String nextRoute;
 
-  const MobileWebPromptScreen({super.key, required this.nextRoute});
+  const MobileWebScreen({super.key, required this.nextRoute});
 
   @override
-  State<MobileWebPromptScreen> createState() => _MobileWebPromptScreenState();
+  State<MobileWebScreen> createState() => _MobileWebScreenState();
 }
 
-class _MobileWebPromptScreenState
-    extends BasePageScreenState<MobileWebPromptScreen> {
+class _MobileWebScreenState
+    extends BasePageScreenState<MobileWebScreen> {
   @override
   String get screenTitle => 'Get the Helium App';
 

@@ -60,7 +60,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
       CalendarConstants.defaultViews[FallbackConstants.defaultViewIndex];
   String _selectedWeekStartsOn =
       CalendarConstants.dayNames[FallbackConstants.defaultWeekStartsOn];
-  String _selectedTimezone = FallbackConstants.defaultTimezone;
+  String _selectedTimeZone = FallbackConstants.defaultTimeZone;
   String _selectedReminderOffsetType = ReminderConstants
       .offsetTypes[FallbackConstants.defaultReminderOffsetType];
   String _selectedReminderType =
@@ -323,12 +323,12 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
             SearchableDropdown(
               label: 'Time zone',
               initialValue: TimeZoneConstants.items.firstWhere(
-                (tz) => tz.value == _selectedTimezone,
+                (tz) => tz.value == _selectedTimeZone,
               ),
               items: TimeZoneConstants.items,
               onChanged: (value) {
                 setState(() {
-                  _selectedTimezone = value!.value!;
+                  _selectedTimeZone = value!.value!;
                 });
               },
             ),
@@ -399,7 +399,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
           CalendarConstants.defaultViews[state.user.settings.defaultView];
       _selectedWeekStartsOn =
           CalendarConstants.dayNames[state.user.settings.weekStartsOn];
-      _selectedTimezone = state.user.settings.timeZone.toString();
+      _selectedTimeZone = state.user.settings.timeZone.toString();
       _selectedReminderOffsetType = ReminderConstants
           .offsetTypes[state.user.settings.defaultReminderOffsetType];
       _selectedReminderType =
@@ -427,7 +427,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
       isSubmitting = true;
     });
 
-    final timeZone = _selectedTimezone;
+    final timeZone = _selectedTimeZone;
     final defaultView = CalendarConstants.defaultViews.indexOf(
       _selectedDefaultView,
     );

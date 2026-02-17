@@ -10,13 +10,11 @@ import 'package:heliumapp/data/models/auth/request/update_settings_request_model
 abstract class AuthEvent {}
 
 class RegisterEvent extends AuthEvent {
-  final String username;
   final String email;
   final String password;
   final String timezone;
 
   RegisterEvent({
-    required this.username,
     required this.email,
     required this.password,
     required this.timezone,

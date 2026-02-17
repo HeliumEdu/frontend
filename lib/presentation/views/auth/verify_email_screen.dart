@@ -26,17 +26,17 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
-class VerifyScreen extends StatefulWidget {
+class VerifyEmailScreen extends StatefulWidget {
   final String? username;
   final String? code;
 
-  const VerifyScreen({super.key, this.username, this.code});
+  const VerifyEmailScreen({super.key, this.username, this.code});
 
   @override
-  State<VerifyScreen> createState() => _VerifyScreenState();
+  State<VerifyEmailScreen> createState() => _VerifyEmailScreenState();
 }
 
-class _VerifyScreenState extends BasePageScreenState<VerifyScreen> {
+class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
   @override
   String get screenTitle => 'Verify Email';
 
@@ -108,7 +108,7 @@ class _VerifyScreenState extends BasePageScreenState<VerifyScreen> {
             );
 
             if (!context.mounted) return;
-            context.go(AppRoute.setupScreen);
+            context.go(AppRoute.setupAccountScreen);
           } else if (state is AuthVerificationResent) {
             showSnackBar(
               context,
