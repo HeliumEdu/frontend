@@ -10,7 +10,7 @@ import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
-import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/utils/planner_helper.dart';
 
 /// Priority order for calendar item types when times are equal.
 /// Lower values appear first: Homework --> ClassSchedule --> Event --> External
@@ -102,8 +102,12 @@ int comparePlannerItems({
   final bSecondsToSubtract = bAllDay ? 0 : 3 - bPriority;
   final aStartAdjusted = aStart.subtract(Duration(seconds: aSecondsToSubtract));
   final bStartAdjusted = bStart.subtract(Duration(seconds: bSecondsToSubtract));
-  final aEndAdjusted = aEnd.subtract(Duration(minutes: aAllDay ? 0 : 3 - aPriority));
-  final bEndAdjusted = bEnd.subtract(Duration(minutes: bAllDay ? 0 : 3 - bPriority));
+  final aEndAdjusted = aEnd.subtract(
+    Duration(minutes: aAllDay ? 0 : 3 - aPriority),
+  );
+  final bEndAdjusted = bEnd.subtract(
+    Duration(minutes: bAllDay ? 0 : 3 - bPriority),
+  );
 
   // 1. Sort by start date
   final startDateCompare = compareDatesOnly(aStartAdjusted, bStartAdjusted);

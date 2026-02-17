@@ -12,16 +12,6 @@ import 'package:heliumapp/utils/planner_helper.dart';
 
 final rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
-enum PlannerItemType { event, homework, external, courseSchedule }
-
-enum HeliumView { month, week, day, agenda, todos }
-
-List<DropDownItem<String>> _listToDropDownItems(List<String> list) {
-  return list
-      .map((item) => DropDownItem(id: list.indexOf(item), value: item))
-      .toList();
-}
-
 class AppConstants {
   static const appName = 'Helium';
 
@@ -33,13 +23,9 @@ class AppConstants {
   //'https://play.google.com/store/apps/details?id=com.heliumedu.heliumapp';
 
   static const authContainerSize = 120.0;
-
   static const minHeightForTrailingNav = 500.0;
-
   static const leftPanelDialogWidth = 500.0;
-
   static const notificationsDialogWidth = 420.0;
-
   static const centeredDialogWidth = 550.0;
 }
 
@@ -98,7 +84,7 @@ class CalendarConstants {
     'Todos',
     'Agenda',
   ];
-  static final List<DropDownItem<String>> defaultViewItems = HeliumView.values
+  static final List<DropDownItem<String>> defaultViewItems = PlannerView.values
       .map((view) {
         final apiIndex = PlannerHelper.mapHeliumViewToApiView(view);
         return DropDownItem(id: apiIndex, value: defaultViews[apiIndex]);
@@ -605,4 +591,10 @@ class TimeZoneConstants {
     'Pacific/Wallis',
   ];
   static final List<DropDownItem<String>> items = _listToDropDownItems(all);
+}
+
+List<DropDownItem<String>> _listToDropDownItems(List<String> list) {
+  return list
+      .map((item) => DropDownItem(id: list.indexOf(item), value: item))
+      .toList();
 }

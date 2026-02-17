@@ -27,6 +27,7 @@ import 'package:heliumapp/domain/repositories/external_calendar_repository.dart'
 import 'package:heliumapp/domain/repositories/homework_repository.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
+import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
@@ -413,17 +414,20 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     final includeAllTypes = _filterTypes.isEmpty;
 
     // Homeworks - use filteredHomeworks, which already has all filters applied
-    if (includeAllTypes || _filterTypes.contains('Assignments')) {
+    if (includeAllTypes ||
+        _filterTypes.contains(PlannerFilterType.assignments.value)) {
       items.addAll(filteredHomeworks);
     }
 
     // Events - apply search filter only
-    if (includeAllTypes || _filterTypes.contains('Events')) {
+    if (includeAllTypes ||
+        _filterTypes.contains(PlannerFilterType.events.value)) {
       items.addAll(_applySearchFilterToItems(allEvents));
     }
 
     // CourseSchedule events - apply course and search filters
-    if (includeAllTypes || _filterTypes.contains('Class Schedules')) {
+    if (includeAllTypes ||
+        _filterTypes.contains(PlannerFilterType.classSchedules.value)) {
       final courseScheduleEvents = allCourseScheduleEvents
           .where(_applyCourseFilterToCourseScheduleEvent)
           .toList();
@@ -431,7 +435,8 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     }
 
     // ExternalCalendar events - apply search filter only
-    if (includeAllTypes || _filterTypes.contains('External Calendars')) {
+    if (includeAllTypes ||
+        _filterTypes.contains(PlannerFilterType.externalCalendars.value)) {
       items.addAll(_applySearchFilterToItems(allExternalCalendarEvents));
     }
 
@@ -984,21 +989,21 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       bool matches = false;
       final isCompleted = isHomeworkCompleted(homework);
 
-      if (_filterStatuses.contains('Complete')) {
+      if (_filterStatuses.contains(PlannerFilterStatus.complete.value)) {
         matches = matches || isCompleted;
       }
-      if (_filterStatuses.contains('Incomplete')) {
+      if (_filterStatuses.contains(PlannerFilterStatus.incomplete.value)) {
         matches = matches || !isCompleted;
       }
-      if (_filterStatuses.contains('Overdue')) {
+      if (_filterStatuses.contains(PlannerFilterStatus.overdue.value)) {
         final bool isOverdue =
             !isCompleted && homework.start.isBefore(DateTime.now());
         matches = matches || isOverdue;
       }
-      if (_filterStatuses.contains('Graded')) {
+      if (_filterStatuses.contains(PlannerFilterStatus.graded.value)) {
         matches = matches || _isHomeworkGraded(homework);
       }
-      if (_filterStatuses.contains('Ungraded')) {
+      if (_filterStatuses.contains(PlannerFilterStatus.ungraded.value)) {
         matches = matches || !_isHomeworkGraded(homework);
       }
       return matches;
