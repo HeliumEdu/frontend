@@ -48,13 +48,10 @@ class ReminderModel extends BaseTitledModel {
       sent: json['sent'],
       dismissed: json['dismissed'],
       homework: json['homework'] != null
-          ? HeliumConversion.idOrEntityFrom(
-              json['homework'],
-              HomeworkModel.fromJson,
-            )
+          ? idOrEntityFrom(json['homework'], HomeworkModel.fromJson)
           : null,
       event: json['event'] != null
-          ? HeliumConversion.idOrEntityFrom(json['event'], EventModel.fromJson)
+          ? idOrEntityFrom(json['event'], EventModel.fromJson)
           : null,
     );
   }

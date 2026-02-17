@@ -39,7 +39,7 @@ class GradeCourseModel extends BaseTitledModel {
     return GradeCourseModel(
       id: json['id'],
       title: json['title'],
-      overallGrade: HeliumConversion.toDouble(json['overall_grade'])!,
+      overallGrade: toDouble(json['overall_grade'])!,
       color: HeliumColors.hexToColor(json['color']),
       trend: (json['trend'] as num?)?.toDouble(),
       numHomework: json['num_homework'],

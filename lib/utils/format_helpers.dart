@@ -16,13 +16,11 @@ extension PluralExtension on int {
   }
 }
 
-class Format {
-  static String reminderOffset(ReminderModel reminder) {
-    String units = ReminderConstants.offsetTypes[reminder.offsetType]
-        .toLowerCase();
-    if (reminder.offset == 1) {
-      units = units.substring(0, units.length - 1);
-    }
-    return '${reminder.offset.toString()} $units';
+String reminderOffset(ReminderModel reminder) {
+  String units = ReminderConstants.offsetTypes[reminder.offsetType]
+      .toLowerCase();
+  if (reminder.offset == 1) {
+    units = units.substring(0, units.length - 1);
   }
+  return '${reminder.offset.toString()} $units';
 }

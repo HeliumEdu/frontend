@@ -51,33 +51,18 @@ class HomeworkModel extends PlannerItemBaseModel {
       priority: json['priority'],
       comments: json['comments'],
       attachments: json['attachments'] != null
-          ? HeliumConversion.idOrEntityListFrom(
-              json['attachments'],
-              AttachmentModel.fromJson,
-            )
+          ? idOrEntityListFrom(json['attachments'], AttachmentModel.fromJson)
           : [],
       reminders: json['reminders'] != null
-          ? HeliumConversion.idOrEntityListFrom(
-              json['reminders'],
-              ReminderModel.fromJson,
-            )
+          ? idOrEntityListFrom(json['reminders'], ReminderModel.fromJson)
           : [],
       currentGrade: json['current_grade'],
       completed: json['completed'],
-      category: HeliumConversion.idOrEntityFrom(
-        json['category'],
-        CategoryModel.fromJson,
-      ),
+      category: idOrEntityFrom(json['category'], CategoryModel.fromJson),
       resources: json['materials'] != null
-          ? HeliumConversion.idOrEntityListFrom(
-              json['materials'],
-              ResourceModel.fromJson,
-            )
+          ? idOrEntityListFrom(json['materials'], ResourceModel.fromJson)
           : [],
-      course: HeliumConversion.idOrEntityFrom(
-        json['course'],
-        CourseModel.fromJson,
-      ),
+      course: idOrEntityFrom(json['course'], CourseModel.fromJson),
     );
   }
 

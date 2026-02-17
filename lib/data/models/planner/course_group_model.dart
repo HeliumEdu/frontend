@@ -33,7 +33,7 @@ class CourseGroupModel extends BaseTitledModel {
       startDate: DateTime.parse(json['start_date']),
       endDate: DateTime.parse(json['end_date']),
       shownOnCalendar: json['shown_on_calendar'],
-      averageGrade: HeliumConversion.toDouble(json['average_grade']),
+      averageGrade: toDouble(json['average_grade']),
       numDays: json['num_days'],
       numDaysCompleted: json['num_days_completed'],
     );

@@ -142,7 +142,7 @@ class _NotificationsScreenState
       setState(() {
         _readNotificationIds =
             (_prefService.getStringList('read_notification_ids') ?? [])
-                .map((n) => HeliumConversion.toInt(n)!)
+                .map((n) => toInt(n)!)
                 .toList();
       });
     });
@@ -541,4 +541,3 @@ class _NotificationsScreenState
     );
   }
 }
-

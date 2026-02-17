@@ -6,13 +6,13 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:heliumapp/data/models/base_model.dart';
-import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
+import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 
-class PlannerSortHelpers {
+class Sort {
   /// Priority order for calendar item types when times are equal.
   /// Lower values appear first: Homework --> ClassSchedule --> Event --> External
   static const typeSortPriority = {
@@ -70,7 +70,7 @@ class PlannerSortHelpers {
   }
 
   /// Shared comparison function for calendar items.
-  /// Used by both Sort.byStartThenTitle() and background isolate filtering.
+  /// Used by both byStartThenTitle() and background isolate filtering.
   static int comparePlannerItems({
     required PlannerItemType aType,
     required PlannerItemType bType,
@@ -143,9 +143,7 @@ class PlannerSortHelpers {
     // 6. Final tiebreaker: sort by title alphabetically
     return aTitle.compareTo(bTitle);
   }
-}
 
-class Sort {
   static void byTitle(List<BaseTitledModel> list) {
     list.sort((a, b) => a.title.compareTo(b.title));
   }
@@ -160,7 +158,7 @@ class Sort {
 
   static void byStartThenTitle(List<PlannerItemBaseModel> list) {
     list.sort((a, b) {
-      return PlannerSortHelpers.comparePlannerItems(
+      return comparePlannerItems(
         aType: a.plannerItemType,
         bType: b.plannerItemType,
         aAllDay: a.allDay,

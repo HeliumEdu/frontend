@@ -203,14 +203,12 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     }
 
     // Timed events: subtract seconds to encode sort order
-    final priority =
-        PlannerSortHelpers.typeSortPriority[item.plannerItemType] ?? 0;
+    final priority = Sort.typeSortPriority[item.plannerItemType] ?? 0;
     final position = _sortPositions[item.id] ?? 0;
-    final adjustment =
-        PlannerSortHelpers.getTimedEventStartTimeAdjustmentSeconds(
-          priority,
-          position,
-        );
+    final adjustment = Sort.getTimedEventStartTimeAdjustmentSeconds(
+      priority,
+      position,
+    );
     return baseTime.subtract(Duration(seconds: adjustment));
   }
 
@@ -234,13 +232,9 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     }
 
     // Timed events: subtract to encode sort order (uses minutes to avoid visible shortening)
-    final priority =
-        PlannerSortHelpers.typeSortPriority[plannerItem.plannerItemType] ?? 0;
+    final priority = Sort.typeSortPriority[plannerItem.plannerItemType] ?? 0;
     final position = _sortPositions[plannerItem.id] ?? 0;
-    final adjustment = PlannerSortHelpers.getTimedEventEndTimeAdjustment(
-      priority,
-      position,
-    );
+    final adjustment = Sort.getTimedEventEndTimeAdjustment(priority, position);
     return endTime.subtract(adjustment);
   }
 

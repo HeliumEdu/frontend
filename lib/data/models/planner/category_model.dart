@@ -40,11 +40,11 @@ class CategoryModel extends BaseTitledModel {
       shownOnCalendar: json['shown_on_calendar'],
       color: HeliumColors.hexToColor(json['color']),
       course: json['course'],
-      weight: HeliumConversion.toDouble(json['weight'])!,
-      overallGrade: HeliumConversion.toDouble(json['overall_grade']),
-      gradeByWeight: HeliumConversion.toDouble(json['grade_by_weight']),
-      trend: HeliumConversion.toDouble(json['trend']),
-      numHomework: HeliumConversion.toInt(json['num_homework']),
+      weight: toDouble(json['weight'])!,
+      overallGrade: toDouble(json['overall_grade']),
+      gradeByWeight: toDouble(json['grade_by_weight']),
+      trend: toDouble(json['trend']),
+      numHomework: toInt(json['num_homework']),
     );
   }
 
