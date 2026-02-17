@@ -7,6 +7,7 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
+import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:logging/logging.dart';
 
 final _log = Logger('presentation.views');
@@ -126,12 +127,11 @@ class TodosTableController extends ChangeNotifier {
 
     // Find the first homework due today or later
     final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
+    final today = HeliumDateTime.dateOnly(now);
 
     int targetIndex = -1;
     for (int i = 0; i < sorted.length; i++) {
-      final dueDate = sorted[i].start;
-      final dueDateOnly = DateTime(dueDate.year, dueDate.month, dueDate.day);
+      final dueDateOnly = HeliumDateTime.dateOnly(sorted[i].start);
 
       if (dueDateOnly.isAtSameMomentAs(today) || dueDateOnly.isAfter(today)) {
         targetIndex = i;
