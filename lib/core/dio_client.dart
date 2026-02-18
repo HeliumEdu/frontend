@@ -20,9 +20,9 @@ import 'package:heliumapp/data/models/auth/request/refresh_token_request_model.d
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/data/models/auth/token_response_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
-import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
+import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -398,6 +398,9 @@ class DioClient {
         'remember_filter_state':
             _prefService.getBool('remember_filter_state') ??
             FallbackConstants.defaultRememberFilterState,
+        'drag_and_drop_on_mobile':
+            _prefService.getBool('drag_and_drop_on_mobile') ??
+            FallbackConstants.defaultDragAndDropOnMobile,
       });
     } catch (parseError) {
       _log.info('Failed to parse cached settings: $parseError');
@@ -464,6 +467,10 @@ class DioClient {
       ?_prefService.setBool(
         'remember_filter_state',
         settings.rememberFilterState,
+      ),
+      ?_prefService.setBool(
+        'drag_and_drop_on_mobile',
+        settings.dragAndDropOnMobile,
       ),
       ?_prefService.setBool('is_setup_complete', settings.isSetupComplete),
     ]);
