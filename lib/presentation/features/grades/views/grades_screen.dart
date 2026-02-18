@@ -37,6 +37,7 @@ import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
 import 'package:heliumapp/presentation/ui/components/group_dropdown.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
@@ -876,10 +877,10 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                   ),
                   const SizedBox(width: 6),
                   Flexible(
-                    child: Text(
+                    child: SelectableText(
                       '$maxUngraded in ${topCourse.title}',
                       style: AppStyles.smallSecondaryText(context),
-                      overflow: TextOverflow.ellipsis,
+                      // overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
@@ -1455,7 +1456,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  Icons.assignment_outlined,
+                  AppConstants.assignmentIcon,
                   size: 13,
                   color: context.colorScheme.onSurfaceVariant,
                 ),
@@ -2432,7 +2433,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
           ),
           Expanded(
             flex: 2,
-            child: Text(
+            child: SelectableText(
               '${category.numHomeworkGraded} of ${category.numHomework}',
               textAlign: TextAlign.center,
               style: AppStyles.standardBodyText(context).copyWith(

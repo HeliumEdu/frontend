@@ -569,8 +569,10 @@ class _CalendarScreenState
           headerHeight: 0,
           showCurrentTimeIndicator: true,
           showWeekNumber: !Responsive.isMobile(context),
-          allowDragAndDrop: _allowCalendarDragAndDrop &&
-              (!Responsive.isTouchDevice(context) || (userSettings?.dragAndDropOnMobile ?? true)),
+          allowDragAndDrop:
+              _allowCalendarDragAndDrop &&
+              (!Responsive.isTouchDevice(context) ||
+                  (userSettings?.dragAndDropOnMobile ?? true)),
           dragAndDropSettings: DragAndDropSettings(
             timeIndicatorStyle: AppStyles.smallSecondaryText(
               context,
@@ -1196,14 +1198,18 @@ class _CalendarScreenState
           builder: (context) {
             final hasFilters = _hasCoursesFilter() || _hasStatusFilters();
             return IconButton.outlined(
-              onPressed:
-                  _courses.isEmpty ? null : () => _openFilterSheet(context),
+              onPressed: _courses.isEmpty
+                  ? null
+                  : () => _openFilterSheet(context),
               tooltip: 'Filters',
               icon: const Icon(Icons.filter_alt),
               style: IconButton.styleFrom(
-                backgroundColor: hasFilters ? context.colorScheme.primary : null,
-                foregroundColor:
-                    hasFilters ? context.colorScheme.onPrimary : null,
+                backgroundColor: hasFilters
+                    ? context.colorScheme.primary
+                    : null,
+                foregroundColor: hasFilters
+                    ? context.colorScheme.onPrimary
+                    : null,
                 side: BorderSide(color: context.colorScheme.primary),
               ),
             );
@@ -1892,7 +1898,7 @@ class _CalendarScreenState
       if (GradeHelper.parseGrade(plannerItem.currentGrade) != null) {
         rows.add(
           _PlannerTooltipRow.text(
-            icon: Icons.percent,
+            icon: Icons.assignment_turned_in_outlined,
             text: GradeHelper.gradeForDisplay(plannerItem.currentGrade),
             color: context.colorScheme.primary,
           ),
@@ -1901,7 +1907,7 @@ class _CalendarScreenState
     } else if (plannerItem is EventModel) {
       rows.add(
         _PlannerTooltipRow.text(
-          icon: Icons.event_outlined,
+          icon: AppConstants.eventIcon,
           text: 'Source: Events',
           color: userSettings?.eventsColor,
         ),
@@ -1913,7 +1919,7 @@ class _CalendarScreenState
           : null;
       rows.add(
         _PlannerTooltipRow.text(
-          icon: Icons.cloud_download,
+          icon: AppConstants.externalCalendarIcon,
           text: 'Source: ${externalCalendar?.title ?? 'External Calendar'}',
           color: externalCalendar?.color ?? plannerItem.color,
         ),
@@ -1946,6 +1952,17 @@ class _CalendarScreenState
     }
 
     final children = <InlineSpan>[
+      if (plannerItem is CourseScheduleEventModel) ...[
+        WidgetSpan(
+          alignment: PlaceholderAlignment.middle,
+          child: Icon(
+            AppConstants.courseScheduleIcon,
+            size: 14,
+            color: plannerItem.color,
+          ),
+        ),
+        const TextSpan(text: ' '),
+      ],
       TextSpan(text: plannerItem.title, style: titleStyle),
       const TextSpan(text: '\n'),
       WidgetSpan(
@@ -2175,10 +2192,7 @@ class _CalendarScreenState
           true,
           _currentView,
         ))
-          _buildCalendarItemTimeBelowTitleRow(
-            plannerItem,
-            isInAgenda: true,
-          ),
+          _buildCalendarItemTimeBelowTitleRow(plannerItem, isInAgenda: true),
         if (PlannerHelper.shouldShowLocationBelowTitle(
               context,
               plannerItem,
@@ -2236,10 +2250,7 @@ class _CalendarScreenState
               padding: EdgeInsets.only(
                 right: Responsive.isMobile(context) ? 2 : 4,
               ),
-              child: _buildCalendarItemTime(
-                plannerItem,
-                isInAgenda: false,
-              ),
+              child: _buildCalendarItemTime(plannerItem, isInAgenda: false),
             ),
           ),
         );
@@ -2288,10 +2299,7 @@ class _CalendarScreenState
           false,
           _currentView,
         ))
-          _buildCalendarItemTimeBelowTitleRow(
-            plannerItem,
-            isInAgenda: false,
-          ),
+          _buildCalendarItemTimeBelowTitleRow(plannerItem, isInAgenda: false),
         if (PlannerHelper.shouldShowLocationBelowTitle(
               context,
               plannerItem,
@@ -2594,7 +2602,9 @@ class _CalendarScreenState
             plannerItem: plannerItem,
             hideLocation: true,
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: _agendaHeightDesktop),
+              constraints: const BoxConstraints(
+                maxHeight: _agendaHeightDesktop,
+              ),
               child: _buildCalendarItemWidget(
                 plannerItem: plannerItem,
                 width: double.infinity,
@@ -2742,425 +2752,438 @@ class _CalendarScreenState
     final isMobile = Responsive.isMobile(context);
 
     Widget buildContent(BuildContext context, StateSetter setSheetState) {
-            final statuses = _plannerItemDataSource!.filterStatuses;
-            final isCompleteFilterEnabled =
-                statuses.contains(PlannerFilterStatus.complete.value) ||
-                statuses.contains(PlannerFilterStatus.incomplete.value);
-            final showCompletedOnly = statuses.contains(
-              PlannerFilterStatus.complete.value,
+      final statuses = _plannerItemDataSource!.filterStatuses;
+      final isCompleteFilterEnabled =
+          statuses.contains(PlannerFilterStatus.complete.value) ||
+          statuses.contains(PlannerFilterStatus.incomplete.value);
+      final showCompletedOnly = statuses.contains(
+        PlannerFilterStatus.complete.value,
+      );
+      final isGradedFilterEnabled =
+          statuses.contains(PlannerFilterStatus.graded.value) ||
+          statuses.contains(PlannerFilterStatus.ungraded.value);
+      final showGradedOnly = statuses.contains(
+        PlannerFilterStatus.graded.value,
+      );
+
+      void setCompleteFilterMode({
+        required bool enabled,
+        required bool completeOnly,
+      }) {
+        final currentStatuses = Set<String>.from(
+          _plannerItemDataSource!.filterStatuses,
+        );
+        currentStatuses.remove(PlannerFilterStatus.complete.value);
+        currentStatuses.remove(PlannerFilterStatus.incomplete.value);
+        if (enabled) {
+          currentStatuses.add(
+            completeOnly
+                ? PlannerFilterStatus.complete.value
+                : PlannerFilterStatus.incomplete.value,
+          );
+        }
+        _plannerItemDataSource!.setFilterStatuses(currentStatuses);
+        setSheetState(() {});
+      }
+
+      void setGradedFilterMode({
+        required bool enabled,
+        required bool gradedOnly,
+      }) {
+        final currentStatuses = Set<String>.from(
+          _plannerItemDataSource!.filterStatuses,
+        );
+        currentStatuses.remove(PlannerFilterStatus.graded.value);
+        currentStatuses.remove(PlannerFilterStatus.ungraded.value);
+        if (enabled) {
+          currentStatuses.add(
+            gradedOnly
+                ? PlannerFilterStatus.graded.value
+                : PlannerFilterStatus.ungraded.value,
+          );
+        }
+        _plannerItemDataSource!.setFilterStatuses(currentStatuses);
+        setSheetState(() {});
+      }
+
+      Widget buildStatusTile(String label) {
+        final isChecked = _plannerItemDataSource!.filterStatuses.contains(
+          label,
+        );
+        return CheckboxListTile(
+          title: Text(label, style: AppStyles.formText(context)),
+          value: isChecked,
+          onChanged: (value) {
+            final currentStatuses = Set<String>.from(
+              _plannerItemDataSource!.filterStatuses,
             );
-            final isGradedFilterEnabled =
-                statuses.contains(PlannerFilterStatus.graded.value) ||
-                statuses.contains(PlannerFilterStatus.ungraded.value);
-            final showGradedOnly = statuses.contains(
-              PlannerFilterStatus.graded.value,
-            );
-
-            void setCompleteFilterMode({
-              required bool enabled,
-              required bool completeOnly,
-            }) {
-              final currentStatuses = Set<String>.from(
-                _plannerItemDataSource!.filterStatuses,
-              );
-              currentStatuses.remove(PlannerFilterStatus.complete.value);
-              currentStatuses.remove(PlannerFilterStatus.incomplete.value);
-              if (enabled) {
-                currentStatuses.add(
-                  completeOnly
-                      ? PlannerFilterStatus.complete.value
-                      : PlannerFilterStatus.incomplete.value,
-                );
-              }
-              _plannerItemDataSource!.setFilterStatuses(currentStatuses);
-              setSheetState(() {});
+            if (value == true) {
+              currentStatuses.add(label);
+            } else {
+              currentStatuses.remove(label);
             }
+            _plannerItemDataSource!.setFilterStatuses(currentStatuses);
+            setSheetState(() {});
+          },
+          controlAffinity: ListTileControlAffinity.leading,
+          dense: true,
+          contentPadding: EdgeInsets.zero,
+        );
+      }
 
-            void setGradedFilterMode({
-              required bool enabled,
-              required bool gradedOnly,
-            }) {
-              final currentStatuses = Set<String>.from(
-                _plannerItemDataSource!.filterStatuses,
-              );
-              currentStatuses.remove(PlannerFilterStatus.graded.value);
-              currentStatuses.remove(PlannerFilterStatus.ungraded.value);
-              if (enabled) {
-                currentStatuses.add(
-                  gradedOnly
-                      ? PlannerFilterStatus.graded.value
-                      : PlannerFilterStatus.ungraded.value,
-                );
-              }
-              _plannerItemDataSource!.setFilterStatuses(currentStatuses);
-              setSheetState(() {});
-            }
+      final visibleCategories = _getVisibleCategories();
 
-            Widget buildStatusTile(String label) {
-              final isChecked = _plannerItemDataSource!.filterStatuses.contains(
-                label,
-              );
-              return CheckboxListTile(
-                title: Text(label, style: AppStyles.formText(context)),
-                value: isChecked,
-                onChanged: (value) {
-                  final currentStatuses = Set<String>.from(
-                    _plannerItemDataSource!.filterStatuses,
-                  );
-                  if (value == true) {
-                    currentStatuses.add(label);
-                  } else {
-                    currentStatuses.remove(label);
-                  }
-                  _plannerItemDataSource!.setFilterStatuses(currentStatuses);
-                  setSheetState(() {});
-                },
-                controlAffinity: ListTileControlAffinity.leading,
-                dense: true,
-                contentPadding: EdgeInsets.zero,
-              );
-            }
-
-            final visibleCategories = _getVisibleCategories();
-
-            return ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.8,
+      return ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.8,
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header row
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Filters',
+                      style: AppStyles.formText(
+                        context,
+                      ).copyWith(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      _plannerItemDataSource!.clearFilters();
+                      setSheetState(() {});
+                    },
+                    child: const Text('Clear All'),
+                  ),
+                ],
               ),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Header row
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            'Filters',
-                            style: AppStyles.formText(context).copyWith(
-                              fontWeight: FontWeight.w600,
+
+              // CLASSES section
+              _buildSheetSectionHeader(context, 'CLASSES'),
+              for (int i = 0; i < displayCourses.length; i++) ...[
+                if (i > 0 &&
+                    displayCourses[i].courseGroup !=
+                        displayCourses[i - 1].courseGroup)
+                  const Divider(height: 20),
+                Builder(
+                  builder: (context) {
+                    final course = displayCourses[i];
+                    final isSelected =
+                        _plannerItemDataSource!.filteredCourses[course.id] ??
+                        false;
+                    return CheckboxListTile(
+                      title: Row(
+                        children: [
+                          Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: course.color,
+                              shape: BoxShape.circle,
                             ),
                           ),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            _plannerItemDataSource!.clearFilters();
-                            setSheetState(() {});
-                          },
-                          child: const Text('Clear All'),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              course.title,
+                              style: AppStyles.formText(context),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      value: isSelected,
+                      onChanged: (value) {
+                        final currentFilters = Map<int, bool>.from(
+                          _plannerItemDataSource!.filteredCourses,
+                        );
+                        if (value == true) {
+                          currentFilters[course.id] = true;
+                        } else {
+                          currentFilters.remove(course.id);
+                        }
+                        _plannerItemDataSource!.setFilteredCourses(
+                          currentFilters,
+                        );
+                        setSheetState(() {});
+                      },
+                      controlAffinity: ListTileControlAffinity.leading,
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    );
+                  },
+                ),
+              ],
+
+              // TYPES section (hidden in todos view)
+              if (_currentView != PlannerView.todos) ...[
+                _buildSheetSectionHeader(context, 'TYPES'),
+                CheckboxListTile(
+                  title: Row(
+                    children: [
+                      Icon(
+                        AppConstants.assignmentIcon,
+                        size: 12,
+                        color: context.colorScheme.onSurface,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        PlannerFilterType.assignments.value,
+                        style: AppStyles.formText(context),
+                      ),
+                    ],
+                  ),
+                  value: _plannerItemDataSource!.filterTypes.contains(
+                    PlannerFilterType.assignments.value,
+                  ),
+                  onChanged: (value) {
+                    final currentTypes = List<String>.from(
+                      _plannerItemDataSource!.filterTypes,
+                    );
+                    if (value == true) {
+                      if (!currentTypes.contains(
+                        PlannerFilterType.assignments.value,
+                      )) {
+                        currentTypes.add(PlannerFilterType.assignments.value);
+                      }
+                    } else {
+                      currentTypes.remove(PlannerFilterType.assignments.value);
+                    }
+                    _plannerItemDataSource!.setFilterTypes(currentTypes);
+                    setSheetState(() {});
+                  },
+                  controlAffinity: ListTileControlAffinity.leading,
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                ),
+                CheckboxListTile(
+                  title: Row(
+                    children: [
+                      Icon(
+                        AppConstants.eventIcon,
+                        size: 12,
+                        color: userSettings!.eventsColor,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        PlannerFilterType.events.value,
+                        style: AppStyles.formText(context),
+                      ),
+                    ],
+                  ),
+                  value: _plannerItemDataSource!.filterTypes.contains(
+                    PlannerFilterType.events.value,
+                  ),
+                  onChanged: (value) {
+                    final currentTypes = List<String>.from(
+                      _plannerItemDataSource!.filterTypes,
+                    );
+                    if (value == true) {
+                      if (!currentTypes.contains(
+                        PlannerFilterType.events.value,
+                      )) {
+                        currentTypes.add(PlannerFilterType.events.value);
+                      }
+                    } else {
+                      currentTypes.remove(PlannerFilterType.events.value);
+                    }
+                    _plannerItemDataSource!.setFilterTypes(currentTypes);
+                    setSheetState(() {});
+                  },
+                  controlAffinity: ListTileControlAffinity.leading,
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                ),
+                CheckboxListTile(
+                  title: Row(
+                    children: [
+                      Icon(
+                        AppConstants.courseScheduleIcon,
+                        size: 12,
+                        color: context.colorScheme.onSurface,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        PlannerFilterType.classSchedules.value,
+                        style: AppStyles.formText(context),
+                      ),
+                    ],
+                  ),
+                  value: _plannerItemDataSource!.filterTypes.contains(
+                    PlannerFilterType.classSchedules.value,
+                  ),
+                  onChanged: (value) {
+                    final currentTypes = List<String>.from(
+                      _plannerItemDataSource!.filterTypes,
+                    );
+                    if (value == true) {
+                      if (!currentTypes.contains(
+                        PlannerFilterType.classSchedules.value,
+                      )) {
+                        currentTypes.add(
+                          PlannerFilterType.classSchedules.value,
+                        );
+                      }
+                    } else {
+                      currentTypes.remove(
+                        PlannerFilterType.classSchedules.value,
+                      );
+                    }
+                    _plannerItemDataSource!.setFilterTypes(currentTypes);
+                    setSheetState(() {});
+                  },
+                  controlAffinity: ListTileControlAffinity.leading,
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                ),
+                CheckboxListTile(
+                  title: Row(
+                    children: [
+                      Icon(
+                        AppConstants.externalCalendarIcon,
+                        size: 12,
+                        color: context.colorScheme.onSurface,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        PlannerFilterType.externalCalendars.value,
+                        style: AppStyles.formText(context),
+                      ),
+                    ],
+                  ),
+                  value: _plannerItemDataSource!.filterTypes.contains(
+                    PlannerFilterType.externalCalendars.value,
+                  ),
+                  onChanged: (value) {
+                    final currentTypes = List<String>.from(
+                      _plannerItemDataSource!.filterTypes,
+                    );
+                    if (value == true) {
+                      if (!currentTypes.contains(
+                        PlannerFilterType.externalCalendars.value,
+                      )) {
+                        currentTypes.add(
+                          PlannerFilterType.externalCalendars.value,
+                        );
+                      }
+                    } else {
+                      currentTypes.remove(
+                        PlannerFilterType.externalCalendars.value,
+                      );
+                    }
+                    _plannerItemDataSource!.setFilterTypes(currentTypes);
+                    setSheetState(() {});
+                  },
+                  controlAffinity: ListTileControlAffinity.leading,
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ],
+
+              // STATUS section
+              _buildSheetSectionHeader(context, 'STATUS'),
+              _CheckboxToggle(
+                isChecked: isCompleteFilterEnabled,
+                isToggleOn: showCompletedOnly,
+                baseLabel: PlannerFilterStatus.complete.value,
+                toggleOnLabel: PlannerFilterStatus.complete.value,
+                toggleOffLabel: PlannerFilterStatus.incomplete.value,
+                onCheckedChanged: (value) {
+                  setCompleteFilterMode(
+                    enabled: value ?? false,
+                    // Default to complete-only when enabling via checkbox.
+                    completeOnly: true,
+                  );
+                },
+                onToggleChanged: (value) {
+                  setCompleteFilterMode(enabled: true, completeOnly: value);
+                },
+                onToggleTapWhenDisabled: () {
+                  setCompleteFilterMode(
+                    enabled: true,
+                    // If switch is tapped first, enable and show complete-only.
+                    completeOnly: true,
+                  );
+                },
+              ),
+              _CheckboxToggle(
+                isChecked: isGradedFilterEnabled,
+                isToggleOn: showGradedOnly,
+                baseLabel: PlannerFilterStatus.graded.value,
+                toggleOnLabel: PlannerFilterStatus.graded.value,
+                toggleOffLabel: PlannerFilterStatus.ungraded.value,
+                onCheckedChanged: (value) {
+                  setGradedFilterMode(
+                    enabled: value ?? false,
+                    // Default to graded-only when enabling via checkbox.
+                    gradedOnly: true,
+                  );
+                },
+                onToggleChanged: (value) {
+                  setGradedFilterMode(enabled: true, gradedOnly: value);
+                },
+                onToggleTapWhenDisabled: () {
+                  setGradedFilterMode(
+                    enabled: true,
+                    // If switch is tapped first, enable and show graded-only.
+                    gradedOnly: true,
+                  );
+                },
+              ),
+              buildStatusTile(PlannerFilterStatus.overdue.value),
+
+              // CATEGORIES section (conditional)
+              if (visibleCategories.isNotEmpty) ...[
+                _buildSheetSectionHeader(context, 'CATEGORIES'),
+                ...visibleCategories.map((category) {
+                  return CheckboxListTile(
+                    title: Row(
+                      children: [
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            category.title,
+                            style: AppStyles.formText(context),
+                          ),
                         ),
                       ],
                     ),
-
-                    // CLASSES section
-                    _buildSheetSectionHeader(context, 'CLASSES'),
-                    for (int i = 0; i < displayCourses.length; i++) ...[
-                      if (i > 0 &&
-                          displayCourses[i].courseGroup !=
-                              displayCourses[i - 1].courseGroup)
-                        const Divider(height: 20),
-                      Builder(
-                        builder: (context) {
-                          final course = displayCourses[i];
-                          final isSelected =
-                              _plannerItemDataSource!
-                                  .filteredCourses[course.id] ??
-                              false;
-                          return CheckboxListTile(
-                            title: Row(
-                              children: [
-                                Container(
-                                  width: 12,
-                                  height: 12,
-                                  decoration: BoxDecoration(
-                                    color: course.color,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    course.title,
-                                    style: AppStyles.formText(context),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            value: isSelected,
-                            onChanged: (value) {
-                              final currentFilters = Map<int, bool>.from(
-                                _plannerItemDataSource!.filteredCourses,
-                              );
-                              if (value == true) {
-                                currentFilters[course.id] = true;
-                              } else {
-                                currentFilters.remove(course.id);
-                              }
-                              _plannerItemDataSource!.setFilteredCourses(
-                                currentFilters,
-                              );
-                              setSheetState(() {});
-                            },
-                            controlAffinity: ListTileControlAffinity.leading,
-                            dense: true,
-                            contentPadding: EdgeInsets.zero,
-                          );
-                        },
-                      ),
-                    ],
-
-                    // TYPES section (hidden in todos view)
-                    if (_currentView != PlannerView.todos) ...[
-                      _buildSheetSectionHeader(context, 'TYPES'),
-                      CheckboxListTile(
-                        title: Text(
-                          PlannerFilterType.assignments.value,
-                          style: AppStyles.formText(context),
-                        ),
-                        value: _plannerItemDataSource!.filterTypes.contains(
-                          PlannerFilterType.assignments.value,
-                        ),
-                        onChanged: (value) {
-                          final currentTypes = List<String>.from(
-                            _plannerItemDataSource!.filterTypes,
-                          );
-                          if (value == true) {
-                            if (!currentTypes.contains(
-                              PlannerFilterType.assignments.value,
-                            )) {
-                              currentTypes.add(
-                                PlannerFilterType.assignments.value,
-                              );
-                            }
-                          } else {
-                            currentTypes.remove(
-                              PlannerFilterType.assignments.value,
-                            );
-                          }
-                          _plannerItemDataSource!.setFilterTypes(currentTypes);
-                          setSheetState(() {});
-                        },
-                        controlAffinity: ListTileControlAffinity.leading,
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                      CheckboxListTile(
-                        title: Row(
-                          children: [
-                            Container(
-                              width: 12,
-                              height: 12,
-                              decoration: BoxDecoration(
-                                color: userSettings!.eventsColor,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              PlannerFilterType.events.value,
-                              style: AppStyles.formText(context),
-                            ),
-                          ],
-                        ),
-                        value: _plannerItemDataSource!.filterTypes.contains(
-                          PlannerFilterType.events.value,
-                        ),
-                        onChanged: (value) {
-                          final currentTypes = List<String>.from(
-                            _plannerItemDataSource!.filterTypes,
-                          );
-                          if (value == true) {
-                            if (!currentTypes.contains(
-                              PlannerFilterType.events.value,
-                            )) {
-                              currentTypes.add(PlannerFilterType.events.value);
-                            }
-                          } else {
-                            currentTypes.remove(PlannerFilterType.events.value);
-                          }
-                          _plannerItemDataSource!.setFilterTypes(currentTypes);
-                          setSheetState(() {});
-                        },
-                        controlAffinity: ListTileControlAffinity.leading,
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                      CheckboxListTile(
-                        title: Row(
-                          children: [
-                            Icon(
-                              Icons.school,
-                              size: 12,
-                              color: context.colorScheme.onSurface,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              PlannerFilterType.classSchedules.value,
-                              style: AppStyles.formText(context),
-                            ),
-                          ],
-                        ),
-                        value: _plannerItemDataSource!.filterTypes.contains(
-                          PlannerFilterType.classSchedules.value,
-                        ),
-                        onChanged: (value) {
-                          final currentTypes = List<String>.from(
-                            _plannerItemDataSource!.filterTypes,
-                          );
-                          if (value == true) {
-                            if (!currentTypes.contains(
-                              PlannerFilterType.classSchedules.value,
-                            )) {
-                              currentTypes.add(
-                                PlannerFilterType.classSchedules.value,
-                              );
-                            }
-                          } else {
-                            currentTypes.remove(
-                              PlannerFilterType.classSchedules.value,
-                            );
-                          }
-                          _plannerItemDataSource!.setFilterTypes(currentTypes);
-                          setSheetState(() {});
-                        },
-                        controlAffinity: ListTileControlAffinity.leading,
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                      CheckboxListTile(
-                        title: Text(
-                          PlannerFilterType.externalCalendars.value,
-                          style: AppStyles.formText(context),
-                        ),
-                        value: _plannerItemDataSource!.filterTypes.contains(
-                          PlannerFilterType.externalCalendars.value,
-                        ),
-                        onChanged: (value) {
-                          final currentTypes = List<String>.from(
-                            _plannerItemDataSource!.filterTypes,
-                          );
-                          if (value == true) {
-                            if (!currentTypes.contains(
-                              PlannerFilterType.externalCalendars.value,
-                            )) {
-                              currentTypes.add(
-                                PlannerFilterType.externalCalendars.value,
-                              );
-                            }
-                          } else {
-                            currentTypes.remove(
-                              PlannerFilterType.externalCalendars.value,
-                            );
-                          }
-                          _plannerItemDataSource!.setFilterTypes(currentTypes);
-                          setSheetState(() {});
-                        },
-                        controlAffinity: ListTileControlAffinity.leading,
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ],
-
-                    // STATUS section
-                    _buildSheetSectionHeader(context, 'STATUS'),
-                    _CheckboxToggle(
-                      isChecked: isCompleteFilterEnabled,
-                      isToggleOn: showCompletedOnly,
-                      baseLabel: PlannerFilterStatus.complete.value,
-                      toggleOnLabel: PlannerFilterStatus.complete.value,
-                      toggleOffLabel: PlannerFilterStatus.incomplete.value,
-                      onCheckedChanged: (value) {
-                        setCompleteFilterMode(
-                          enabled: value ?? false,
-                          // Default to complete-only when enabling via checkbox.
-                          completeOnly: true,
-                        );
-                      },
-                      onToggleChanged: (value) {
-                        setCompleteFilterMode(enabled: true, completeOnly: value);
-                      },
-                      onToggleTapWhenDisabled: () {
-                        setCompleteFilterMode(
-                          enabled: true,
-                          // If switch is tapped first, enable and show complete-only.
-                          completeOnly: true,
-                        );
-                      },
+                    value: _plannerItemDataSource!.filterCategories.contains(
+                      category.title,
                     ),
-                    _CheckboxToggle(
-                      isChecked: isGradedFilterEnabled,
-                      isToggleOn: showGradedOnly,
-                      baseLabel: PlannerFilterStatus.graded.value,
-                      toggleOnLabel: PlannerFilterStatus.graded.value,
-                      toggleOffLabel: PlannerFilterStatus.ungraded.value,
-                      onCheckedChanged: (value) {
-                        setGradedFilterMode(
-                          enabled: value ?? false,
-                          // Default to graded-only when enabling via checkbox.
-                          gradedOnly: true,
-                        );
-                      },
-                      onToggleChanged: (value) {
-                        setGradedFilterMode(enabled: true, gradedOnly: value);
-                      },
-                      onToggleTapWhenDisabled: () {
-                        setGradedFilterMode(
-                          enabled: true,
-                          // If switch is tapped first, enable and show graded-only.
-                          gradedOnly: true,
-                        );
-                      },
-                    ),
-                    buildStatusTile(PlannerFilterStatus.overdue.value),
-
-                    // CATEGORIES section (conditional)
-                    if (visibleCategories.isNotEmpty) ...[
-                      _buildSheetSectionHeader(context, 'CATEGORIES'),
-                      ...visibleCategories.map((category) {
-                        return CheckboxListTile(
-                          title: Row(
-                            children: [
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  category.title,
-                                  style: AppStyles.formText(context),
-                                ),
-                              ),
-                            ],
-                          ),
-                          value: _plannerItemDataSource!.filterCategories
-                              .contains(category.title),
-                          onChanged: (value) {
-                            final currentCategories = List<String>.from(
-                              _plannerItemDataSource!.filterCategories,
-                            );
-                            if (value == true) {
-                              if (!currentCategories.contains(category.title)) {
-                                currentCategories.add(category.title);
-                              }
-                            } else {
-                              currentCategories.remove(category.title);
-                            }
-                            _plannerItemDataSource!.setFilterCategories(
-                              currentCategories,
-                            );
-                            setSheetState(() {});
-                          },
-                          controlAffinity: ListTileControlAffinity.leading,
-                          dense: true,
-                          contentPadding: EdgeInsets.zero,
-                        );
-                      }),
-                    ],
-                  ],
-                ),
-              ),
-            );
+                    onChanged: (value) {
+                      final currentCategories = List<String>.from(
+                        _plannerItemDataSource!.filterCategories,
+                      );
+                      if (value == true) {
+                        if (!currentCategories.contains(category.title)) {
+                          currentCategories.add(category.title);
+                        }
+                      } else {
+                        currentCategories.remove(category.title);
+                      }
+                      _plannerItemDataSource!.setFilterCategories(
+                        currentCategories,
+                      );
+                      setSheetState(() {});
+                    },
+                    controlAffinity: ListTileControlAffinity.leading,
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  );
+                }),
+              ],
+            ],
+          ),
+        ),
+      );
     }
 
     if (isMobile) {
@@ -3447,7 +3470,10 @@ class _CalendarScreenState
       ).copyWith(color: Colors.white.withValues(alpha: 0.7)),
     );
 
-    if (!_shouldShowRecurringIconWithTime(plannerItem, isInAgenda: isInAgenda)) {
+    if (!_shouldShowRecurringIconWithTime(
+      plannerItem,
+      isInAgenda: isInAgenda,
+    )) {
       return timeText;
     }
 

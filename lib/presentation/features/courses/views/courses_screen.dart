@@ -370,6 +370,10 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
       return;
     }
 
+    // Clear immediately to prevent re-entry if the async router redirect causes
+    // GoRouterState to lag behind, which would otherwise loop indefinitely.
+    _pendingCourseDialogOpen = null;
+
     final queryParams = GoRouterState.of(context).uri.queryParameters;
     if (queryParams['id'] != null) {
       // Clear URL query params first. Opening the dialog in the same frame as
@@ -377,12 +381,18 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
       context.go(AppRoute.coursesScreen);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        _openPendingCourseDialogFromQuery();
+        showCourseAdd(
+          context,
+          courseGroupId: pending.courseGroupId,
+          courseId: pending.courseId,
+          isEdit: true,
+          isNew: false,
+          initialStep: pending.step,
+        );
       });
       return;
     }
 
-    _pendingCourseDialogOpen = null;
     showCourseAdd(
       context,
       courseGroupId: pending.courseGroupId,
@@ -534,7 +544,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
                     color: context.colorScheme.onSurface.withValues(alpha: 0.4),
                   ),
                   const SizedBox(width: 4),
-                  Text(
+                  SelectableText(
                     '${HeliumDateTime.formatDate(course.startDate)} to ${HeliumDateTime.formatDate(course.endDate)}',
                     style: AppStyles.standardBodyText(context).copyWith(
                       color: context.colorScheme.onSurface.withValues(
@@ -650,7 +660,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
                 color: context.colorScheme.onSurface.withValues(alpha: 0.4),
               ),
               const SizedBox(width: 4),
-              Text(
+              SelectableText(
                 timeRange,
                 style: AppStyles.standardBodyText(context).copyWith(
                   color: context.colorScheme.onSurface.withValues(alpha: 0.6),

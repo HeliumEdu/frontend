@@ -335,7 +335,7 @@ class _NotificationsScreenState
                         // when alone, Flexible allows ellipsis
                         if (plannerItem is HomeworkModel &&
                             plannerItem.course.entity != null)
-                          Text(
+                          SelectableText(
                             notification.title,
                             style: AppStyles.standardBodyText(context).copyWith(
                               fontWeight: notification.isRead
