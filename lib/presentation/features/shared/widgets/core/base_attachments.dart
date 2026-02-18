@@ -16,8 +16,7 @@ import 'package:heliumapp/presentation/features/planner/bloc/attachment_event.da
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_state.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
-import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart'
-    show SnackBarHelper;
+import 'package:heliumapp/utils/snack_bar_helpers.dart' show SnackBarHelper;
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';

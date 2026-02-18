@@ -19,8 +19,7 @@ import 'package:heliumapp/presentation/features/courses/bloc/category_state.dart
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/courses/dialogs/category_dialog.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
-import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart'
-    show SnackBarHelper;
+import 'package:heliumapp/utils/snack_bar_helpers.dart' show SnackBarHelper;
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/ui/components/category_title_label.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
@@ -188,7 +187,8 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
                 return const Center(child: LoadingIndicator(expanded: false));
               }
 
-              if (state is CategoriesError && state.origin == EventOrigin.screen) {
+              if (state is CategoriesError &&
+                  state.origin == EventOrigin.screen) {
                 return ErrorCard(
                   message: state.message!,
                   onReload: () {

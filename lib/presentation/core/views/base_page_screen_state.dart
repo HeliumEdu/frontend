@@ -18,12 +18,11 @@ import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
 final _log = Logger('presentation.views');
-
-final rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
 /// Provider to indicate that a screen is being displayed as a dialog.
 class DialogModeProvider extends InheritedWidget {
@@ -471,59 +470,5 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       action: action,
       useRootMessenger: useRootMessenger,
     );
-  }
-}
-
-class SnackBarHelper {
-  static void show(
-    BuildContext context,
-    String message, {
-    int seconds = 2,
-    bool isError = false,
-    bool clearSnackBar = true,
-    SnackBarAction? action,
-    bool useRootMessenger = false,
-  }) {
-    // Use root messenger if requested, or dialog's keyed messenger
-    final ScaffoldMessengerState? messenger;
-    final dialogProvider = DialogModeProvider.maybeOf(context);
-    if (!useRootMessenger && dialogProvider?.scaffoldMessengerKey != null) {
-      messenger = dialogProvider!.scaffoldMessengerKey!.currentState;
-    } else {
-      messenger = rootScaffoldMessengerKey.currentState;
-    }
-    if (messenger == null) return;
-
-    if (clearSnackBar) {
-      messenger.clearSnackBars();
-    }
-
-    final controller = messenger.showSnackBar(
-      SnackBar(
-        content: SelectableText(
-          message,
-          style: AppStyles.standardBodyText(
-            context,
-          ).copyWith(color: context.colorScheme.onPrimary),
-        ),
-        backgroundColor: isError
-            ? context.colorScheme.error
-            : context.semanticColors.success,
-        duration: Duration(seconds: seconds),
-        behavior: SnackBarBehavior.floating,
-        action: action,
-      ),
-    );
-
-    // SnackBar won't automatically close with an action, so set a callback
-    if (action != null) {
-      Future.delayed(Duration(seconds: seconds), () {
-        try {
-          controller.close();
-        } catch (_) {
-          // SnackBar may have already been dismissed
-        }
-      });
-    }
   }
 }
