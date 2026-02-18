@@ -20,15 +20,15 @@ import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/data/models/planner/request/reminder_request_model.dart';
 import 'package:heliumapp/data/repositories/reminder_repository_impl.dart';
 import 'package:heliumapp/data/sources/reminder_remote_data_source.dart';
+import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_state.dart';
-import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
@@ -344,6 +344,7 @@ class _NotificationsScreenState
                                   ? FontWeight.normal
                                   : FontWeight.w600,
                             ),
+                            maxLines: 1,
                           )
                         else
                           Flexible(
@@ -381,6 +382,7 @@ class _NotificationsScreenState
                           alpha: 0.7,
                         ),
                       ),
+                      maxLines: 1,
                     ),
                     const SizedBox(height: 4),
                     Row(
@@ -405,6 +407,7 @@ class _NotificationsScreenState
                                   alpha: 0.5,
                                 ),
                               ),
+                          maxLines: 1,
                         ),
                       ],
                     ),

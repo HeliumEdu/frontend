@@ -11,16 +11,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/attachment_file.dart';
 import 'package:heliumapp/data/models/planner/attachment_model.dart';
+import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_state.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
-import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
-import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
-import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
+import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
+import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -328,6 +328,7 @@ abstract class BaseAttachmentScreenState<T>
                   SelectableText(
                     file.title,
                     style: AppStyles.standardBodyText(context),
+                    maxLines: 1,
                   ),
                 ],
               ),
@@ -388,6 +389,7 @@ abstract class BaseAttachmentScreenState<T>
               child: SelectableText(
                 attachment.title,
                 style: AppStyles.standardBodyText(context),
+                maxLines: 1,
               ),
             ),
             HeliumIconButton(
@@ -448,4 +450,3 @@ abstract class BaseAttachmentScreenState<T>
     }
   }
 }
-

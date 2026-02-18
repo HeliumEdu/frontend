@@ -16,20 +16,21 @@ import 'package:heliumapp/presentation/features/courses/bloc/category_bloc.dart'
 import 'package:heliumapp/presentation/features/courses/bloc/category_event.dart'
     show FetchCategoriesEvent, DeleteCategoryEvent;
 import 'package:heliumapp/presentation/features/courses/bloc/category_state.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/courses/dialogs/category_dialog.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
-import 'package:heliumapp/utils/snack_bar_helpers.dart' show SnackBarHelper;
+import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/ui/components/category_title_label.dart';
+import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
-import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/mobile_gesture_detector.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
+import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/snack_bar_helpers.dart' show SnackBarHelper;
 import 'package:heliumapp/utils/sort_helpers.dart';
 
 /// Course categories widget for the third step of course add/edit flow.
@@ -257,8 +258,28 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
                         ),
                         if (category.numHomework != null) ...[
                           const SizedBox(width: 16),
+                          Icon(
+                            Icons.assignment_outlined,
+                            size: Responsive.getIconSize(
+                              context,
+                              mobile: 16,
+                              tablet: 18,
+                              desktop: 20,
+                            ),
+                            color: context.colorScheme.onSurface.withValues(
+                              alpha: 0.6,
+                            ),
+                          ),
+                          Text(
+                            ': ',
+                            style: AppStyles.standardBodyTextLight(context)
+                                .copyWith(
+                                  color: context.colorScheme.onSurface
+                                      .withValues(alpha: 0.6),
+                                ),
+                          ),
                           SelectableText(
-                            'Assignments: ${category.numHomework}',
+                            '${category.numHomework}',
                             style: AppStyles.standardBodyTextLight(context)
                                 .copyWith(
                                   color: context.colorScheme.onSurface
