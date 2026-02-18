@@ -74,6 +74,7 @@ import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:timezone/standalone.dart' as tz;
@@ -2273,6 +2274,17 @@ class _CalendarScreenState
           ),
         ),
       );
+      if (_isRecurringPlannerItem(plannerItem)) {
+        spans.add(
+          WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 2),
+              child: _buildRecurringIndicatorIcon(),
+            ),
+          ),
+        );
+      }
 
       titleRowWidget = Text.rich(
         TextSpan(children: spans),
@@ -2580,11 +2592,13 @@ class _CalendarScreenState
     List<PlannerItemBaseModel> plannerItems,
   ) {
     if (date == null || Responsive.isMobile(context)) return;
+    final initialItems = plannerItems.toList();
+    Sort.byStartThenTitle(initialItems);
 
     showDialog(
       context: context,
       builder: (dialogContext) =>
-          _buildDayPopOut(dialogContext, date, plannerItems),
+          _buildDayPopOut(dialogContext, date, initialItems),
     );
   }
 
@@ -2596,23 +2610,10 @@ class _CalendarScreenState
     return ListenableBuilder(
       listenable: _plannerItemDataSource!.changeNotifier,
       builder: (context, _) {
-        // Get current items for this date from the data source
-        final currentItems = _plannerItemDataSource!.allPlannerItems.where((
-          item,
-        ) {
-          final itemDate = item.allDay
-              ? HeliumDateTime.dateOnly(item.start)
-              : item.start;
-          final targetDate = HeliumDateTime.dateOnly(date);
-
-          if (item.allDay) {
-            return itemDate.isAtSameMomentAs(targetDate);
-          } else {
-            // Check if item falls on this date
-            final itemDay = HeliumDateTime.dateOnly(itemDate);
-            return itemDay.isAtSameMomentAs(targetDate);
-          }
-        }).toList();
+        final currentItems = _mergeDayPopOutItems(
+          date: date,
+          calendarItems: plannerItems,
+        );
 
         return Dialog(
           shape: RoundedRectangleBorder(
@@ -2731,6 +2732,69 @@ class _CalendarScreenState
 
       isLoading = false;
     });
+  }
+
+  List<PlannerItemBaseModel> _mergeDayPopOutItems({
+    required DateTime date,
+    required List<PlannerItemBaseModel> calendarItems,
+  }) {
+    final liveDateItems = _getLivePlannerItemsForDate(date);
+    final liveByKey = {
+      for (final item in liveDateItems) _plannerItemKey(item): item,
+    };
+
+    final merged = <PlannerItemBaseModel>[];
+    final mergedKeys = <String>{};
+
+    // Preserve recurring occurrences from the calendar snapshot, while keeping
+    // non-recurring items live so delete/clone edits update immediately.
+    for (final item in calendarItems) {
+      final key = _plannerItemKey(item);
+      if (item is CourseScheduleEventModel) {
+        merged.add(item);
+        mergedKeys.add(key);
+        continue;
+      }
+
+      final liveItem = liveByKey[key];
+      if (liveItem != null) {
+        merged.add(liveItem);
+        mergedKeys.add(key);
+      }
+    }
+
+    // Add newly created live items that were not in the initial calendar
+    // snapshot (e.g. clone/create while popout is open).
+    final newLiveItems = liveDateItems
+        .where((item) => !mergedKeys.contains(_plannerItemKey(item)))
+        .toList();
+    if (newLiveItems.isNotEmpty) {
+      Sort.byStartThenTitle(newLiveItems);
+      merged.addAll(newLiveItems);
+    }
+
+    Sort.byStartThenTitle(merged);
+    return merged;
+  }
+
+  List<PlannerItemBaseModel> _getLivePlannerItemsForDate(DateTime date) {
+    final targetDate = HeliumDateTime.dateOnly(date);
+    return _plannerItemDataSource!.allPlannerItems.where((item) {
+      final itemDate = item.allDay
+          ? HeliumDateTime.dateOnly(item.start)
+          : item.start;
+
+      if (item.allDay) {
+        return itemDate.isAtSameMomentAs(targetDate);
+      }
+
+      final itemDay = HeliumDateTime.dateOnly(itemDate);
+      return itemDay.isAtSameMomentAs(targetDate);
+    }).toList();
+  }
+
+  String _plannerItemKey(PlannerItemBaseModel item) {
+    return '${item.plannerItemType.name}_${item.id}_${item.start.toIso8601String()}_${item.end.toIso8601String()}';
   }
 
   void _goToToday() {
@@ -3541,16 +3605,33 @@ class _CalendarScreenState
         completedOverride ??
         (plannerItem is HomeworkModel && plannerItem.completed);
 
-    return Text(
-      plannerItem.title,
-      style: AppStyles.smallSecondaryTextLight(context).copyWith(
-        color: Colors.white,
-        decoration: isCompleted
-            ? TextDecoration.lineThrough
-            : TextDecoration.none,
-        decorationColor: Colors.white,
-        decorationThickness: 2.0,
+    final spans = <InlineSpan>[
+      TextSpan(
+        text: plannerItem.title,
+        style: AppStyles.smallSecondaryTextLight(context).copyWith(
+          color: Colors.white,
+          decoration: isCompleted
+              ? TextDecoration.lineThrough
+              : TextDecoration.none,
+          decorationColor: Colors.white,
+          decorationThickness: 2.0,
+        ),
       ),
+    ];
+    if (_isRecurringPlannerItem(plannerItem)) {
+      spans.add(
+        WidgetSpan(
+          alignment: PlaceholderAlignment.middle,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 2),
+            child: _buildRecurringIndicatorIcon(),
+          ),
+        ),
+      );
+    }
+
+    return Text.rich(
+      TextSpan(children: spans),
       maxLines:
           _currentView == PlannerView.month ||
               _currentView == PlannerView.agenda
@@ -3561,6 +3642,19 @@ class _CalendarScreenState
               _currentView == PlannerView.agenda
           ? TextOverflow.ellipsis
           : null,
+    );
+  }
+
+  bool _isRecurringPlannerItem(PlannerItemBaseModel plannerItem) {
+    return plannerItem is CourseScheduleEventModel &&
+        (plannerItem.recurrenceRule?.isNotEmpty ?? false);
+  }
+
+  Widget _buildRecurringIndicatorIcon() {
+    return Icon(
+      Icons.repeat,
+      size: 12,
+      color: Colors.white.withValues(alpha: 0.75),
     );
   }
 
