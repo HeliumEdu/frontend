@@ -53,7 +53,7 @@ class CoursesScreen extends StatelessWidget {
 
   CoursesScreen({super.key});
 
-  StatefulWidget buildScreen() => const CoursesProvidedScreen();
+  StatefulWidget buildScreen() => const _CoursesProvidedScreen();
 
   @override
   Widget build(BuildContext context) {
@@ -85,14 +85,14 @@ class CoursesScreen extends StatelessWidget {
   }
 }
 
-class CoursesProvidedScreen extends StatefulWidget {
-  const CoursesProvidedScreen({super.key});
+class _CoursesProvidedScreen extends StatefulWidget {
+  const _CoursesProvidedScreen();
 
   @override
-  State<CoursesProvidedScreen> createState() => _CoursesScreenState();
+  State<_CoursesProvidedScreen> createState() => _CoursesScreenState();
 }
 
-class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
+class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
   @override
   String get screenTitle => 'Classes';
 
@@ -649,4 +649,3 @@ class _CoursesScreenState extends BasePageScreenState<CoursesProvidedScreen> {
     );
   }
 }
-

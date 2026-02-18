@@ -117,19 +117,20 @@ class PlannerScreen extends StatelessWidget {
           ),
         ),
       ],
-      child: const CalendarProvidedScreen(),
+      child: const _CalendarProvidedScreen(),
     );
   }
 }
 
-class CalendarProvidedScreen extends StatefulWidget {
-  const CalendarProvidedScreen({super.key});
+class _CalendarProvidedScreen extends StatefulWidget {
+  const _CalendarProvidedScreen();
 
   @override
-  State<CalendarProvidedScreen> createState() => _CalendarScreenState();
+  State<_CalendarProvidedScreen> createState() => _CalendarScreenState();
 }
 
-class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
+class _CalendarScreenState
+    extends BasePageScreenState<_CalendarProvidedScreen> {
   static const _agendaHeightMobile = 53.0;
   static const _agendaHeightDesktop = 57.0;
   static const _uiAnimationDuration = Duration(milliseconds: 300);
@@ -152,7 +153,8 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
     final now = DateTime.now();
     final truncatedNow = DateTime(now.year, now.month, now.day, now.hour);
     final initialDate =
-        (_currentView == PlannerView.todos || _currentView == PlannerView.agenda)
+        (_currentView == PlannerView.todos ||
+            _currentView == PlannerView.agenda)
         ? truncatedNow
         : _calendarController.selectedDate;
 
@@ -1534,7 +1536,9 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         _currentView == PlannerView.month
             ? startDateTime.hour
             : dropDetails.droppingTime!.hour,
-        _currentView == PlannerView.month ? startDateTime.minute : roundedMinute,
+        _currentView == PlannerView.month
+            ? startDateTime.minute
+            : roundedMinute,
       );
       final DateTime end = start.add(duration);
 
@@ -3495,11 +3499,13 @@ class _CalendarScreenState extends BasePageScreenState<CalendarProvidedScreen> {
         decorationThickness: 2.0,
       ),
       maxLines:
-          _currentView == PlannerView.month || _currentView == PlannerView.agenda
+          _currentView == PlannerView.month ||
+              _currentView == PlannerView.agenda
           ? 1
           : null,
       overflow:
-          _currentView == PlannerView.month || _currentView == PlannerView.agenda
+          _currentView == PlannerView.month ||
+              _currentView == PlannerView.agenda
           ? TextOverflow.ellipsis
           : null,
     );

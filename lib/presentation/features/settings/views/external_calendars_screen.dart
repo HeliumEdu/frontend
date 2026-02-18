@@ -62,20 +62,20 @@ class ExternalCalendarsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const ExternalCalendarsProvidedScreen();
+    return const _ExternalCalendarsProvidedScreen();
   }
 }
 
-class ExternalCalendarsProvidedScreen extends StatefulWidget {
-  const ExternalCalendarsProvidedScreen({super.key});
+class _ExternalCalendarsProvidedScreen extends StatefulWidget {
+  const _ExternalCalendarsProvidedScreen();
 
   @override
-  State<ExternalCalendarsProvidedScreen> createState() =>
+  State<_ExternalCalendarsProvidedScreen> createState() =>
       _ExternalCalendarsProvidedScreenState();
 }
 
 class _ExternalCalendarsProvidedScreenState
-    extends BasePageScreenState<ExternalCalendarsProvidedScreen> {
+    extends BasePageScreenState<_ExternalCalendarsProvidedScreen> {
   @override
   String get screenTitle => 'External Calendars';
 
@@ -356,4 +356,3 @@ class _ExternalCalendarsProvidedScreenState
     );
   }
 }
-

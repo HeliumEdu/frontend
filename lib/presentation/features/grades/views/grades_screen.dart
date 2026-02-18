@@ -47,30 +47,16 @@ import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_charts/charts.dart' as charts;
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
-class ChartDataPoint {
-  final DateTime date;
-  final double grade;
-  final int? homeworkId;
-  final String? homeworkTitle;
-  final dynamic homeworkGrade;
-  final int? categoryId;
-
-  ChartDataPoint({
-    required this.date,
-    required this.grade,
-    this.homeworkId,
-    this.homeworkTitle,
-    this.homeworkGrade,
-    this.categoryId,
-  });
-}
-
-class ChartSegment {
+class _ChartSegment {
   final String label;
   final double value;
   final Color color;
 
-  ChartSegment({required this.label, required this.value, required this.color});
+  _ChartSegment({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
 }
 
 class GradesScreen extends StatelessWidget {
@@ -100,7 +86,7 @@ class GradesScreen extends StatelessWidget {
           ),
         ),
       ],
-      child: const GradesProvidedScreen(),
+      child: const _GradesProvidedScreen(),
     );
   }
 }
@@ -146,14 +132,14 @@ class _AtRiskBadge extends StatelessWidget {
   }
 }
 
-class GradesProvidedScreen extends StatefulWidget {
-  const GradesProvidedScreen({super.key});
+class _GradesProvidedScreen extends StatefulWidget {
+  const _GradesProvidedScreen();
 
   @override
-  State<GradesProvidedScreen> createState() => _GradesScreenState();
+  State<_GradesProvidedScreen> createState() => _GradesScreenState();
 }
 
-class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
+class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
   static const _savedGradeGraphSettingsKey = 'saved_grades_graph_settings';
   static const _overallSeriesName = 'Overall Grade';
 
@@ -1016,7 +1002,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
 
     // Determine what to display based on view mode
     final isTermView = _graphViewMode.isTerm;
-    final List<charts.CartesianSeries<ChartDataPoint, DateTime>> series = [];
+    final List<charts.CartesianSeries<_ChartDataPoint, DateTime>> series = [];
 
     if (isTermView) {
       // Show overall grade + all courses
@@ -1172,7 +1158,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
   }
 
   Widget _buildChart(
-    List<charts.CartesianSeries<ChartDataPoint, DateTime>> series,
+    List<charts.CartesianSeries<_ChartDataPoint, DateTime>> series,
     int groupId,
   ) {
     final courseGroup = _getCourseGroupForId(groupId);
@@ -1225,7 +1211,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                           ? (visibleSeries[seriesIndex].name ?? '')
                           : '';
                       return _buildGradeTrendTooltip(
-                        chartPoint: data as ChartDataPoint,
+                        chartPoint: data as _ChartDataPoint,
                         seriesName: seriesName,
                         isTermView: isTermView,
                       );
@@ -1346,7 +1332,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
 
   Widget _buildTrackballTooltip(
     charts.TrackballDetails trackballDetails,
-    List<charts.CartesianSeries<ChartDataPoint, DateTime>> visibleSeries,
+    List<charts.CartesianSeries<_ChartDataPoint, DateTime>> visibleSeries,
     bool isTermView,
   ) {
     final pointIndex = trackballDetails.pointIndex;
@@ -1376,7 +1362,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
   }
 
   Widget _buildGradeTrendTooltip({
-    required ChartDataPoint chartPoint,
+    required _ChartDataPoint chartPoint,
     required String seriesName,
     required bool isTermView,
   }) {
@@ -1490,7 +1476,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
   }
 
   Widget _buildLegend(
-    List<charts.CartesianSeries<ChartDataPoint, DateTime>> series,
+    List<charts.CartesianSeries<_ChartDataPoint, DateTime>> series,
   ) {
     return ListView(
       padding: EdgeInsets.zero,
@@ -1537,17 +1523,17 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     );
   }
 
-  charts.SplineSeries<ChartDataPoint, DateTime> _buildOverallSeries(
+  charts.SplineSeries<_ChartDataPoint, DateTime> _buildOverallSeries(
     List<List<dynamic>> gradePoints,
   ) {
     final dataSource = _parseGradePoints(gradePoints);
     return _buildOverallLikeSeries(dataSource);
   }
 
-  charts.SplineSeries<ChartDataPoint, DateTime> _buildOverallLikeSeries(
-    List<ChartDataPoint> dataSource,
+  charts.SplineSeries<_ChartDataPoint, DateTime> _buildOverallLikeSeries(
+    List<_ChartDataPoint> dataSource,
   ) {
-    return charts.SplineSeries<ChartDataPoint, DateTime>(
+    return charts.SplineSeries<_ChartDataPoint, DateTime>(
       name: _overallSeriesName,
       dataSource: dataSource,
       xValueMapper: (point, _) => point.date,
@@ -1568,11 +1554,11 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     );
   }
 
-  charts.SplineSeries<ChartDataPoint, DateTime> _buildCourseSeries(
+  charts.SplineSeries<_ChartDataPoint, DateTime> _buildCourseSeries(
     GradeCourseModel course,
   ) {
     final dataSource = _parseGradePoints(course.gradePoints);
-    return charts.SplineSeries<ChartDataPoint, DateTime>(
+    return charts.SplineSeries<_ChartDataPoint, DateTime>(
       name: course.title,
       dataSource: dataSource,
       xValueMapper: (point, _) => point.date,
@@ -1593,11 +1579,11 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     );
   }
 
-  charts.SplineSeries<ChartDataPoint, DateTime> _buildCategorySeries(
+  charts.SplineSeries<_ChartDataPoint, DateTime> _buildCategorySeries(
     GradeCategoryModel category,
   ) {
     final dataSource = _parseGradePoints(category.gradePoints);
-    return charts.SplineSeries<ChartDataPoint, DateTime>(
+    return charts.SplineSeries<_ChartDataPoint, DateTime>(
       name: category.title,
       dataSource: dataSource,
       xValueMapper: (point, _) => point.date,
@@ -1618,7 +1604,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     );
   }
 
-  List<ChartDataPoint> _parseGradePoints(List<List<dynamic>> gradePoints) {
+  List<_ChartDataPoint> _parseGradePoints(List<List<dynamic>> gradePoints) {
     return gradePoints.map((point) {
       // point format: [date, grade_value, homework_id, homework_title, ...]
       // date can be either a timestamp (int) or ISO string
@@ -1637,7 +1623,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
       final homeworkGrade = point.length > 4 ? point[4] : null;
       final categoryId = point.length > 5 ? point[5] as int? : null;
 
-      return ChartDataPoint(
+      return _ChartDataPoint(
         date: date,
         grade: grade,
         homeworkId: homeworkId,
@@ -1671,14 +1657,14 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
 
   void _handlePointTap(
     BuildContext context,
-    List<ChartDataPoint> dataSource,
+    List<_ChartDataPoint> dataSource,
     charts.ChartPointDetails pointDetails,
   ) {
     final pointIndex = pointDetails.pointIndex;
 
     if (pointIndex == null || pointIndex >= dataSource.length) return;
 
-    // Get the actual ChartDataPoint from the data source
+    // Get the actual _ChartDataPoint from the data source
     final chartDataPoint = dataSource[pointIndex];
     final homeworkId = chartDataPoint.homeworkId;
 
@@ -1701,7 +1687,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
   }
 
   _NumericRange _calculateYAxisRange(
-    List<charts.CartesianSeries<ChartDataPoint, DateTime>> visibleSeries,
+    List<charts.CartesianSeries<_ChartDataPoint, DateTime>> visibleSeries,
   ) {
     if (visibleSeries.isEmpty) {
       return const _NumericRange(min: 0.0, max: 100.0);
@@ -1735,7 +1721,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
   }
 
   _DateTimeRange _calculateXAxisRange(
-    List<charts.CartesianSeries<ChartDataPoint, DateTime>> visibleSeries,
+    List<charts.CartesianSeries<_ChartDataPoint, DateTime>> visibleSeries,
     CourseGroupModel courseGroup,
   ) {
     // If auto-adjust is disabled, use the full course group date range
@@ -2378,11 +2364,11 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     );
   }
 
-  List<ChartSegment> _buildWeightDistributionData(GradeCourseModel course) {
+  List<_ChartSegment> _buildWeightDistributionData(GradeCourseModel course) {
     return course.categories
         .where((cat) => cat.weight > 0)
         .map(
-          (cat) => ChartSegment(
+          (cat) => _ChartSegment(
             label: cat.title,
             value: cat.weight,
             color: cat.color,
@@ -2391,11 +2377,11 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
         .toList();
   }
 
-  List<ChartSegment> _buildCurrentDistributionData(GradeCourseModel course) {
+  List<_ChartSegment> _buildCurrentDistributionData(GradeCourseModel course) {
     final segments = course.categories
         .where((cat) => cat.gradeByWeight != null && cat.gradeByWeight! > 0)
         .map(
-          (cat) => ChartSegment(
+          (cat) => _ChartSegment(
             label: cat.title,
             value: cat.gradeByWeight!,
             color: cat.color,
@@ -2500,4 +2486,22 @@ class _DateTimeRange {
   final DateTime max;
 
   const _DateTimeRange({required this.min, required this.max});
+}
+
+class _ChartDataPoint {
+  final DateTime date;
+  final double grade;
+  final int? homeworkId;
+  final String? homeworkTitle;
+  final dynamic homeworkGrade;
+  final int? categoryId;
+
+  _ChartDataPoint({
+    required this.date,
+    required this.grade,
+    this.homeworkId,
+    this.homeworkTitle,
+    this.homeworkGrade,
+    this.categoryId,
+  });
 }
