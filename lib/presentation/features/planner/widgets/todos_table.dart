@@ -923,13 +923,13 @@ class _TodosTableState extends State<TodosTable> {
                 Icon(
                   Icons.attachment,
                   size: 14,
-                  color: context.colorScheme.primary.withValues(alpha: 0.9),
+                  color: context.semanticColors.success.withValues(alpha: 0.9),
                 ),
                 const SizedBox(width: 4),
                 Text(
                   homework.attachments.length.toString(),
                   style: AppStyles.smallSecondaryTextLight(context).copyWith(
-                    color: context.colorScheme.primary.withValues(alpha: 0.9),
+                    color: context.semanticColors.success.withValues(alpha: 0.9),
                   ),
                 ),
               ],

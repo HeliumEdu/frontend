@@ -2050,7 +2050,7 @@ class _CalendarScreenState
       addStat(
         icon: Icons.book_outlined,
         count: plannerItem.resources.length,
-        color: userSettings?.resourceColor ?? context.colorScheme.onSurface,
+        color: userSettings!.resourceColor.withValues(alpha: 0.9),
       );
     }
     if (plannerItem.attachments.isNotEmpty) {
@@ -2060,7 +2060,7 @@ class _CalendarScreenState
       addStat(
         icon: Icons.attachment,
         count: plannerItem.attachments.length,
-        color: context.colorScheme.primary,
+        color: context.semanticColors.success.withValues(alpha: 0.9),
       );
     }
     if (plannerItem.reminders.isNotEmpty) {
@@ -2068,9 +2068,9 @@ class _CalendarScreenState
         statWidgets.add(const SizedBox(width: 12));
       }
       addStat(
-        icon: Icons.notifications_active_outlined,
+        icon: Icons.notifications_outlined,
         count: plannerItem.reminders.length,
-        color: context.colorScheme.secondary,
+        color: context.colorScheme.primary.withValues(alpha: 0.9),
       );
     }
 

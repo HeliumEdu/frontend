@@ -1,4 +1,4 @@
-.PHONY: all env install clean build-android build-android-release build-ios-dev build-ios build-ios-release update-version build-web upload-web-sourcemaps test coverage run
+.PHONY: all env install clean icons build-android build-android-release build-ios-dev build-ios build-ios-release update-version build-web upload-web-sourcemaps test coverage run
 
 SHELL := /usr/bin/env bash
 
@@ -51,6 +51,10 @@ build-ios: install
 
 build-ios-release: install
 	flutter build ipa --release --export-options-plist=ios/ExportOptions.plist --obfuscate --split-debug-info=build/symbols
+
+icons:
+	flutter pub run flutter_launcher_icons
+	cp web/icons/Icon-192.png web/favicon.png
 
 update-version:
 	dart tool/update_version.dart
