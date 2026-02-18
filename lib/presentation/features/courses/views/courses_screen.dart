@@ -118,6 +118,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
   final Map<int, List<CourseModel>> _coursesMap = {};
   int? _selectedGroupId;
   _PendingCourseDialogOpen? _pendingCourseDialogOpen;
+  bool _pendingDialogNavigating = false;
 
   @override
   void initState() {
@@ -374,7 +375,13 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
     if (queryParams['id'] != null) {
       // Clear URL query params first. Opening the dialog in the same frame as
       // this route change can cause dialog listeners to immediately close it.
-      context.go(AppRoute.coursesScreen);
+      // Only call context.go once — the async router redirect (fetchSettings)
+      // can cause GoRouterState to lag, so we poll until params clear rather
+      // than navigating again on each iteration.
+      if (!_pendingDialogNavigating) {
+        _pendingDialogNavigating = true;
+        context.go(AppRoute.coursesScreen);
+      }
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         _openPendingCourseDialogFromQuery();
@@ -382,6 +389,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
       return;
     }
 
+    _pendingDialogNavigating = false;
     _pendingCourseDialogOpen = null;
     showCourseAdd(
       context,
@@ -534,7 +542,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
                     color: context.colorScheme.onSurface.withValues(alpha: 0.4),
                   ),
                   const SizedBox(width: 4),
-                  Text(
+                  SelectableText(
                     '${HeliumDateTime.formatDate(course.startDate)} to ${HeliumDateTime.formatDate(course.endDate)}',
                     style: AppStyles.standardBodyText(context).copyWith(
                       color: context.colorScheme.onSurface.withValues(
@@ -650,7 +658,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
                 color: context.colorScheme.onSurface.withValues(alpha: 0.4),
               ),
               const SizedBox(width: 4),
-              Text(
+              SelectableText(
                 timeRange,
                 style: AppStyles.standardBodyText(context).copyWith(
                   color: context.colorScheme.onSurface.withValues(alpha: 0.6),

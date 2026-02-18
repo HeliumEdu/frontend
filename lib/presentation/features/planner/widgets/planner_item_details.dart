@@ -29,6 +29,7 @@ import 'package:heliumapp/presentation/features/planner/controllers/planner_item
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/select_dialog.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/ui/components/drop_down.dart';
@@ -178,8 +179,8 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
               SegmentedButton<bool>(
                 showSelectedIcon: false,
                 segments: const [
-                  ButtonSegment<bool>(value: false, icon: Icon(Icons.school)),
-                  ButtonSegment<bool>(value: true, icon: Icon(Icons.event)),
+                  ButtonSegment<bool>(value: false, tooltip: 'Assignment', icon: Icon(AppConstants.assignmentIcon)),
+                  ButtonSegment<bool>(value: true, tooltip: 'Event', icon: Icon(AppConstants.eventIcon)),
                 ],
                 selected: {_isEvent},
                 onSelectionChanged: (Set<bool> selected) {
