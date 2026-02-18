@@ -478,8 +478,9 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
             ),
           ),
 
-          const Divider(height: 1, indent: 68),
+          if (_hasUsablePassword) const Divider(height: 1, indent: 68),
 
+          if (_hasUsablePassword)
           Material(
             color: Colors.transparent,
             child: InkWell(
