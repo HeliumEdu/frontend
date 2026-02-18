@@ -317,8 +317,7 @@ jobs:
 
       - name: Install Fastlane
         run: |
-          gem uninstall retriable --executables --ignore-dependencies || true
-          gem install fastlane --no-document
+          gem install fastlane --no-document --overwrite
 
       - name: Decode Google Play service account key
         env:
@@ -450,8 +449,7 @@ jobs:
 
       - name: Install Fastlane
         run: |
-          gem uninstall retriable --executables --ignore-dependencies || true
-          gem install fastlane --no-document
+          gem install fastlane --no-document --overwrite
 
       - name: Deploy to TestFlight
         env:
