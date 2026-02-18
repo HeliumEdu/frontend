@@ -548,7 +548,7 @@ class _CalendarScreenState
   }
 
   double _calculateCalendarHeight(double maxHeight) {
-    final double minCalendarHeight = Responsive.isMobile(context) ? -1 : 600;
+    final double minCalendarHeight = Responsive.isMobile(context) ? 480 : 600;
     return maxHeight < minCalendarHeight ? minCalendarHeight : maxHeight;
   }
 
