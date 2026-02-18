@@ -691,6 +691,10 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
         )
         .toList();
     final atRiskCount = atRiskCourses.length;
+    final totalGraded = selectedGroup.courses.fold(
+      0,
+      (sum, course) => sum + course.numHomeworkGraded,
+    );
 
     return MouseRegion(
       cursor: atRiskCount > 0 ? SystemMouseCursors.click : SystemMouseCursors.basic,
@@ -760,18 +764,20 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
-              Text(
-                atRiskCount == 0
-                    ? 'All classes passing!'
-                    : 'below ${_atRiskThreshold.toInt()}%',
-                style: AppStyles.smallSecondaryText(context).copyWith(
-                  color: atRiskCount > 0
-                      ? context.colorScheme.error
-                      : context.semanticColors.success,
+              if (atRiskCount > 0 || totalGraded > 0) ...[
+                const SizedBox(height: 12),
+                Text(
+                  atRiskCount == 0
+                      ? 'All classes passing!'
+                      : 'below ${_atRiskThreshold.toInt()}%',
+                  style: AppStyles.smallSecondaryText(context).copyWith(
+                    color: atRiskCount > 0
+                        ? context.colorScheme.error
+                        : context.semanticColors.success,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
-              ),
+              ],
               if (atRiskCount > 0) ...[
                 const SizedBox(height: 8),
                 Text(
