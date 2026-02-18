@@ -32,12 +32,15 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+          cache: 'gradle'
+          cache-dependency-path: android/*.gradle*
 
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
           version: "3.38.9"
+          cache: true
 
       - name: Test
         run: make test
@@ -62,6 +65,7 @@ jobs:
         with:
           channel: stable
           version: "3.38.9"
+          cache: true
 
       - name: Install dependencies
         run: make install
@@ -118,12 +122,15 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+          cache: 'gradle'
+          cache-dependency-path: android/*.gradle*
 
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
           version: "3.38.9"
+          cache: true
 
       - name: Decode keystore
         run: |
@@ -173,6 +180,7 @@ jobs:
         with:
           channel: stable
           version: "3.38.9"
+          cache: true
 
       - name: Install Apple certificate
         env:
@@ -258,6 +266,7 @@ jobs:
         with:
           channel: stable
           version: "3.38.9"
+          cache: true
 
       - name: Clean build artifacts
         run: flutter clean
