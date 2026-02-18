@@ -13,6 +13,7 @@ class UpdateSettingsRequestModel {
   final int? whatsNewVersionSeen;
   final bool? showGettingStarted;
   final bool? colorByCategory;
+  final bool? showPlannerTooltips;
   final String? eventsColor;
   final String? resourceColor;
   final String? gradeColor;
@@ -29,6 +30,7 @@ class UpdateSettingsRequestModel {
     this.whatsNewVersionSeen,
     this.showGettingStarted,
     this.colorByCategory,
+    this.showPlannerTooltips,
     this.eventsColor,
     this.resourceColor,
     this.gradeColor,
@@ -41,20 +43,51 @@ class UpdateSettingsRequestModel {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
 
-    if (defaultView != null) json['default_view'] = defaultView;
-    if (weekStartsOn != null) json['week_starts_on'] = weekStartsOn;
-    if (colorSchemeTheme != null) json['color_scheme_theme'] = colorSchemeTheme;
-    if (whatsNewVersionSeen != null) json['whats_new_version_seen'] = whatsNewVersionSeen;
-    if (showGettingStarted != null) json['show_getting_started'] = showGettingStarted;
-    if (colorByCategory != null) json['calendar_use_category_colors'] = colorByCategory;
-    if (timeZone != null) json['time_zone'] = timeZone;
-    if (eventsColor != null) json['events_color'] = eventsColor;
-    if (resourceColor != null) json['material_color'] = resourceColor;
-    if (gradeColor != null) json['grade_color'] = gradeColor;
-    if (defaultReminderType != null) json['default_reminder_type'] = defaultReminderType;
-    if (defaultReminderOffset != null) json['default_reminder_offset'] = defaultReminderOffset;
-    if (defaultReminderOffsetType != null) json['default_reminder_offset_type'] = defaultReminderOffsetType;
-    if (rememberFilterState != null) json['remember_filter_state'] = rememberFilterState;
+    if (defaultView != null) {
+      json['default_view'] = defaultView;
+    }
+    if (weekStartsOn != null) {
+      json['week_starts_on'] = weekStartsOn;
+    }
+    if (colorSchemeTheme != null) {
+      json['color_scheme_theme'] = colorSchemeTheme;
+    }
+    if (whatsNewVersionSeen != null) {
+      json['whats_new_version_seen'] = whatsNewVersionSeen;
+    }
+    if (showGettingStarted != null) {
+      json['show_getting_started'] = showGettingStarted;
+    }
+    if (colorByCategory != null) {
+      json['calendar_use_category_colors'] = colorByCategory;
+    }
+    if (showPlannerTooltips != null) {
+      json['show_planner_tooltips'] = showPlannerTooltips;
+    }
+    if (timeZone != null) {
+      json['time_zone'] = timeZone;
+    }
+    if (eventsColor != null) {
+      json['events_color'] = eventsColor;
+    }
+    if (resourceColor != null) {
+      json['material_color'] = resourceColor;
+    }
+    if (gradeColor != null) {
+      json['grade_color'] = gradeColor;
+    }
+    if (defaultReminderType != null) {
+      json['default_reminder_type'] = defaultReminderType;
+    }
+    if (defaultReminderOffset != null) {
+      json['default_reminder_offset'] = defaultReminderOffset;
+    }
+    if (defaultReminderOffsetType != null) {
+      json['default_reminder_offset_type'] = defaultReminderOffsetType;
+    }
+    if (rememberFilterState != null) {
+      json['remember_filter_state'] = rememberFilterState;
+    }
 
     return json;
   }

@@ -17,7 +17,6 @@ import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
-import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:logging/logging.dart';
@@ -26,11 +25,41 @@ import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 final _log = Logger('utils');
 
+enum PlannerItemType { event, homework, external, courseSchedule }
+
+enum PlannerView { month, week, day, agenda, todos }
+
+enum PlannerFilterType {
+  assignments('Assignments'),
+  events('Events'),
+  classSchedules('Class Schedules'),
+  externalCalendars('External Calendars');
+
+  const PlannerFilterType(this.value);
+  final String value;
+}
+
+enum PlannerFilterStatus {
+  complete('Complete'),
+  incomplete('Incomplete'),
+  graded('Graded'),
+  ungraded('Ungraded'),
+  overdue('Overdue');
+
+  const PlannerFilterStatus(this.value);
+  final String value;
+}
+
 class PlannerHelper {
   static final List<int> weekStartsOnRemap = [7, 1, 2, 3, 4, 5, 6];
 
-  static void _logMissingEntity(int reminderId, String entityType, int entityId) {
-    final msg = 'Reminder $reminderId has $entityType ID $entityId but entity is null';
+  static void _logMissingEntity(
+    int reminderId,
+    String entityType,
+    int entityId,
+  ) {
+    final msg =
+        'Reminder $reminderId has $entityType ID $entityId but entity is null';
     _log.severe(msg);
     Sentry.captureException(
       Exception(msg),
@@ -87,67 +116,67 @@ class PlannerHelper {
     );
   }
 
-  static CalendarView mapHeliumViewToSfCalendarView(HeliumView view) {
+  static CalendarView mapHeliumViewToSfCalendarView(PlannerView view) {
     switch (view) {
-      case HeliumView.month:
+      case PlannerView.month:
         return CalendarView.month;
-      case HeliumView.week:
+      case PlannerView.week:
         return CalendarView.week;
-      case HeliumView.day:
+      case PlannerView.day:
         return CalendarView.day;
-      case HeliumView.agenda:
+      case PlannerView.agenda:
         return CalendarView.schedule;
-      case HeliumView.todos:
+      case PlannerView.todos:
         // We default to day so SfCalendar does not query for more data than
         // necessary when we're on a non-calendar view
         return CalendarView.day;
     }
   }
 
-  static HeliumView mapSfCalendarViewToHeliumView(CalendarView view) {
+  static PlannerView mapSfCalendarViewToHeliumView(CalendarView view) {
     switch (view) {
       case CalendarView.month:
-        return HeliumView.month;
+        return PlannerView.month;
       case CalendarView.week:
-        return HeliumView.week;
+        return PlannerView.week;
       case CalendarView.day:
-        return HeliumView.day;
+        return PlannerView.day;
       case CalendarView.schedule:
-        return HeliumView.agenda;
+        return PlannerView.agenda;
       default:
         // For any other SfCalendar views, default to day
-        return HeliumView.day;
+        return PlannerView.day;
     }
   }
 
-  static HeliumView mapApiViewToHeliumView(int view) {
+  static PlannerView mapApiViewToHeliumView(int view) {
     switch (view) {
       case 0:
-        return HeliumView.month;
+        return PlannerView.month;
       case 1:
-        return HeliumView.week;
+        return PlannerView.week;
       case 2:
-        return HeliumView.day;
+        return PlannerView.day;
       case 3:
-        return HeliumView.todos;
+        return PlannerView.todos;
       case 4:
-        return HeliumView.agenda;
+        return PlannerView.agenda;
       default:
         throw HeliumException(message: '$view is not a valid API view');
     }
   }
 
-  static int mapHeliumViewToApiView(HeliumView view) {
+  static int mapHeliumViewToApiView(PlannerView view) {
     switch (view) {
-      case HeliumView.month:
+      case PlannerView.month:
         return 0;
-      case HeliumView.week:
+      case PlannerView.week:
         return 1;
-      case HeliumView.day:
+      case PlannerView.day:
         return 2;
-      case HeliumView.agenda:
+      case PlannerView.agenda:
         return 4;
-      case HeliumView.todos:
+      case PlannerView.todos:
         return 3;
     }
   }
@@ -155,30 +184,30 @@ class PlannerHelper {
   static AlignmentGeometry getAlignmentForView(
     BuildContext context,
     bool isInAgenda,
-    HeliumView view,
+    PlannerView view,
   ) {
     if (Responsive.isMobile(context)) {
       return Alignment.topLeft;
     }
 
-    if (view == HeliumView.month && isInAgenda) {
+    if (view == PlannerView.month && isInAgenda) {
       return Alignment.topLeft;
     }
 
-    return view != HeliumView.month ? Alignment.topLeft : Alignment.centerLeft;
+    return view != PlannerView.month ? Alignment.topLeft : Alignment.centerLeft;
   }
 
   static bool shouldShowCheckbox(
     BuildContext context,
     PlannerItemBaseModel plannerItem,
-    HeliumView view,
+    PlannerView view,
   ) {
     if (plannerItem is! HomeworkModel) {
       return false;
     }
 
     if (Responsive.isMobile(context)) {
-      if (view == HeliumView.week || view == HeliumView.day) {
+      if (view == PlannerView.week || view == PlannerView.day) {
         return false;
       }
     }
@@ -189,7 +218,7 @@ class PlannerHelper {
   static bool shouldShowSchoolIcon(
     BuildContext context,
     PlannerItemBaseModel plannerItem,
-    HeliumView view,
+    PlannerView view,
   ) {
     if (plannerItem is! CourseScheduleEventModel) {
       return false;
@@ -202,14 +231,14 @@ class PlannerHelper {
     BuildContext context,
     plannerItem,
     bool isInAgenda,
-    HeliumView view,
+    PlannerView view,
   ) {
     if (Responsive.isMobile(context) &&
-        (view != HeliumView.agenda || view != HeliumView.todos)) {
+        (view != PlannerView.agenda || view != PlannerView.todos)) {
       return false;
     }
 
-    if (view == HeliumView.month && isInAgenda) {
+    if (view == PlannerView.month && isInAgenda) {
       return false;
     }
 
@@ -217,7 +246,7 @@ class PlannerHelper {
       return false;
     }
 
-    if (view != HeliumView.month) {
+    if (view != PlannerView.month) {
       return false;
     }
 
@@ -228,19 +257,19 @@ class PlannerHelper {
     BuildContext context,
     plannerItem,
     bool isInAgenda,
-    HeliumView view,
+    PlannerView view,
   ) {
     if (plannerItem.allDay) {
       return false;
     }
 
     if (Responsive.isMobile(context)) {
-      if (view == HeliumView.week || view == HeliumView.day) {
+      if (view == PlannerView.week || view == PlannerView.day) {
         return false;
       }
     }
 
-    if (!Responsive.isMobile(context) && view == HeliumView.month) {
+    if (!Responsive.isMobile(context) && view == PlannerView.month) {
       if (!isInAgenda) {
         return false;
       }
@@ -253,7 +282,7 @@ class PlannerHelper {
     BuildContext context,
     plannerItem,
     bool isInAgenda,
-    HeliumView view,
+    PlannerView view,
   ) {
     if (isInAgenda && plannerItem.allDay) {
       return true;
@@ -263,7 +292,7 @@ class PlannerHelper {
       return false;
     }
 
-    if (!Responsive.isMobile(context) && view == HeliumView.month) {
+    if (!Responsive.isMobile(context) && view == PlannerView.month) {
       if (!isInAgenda) {
         return false;
       }

@@ -10,9 +10,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/auth/token_response_model.dart';
 import 'package:heliumapp/data/models/no_content_response_model.dart';
-import 'package:heliumapp/presentation/bloc/auth/auth_bloc.dart';
-import 'package:heliumapp/presentation/bloc/auth/auth_event.dart';
-import 'package:heliumapp/presentation/bloc/auth/auth_state.dart';
+import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
+import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
+import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../mocks/mock_models.dart';

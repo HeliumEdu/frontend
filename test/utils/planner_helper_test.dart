@@ -13,7 +13,6 @@ import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
-import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
@@ -21,55 +20,107 @@ void main() {
   group('PlannerHelper', () {
     group('mapHeliumViewToSfCalendarView', () {
       test('maps view types correctly', () {
-        expect(PlannerHelper.mapHeliumViewToSfCalendarView(HeliumView.month), CalendarView.month);
-        expect(PlannerHelper.mapHeliumViewToSfCalendarView(HeliumView.week), CalendarView.week);
-        expect(PlannerHelper.mapHeliumViewToSfCalendarView(HeliumView.day), CalendarView.day);
-        expect(PlannerHelper.mapHeliumViewToSfCalendarView(HeliumView.agenda), CalendarView.schedule);
-        expect(PlannerHelper.mapHeliumViewToSfCalendarView(HeliumView.todos), CalendarView.day);
+        expect(
+          PlannerHelper.mapHeliumViewToSfCalendarView(PlannerView.month),
+          CalendarView.month,
+        );
+        expect(
+          PlannerHelper.mapHeliumViewToSfCalendarView(PlannerView.week),
+          CalendarView.week,
+        );
+        expect(
+          PlannerHelper.mapHeliumViewToSfCalendarView(PlannerView.day),
+          CalendarView.day,
+        );
+        expect(
+          PlannerHelper.mapHeliumViewToSfCalendarView(PlannerView.agenda),
+          CalendarView.schedule,
+        );
+        expect(
+          PlannerHelper.mapHeliumViewToSfCalendarView(PlannerView.todos),
+          CalendarView.day,
+        );
       });
     });
 
     group('mapSfCalendarViewToHeliumView', () {
       test('maps view types correctly', () {
-        expect(PlannerHelper.mapSfCalendarViewToHeliumView(CalendarView.month), HeliumView.month);
-        expect(PlannerHelper.mapSfCalendarViewToHeliumView(CalendarView.week), HeliumView.week);
-        expect(PlannerHelper.mapSfCalendarViewToHeliumView(CalendarView.day), HeliumView.day);
-        expect(PlannerHelper.mapSfCalendarViewToHeliumView(CalendarView.schedule), HeliumView.agenda);
-        expect(PlannerHelper.mapSfCalendarViewToHeliumView(CalendarView.timelineDay), HeliumView.day);
-        expect(PlannerHelper.mapSfCalendarViewToHeliumView(CalendarView.timelineWeek), HeliumView.day);
-        expect(PlannerHelper.mapSfCalendarViewToHeliumView(CalendarView.timelineWorkWeek), HeliumView.day);
-        expect(PlannerHelper.mapSfCalendarViewToHeliumView(CalendarView.timelineMonth), HeliumView.day);
+        expect(
+          PlannerHelper.mapSfCalendarViewToHeliumView(CalendarView.month),
+          PlannerView.month,
+        );
+        expect(
+          PlannerHelper.mapSfCalendarViewToHeliumView(CalendarView.week),
+          PlannerView.week,
+        );
+        expect(
+          PlannerHelper.mapSfCalendarViewToHeliumView(CalendarView.day),
+          PlannerView.day,
+        );
+        expect(
+          PlannerHelper.mapSfCalendarViewToHeliumView(CalendarView.schedule),
+          PlannerView.agenda,
+        );
+        expect(
+          PlannerHelper.mapSfCalendarViewToHeliumView(CalendarView.timelineDay),
+          PlannerView.day,
+        );
+        expect(
+          PlannerHelper.mapSfCalendarViewToHeliumView(
+            CalendarView.timelineWeek,
+          ),
+          PlannerView.day,
+        );
+        expect(
+          PlannerHelper.mapSfCalendarViewToHeliumView(
+            CalendarView.timelineWorkWeek,
+          ),
+          PlannerView.day,
+        );
+        expect(
+          PlannerHelper.mapSfCalendarViewToHeliumView(
+            CalendarView.timelineMonth,
+          ),
+          PlannerView.day,
+        );
       });
     });
 
     group('mapApiViewToHeliumView', () {
       test('maps API integers to HeliumView', () {
-        expect(PlannerHelper.mapApiViewToHeliumView(0), HeliumView.month);
-        expect(PlannerHelper.mapApiViewToHeliumView(1), HeliumView.week);
-        expect(PlannerHelper.mapApiViewToHeliumView(2), HeliumView.day);
-        expect(PlannerHelper.mapApiViewToHeliumView(3), HeliumView.todos);
-        expect(PlannerHelper.mapApiViewToHeliumView(4), HeliumView.agenda);
+        expect(PlannerHelper.mapApiViewToHeliumView(0), PlannerView.month);
+        expect(PlannerHelper.mapApiViewToHeliumView(1), PlannerView.week);
+        expect(PlannerHelper.mapApiViewToHeliumView(2), PlannerView.day);
+        expect(PlannerHelper.mapApiViewToHeliumView(3), PlannerView.todos);
+        expect(PlannerHelper.mapApiViewToHeliumView(4), PlannerView.agenda);
       });
 
       test('throws HeliumException for invalid view', () {
-        expect(() => PlannerHelper.mapApiViewToHeliumView(5), throwsA(isA<HeliumException>()));
-        expect(() => PlannerHelper.mapApiViewToHeliumView(-1), throwsA(isA<HeliumException>()));
+        expect(
+          () => PlannerHelper.mapApiViewToHeliumView(5),
+          throwsA(isA<HeliumException>()),
+        );
+        expect(
+          () => PlannerHelper.mapApiViewToHeliumView(-1),
+          throwsA(isA<HeliumException>()),
+        );
       });
     });
 
     group('mapHeliumViewToApiView', () {
       test('maps HeliumView to API integers', () {
-        expect(PlannerHelper.mapHeliumViewToApiView(HeliumView.month), 0);
-        expect(PlannerHelper.mapHeliumViewToApiView(HeliumView.week), 1);
-        expect(PlannerHelper.mapHeliumViewToApiView(HeliumView.day), 2);
-        expect(PlannerHelper.mapHeliumViewToApiView(HeliumView.todos), 3);
-        expect(PlannerHelper.mapHeliumViewToApiView(HeliumView.agenda), 4);
+        expect(PlannerHelper.mapHeliumViewToApiView(PlannerView.month), 0);
+        expect(PlannerHelper.mapHeliumViewToApiView(PlannerView.week), 1);
+        expect(PlannerHelper.mapHeliumViewToApiView(PlannerView.day), 2);
+        expect(PlannerHelper.mapHeliumViewToApiView(PlannerView.todos), 3);
+        expect(PlannerHelper.mapHeliumViewToApiView(PlannerView.agenda), 4);
       });
     });
 
     group('getAlignmentForView', () {
-      testWidgets('returns topLeft on mobile regardless of view',
-          (tester) async {
+      testWidgets('returns topLeft on mobile regardless of view', (
+        tester,
+      ) async {
         await tester.pumpWidget(
           MediaQuery(
             data: const MediaQueryData(size: Size(400, 800)),
@@ -79,7 +130,7 @@ void main() {
                   PlannerHelper.getAlignmentForView(
                     context,
                     false,
-                    HeliumView.month,
+                    PlannerView.month,
                   ),
                   Alignment.topLeft,
                 );
@@ -87,7 +138,7 @@ void main() {
                   PlannerHelper.getAlignmentForView(
                     context,
                     true,
-                    HeliumView.week,
+                    PlannerView.week,
                   ),
                   Alignment.topLeft,
                 );
@@ -98,8 +149,9 @@ void main() {
         );
       });
 
-      testWidgets('returns topLeft for month view in agenda on non-mobile',
-          (tester) async {
+      testWidgets('returns topLeft for month view in agenda on non-mobile', (
+        tester,
+      ) async {
         await tester.pumpWidget(
           MediaQuery(
             data: const MediaQueryData(size: Size(1024, 768)),
@@ -109,7 +161,7 @@ void main() {
                   PlannerHelper.getAlignmentForView(
                     context,
                     true,
-                    HeliumView.month,
+                    PlannerView.month,
                   ),
                   Alignment.topLeft,
                 );
@@ -120,30 +172,33 @@ void main() {
         );
       });
 
-      testWidgets('returns centerLeft for month view not in agenda on non-mobile',
-          (tester) async {
-        await tester.pumpWidget(
-          MediaQuery(
-            data: const MediaQueryData(size: Size(1024, 768)),
-            child: Builder(
-              builder: (context) {
-                expect(
-                  PlannerHelper.getAlignmentForView(
-                    context,
-                    false,
-                    HeliumView.month,
-                  ),
-                  Alignment.centerLeft,
-                );
-                return const SizedBox();
-              },
+      testWidgets(
+        'returns centerLeft for month view not in agenda on non-mobile',
+        (tester) async {
+          await tester.pumpWidget(
+            MediaQuery(
+              data: const MediaQueryData(size: Size(1024, 768)),
+              child: Builder(
+                builder: (context) {
+                  expect(
+                    PlannerHelper.getAlignmentForView(
+                      context,
+                      false,
+                      PlannerView.month,
+                    ),
+                    Alignment.centerLeft,
+                  );
+                  return const SizedBox();
+                },
+              ),
             ),
-          ),
-        );
-      });
+          );
+        },
+      );
 
-      testWidgets('returns topLeft for non-month views on non-mobile',
-          (tester) async {
+      testWidgets('returns topLeft for non-month views on non-mobile', (
+        tester,
+      ) async {
         await tester.pumpWidget(
           MediaQuery(
             data: const MediaQueryData(size: Size(1024, 768)),
@@ -153,7 +208,7 @@ void main() {
                   PlannerHelper.getAlignmentForView(
                     context,
                     false,
-                    HeliumView.week,
+                    PlannerView.week,
                   ),
                   Alignment.topLeft,
                 );
@@ -161,7 +216,7 @@ void main() {
                   PlannerHelper.getAlignmentForView(
                     context,
                     false,
-                    HeliumView.day,
+                    PlannerView.day,
                   ),
                   Alignment.topLeft,
                 );
@@ -186,7 +241,7 @@ void main() {
                   PlannerHelper.shouldShowCheckbox(
                     context,
                     eventItem,
-                    HeliumView.month,
+                    PlannerView.month,
                   ),
                   isFalse,
                 );
@@ -197,8 +252,9 @@ void main() {
         );
       });
 
-      testWidgets('returns true for HomeworkModel on non-mobile',
-          (tester) async {
+      testWidgets('returns true for HomeworkModel on non-mobile', (
+        tester,
+      ) async {
         final homeworkItem = _createHomeworkModel();
 
         await tester.pumpWidget(
@@ -210,7 +266,7 @@ void main() {
                   PlannerHelper.shouldShowCheckbox(
                     context,
                     homeworkItem,
-                    HeliumView.week,
+                    PlannerView.week,
                   ),
                   isTrue,
                 );
@@ -221,8 +277,9 @@ void main() {
         );
       });
 
-      testWidgets('returns false for HomeworkModel on mobile week/day view',
-          (tester) async {
+      testWidgets('returns false for HomeworkModel on mobile week/day view', (
+        tester,
+      ) async {
         final homeworkItem = _createHomeworkModel();
 
         await tester.pumpWidget(
@@ -234,7 +291,7 @@ void main() {
                   PlannerHelper.shouldShowCheckbox(
                     context,
                     homeworkItem,
-                    HeliumView.week,
+                    PlannerView.week,
                   ),
                   isFalse,
                 );
@@ -242,7 +299,7 @@ void main() {
                   PlannerHelper.shouldShowCheckbox(
                     context,
                     homeworkItem,
-                    HeliumView.day,
+                    PlannerView.day,
                   ),
                   isFalse,
                 );
@@ -253,8 +310,9 @@ void main() {
         );
       });
 
-      testWidgets('returns true for HomeworkModel on mobile month view',
-          (tester) async {
+      testWidgets('returns true for HomeworkModel on mobile month view', (
+        tester,
+      ) async {
         final homeworkItem = _createHomeworkModel();
 
         await tester.pumpWidget(
@@ -266,7 +324,7 @@ void main() {
                   PlannerHelper.shouldShowCheckbox(
                     context,
                     homeworkItem,
-                    HeliumView.month,
+                    PlannerView.month,
                   ),
                   isTrue,
                 );

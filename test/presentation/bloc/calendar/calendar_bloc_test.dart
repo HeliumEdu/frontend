@@ -8,9 +8,9 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/core/helium_exception.dart';
-import 'package:heliumapp/presentation/bloc/planner/planner_bloc.dart';
-import 'package:heliumapp/presentation/bloc/planner/planner_event.dart';
-import 'package:heliumapp/presentation/bloc/planner/planner_state.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/planner_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/planner_event.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/planner_state.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../mocks/mock_models.dart';

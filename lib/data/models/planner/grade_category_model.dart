@@ -38,11 +38,11 @@ class GradeCategoryModel extends BaseTitledModel {
     return GradeCategoryModel(
       id: json['id'],
       title: json['title'],
-      overallGrade: HeliumConversion.toDouble(json['overall_grade'])!,
-      weight: HeliumConversion.toDouble(json['weight'])!,
+      overallGrade: toDouble(json['overall_grade'])!,
+      weight: toDouble(json['weight'])!,
       color: HeliumColors.hexToColor(json['color']),
-      gradeByWeight: HeliumConversion.toDouble(json['grade_by_weight']),
-      trend: HeliumConversion.toDouble(json['trend']),
+      gradeByWeight: toDouble(json['grade_by_weight']),
+      trend: toDouble(json['trend']),
       numHomework: json['num_homework'],
       numHomeworkGraded: json['num_homework_graded'],
       gradePoints:

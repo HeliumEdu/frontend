@@ -9,10 +9,10 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/planner/request/external_calendar_request_model.dart';
-import 'package:heliumapp/presentation/bloc/core/base_event.dart';
-import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_bloc.dart';
-import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_event.dart';
-import 'package:heliumapp/presentation/bloc/externalcalendar/external_calendar_state.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_event.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_state.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../mocks/mock_models.dart';

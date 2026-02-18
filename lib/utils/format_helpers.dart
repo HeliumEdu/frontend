@@ -6,7 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
-import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/presentation/features/planner/constants/reminder_constants.dart';
 
 extension PluralExtension on int {
   String plural(String singularWord, [String pluralLetters = 's']) {
@@ -16,13 +16,11 @@ extension PluralExtension on int {
   }
 }
 
-class Format {
-  static String reminderOffset(ReminderModel reminder) {
-    String units = ReminderConstants.offsetTypes[reminder.offsetType]
-        .toLowerCase();
-    if (reminder.offset == 1) {
-      units = units.substring(0, units.length - 1);
-    }
-    return '${reminder.offset.toString()} $units';
+String reminderOffset(ReminderModel reminder) {
+  String units = ReminderConstants.offsetTypes[reminder.offsetType]
+      .toLowerCase();
+  if (reminder.offset == 1) {
+    units = units.substring(0, units.length - 1);
   }
+  return '${reminder.offset.toString()} $units';
 }

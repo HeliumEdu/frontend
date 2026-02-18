@@ -27,6 +27,7 @@ import 'package:heliumapp/domain/repositories/external_calendar_repository.dart'
 import 'package:heliumapp/domain/repositories/homework_repository.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
+import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
@@ -178,12 +179,84 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     return items;
   }
 
+  /// Returns items that occur on [day] from the current filtered appointments.
+  /// Recurring schedule items are expanded into day-specific occurrences.
+  List<PlannerItemBaseModel> getItemsForDay(DateTime day) {
+    final dayStart = DateTime(day.year, day.month, day.day);
+    final dayEnd = dayStart.add(const Duration(days: 1));
+    final itemsForDay = <PlannerItemBaseModel>[];
+
+    for (final appointment in appointments ?? const <Object>[]) {
+      if (appointment is! PlannerItemBaseModel) {
+        continue;
+      }
+
+      if (appointment is CourseScheduleEventModel &&
+          (appointment.recurrenceRule?.isNotEmpty ?? false)) {
+        final occurrences = SfCalendar.getRecurrenceDateTimeCollection(
+          appointment.recurrenceRule!,
+          appointment.start,
+          specificStartDate: dayStart,
+          specificEndDate: dayEnd,
+        );
+
+        for (final occurrenceStart in occurrences) {
+          final isSameDay =
+              occurrenceStart.year == dayStart.year &&
+              occurrenceStart.month == dayStart.month &&
+              occurrenceStart.day == dayStart.day;
+          if (!isSameDay) {
+            continue;
+          }
+
+          final duration = appointment.end.difference(appointment.start);
+          itemsForDay.add(
+            CourseScheduleEventModel(
+              id: appointment.id,
+              title: appointment.title,
+              allDay: appointment.allDay,
+              showEndTime: appointment.showEndTime,
+              start: occurrenceStart,
+              end: occurrenceStart.add(duration),
+              priority: appointment.priority,
+              url: appointment.url,
+              comments: appointment.comments,
+              attachments: appointment.attachments,
+              reminders: appointment.reminders,
+              color: appointment.color,
+              ownerId: appointment.ownerId,
+              recurrenceRule: appointment.recurrenceRule,
+            ),
+          );
+        }
+        continue;
+      }
+
+      final itemStart = appointment.start;
+      final isSameDay =
+          itemStart.year == dayStart.year &&
+          itemStart.month == dayStart.month &&
+          itemStart.day == dayStart.day;
+      if (isSameDay) {
+        itemsForDay.add(appointment);
+      }
+    }
+
+    Sort.byStartThenTitleForDay(itemsForDay, dayStart);
+    return itemsForDay;
+  }
+
   @override
   PlannerItemBaseModel? convertAppointmentToObject(
     PlannerItemBaseModel? customData,
     Appointment appointment,
   ) {
     return customData;
+  }
+
+  @override
+  Object? getId(int index) {
+    return _getData(index).id;
   }
 
   @override
@@ -202,9 +275,9 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     }
 
     // Timed events: subtract seconds to encode sort order
-    final priority = typeSortPriority[item.plannerItemType] ?? 0;
+    final priority = Sort.typeSortPriority[item.plannerItemType] ?? 0;
     final position = _sortPositions[item.id] ?? 0;
-    final adjustment = getTimedEventStartTimeAdjustmentSeconds(
+    final adjustment = Sort.getTimedEventStartTimeAdjustmentSeconds(
       priority,
       position,
     );
@@ -231,9 +304,9 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     }
 
     // Timed events: subtract to encode sort order (uses minutes to avoid visible shortening)
-    final priority = typeSortPriority[plannerItem.plannerItemType] ?? 0;
+    final priority = Sort.typeSortPriority[plannerItem.plannerItemType] ?? 0;
     final position = _sortPositions[plannerItem.id] ?? 0;
-    final adjustment = getTimedEventEndTimeAdjustment(priority, position);
+    final adjustment = Sort.getTimedEventEndTimeAdjustment(priority, position);
     return endTime.subtract(adjustment);
   }
 
@@ -413,17 +486,20 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     final includeAllTypes = _filterTypes.isEmpty;
 
     // Homeworks - use filteredHomeworks, which already has all filters applied
-    if (includeAllTypes || _filterTypes.contains('Assignments')) {
+    if (includeAllTypes ||
+        _filterTypes.contains(PlannerFilterType.assignments.value)) {
       items.addAll(filteredHomeworks);
     }
 
     // Events - apply search filter only
-    if (includeAllTypes || _filterTypes.contains('Events')) {
+    if (includeAllTypes ||
+        _filterTypes.contains(PlannerFilterType.events.value)) {
       items.addAll(_applySearchFilterToItems(allEvents));
     }
 
     // CourseSchedule events - apply course and search filters
-    if (includeAllTypes || _filterTypes.contains('Class Schedules')) {
+    if (includeAllTypes ||
+        _filterTypes.contains(PlannerFilterType.classSchedules.value)) {
       final courseScheduleEvents = allCourseScheduleEvents
           .where(_applyCourseFilterToCourseScheduleEvent)
           .toList();
@@ -431,7 +507,8 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     }
 
     // ExternalCalendar events - apply search filter only
-    if (includeAllTypes || _filterTypes.contains('External Calendars')) {
+    if (includeAllTypes ||
+        _filterTypes.contains(PlannerFilterType.externalCalendars.value)) {
       items.addAll(_applySearchFilterToItems(allExternalCalendarEvents));
     }
 
@@ -984,21 +1061,21 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       bool matches = false;
       final isCompleted = isHomeworkCompleted(homework);
 
-      if (_filterStatuses.contains('Complete')) {
+      if (_filterStatuses.contains(PlannerFilterStatus.complete.value)) {
         matches = matches || isCompleted;
       }
-      if (_filterStatuses.contains('Incomplete')) {
+      if (_filterStatuses.contains(PlannerFilterStatus.incomplete.value)) {
         matches = matches || !isCompleted;
       }
-      if (_filterStatuses.contains('Overdue')) {
+      if (_filterStatuses.contains(PlannerFilterStatus.overdue.value)) {
         final bool isOverdue =
             !isCompleted && homework.start.isBefore(DateTime.now());
         matches = matches || isOverdue;
       }
-      if (_filterStatuses.contains('Graded')) {
+      if (_filterStatuses.contains(PlannerFilterStatus.graded.value)) {
         matches = matches || _isHomeworkGraded(homework);
       }
-      if (_filterStatuses.contains('Ungraded')) {
+      if (_filterStatuses.contains(PlannerFilterStatus.ungraded.value)) {
         matches = matches || !_isHomeworkGraded(homework);
       }
       return matches;

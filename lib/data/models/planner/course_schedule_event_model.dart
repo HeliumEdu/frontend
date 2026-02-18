@@ -8,9 +8,9 @@
 import 'package:heliumapp/data/models/planner/attachment_model.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
-import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
+import 'package:heliumapp/utils/planner_helper.dart';
 
 class CourseScheduleEventModel extends PlannerItemBaseModel {
   final String ownerId;
@@ -45,16 +45,10 @@ class CourseScheduleEventModel extends PlannerItemBaseModel {
       url: json['url'],
       comments: json['comments'],
       attachments: json['attachments'] != null
-          ? HeliumConversion.idOrEntityListFrom(
-              json['attachments'],
-              AttachmentModel.fromJson,
-            )
+          ? idOrEntityListFrom(json['attachments'], AttachmentModel.fromJson)
           : [],
       reminders: json['reminders'] != null
-          ? HeliumConversion.idOrEntityListFrom(
-              json['reminders'],
-              ReminderModel.fromJson,
-            )
+          ? idOrEntityListFrom(json['reminders'], ReminderModel.fromJson)
           : [],
       ownerId: json['owner_id'],
       color: HeliumColors.hexToColor(json['color']),

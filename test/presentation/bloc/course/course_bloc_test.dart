@@ -8,10 +8,10 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/core/helium_exception.dart';
-import 'package:heliumapp/presentation/bloc/core/base_event.dart';
-import 'package:heliumapp/presentation/bloc/course/course_bloc.dart';
-import 'package:heliumapp/presentation/bloc/course/course_event.dart';
-import 'package:heliumapp/presentation/bloc/course/course_state.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
+import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
+import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../mocks/mock_models.dart';
