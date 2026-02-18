@@ -574,6 +574,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
 
   void clearFilters() {
     _log.info('All filters cleared');
+    _filteredCourses = {};
     _filterCategories = [];
     _filterTypes = [];
     _filterStatuses = {};
