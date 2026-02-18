@@ -27,6 +27,7 @@ Map<String, dynamic> givenUserSettingsJson({
   bool colorByCategory = false,
   bool showPlannerTooltips = true,
   bool rememberFilterState = false,
+  bool dragAndDropOnMobile = true,
   String? privateSlug,
 }) {
   return {
