@@ -15,7 +15,7 @@ class ReminderConstants {
     DropDownItem(
       id: 0,
       value: 'Popup',
-      iconData: Icons.notifications_active_outlined,
+      iconData: Icons.notifications_outlined,
     ),
     DropDownItem(id: 1, value: 'Email', iconData: Icons.mail_outline),
     DropDownItem(id: 2, value: 'Text', iconData: Icons.sms_outlined),

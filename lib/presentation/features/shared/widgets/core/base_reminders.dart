@@ -197,7 +197,7 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
 
               if (reminders.isEmpty) {
                 return const EmptyCard(
-                  icon: Icons.notifications_active_outlined,
+                  icon: Icons.notifications_outlined,
                   message: 'Click "+" to add a reminder',
                   expanded: false,
                 );
