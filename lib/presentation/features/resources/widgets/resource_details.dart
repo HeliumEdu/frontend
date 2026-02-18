@@ -18,7 +18,7 @@ import 'package:heliumapp/presentation/features/resources/bloc/resource_state.da
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/resources/controllers/resource_form_controller.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/select_dialog.dart';
-import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
+import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/drop_down.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';

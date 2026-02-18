@@ -20,7 +20,7 @@ import 'package:heliumapp/data/models/auth/request/refresh_token_request_model.d
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/data/models/auth/token_response_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
-import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
+import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:logging/logging.dart';

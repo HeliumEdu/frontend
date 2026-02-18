@@ -29,7 +29,7 @@ import 'package:heliumapp/presentation/features/planner/controllers/planner_item
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/select_dialog.dart';
-import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
+import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/ui/components/drop_down.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
@@ -70,13 +70,11 @@ class PlannerItemDetails extends StatefulWidget {
   });
 
   @override
-  State<PlannerItemDetails> createState() =>
-      PlannerItemDetailsState();
+  State<PlannerItemDetails> createState() => PlannerItemDetailsState();
 }
 
 class PlannerItemDetailsState extends State<PlannerItemDetails> {
-  final PlannerItemFormController _formController =
-      PlannerItemFormController();
+  final PlannerItemFormController _formController = PlannerItemFormController();
 
   // Entity IDs (can be updated for clone)
   int? _eventId;
