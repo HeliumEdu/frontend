@@ -401,6 +401,8 @@ class DioClient {
         'drag_and_drop_on_mobile':
             _prefService.getBool('drag_and_drop_on_mobile') ??
             FallbackConstants.defaultDragAndDropOnMobile,
+        'is_setup_complete':
+            _prefService.getBool('is_setup_complete') ?? true,
       });
     } catch (parseError) {
       _log.info('Failed to parse cached settings: $parseError');
