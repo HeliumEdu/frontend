@@ -52,7 +52,8 @@ abstract class BaseAttachments extends StatelessWidget {
   Widget build(BuildContext context) {
     AttachmentBloc? existingBloc;
     try {
-      existingBloc = context.read<AttachmentBloc>();
+      final found = context.read<AttachmentBloc>();
+      existingBloc = found.isClosed ? null : found;
     } catch (_) {
       _log.info('AttachmentBloc not passed, will create a new one');
     }
