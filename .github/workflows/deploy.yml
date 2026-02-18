@@ -317,7 +317,7 @@ jobs:
 
       - name: Install Fastlane
         run: |
-          gem install fastlane --no-document --force
+          cd android && bundle install
 
       - name: Decode Google Play service account key
         env:
@@ -332,7 +332,7 @@ jobs:
           cd android
           echo "Deploying to Google Play Internal Track..."
           SEMVER="${FULL_VERSION%%+*}"
-          fastlane deploy_internal aab_path:../android-build/app-release.aab version:$SEMVER
+          bundle exec fastlane deploy_internal aab_path:../android-build/app-release.aab version:$SEMVER
 
       - name: Cleanup service account key
         if: always()
@@ -449,7 +449,7 @@ jobs:
 
       - name: Install Fastlane
         run: |
-          gem install fastlane --no-document --force
+          cd ios && bundle install
 
       - name: Deploy to TestFlight
         env:
@@ -466,7 +466,7 @@ jobs:
           mkdir -p ~/.appstoreconnect/private_keys
           echo "$APP_STORE_CONNECT_API_KEY" > ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8
 
-          fastlane deploy_testflight ipa_path:../ios-build/Helium.ipa
+          bundle exec fastlane deploy_testflight ipa_path:../ios-build/Helium.ipa
 
       - name: Cleanup API key
         if: always()
