@@ -245,7 +245,7 @@ void main() {
           () => mockPrefService.getInt('default_reminder_offset'),
         ).thenReturn(15);
         when(
-          () => mockPrefService.getInt('default_reminder_offset_type'),
+          () => mockPrefService.getInt('DEFAULT_REMINDER_OFFSET_TYPE'),
         ).thenReturn(0);
         when(
           () => mockPrefService.getBool('calendar_use_category_colors'),
@@ -258,6 +258,9 @@ void main() {
         ).thenReturn(false);
         when(
           () => mockPrefService.getBool('drag_and_drop_on_mobile'),
+        ).thenReturn(true);
+        when(
+          () => mockPrefService.getBool('is_setup_complete'),
         ).thenReturn(true);
 
         // WHEN
