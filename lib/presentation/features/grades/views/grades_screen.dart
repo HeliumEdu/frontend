@@ -155,6 +155,7 @@ class GradesProvidedScreen extends StatefulWidget {
 
 class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
   static const _savedGradeGraphSettingsKey = 'saved_grades_graph_settings';
+  static const _overallSeriesName = 'Overall Grade';
 
   @override
   String get screenTitle => 'Grades';
@@ -176,7 +177,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
   final Map<int, GlobalKey> _courseCardKeys = {};
 
   // Graph state
-  String _graphViewMode = 'term'; // 'term' or course ID
+  _GraphViewMode _graphViewMode = const _GraphViewMode.term();
   final Map<String, bool> _visibleSeries = {}; // series ID -> visibility
   bool _autoAdjustToGradedRange =
       false; // Fit X-axis to actual grade point dates
@@ -1014,13 +1015,13 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     );
 
     // Determine what to display based on view mode
-    final isTermView = _graphViewMode == 'term';
+    final isTermView = _graphViewMode.isTerm;
     final List<charts.CartesianSeries<ChartDataPoint, DateTime>> series = [];
 
     if (isTermView) {
       // Show overall grade + all courses
       if (selectedGroup.gradePoints.isNotEmpty) {
-        series.add(_buildOverallSeries(selectedGroup));
+        series.add(_buildOverallSeries(selectedGroup.gradePoints));
       }
       for (var course in selectedGroup.courses) {
         if (course.gradePoints.isNotEmpty) {
@@ -1029,12 +1030,15 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
       }
     } else {
       // Show specific course with its categories
-      final course = selectedGroup.courses.firstWhereOrNull(
-        (c) => c.id.toString() == _graphViewMode,
-      );
+      final selectedCourseId = _graphViewMode.courseId;
+      final course = selectedCourseId == null
+          ? null
+          : selectedGroup.courses.firstWhereOrNull(
+              (c) => c.id == selectedCourseId,
+            );
       if (course != null) {
         if (course.gradePoints.isNotEmpty) {
-          series.add(_buildCourseOverallSeries(course));
+          series.add(_buildOverallSeries(course.gradePoints));
         }
         // Add category grade trends
         for (var category in course.categories) {
@@ -1187,8 +1191,8 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     // Check if today is within the visible date range
     final now = DateTime.now();
     final showTodayMarker =
-        now.isAfter(xAxisRange['min']!) && now.isBefore(xAxisRange['max']!);
-    final isTermView = _graphViewMode == 'term';
+        now.isAfter(xAxisRange.min) && now.isBefore(xAxisRange.max);
+    final isTermView = _graphViewMode.isTerm;
 
     return SizedBox(
       height: 400,
@@ -1257,8 +1261,8 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                 ),
               ),
               primaryXAxis: charts.DateTimeAxis(
-                minimum: xAxisRange['min'],
-                maximum: xAxisRange['max'],
+                minimum: xAxisRange.min,
+                maximum: xAxisRange.max,
                 dateFormat: DateFormat('MMM dd'),
                 intervalType: charts.DateTimeIntervalType.days,
                 majorGridLines: charts.MajorGridLines(
@@ -1286,8 +1290,8 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                     : const [],
               ),
               primaryYAxis: charts.NumericAxis(
-                minimum: yAxisRange['min'],
-                maximum: yAxisRange['max'],
+                minimum: yAxisRange.min,
+                maximum: yAxisRange.max,
                 labelFormat: '{value}%',
                 majorGridLines: charts.MajorGridLines(
                   width: 0.35,
@@ -1382,10 +1386,12 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     final homeworkGradeText = GradeHelper.gradeForDisplay(
       chartPoint.homeworkGrade,
     );
-    final categoryTitle = _categoryTitleForId(chartPoint.categoryId);
-    final categoryColor = _categoryColorForId(chartPoint.categoryId);
+    final category = _categoryForId(chartPoint.categoryId);
+    final categoryTitle = category?.title;
+    final categoryColor =
+        category?.color ?? context.colorScheme.onSurface.withValues(alpha: 0.6);
     final seriesColor = _seriesColorForName(seriesName);
-    final isOverallSeries = seriesName == 'Overall Grade';
+    final isOverallSeries = seriesName == _overallSeriesName;
     final isCourseSeries = isTermView && !isOverallSeries;
     final isNonOverallSeries = !isOverallSeries;
     final classGradeAtPoint = '${chartPoint.grade.toStringAsFixed(2)}%';
@@ -1532,11 +1538,17 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
   }
 
   charts.SplineSeries<ChartDataPoint, DateTime> _buildOverallSeries(
-    GradeCourseGroupModel group,
+    List<List<dynamic>> gradePoints,
   ) {
-    final dataSource = _parseGradePoints(group.gradePoints);
+    final dataSource = _parseGradePoints(gradePoints);
+    return _buildOverallLikeSeries(dataSource);
+  }
+
+  charts.SplineSeries<ChartDataPoint, DateTime> _buildOverallLikeSeries(
+    List<ChartDataPoint> dataSource,
+  ) {
     return charts.SplineSeries<ChartDataPoint, DateTime>(
-      name: 'Overall Grade',
+      name: _overallSeriesName,
       dataSource: dataSource,
       xValueMapper: (point, _) => point.date,
       yValueMapper: (point, _) => point.grade,
@@ -1568,31 +1580,6 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
       color: course.color,
       width: 1.75,
       opacity: 0.88,
-      splineType: charts.SplineType.monotonic,
-      animationDuration: _chartAnimationDurationMs,
-      enableTooltip: true,
-      onPointTap: (pointDetails) =>
-          _handlePointTap(context, dataSource, pointDetails),
-      markerSettings: const charts.MarkerSettings(
-        isVisible: true,
-        height: 4,
-        width: 4,
-      ),
-    );
-  }
-
-  charts.SplineSeries<ChartDataPoint, DateTime> _buildCourseOverallSeries(
-    GradeCourseModel course,
-  ) {
-    final dataSource = _parseGradePoints(course.gradePoints);
-    return charts.SplineSeries<ChartDataPoint, DateTime>(
-      name: 'Overall Grade',
-      dataSource: dataSource,
-      xValueMapper: (point, _) => point.date,
-      yValueMapper: (point, _) => point.grade,
-      color: context.colorScheme.onSurface,
-      width: 3,
-      opacity: 1,
       splineType: charts.SplineType.monotonic,
       animationDuration: _chartAnimationDurationMs,
       enableTooltip: true,
@@ -1661,7 +1648,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     }).toList();
   }
 
-  String? _categoryTitleForId(int? categoryId) {
+  GradeCategoryModel? _categoryForId(int? categoryId) {
     if (categoryId == null || _selectedGroupId == null || _grades.isEmpty) {
       return null;
     }
@@ -1674,33 +1661,12 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     for (final course in selectedGroup.courses) {
       for (final category in course.categories) {
         if (category.id == categoryId) {
-          return category.title;
+          return category;
         }
       }
     }
 
     return null;
-  }
-
-  Color _categoryColorForId(int? categoryId) {
-    if (categoryId == null || _selectedGroupId == null || _grades.isEmpty) {
-      return context.colorScheme.onSurface.withValues(alpha: 0.6);
-    }
-
-    final selectedGroup = _grades.firstWhere(
-      (g) => g.id == _selectedGroupId,
-      orElse: () => _grades.first,
-    );
-
-    for (final course in selectedGroup.courses) {
-      for (final category in course.categories) {
-        if (category.id == categoryId) {
-          return category.color;
-        }
-      }
-    }
-
-    return context.colorScheme.onSurface.withValues(alpha: 0.6);
   }
 
   void _handlePointTap(
@@ -1734,11 +1700,11 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     );
   }
 
-  Map<String, double> _calculateYAxisRange(
+  _NumericRange _calculateYAxisRange(
     List<charts.CartesianSeries<ChartDataPoint, DateTime>> visibleSeries,
   ) {
     if (visibleSeries.isEmpty) {
-      return {'min': 0.0, 'max': 100.0};
+      return const _NumericRange(min: 0.0, max: 100.0);
     }
 
     // Find the lowest and highest grade points across all visible series
@@ -1765,16 +1731,19 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
     minimum = minimum.floorToDouble();
 
     // Maximum always stays at 100
-    return {'min': minimum, 'max': 100.0};
+    return _NumericRange(min: minimum, max: 100.0);
   }
 
-  Map<String, DateTime> _calculateXAxisRange(
+  _DateTimeRange _calculateXAxisRange(
     List<charts.CartesianSeries<ChartDataPoint, DateTime>> visibleSeries,
     CourseGroupModel courseGroup,
   ) {
     // If auto-adjust is disabled, use the full course group date range
     if (!_autoAdjustToGradedRange || visibleSeries.isEmpty) {
-      return {'min': courseGroup.startDate, 'max': courseGroup.endDate};
+      return _DateTimeRange(
+        min: courseGroup.startDate,
+        max: courseGroup.endDate,
+      );
     }
 
     // Find the earliest and latest dates across all visible series
@@ -1797,10 +1766,10 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
 
     // If we found dates, use them; otherwise fall back to course group dates
     if (earliestDate != null && latestDate != null) {
-      return {'min': earliestDate, 'max': latestDate};
+      return _DateTimeRange(min: earliestDate, max: latestDate);
     }
 
-    return {'min': courseGroup.startDate, 'max': courseGroup.endDate};
+    return _DateTimeRange(min: courseGroup.startDate, max: courseGroup.endDate);
   }
 
   CourseGroupModel _getCourseGroupForId(int groupId) {
@@ -1808,15 +1777,17 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
   }
 
   GradeCourseModel? _getSelectedCourse() {
-    if (_graphViewMode == 'term' || _selectedGroupId == null) return null;
+    if (_graphViewMode.isTerm || _selectedGroupId == null) return null;
 
     final selectedGroup = _grades.firstWhere(
       (g) => g.id == _selectedGroupId,
       orElse: () => _grades.first,
     );
 
+    final selectedCourseId = _graphViewMode.courseId;
+    if (selectedCourseId == null) return null;
     return selectedGroup.courses.firstWhereOrNull(
-      (c) => c.id.toString() == _graphViewMode,
+      (c) => c.id == selectedCourseId,
     );
   }
 
@@ -1844,7 +1815,7 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
 
   Color _seriesColorForName(String? name) {
     if (name == null || name.isEmpty) return context.colorScheme.onSurface;
-    if (name == 'Overall Grade') return context.colorScheme.onSurface;
+    if (name == _overallSeriesName) return context.colorScheme.onSurface;
 
     final selectedGroup = _grades.firstWhere(
       (g) => g.id == _selectedGroupId,
@@ -1906,9 +1877,14 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                     children: [
                       // Radio group for graph view mode
                       RadioGroup<String>(
-                        groupValue: _graphViewMode,
+                        groupValue: _graphViewMode.radioValue,
                         onChanged: (value) {
-                          setState(() => _graphViewMode = value!);
+                          if (value == null) return;
+                          setState(() {
+                            _graphViewMode = _GraphViewMode.fromRadioValue(
+                              value,
+                            );
+                          });
                           Navigator.pop(menuContext);
                         },
                         child: Column(
@@ -1917,7 +1893,9 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                             // Entire Term option
                             InkWell(
                               onTap: () {
-                                setState(() => _graphViewMode = 'term');
+                                setState(() {
+                                  _graphViewMode = const _GraphViewMode.term();
+                                });
                                 Navigator.pop(menuContext);
                               },
                               child: Padding(
@@ -1944,7 +1922,8 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                               (course) => InkWell(
                                 onTap: () {
                                   setState(
-                                    () => _graphViewMode = course.id.toString(),
+                                    () => _graphViewMode =
+                                        _GraphViewMode.course(course.id),
                                   );
                                   Navigator.pop(menuContext);
                                 },
@@ -1956,7 +1935,9 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
                                   child: Row(
                                     children: [
                                       Radio<String>(
-                                        value: course.id.toString(),
+                                        value: _GraphViewMode.course(
+                                          course.id,
+                                        ).radioValue,
                                       ),
                                       Icon(
                                         Icons.school,
@@ -2489,3 +2470,34 @@ class _GradesScreenState extends BasePageScreenState<GradesProvidedScreen> {
   }
 }
 
+class _GraphViewMode {
+  final int? courseId;
+
+  const _GraphViewMode.term() : courseId = null;
+  const _GraphViewMode.course(this.courseId);
+
+  bool get isTerm => courseId == null;
+
+  String get radioValue => isTerm ? 'term' : courseId.toString();
+
+  static _GraphViewMode fromRadioValue(String value) {
+    if (value == 'term') {
+      return const _GraphViewMode.term();
+    }
+    return _GraphViewMode.course(int.parse(value));
+  }
+}
+
+class _NumericRange {
+  final double min;
+  final double max;
+
+  const _NumericRange({required this.min, required this.max});
+}
+
+class _DateTimeRange {
+  final DateTime min;
+  final DateTime max;
+
+  const _DateTimeRange({required this.min, required this.max});
+}
