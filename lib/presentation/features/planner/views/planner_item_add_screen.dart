@@ -266,7 +266,7 @@ class _PlannerItemAddScreenState
       ),
     ),
     MultiStepDefinition(
-      icon: Icons.notifications_active_outlined,
+      icon: Icons.notifications_outlined,
       tooltip: 'Reminders',
       stepScreenType: ScreenType.subPage,
       builder: (context) => PlannerItemReminders(
