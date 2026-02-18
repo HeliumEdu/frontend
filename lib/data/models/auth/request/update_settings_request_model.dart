@@ -14,6 +14,7 @@ class UpdateSettingsRequestModel {
   final bool? showGettingStarted;
   final bool? colorByCategory;
   final bool? showPlannerTooltips;
+  final bool? dragAndDropOnMobile;
   final String? eventsColor;
   final String? resourceColor;
   final String? gradeColor;
@@ -31,6 +32,7 @@ class UpdateSettingsRequestModel {
     this.showGettingStarted,
     this.colorByCategory,
     this.showPlannerTooltips,
+    this.dragAndDropOnMobile,
     this.eventsColor,
     this.resourceColor,
     this.gradeColor,
@@ -63,6 +65,9 @@ class UpdateSettingsRequestModel {
     }
     if (showPlannerTooltips != null) {
       json['show_planner_tooltips'] = showPlannerTooltips;
+    }
+    if (dragAndDropOnMobile != null) {
+      json['drag_and_drop_on_mobile'] = dragAndDropOnMobile;
     }
     if (timeZone != null) {
       json['time_zone'] = timeZone;

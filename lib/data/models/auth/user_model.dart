@@ -63,6 +63,7 @@ class UserSettingsModel {
   final int defaultReminderOffsetType;
   final bool colorByCategory;
   final bool showPlannerTooltips;
+  final bool dragAndDropOnMobile;
   final bool rememberFilterState;
   final String? privateSlug;
 
@@ -83,6 +84,7 @@ class UserSettingsModel {
     required this.defaultReminderOffsetType,
     required this.colorByCategory,
     required this.showPlannerTooltips,
+    required this.dragAndDropOnMobile,
     required this.rememberFilterState,
     this.privateSlug,
   });
@@ -95,8 +97,8 @@ class UserSettingsModel {
       weekStartsOn: json['week_starts_on'],
       allDayOffset: json['all_day_offset'],
       whatsNewVersionSeen: json['whats_new_version_seen'],
-      showGettingStarted: json['show_getting_started'] ?? false,
-      isSetupComplete: json['is_setup_complete'] ?? true,
+      showGettingStarted: json['show_getting_started'],
+      isSetupComplete: json['is_setup_complete'],
       eventsColor: HeliumColors.hexToColor(json['events_color']),
       resourceColor: HeliumColors.hexToColor(json['material_color']),
       gradeColor: HeliumColors.hexToColor(json['grade_color']),
@@ -104,7 +106,8 @@ class UserSettingsModel {
       defaultReminderOffset: json['default_reminder_offset'],
       defaultReminderOffsetType: json['default_reminder_offset_type'],
       colorByCategory: json['calendar_use_category_colors'],
-      showPlannerTooltips: json['show_planner_tooltips'] ?? true,
+      showPlannerTooltips: json['show_planner_tooltips'],
+      dragAndDropOnMobile: json['drag_and_drop_on_mobile'],
       rememberFilterState: json['remember_filter_state'],
       privateSlug: json['private_slug'],
     );
@@ -127,6 +130,7 @@ class UserSettingsModel {
       'default_reminder_offset_type': defaultReminderOffsetType,
       'calendar_use_category_colors': colorByCategory,
       'show_planner_tooltips': showPlannerTooltips,
+      'drag_and_drop_on_mobile': dragAndDropOnMobile,
       'remember_filter_state': rememberFilterState,
       'private_slug': privateSlug,
     };

@@ -112,6 +112,7 @@ void main() {
       showPlannerTooltips: true,
       rememberFilterState: false,
       isSetupComplete: true,
+      dragAndDropOnMobile: true,
     );
 
     dataSource = PlannerItemDataSource(
@@ -290,6 +291,7 @@ void main() {
           showPlannerTooltips: true,
           rememberFilterState: false,
           isSetupComplete: true,
+          dragAndDropOnMobile: true,
         );
 
         final colorByCategoryDataSource = PlannerItemDataSource(

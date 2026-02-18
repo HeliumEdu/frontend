@@ -569,7 +569,8 @@ class _CalendarScreenState
           headerHeight: 0,
           showCurrentTimeIndicator: true,
           showWeekNumber: !Responsive.isMobile(context),
-          allowDragAndDrop: _allowCalendarDragAndDrop,
+          allowDragAndDrop: _allowCalendarDragAndDrop &&
+              (!Responsive.isTouchDevice(context) || (userSettings?.dragAndDropOnMobile ?? true)),
           dragAndDropSettings: DragAndDropSettings(
             timeIndicatorStyle: AppStyles.smallSecondaryText(
               context,

@@ -68,6 +68,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
   String _selectedReminderType =
       ReminderConstants.types[FallbackConstants.defaultReminderType];
   bool _isShowPlannerTooltips = FallbackConstants.defaultShowPlannerTooltips;
+  bool _isDragAndDropOnMobile = FallbackConstants.defaultDragAndDropOnMobile;
   bool _isSelectedColorByCategory = FallbackConstants.defaultColorByCategory;
   bool _isRememberFilterSelection =
       FallbackConstants.defaultRememberFilterState;
@@ -306,6 +307,27 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
                 Expanded(
                   child: CheckboxListTile(
                     title: Text(
+                      'Allow drag-and-drop on mobile',
+                      style: AppStyles.formLabel(context),
+                    ),
+                    value: _isDragAndDropOnMobile,
+                    onChanged: (value) {
+                      setState(() {
+                        _isDragAndDropOnMobile = value!;
+                      });
+                    },
+                    controlAffinity: ListTileControlAffinity.leading,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ],
+            ),
+
+            Row(
+              children: [
+                Expanded(
+                  child: CheckboxListTile(
+                    title: Text(
                       'Remember filter selections',
                       style: AppStyles.formLabel(context),
                     ),
@@ -443,6 +465,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
             .toString();
       }
       _isShowPlannerTooltips = state.user.settings.showPlannerTooltips;
+      _isDragAndDropOnMobile = state.user.settings.dragAndDropOnMobile;
       _isSelectedColorByCategory = state.user.settings.colorByCategory;
       _isRememberFilterSelection = state.user.settings.rememberFilterState;
 
@@ -483,6 +506,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
     );
     final reminderOffset = int.parse(_reminderOffsetController.text);
     final showPlannerTooltips = _isShowPlannerTooltips;
+    final dragAndDropOnMobile = _isDragAndDropOnMobile;
     final colorByCategory = _isSelectedColorByCategory;
     final rememberFilterState = _isRememberFilterSelection;
 
@@ -493,6 +517,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
           defaultView: defaultView,
           weekStartsOn: weekStartsOn,
           showPlannerTooltips: showPlannerTooltips,
+          dragAndDropOnMobile: dragAndDropOnMobile,
           colorByCategory: colorByCategory,
           eventsColor: eventsColor,
           resourceColor: resourceColor,
