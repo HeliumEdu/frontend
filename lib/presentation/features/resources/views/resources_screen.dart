@@ -47,7 +47,7 @@ class ResourcesScreen extends StatelessWidget {
 
   ResourcesScreen({super.key});
 
-  StatefulWidget buildScreen() => const ResourcesProvidedScreen();
+  StatefulWidget buildScreen() => const _ResourcesProvidedScreen();
 
   @override
   Widget build(BuildContext context) {
@@ -73,15 +73,15 @@ class ResourcesScreen extends StatelessWidget {
   }
 }
 
-class ResourcesProvidedScreen extends StatefulWidget {
-  const ResourcesProvidedScreen({super.key});
+class _ResourcesProvidedScreen extends StatefulWidget {
+  const _ResourcesProvidedScreen();
 
   @override
-  State<ResourcesProvidedScreen> createState() => _ResourcesScreenState();
+  State<_ResourcesProvidedScreen> createState() => _ResourcesScreenState();
 }
 
 class _ResourcesScreenState
-    extends BasePageScreenState<ResourcesProvidedScreen> {
+    extends BasePageScreenState<_ResourcesProvidedScreen> {
   @override
   String get screenTitle => 'Resources';
 

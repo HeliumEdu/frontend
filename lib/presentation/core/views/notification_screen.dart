@@ -88,7 +88,7 @@ class NotificationsScreen extends StatelessWidget {
 
   NotificationsScreen({super.key});
 
-  StatefulWidget buildScreen() => const NotificationsProvidedScreen();
+  StatefulWidget buildScreen() => const _NotificationsProvidedScreen();
 
   @override
   Widget build(BuildContext context) {
@@ -109,16 +109,16 @@ class NotificationsScreen extends StatelessWidget {
   }
 }
 
-class NotificationsProvidedScreen extends StatefulWidget {
-  const NotificationsProvidedScreen({super.key});
+class _NotificationsProvidedScreen extends StatefulWidget {
+  const _NotificationsProvidedScreen();
 
   @override
-  State<NotificationsProvidedScreen> createState() =>
+  State<_NotificationsProvidedScreen> createState() =>
       _NotificationsScreenState();
 }
 
 class _NotificationsScreenState
-    extends BasePageScreenState<NotificationsProvidedScreen> {
+    extends BasePageScreenState<_NotificationsProvidedScreen> {
   @override
   String get screenTitle => 'Notifications';
 
