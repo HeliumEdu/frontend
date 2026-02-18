@@ -1167,10 +1167,10 @@ void main() {
         expect(dataSource.searchQuery, 'test');
       });
 
-      test('does not clear filtered courses', () {
+      test('clears filtered courses', () {
         dataSource.setFilteredCourses({1: true});
         dataSource.clearFilters();
-        expect(dataSource.filteredCourses, isNotEmpty);
+        expect(dataSource.filteredCourses, isEmpty);
       });
     });
 
