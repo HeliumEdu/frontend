@@ -6,6 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:heliumapp/data/models/base_model.dart';
+import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
@@ -173,5 +174,59 @@ class Sort {
         bCourseId: b is HomeworkModel ? b.course.id : null,
       );
     });
+  }
+
+  /// Sorts planner items for a specific day, treating recurring schedule items
+  /// as occurrences on [day] (while preserving their time-of-day).
+  static void byStartThenTitleForDay(
+    List<PlannerItemBaseModel> list,
+    DateTime day,
+  ) {
+    list.sort((a, b) {
+      final aStart = _effectiveDateForDay(a, day, isEnd: false);
+      final bStart = _effectiveDateForDay(b, day, isEnd: false);
+      final aEnd = _effectiveDateForDay(a, day, isEnd: true);
+      final bEnd = _effectiveDateForDay(b, day, isEnd: true);
+
+      return comparePlannerItems(
+        aType: a.plannerItemType,
+        bType: b.plannerItemType,
+        aAllDay: a.allDay,
+        bAllDay: b.allDay,
+        aStart: aStart,
+        bStart: bStart,
+        aEnd: aEnd,
+        bEnd: bEnd,
+        aTitle: a.title,
+        bTitle: b.title,
+        aCourseId: a is HomeworkModel ? a.course.id : null,
+        bCourseId: b is HomeworkModel ? b.course.id : null,
+      );
+    });
+  }
+
+  static DateTime _effectiveDateForDay(
+    PlannerItemBaseModel item,
+    DateTime day, {
+    required bool isEnd,
+  }) {
+    final source = isEnd ? item.end : item.start;
+    final isRecurringSchedule =
+        item is CourseScheduleEventModel &&
+        (item.recurrenceRule?.isNotEmpty ?? false);
+    if (!isRecurringSchedule) {
+      return source;
+    }
+
+    return DateTime(
+      day.year,
+      day.month,
+      day.day,
+      source.hour,
+      source.minute,
+      source.second,
+      source.millisecond,
+      source.microsecond,
+    );
   }
 }
