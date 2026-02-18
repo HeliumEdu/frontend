@@ -1950,18 +1950,23 @@ class _CalendarScreenState
       return null;
     }
 
+    final typeIcon = plannerItem is HomeworkModel
+        ? AppConstants.assignmentIcon
+        : plannerItem is EventModel
+            ? AppConstants.eventIcon
+            : plannerItem is CourseScheduleEventModel
+                ? AppConstants.courseScheduleIcon
+                : AppConstants.externalCalendarIcon;
+    final typeIconColor = plannerItem is CourseScheduleEventModel
+        ? plannerItem.color
+        : mutedIconColor;
+
     final children = <InlineSpan>[
-      if (plannerItem is CourseScheduleEventModel) ...[
-        WidgetSpan(
-          alignment: PlaceholderAlignment.middle,
-          child: Icon(
-            AppConstants.courseScheduleIcon,
-            size: 14,
-            color: plannerItem.color,
-          ),
-        ),
-        const TextSpan(text: ' '),
-      ],
+      WidgetSpan(
+        alignment: PlaceholderAlignment.middle,
+        child: Icon(typeIcon, size: 14, color: typeIconColor),
+      ),
+      const TextSpan(text: ' '),
       TextSpan(text: plannerItem.title, style: titleStyle),
       const TextSpan(text: '\n'),
       WidgetSpan(
