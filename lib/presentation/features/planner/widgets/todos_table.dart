@@ -47,10 +47,10 @@ class TodosTable extends StatefulWidget {
   });
 
   @override
-  State<TodosTable> createState() => TodosTableState();
+  State<TodosTable> createState() => _TodosTableState();
 }
 
-class TodosTableState extends State<TodosTable> {
+class _TodosTableState extends State<TodosTable> {
   static const List<int> _itemsPerPageOptions = [5, 10, 25, 50, 100, -1];
   bool _isInitialized = false;
 

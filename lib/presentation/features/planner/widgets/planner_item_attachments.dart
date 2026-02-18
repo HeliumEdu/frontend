@@ -20,8 +20,8 @@ class PlannerItemAttachments extends BaseAttachments {
   });
 
   @override
-  PlannerItemAttachmentsContent buildContent() {
-    return PlannerItemAttachmentsContent(
+  BaseAttachmentsContent buildContent() {
+    return _PlannerItemAttachmentsContent(
       isEvent: isEvent,
       entityId: entityId,
       isEdit: isEdit,
@@ -30,11 +30,10 @@ class PlannerItemAttachments extends BaseAttachments {
   }
 }
 
-class PlannerItemAttachmentsContent extends BaseAttachmentsContent {
+class _PlannerItemAttachmentsContent extends BaseAttachmentsContent {
   final bool isEvent;
 
-  const PlannerItemAttachmentsContent({
-    super.key,
+  const _PlannerItemAttachmentsContent({
     required this.isEvent,
     required super.entityId,
     required super.isEdit,
@@ -42,12 +41,12 @@ class PlannerItemAttachmentsContent extends BaseAttachmentsContent {
   });
 
   @override
-  BaseAttachmentsState<PlannerItemAttachmentsContent> createState() =>
+  BaseAttachmentsState<_PlannerItemAttachmentsContent> createState() =>
       _PlannerItemAttachmentsWidgetState();
 }
 
 class _PlannerItemAttachmentsWidgetState
-    extends BaseAttachmentsState<PlannerItemAttachmentsContent> {
+    extends BaseAttachmentsState<_PlannerItemAttachmentsContent> {
   @override
   FetchAttachmentsEvent createFetchAttachmentsEvent() {
     if (widget.isEvent) {
