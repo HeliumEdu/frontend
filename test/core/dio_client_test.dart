@@ -256,6 +256,9 @@ void main() {
         when(
           () => mockPrefService.getBool('remember_filter_state'),
         ).thenReturn(false);
+        when(
+          () => mockPrefService.getBool('drag_and_drop_on_mobile'),
+        ).thenReturn(true);
 
         // WHEN
         final settings = await dioClient.getSettings();
