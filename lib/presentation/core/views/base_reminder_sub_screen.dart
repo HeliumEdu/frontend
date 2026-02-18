@@ -265,10 +265,10 @@ abstract class BaseReminderScreenState<T>
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: Column(
+                  child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SelectableText(
+                    Text(
                       '${ReminderConstants.types[reminder.type]} ${reminderOffset(reminder)} before',
                       style: AppStyles.standardBodyTextLight(context).copyWith(
                         color: context.colorScheme.onSurface.withValues(
@@ -277,7 +277,7 @@ abstract class BaseReminderScreenState<T>
                       ),
                     ),
                     const SizedBox(width: 40, child: Divider()),
-                    SelectableText(
+                    Text(
                       reminder.message,
                       style: AppStyles.standardBodyTextLight(context).copyWith(
                         color: context.colorScheme.onSurface.withValues(

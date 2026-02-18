@@ -24,7 +24,7 @@ class AppConstants {
   static const assignmentIcon = Icons.assignment_outlined;
   static const eventIcon = Icons.event_outlined;
   static const courseScheduleIcon = Icons.school;
-  static const externalCalendarIcon = Icons.cloud_download;
+  static const externalCalendarIcon = Icons.hub;
 
   static const authContainerSize = 120.0;
   static const minHeightForTrailingNav = 500.0;
