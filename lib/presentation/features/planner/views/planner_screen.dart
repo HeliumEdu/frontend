@@ -134,7 +134,7 @@ class _CalendarScreenState
   static const _agendaHeightMobile = 53.0;
   static const _agendaHeightDesktop = 57.0;
   static const _uiAnimationDuration = Duration(milliseconds: 300);
-  static const _tooltipWaitDuration = Duration(milliseconds: 300);
+  static const _tooltipWaitDuration = Duration(milliseconds: 500);
   static const _tooltipShowDuration = Duration(seconds: 8);
 
   @override
@@ -213,6 +213,8 @@ class _CalendarScreenState
   bool _mobileMonthAutoSelectApplied = false;
 
   List<DateTime> _visibleDates = [];
+  bool _allowCalendarDragAndDrop = true;
+  bool _isCalendarInteractionInProgress = false;
 
   PlannerItemDataSource? _plannerItemDataSource;
   final Map<int, ExternalCalendarModel> _externalCalendarsById = {};
@@ -566,7 +568,7 @@ class _CalendarScreenState
           headerHeight: 0,
           showCurrentTimeIndicator: true,
           showWeekNumber: !Responsive.isMobile(context),
-          allowDragAndDrop: true,
+          allowDragAndDrop: _allowCalendarDragAndDrop,
           dragAndDropSettings: DragAndDropSettings(
             timeIndicatorStyle: AppStyles.smallSecondaryText(
               context,
@@ -652,6 +654,7 @@ class _CalendarScreenState
           loadMoreWidgetBuilder: _loadMoreWidgetBuilder,
           appointmentBuilder: _buildCalendarItem,
           onTap: _openCalendarItem,
+          onDragStart: _onCalendarDragStart,
           onDragEnd: _dropCalendarItem,
           onAppointmentResizeEnd: _resizeCalendarItem,
           onSelectionChanged: _onCalendarSelectionChanged,
@@ -1508,6 +1511,8 @@ class _CalendarScreenState
   }
 
   void _dropCalendarItem(AppointmentDragEndDetails dropDetails) {
+    _setCalendarInteractionInProgress(false);
+
     if (dropDetails.appointment == null || dropDetails.droppingTime == null) {
       return;
     }
@@ -1586,6 +1591,10 @@ class _CalendarScreenState
     } else if (plannerItem is ExternalCalendarEventModel) {
       _showEditExternalCalendarEventSnackBar();
     }
+  }
+
+  void _onCalendarDragStart(AppointmentDragStartDetails dragDetails) {
+    _setCalendarInteractionInProgress(true);
   }
 
   void _resizeCalendarItem(AppointmentResizeEndDetails resizeDetails) {
@@ -1745,7 +1754,7 @@ class _CalendarScreenState
 
     // Use KeyedSubtree to help preserve widget state across rebuilds, prevents
     // flickers for drag-and-drop and similar operations
-    final calendarItemWidget = _buildCalendarItemWidget(
+    Widget calendarItemWidget = _buildCalendarItemWidget(
       plannerItem: plannerItem,
       width: details.bounds.width,
       height: details.bounds.height,
@@ -1754,6 +1763,12 @@ class _CalendarScreenState
           ? _plannerItemDataSource!.completedOverrides[homeworkId]
           : null,
     );
+    if (_isLockedCalendarInteractionItem(plannerItem)) {
+      calendarItemWidget = Listener(
+        onPointerDown: (_) => _temporarilyDisableCalendarDragAndDrop(),
+        child: calendarItemWidget,
+      );
+    }
 
     return KeyedSubtree(
       key: ValueKey('planner_item_${plannerItem.id}'),
@@ -1764,12 +1779,50 @@ class _CalendarScreenState
     );
   }
 
+  bool _isLockedCalendarInteractionItem(PlannerItemBaseModel item) {
+    return item is CourseScheduleEventModel ||
+        item is ExternalCalendarEventModel;
+  }
+
+  void _setCalendarInteractionInProgress(bool isInProgress) {
+    if (!mounted || _isCalendarInteractionInProgress == isInProgress) {
+      return;
+    }
+
+    if (isInProgress) {
+      Tooltip.dismissAllToolTips();
+    }
+
+    setState(() {
+      _isCalendarInteractionInProgress = isInProgress;
+    });
+  }
+
+  void _temporarilyDisableCalendarDragAndDrop() {
+    if (!_allowCalendarDragAndDrop || !mounted) {
+      return;
+    }
+    setState(() {
+      _allowCalendarDragAndDrop = false;
+      _isCalendarInteractionInProgress = true;
+    });
+    Tooltip.dismissAllToolTips();
+    Future.delayed(const Duration(milliseconds: 250), () {
+      if (!mounted) return;
+      setState(() {
+        _allowCalendarDragAndDrop = true;
+        _isCalendarInteractionInProgress = false;
+      });
+    });
+  }
+
   Widget _buildPlannerItemTooltip({
     required PlannerItemBaseModel plannerItem,
     required Widget child,
     bool hideLocation = false,
   }) {
-    if (Responsive.isTouchDevice(context) ||
+    if (_isCalendarInteractionInProgress ||
+        Responsive.isTouchDevice(context) ||
         !(userSettings?.showPlannerTooltips ?? true)) {
       return child;
     }
