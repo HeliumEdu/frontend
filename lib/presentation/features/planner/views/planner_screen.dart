@@ -60,6 +60,7 @@ import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.d
 import 'package:heliumapp/presentation/features/planner/controllers/todos_table_controller.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
+import 'package:heliumapp/presentation/features/planner/widgets/day_popout_dialog.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/todos_table.dart';
 import 'package:heliumapp/presentation/features/settings/views/settings_screen.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
@@ -74,7 +75,6 @@ import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
-import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:timezone/standalone.dart' as tz;
@@ -2575,10 +2575,7 @@ class _CalendarScreenState
   ) {
     return GestureDetector(
       onTap: () {
-        _openDayPopOutDialog(
-          details.date,
-          (details.appointments.cast<PlannerItemBaseModel>()).toList(),
-        );
+        _openDayPopOutDialog(details.date);
       },
       child: Container(
         width: details.bounds.width,
@@ -2600,124 +2597,39 @@ class _CalendarScreenState
     );
   }
 
-  void _openDayPopOutDialog(
-    DateTime? date,
-    List<PlannerItemBaseModel> plannerItems,
-  ) {
+  void _openDayPopOutDialog(DateTime? date) {
     if (date == null || Responsive.isMobile(context)) return;
-    final initialItems = plannerItems.toList();
 
     showDialog(
       context: context,
-      builder: (dialogContext) =>
-          _buildDayPopOut(dialogContext, date, initialItems),
-    );
-  }
-
-  Widget _buildDayPopOut(
-    BuildContext dialogContext,
-    DateTime date,
-    List<PlannerItemBaseModel> plannerItems,
-  ) {
-    return ListenableBuilder(
-      listenable: _plannerItemDataSource!.changeNotifier,
-      builder: (context, _) {
-        final currentItems = _mergeDayPopOutItems(
-          date: date,
-          calendarItems: plannerItems,
-        );
-
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Container(
-            width: 360,
-            constraints: const BoxConstraints(maxHeight: 480),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          HeliumDateTime.formatDateWithDay(date),
-                          style: AppStyles.headingText(
-                            context,
-                          ).copyWith(color: context.colorScheme.onSurface),
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        icon: Icon(
-                          Icons.close,
-                          size: 20,
-                          color: context.colorScheme.primary,
-                        ),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                    ],
-                  ),
-                ),
-                const Divider(height: 1),
-                Flexible(
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    padding: const EdgeInsets.all(8),
-                    itemCount: currentItems.length,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: 6),
-                    itemBuilder: (_, index) {
-                      final plannerItem = currentItems[index];
-                      final homeworkId = plannerItem is HomeworkModel
-                          ? plannerItem.id
-                          : null;
-                      final completedOverride = homeworkId != null
-                          ? _plannerItemDataSource!
-                                .completedOverrides[homeworkId]
-                          : null;
-
-                      return GestureDetector(
-                        onTap: () {
-                          if (!PlannerHelper.shouldShowEditButtonForPlannerItem(
-                            context,
-                            plannerItem,
-                          )) {
-                            return;
-                          }
-
-                          Feedback.forTap(context);
-                          if (_openPlannerItem(plannerItem)) {
-                            Navigator.of(context).pop();
-                          }
-                        },
-                        child: _buildPlannerItemTooltip(
-                          plannerItem: plannerItem,
-                          hideLocation: true,
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(
-                              maxHeight: _agendaHeightDesktop,
-                            ),
-                            child: _buildCalendarItemWidget(
-                              plannerItem: plannerItem,
-                              width: double.infinity,
-                              isInAgenda: true,
-                              completedOverride: completedOverride,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
+      builder: (_) => PlannerDayPopOutDialog(
+        date: date,
+        dataSource: _plannerItemDataSource!,
+        onPlannerItemTap: (context, plannerItem) {
+          if (!PlannerHelper.shouldShowEditButtonForPlannerItem(
+            context,
+            plannerItem,
+          )) {
+            return false;
+          }
+          return _openPlannerItem(plannerItem);
+        },
+        itemBuilder: (context, plannerItem, completedOverride) {
+          return _buildPlannerItemTooltip(
+            plannerItem: plannerItem,
+            hideLocation: true,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: _agendaHeightDesktop),
+              child: _buildCalendarItemWidget(
+                plannerItem: plannerItem,
+                width: double.infinity,
+                isInAgenda: true,
+                completedOverride: completedOverride,
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
@@ -2744,68 +2656,6 @@ class _CalendarScreenState
 
       isLoading = false;
     });
-  }
-
-  List<PlannerItemBaseModel> _mergeDayPopOutItems({
-    required DateTime date,
-    required List<PlannerItemBaseModel> calendarItems,
-  }) {
-    final liveDateItems = _getLivePlannerItemsForDate(date);
-    final liveByKey = {
-      for (final item in liveDateItems) _plannerItemKey(item): item,
-    };
-
-    final merged = <PlannerItemBaseModel>[];
-    final mergedKeys = <String>{};
-
-    // Preserve recurring occurrences from the calendar snapshot, while keeping
-    // non-recurring items live so delete/clone edits update immediately.
-    for (final item in calendarItems) {
-      final key = _plannerItemKey(item);
-      if (item is CourseScheduleEventModel) {
-        merged.add(item);
-        mergedKeys.add(key);
-        continue;
-      }
-
-      final liveItem = liveByKey[key];
-      if (liveItem != null) {
-        merged.add(liveItem);
-        mergedKeys.add(key);
-      }
-    }
-
-    // Add newly created live items that were not in the initial calendar
-    // snapshot (e.g. clone/create while popout is open).
-    final newLiveItems = liveDateItems
-        .where((item) => !mergedKeys.contains(_plannerItemKey(item)))
-        .toList();
-    if (newLiveItems.isNotEmpty) {
-      merged.addAll(newLiveItems);
-    }
-
-    Sort.byStartThenTitleForDay(merged, date);
-    return merged;
-  }
-
-  List<PlannerItemBaseModel> _getLivePlannerItemsForDate(DateTime date) {
-    final targetDate = HeliumDateTime.dateOnly(date);
-    return _plannerItemDataSource!.allPlannerItems.where((item) {
-      final itemDate = item.allDay
-          ? HeliumDateTime.dateOnly(item.start)
-          : item.start;
-
-      if (item.allDay) {
-        return itemDate.isAtSameMomentAs(targetDate);
-      }
-
-      final itemDay = HeliumDateTime.dateOnly(itemDate);
-      return itemDay.isAtSameMomentAs(targetDate);
-    }).toList();
-  }
-
-  String _plannerItemKey(PlannerItemBaseModel item) {
-    return '${item.plannerItemType.name}_${item.id}_${item.start.toIso8601String()}_${item.end.toIso8601String()}';
   }
 
   void _goToToday() {

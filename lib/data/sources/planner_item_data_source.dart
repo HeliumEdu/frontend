@@ -179,6 +179,73 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     return items;
   }
 
+  /// Returns items that occur on [day] from the current filtered appointments.
+  /// Recurring schedule items are expanded into day-specific occurrences.
+  List<PlannerItemBaseModel> getItemsForDay(DateTime day) {
+    final dayStart = DateTime(day.year, day.month, day.day);
+    final dayEnd = dayStart.add(const Duration(days: 1));
+    final itemsForDay = <PlannerItemBaseModel>[];
+
+    for (final appointment in appointments ?? const <Object>[]) {
+      if (appointment is! PlannerItemBaseModel) {
+        continue;
+      }
+
+      if (appointment is CourseScheduleEventModel &&
+          (appointment.recurrenceRule?.isNotEmpty ?? false)) {
+        final occurrences = SfCalendar.getRecurrenceDateTimeCollection(
+          appointment.recurrenceRule!,
+          appointment.start,
+          specificStartDate: dayStart,
+          specificEndDate: dayEnd,
+        );
+
+        for (final occurrenceStart in occurrences) {
+          final isSameDay =
+              occurrenceStart.year == dayStart.year &&
+              occurrenceStart.month == dayStart.month &&
+              occurrenceStart.day == dayStart.day;
+          if (!isSameDay) {
+            continue;
+          }
+
+          final duration = appointment.end.difference(appointment.start);
+          itemsForDay.add(
+            CourseScheduleEventModel(
+              id: appointment.id,
+              title: appointment.title,
+              allDay: appointment.allDay,
+              showEndTime: appointment.showEndTime,
+              start: occurrenceStart,
+              end: occurrenceStart.add(duration),
+              priority: appointment.priority,
+              url: appointment.url,
+              comments: appointment.comments,
+              attachments: appointment.attachments,
+              reminders: appointment.reminders,
+              color: appointment.color,
+              ownerId: appointment.ownerId,
+              recurrenceRule: appointment.recurrenceRule,
+            ),
+          );
+        }
+        continue;
+      }
+
+      final itemStart = appointment.start;
+      final isSameDay =
+          itemStart.year == dayStart.year &&
+          itemStart.month == dayStart.month &&
+          itemStart.day == dayStart.day;
+      if (isSameDay) {
+        itemsForDay.add(appointment);
+      }
+    }
+
+    Sort.byStartThenTitleForDay(itemsForDay, dayStart);
+    return itemsForDay;
+  }
+
   @override
   PlannerItemBaseModel? convertAppointmentToObject(
     PlannerItemBaseModel? customData,
