@@ -105,7 +105,9 @@ class _PlannerItemAddScreenState
   void initState() {
     super.initState();
     _currentEntityId = widget.eventId ?? widget.homeworkId;
-    _currentIsEvent = widget.eventId != null;
+    if (_currentEntityId != null) {
+      _currentIsEvent = widget.eventId != null;
+    }
   }
 
   @override
