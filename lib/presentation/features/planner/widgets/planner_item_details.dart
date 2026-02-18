@@ -685,6 +685,9 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       if (_courses.isEmpty) {
         _isEvent = true;
       }
+      if (!widget.isEdit) {
+        widget.onIsEventChanged?.call(_isEvent);
+      }
     });
 
     if (widget.isEdit) {
