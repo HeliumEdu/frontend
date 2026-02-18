@@ -48,13 +48,15 @@ final _log = Logger('presentation.views');
 void showNotifications(BuildContext context) {
   PlannerItemBloc? plannerItemBloc;
   try {
-    plannerItemBloc = context.read<PlannerItemBloc>();
+    final found = context.read<PlannerItemBloc>();
+    plannerItemBloc = found.isClosed ? null : found;
   } catch (_) {
     _log.info('PlannerItemBloc not passed, will create a new one');
   }
   AttachmentBloc? attachmentBloc;
   try {
-    attachmentBloc = context.read<AttachmentBloc>();
+    final found = context.read<AttachmentBloc>();
+    attachmentBloc = found.isClosed ? null : found;
   } catch (_) {
     _log.info('AttachmentBloc not passed, will create a new one');
   }
@@ -486,18 +488,24 @@ class _NotificationsScreenState
 
     PlannerItemBloc? plannerItemBloc;
     try {
-      plannerItemBloc = context.read<PlannerItemBloc>();
+      final found = context.read<PlannerItemBloc>();
+      plannerItemBloc = found.isClosed ? null : found;
     } catch (_) {
-      _log.fine('PlannerItemBloc not in context, creating a new one');
-      // Bloc not in context, create one
+      // Bloc not in context
+    }
+    if (plannerItemBloc == null) {
+      _log.fine('PlannerItemBloc not in context or closed, creating a new one');
       plannerItemBloc = ProviderHelpers().createPlannerItemBloc()(context);
     }
     AttachmentBloc? attachmentBloc;
     try {
-      attachmentBloc = context.read<AttachmentBloc>();
+      final found = context.read<AttachmentBloc>();
+      attachmentBloc = found.isClosed ? null : found;
     } catch (_) {
-      _log.fine('AttachmentBloc not in context, creating a new one');
-      // Bloc not in context, create one
+      // Bloc not in context
+    }
+    if (attachmentBloc == null) {
+      _log.fine('AttachmentBloc not in context or closed, creating a new one');
       attachmentBloc = ProviderHelpers().createAttachmentBloc()(context);
     }
 
