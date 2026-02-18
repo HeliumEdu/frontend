@@ -188,6 +188,11 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   }
 
   @override
+  Object? getId(int index) {
+    return _getData(index).id;
+  }
+
+  @override
   DateTime getStartTime(int index) {
     final item = _getData(index);
 
