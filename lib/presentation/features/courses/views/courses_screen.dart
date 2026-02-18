@@ -118,6 +118,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
   final Map<int, List<CourseModel>> _coursesMap = {};
   int? _selectedGroupId;
   _PendingCourseDialogOpen? _pendingCourseDialogOpen;
+  bool _pendingDialogNavigating = false;
 
   @override
   void initState() {
@@ -370,29 +371,26 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
       return;
     }
 
-    // Clear immediately to prevent re-entry if the async router redirect causes
-    // GoRouterState to lag behind, which would otherwise loop indefinitely.
-    _pendingCourseDialogOpen = null;
-
     final queryParams = GoRouterState.of(context).uri.queryParameters;
     if (queryParams['id'] != null) {
       // Clear URL query params first. Opening the dialog in the same frame as
       // this route change can cause dialog listeners to immediately close it.
-      context.go(AppRoute.coursesScreen);
+      // Only call context.go once — the async router redirect (fetchSettings)
+      // can cause GoRouterState to lag, so we poll until params clear rather
+      // than navigating again on each iteration.
+      if (!_pendingDialogNavigating) {
+        _pendingDialogNavigating = true;
+        context.go(AppRoute.coursesScreen);
+      }
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        showCourseAdd(
-          context,
-          courseGroupId: pending.courseGroupId,
-          courseId: pending.courseId,
-          isEdit: true,
-          isNew: false,
-          initialStep: pending.step,
-        );
+        _openPendingCourseDialogFromQuery();
       });
       return;
     }
 
+    _pendingDialogNavigating = false;
+    _pendingCourseDialogOpen = null;
     showCourseAdd(
       context,
       courseGroupId: pending.courseGroupId,
