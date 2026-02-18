@@ -25,7 +25,10 @@ Map<String, dynamic> givenUserSettingsJson({
   int defaultReminderOffset = 15,
   int defaultReminderOffsetType = 0,
   bool colorByCategory = false,
+  bool showGettingStarted = false,
+  bool isSetupComplete = true,
   bool showPlannerTooltips = true,
+  bool dragAndDropOnMobile = true,
   bool rememberFilterState = false,
   String? privateSlug,
 }) {
@@ -43,7 +46,10 @@ Map<String, dynamic> givenUserSettingsJson({
     'default_reminder_offset': defaultReminderOffset,
     'default_reminder_offset_type': defaultReminderOffsetType,
     'calendar_use_category_colors': colorByCategory,
+    'show_getting_started': showGettingStarted,
+    'is_setup_complete': isSetupComplete,
     'show_planner_tooltips': showPlannerTooltips,
+    'drag_and_drop_on_mobile': dragAndDropOnMobile,
     'remember_filter_state': rememberFilterState,
     'private_slug': privateSlug,
   };

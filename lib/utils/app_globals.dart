@@ -47,6 +47,7 @@ class FallbackConstants {
   static const defaultGradeColor = Color(0xff9d629d);
   static const defaultCalendarUseCategoryColors = false;
   static const defaultShowPlannerTooltips = true;
+  static const defaultDragAndDropOnMobile = true;
   static const defaultRememberFilterState = false;
 }
 

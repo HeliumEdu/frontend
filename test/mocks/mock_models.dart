@@ -24,9 +24,9 @@ import 'package:heliumapp/data/models/planner/external_calendar_event_model.dart
 import 'package:heliumapp/data/models/planner/external_calendar_model.dart';
 import 'package:heliumapp/data/models/planner/grade_course_group_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
+import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/data/models/planner/resource_group_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
-import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/standalone.dart' as tz;
 
@@ -100,6 +100,7 @@ class MockModels {
       showPlannerTooltips: showPlannerTooltips,
       rememberFilterState: rememberFilterState,
       privateSlug: privateSlug,
+      dragAndDropOnMobile: true,
     );
   }
 
