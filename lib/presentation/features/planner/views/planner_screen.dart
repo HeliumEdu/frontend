@@ -2606,7 +2606,6 @@ class _CalendarScreenState
   ) {
     if (date == null || Responsive.isMobile(context)) return;
     final initialItems = plannerItems.toList();
-    Sort.byStartThenTitle(initialItems);
 
     showDialog(
       context: context,
@@ -2782,11 +2781,10 @@ class _CalendarScreenState
         .where((item) => !mergedKeys.contains(_plannerItemKey(item)))
         .toList();
     if (newLiveItems.isNotEmpty) {
-      Sort.byStartThenTitle(newLiveItems);
       merged.addAll(newLiveItems);
     }
 
-    Sort.byStartThenTitle(merged);
+    Sort.byStartThenTitleForDay(merged, date);
     return merged;
   }
 
