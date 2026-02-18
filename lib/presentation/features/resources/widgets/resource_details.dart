@@ -33,12 +33,14 @@ class ResourceDetails extends StatefulWidget {
   final int resourceGroupId;
   final int? resourceId;
   final bool isEdit;
+  final VoidCallback? onSubmitRequested;
 
   const ResourceDetails({
     super.key,
     required this.resourceGroupId,
     this.resourceId,
     required this.isEdit,
+    this.onSubmitRequested,
   });
 
   @override
@@ -115,7 +117,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
                     controller: _formController.titleController,
                     validator: BasicFormController.validateRequiredField,
                     fieldKey: _formController.getFieldKey('title'),
-                    onFieldSubmitted: (value) => onSubmit(),
+                    onFieldSubmitted: (value) => (widget.onSubmitRequested ?? onSubmit).call(),
                   ),
                   const SizedBox(height: 14),
                   Text('Classes', style: AppStyles.formLabel(context)),

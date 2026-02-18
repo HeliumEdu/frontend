@@ -105,7 +105,9 @@ class _PlannerItemAddScreenState
   void initState() {
     super.initState();
     _currentEntityId = widget.eventId ?? widget.homeworkId;
-    _currentIsEvent = widget.eventId != null;
+    if (_currentEntityId != null) {
+      _currentIsEvent = widget.eventId != null;
+    }
   }
 
   @override
@@ -144,6 +146,7 @@ class _PlannerItemAddScreenState
     if (currentStep != 0) return null;
     // Return function that evaluates widget state when called, not when getter runs
     return () {
+      if (isSubmitting) return;
       final widgetSubmit = _detailsKey.currentState?.onSubmit;
       if (widgetSubmit != null) {
         setState(() => isSubmitting = true);
@@ -263,6 +266,7 @@ class _PlannerItemAddScreenState
           });
         },
         onActionStarted: () => setState(() => isSubmitting = true),
+        onSubmitRequested: () => saveAction?.call(),
       ),
     ),
     MultiStepDefinition(

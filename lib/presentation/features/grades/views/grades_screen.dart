@@ -684,14 +684,22 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
 
   Widget _buildAtRiskCoursesCard(GradeCourseGroupModel selectedGroup) {
     final atRiskCourses = selectedGroup.courses
-        .where((course) => course.overallGrade < _atRiskThreshold)
+        .where(
+          (course) =>
+              course.numHomeworkGraded > 0 &&
+              course.overallGrade < _atRiskThreshold,
+        )
         .toList();
-    final count = atRiskCourses.length;
+    final atRiskCount = atRiskCourses.length;
+    final totalGraded = selectedGroup.courses.fold(
+      0,
+      (sum, course) => sum + course.numHomeworkGraded,
+    );
 
     return MouseRegion(
-      cursor: count > 0 ? SystemMouseCursors.click : SystemMouseCursors.basic,
+      cursor: atRiskCount > 0 ? SystemMouseCursors.click : SystemMouseCursors.basic,
       child: GestureDetector(
-        onTap: count > 0
+        onTap: atRiskCount > 0
             ? () {
                 final atRiskCourseIds = atRiskCourses.map((c) => c.id).toSet();
 
@@ -728,11 +736,11 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                 height: _summaryCircleSize,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: count > 0
+                  color: atRiskCount > 0
                       ? context.colorScheme.error.withValues(alpha: 0.15)
                       : context.semanticColors.success.withValues(alpha: 0.15),
                   border: Border.all(
-                    color: count > 0
+                    color: atRiskCount > 0
                         ? context.colorScheme.error
                         : context.semanticColors.success,
                     width: 3,
@@ -740,7 +748,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                 ),
                 child: Center(
                   child: Text(
-                    count.toString(),
+                    atRiskCount.toString(),
                     style: AppStyles.headingText(context).copyWith(
                       fontSize: Responsive.getFontSize(
                         context,
@@ -748,7 +756,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                         tablet: 26,
                         desktop: 40,
                       ),
-                      color: count > 0
+                      color: atRiskCount > 0
                           ? context.colorScheme.error
                           : context.semanticColors.success,
                       fontWeight: FontWeight.bold,
@@ -756,19 +764,21 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
-              Text(
-                count == 0
-                    ? 'All classes passing!'
-                    : 'below ${_atRiskThreshold.toInt()}%',
-                style: AppStyles.smallSecondaryText(context).copyWith(
-                  color: count > 0
-                      ? context.colorScheme.error
-                      : context.semanticColors.success,
+              if (atRiskCount > 0 || totalGraded > 0) ...[
+                const SizedBox(height: 12),
+                Text(
+                  atRiskCount == 0
+                      ? 'All classes passing!'
+                      : 'below ${_atRiskThreshold.toInt()}%',
+                  style: AppStyles.smallSecondaryText(context).copyWith(
+                    color: atRiskCount > 0
+                        ? context.colorScheme.error
+                        : context.semanticColors.success,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
-              ),
-              if (count > 0) ...[
+              ],
+              if (atRiskCount > 0) ...[
                 const SizedBox(height: 8),
                 Text(
                   'Tap to view',
@@ -1038,15 +1048,11 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
 
     // If no data to display, show empty state
     if (series.isEmpty) {
-      return Container(
-        margin: const EdgeInsets.only(top: 14),
-        padding: const EdgeInsets.all(32),
-        child: Center(
-          child: Text(
-            'No grade data available for visualization',
-            style: AppStyles.standardBodyText(context),
-          ),
-        ),
+      return const EmptyCard(
+        icon: Icons.bar_chart,
+        title: 'Nothing to visualize yet',
+        message: "Come back here after you've entered some grades on 'Planner'",
+        expanded: false,
       );
     }
 
@@ -2054,7 +2060,8 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                           ),
                         ),
                       ),
-                      if (course.overallGrade < _atRiskThreshold) ...[
+                      if (course.numHomeworkGraded > 0 &&
+                          course.overallGrade < _atRiskThreshold) ...[
                         const SizedBox(width: 8),
                         const _AtRiskBadge(),
                       ],
@@ -2219,14 +2226,17 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
               children: [
                 Expanded(child: _buildBreakdownArea(course)),
                 const SizedBox(width: 16),
-                Expanded(flex: 2, child: _buildCategoryTable(course)),
+                Expanded(
+                  flex: 2,
+                  child: _buildCategoryTable(course, hasWeightedGrading),
+                ),
               ],
             )
-          : _buildCategoryTable(course),
+          : _buildCategoryTable(course, hasWeightedGrading),
     );
   }
 
-  Widget _buildCategoryTable(GradeCourseModel course) {
+  Widget _buildCategoryTable(GradeCourseModel course, bool hasWeightedGrading) {
     return Column(
       children: [
         // Header Row
@@ -2245,7 +2255,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                   style: AppStyles.standardBodyText(context),
                 ),
               ),
-              if (!Responsive.isMobile(context))
+              if (!hasWeightedGrading || !Responsive.isMobile(context))
                 Expanded(
                   flex: 2,
                   child: Text(
@@ -2274,7 +2284,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
           itemCount: course.categories.length,
           itemBuilder: (context, catIndex) {
             final category = course.categories[catIndex];
-            return _buildCategoryRow(category);
+            return _buildCategoryRow(category, hasWeightedGrading);
           },
           separatorBuilder: (context, catIndex) {
             return const Divider(height: 1, indent: 12, endIndent: 12);
@@ -2402,7 +2412,10 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     return segments;
   }
 
-  Widget _buildCategoryRow(GradeCategoryModel category) {
+  Widget _buildCategoryRow(
+    GradeCategoryModel category,
+    bool hasWeightedGrading,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Row(
@@ -2435,7 +2448,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
               ],
             ),
           ),
-          if (!Responsive.isMobile(context))
+          if (!hasWeightedGrading || !Responsive.isMobile(context))
             Expanded(
               flex: 2,
               child: SelectableText(

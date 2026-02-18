@@ -124,6 +124,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
     }
     // Return function that evaluates widget state when called, not when getter runs
     return () {
+      if (isSubmitting) return;
       Function? widgetSubmit;
       switch (currentStep) {
         case 0:
@@ -209,6 +210,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
         isEdit: widget.isEdit || _currentCourseId != null,
         isNew: widget.isNew,
         userSettings: userSettings,
+        onSubmitRequested: () => saveAction?.call(),
       ),
     ),
     MultiStepDefinition(

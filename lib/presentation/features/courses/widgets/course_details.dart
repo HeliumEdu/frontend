@@ -38,6 +38,7 @@ class CourseDetails extends StatefulWidget {
   final bool isEdit;
   final bool isNew;
   final UserSettingsModel? userSettings;
+  final VoidCallback? onSubmitRequested;
 
   const CourseDetails({
     super.key,
@@ -46,6 +47,7 @@ class CourseDetails extends StatefulWidget {
     required this.isEdit,
     required this.isNew,
     this.userSettings,
+    this.onSubmitRequested,
   });
 
   @override
@@ -129,7 +131,7 @@ class CourseDetailsState extends State<CourseDetails> {
                     controller: _formController.titleController,
                     validator: BasicFormController.validateRequiredField,
                     fieldKey: _formController.getFieldKey('title'),
-                    onFieldSubmitted: (value) => onSubmit(),
+                    onFieldSubmitted: (value) => (widget.onSubmitRequested ?? onSubmit).call(),
                   ),
                   const SizedBox(height: 14),
                   Row(
@@ -442,6 +444,7 @@ class CourseDetailsState extends State<CourseDetails> {
 
   /// Submit the form. Called by parent screen when header save is pressed.
   bool onSubmit() {
+    if (isSubmitting) return false;
     if (_formController.validateAndScrollToError()) {
       if (_formController.endDate!.isBefore(_formController.startDate!)) {
         SnackBarHelper.show(
