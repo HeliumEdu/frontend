@@ -1850,7 +1850,7 @@ class _CalendarScreenState
       _PlannerTooltipRow.text(
         icon: _isRecurringPlannerItem(plannerItem)
             ? Icons.repeat
-            : Icons.schedule_outlined,
+            : Icons.access_time,
         text: _buildTooltipWhenLine(plannerItem),
       ),
     ];
@@ -1864,7 +1864,6 @@ class _CalendarScreenState
         _PlannerTooltipRow.text(
           icon: Icons.pin_drop_outlined,
           text: location,
-          color: plannerItem.color,
         ),
       );
     }
