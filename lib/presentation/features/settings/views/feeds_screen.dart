@@ -317,7 +317,7 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
 
             _buildFeedCard(
               context: context,
-              icon: Icons.assignment_outlined,
+              icon: AppConstants.assignmentIcon,
               color: context.semanticColors.warning,
               url: homeworkUrl,
               label: 'Assignments',
@@ -325,7 +325,7 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
 
             _buildFeedCard(
               context: context,
-              icon: Icons.date_range_outlined,
+              icon: AppConstants.courseScheduleIcon,
               color: context.colorScheme.primary,
               url: courseScheduleUrl,
               label: 'Class Schedules',
@@ -333,8 +333,8 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
 
             _buildFeedCard(
               context: context,
-              icon: Icons.event_outlined,
-              color: context.semanticColors.success,
+              icon: AppConstants.eventIcon,
+              color: userSettings!.eventsColor,
               url: eventsUrl,
               label: 'Events',
             ),

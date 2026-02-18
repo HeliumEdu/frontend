@@ -21,6 +21,11 @@ class AppConstants {
   // TODO: Once Android app is approved, update to Play URL instead
   //'https://play.google.com/store/apps/details?id=com.heliumedu.heliumapp';
 
+  static const assignmentIcon = Icons.assignment_outlined;
+  static const eventIcon = Icons.event_outlined;
+  static const courseScheduleIcon = Icons.school;
+  static const externalCalendarIcon = Icons.cloud_download;
+
   static const authContainerSize = 120.0;
   static const minHeightForTrailingNav = 500.0;
   static const leftPanelDialogWidth = 500.0;

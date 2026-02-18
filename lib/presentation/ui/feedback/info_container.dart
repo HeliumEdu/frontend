@@ -50,7 +50,7 @@ class InfoContainer extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(
+            child: SelectableText(
               text,
               style: AppStyles.standardBodyText(context),
             ),

@@ -19,6 +19,7 @@ import 'package:heliumapp/presentation/ui/components/drop_down.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
@@ -143,7 +144,7 @@ class _TodosTableState extends State<TodosTable> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.assignment_outlined,
+              AppConstants.assignmentIcon,
               size: 48,
               color: context.colorScheme.onSurface.withValues(alpha: 0.3),
             ),

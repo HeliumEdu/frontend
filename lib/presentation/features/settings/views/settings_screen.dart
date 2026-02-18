@@ -370,7 +370,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
-                        Icons.cloud_download,
+                        AppConstants.externalCalendarIcon,
                         color: context.colorScheme.primary,
                         size: Responsive.getIconSize(
                           context,
