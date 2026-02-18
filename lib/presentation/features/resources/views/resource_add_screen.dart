@@ -87,6 +87,7 @@ class _ResourceAddScreenState
     }
     // Return function that evaluates widget state when called, not when getter runs
     return () {
+      if (isSubmitting) return;
       final widgetSubmit = _detailsKey.currentState?.onSubmit;
       if (widgetSubmit != null) {
         setState(() => isSubmitting = true);
@@ -126,6 +127,7 @@ class _ResourceAddScreenState
         resourceGroupId: widget.resourceGroupId,
         resourceId: widget.resourceId,
         isEdit: widget.isEdit,
+        onSubmitRequested: () => saveAction?.call(),
       ),
     ),
   ];

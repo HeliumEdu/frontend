@@ -56,6 +56,7 @@ class PlannerItemDetails extends StatefulWidget {
   final UserSettingsModel? userSettings;
   final ValueChanged<bool>? onIsEventChanged;
   final VoidCallback? onActionStarted;
+  final VoidCallback? onSubmitRequested;
 
   const PlannerItemDetails({
     super.key,
@@ -68,6 +69,7 @@ class PlannerItemDetails extends StatefulWidget {
     this.userSettings,
     this.onIsEventChanged,
     this.onActionStarted,
+    this.onSubmitRequested,
   });
 
   @override
@@ -231,7 +233,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                     controller: _formController.titleController,
                     validator: BasicFormController.validateRequiredField,
                     fieldKey: _formController.getFieldKey('title'),
-                    onFieldSubmitted: (value) => onSubmit(),
+                    onFieldSubmitted: (value) => (widget.onSubmitRequested ?? onSubmit).call(),
                   ),
                   const SizedBox(height: 14),
                   if (!_isEvent) ...[
@@ -842,6 +844,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   }
 
   Future<void> onSubmit() async {
+    if (isSubmitting) return;
     if (_formController.validateAndScrollToError()) {
       if (_formController.endDate.isBefore(_formController.startDate)) {
         SnackBarHelper.show(
