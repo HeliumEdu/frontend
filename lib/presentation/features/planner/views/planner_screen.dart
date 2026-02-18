@@ -1906,7 +1906,7 @@ class _CalendarScreenState
     } else if (plannerItem is EventModel) {
       rows.add(
         _PlannerTooltipRow.text(
-          icon: AppConstants.eventIcon,
+          icon: Icons.source_outlined,
           text: 'Source: Events',
           color: userSettings?.eventsColor,
         ),
@@ -1918,7 +1918,7 @@ class _CalendarScreenState
           : null;
       rows.add(
         _PlannerTooltipRow.text(
-          icon: AppConstants.externalCalendarIcon,
+          icon: Icons.source_outlined,
           text: 'Source: ${externalCalendar?.title ?? 'External Calendar'}',
           color: externalCalendar?.color ?? plannerItem.color,
         ),
