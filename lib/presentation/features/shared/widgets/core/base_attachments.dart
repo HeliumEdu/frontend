@@ -14,18 +14,18 @@ import 'package:heliumapp/data/models/planner/attachment_model.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_state.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
-import 'package:heliumapp/utils/snack_bar_helpers.dart' show SnackBarHelper;
+import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
-import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
-import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
+import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
+import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/snack_bar_helpers.dart' show SnackBarHelper;
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:heliumapp/utils/storage_helpers.dart';
 import 'package:logging/logging.dart';
@@ -323,6 +323,7 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
                   SelectableText(
                     file.title,
                     style: AppStyles.standardBodyText(context),
+                    maxLines: 1,
                   ),
                 ],
               ),
@@ -389,6 +390,7 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
               child: SelectableText(
                 attachment.title,
                 style: AppStyles.standardBodyText(context),
+                maxLines: 1,
               ),
             ),
             HeliumIconButton(

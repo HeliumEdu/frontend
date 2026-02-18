@@ -22,20 +22,20 @@ import 'package:heliumapp/data/repositories/course_repository_impl.dart';
 import 'package:heliumapp/data/repositories/grade_repository_impl.dart';
 import 'package:heliumapp/data/sources/course_remote_data_source.dart';
 import 'package:heliumapp/data/sources/grade_remote_data_source.dart';
-import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
+import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/grades/bloc/grade_bloc.dart';
 import 'package:heliumapp/presentation/features/grades/bloc/grade_event.dart';
 import 'package:heliumapp/presentation/features/grades/bloc/grade_state.dart';
-import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/grades/dialogs/grade_calculator_dialog.dart';
-import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
-import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
-import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
 import 'package:heliumapp/presentation/ui/components/group_dropdown.dart';
+import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
+import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -880,7 +880,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                     child: SelectableText(
                       '$maxUngraded in ${topCourse.title}',
                       style: AppStyles.smallSecondaryText(context),
-                      // overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
                   ),
                 ],
@@ -2044,10 +2044,15 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                 children: [
                   Row(
                     children: [
-                      CourseTitleLabel(
-                        title: course.title,
-                        color: course.color,
-                        showIcon: false,
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: CourseTitleLabel(
+                            title: course.title,
+                            color: course.color,
+                            showIcon: false,
+                          ),
+                        ),
                       ),
                       if (course.overallGrade < _atRiskThreshold) ...[
                         const SizedBox(width: 8),
@@ -2199,7 +2204,6 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
 
   Widget _buildCourseArea(GradeCourseModel course) {
     final hasWeightedGrading = course.categories.any((cat) => cat.weight > 0);
-    final isMobile = Responsive.isMobile(context);
 
     return Container(
       margin: const EdgeInsets.only(top: 14),
@@ -2213,12 +2217,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
           ? Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(child: _buildPieCharts(course)),
+                Expanded(child: _buildBreakdownArea(course)),
                 const SizedBox(width: 16),
-                Expanded(
-                  flex: isMobile ? 3 : 2,
-                  child: _buildCategoryTable(course),
-                ),
+                Expanded(flex: 2, child: _buildCategoryTable(course)),
               ],
             )
           : _buildCategoryTable(course),
@@ -2244,14 +2245,15 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                   style: AppStyles.standardBodyText(context),
                 ),
               ),
-              Expanded(
-                flex: 2,
-                child: Text(
-                  'Graded',
-                  textAlign: TextAlign.center,
-                  style: AppStyles.standardBodyText(context),
+              if (!Responsive.isMobile(context))
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'Graded',
+                    textAlign: TextAlign.center,
+                    style: AppStyles.standardBodyText(context),
+                  ),
                 ),
-              ),
               Expanded(
                 flex: 2,
                 child: Text(
@@ -2282,7 +2284,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     );
   }
 
-  Widget _buildPieCharts(GradeCourseModel course) {
+  Widget _buildBreakdownArea(GradeCourseModel course) {
     final currentData = _buildCurrentDistributionData(course);
 
     // Sort by contribution (highest to lowest)
@@ -2291,10 +2293,12 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Grade Breakdown Header
-        Text('Grade Breakdown', style: AppStyles.headingText(context)),
+        Text(
+          '${!Responsive.isMobile(context) ? 'Grade ' : ''}Breakdown',
+          style: AppStyles.headingText(context),
+          overflow: TextOverflow.ellipsis,
+        ),
         const SizedBox(height: 16),
-        // Horizontal bars for each category
         ...currentData.map(
           (segment) => Padding(
             padding: const EdgeInsets.only(bottom: 12),
@@ -2431,16 +2435,17 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
               ],
             ),
           ),
-          Expanded(
-            flex: 2,
-            child: SelectableText(
-              '${category.numHomeworkGraded} of ${category.numHomework}',
-              textAlign: TextAlign.center,
-              style: AppStyles.standardBodyText(context).copyWith(
-                color: context.colorScheme.onSurface.withValues(alpha: 0.7),
+          if (!Responsive.isMobile(context))
+            Expanded(
+              flex: 2,
+              child: SelectableText(
+                '${category.numHomeworkGraded} of ${category.numHomework}',
+                textAlign: TextAlign.center,
+                style: AppStyles.standardBodyText(context).copyWith(
+                  color: context.colorScheme.onSurface.withValues(alpha: 0.7),
+                ),
               ),
             ),
-          ),
           Expanded(
             flex: 2,
             child: Align(
@@ -2461,6 +2466,7 @@ class _GraphViewMode {
   final int? courseId;
 
   const _GraphViewMode.term() : courseId = null;
+
   const _GraphViewMode.course(this.courseId);
 
   bool get isTerm => courseId == null;

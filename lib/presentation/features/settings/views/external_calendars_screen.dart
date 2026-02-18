@@ -291,7 +291,7 @@ class _ExternalCalendarsProvidedScreenState
                       style: AppStyles.standardBodyText(context),
                     ),
                     const SizedBox(height: 4),
-                    Text(
+                    SelectableText(
                       externalCalendar.url,
                       style: AppStyles.standardBodyTextLight(context).copyWith(
                         color: context.colorScheme.onSurface.withValues(
@@ -299,7 +299,6 @@ class _ExternalCalendarsProvidedScreenState
                         ),
                       ),
                       maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
