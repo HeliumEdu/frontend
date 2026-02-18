@@ -17,7 +17,6 @@ import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/id_or_entity.dart';
 import 'package:heliumapp/data/models/planner/attachment_model.dart';
-import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
@@ -26,6 +25,7 @@ import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_event_model.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
+import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
 import 'package:heliumapp/data/repositories/category_repository_impl.dart';
@@ -34,7 +34,6 @@ import 'package:heliumapp/data/repositories/course_schedule_event_repository_imp
 import 'package:heliumapp/data/repositories/event_repository_impl.dart';
 import 'package:heliumapp/data/repositories/external_calendar_repository_impl.dart';
 import 'package:heliumapp/data/repositories/homework_repository_impl.dart';
-import 'package:heliumapp/data/sources/planner_item_data_source.dart';
 import 'package:heliumapp/data/sources/category_remote_data_source.dart';
 import 'package:heliumapp/data/sources/course_remote_data_source.dart';
 import 'package:heliumapp/data/sources/course_schedule_builder_source.dart';
@@ -42,31 +41,32 @@ import 'package:heliumapp/data/sources/course_schedule_remote_data_source.dart';
 import 'package:heliumapp/data/sources/event_remote_data_source.dart';
 import 'package:heliumapp/data/sources/external_calendar_remote_data_source.dart';
 import 'package:heliumapp/data/sources/homework_remote_data_source.dart';
-import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
-import 'package:heliumapp/presentation/features/planner/bloc/attachment_state.dart';
+import 'package:heliumapp/data/sources/planner_item_data_source.dart';
+import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/core/views/notification_screen.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
+import 'package:heliumapp/presentation/features/courses/bloc/category_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/attachment_state.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_state.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planner_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planner_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planner_state.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
-import 'package:heliumapp/presentation/features/courses/bloc/category_bloc.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
-import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
-import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_state.dart';
 import 'package:heliumapp/presentation/features/planner/controllers/todos_table_controller.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
-import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
-import 'package:heliumapp/presentation/core/views/notification_screen.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
-import 'package:heliumapp/presentation/features/settings/views/settings_screen.dart';
-import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
-import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
-import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/todos_table.dart';
+import 'package:heliumapp/presentation/features/settings/views/settings_screen.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
+import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
+import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
+import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/shadow_container.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -1867,7 +1867,9 @@ class _CalendarScreenState
     );
     final rows = <_PlannerTooltipRow>[
       _PlannerTooltipRow.text(
-        icon: Icons.schedule_outlined,
+        icon: _isRecurringPlannerItem(plannerItem)
+            ? Icons.repeat
+            : Icons.schedule_outlined,
         text: _buildTooltipWhenLine(plannerItem),
       ),
     ];
@@ -2198,7 +2200,10 @@ class _CalendarScreenState
           true,
           _currentView,
         ))
-          _buildCalendarItemTimeBelowTitleRow(plannerItem),
+          _buildCalendarItemTimeBelowTitleRow(
+            plannerItem,
+            isInAgenda: true,
+          ),
         if (PlannerHelper.shouldShowLocationBelowTitle(
               context,
               plannerItem,
@@ -2211,7 +2216,12 @@ class _CalendarScreenState
       ],
     );
 
-    return Expanded(child: contentColumn);
+    return Expanded(
+      child: Padding(
+        padding: _recurringContentPadding(plannerItem),
+        child: contentColumn,
+      ),
+    );
   }
 
   Widget _buildCalendarItemCenterForTimeline({
@@ -2251,7 +2261,10 @@ class _CalendarScreenState
               padding: EdgeInsets.only(
                 right: Responsive.isMobile(context) ? 2 : 4,
               ),
-              child: _buildCalendarItemTime(plannerItem),
+              child: _buildCalendarItemTime(
+                plannerItem,
+                isInAgenda: false,
+              ),
             ),
           ),
         );
@@ -2274,18 +2287,6 @@ class _CalendarScreenState
           ),
         ),
       );
-      if (_isRecurringPlannerItem(plannerItem)) {
-        spans.add(
-          WidgetSpan(
-            alignment: PlaceholderAlignment.middle,
-            child: Padding(
-              padding: const EdgeInsets.only(left: 2),
-              child: _buildRecurringIndicatorIcon(),
-            ),
-          ),
-        );
-      }
-
       titleRowWidget = Text.rich(
         TextSpan(children: spans),
         maxLines: _currentView == PlannerView.month || plannerItem.allDay
@@ -2312,7 +2313,10 @@ class _CalendarScreenState
           false,
           _currentView,
         ))
-          _buildCalendarItemTimeBelowTitleRow(plannerItem),
+          _buildCalendarItemTimeBelowTitleRow(
+            plannerItem,
+            isInAgenda: false,
+          ),
         if (PlannerHelper.shouldShowLocationBelowTitle(
               context,
               plannerItem,
@@ -2325,7 +2329,13 @@ class _CalendarScreenState
       ],
     );
 
-    return Align(alignment: Alignment.topLeft, child: contentColumn);
+    return Align(
+      alignment: Alignment.topLeft,
+      child: Padding(
+        padding: _recurringContentPadding(plannerItem),
+        child: contentColumn,
+      ),
+    );
   }
 
   Widget _buildCalendarItemRight({
@@ -2506,17 +2516,20 @@ class _CalendarScreenState
         borderRadius: BorderRadius.circular(4),
       ),
       clipBehavior: Clip.hardEdge,
-      child: UnconstrainedBox(
-        constrainedAxis: Axis.horizontal,
-        alignment: PlannerHelper.getAlignmentForView(
-          context,
-          false,
-          _currentView,
-        ),
-        clipBehavior: Clip.hardEdge,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: centerWidget,
+      child: _buildRecurringIndicatorOverlay(
+        plannerItem: plannerItem,
+        child: UnconstrainedBox(
+          constrainedAxis: Axis.horizontal,
+          alignment: PlannerHelper.getAlignmentForView(
+            context,
+            false,
+            _currentView,
+          ),
+          clipBehavior: Clip.hardEdge,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: centerWidget,
+          ),
         ),
       ),
     );
@@ -3605,33 +3618,18 @@ class _CalendarScreenState
         completedOverride ??
         (plannerItem is HomeworkModel && plannerItem.completed);
 
-    final spans = <InlineSpan>[
-      TextSpan(
-        text: plannerItem.title,
-        style: AppStyles.smallSecondaryTextLight(context).copyWith(
-          color: Colors.white,
-          decoration: isCompleted
-              ? TextDecoration.lineThrough
-              : TextDecoration.none,
-          decorationColor: Colors.white,
-          decorationThickness: 2.0,
-        ),
-      ),
-    ];
-    if (_isRecurringPlannerItem(plannerItem)) {
-      spans.add(
-        WidgetSpan(
-          alignment: PlaceholderAlignment.middle,
-          child: Padding(
-            padding: const EdgeInsets.only(left: 2),
-            child: _buildRecurringIndicatorIcon(),
-          ),
-        ),
-      );
-    }
+    final titleStyle = AppStyles.smallSecondaryTextLight(context).copyWith(
+      color: Colors.white,
+      decoration: isCompleted
+          ? TextDecoration.lineThrough
+          : TextDecoration.none,
+      decorationColor: Colors.white,
+      decorationThickness: 2.0,
+    );
 
-    return Text.rich(
-      TextSpan(children: spans),
+    return Text(
+      plannerItem.title,
+      style: titleStyle,
       maxLines:
           _currentView == PlannerView.month ||
               _currentView == PlannerView.agenda
@@ -3650,12 +3648,54 @@ class _CalendarScreenState
         (plannerItem.recurrenceRule?.isNotEmpty ?? false);
   }
 
-  Widget _buildRecurringIndicatorIcon() {
+  Widget _buildRecurringIndicatorIcon({Color? color}) {
     return Icon(
       Icons.repeat,
       size: 12,
-      color: Colors.white.withValues(alpha: 0.75),
+      color: color ?? Colors.white.withValues(alpha: 0.75),
     );
+  }
+
+  Widget _buildRecurringIndicatorOverlay({
+    required PlannerItemBaseModel plannerItem,
+    required Widget child,
+  }) {
+    if (!_isRecurringPlannerItem(plannerItem) ||
+        _currentView == PlannerView.agenda ||
+        _currentView == PlannerView.week ||
+        _currentView == PlannerView.day) {
+      return child;
+    }
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        child,
+        Positioned.fill(
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 3),
+              child: IgnorePointer(child: _buildRecurringIndicatorIcon()),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  EdgeInsets _recurringContentPadding(PlannerItemBaseModel plannerItem) {
+    if (!_isRecurringPlannerItem(plannerItem)) {
+      return EdgeInsets.zero;
+    }
+
+    if (_currentView == PlannerView.agenda ||
+        _currentView == PlannerView.week ||
+        _currentView == PlannerView.day) {
+      return EdgeInsets.zero;
+    }
+
+    return const EdgeInsets.only(right: 11);
   }
 
   Widget _buildCheckboxWidget({
@@ -3703,8 +3743,11 @@ class _CalendarScreenState
     );
   }
 
-  Widget _buildCalendarItemTime(PlannerItemBaseModel plannerItem) {
-    return Text(
+  Widget _buildCalendarItemTime(
+    PlannerItemBaseModel plannerItem, {
+    bool isInAgenda = false,
+  }) {
+    final timeText = Text(
       HeliumDateTime.formatTime(
         HeliumDateTime.toLocal(plannerItem.start, userSettings!.timeZone),
       ),
@@ -3712,11 +3755,34 @@ class _CalendarScreenState
         context,
       ).copyWith(color: Colors.white.withValues(alpha: 0.7)),
     );
+
+    if (!_shouldShowRecurringIconWithTime(plannerItem, isInAgenda: isInAgenda)) {
+      return timeText;
+    }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _buildRecurringTimePrefixIcon(),
+        const SizedBox(width: 2),
+        timeText,
+      ],
+    );
   }
 
-  Widget _buildCalendarItemTimeBelowTitleRow(PlannerItemBaseModel plannerItem) {
+  Widget _buildCalendarItemTimeBelowTitleRow(
+    PlannerItemBaseModel plannerItem, {
+    bool isInAgenda = false,
+  }) {
     return Row(
       children: [
+        if (_shouldShowRecurringIconWithTime(
+          plannerItem,
+          isInAgenda: isInAgenda,
+        )) ...[
+          _buildRecurringTimePrefixIcon(),
+          const SizedBox(width: 2),
+        ],
         Expanded(
           child: Text(
             HeliumDateTime.formatTimeRange(
@@ -3732,6 +3798,24 @@ class _CalendarScreenState
           ),
         ),
       ],
+    );
+  }
+
+  bool _shouldShowRecurringIconWithTime(
+    PlannerItemBaseModel plannerItem, {
+    bool isInAgenda = false,
+  }) {
+    return _isRecurringPlannerItem(plannerItem) &&
+        (isInAgenda ||
+            _currentView == PlannerView.week ||
+            _currentView == PlannerView.day);
+  }
+
+  Widget _buildRecurringTimePrefixIcon() {
+    return Icon(
+      Icons.repeat,
+      size: 10,
+      color: Colors.white.withValues(alpha: 0.4),
     );
   }
 
