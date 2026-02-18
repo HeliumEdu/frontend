@@ -46,6 +46,7 @@ Map<String, dynamic> givenUserSettingsJson({
     'calendar_use_category_colors': colorByCategory,
     'show_planner_tooltips': showPlannerTooltips,
     'remember_filter_state': rememberFilterState,
+    'drag_and_drop_on_mobile': dragAndDropOnMobile,
     'private_slug': privateSlug,
   };
 }
