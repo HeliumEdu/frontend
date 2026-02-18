@@ -9,10 +9,8 @@ import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
-import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
-import 'package:heliumapp/data/models/planner/external_calendar_event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_state.dart';
@@ -68,21 +66,6 @@ class PlannerItemsLoading extends PlannerItemState {
 
 class PlannerItemsError extends PlannerItemState {
   PlannerItemsError({required super.origin, required super.message});
-}
-
-class PlannerItemsFetched extends PlannerItemState {
-  final List<EventModel> events;
-  final List<HomeworkModel> homeworks;
-  final List<CourseScheduleEventModel> courseScheduleEvents;
-  final List<ExternalCalendarEventModel> externalCalendarEvents;
-
-  PlannerItemsFetched({
-    required super.origin,
-    required this.events,
-    required this.homeworks,
-    required this.courseScheduleEvents,
-    required this.externalCalendarEvents,
-  });
 }
 
 class PlannerItemScreenDataFetched extends PlannerItemState {

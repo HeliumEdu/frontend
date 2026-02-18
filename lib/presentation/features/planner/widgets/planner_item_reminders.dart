@@ -22,8 +22,8 @@ class PlannerItemReminders extends BaseReminders {
   });
 
   @override
-  PlannerItemRemindersContent buildContent() {
-    return PlannerItemRemindersContent(
+  BaseRemindersContent buildContent() {
+    return _PlannerItemRemindersContent(
       isEvent: isEvent,
       entityId: entityId,
       isEdit: isEdit,
@@ -32,11 +32,10 @@ class PlannerItemReminders extends BaseReminders {
   }
 }
 
-class PlannerItemRemindersContent extends BaseRemindersContent {
+class _PlannerItemRemindersContent extends BaseRemindersContent {
   final bool isEvent;
 
-  const PlannerItemRemindersContent({
-    super.key,
+  const _PlannerItemRemindersContent({
     required this.isEvent,
     required super.entityId,
     required super.isEdit,
@@ -44,12 +43,12 @@ class PlannerItemRemindersContent extends BaseRemindersContent {
   });
 
   @override
-  BaseReminderWidgetState<PlannerItemRemindersContent> createState() =>
+  BaseReminderWidgetState<_PlannerItemRemindersContent> createState() =>
       _PlannerItemRemindersState();
 }
 
 class _PlannerItemRemindersState
-    extends BaseReminderWidgetState<PlannerItemRemindersContent> {
+    extends BaseReminderWidgetState<_PlannerItemRemindersContent> {
   @override
   FetchRemindersEvent createFetchRemindersEvent() {
     if (widget.isEvent) {

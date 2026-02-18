@@ -35,8 +35,6 @@ class AuthRegistered extends AuthState {
   AuthRegistered({this.email});
 }
 
-class AuthEmailVerified extends AuthState {}
-
 class AuthVerificationResent extends AuthState {}
 
 class AuthAccountInactive extends AuthState {

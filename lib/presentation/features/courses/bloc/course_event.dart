@@ -36,15 +36,6 @@ class FetchCoursesEvent extends CourseEvent {
   FetchCoursesEvent({required super.origin, this.shownOnCalendar});
 }
 
-class FetchCoursesByGroupEvent extends CourseEvent {
-  final int courseGroupId;
-
-  FetchCoursesByGroupEvent({
-    required super.origin,
-    required this.courseGroupId,
-  });
-}
-
 class FetchCourseEvent extends CourseEvent {
   final int courseGroupId;
   final int courseId;
