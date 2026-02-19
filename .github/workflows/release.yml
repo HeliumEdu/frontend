@@ -302,10 +302,38 @@ jobs:
           path: build/web
           retention-days: 30
 
+  build-and-publish:
+    name: Build and Publish Containers
+    needs: [test, bump-version]
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      PLATFORM: amd64
+      TAG_VERSION: ${{ needs.bump-version.outputs.version }}
+      ENVIRONMENT: prod
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.bump-version.outputs.commit_sha }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to AWS ECR Public
+        run: |
+          aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/heliumedu
+
+      - name: Build and publish containers
+        run: make publish
+
   create-release-tag:
     name: Create Release Tag
-    needs: [test, bump-version, build-android-release, build-ios-release, build-web-release]
-    if: always() && needs.test.result == 'success' && (needs.build-android-release.result == 'success' || needs.build-android-release.result == 'skipped') && (needs.build-ios-release.result == 'success' || needs.build-ios-release.result == 'skipped') && (needs.build-web-release.result == 'success' || needs.build-web-release.result == 'skipped')
+    needs: [test, bump-version, build-android-release, build-ios-release, build-web-release, build-and-publish]
+    if: always() && needs.test.result == 'success' && (needs.build-android-release.result == 'success' || needs.build-android-release.result == 'skipped') && (needs.build-ios-release.result == 'success' || needs.build-ios-release.result == 'skipped') && (needs.build-web-release.result == 'success' || needs.build-web-release.result == 'skipped') && (needs.build-and-publish.result == 'success' || needs.build-and-publish.result == 'skipped')
     runs-on: ubuntu-latest
 
     steps:
