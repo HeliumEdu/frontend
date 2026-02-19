@@ -67,7 +67,7 @@ void showNotifications(BuildContext context) {
   );
 
   if (Responsive.isMobile(context)) {
-    context.push(AppRoute.notificationsScreen, extra: args);
+    context.go(AppRoute.notificationsScreen, extra: args);
   } else {
     showScreenAsDialog(
       context,
