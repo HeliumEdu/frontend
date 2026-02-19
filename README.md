@@ -48,3 +48,23 @@ If `platform` has been provisioned and is running locally and you would like to 
 backend instead of production, run with `--dart-define PROJECT_API_HOST=http://localhost:8000`, or use `PROJECT_API_HOST=http://localhost:8000 make run`.
 
 Note that to reach `localhost` from within an Android emulator, use `10.0.2.2` instead.
+
+## Local Docker (web)
+
+The web app can be built and served locally in Docker as a static SPA via Apache on port `8080`.
+
+```sh
+# Build image (recommended when running with local platform API)
+PROJECT_API_HOST=http://localhost:8000 make build-docker
+
+# Start container
+make run-docker
+```
+
+The Docker image serves the built Flutter web assets on `http://localhost:8080`.
+
+To stop:
+
+```sh
+make stop-docker
+```

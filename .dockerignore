@@ -1,0 +1,9 @@
+.git
+.github
+.dart_tool
+.flutter-plugins-dependencies
+build
+coverage
+android/.gradle
+ios/Pods
+ios/.symlinks
