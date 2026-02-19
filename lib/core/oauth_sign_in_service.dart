@@ -37,17 +37,16 @@ class OAuthSignInService {
 
       await _googleSignIn.initialize(clientId: _getWebClientId());
     } else {
-      // Mobile platforms don't need explicit clientId
-      await _googleSignIn.initialize();
+      // Android Credential Manager API (used by google_sign_in v7) requires serverClientId
+      // (the web OAuth client ID) to authenticate properly; without it [16] Account reauth fails.
+      await _googleSignIn.initialize(serverClientId: _getWebClientId());
     }
 
     _initialized = true;
     _log.info('Google Sign-In initialized for ${kIsWeb ? "web" : "mobile"}');
   }
 
-  String? _getWebClientId() {
-    if (!kIsWeb) return null;
-
+  String _getWebClientId() {
     return '643279973445-e69crc4hlj2tp29jsrbr2o7ompl042r9.apps.googleusercontent.com';
   }
 
@@ -133,6 +132,12 @@ class OAuthSignInService {
 
   Future<UserCredential> _signInWithGoogleMobile() async {
     await _ensureInitialized();
+
+    // Clear any stale cached credential that could cause Credential Manager to
+    // attempt (and fail) a reauth of a previously-authorized account.
+    try {
+      await _googleSignIn.signOut();
+    } catch (_) {}
 
     final GoogleSignInAccount googleUser = await _googleSignIn.authenticate(
       scopeHint: ['email', 'profile'],
