@@ -4,6 +4,7 @@ SHELL := /usr/bin/env bash
 TAG_VERSION ?= latest
 PLATFORM ?= arm64
 DOCKER_TAG_VERSION := $(subst +,_,$(TAG_VERSION))
+DOCKER_CACHE_DIR ?= .docker-cache
 
 RUN_ARGS :=
 
@@ -94,7 +95,16 @@ endif
 	flutter run $(RUN_ARGS)
 
 build-docker:
-	docker buildx build --build-arg PROJECT_API_HOST=$(PROJECT_API_HOST) --build-arg SENTRY_RELEASE=$(SENTRY_RELEASE) -t helium/frontend-web:$(PLATFORM)-latest -t helium/frontend-web:$(PLATFORM)-$(DOCKER_TAG_VERSION) --platform=linux/$(PLATFORM) --load .
+	mkdir -p $(DOCKER_CACHE_DIR)
+	docker buildx build \
+		--build-arg PROJECT_API_HOST=$(PROJECT_API_HOST) \
+		--build-arg SENTRY_RELEASE=$(SENTRY_RELEASE) \
+		--cache-from=type=local,src=$(DOCKER_CACHE_DIR) \
+		--cache-to=type=local,dest=$(DOCKER_CACHE_DIR),mode=max \
+		-t helium/frontend-web:$(PLATFORM)-latest \
+		-t helium/frontend-web:$(PLATFORM)-$(DOCKER_TAG_VERSION) \
+		--platform=linux/$(PLATFORM) \
+		--load .
 
 run-docker:
 	docker compose up -d
