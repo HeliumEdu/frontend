@@ -109,3 +109,7 @@ publish: build-docker
 
 	docker tag helium/frontend-web:$(PLATFORM)-$(DOCKER_TAG_VERSION) public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-$(DOCKER_TAG_VERSION)
 	docker push public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-$(DOCKER_TAG_VERSION)
+
+	docker create --name frontend-web helium/frontend-web:$(PLATFORM)-$(DOCKER_TAG_VERSION)
+	docker cp frontend-web:/app build
+	aws s3 sync build "s3://heliumedu/helium/frontend-web/$(TAG_VERSION)"
