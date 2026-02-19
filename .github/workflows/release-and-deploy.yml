@@ -50,6 +50,7 @@ jobs:
     with:
       version_type: specific
       specific_version: ${{ needs.release.outputs.version }}
+      artifact_run_id: ${{ github.run_id }}
       environment: ${{ inputs.environment }}
       platforms: ${{ inputs.platforms }}
 
