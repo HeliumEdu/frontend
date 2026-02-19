@@ -1752,6 +1752,19 @@ class _CalendarScreenState
       );
     }
 
+    // In month view on touch devices like iPad, SfCalendar incorrectly reports
+    // calendarCell instead of appointment for taps on calendar items.
+    // Handle taps directly on the widget to bypass this SfCalendar quirk.
+    if (_currentView == PlannerView.month &&
+        Responsive.isTouchDevice(context)) {
+      calendarItemWidget = GestureDetector(
+        onTap: () {
+          _openPlannerItem(plannerItem);
+        },
+        child: calendarItemWidget,
+      );
+    }
+
     return KeyedSubtree(
       key: ValueKey('planner_item_${plannerItem.id}'),
       child: _buildPlannerItemTooltip(
@@ -1861,10 +1874,7 @@ class _CalendarScreenState
         location != null &&
         location.isNotEmpty) {
       rows.add(
-        _PlannerTooltipRow.text(
-          icon: Icons.pin_drop_outlined,
-          text: location,
-        ),
+        _PlannerTooltipRow.text(icon: Icons.pin_drop_outlined, text: location),
       );
     }
 
@@ -1953,10 +1963,10 @@ class _CalendarScreenState
     final typeIcon = plannerItem is HomeworkModel
         ? AppConstants.assignmentIcon
         : plannerItem is EventModel
-            ? AppConstants.eventIcon
-            : plannerItem is CourseScheduleEventModel
-                ? AppConstants.courseScheduleIcon
-                : AppConstants.externalCalendarIcon;
+        ? AppConstants.eventIcon
+        : plannerItem is CourseScheduleEventModel
+        ? AppConstants.courseScheduleIcon
+        : AppConstants.externalCalendarIcon;
     final typeIconColor = plannerItem is CourseScheduleEventModel
         ? plannerItem.color
         : mutedIconColor;

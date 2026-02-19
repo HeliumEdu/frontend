@@ -42,7 +42,7 @@ void showSettings(BuildContext context) {
   );
 
   if (Responsive.isMobile(context)) {
-    context.push(AppRoute.settingScreen, extra: args);
+    context.go(AppRoute.settingScreen, extra: args);
   } else {
     showScreenAsDialog(
       context,
@@ -782,4 +782,3 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
     );
   }
 }
-
