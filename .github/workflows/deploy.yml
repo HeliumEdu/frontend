@@ -1,6 +1,6 @@
 name: "Deploy"
 
-run-name: "Deploy ${{ github.event.inputs.version_type == 'latest' && 'latest' || github.event.inputs.specific_version }} to ${{ github.event.inputs.environment }}"
+run-name: "Deploy ${{ inputs.version_type == 'latest' && 'latest' || inputs.specific_version }} to ${{ inputs.environment }}"
 
 on:
   workflow_dispatch:
@@ -35,6 +35,27 @@ on:
           - web
           - android
           - ios
+  workflow_call:
+    inputs:
+      version_type:
+        description: "Version to deploy"
+        required: false
+        type: string
+        default: latest
+      specific_version:
+        description: "Specific version tag (used when version_type is specific)"
+        required: false
+        type: string
+      environment:
+        description: "Environment to deploy to"
+        required: false
+        type: string
+        default: prod
+      platforms:
+        description: "Platforms to deploy"
+        required: false
+        type: string
+        default: all
 
 permissions:
   contents: read
@@ -42,7 +63,7 @@ permissions:
 jobs:
   deploy-web:
     name: Deploy Web
-    if: github.event.inputs.platforms == 'web' || github.event.inputs.platforms == 'all'
+    if: inputs.platforms == 'web' || inputs.platforms == 'all'
     runs-on: ubuntu-latest
 
     steps:
@@ -51,7 +72,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
-          if [ "${{ github.event.inputs.version_type }}" = "latest" ]; then
+          if [ "${{ inputs.version_type }}" = "latest" ]; then
             # Get the latest semver tag (v*.*.*)
             VERSION=$(gh api repos/HeliumEdu/frontend/tags --jq '[.[] | select(.name | test("^[0-9]+\\.[0-9]+\\.[0-9]+\\+[0-9]+$"))][0].name')
 
@@ -62,7 +83,7 @@ jobs:
 
             echo "Using latest version: ${VERSION}"
           else
-            VERSION="${{ github.event.inputs.specific_version }}"
+            VERSION="${{ inputs.specific_version }}"
 
             if [ -z "$VERSION" ]; then
               echo "Error: specific_version is required when version_type is 'specific'"
@@ -139,7 +160,7 @@ jobs:
 
       - name: Deploy to S3
         env:
-          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          ENVIRONMENT: ${{ inputs.environment }}
           VERSION: ${{ steps.find_run.outputs.full_version }}
         run: |
           BUCKET_NAME="heliumedu.${ENVIRONMENT}.frontend-app.static"
@@ -176,7 +197,7 @@ jobs:
 
       - name: Invalidate CloudFront cache
         env:
-          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          ENVIRONMENT: ${{ inputs.environment }}
         run: |
           ENVIRONMENT_PREFIX=""
           if [ "$ENVIRONMENT" != "prod" ]; then
@@ -200,7 +221,7 @@ jobs:
 
       - name: Deployment summary
         env:
-          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          ENVIRONMENT: ${{ inputs.environment }}
           VERSION: ${{ steps.version.outputs.version }}
           FULL_VERSION: ${{ steps.find_run.outputs.full_version }}
         run: |
@@ -219,7 +240,7 @@ jobs:
 
   deploy-android:
     name: Deploy Android
-    if: github.event.inputs.platforms == 'android' || github.event.inputs.platforms == 'all'
+    if: inputs.platforms == 'android' || inputs.platforms == 'all'
     runs-on: ubuntu-latest
 
     steps:
@@ -230,7 +251,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
-          if [ "${{ github.event.inputs.version_type }}" = "latest" ]; then
+          if [ "${{ inputs.version_type }}" = "latest" ]; then
             # Get the latest semver tag (v*.*.*)
             VERSION=$(gh api repos/HeliumEdu/frontend/tags --jq '[.[] | select(.name | test("^[0-9]+\\.[0-9]+\\.[0-9]+\\+[0-9]+$"))][0].name')
 
@@ -241,7 +262,7 @@ jobs:
 
             echo "Using latest version: ${VERSION}"
           else
-            VERSION="${{ github.event.inputs.specific_version }}"
+            VERSION="${{ inputs.specific_version }}"
 
             if [ -z "$VERSION" ]; then
               echo "Error: specific_version is required when version_type is 'specific'"
@@ -351,7 +372,7 @@ jobs:
 
   deploy-ios:
     name: Deploy iOS
-    if: github.event.inputs.platforms == 'ios' || github.event.inputs.platforms == 'all'
+    if: inputs.platforms == 'ios' || inputs.platforms == 'all'
     runs-on: macos-latest
 
     steps:
@@ -362,7 +383,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
-          if [ "${{ github.event.inputs.version_type }}" = "latest" ]; then
+          if [ "${{ inputs.version_type }}" = "latest" ]; then
             # Get the latest semver tag (v*.*.*)
             VERSION=$(gh api repos/HeliumEdu/frontend/tags --jq '[.[] | select(.name | test("^[0-9]+\\.[0-9]+\\.[0-9]+\\+[0-9]+$"))][0].name')
 
@@ -373,7 +394,7 @@ jobs:
 
             echo "Using latest version: ${VERSION}"
           else
-            VERSION="${{ github.event.inputs.specific_version }}"
+            VERSION="${{ inputs.specific_version }}"
 
             if [ -z "$VERSION" ]; then
               echo "Error: specific_version is required when version_type is 'specific'"

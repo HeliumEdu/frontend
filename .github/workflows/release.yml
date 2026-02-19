@@ -15,6 +15,17 @@ on:
           - patch
           - minor
           - major
+  workflow_call:
+    inputs:
+      bump_type:
+        description: "Version bump type"
+        required: false
+        type: string
+        default: build
+    outputs:
+      version:
+        description: "Released version"
+        value: ${{ jobs.bump-version.outputs.version }}
 
 permissions:
   contents: write
@@ -73,8 +84,8 @@ jobs:
       - name: Bump version
         run: |
           dart run cider bump build
-          if [ "${{ github.event.inputs.bump_type }}" != "build" ]; then
-            dart run cider bump ${{ github.event.inputs.bump_type }} --keep-build
+          if [ "${{ inputs.bump_type }}" != "build" ]; then
+            dart run cider bump ${{ inputs.bump_type }} --keep-build
           fi
 
       - name: Commit version bump
