@@ -302,8 +302,8 @@ jobs:
           path: build/web
           retention-days: 30
 
-  build-and-publish:
-    name: Build and Publish Containers
+  build-and-publish-web:
+    name: Build and Publish Web Containers
     needs: [test, bump-version]
     runs-on: ubuntu-latest
 
@@ -326,7 +326,7 @@ jobs:
         run: |
           aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/heliumedu
 
-      - name: Build and publish containers
+      - name: Build and publish web containers
         run: make publish
 
   create-release-tag:

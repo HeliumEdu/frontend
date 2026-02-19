@@ -3,6 +3,7 @@
 SHELL := /usr/bin/env bash
 TAG_VERSION ?= latest
 PLATFORM ?= arm64
+DOCKER_TAG_VERSION := $(subst +,_,$(TAG_VERSION))
 
 RUN_ARGS :=
 
@@ -93,7 +94,7 @@ endif
 	flutter run $(RUN_ARGS)
 
 build-docker:
-	docker buildx build --build-arg PROJECT_API_HOST=$(PROJECT_API_HOST) --build-arg SENTRY_RELEASE=$(SENTRY_RELEASE) -t helium/frontend-web:$(PLATFORM)-latest -t helium/frontend-web:$(PLATFORM)-$(TAG_VERSION) --platform=linux/$(PLATFORM) --load .
+	docker buildx build --build-arg PROJECT_API_HOST=$(PROJECT_API_HOST) --build-arg SENTRY_RELEASE=$(SENTRY_RELEASE) -t helium/frontend-web:$(PLATFORM)-latest -t helium/frontend-web:$(PLATFORM)-$(DOCKER_TAG_VERSION) --platform=linux/$(PLATFORM) --load .
 
 run-docker:
 	docker compose up -d
@@ -106,5 +107,5 @@ restart-docker: stop-docker run-docker
 publish: build-docker
 	aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/heliumedu
 
-	docker tag helium/frontend-web:$(PLATFORM)-$(TAG_VERSION) public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-$(TAG_VERSION)
-	docker push public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-$(TAG_VERSION)
+	docker tag helium/frontend-web:$(PLATFORM)-$(DOCKER_TAG_VERSION) public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-$(DOCKER_TAG_VERSION)
+	docker push public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-$(DOCKER_TAG_VERSION)
