@@ -331,8 +331,8 @@ jobs:
 
   create-release-tag:
     name: Create Release Tag
-    needs: [test, bump-version, build-android-release, build-ios-release, build-web-release, build-and-publish]
-    if: always() && needs.test.result == 'success' && (needs.build-android-release.result == 'success' || needs.build-android-release.result == 'skipped') && (needs.build-ios-release.result == 'success' || needs.build-ios-release.result == 'skipped') && (needs.build-web-release.result == 'success' || needs.build-web-release.result == 'skipped') && (needs.build-and-publish.result == 'success' || needs.build-and-publish.result == 'skipped')
+    needs: [test, bump-version, build-android-release, build-ios-release, build-web-release, build-and-publish-web]
+    if: always() && needs.test.result == 'success' && (needs.build-android-release.result == 'success' || needs.build-android-release.result == 'skipped') && (needs.build-ios-release.result == 'success' || needs.build-ios-release.result == 'skipped') && (needs.build-web-release.result == 'success' || needs.build-web-release.result == 'skipped') && (needs.build-and-publish-web.result == 'success' || needs.build-and-publish-web.result == 'skipped')
     runs-on: ubuntu-latest
 
     steps:
