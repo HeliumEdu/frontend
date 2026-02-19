@@ -12,6 +12,7 @@
 .swiftpm/
 migrate_working_dir/
 .env
+.docker-cache
 
 # IntelliJ related
 *.iml
