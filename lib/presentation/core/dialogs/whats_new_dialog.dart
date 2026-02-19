@@ -51,39 +51,42 @@ class _WhatsNewDialogWidget extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildFeatureItem(
-                context,
-                icon: Icons.bolt_outlined,
-                title: 'Lightning fast',
-                description: 'Snappier performance and a stable foundation',
-              ),
-              const SizedBox(height: 12),
-              _buildFeatureItem(
-                context,
-                icon: Icons.phone_iphone_outlined,
-                title: 'Native mobile apps',
-                description: 'iOS and Android apps with push notifications',
-              ),
-              const SizedBox(height: 12),
-              _buildFeatureItem(
-                context,
-                icon: Icons.sync_outlined,
-                title: 'Seamless sync',
-                description: 'Consistent experience across web and mobile',
-              ),
-              const SizedBox(height: 12),
-              _buildFeatureItem(
-                context,
-                icon: Icons.construction_outlined,
-                title: 'Still polishing',
-                description:
-                    "Grade charts, import/export, and more coming soon—classic Helium will be around until we're ready here",
-              ),
-              const SizedBox(height: 12),
-              _buildFeatureItem(
-                context,
-                icon: Icons.rocket_launch_outlined,
-                title: 'New surprises ahead',
-                description: 'Exciting new features on the horizon',
+                      context,
+                      icon: Icons.bolt_outlined,
+                      title: 'Lightning fast',
+                      description:
+                          'Snappier performance and a stable foundation',
+                    ),
+                    const SizedBox(height: 12),
+                    _buildFeatureItem(
+                      context,
+                      icon: Icons.phone_iphone_outlined,
+                      title: 'Native mobile apps',
+                      description:
+                          'iOS and Android apps with push notifications',
+                    ),
+                    const SizedBox(height: 12),
+                    _buildFeatureItem(
+                      context,
+                      icon: Icons.sync_outlined,
+                      title: 'Seamless sync',
+                      description:
+                          'Consistent experience across web and mobile',
+                    ),
+                    const SizedBox(height: 12),
+                    _buildFeatureItem(
+                      context,
+                      icon: Icons.construction_outlined,
+                      title: 'Still polishing',
+                      description:
+                          'A few familiar features and settings are still on the way—classic Helium will remain available through at least the Summer',
+                    ),
+                    const SizedBox(height: 12),
+                    _buildFeatureItem(
+                      context,
+                      icon: Icons.rocket_launch_outlined,
+                      title: 'New surprises ahead',
+                      description: 'Exciting new features on the horizon',
                     ),
                   ],
                 ),
@@ -159,4 +162,3 @@ Future<void> showWhatsNewDialog({required BuildContext context}) {
     },
   );
 }
-
