@@ -1,6 +1,8 @@
-.PHONY: all env install clean icons build-android build-android-release build-ios-dev build-ios build-ios-release update-version build-web upload-web-sourcemaps test coverage run
+.PHONY: all env install clean icons build-android build-android-release build-ios-dev build-ios build-ios-release update-version build-web upload-web-sourcemaps test coverage run-devserver build-docker run-docker stop-docker restart-docker publish
 
 SHELL := /usr/bin/env bash
+TAG_VERSION ?= latest
+PLATFORM ?= arm64
 
 RUN_ARGS :=
 
@@ -80,7 +82,7 @@ coverage:
 	lcov -o coverage/lcov.info --remove coverage/lcov.info 'lib/config/*' 'lib/utils/app_globals.dart' 'lib/utils/app_style.dart' 'lib/utils/color_helpers.dart' 'lib/data/models/*' 'lib/data/repositories/*' 'lib/presentation/core/*' 'lib/presentation/navigation/*' 'lib/presentation/ui/*' 'lib/presentation/features/auth/views/*' 'lib/presentation/features/courses/dialogs/*' 'lib/presentation/features/courses/views/*' 'lib/presentation/features/courses/widgets/*' 'lib/presentation/features/grades/dialogs/*' 'lib/presentation/features/grades/views/*' 'lib/presentation/features/planner/dialogs/*' 'lib/presentation/features/planner/views/*' 'lib/presentation/features/planner/widgets/*' 'lib/presentation/features/resources/dialogs/*' 'lib/presentation/features/resources/views/*' 'lib/presentation/features/resources/widgets/*' 'lib/presentation/features/settings/dialogs/*' 'lib/presentation/features/settings/views/*' 'lib/presentation/features/shared/widgets/*'
 	dart pub global run test_cov_console
 
-run: install
+run-devserver: install
 ifeq ($(USE_NGROK),true)
 	$(eval RUN_ARGS += --release)
 	@( \
@@ -89,3 +91,20 @@ ifeq ($(USE_NGROK),true)
 	)
 endif
 	flutter run $(RUN_ARGS)
+
+build-docker:
+	docker buildx build --build-arg PROJECT_API_HOST=$(PROJECT_API_HOST) --build-arg SENTRY_RELEASE=$(SENTRY_RELEASE) -t helium/frontend-web:$(PLATFORM)-latest -t helium/frontend-web:$(PLATFORM)-$(TAG_VERSION) --platform=linux/$(PLATFORM) --load .
+
+run-docker:
+	docker compose up -d
+
+stop-docker:
+	docker compose stop
+
+restart-docker: stop-docker run-docker
+
+publish: build-docker
+	aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/heliumedu
+
+	docker tag helium/frontend-web:$(PLATFORM)-$(TAG_VERSION) public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-$(TAG_VERSION)
+	docker push public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-$(TAG_VERSION)
