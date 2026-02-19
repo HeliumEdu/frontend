@@ -62,6 +62,7 @@ void showScreenAsDialog(
   double? height,
   AlignmentGeometry alignment = Alignment.center,
   EdgeInsets insetPadding = const EdgeInsets.all(16),
+  bool? barrierDismissible,
 }) {
   // Create a key for this dialog's ScaffoldMessenger
   final dialogMessengerKey = GlobalKey<ScaffoldMessengerState>();
@@ -72,6 +73,8 @@ void showScreenAsDialog(
 
   showDialog(
     context: context,
+    barrierDismissible:
+        barrierDismissible ?? !Responsive.isTouchDevice(context),
     barrierColor: Colors.black54,
     builder: (dialogContext) {
       final screenHeight = MediaQuery.of(dialogContext).size.height;
@@ -140,10 +143,12 @@ class _DialogRouteListener extends StatefulWidget {
 
 class _DialogRouteListenerState extends State<_DialogRouteListener> {
   VoidCallback? _routeListener;
+  late final Uri _initialUri;
 
   @override
   void initState() {
     super.initState();
+    _initialUri = Uri.parse(widget.initialLocation);
     _routeListener = _onRouteChanged;
     router.routerDelegate.addListener(_routeListener!);
   }
@@ -157,12 +162,14 @@ class _DialogRouteListenerState extends State<_DialogRouteListener> {
   }
 
   void _onRouteChanged() {
-    final currentLocation = router.routerDelegate.currentConfiguration.uri
-        .toString();
-    if (currentLocation != widget.initialLocation && mounted) {
+    final currentUri = router.routerDelegate.currentConfiguration.uri;
+
+    // Ignore query-only URL changes (for example: clearing ?dialog=... after
+    // opening a desktop dialog). Close only when the route path changes.
+    if (currentUri.path != _initialUri.path && mounted) {
       _log.info(
         'Browser navigation detected, closing dialog: '
-        '${widget.initialLocation} --> $currentLocation',
+        '${widget.initialLocation} --> ${currentUri.toString()}',
       );
       // Defer pop() to avoid calling it while Navigator is locked during
       // GoRouter's route change notification.
