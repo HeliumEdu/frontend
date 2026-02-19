@@ -56,6 +56,10 @@ on:
         required: false
         type: string
         default: all
+      artifact_run_id:
+        description: "Workflow run ID containing release artifacts"
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -69,6 +73,7 @@ jobs:
     steps:
       - name: Determine version to deploy
         id: version
+        if: ${{ inputs.artifact_run_id == '' }}
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
@@ -97,6 +102,7 @@ jobs:
 
       - name: Find workflow run with matching artifact
         id: find_run
+        if: ${{ inputs.artifact_run_id == '' }}
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
@@ -134,7 +140,15 @@ jobs:
           echo "Error: No workflow run found with artifact for version ${VERSION}"
           exit 1
 
+      - name: Download web artifact from current run
+        if: ${{ inputs.artifact_run_id != '' }}
+        uses: actions/download-artifact@v5
+        with:
+          name: helium-${{ inputs.specific_version }}-web
+          path: ./web-build
+
       - name: Download web artifact
+        if: ${{ inputs.artifact_run_id == '' }}
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
@@ -161,7 +175,7 @@ jobs:
       - name: Deploy to S3
         env:
           ENVIRONMENT: ${{ inputs.environment }}
-          VERSION: ${{ steps.find_run.outputs.full_version }}
+          VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
         run: |
           BUCKET_NAME="heliumedu.${ENVIRONMENT}.frontend-app.static"
 
@@ -222,8 +236,8 @@ jobs:
       - name: Deployment summary
         env:
           ENVIRONMENT: ${{ inputs.environment }}
-          VERSION: ${{ steps.version.outputs.version }}
-          FULL_VERSION: ${{ steps.find_run.outputs.full_version }}
+          VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.version.outputs.version }}
+          FULL_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
         run: |
           ENVIRONMENT_PREFIX=""
           if [ "$ENVIRONMENT" != "prod" ]; then
@@ -248,6 +262,7 @@ jobs:
 
       - name: Determine version to deploy
         id: version
+        if: ${{ inputs.artifact_run_id == '' }}
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
@@ -276,6 +291,7 @@ jobs:
 
       - name: Find workflow run with matching artifact
         id: find_run
+        if: ${{ inputs.artifact_run_id == '' }}
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
@@ -313,7 +329,15 @@ jobs:
           echo "Error: No workflow run found with artifact for version ${VERSION}"
           exit 1
 
+      - name: Download Android artifact from current run
+        if: ${{ inputs.artifact_run_id != '' }}
+        uses: actions/download-artifact@v5
+        with:
+          name: helium-${{ inputs.specific_version }}-android.aab
+          path: ./android-build
+
       - name: Download Android artifact
+        if: ${{ inputs.artifact_run_id == '' }}
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
@@ -348,7 +372,7 @@ jobs:
 
       - name: Deploy to Google Play Internal Track
         env:
-          FULL_VERSION: ${{ steps.find_run.outputs.full_version }}
+          FULL_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
         run: |
           cd android
           echo "Deploying to Google Play Internal Track..."
@@ -361,8 +385,8 @@ jobs:
 
       - name: Deployment summary
         env:
-          VERSION: ${{ steps.version.outputs.version }}
-          FULL_VERSION: ${{ steps.find_run.outputs.full_version }}
+          VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.version.outputs.version }}
+          FULL_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
         run: |
           echo "### Android Deployment Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -380,6 +404,7 @@ jobs:
 
       - name: Determine version to deploy
         id: version
+        if: ${{ inputs.artifact_run_id == '' }}
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
@@ -408,6 +433,7 @@ jobs:
 
       - name: Find workflow run with matching artifact
         id: find_run
+        if: ${{ inputs.artifact_run_id == '' }}
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
@@ -445,7 +471,15 @@ jobs:
           echo "Error: No workflow run found with artifact for version ${VERSION}"
           exit 1
 
+      - name: Download iOS artifact from current run
+        if: ${{ inputs.artifact_run_id != '' }}
+        uses: actions/download-artifact@v5
+        with:
+          name: helium-${{ inputs.specific_version }}-ios.ipa
+          path: ./ios-build
+
       - name: Download iOS artifact
+        if: ${{ inputs.artifact_run_id == '' }}
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
@@ -495,8 +529,8 @@ jobs:
 
       - name: Deployment summary
         env:
-          VERSION: ${{ steps.version.outputs.version }}
-          FULL_VERSION: ${{ steps.find_run.outputs.full_version }}
+          VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.version.outputs.version }}
+          FULL_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
         run: |
           echo "### iOS Deployment Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
