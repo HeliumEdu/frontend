@@ -1539,7 +1539,6 @@ class _CalendarScreenState
         final request = HomeworkRequestModel(
           start: start.toIso8601String(),
           end: end.toIso8601String(),
-          showEndTime: true,
           course: plannerItem.course.id,
         );
 
