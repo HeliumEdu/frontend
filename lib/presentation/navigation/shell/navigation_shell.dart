@@ -349,6 +349,15 @@ class _NavigationShellState extends State<NavigationShell> {
   }
 
   Widget? _buildTrailing(BuildContext context, double availableHeight) {
+    final inheritableProviders = _inheritableProvidersNotifier.providers;
+    final settingsButton =
+        inheritableProviders != null && inheritableProviders.isNotEmpty
+        ? MultiBlocProvider(
+            providers: inheritableProviders,
+            child: const SettingsButton(compact: false),
+          )
+        : const SettingsButton(compact: false);
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: Column(
@@ -371,7 +380,7 @@ class _NavigationShellState extends State<NavigationShell> {
             ),
           ],
           const SizedBox(width: 40, child: Divider()),
-          const SettingsButton(compact: false),
+          settingsButton,
         ],
       ),
     );
