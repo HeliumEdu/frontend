@@ -11,15 +11,15 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_model.dart';
 import 'package:heliumapp/data/models/planner/request/external_calendar_request_model.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_state.dart';
+import 'package:heliumapp/presentation/features/settings/controllers/external_calendar_form_controller.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
+import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/dialogs/base_dialog_state.dart';
 import 'package:heliumapp/presentation/ui/dialogs/color_picker_dialog.dart';
-import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
-import 'package:heliumapp/presentation/features/settings/controllers/external_calendar_form_controller.dart';
-import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 
@@ -218,18 +218,13 @@ Future<void> showExternalCalendarDialog<T extends BaseModel>({
   required bool isEdit,
   ExternalCalendarModel? externalCalendar,
 }) {
-  final externalCalendarBloc = parentContext.read<ExternalCalendarBloc>();
-
   return showDialog(
     context: parentContext,
     barrierDismissible: false,
     builder: (BuildContext dialogContext) {
-      return BlocProvider<ExternalCalendarBloc>.value(
-        value: externalCalendarBloc,
-        child: _ExternalCalendarProvidedWidget(
-          isEdit: isEdit,
-          externalCalendar: externalCalendar,
-        ),
+      return _ExternalCalendarProvidedWidget(
+        isEdit: isEdit,
+        externalCalendar: externalCalendar,
       );
     },
   );

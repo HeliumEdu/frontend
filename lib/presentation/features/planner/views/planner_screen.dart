@@ -142,7 +142,6 @@ class _CalendarScreenState
 
   @override
   List<BlocProvider>? get inheritableProviders => [
-    BlocProvider<PlannerItemBloc>.value(value: context.read<PlannerItemBloc>()),
     BlocProvider<AttachmentBloc>.value(value: context.read<AttachmentBloc>()),
   ];
 

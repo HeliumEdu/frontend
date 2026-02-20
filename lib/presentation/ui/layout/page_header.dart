@@ -42,7 +42,7 @@ class PageHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget buildContent(BuildContext ctx) {
+    Widget buildContent(BuildContext context) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -51,17 +51,17 @@ class PageHeader extends StatelessWidget {
               visualDensity: VisualDensity.compact,
               onPressed: () {
                 // In dialog mode, close all dialogs and go to main screen
-                if (DialogModeProvider.isDialogMode(ctx)) {
-                  ctx.go(AppRoute.plannerScreen);
-                } else if (Navigator.canPop(ctx)) {
-                  ctx.pop();
+                if (DialogModeProvider.isDialogMode(context)) {
+                  context.go(AppRoute.plannerScreen);
+                } else if (Navigator.canPop(context)) {
+                  context.pop();
                 } else {
-                  ctx.go(AppRoute.plannerScreen);
+                  context.go(AppRoute.plannerScreen);
                 }
               },
               icon: Icon(
                 Icons.keyboard_arrow_left,
-                color: ctx.colorScheme.secondary,
+                color: context.colorScheme.secondary,
               ),
             )
           else if (screenType == ScreenType.entityPage)
@@ -70,11 +70,11 @@ class PageHeader extends StatelessWidget {
               onPressed: () {
                 cancelAction?.call();
               },
-              icon: Icon(Icons.cancel, color: ctx.colorScheme.secondary),
+              icon: Icon(Icons.cancel, color: context.colorScheme.secondary),
             )
-          else if (Responsive.isMobile(ctx) ||
-              (!Responsive.isTouchDevice(ctx) &&
-                  MediaQuery.of(ctx).size.height <
+          else if (Responsive.isMobile(context) ||
+              (!Responsive.isTouchDevice(context) &&
+                  MediaQuery.of(context).size.height <
                       AppConstants.minHeightForTrailingNav))
             const SettingsButton()
           else
@@ -84,10 +84,10 @@ class PageHeader extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (icon != null) ...[
-                Icon(icon, color: ctx.colorScheme.primary),
+                Icon(icon, color: context.colorScheme.primary),
                 const SizedBox(width: 8),
               ],
-              Text(title, style: AppStyles.pageTitle(ctx)),
+              Text(title, style: AppStyles.pageTitle(context)),
             ],
           ),
 
@@ -97,11 +97,11 @@ class PageHeader extends StatelessWidget {
                 IconButton(
                   visualDensity: VisualDensity.compact,
                   onPressed: () {
-                    showNotifications(ctx);
+                    showNotifications(context);
                   },
                   icon: Icon(
                     Icons.notifications,
-                    color: ctx.colorScheme.primary,
+                    color: context.colorScheme.primary,
                   ),
                 )
               else if (screenType == ScreenType.entityPage)
@@ -120,7 +120,7 @@ class PageHeader extends StatelessWidget {
                         )
                       : Icon(
                           Icons.check_circle,
-                          color: ctx.colorScheme.primary,
+                          color: context.colorScheme.primary,
                         ),
                 ),
 

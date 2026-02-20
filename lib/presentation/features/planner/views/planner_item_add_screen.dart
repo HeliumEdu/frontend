@@ -32,7 +32,6 @@ void showPlannerItemAdd(
   int initialStep = 0,
   required AttachmentBloc attachmentBloc,
 }) {
-  final plannerItemBloc = context.read<PlannerItemBloc>();
   if (Responsive.isMobile(context)) {
     context.push(
       AppRoute.plannerItemAddScreen,
@@ -51,7 +50,6 @@ void showPlannerItemAdd(
       context,
       child: MultiBlocProvider(
         providers: [
-          BlocProvider<PlannerItemBloc>.value(value: plannerItemBloc),
           BlocProvider<AttachmentBloc>.value(value: attachmentBloc),
         ],
         child: PlannerItemAddScreen(
