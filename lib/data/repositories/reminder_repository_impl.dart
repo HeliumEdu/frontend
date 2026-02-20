@@ -22,6 +22,7 @@ class ReminderRepositoryImpl implements ReminderRepository {
     bool? sent,
     bool? dismissed,
     int? type,
+    DateTime? startOfRange,
   }) async {
     return await remoteDataSource.getReminders(
       homeworkId: homeworkId,
@@ -29,6 +30,7 @@ class ReminderRepositoryImpl implements ReminderRepository {
       sent: sent,
       dismissed: dismissed,
       type: type,
+      startOfRange: startOfRange,
     );
   }
 

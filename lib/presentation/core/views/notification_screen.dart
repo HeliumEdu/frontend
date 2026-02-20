@@ -134,6 +134,7 @@ class _NotificationsScreenState
         sent: true,
         dismissed: false,
         type: 3,
+        startOfRange: DateTime.now(),
       ),
     );
   }
@@ -221,6 +222,7 @@ class _NotificationsScreenState
                   sent: true,
                   dismissed: false,
                   type: 3,
+                  startOfRange: DateTime.now(),
                 ),
               );
             },
