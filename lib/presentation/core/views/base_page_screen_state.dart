@@ -199,12 +199,12 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   ScreenType get screenType => ScreenType.page;
 
   Function get cancelAction => () {
-        if (DialogModeProvider.isDialogMode(context)) {
-          Navigator.of(context).pop();
-        } else {
-          context.pop();
-        }
-      };
+    if (DialogModeProvider.isDialogMode(context)) {
+      Navigator.of(context).pop();
+    } else {
+      context.pop();
+    }
+  };
 
   Function? get saveAction => null;
 

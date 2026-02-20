@@ -36,7 +36,7 @@ import 'package:heliumapp/utils/sort_helpers.dart';
 /// Shows as a dialog on desktop, or navigates on mobile.
 void showExternalCalendars(BuildContext context) {
   if (Responsive.isMobile(context)) {
-    context.push(AppRoute.externalCalendarsScreen);
+    context.push(AppRoute.externalCalendarsScreen, extra: true);
   } else {
     showScreenAsDialog(
       context,
