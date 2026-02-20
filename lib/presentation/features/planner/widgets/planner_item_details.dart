@@ -954,11 +954,16 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
         if (!mounted) return;
         if (widget.isEdit && widget.homeworkId != null) {
+          // Use original course for URL path (backend filters by URL course_id)
+          final originalHomework = _plannerItem as HomeworkModel;
+          final originalCourse = _courses.firstWhere(
+            (c) => c.id == originalHomework.course.id,
+          );
           context.read<PlannerItemBloc>().add(
             UpdateHomeworkEvent(
               origin: EventOrigin.subScreen,
-              courseGroupId: selectedCourse.courseGroup,
-              courseId: selectedCourse.id,
+              courseGroupId: originalCourse.courseGroup,
+              courseId: originalCourse.id,
               homeworkId: widget.homeworkId!,
               request: request,
             ),
