@@ -24,6 +24,9 @@ import 'package:heliumapp/data/sources/auth_remote_data_source.dart';
 import 'package:heliumapp/firebase_options.dart';
 import 'package:heliumapp/helium_app.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 
@@ -78,6 +81,7 @@ void main() async {
   ]);
 
   final DioClient dioClient = DioClient();
+  final providerHelpers = ProviderHelpers();
 
   initializeRouter();
 
@@ -91,6 +95,12 @@ void main() async {
             ),
             dioClient: dioClient,
           ),
+        ),
+        BlocProvider<ExternalCalendarBloc>(
+          create: providerHelpers.createExternalCalendarBloc(),
+        ),
+        BlocProvider<PlannerItemBloc>(
+          create: providerHelpers.createPlannerItemBloc(),
         ),
       ],
       child: const HeliumApp(),

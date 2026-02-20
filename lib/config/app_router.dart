@@ -10,8 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
-import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/config/route_args.dart';
+import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/presentation/core/views/landing_screen.dart';
@@ -25,8 +25,6 @@ import 'package:heliumapp/presentation/features/auth/views/verify_email_screen.d
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/views/course_add_screen.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
-import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
-import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
 import 'package:heliumapp/presentation/features/resources/views/resource_add_screen.dart';
@@ -35,7 +33,6 @@ import 'package:heliumapp/presentation/features/settings/views/external_calendar
 import 'package:heliumapp/presentation/features/settings/views/feeds_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/preferences_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/settings_screen.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
@@ -147,17 +144,7 @@ void initializeRouter() {
             );
           }
 
-          final args = state.extra as NotificationArgs?;
-          final child = (args?.plannerItemBloc != null)
-              ? BlocProvider<PlannerItemBloc>.value(
-                  value: args!.plannerItemBloc!,
-                  child: NotificationsScreen(),
-                )
-              : BlocProvider<PlannerItemBloc>(
-                  create: ProviderHelpers().createPlannerItemBloc(),
-                  child: NotificationsScreen(),
-                );
-          return MaterialPage(child: child);
+          return MaterialPage(child: NotificationsScreen());
         },
       ),
 
@@ -171,13 +158,8 @@ void initializeRouter() {
             );
           }
           return MaterialPage(
-            child: MultiBlocProvider(
-              providers: [
-                BlocProvider<PlannerItemBloc>.value(
-                  value: args.plannerItemBloc,
-                ),
-                BlocProvider<AttachmentBloc>.value(value: args.attachmentBloc),
-              ],
+            child: BlocProvider<AttachmentBloc>.value(
+              value: args.attachmentBloc,
               child: PlannerItemAddScreen(
                 eventId: args.eventId,
                 homeworkId: args.homeworkId,
@@ -267,21 +249,7 @@ void initializeRouter() {
             );
           }
 
-          final args = state.extra as SettingsArgs?;
-          final child = MultiBlocProvider(
-            providers: [
-              if (args?.externalCalendarBloc != null)
-                BlocProvider<ExternalCalendarBloc>.value(
-                  value: args!.externalCalendarBloc!,
-                ),
-              if (args?.plannerItemBloc != null)
-                BlocProvider<PlannerItemBloc>.value(
-                  value: args!.plannerItemBloc!,
-                ),
-            ],
-            child: const SettingsScreen(),
-          );
-          return MaterialPage(child: child);
+          return const MaterialPage(child: SettingsScreen());
         },
       ),
       GoRoute(
@@ -296,16 +264,8 @@ void initializeRouter() {
       ),
       GoRoute(
         path: AppRoute.externalCalendarsScreen,
-        pageBuilder: (context, state) {
-          final args = state.extra as ExternalCalendarsArgs?;
-          final child = (args?.externalCalendarBloc != null)
-              ? BlocProvider<ExternalCalendarBloc>.value(
-                  value: args!.externalCalendarBloc!,
-                  child: const ExternalCalendarsScreen(),
-                )
-              : const ExternalCalendarsScreen();
-          return MaterialPage(child: child);
-        },
+        pageBuilder: (context, state) =>
+            const MaterialPage(child: ExternalCalendarsScreen()),
       ),
       GoRoute(
         path: AppRoute.changePasswordScreen,
