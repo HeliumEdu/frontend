@@ -5,6 +5,8 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:ui';
+
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
@@ -154,12 +156,17 @@ class HomeworkCreated extends HomeworkEntityState {
 }
 
 class HomeworkUpdated extends HomeworkEntityState {
+  final Color? color;
+  final String? courseTitle;
+
   HomeworkUpdated({
     required super.origin,
     required super.homework,
     required super.entityId,
     required super.isEvent,
     required super.advanceNavOnSuccess,
+    this.color,
+    this.courseTitle,
   });
 }
 

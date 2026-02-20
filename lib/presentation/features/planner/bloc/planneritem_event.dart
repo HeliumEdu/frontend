@@ -5,6 +5,8 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:ui';
+
 import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
@@ -95,6 +97,8 @@ class UpdateHomeworkEvent extends PlannerItemEvent {
   final int homeworkId;
   final HomeworkRequestModel request;
   final bool advanceNavOnSuccess;
+  final Color? color;
+  final String? courseTitle;
 
   UpdateHomeworkEvent({
     required super.origin,
@@ -103,6 +107,8 @@ class UpdateHomeworkEvent extends PlannerItemEvent {
     required this.homeworkId,
     required this.request,
     this.advanceNavOnSuccess = false,
+    this.color,
+    this.courseTitle,
   });
 }
 
