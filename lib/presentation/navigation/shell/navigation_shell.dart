@@ -5,7 +5,6 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -13,19 +12,18 @@ import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/whats_new_service.dart';
-import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
-import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
-import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
 import 'package:heliumapp/presentation/core/dialogs/getting_started_dialog.dart';
 import 'package:heliumapp/presentation/core/dialogs/whats_new_dialog.dart';
-import 'package:heliumapp/presentation/features/planner/views/planner_screen.dart';
+import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
+import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/courses/views/courses_screen.dart';
 import 'package:heliumapp/presentation/features/grades/views/grades_screen.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/views/planner_screen.dart';
 import 'package:heliumapp/presentation/features/resources/views/resources_screen.dart';
-import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
-import 'package:heliumapp/presentation/ui/layout/page_header.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/ui/components/settings_button.dart';
+import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -128,7 +126,6 @@ class _NavigationShellState extends State<NavigationShell> {
   final InheritableProvidersNotifier _inheritableProvidersNotifier =
       InheritableProvidersNotifier();
   final ProviderHelpers _providerHelpers = ProviderHelpers();
-  bool _isLoggingOut = false;
   bool _isShowingGettingStarted = false;
 
   @override
@@ -267,61 +264,50 @@ class _NavigationShellState extends State<NavigationShell> {
                                 screenType: ScreenType.page,
                                 inheritableProviders:
                                     _inheritableProvidersNotifier.providers,
-                                showLogout:
-                                    kIsWeb && !(Responsive.isTouchDevice(context) || Responsive.isMobile(context)),
-                                onLogoutConfirmed: () {
-                                  setState(() {
-                                    _isLoggingOut = true;
-                                  });
-                                },
                               ),
                             ),
                             // Only the content area animates
                             Expanded(
-                              child: _isLoggingOut
-                                  ? const LoadingIndicator()
-                                  : AnimatedSwitcher(
-                                      duration: const Duration(
-                                        milliseconds: 300,
+                              child: AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 300),
+                                switchInCurve: Curves.easeInOut,
+                                switchOutCurve: Curves.easeInOut,
+                                transitionBuilder: (child, animation) {
+                                  // Vertical slide for NavigationRail
+                                  // Horizontal slide for NavigationBar
+                                  if (useNavigationRail) {
+                                    return SlideTransition(
+                                      position: Tween<Offset>(
+                                        begin: const Offset(0, 0.1),
+                                        end: Offset.zero,
+                                      ).animate(animation),
+                                      child: FadeTransition(
+                                        opacity: animation,
+                                        child: child,
                                       ),
-                                      switchInCurve: Curves.easeInOut,
-                                      switchOutCurve: Curves.easeInOut,
-                                      transitionBuilder: (child, animation) {
-                                        // Vertical slide for NavigationRail
-                                        // Horizontal slide for NavigationBar
-                                        if (useNavigationRail) {
-                                          return SlideTransition(
-                                            position: Tween<Offset>(
-                                              begin: const Offset(0, 0.1),
-                                              end: Offset.zero,
-                                            ).animate(animation),
-                                            child: FadeTransition(
-                                              opacity: animation,
-                                              child: child,
-                                            ),
-                                          );
-                                        } else {
-                                          return SlideTransition(
-                                            position: Tween<Offset>(
-                                              begin: const Offset(0.1, 0),
-                                              end: Offset.zero,
-                                            ).animate(animation),
-                                            child: FadeTransition(
-                                              opacity: animation,
-                                              child: child,
-                                            ),
-                                          );
-                                        }
-                                      },
-                                      child: KeyedSubtree(
-                                        key: ValueKey(currentPage),
-                                        child: NavigationShellProvider(
-                                          child:
-                                              _screenCache[currentPage] ??
-                                              currentPage.buildScreen(),
-                                        ),
+                                    );
+                                  } else {
+                                    return SlideTransition(
+                                      position: Tween<Offset>(
+                                        begin: const Offset(0.1, 0),
+                                        end: Offset.zero,
+                                      ).animate(animation),
+                                      child: FadeTransition(
+                                        opacity: animation,
+                                        child: child,
                                       ),
-                                    ),
+                                    );
+                                  }
+                                },
+                                child: KeyedSubtree(
+                                  key: ValueKey(currentPage),
+                                  child: NavigationShellProvider(
+                                    child:
+                                        _screenCache[currentPage] ??
+                                        currentPage.buildScreen(),
+                                  ),
+                                ),
+                              ),
                             ),
                           ],
                         ),
