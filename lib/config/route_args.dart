@@ -52,14 +52,17 @@ class ExternalCalendarsArgs extends RouteArgs {
 
 class SettingsArgs extends RouteArgs {
   final ExternalCalendarBloc? externalCalendarBloc;
+  final PlannerItemBloc? plannerItemBloc;
 
-  const SettingsArgs({this.externalCalendarBloc});
+  const SettingsArgs({this.externalCalendarBloc, this.plannerItemBloc});
 
   @override
   List<BlocProvider>? toProviders() {
-    if (externalCalendarBloc == null) return null;
     return [
-      BlocProvider<ExternalCalendarBloc>.value(value: externalCalendarBloc!),
+      if (externalCalendarBloc != null)
+        BlocProvider<ExternalCalendarBloc>.value(value: externalCalendarBloc!),
+      if (plannerItemBloc != null)
+        BlocProvider<PlannerItemBloc>.value(value: plannerItemBloc!),
     ];
   }
 }

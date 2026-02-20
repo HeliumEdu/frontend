@@ -18,25 +18,25 @@ import 'package:heliumapp/data/repositories/course_repository_impl.dart';
 import 'package:heliumapp/data/repositories/resource_repository_impl.dart';
 import 'package:heliumapp/data/sources/course_remote_data_source.dart';
 import 'package:heliumapp/data/sources/resource_remote_data_source.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_event.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_state.dart';
-import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
+import 'package:heliumapp/presentation/features/resources/constants/resource_constants.dart';
 import 'package:heliumapp/presentation/features/resources/dialogs/resource_group_dialog.dart';
-import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/resources/views/resource_add_screen.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
-import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
-import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/components/group_dropdown.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
-import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
-import 'package:heliumapp/presentation/ui/components/resource_title_label.dart';
-import 'package:heliumapp/presentation/ui/layout/mobile_gesture_detector.dart';
 import 'package:heliumapp/presentation/ui/components/pill_badge.dart';
+import 'package:heliumapp/presentation/ui/components/resource_title_label.dart';
+import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
+import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
+import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
+import 'package:heliumapp/presentation/ui/layout/mobile_gesture_detector.dart';
 import 'package:heliumapp/presentation/ui/layout/responsive_card_grid.dart';
-import 'package:heliumapp/presentation/features/resources/constants/resource_constants.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
@@ -354,6 +354,8 @@ class _ResourcesScreenState
                       showConfirmDeleteDialog(
                         parentContext: context,
                         item: resource,
+                        additionalWarning:
+                            'Anything associated with this resource, including attachments and other data, will also be deleted.',
                         onDelete: (m) {
                           context.read<ResourceBloc>().add(
                             DeleteResourceEvent(

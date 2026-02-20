@@ -180,7 +180,7 @@ class GroupDropdown<T extends BaseTitledModel> extends StatelessWidget {
                   parentContext: context,
                   item: item,
                   additionalWarning:
-                      'Anything in this group will also be deleted.',
+                      'Anything in this group, including attachments and other data, will also be deleted.',
                   onDelete: (value) {
                     onDelete!(value);
                   },
