@@ -11,39 +11,39 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
-import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
-import 'package:heliumapp/data/models/planner/resource_model.dart';
+import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
+import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/planner/controllers/planner_item_form_controller.dart';
-import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/select_dialog.dart';
-import 'package:heliumapp/utils/app_globals.dart';
-import 'package:heliumapp/utils/snack_bar_helpers.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/ui/components/drop_down.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
-import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/components/resource_title_label.dart';
+import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:timezone/standalone.dart' as tz;
 
 class PlannerItemDetails extends StatefulWidget {
@@ -181,8 +181,16 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
               SegmentedButton<bool>(
                 showSelectedIcon: false,
                 segments: const [
-                  ButtonSegment<bool>(value: false, tooltip: 'Assignment', icon: Icon(AppConstants.assignmentIcon)),
-                  ButtonSegment<bool>(value: true, tooltip: 'Event', icon: Icon(AppConstants.eventIcon)),
+                  ButtonSegment<bool>(
+                    value: false,
+                    tooltip: 'Assignment',
+                    icon: Icon(AppConstants.assignmentIcon),
+                  ),
+                  ButtonSegment<bool>(
+                    value: true,
+                    tooltip: 'Event',
+                    icon: Icon(AppConstants.eventIcon),
+                  ),
                 ],
                 selected: {_isEvent},
                 onSelectionChanged: (Set<bool> selected) {
@@ -233,7 +241,8 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                     controller: _formController.titleController,
                     validator: BasicFormController.validateRequiredField,
                     fieldKey: _formController.getFieldKey('title'),
-                    onFieldSubmitted: (value) => (widget.onSubmitRequested ?? onSubmit).call(),
+                    onFieldSubmitted: (value) =>
+                        (widget.onSubmitRequested ?? onSubmit).call(),
                   ),
                   const SizedBox(height: 14),
                   if (!_isEvent) ...[
@@ -1102,6 +1111,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     showConfirmDeleteDialog(
       parentContext: context,
       item: _plannerItem!,
+      additionalWarning: 'Attachments will also be deleted.',
       onDelete: onDelete,
     );
   }

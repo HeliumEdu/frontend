@@ -25,10 +25,7 @@ abstract class EventRemoteDataSource extends BaseDataSource {
     bool forceRefresh = false,
   });
 
-  Future<EventModel> getEvent({
-    required int id,
-    bool forceRefresh = false,
-  });
+  Future<EventModel> getEvent({required int id, bool forceRefresh = false});
 
   Future<EventModel> createEvent({required EventRequestModel request});
 
@@ -38,6 +35,8 @@ abstract class EventRemoteDataSource extends BaseDataSource {
   });
 
   Future<void> deleteEvent({required int eventId});
+
+  Future<void> deleteAllEvents();
 }
 
 class EventRemoteDataSourceImpl extends EventRemoteDataSource {
@@ -65,7 +64,9 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
       final response = await dioClient.dio.get(
         ApiUrl.plannerEventsListUrl,
         queryParameters: queryParameters.isNotEmpty ? queryParameters : null,
-        options: forceRefresh ? dioClient.cacheService.forceRefreshOptions() : null,
+        options: forceRefresh
+            ? dioClient.cacheService.forceRefreshOptions()
+            : null,
       );
 
       if (response.statusCode == 200) {
@@ -106,7 +107,9 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
       _log.info('Fetching Event $id ...');
       final response = await dioClient.dio.get(
         ApiUrl.plannerEventsDetailsUrl(id),
-        options: forceRefresh ? dioClient.cacheService.forceRefreshOptions() : null,
+        options: forceRefresh
+            ? dioClient.cacheService.forceRefreshOptions()
+            : null,
       );
 
       if (response.statusCode == 200) {
@@ -204,6 +207,33 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
       } else {
         throw ServerException(
           message: 'Failed to delete event: ${response.statusCode}',
+        );
+      }
+    } on DioException catch (e, s) {
+      throw handleDioError(e, s);
+    } catch (e, s) {
+      _log.severe('An unexpected error occurred', e, s);
+      if (e is HeliumException) {
+        rethrow;
+      }
+      throw HeliumException(message: 'An unexpected error occurred: $e');
+    }
+  }
+
+  @override
+  Future<void> deleteAllEvents() async {
+    try {
+      _log.info('Deleting all Events ...');
+      final response = await dioClient.dio.delete(
+        ApiUrl.plannerEventsDeleteAll,
+      );
+
+      if (response.statusCode == 204) {
+        _log.info('... all Events deleted');
+        await dioClient.cacheService.invalidateAll();
+      } else {
+        throw ServerException(
+          message: 'Failed to delete all events: ${response.statusCode}',
         );
       }
     } on DioException catch (e, s) {

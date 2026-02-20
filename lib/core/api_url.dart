@@ -43,7 +43,7 @@ class ApiUrl {
   static String feedExternalCalendarDetailUrl(int externalCalendarId) =>
       '/feed/externalcalendars/$externalCalendarId/';
 
-  // Calendar
+  // Planner
   static const plannerCoursesListUrl = '/planner/courses/';
   static const plannerCategoriesListUrl = '/planner/categories/';
   static const plannerResourcesListUrl = '/planner/materials/';
@@ -53,6 +53,7 @@ class ApiUrl {
       '/feed/externalcalendars/events/';
   static const plannerRemindersListUrl = '/planner/reminders/';
   static const plannerAttachmentsListUrl = '/planner/attachments/';
+  static const plannerEventsDeleteAll = '/planner/events/delete/all/';
 
   // Entities
   static String plannerCourseGroupsCoursesHomeworkDetailsUrl(

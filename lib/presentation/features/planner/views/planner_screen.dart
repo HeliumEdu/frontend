@@ -356,6 +356,9 @@ class _CalendarScreenState
           } else if (state is EventDeleted) {
             showSnackBar(context, 'Event deleted');
             _plannerItemDataSource!.removePlannerItem(state.id);
+          } else if (state is AllEventsDeleted) {
+            showSnackBar(context, 'All events deleted');
+            // TODO: refresh data source
           } else if (state is HomeworkCreated) {
             _plannerItemDataSource!.addPlannerItem(state.homework);
           } else if (state is HomeworkUpdated) {
@@ -1512,7 +1515,9 @@ class _CalendarScreenState
         userSettings!.timeZone,
       ).difference(startDateTime);
 
-      final roundedMinute = PlannerHelper.roundMinute(dropDetails.droppingTime!.minute);
+      final roundedMinute = PlannerHelper.roundMinute(
+        dropDetails.droppingTime!.minute,
+      );
 
       final DateTime start = tz.TZDateTime(
         userSettings!.timeZone,
@@ -1694,6 +1699,7 @@ class _CalendarScreenState
     showConfirmDeleteDialog(
       parentContext: context,
       item: plannerItem,
+      additionalWarning: 'Attachments will also be deleted.',
       onDelete: onDelete,
     );
   }

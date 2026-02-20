@@ -44,6 +44,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
     on<CreateEventEvent>(_onCreateEvent);
     on<UpdateEventEvent>(_onUpdateEvent);
     on<DeleteEventEvent>(_onDeleteEvent);
+    on<DeleteAllEventsEvent>(_onDeleteAllEvents);
     on<FetchHomeworkEvent>(_onFetchHomework);
     on<CreateHomeworkEvent>(_onCreateHomework);
     on<UpdateHomeworkEvent>(_onUpdateHomework);
@@ -210,6 +211,26 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
     try {
       await eventRepository.deleteEvent(eventId: event.id);
       emit(EventDeleted(origin: event.origin, id: event.id));
+    } on HeliumException catch (e) {
+      emit(PlannerItemsError(origin: event.origin, message: e.message));
+    } catch (e) {
+      emit(
+        PlannerItemsError(
+          origin: event.origin,
+          message: 'An unexpected error occurred: $e',
+        ),
+      );
+    }
+  }
+
+  Future<void> _onDeleteAllEvents(
+    DeleteAllEventsEvent event,
+    Emitter<PlannerItemState> emit,
+  ) async {
+    emit(PlannerItemsLoading(origin: event.origin));
+    try {
+      await eventRepository.deleteAllEvents();
+      emit(AllEventsDeleted(origin: event.origin));
     } on HeliumException catch (e) {
       emit(PlannerItemsError(origin: event.origin, message: e.message));
     } catch (e) {

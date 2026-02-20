@@ -5,6 +5,8 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -19,10 +21,14 @@ import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/planneritem_event.dart';
 import 'package:heliumapp/presentation/features/settings/views/change_password_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/external_calendars_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/feeds_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/preferences_screen.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
@@ -32,13 +38,30 @@ import 'package:heliumapp/presentation/ui/layout/shadow_container.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+final _log = Logger('presentation.views');
+
 /// Shows as a dialog on desktop, or navigates on mobile.
 void showSettings(BuildContext context) {
+  PlannerItemBloc? plannerItemBloc;
+  try {
+    final found = context.read<PlannerItemBloc>();
+    plannerItemBloc = found.isClosed ? null : found;
+  } catch (_) {
+    _log.info('PlannerItemBloc not passed, will create a new one');
+  }
+
+  if (plannerItemBloc == null) {
+    _log.fine('PlannerItemBloc not in context or closed, creating a new one');
+    plannerItemBloc = ProviderHelpers().createPlannerItemBloc()(context);
+  }
+
   final args = SettingsArgs(
     externalCalendarBloc: context.read<ExternalCalendarBloc>(),
+    plannerItemBloc: plannerItemBloc,
   );
 
   if (Responsive.isMobile(context)) {
@@ -83,6 +106,8 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
   String _email = '';
   String _version = '';
   bool _hasUsablePassword = true;
+  bool _dangerZoneExpanded = false;
+  Timer? _dangerZoneTimer;
 
   @override
   void initState() {
@@ -93,6 +118,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
 
   @override
   void dispose() {
+    _dangerZoneTimer?.cancel();
     _deleteAccountPasswordController.dispose();
 
     super.dispose();
@@ -165,7 +191,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
 
             const SizedBox(height: 12),
 
-            _buildDeleteAccountArea(),
+            _buildDangerZoneArea(),
 
             const SizedBox(height: 12),
 
@@ -632,7 +658,32 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
     }
   }
 
-  Widget _buildDeleteAccountArea() {
+  void _expandDangerZone() {
+    _dangerZoneTimer?.cancel();
+    setState(() {
+      _dangerZoneExpanded = true;
+    });
+    _dangerZoneTimer = Timer(const Duration(seconds: 5), () {
+      if (mounted) {
+        setState(() {
+          _dangerZoneExpanded = false;
+        });
+      }
+    });
+  }
+
+  void _resetDangerZoneTimer() {
+    _dangerZoneTimer?.cancel();
+    _dangerZoneTimer = Timer(const Duration(seconds: 5), () {
+      if (mounted) {
+        setState(() {
+          _dangerZoneExpanded = false;
+        });
+      }
+    });
+  }
+
+  Widget _buildDangerZoneArea() {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
@@ -640,62 +691,227 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
           color: context.colorScheme.error.withValues(alpha: 0.2),
         ),
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => _showDeleteAccountDialog(context),
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: context.colorScheme.error.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
+      child: _dangerZoneExpanded
+          ? _buildDangerZoneExpanded()
+          : _buildDangerZoneCollapsed(),
+    );
+  }
+
+  Widget _buildDangerZoneCollapsed() {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: _expandDangerZone,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: context.colorScheme.error.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.warning_amber_rounded,
+                  color: context.colorScheme.error,
+                  size: Responsive.getIconSize(
+                    context,
+                    mobile: 22,
+                    tablet: 24,
+                    desktop: 26,
                   ),
-                  child: Icon(
-                    Icons.delete_outline,
-                    color: context.colorScheme.error,
-                    size: Responsive.getIconSize(
-                      context,
-                      mobile: 22,
-                      tablet: 24,
-                      desktop: 26,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  'Danger Zone',
+                  style: AppStyles.menuItem(
+                    context,
+                  ).copyWith(color: context.colorScheme.error),
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios,
+                color: context.colorScheme.onSurface.withValues(alpha: 0.3),
+                size: 16,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDangerZoneExpanded() {
+    return Column(
+      children: [
+        _buildDangerZoneItem(
+          icon: Icons.delete_sweep_outlined,
+          label: 'Delete All Events',
+          hint: 'Permanently delete all Events',
+          onTap: () {
+            _resetDangerZoneTimer();
+            _showDeleteAllEventsDialog(context);
+          },
+        ),
+        const Divider(height: 1, indent: 68),
+        _buildDangerZoneItem(
+          icon: Icons.delete_outline,
+          label: 'Delete Account',
+          hint: 'Permanently delete your account',
+          onTap: () {
+            _resetDangerZoneTimer();
+            _showDeleteAccountDialog(context);
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDangerZoneItem({
+    required IconData icon,
+    required String label,
+    required String hint,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: context.colorScheme.error.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  icon,
+                  color: context.colorScheme.error,
+                  size: Responsive.getIconSize(
+                    context,
+                    mobile: 22,
+                    tablet: 24,
+                    desktop: 26,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: AppStyles.menuItem(
+                        context,
+                      ).copyWith(color: context.colorScheme.error),
                     ),
-                  ),
+                    const SizedBox(height: 2),
+                    Text(hint, style: AppStyles.menuItemHint(context)),
+                  ],
                 ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios,
+                color: context.colorScheme.onSurface.withValues(alpha: 0.3),
+                size: 16,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-                const SizedBox(width: 16),
+  void _showDeleteAllEventsDialog(BuildContext parentContext) {
+    bool isSubmitting = false;
 
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Delete Account',
-                        style: AppStyles.menuItem(
-                          context,
-                        ).copyWith(color: context.colorScheme.error),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Permanently delete your account',
-                        style: AppStyles.menuItemHint(context),
-                      ),
-                    ],
-                  ),
-                ),
+    showDialog(
+      context: parentContext,
+      barrierDismissible: false,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: Row(
+              children: [
                 Icon(
-                  Icons.arrow_forward_ios,
-                  color: context.colorScheme.onSurface.withValues(alpha: 0.3),
-                  size: 16,
+                  Icons.warning_amber_rounded,
+                  color: context.colorScheme.error,
+                  size: Responsive.getIconSize(
+                    context,
+                    mobile: 28,
+                    tablet: 30,
+                    desktop: 32,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Delete All Events',
+                    style: AppStyles.featureText(
+                      context,
+                    ).copyWith(color: context.colorScheme.error),
+                  ),
                 ),
               ],
             ),
-          ),
-        ),
+            content: SizedBox(
+              width: Responsive.getDialogWidth(context),
+              child: Text(
+                'Are you sure you want to delete all Events? Anything associated with them, including attachments and other data, will also be deleted. This action cannot be undone.',
+                style: AppStyles.standardBodyText(context),
+              ),
+            ),
+            actions: [
+              SizedBox(
+                width: Responsive.getDialogWidth(context),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: HeliumElevatedButton(
+                        buttonText: 'Cancel',
+                        backgroundColor: context.colorScheme.outline,
+                        onPressed: () {
+                          Navigator.of(dialogContext).pop();
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: HeliumElevatedButton(
+                        buttonText: 'Delete',
+                        backgroundColor: context.colorScheme.error,
+                        isLoading: isSubmitting,
+                        onPressed: () {
+                          setState(() {
+                            isSubmitting = true;
+                          });
+
+                          Navigator.of(dialogContext).pop();
+
+                          parentContext.read<PlannerItemBloc>().add(
+                            DeleteAllEventsEvent(origin: EventOrigin.dialog),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

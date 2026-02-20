@@ -62,6 +62,10 @@ class DeleteEventEvent extends PlannerItemEvent {
   DeleteEventEvent({required super.origin, required this.id});
 }
 
+class DeleteAllEventsEvent extends PlannerItemEvent {
+  DeleteAllEventsEvent({required super.origin});
+}
+
 class FetchHomeworkEvent extends PlannerItemEvent {
   final int id;
 
