@@ -19,6 +19,7 @@ class NotificationModel extends BaseModel {
   final ReminderModel reminder;
   final CourseModel? course;
   final Color? color;
+  final String? courseTitle;
 
   NotificationModel({
     required super.id,
@@ -29,6 +30,7 @@ class NotificationModel extends BaseModel {
     required this.reminder,
     this.course,
     this.color,
+    this.courseTitle,
   });
 
   Map<String, dynamic> toJson() {

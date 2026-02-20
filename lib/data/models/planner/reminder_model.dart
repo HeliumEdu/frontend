@@ -71,4 +71,32 @@ class ReminderModel extends BaseTitledModel {
       'event': event,
     };
   }
+
+  ReminderModel copyWith({
+    int? id,
+    String? title,
+    String? message,
+    DateTime? startOfRange,
+    int? offset,
+    int? offsetType,
+    int? type,
+    bool? sent,
+    bool? dismissed,
+    IdOrEntity<HomeworkModel>? homework,
+    IdOrEntity<EventModel>? event,
+  }) {
+    return ReminderModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      message: message ?? this.message,
+      startOfRange: startOfRange ?? this.startOfRange,
+      offset: offset ?? this.offset,
+      offsetType: offsetType ?? this.offsetType,
+      type: type ?? this.type,
+      sent: sent ?? this.sent,
+      dismissed: dismissed ?? this.dismissed,
+      homework: homework ?? this.homework,
+      event: event ?? this.event,
+    );
+  }
 }

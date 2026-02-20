@@ -322,6 +322,8 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
           entityId: homework.id,
           isEvent: false,
           advanceNavOnSuccess: event.advanceNavOnSuccess,
+          color: event.color,
+          courseTitle: event.courseTitle,
         ),
       );
     } on HeliumException catch (e) {
