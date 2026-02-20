@@ -15,6 +15,7 @@ abstract class ReminderRepository {
     bool? sent,
     bool? dismissed,
     int? type,
+    DateTime? startOfRange,
   });
 
   Future<ReminderModel> createReminder(ReminderRequestModel request);
