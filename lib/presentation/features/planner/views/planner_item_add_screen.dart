@@ -30,14 +30,13 @@ void showPlannerItemAdd(
   required bool isEdit,
   required bool isNew,
   int initialStep = 0,
-  required PlannerItemBloc plannerItemBloc,
   required AttachmentBloc attachmentBloc,
 }) {
+  final plannerItemBloc = context.read<PlannerItemBloc>();
   if (Responsive.isMobile(context)) {
     context.push(
       AppRoute.plannerItemAddScreen,
       extra: PlannerItemAddArgs(
-        plannerItemBloc: plannerItemBloc,
         attachmentBloc: attachmentBloc,
         eventId: eventId,
         homeworkId: homeworkId,
@@ -296,4 +295,3 @@ class _PlannerItemAddScreenState
   @override
   List<MultiStepDefinition> get steps => _steps;
 }
-

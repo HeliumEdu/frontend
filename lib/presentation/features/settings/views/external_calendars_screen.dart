@@ -10,7 +10,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_model.dart';
 import 'package:heliumapp/data/models/planner/request/external_calendar_request_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
@@ -35,21 +34,13 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 
 /// Shows as a dialog on desktop, or navigates on mobile.
-void showExternalCalendars(
-  BuildContext context, {
-  required ExternalCalendarBloc externalCalendarBloc,
-}) {
-  final args = ExternalCalendarsArgs(
-    externalCalendarBloc: externalCalendarBloc,
-  );
-
+void showExternalCalendars(BuildContext context) {
   if (Responsive.isMobile(context)) {
-    context.push(AppRoute.externalCalendarsScreen, extra: args);
+    context.push(AppRoute.externalCalendarsScreen);
   } else {
     showScreenAsDialog(
       context,
       child: const ExternalCalendarsScreen(),
-      extra: args,
       width: AppConstants.leftPanelDialogWidth,
       alignment: Alignment.centerLeft,
       insetPadding: const EdgeInsets.all(0),

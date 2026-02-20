@@ -11,7 +11,6 @@ import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
-import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/notification/notification_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
@@ -22,7 +21,6 @@ import 'package:heliumapp/data/repositories/reminder_repository_impl.dart';
 import 'package:heliumapp/data/sources/reminder_remote_data_source.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
-import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_state.dart';
@@ -46,33 +44,12 @@ final _log = Logger('presentation.views');
 
 /// Shows notifications as a dialog on desktop, or navigates on mobile.
 void showNotifications(BuildContext context) {
-  PlannerItemBloc? plannerItemBloc;
-  try {
-    final found = context.read<PlannerItemBloc>();
-    plannerItemBloc = found.isClosed ? null : found;
-  } catch (_) {
-    _log.info('PlannerItemBloc not passed, will create a new one');
-  }
-  AttachmentBloc? attachmentBloc;
-  try {
-    final found = context.read<AttachmentBloc>();
-    attachmentBloc = found.isClosed ? null : found;
-  } catch (_) {
-    _log.info('AttachmentBloc not passed, will create a new one');
-  }
-
-  final args = NotificationArgs(
-    plannerItemBloc: plannerItemBloc,
-    attachmentBloc: attachmentBloc,
-  );
-
   if (Responsive.isMobile(context)) {
-    context.go(AppRoute.notificationsScreen, extra: args);
+    context.go(AppRoute.notificationsScreen);
   } else {
     showScreenAsDialog(
       context,
       child: NotificationsScreen(),
-      extra: args,
       width: AppConstants.notificationsDialogWidth,
       alignment: Alignment.centerRight,
       insetPadding: const EdgeInsets.only(
@@ -489,17 +466,6 @@ class _NotificationsScreenState
       Navigator.of(context).pop();
     }
 
-    PlannerItemBloc? plannerItemBloc;
-    try {
-      final found = context.read<PlannerItemBloc>();
-      plannerItemBloc = found.isClosed ? null : found;
-    } catch (_) {
-      // Bloc not in context
-    }
-    if (plannerItemBloc == null) {
-      _log.fine('PlannerItemBloc not in context or closed, creating a new one');
-      plannerItemBloc = ProviderHelpers().createPlannerItemBloc()(context);
-    }
     AttachmentBloc? attachmentBloc;
     try {
       final found = context.read<AttachmentBloc>();
@@ -518,7 +484,6 @@ class _NotificationsScreenState
       homeworkId: notification.reminder.homework?.id,
       isEdit: true,
       isNew: false,
-      plannerItemBloc: plannerItemBloc,
       attachmentBloc: attachmentBloc,
     );
   }

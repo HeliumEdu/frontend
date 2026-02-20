@@ -212,9 +212,9 @@ class _GettingStartedDialogWidget extends StatelessWidget {
   }
 }
 
-Future<void> showGettingStartedDialog({required BuildContext context}) {
+Future<void> showGettingStartedDialog(BuildContext parentContext) {
   return showDialog(
-    context: context,
+    context: parentContext,
     barrierDismissible: false,
     builder: (BuildContext dialogContext) {
       return const _GettingStartedDialogWidget();

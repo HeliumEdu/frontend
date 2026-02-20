@@ -28,7 +28,6 @@ import 'package:heliumapp/presentation/features/grades/bloc/grade_event.dart';
 import 'package:heliumapp/presentation/features/grades/bloc/grade_state.dart';
 import 'package:heliumapp/presentation/features/grades/dialogs/grade_calculator_dialog.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
-import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
@@ -70,7 +69,6 @@ class GradesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: _providerHelpers.createPlannerItemBloc()),
         BlocProvider(create: _providerHelpers.createAttachmentBloc()),
         BlocProvider(
           create: (context) => GradeBloc(
@@ -697,7 +695,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     );
 
     return MouseRegion(
-      cursor: atRiskCount > 0 ? SystemMouseCursors.click : SystemMouseCursors.basic,
+      cursor: atRiskCount > 0
+          ? SystemMouseCursors.click
+          : SystemMouseCursors.basic,
       child: GestureDetector(
         onTap: atRiskCount > 0
             ? () {
@@ -1680,7 +1680,6 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     }
 
     // Open the calendar item (assignment)
-    final plannerItemBloc = context.read<PlannerItemBloc>();
     final attachmentBloc = context.read<AttachmentBloc>();
 
     showPlannerItemAdd(
@@ -1688,7 +1687,6 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
       homeworkId: homeworkId,
       isEdit: true,
       isNew: false,
-      plannerItemBloc: plannerItemBloc,
       attachmentBloc: attachmentBloc,
     );
   }

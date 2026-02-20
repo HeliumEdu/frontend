@@ -153,9 +153,9 @@ class _WhatsNewDialogWidget extends StatelessWidget {
   }
 }
 
-Future<void> showWhatsNewDialog({required BuildContext context}) {
+Future<void> showWhatsNewDialog(BuildContext parentContext) {
   return showDialog(
-    context: context,
+    context: parentContext,
     barrierDismissible: false,
     builder: (BuildContext dialogContext) {
       return const _WhatsNewDialogWidget();

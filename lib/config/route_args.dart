@@ -7,9 +7,7 @@
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
-import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
-import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
 
 abstract class RouteArgs {
@@ -18,57 +16,7 @@ abstract class RouteArgs {
   List<BlocProvider>? toProviders();
 }
 
-class NotificationArgs extends RouteArgs {
-  final PlannerItemBloc? plannerItemBloc;
-  final AttachmentBloc? attachmentBloc;
-
-  const NotificationArgs({this.plannerItemBloc, this.attachmentBloc});
-
-  @override
-  List<BlocProvider>? toProviders() {
-    if (plannerItemBloc == null && attachmentBloc == null) return null;
-    return [
-      if (plannerItemBloc != null)
-        BlocProvider<PlannerItemBloc>.value(value: plannerItemBloc!),
-      if (attachmentBloc != null)
-        BlocProvider<AttachmentBloc>.value(value: attachmentBloc!),
-    ];
-  }
-}
-
-class ExternalCalendarsArgs extends RouteArgs {
-  final ExternalCalendarBloc? externalCalendarBloc;
-
-  const ExternalCalendarsArgs({this.externalCalendarBloc});
-
-  @override
-  List<BlocProvider>? toProviders() {
-    if (externalCalendarBloc == null) return null;
-    return [
-      BlocProvider<ExternalCalendarBloc>.value(value: externalCalendarBloc!),
-    ];
-  }
-}
-
-class SettingsArgs extends RouteArgs {
-  final ExternalCalendarBloc? externalCalendarBloc;
-  final PlannerItemBloc? plannerItemBloc;
-
-  const SettingsArgs({this.externalCalendarBloc, this.plannerItemBloc});
-
-  @override
-  List<BlocProvider>? toProviders() {
-    return [
-      if (externalCalendarBloc != null)
-        BlocProvider<ExternalCalendarBloc>.value(value: externalCalendarBloc!),
-      if (plannerItemBloc != null)
-        BlocProvider<PlannerItemBloc>.value(value: plannerItemBloc!),
-    ];
-  }
-}
-
 class PlannerItemAddArgs extends RouteArgs {
-  final PlannerItemBloc plannerItemBloc;
   final AttachmentBloc attachmentBloc;
   final int? eventId;
   final int? homeworkId;
@@ -78,7 +26,6 @@ class PlannerItemAddArgs extends RouteArgs {
   final bool isNew;
 
   const PlannerItemAddArgs({
-    required this.plannerItemBloc,
     required this.attachmentBloc,
     this.eventId,
     this.homeworkId,
@@ -90,10 +37,7 @@ class PlannerItemAddArgs extends RouteArgs {
 
   @override
   List<BlocProvider>? toProviders() {
-    return [
-      BlocProvider<PlannerItemBloc>.value(value: plannerItemBloc),
-      BlocProvider<AttachmentBloc>.value(value: attachmentBloc),
-    ];
+    return [BlocProvider<AttachmentBloc>.value(value: attachmentBloc)];
   }
 }
 
@@ -116,9 +60,7 @@ class CourseAddArgs extends RouteArgs {
 
   @override
   List<BlocProvider>? toProviders() {
-    return [
-      BlocProvider<CourseBloc>.value(value: courseBloc),
-    ];
+    return [BlocProvider<CourseBloc>.value(value: courseBloc)];
   }
 }
 
@@ -137,8 +79,6 @@ class ResourceAddArgs extends RouteArgs {
 
   @override
   List<BlocProvider>? toProviders() {
-    return [
-      BlocProvider<ResourceBloc>.value(value: resourceBloc),
-    ];
+    return [BlocProvider<ResourceBloc>.value(value: resourceBloc)];
   }
 }

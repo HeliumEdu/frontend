@@ -92,7 +92,6 @@ class PlannerScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: _providerHelpers.createPlannerItemBloc()),
         BlocProvider(create: _providerHelpers.createAttachmentBloc()),
         BlocProvider(
           create: (context) => PlannerBloc(
@@ -159,7 +158,6 @@ class _CalendarScreenState
         ? truncatedNow
         : _calendarController.selectedDate;
 
-    final plannerItemBloc = context.read<PlannerItemBloc>();
     final attachmentBloc = context.read<AttachmentBloc>();
 
     showPlannerItemAdd(
@@ -168,7 +166,6 @@ class _CalendarScreenState
       isFromMonthView: _calendarController.view == CalendarView.month,
       isEdit: false,
       isNew: true,
-      plannerItemBloc: plannerItemBloc,
       attachmentBloc: attachmentBloc,
     );
   };
@@ -707,7 +704,6 @@ class _CalendarScreenState
         ? plannerItem.id
         : null;
 
-    final plannerItemBloc = context.read<PlannerItemBloc>();
     final attachmentBloc = context.read<AttachmentBloc>();
 
     showPlannerItemAdd(
@@ -716,7 +712,6 @@ class _CalendarScreenState
       homeworkId: homeworkId,
       isEdit: true,
       isNew: false,
-      plannerItemBloc: plannerItemBloc,
       attachmentBloc: attachmentBloc,
     );
 

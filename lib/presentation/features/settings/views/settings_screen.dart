@@ -13,14 +13,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
-import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
@@ -29,7 +27,6 @@ import 'package:heliumapp/presentation/features/settings/views/external_calendar
 import 'package:heliumapp/presentation/features/settings/views/feeds_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/preferences_screen.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
@@ -39,39 +36,17 @@ import 'package:heliumapp/presentation/ui/layout/shadow_container.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
-import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-final _log = Logger('presentation.views');
-
 /// Shows as a dialog on desktop, or navigates on mobile.
 void showSettings(BuildContext context) {
-  PlannerItemBloc? plannerItemBloc;
-  try {
-    final found = context.read<PlannerItemBloc>();
-    plannerItemBloc = found.isClosed ? null : found;
-  } catch (_) {
-    _log.info('PlannerItemBloc not passed, will create a new one');
-  }
-
-  if (plannerItemBloc == null) {
-    _log.fine('PlannerItemBloc not in context or closed, creating a new one');
-    plannerItemBloc = ProviderHelpers().createPlannerItemBloc()(context);
-  }
-
-  final args = SettingsArgs(
-    externalCalendarBloc: context.read<ExternalCalendarBloc>(),
-    plannerItemBloc: plannerItemBloc,
-  );
-
   if (Responsive.isMobile(context)) {
-    context.go(AppRoute.settingScreen, extra: args);
+    context.go(AppRoute.settingScreen);
   } else {
     showScreenAsDialog(
       context,
       child: const SettingsScreen(),
-      extra: args,
       width: AppConstants.leftPanelDialogWidth,
       alignment: Alignment.centerLeft,
       insetPadding: const EdgeInsets.all(0),
@@ -388,13 +363,9 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
             color: Colors.transparent,
             child: InkWell(
               onTap: () {
-                // Capture the bloc before navigating, since the new context
-                // won't have it after the settings dialog is popped
-                final bloc = context.read<ExternalCalendarBloc>();
                 _navigateToSubSettings(
                   context,
-                  (ctx) =>
-                      showExternalCalendars(ctx, externalCalendarBloc: bloc),
+                  (ctx) => showExternalCalendars(ctx),
                 );
               },
               borderRadius: BorderRadius.circular(16),
@@ -920,7 +891,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                             isLoading = true;
                           });
 
-                          parentContext.read<PlannerItemBloc>().add(
+                          context.read<PlannerItemBloc>().add(
                             DeleteAllEventsEvent(origin: EventOrigin.dialog),
                           );
                         },
