@@ -607,7 +607,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                       ),
                       child: Icon(
                         Icons.logout_outlined,
-                        color: context.colorScheme.error,
+                        color: context.semanticColors.warning,
                         size: Responsive.getIconSize(
                           context,
                           mobile: 22,
@@ -625,7 +625,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                             'Logout',
                             style: AppStyles.menuItem(
                               context,
-                            ).copyWith(color: context.colorScheme.error),
+                            ).copyWith(color: context.semanticColors.warning),
                           ),
                           const SizedBox(height: 2),
                           Text(
