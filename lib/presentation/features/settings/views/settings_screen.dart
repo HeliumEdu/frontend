@@ -23,6 +23,7 @@ import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_event.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
 import 'package:heliumapp/presentation/features/settings/views/change_password_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/external_calendars_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/feeds_screen.dart';
@@ -127,6 +128,23 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
   @override
   List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
     return [
+      BlocListener<PlannerItemBloc, PlannerItemState>(
+        listener: (context, state) {
+          if (state.origin != EventOrigin.dialog) return;
+
+          if (state is AllEventsDeleted) {
+            setState(() {
+              isLoading = false;
+            });
+            showSnackBar(context, 'All Events deleted');
+          } else if (state is PlannerItemsError) {
+            setState(() {
+              isLoading = false;
+            });
+            showSnackBar(context, state.message!, isError: true);
+          }
+        },
+      ),
       BlocListener<AuthBloc, AuthState>(
         listener: (context, state) async {
           if (state is AuthError) {
@@ -899,6 +917,10 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                           });
 
                           Navigator.of(dialogContext).pop();
+
+                          this.setState(() {
+                            isLoading = true;
+                          });
 
                           parentContext.read<PlannerItemBloc>().add(
                             DeleteAllEventsEvent(origin: EventOrigin.dialog),
