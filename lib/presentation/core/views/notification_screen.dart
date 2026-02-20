@@ -45,7 +45,7 @@ final _log = Logger('presentation.views');
 /// Shows notifications as a dialog on desktop, or navigates on mobile.
 void showNotifications(BuildContext context) {
   if (Responsive.isMobile(context)) {
-    context.go(AppRoute.notificationsScreen);
+    context.push(AppRoute.notificationsScreen);
   } else {
     showScreenAsDialog(
       context,

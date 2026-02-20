@@ -41,6 +41,9 @@ final shellNavigatorKey = GlobalKey<NavigatorState>();
 late final GoRouter router;
 
 void initializeRouter() {
+  // Make push/pop reflect in browser URL on web
+  GoRouter.optionURLReflectsImperativeAPIs = true;
+
   router = GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: AppRoute.landingScreen,
@@ -134,6 +137,7 @@ void initializeRouter() {
       // Protected full-screen routes (outside shell)
       GoRoute(
         path: AppRoute.notificationsScreen,
+        parentNavigatorKey: rootNavigatorKey,
         pageBuilder: (context, state) {
           if (!Responsive.isMobile(context)) {
             return const MaterialPage(
@@ -239,6 +243,7 @@ void initializeRouter() {
       // Settings routes
       GoRoute(
         path: AppRoute.settingScreen,
+        parentNavigatorKey: rootNavigatorKey,
         pageBuilder: (context, state) {
           if (!Responsive.isMobile(context)) {
             return const MaterialPage(
