@@ -17,6 +17,7 @@ import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/data/models/id_or_entity.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
+import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/standalone.dart' as tz;
@@ -130,6 +131,114 @@ void main() {
         expect(groups[0].id, 2); // Jan 15
         expect(groups[1].id, 3); // Jun 1
         expect(groups[2].id, 1); // Sep 1
+      });
+    });
+
+    group('getTimedEventStartTimeAdjustmentSeconds', () {
+      // The adjustment is subtracted from an item's start time so that SfCalendar
+      // positions higher-priority items earlier. The values must stay small enough
+      // that the visual position on the calendar grid is not perceptibly shifted.
+      // The previous bug used (3 - priority) * 1000 seconds, which pushed homework
+      // ~51 minutes early and class schedules ~35 minutes early on the calendar.
+
+      const maxAllowedSeconds = 300; // 5 minutes — well below "visibly wrong" territory
+
+      test('max adjustment across all types and positions is under 5 minutes', () {
+        for (final priority in Sort.typeSortPriority.values) {
+          for (int position = 0; position < 100; position++) {
+            final adjustment = Sort.getTimedEventStartTimeAdjustmentSeconds(
+              priority,
+              position,
+            );
+            expect(
+              adjustment,
+              lessThan(maxAllowedSeconds),
+              reason:
+                  'priority=$priority, position=$position produced $adjustment seconds '
+                  '(${adjustment ~/ 60}m ${adjustment % 60}s), which would visibly '
+                  'shift items on the calendar grid',
+            );
+          }
+        }
+      });
+
+      test('higher priority types get larger adjustments so they sort earlier', () {
+        final homework = Sort.getTimedEventStartTimeAdjustmentSeconds(
+          Sort.typeSortPriority[PlannerItemType.homework]!,
+          0,
+        );
+        final schedule = Sort.getTimedEventStartTimeAdjustmentSeconds(
+          Sort.typeSortPriority[PlannerItemType.courseSchedule]!,
+          0,
+        );
+        final event = Sort.getTimedEventStartTimeAdjustmentSeconds(
+          Sort.typeSortPriority[PlannerItemType.event]!,
+          0,
+        );
+        final external = Sort.getTimedEventStartTimeAdjustmentSeconds(
+          Sort.typeSortPriority[PlannerItemType.external]!,
+          0,
+        );
+
+        expect(homework, greaterThan(schedule));
+        expect(schedule, greaterThan(event));
+        expect(event, greaterThan(external));
+      });
+
+      test('earlier positions get larger adjustments so they sort before later positions', () {
+        final priority = Sort.typeSortPriority[PlannerItemType.homework]!;
+        final first = Sort.getTimedEventStartTimeAdjustmentSeconds(priority, 0);
+        final second = Sort.getTimedEventStartTimeAdjustmentSeconds(priority, 1);
+        final third = Sort.getTimedEventStartTimeAdjustmentSeconds(priority, 2);
+
+        expect(first, greaterThan(second));
+        expect(second, greaterThan(third));
+      });
+    });
+
+    group('getTimedEventEndTimeAdjustment', () {
+      const maxAllowedSeconds = 300; // 5 minutes
+
+      test('max adjustment across all types and positions is under 5 minutes', () {
+        for (final priority in Sort.typeSortPriority.values) {
+          for (int position = 0; position < 100; position++) {
+            final adjustment = Sort.getTimedEventEndTimeAdjustment(
+              priority,
+              position,
+            );
+            expect(
+              adjustment.inSeconds,
+              lessThan(maxAllowedSeconds),
+              reason:
+                  'priority=$priority, position=$position produced '
+                  '${adjustment.inSeconds}s end-time adjustment, which would '
+                  'visibly shorten events on the calendar grid',
+            );
+          }
+        }
+      });
+
+      test('higher priority types get larger end time adjustments', () {
+        final homework = Sort.getTimedEventEndTimeAdjustment(
+          Sort.typeSortPriority[PlannerItemType.homework]!,
+          0,
+        );
+        final schedule = Sort.getTimedEventEndTimeAdjustment(
+          Sort.typeSortPriority[PlannerItemType.courseSchedule]!,
+          0,
+        );
+        final event = Sort.getTimedEventEndTimeAdjustment(
+          Sort.typeSortPriority[PlannerItemType.event]!,
+          0,
+        );
+        final external = Sort.getTimedEventEndTimeAdjustment(
+          Sort.typeSortPriority[PlannerItemType.external]!,
+          0,
+        );
+
+        expect(homework, greaterThan(schedule));
+        expect(schedule, greaterThan(event));
+        expect(event, greaterThan(external));
       });
     });
 

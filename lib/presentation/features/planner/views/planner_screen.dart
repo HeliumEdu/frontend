@@ -1512,8 +1512,7 @@ class _CalendarScreenState
         userSettings!.timeZone,
       ).difference(startDateTime);
 
-      final roundedMinute =
-          ((dropDetails.droppingTime!.minute + 15) ~/ 30) * 30;
+      final roundedMinute = PlannerHelper.roundMinute(dropDetails.droppingTime!.minute);
 
       final DateTime start = tz.TZDateTime(
         userSettings!.timeZone,
@@ -1590,34 +1589,13 @@ class _CalendarScreenState
         resizeDetails.appointment as PlannerItemBaseModel;
 
     if (plannerItem is HomeworkModel || plannerItem is EventModel) {
-      final originalStart = tz.TZDateTime.from(
-        plannerItem.start,
-        userSettings!.timeZone,
-      );
-
-      // Determine which edge was dragged by comparing to original start
-      final startWasDragged =
-          resizeDetails.startTime!.year != originalStart.year ||
-          resizeDetails.startTime!.month != originalStart.month ||
-          resizeDetails.startTime!.day != originalStart.day ||
-          resizeDetails.startTime!.hour != originalStart.hour ||
-          resizeDetails.startTime!.minute != originalStart.minute;
-
-      // Only round the dragged edge's time
-      final startMinute = startWasDragged
-          ? ((resizeDetails.startTime!.minute + 15) ~/ 30) * 30
-          : resizeDetails.startTime!.minute;
-      final endMinute = startWasDragged
-          ? resizeDetails.endTime!.minute
-          : ((resizeDetails.endTime!.minute + 15) ~/ 30) * 30;
-
       final DateTime start = tz.TZDateTime(
         userSettings!.timeZone,
         resizeDetails.startTime!.year,
         resizeDetails.startTime!.month,
         resizeDetails.startTime!.day,
         resizeDetails.startTime!.hour,
-        startMinute,
+        PlannerHelper.roundMinute(resizeDetails.startTime!.minute),
       );
 
       DateTime end = tz.TZDateTime(
@@ -1626,7 +1604,7 @@ class _CalendarScreenState
         resizeDetails.endTime!.month,
         resizeDetails.endTime!.day,
         resizeDetails.endTime!.hour,
-        endMinute,
+        PlannerHelper.roundMinute(resizeDetails.endTime!.minute),
       );
       if (plannerItem.allDay) {
         end = end.add(const Duration(days: 1));
@@ -1643,6 +1621,7 @@ class _CalendarScreenState
         final request = HomeworkRequestModel(
           start: start.toIso8601String(),
           end: end.toIso8601String(),
+          showEndTime: true,
           course: plannerItem.course.id,
         );
 
@@ -1661,6 +1640,7 @@ class _CalendarScreenState
         final request = EventRequestModel(
           start: start.toIso8601String(),
           end: end.toIso8601String(),
+          showEndTime: true,
         );
 
         context.read<PlannerItemBloc>().add(
