@@ -202,8 +202,6 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
   Function? get saveAction => null;
 
-  bool get showLogout => false;
-
   VoidCallback? get actionButtonCallback => null;
 
   bool get showActionButton => false;
@@ -375,7 +373,6 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       isLoading: isSubmitting,
       cancelAction: cancelAction,
       saveAction: saveAction,
-      showLogout: showLogout,
       inheritableProviders: inheritableProviders,
     );
   }

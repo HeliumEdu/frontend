@@ -14,16 +14,16 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
+import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
-import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
-import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/settings/views/change_password_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/external_calendars_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/feeds_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/preferences_screen.dart';
+import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -71,9 +71,6 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
 
   @override
   ScreenType get screenType => ScreenType.subPage;
-
-  @override
-  bool get showLogout => !kIsWeb || Responsive.isTouchDevice(context) || Responsive.isMobile(context);
 
   final BasicFormController _deleteAccountFormController =
       BasicFormController();
@@ -275,6 +272,73 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
       padding: EdgeInsets.zero,
       child: Column(
         children: [
+          if (DialogModeProvider.isDialogMode(context)) ...[
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => _showLogoutDialog(context),
+                borderRadius: BorderRadius.circular(16),
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: context.colorScheme.error.withValues(
+                            alpha: 0.1,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          Icons.logout_outlined,
+                          color: context.colorScheme.error,
+                          size: Responsive.getIconSize(
+                            context,
+                            mobile: 22,
+                            tablet: 24,
+                            desktop: 26,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Logout',
+                              style: AppStyles.menuItem(
+                                context,
+                              ).copyWith(color: context.colorScheme.error),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Sign out of your account',
+                              style: AppStyles.menuItemHint(context),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        color: context.colorScheme.onSurface.withValues(
+                          alpha: 0.3,
+                        ),
+                        size: Responsive.getIconSize(
+                          context,
+                          mobile: 16,
+                          tablet: 18,
+                          desktop: 20,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const Divider(height: 1, indent: 68),
+          ],
           Material(
             color: Colors.transparent,
             child: InkWell(
@@ -481,71 +545,71 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
           if (_hasUsablePassword) const Divider(height: 1, indent: 68),
 
           if (_hasUsablePassword)
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () => _navigateToSubSettings(
-                context,
-                (ctx) => showChangePassword(ctx),
-              ),
-              borderRadius: BorderRadius.circular(16),
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: context.colorScheme.primary.withValues(
-                          alpha: 0.1,
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => _navigateToSubSettings(
+                  context,
+                  (ctx) => showChangePassword(ctx),
+                ),
+                borderRadius: BorderRadius.circular(16),
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: context.colorScheme.primary.withValues(
+                            alpha: 0.1,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        borderRadius: BorderRadius.circular(12),
+                        child: Icon(
+                          Icons.lock_outline,
+                          color: context.colorScheme.primary,
+                          size: Responsive.getIconSize(
+                            context,
+                            mobile: 22,
+                            tablet: 24,
+                            desktop: 26,
+                          ),
+                        ),
                       ),
-                      child: Icon(
-                        Icons.lock_outline,
-                        color: context.colorScheme.primary,
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Change Password',
+                              style: AppStyles.menuItem(context),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Update your password',
+                              style: AppStyles.menuItemHint(context),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        color: context.colorScheme.onSurface.withValues(
+                          alpha: 0.3,
+                        ),
                         size: Responsive.getIconSize(
                           context,
-                          mobile: 22,
-                          tablet: 24,
-                          desktop: 26,
+                          mobile: 16,
+                          tablet: 18,
+                          desktop: 20,
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Change Password',
-                            style: AppStyles.menuItem(context),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Update your password',
-                            style: AppStyles.menuItemHint(context),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      color: context.colorScheme.onSurface.withValues(
-                        alpha: 0.3,
-                      ),
-                      size: Responsive.getIconSize(
-                        context,
-                        mobile: 16,
-                        tablet: 18,
-                        desktop: 20,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
         ],
       ),
     );
@@ -632,6 +696,76 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  void _showLogoutDialog(BuildContext parentContext) {
+    bool isSubmitting = false;
+
+    showDialog(
+      context: parentContext,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (BuildContext context, StateSetter setState) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: Row(
+              children: [
+                Icon(
+                  Icons.logout_rounded,
+                  color: context.colorScheme.error,
+                  size: 24,
+                ),
+                const SizedBox(width: 12),
+                Text('Logout', style: AppStyles.pageTitle(context)),
+              ],
+            ),
+            content: SizedBox(
+              width: Responsive.getDialogWidth(context),
+              child: Text(
+                'Are you sure you want to logout?',
+                style: AppStyles.standardBodyText(context),
+              ),
+            ),
+            actions: [
+              SizedBox(
+                width: Responsive.getDialogWidth(context),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: HeliumElevatedButton(
+                        buttonText: 'Cancel',
+                        backgroundColor: context.colorScheme.outline,
+                        onPressed: () {
+                          Navigator.of(dialogContext).pop();
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: HeliumElevatedButton(
+                        buttonText: 'Logout',
+                        backgroundColor: context.colorScheme.error,
+                        isLoading: isSubmitting,
+                        onPressed: () {
+                          setState(() {
+                            isSubmitting = true;
+                          });
+
+                          Navigator.of(dialogContext).pop();
+
+                          parentContext.read<AuthBloc>().add(LogoutEvent());
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
