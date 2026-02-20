@@ -268,7 +268,7 @@ class _NavigationShellState extends State<NavigationShell> {
                                 inheritableProviders:
                                     _inheritableProvidersNotifier.providers,
                                 showLogout:
-                                    kIsWeb && !Responsive.isMobile(context),
+                                    kIsWeb && !Responsive.isTouchDevice(context),
                                 onLogoutConfirmed: () {
                                   setState(() {
                                     _isLoggingOut = true;

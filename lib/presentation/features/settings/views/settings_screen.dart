@@ -73,7 +73,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
   ScreenType get screenType => ScreenType.subPage;
 
   @override
-  bool get showLogout => !kIsWeb || Responsive.isMobile(context);
+  bool get showLogout => !kIsWeb || Responsive.isTouchDevice(context);
 
   final BasicFormController _deleteAccountFormController =
       BasicFormController();
