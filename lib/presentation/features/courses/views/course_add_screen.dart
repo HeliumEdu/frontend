@@ -126,14 +126,18 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
     return () {
       if (isSubmitting) return;
       Function? widgetSubmit;
+      bool widgetLoading = false;
       switch (currentStep) {
         case 0:
           widgetSubmit = _detailsKey.currentState?.onSubmit;
+          widgetLoading = _detailsKey.currentState?.isLoading ?? true;
           break;
         case 1:
           widgetSubmit = _scheduleKey.currentState?.onSubmit;
+          widgetLoading = _scheduleKey.currentState?.isLoading ?? true;
           break;
       }
+      if (widgetLoading) return;
       if (widgetSubmit != null) {
         setState(() => isSubmitting = true);
         widgetSubmit();

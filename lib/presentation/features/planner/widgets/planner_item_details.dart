@@ -853,7 +853,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   }
 
   Future<void> onSubmit() async {
-    if (isSubmitting) return;
+    if (isLoading || isSubmitting) return;
     if (_formController.validateAndScrollToError()) {
       if (_formController.endDate.isBefore(_formController.startDate)) {
         SnackBarHelper.show(
@@ -928,9 +928,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
         final selectedCourse = _courses.firstWhere(
           (c) => c.id == _formController.selectedCourse,
         );
-        final selectedCategory = _categories.firstWhere(
-          (c) => c.id == _formController.selectedCategory,
-        );
 
         String gradeValue;
         if (!_formController.isCompleted) {
@@ -957,9 +954,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
         if (!mounted) return;
         if (widget.isEdit && widget.homeworkId != null) {
-          final color = widget.userSettings?.colorByCategory == true
-              ? selectedCategory.color
-              : selectedCourse.color;
           context.read<PlannerItemBloc>().add(
             UpdateHomeworkEvent(
               origin: EventOrigin.subScreen,
@@ -967,8 +961,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
               courseId: selectedCourse.id,
               homeworkId: widget.homeworkId!,
               request: request,
-              color: color,
-              courseTitle: selectedCourse.title,
             ),
           );
         } else {

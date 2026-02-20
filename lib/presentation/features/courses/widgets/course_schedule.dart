@@ -425,6 +425,7 @@ class CourseScheduleState extends State<CourseSchedule> {
 
   /// Submit the form. Called by parent screen when header save is pressed.
   bool onSubmit() {
+    if (isLoading || isSubmitting) return false;
     if (_scheduleId == null) {
       return false;
     }

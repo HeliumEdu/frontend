@@ -444,7 +444,7 @@ class CourseDetailsState extends State<CourseDetails> {
 
   /// Submit the form. Called by parent screen when header save is pressed.
   bool onSubmit() {
-    if (isSubmitting) return false;
+    if (isLoading || isSubmitting) return false;
     if (_formController.validateAndScrollToError()) {
       if (_formController.endDate!.isBefore(_formController.startDate!)) {
         SnackBarHelper.show(

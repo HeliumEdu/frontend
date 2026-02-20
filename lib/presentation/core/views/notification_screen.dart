@@ -187,65 +187,16 @@ class _NotificationsScreenState
       ),
       BlocListener<PlannerItemBloc, PlannerItemState>(
         listener: (context, state) {
+          // When homework/event is updated or deleted, remove the notification
+          // since the backend may have reset the reminder's sent flag
           if (state is EventUpdated) {
-            final index = _notifications.indexWhere(
-              (n) => n.reminder.event?.entity?.id == state.event.id,
-            );
-            if (index != -1) {
-              final notification = _notifications[index];
-              final updatedReminder = notification.reminder.copyWith(
-                event: notification.reminder.event?.copyWith(
-                  entity: state.event,
-                ),
-              );
-              setState(() {
-                // Event color won't change through listener, preserve existing
-                _notifications[index] = _mapReminderToNotification(
-                  updatedReminder,
-                  existingColor: notification.color,
-                );
-              });
-            }
+            _removeNotificationByPlannerItemId(eventId: state.event.id);
           } else if (state is EventDeleted) {
-            setState(() {
-              _notifications.removeWhere(
-                (n) => n.reminder.event?.entity?.id == state.id,
-              );
-            });
+            _removeNotificationByPlannerItemId(eventId: state.id);
           } else if (state is HomeworkUpdated) {
-            final index = _notifications.indexWhere(
-              (n) => n.reminder.homework?.entity?.id == state.homework.id,
-            );
-            if (index != -1) {
-              final notification = _notifications[index];
-              final existingHomework = notification.reminder.homework?.entity;
-              final courseChanged =
-                  existingHomework?.course.id != state.homework.course.id;
-              final categoryChanged =
-                  existingHomework?.category.id != state.homework.category.id;
-              final updatedHomework = state.homework.copyWith(
-                course: courseChanged ? null : existingHomework?.course,
-                category: categoryChanged ? null : existingHomework?.category,
-              );
-              final updatedReminder = notification.reminder.copyWith(
-                homework: notification.reminder.homework?.copyWith(
-                  entity: updatedHomework,
-                ),
-              );
-              setState(() {
-                _notifications[index] = _mapReminderToNotification(
-                  updatedReminder,
-                  existingColor: state.color ?? notification.color,
-                  existingCourseTitle: state.courseTitle,
-                );
-              });
-            }
+            _removeNotificationByPlannerItemId(homeworkId: state.homework.id);
           } else if (state is HomeworkDeleted) {
-            setState(() {
-              _notifications.removeWhere(
-                (n) => n.reminder.homework?.entity?.id == state.id,
-              );
-            });
+            _removeNotificationByPlannerItemId(homeworkId: state.id);
           }
         },
       ),
@@ -313,15 +264,25 @@ class _NotificationsScreenState
     });
   }
 
+  void _removeNotificationByPlannerItemId({int? eventId, int? homeworkId}) {
+    setState(() {
+      _notifications.removeWhere((n) {
+        if (eventId != null) return n.reminder.event?.entity?.id == eventId;
+        if (homeworkId != null) {
+          return n.reminder.homework?.entity?.id == homeworkId;
+        }
+        return false;
+      });
+    });
+  }
+
   NotificationModel _mapReminderToNotification(
     ReminderModel reminder, {
     Color? existingColor,
-    String? existingCourseTitle,
   }) {
     final PlannerItemBaseModel? plannerItem;
     final String title;
     final Color? color;
-    final String? courseTitle;
     if (reminder.homework != null) {
       plannerItem = reminder.homework?.entity;
       final course = reminder.homework?.entity?.course.entity;
@@ -333,14 +294,12 @@ class _NotificationsScreenState
               ? category?.color
               : course?.color) ??
           FallbackConstants.fallbackColor;
-      courseTitle = existingCourseTitle ?? course?.title;
     } else {
       plannerItem = reminder.event?.entity;
       title = reminder.event?.entity?.title as String;
       color = existingColor ??
           userSettings?.eventsColor ??
           FallbackConstants.fallbackColor;
-      courseTitle = null;
     }
 
     return NotificationModel(
@@ -348,7 +307,6 @@ class _NotificationsScreenState
       title: title,
       body: reminder.title,
       color: color,
-      courseTitle: courseTitle,
       timestamp: plannerItem!.start.toIso8601String(),
       isRead: _readNotificationIds.contains(reminder.id),
       reminder: reminder,
@@ -436,17 +394,14 @@ class _NotificationsScreenState
                             ),
                           ),
                         if (plannerItem is HomeworkModel &&
-                            (plannerItem.course.entity != null ||
-                                notification.courseTitle != null)) ...[
+                            plannerItem.course.entity != null) ...[
                           const SizedBox(width: 4),
                           Expanded(
                             child: Align(
                               alignment: Alignment.centerRight,
                               child: CourseTitleLabel(
-                                title: plannerItem.course.entity?.title ??
-                                    notification.courseTitle!,
-                                color: plannerItem.course.entity?.color ??
-                                    notification.color!,
+                                title: plannerItem.course.entity!.title,
+                                color: plannerItem.course.entity!.color,
                               ),
                             ),
                           ),
@@ -552,7 +507,6 @@ class _NotificationsScreenState
             title: n.title,
             body: n.body,
             color: n.color,
-            courseTitle: n.courseTitle,
             timestamp: n.timestamp,
             isRead: true,
             reminder: n.reminder,
