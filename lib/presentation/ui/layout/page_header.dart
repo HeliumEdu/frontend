@@ -10,7 +10,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/core/views/notification_screen.dart';
 import 'package:heliumapp/presentation/ui/components/settings_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -50,11 +49,8 @@ class PageHeader extends StatelessWidget {
             IconButton(
               visualDensity: VisualDensity.compact,
               onPressed: () {
-                // In dialog mode, close all dialogs and go to main screen
-                if (DialogModeProvider.isDialogMode(context)) {
-                  context.go(AppRoute.plannerScreen);
-                } else if (Navigator.canPop(context)) {
-                  context.pop();
+                if (Navigator.of(context).canPop()) {
+                  Navigator.of(context).pop();
                 } else {
                   context.go(AppRoute.plannerScreen);
                 }
