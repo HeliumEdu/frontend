@@ -14,29 +14,29 @@ import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
-import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
-import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
-import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
-import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
-import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
+import 'package:heliumapp/presentation/core/views/landing_screen.dart';
+import 'package:heliumapp/presentation/core/views/mobile_web_screen.dart';
+import 'package:heliumapp/presentation/core/views/notification_screen.dart';
 import 'package:heliumapp/presentation/features/auth/views/forgot_password_screen.dart';
 import 'package:heliumapp/presentation/features/auth/views/login_screen.dart';
 import 'package:heliumapp/presentation/features/auth/views/setup_account_screen.dart';
 import 'package:heliumapp/presentation/features/auth/views/signup_screen.dart';
 import 'package:heliumapp/presentation/features/auth/views/verify_email_screen.dart';
-import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
-import 'package:heliumapp/presentation/core/views/landing_screen.dart';
-import 'package:heliumapp/presentation/core/views/mobile_web_screen.dart';
-import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
-import 'package:heliumapp/presentation/core/views/notification_screen.dart';
+import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/views/course_add_screen.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
+import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
 import 'package:heliumapp/presentation/features/resources/views/resource_add_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/change_password_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/external_calendars_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/feeds_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/preferences_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/settings_screen.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
+import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -268,12 +268,19 @@ void initializeRouter() {
           }
 
           final args = state.extra as SettingsArgs?;
-          final child = (args?.externalCalendarBloc != null)
-              ? BlocProvider<ExternalCalendarBloc>.value(
+          final child = MultiBlocProvider(
+            providers: [
+              if (args?.externalCalendarBloc != null)
+                BlocProvider<ExternalCalendarBloc>.value(
                   value: args!.externalCalendarBloc!,
-                  child: const SettingsScreen(),
-                )
-              : const SettingsScreen();
+                ),
+              if (args?.plannerItemBloc != null)
+                BlocProvider<PlannerItemBloc>.value(
+                  value: args!.plannerItemBloc!,
+                ),
+            ],
+            child: const SettingsScreen(),
+          );
           return MaterialPage(child: child);
         },
       ),
@@ -405,4 +412,3 @@ class _RouteRedirect extends StatelessWidget {
     return const Scaffold(body: SizedBox.shrink());
   }
 }
-
