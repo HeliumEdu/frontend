@@ -342,6 +342,12 @@ class PlannerHelper {
     });
   }
 
+  /// Rounds [minute] to the nearest 30-minute boundary (0 or 30).
+  /// Used when snapping drag-and-drop and resize times on the calendar.
+  /// A result of 60 is valid — DateTime/TZDateTime constructors overflow it
+  /// to minute 0 of the next hour.
+  static int roundMinute(int minute) => ((minute + 15) ~/ 30) * 30;
+
   /// Generates a cloned title by incrementing a trailing number or appending
   /// " 1" if no trailing number exists.
   ///

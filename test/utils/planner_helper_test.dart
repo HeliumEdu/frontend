@@ -228,6 +228,32 @@ void main() {
       });
     });
 
+    group('roundMinute', () {
+      test('rounds minutes 0-14 down to 0', () {
+        expect(PlannerHelper.roundMinute(0), 0);
+        expect(PlannerHelper.roundMinute(7), 0);
+        expect(PlannerHelper.roundMinute(14), 0);
+      });
+
+      test('rounds minutes 15-44 to 30', () {
+        expect(PlannerHelper.roundMinute(15), 30);
+        expect(PlannerHelper.roundMinute(29), 30);
+        expect(PlannerHelper.roundMinute(30), 30);
+        expect(PlannerHelper.roundMinute(44), 30);
+      });
+
+      test('rounds minutes 45-59 up to 60 (overflows to next hour)', () {
+        expect(PlannerHelper.roundMinute(45), 60);
+        expect(PlannerHelper.roundMinute(52), 60);
+        expect(PlannerHelper.roundMinute(59), 60);
+      });
+
+      test('is idempotent on already-rounded values', () {
+        expect(PlannerHelper.roundMinute(0), 0);
+        expect(PlannerHelper.roundMinute(30), 30);
+      });
+    });
+
     group('shouldShowCheckbox', () {
       testWidgets('returns false for non-HomeworkModel', (tester) async {
         final eventItem = _createEventModel();
