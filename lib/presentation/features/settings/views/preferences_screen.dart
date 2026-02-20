@@ -31,7 +31,7 @@ import 'package:heliumapp/utils/time_zone_constants.dart';
 /// Shows as a dialog on desktop, or navigates on mobile.
 void showPreferences(BuildContext context) {
   if (Responsive.isMobile(context)) {
-    context.push(AppRoute.preferencesScreen);
+    context.push(AppRoute.preferencesScreen, extra: true);
   } else {
     showScreenAsDialog(
       context,

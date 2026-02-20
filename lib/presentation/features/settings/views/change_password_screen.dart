@@ -25,7 +25,7 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 /// Shows as a dialog on desktop, or navigates on mobile.
 void showChangePassword(BuildContext context) {
   if (Responsive.isMobile(context)) {
-    context.push(AppRoute.changePasswordScreen);
+    context.push(AppRoute.changePasswordScreen, extra: true);
   } else {
     showScreenAsDialog(
       context,

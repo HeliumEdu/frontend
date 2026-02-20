@@ -41,7 +41,8 @@ final shellNavigatorKey = GlobalKey<NavigatorState>();
 late final GoRouter router;
 
 void initializeRouter() {
-  // Make push/pop reflect in browser URL on web
+  // Enable URL updates for push/pop on web. Direct URL access to sub-sub pages
+  // and edit screens is guarded by redirect checks in the route definitions.
   GoRouter.optionURLReflectsImperativeAPIs = true;
 
   router = GoRouter(
@@ -257,25 +258,50 @@ void initializeRouter() {
           return const MaterialPage(child: SettingsScreen());
         },
       ),
+      // Sub-sub settings pages redirect to /settings if accessed directly via URL
       GoRoute(
         path: AppRoute.preferencesScreen,
-        pageBuilder: (context, state) =>
-            const MaterialPage(child: PreferencesScreen()),
+        pageBuilder: (context, state) {
+          if (state.extra == null) {
+            return const MaterialPage(
+              child: _RouteRedirect(redirectTo: AppRoute.settingScreen),
+            );
+          }
+          return const MaterialPage(child: PreferencesScreen());
+        },
       ),
       GoRoute(
         path: AppRoute.feedsScreen,
-        pageBuilder: (context, state) =>
-            const MaterialPage(child: FeedsScreen()),
+        pageBuilder: (context, state) {
+          if (state.extra == null) {
+            return const MaterialPage(
+              child: _RouteRedirect(redirectTo: AppRoute.settingScreen),
+            );
+          }
+          return const MaterialPage(child: FeedsScreen());
+        },
       ),
       GoRoute(
         path: AppRoute.externalCalendarsScreen,
-        pageBuilder: (context, state) =>
-            const MaterialPage(child: ExternalCalendarsScreen()),
+        pageBuilder: (context, state) {
+          if (state.extra == null) {
+            return const MaterialPage(
+              child: _RouteRedirect(redirectTo: AppRoute.settingScreen),
+            );
+          }
+          return const MaterialPage(child: ExternalCalendarsScreen());
+        },
       ),
       GoRoute(
         path: AppRoute.changePasswordScreen,
-        pageBuilder: (context, state) =>
-            const MaterialPage(child: ChangePasswordScreen()),
+        pageBuilder: (context, state) {
+          if (state.extra == null) {
+            return const MaterialPage(
+              child: _RouteRedirect(redirectTo: AppRoute.settingScreen),
+            );
+          }
+          return const MaterialPage(child: ChangePasswordScreen());
+        },
       ),
     ],
   );
