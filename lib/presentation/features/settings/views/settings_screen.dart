@@ -42,7 +42,7 @@ import 'package:url_launcher/url_launcher.dart';
 /// Shows as a dialog on desktop, or navigates on mobile.
 void showSettings(BuildContext context) {
   if (Responsive.isMobile(context)) {
-    context.go(AppRoute.settingScreen);
+    context.push(AppRoute.settingScreen);
   } else {
     showScreenAsDialog(
       context,

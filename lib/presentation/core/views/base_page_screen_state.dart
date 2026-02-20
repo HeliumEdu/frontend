@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/route_args.dart';
@@ -197,8 +198,13 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
   ScreenType get screenType => ScreenType.page;
 
-  Function get cancelAction =>
-      () => Navigator.of(context).pop();
+  Function get cancelAction => () {
+        if (DialogModeProvider.isDialogMode(context)) {
+          Navigator.of(context).pop();
+        } else {
+          context.pop();
+        }
+      };
 
   Function? get saveAction => null;
 
