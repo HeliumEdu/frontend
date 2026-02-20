@@ -357,8 +357,20 @@ class _CalendarScreenState
             showSnackBar(context, 'Event deleted');
             _plannerItemDataSource!.removePlannerItem(state.id);
           } else if (state is AllEventsDeleted) {
-            showSnackBar(context, 'All events deleted');
-            // TODO: refresh data source
+            _log.info('All Events deleted, refreshing calendar sources');
+
+            final visibleStart = _visibleDates.isNotEmpty
+                ? _visibleDates.first
+                : null;
+            final visibleEnd = _visibleDates.isNotEmpty
+                ? _visibleDates.last
+                : null;
+
+            _plannerItemDataSource!.refreshCalendarSources(
+              visibleStart: visibleStart,
+              visibleEnd: visibleEnd,
+            );
+            unawaited(_refreshExternalCalendarsMap());
           } else if (state is HomeworkCreated) {
             _plannerItemDataSource!.addPlannerItem(state.homework);
           } else if (state is HomeworkUpdated) {
