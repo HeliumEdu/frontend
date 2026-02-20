@@ -60,4 +60,9 @@ class EventRepositoryImpl implements EventRepository {
   Future<void> deleteEvent({required int eventId}) async {
     return await remoteDataSource.deleteEvent(eventId: eventId);
   }
+
+  @override
+  Future<void> deleteAllEvents() async {
+    return await remoteDataSource.deleteAllEvents();
+  }
 }

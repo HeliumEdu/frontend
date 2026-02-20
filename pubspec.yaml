@@ -3,7 +3,7 @@ description: "Helium is a smart student planner that lets organizes your classes
 
 publish_to: 'none'
 
-version: 3.1.2+75
+version: 3.1.2+76
 
 environment:
   sdk: ^3.10.0
@@ -67,6 +67,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - assets/fonts/
     - assets/img/
   fonts:
     - family: Poppins

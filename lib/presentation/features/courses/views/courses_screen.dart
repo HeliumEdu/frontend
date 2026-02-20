@@ -458,7 +458,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
                         parentContext: context,
                         item: course,
                         additionalWarning:
-                            'Any assignments associated with this class will also be deleted.',
+                            'Any assignments associated with this class, including attachments and other data, will also be deleted.',
                         onDelete: (c) {
                           context.read<CourseBloc>().add(
                             DeleteCourseEvent(

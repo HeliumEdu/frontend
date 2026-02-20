@@ -5,25 +5,29 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
+import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
-import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
-import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
-import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/planneritem_event.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
 import 'package:heliumapp/presentation/features/settings/views/change_password_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/external_calendars_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/feeds_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/preferences_screen.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -37,17 +41,12 @@ import 'package:url_launcher/url_launcher.dart';
 
 /// Shows as a dialog on desktop, or navigates on mobile.
 void showSettings(BuildContext context) {
-  final args = SettingsArgs(
-    externalCalendarBloc: context.read<ExternalCalendarBloc>(),
-  );
-
   if (Responsive.isMobile(context)) {
-    context.go(AppRoute.settingScreen, extra: args);
+    context.push(AppRoute.settingScreen);
   } else {
     showScreenAsDialog(
       context,
       child: const SettingsScreen(),
-      extra: args,
       width: AppConstants.leftPanelDialogWidth,
       alignment: Alignment.centerLeft,
       insetPadding: const EdgeInsets.all(0),
@@ -72,9 +71,6 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
   @override
   ScreenType get screenType => ScreenType.subPage;
 
-  @override
-  bool get showLogout => !kIsWeb || Responsive.isMobile(context);
-
   final BasicFormController _deleteAccountFormController =
       BasicFormController();
   final TextEditingController _deleteAccountPasswordController =
@@ -86,6 +82,8 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
   String _email = '';
   String _version = '';
   bool _hasUsablePassword = true;
+  bool _dangerZoneExpanded = false;
+  Timer? _dangerZoneTimer;
 
   @override
   void initState() {
@@ -96,6 +94,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
 
   @override
   void dispose() {
+    _dangerZoneTimer?.cancel();
     _deleteAccountPasswordController.dispose();
 
     super.dispose();
@@ -104,6 +103,23 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
   @override
   List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
     return [
+      BlocListener<PlannerItemBloc, PlannerItemState>(
+        listener: (context, state) {
+          if (state.origin != EventOrigin.dialog) return;
+
+          if (state is AllEventsDeleted) {
+            setState(() {
+              isLoading = false;
+            });
+            showSnackBar(context, 'All Events deleted');
+          } else if (state is PlannerItemsError) {
+            setState(() {
+              isLoading = false;
+            });
+            showSnackBar(context, state.message!, isError: true);
+          }
+        },
+      ),
       BlocListener<AuthBloc, AuthState>(
         listener: (context, state) async {
           if (state is AuthError) {
@@ -168,7 +184,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
 
             const SizedBox(height: 12),
 
-            _buildDeleteAccountArea(),
+            _buildDangerZoneArea(),
 
             const SizedBox(height: 12),
 
@@ -347,13 +363,9 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
             color: Colors.transparent,
             child: InkWell(
               onTap: () {
-                // Capture the bloc before navigating, since the new context
-                // won't have it after the settings dialog is popped
-                final bloc = context.read<ExternalCalendarBloc>();
                 _navigateToSubSettings(
                   context,
-                  (ctx) =>
-                      showExternalCalendars(ctx, externalCalendarBloc: bloc),
+                  (ctx) => showExternalCalendars(ctx),
                 );
               },
               borderRadius: BorderRadius.circular(16),
@@ -481,13 +493,78 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
           if (_hasUsablePassword) const Divider(height: 1, indent: 68),
 
           if (_hasUsablePassword)
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => _navigateToSubSettings(
+                  context,
+                  (ctx) => showChangePassword(ctx),
+                ),
+                borderRadius: BorderRadius.circular(16),
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: context.colorScheme.primary.withValues(
+                            alpha: 0.1,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          Icons.lock_outline,
+                          color: context.colorScheme.primary,
+                          size: Responsive.getIconSize(
+                            context,
+                            mobile: 22,
+                            tablet: 24,
+                            desktop: 26,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Change Password',
+                              style: AppStyles.menuItem(context),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Update your password',
+                              style: AppStyles.menuItemHint(context),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        color: context.colorScheme.onSurface.withValues(
+                          alpha: 0.3,
+                        ),
+                        size: Responsive.getIconSize(
+                          context,
+                          mobile: 16,
+                          tablet: 18,
+                          desktop: 20,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+          const Divider(height: 1, indent: 68),
+
           Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: () => _navigateToSubSettings(
-                context,
-                (ctx) => showChangePassword(ctx),
-              ),
+              onTap: () => _showLogoutDialog(context),
               borderRadius: BorderRadius.circular(16),
               child: Padding(
                 padding: const EdgeInsets.all(14),
@@ -496,14 +573,12 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: context.colorScheme.primary.withValues(
-                          alpha: 0.1,
-                        ),
+                        color: context.colorScheme.error.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
-                        Icons.lock_outline,
-                        color: context.colorScheme.primary,
+                        Icons.logout_outlined,
+                        color: context.semanticColors.warning,
                         size: Responsive.getIconSize(
                           context,
                           mobile: 22,
@@ -518,12 +593,14 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Change Password',
-                            style: AppStyles.menuItem(context),
+                            'Logout',
+                            style: AppStyles.menuItem(
+                              context,
+                            ).copyWith(color: context.semanticColors.warning),
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'Update your password',
+                            'Sign out of your account',
                             style: AppStyles.menuItemHint(context),
                           ),
                         ],
@@ -568,7 +645,32 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
     }
   }
 
-  Widget _buildDeleteAccountArea() {
+  void _expandDangerZone() {
+    _dangerZoneTimer?.cancel();
+    setState(() {
+      _dangerZoneExpanded = true;
+    });
+    _dangerZoneTimer = Timer(const Duration(seconds: 5), () {
+      if (mounted) {
+        setState(() {
+          _dangerZoneExpanded = false;
+        });
+      }
+    });
+  }
+
+  void _resetDangerZoneTimer() {
+    _dangerZoneTimer?.cancel();
+    _dangerZoneTimer = Timer(const Duration(seconds: 5), () {
+      if (mounted) {
+        setState(() {
+          _dangerZoneExpanded = false;
+        });
+      }
+    });
+  }
+
+  Widget _buildDangerZoneArea() {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
@@ -576,62 +678,301 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
           color: context.colorScheme.error.withValues(alpha: 0.2),
         ),
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => _showDeleteAccountDialog(context),
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: context.colorScheme.error.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
+      child: _dangerZoneExpanded
+          ? _buildDangerZoneExpanded()
+          : _buildDangerZoneCollapsed(),
+    );
+  }
+
+  Widget _buildDangerZoneCollapsed() {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: _expandDangerZone,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: context.colorScheme.error.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.warning_amber_rounded,
+                  color: context.colorScheme.error,
+                  size: Responsive.getIconSize(
+                    context,
+                    mobile: 22,
+                    tablet: 24,
+                    desktop: 26,
                   ),
-                  child: Icon(
-                    Icons.delete_outline,
-                    color: context.colorScheme.error,
-                    size: Responsive.getIconSize(
-                      context,
-                      mobile: 22,
-                      tablet: 24,
-                      desktop: 26,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  'Danger Zone',
+                  style: AppStyles.menuItem(
+                    context,
+                  ).copyWith(color: context.colorScheme.error),
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios,
+                color: context.colorScheme.onSurface.withValues(alpha: 0.3),
+                size: 16,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDangerZoneExpanded() {
+    return Column(
+      children: [
+        _buildDangerZoneItem(
+          icon: Icons.delete_sweep_outlined,
+          label: 'Delete All Events',
+          hint: 'Permanently delete all Events',
+          onTap: () {
+            _resetDangerZoneTimer();
+            _showDeleteAllEventsDialog(context);
+          },
+        ),
+        const Divider(height: 1, indent: 68),
+        _buildDangerZoneItem(
+          icon: Icons.delete_outline,
+          label: 'Delete Account',
+          hint: 'Permanently delete your account',
+          onTap: () {
+            _resetDangerZoneTimer();
+            _showDeleteAccountDialog(context);
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDangerZoneItem({
+    required IconData icon,
+    required String label,
+    required String hint,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: context.colorScheme.error.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  icon,
+                  color: context.colorScheme.error,
+                  size: Responsive.getIconSize(
+                    context,
+                    mobile: 22,
+                    tablet: 24,
+                    desktop: 26,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: AppStyles.menuItem(
+                        context,
+                      ).copyWith(color: context.colorScheme.error),
                     ),
-                  ),
+                    const SizedBox(height: 2),
+                    Text(hint, style: AppStyles.menuItemHint(context)),
+                  ],
                 ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios,
+                color: context.colorScheme.onSurface.withValues(alpha: 0.3),
+                size: 16,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-                const SizedBox(width: 16),
+  void _showDeleteAllEventsDialog(BuildContext parentContext) {
+    bool isSubmitting = false;
 
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Delete Account',
-                        style: AppStyles.menuItem(
-                          context,
-                        ).copyWith(color: context.colorScheme.error),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Permanently delete your account',
-                        style: AppStyles.menuItemHint(context),
-                      ),
-                    ],
-                  ),
-                ),
+    showDialog(
+      context: parentContext,
+      barrierDismissible: false,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: Row(
+              children: [
                 Icon(
-                  Icons.arrow_forward_ios,
-                  color: context.colorScheme.onSurface.withValues(alpha: 0.3),
-                  size: 16,
+                  Icons.warning_amber_rounded,
+                  color: context.colorScheme.error,
+                  size: Responsive.getIconSize(
+                    context,
+                    mobile: 28,
+                    tablet: 30,
+                    desktop: 32,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Delete All Events',
+                    style: AppStyles.featureText(
+                      context,
+                    ).copyWith(color: context.colorScheme.error),
+                  ),
                 ),
               ],
             ),
-          ),
-        ),
+            content: SizedBox(
+              width: Responsive.getDialogWidth(context),
+              child: Text(
+                'Are you sure you want to delete all Events? Anything associated with them, including attachments and other data, will also be deleted. This action cannot be undone.',
+                style: AppStyles.standardBodyText(context),
+              ),
+            ),
+            actions: [
+              SizedBox(
+                width: Responsive.getDialogWidth(context),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: HeliumElevatedButton(
+                        buttonText: 'Cancel',
+                        backgroundColor: context.colorScheme.outline,
+                        onPressed: () {
+                          Navigator.of(dialogContext).pop();
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: HeliumElevatedButton(
+                        buttonText: 'Delete',
+                        backgroundColor: context.colorScheme.error,
+                        isLoading: isSubmitting,
+                        onPressed: () {
+                          setState(() {
+                            isSubmitting = true;
+                          });
+
+                          Navigator.of(dialogContext).pop();
+
+                          this.setState(() {
+                            isLoading = true;
+                          });
+
+                          context.read<PlannerItemBloc>().add(
+                            DeleteAllEventsEvent(origin: EventOrigin.dialog),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  void _showLogoutDialog(BuildContext parentContext) {
+    bool isSubmitting = false;
+
+    showDialog(
+      context: parentContext,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (BuildContext context, StateSetter setState) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: Row(
+              children: [
+                Icon(
+                  Icons.logout_rounded,
+                  color: context.colorScheme.error,
+                  size: 24,
+                ),
+                const SizedBox(width: 12),
+                Text('Logout', style: AppStyles.pageTitle(context)),
+              ],
+            ),
+            content: SizedBox(
+              width: Responsive.getDialogWidth(context),
+              child: Text(
+                'Are you sure you want to logout?',
+                style: AppStyles.standardBodyText(context),
+              ),
+            ),
+            actions: [
+              SizedBox(
+                width: Responsive.getDialogWidth(context),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: HeliumElevatedButton(
+                        buttonText: 'Cancel',
+                        backgroundColor: context.colorScheme.outline,
+                        onPressed: () {
+                          Navigator.of(dialogContext).pop();
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: HeliumElevatedButton(
+                        buttonText: 'Logout',
+                        backgroundColor: context.colorScheme.error,
+                        isLoading: isSubmitting,
+                        onPressed: () {
+                          setState(() {
+                            isSubmitting = true;
+                          });
+
+                          Navigator.of(dialogContext).pop();
+
+                          parentContext.read<AuthBloc>().add(LogoutEvent());
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

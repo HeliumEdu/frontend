@@ -10,33 +10,30 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
-import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/config/route_args.dart';
+import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
-import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
-import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
-import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
-import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
-import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
+import 'package:heliumapp/presentation/core/views/landing_screen.dart';
+import 'package:heliumapp/presentation/core/views/mobile_web_screen.dart';
+import 'package:heliumapp/presentation/core/views/notification_screen.dart';
 import 'package:heliumapp/presentation/features/auth/views/forgot_password_screen.dart';
 import 'package:heliumapp/presentation/features/auth/views/login_screen.dart';
 import 'package:heliumapp/presentation/features/auth/views/setup_account_screen.dart';
 import 'package:heliumapp/presentation/features/auth/views/signup_screen.dart';
 import 'package:heliumapp/presentation/features/auth/views/verify_email_screen.dart';
-import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
-import 'package:heliumapp/presentation/core/views/landing_screen.dart';
-import 'package:heliumapp/presentation/core/views/mobile_web_screen.dart';
-import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
-import 'package:heliumapp/presentation/core/views/notification_screen.dart';
+import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/views/course_add_screen.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
+import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
 import 'package:heliumapp/presentation/features/resources/views/resource_add_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/change_password_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/external_calendars_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/feeds_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/preferences_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/settings_screen.dart';
+import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -44,6 +41,10 @@ final shellNavigatorKey = GlobalKey<NavigatorState>();
 late final GoRouter router;
 
 void initializeRouter() {
+  // Enable URL updates for push/pop on web. Direct URL access to sub-sub pages
+  // and edit screens is guarded by redirect checks in the route definitions.
+  GoRouter.optionURLReflectsImperativeAPIs = true;
+
   router = GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: AppRoute.landingScreen,
@@ -137,6 +138,7 @@ void initializeRouter() {
       // Protected full-screen routes (outside shell)
       GoRoute(
         path: AppRoute.notificationsScreen,
+        parentNavigatorKey: rootNavigatorKey,
         pageBuilder: (context, state) {
           if (!Responsive.isMobile(context)) {
             return const MaterialPage(
@@ -147,17 +149,7 @@ void initializeRouter() {
             );
           }
 
-          final args = state.extra as NotificationArgs?;
-          final child = (args?.plannerItemBloc != null)
-              ? BlocProvider<PlannerItemBloc>.value(
-                  value: args!.plannerItemBloc!,
-                  child: NotificationsScreen(),
-                )
-              : BlocProvider<PlannerItemBloc>(
-                  create: ProviderHelpers().createPlannerItemBloc(),
-                  child: NotificationsScreen(),
-                );
-          return MaterialPage(child: child);
+          return MaterialPage(child: NotificationsScreen());
         },
       ),
 
@@ -171,13 +163,8 @@ void initializeRouter() {
             );
           }
           return MaterialPage(
-            child: MultiBlocProvider(
-              providers: [
-                BlocProvider<PlannerItemBloc>.value(
-                  value: args.plannerItemBloc,
-                ),
-                BlocProvider<AttachmentBloc>.value(value: args.attachmentBloc),
-              ],
+            child: BlocProvider<AttachmentBloc>.value(
+              value: args.attachmentBloc,
               child: PlannerItemAddScreen(
                 eventId: args.eventId,
                 homeworkId: args.homeworkId,
@@ -257,6 +244,7 @@ void initializeRouter() {
       // Settings routes
       GoRoute(
         path: AppRoute.settingScreen,
+        parentNavigatorKey: rootNavigatorKey,
         pageBuilder: (context, state) {
           if (!Responsive.isMobile(context)) {
             return const MaterialPage(
@@ -267,43 +255,53 @@ void initializeRouter() {
             );
           }
 
-          final args = state.extra as SettingsArgs?;
-          final child = (args?.externalCalendarBloc != null)
-              ? BlocProvider<ExternalCalendarBloc>.value(
-                  value: args!.externalCalendarBloc!,
-                  child: const SettingsScreen(),
-                )
-              : const SettingsScreen();
-          return MaterialPage(child: child);
+          return const MaterialPage(child: SettingsScreen());
+        },
+      ),
+      // Sub-sub settings pages redirect to /settings if accessed directly via URL
+      GoRoute(
+        path: AppRoute.preferencesScreen,
+        pageBuilder: (context, state) {
+          if (state.extra == null) {
+            return const MaterialPage(
+              child: _RouteRedirect(redirectTo: AppRoute.settingScreen),
+            );
+          }
+          return const MaterialPage(child: PreferencesScreen());
         },
       ),
       GoRoute(
-        path: AppRoute.preferencesScreen,
-        pageBuilder: (context, state) =>
-            const MaterialPage(child: PreferencesScreen()),
-      ),
-      GoRoute(
         path: AppRoute.feedsScreen,
-        pageBuilder: (context, state) =>
-            const MaterialPage(child: FeedsScreen()),
+        pageBuilder: (context, state) {
+          if (state.extra == null) {
+            return const MaterialPage(
+              child: _RouteRedirect(redirectTo: AppRoute.settingScreen),
+            );
+          }
+          return const MaterialPage(child: FeedsScreen());
+        },
       ),
       GoRoute(
         path: AppRoute.externalCalendarsScreen,
         pageBuilder: (context, state) {
-          final args = state.extra as ExternalCalendarsArgs?;
-          final child = (args?.externalCalendarBloc != null)
-              ? BlocProvider<ExternalCalendarBloc>.value(
-                  value: args!.externalCalendarBloc!,
-                  child: const ExternalCalendarsScreen(),
-                )
-              : const ExternalCalendarsScreen();
-          return MaterialPage(child: child);
+          if (state.extra == null) {
+            return const MaterialPage(
+              child: _RouteRedirect(redirectTo: AppRoute.settingScreen),
+            );
+          }
+          return const MaterialPage(child: ExternalCalendarsScreen());
         },
       ),
       GoRoute(
         path: AppRoute.changePasswordScreen,
-        pageBuilder: (context, state) =>
-            const MaterialPage(child: ChangePasswordScreen()),
+        pageBuilder: (context, state) {
+          if (state.extra == null) {
+            return const MaterialPage(
+              child: _RouteRedirect(redirectTo: AppRoute.settingScreen),
+            );
+          }
+          return const MaterialPage(child: ChangePasswordScreen());
+        },
       ),
     ],
   );
@@ -405,4 +403,3 @@ class _RouteRedirect extends StatelessWidget {
     return const Scaffold(body: SizedBox.shrink());
   }
 }
-

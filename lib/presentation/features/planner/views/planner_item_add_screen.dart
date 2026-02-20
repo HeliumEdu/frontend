@@ -30,14 +30,12 @@ void showPlannerItemAdd(
   required bool isEdit,
   required bool isNew,
   int initialStep = 0,
-  required PlannerItemBloc plannerItemBloc,
   required AttachmentBloc attachmentBloc,
 }) {
   if (Responsive.isMobile(context)) {
     context.push(
       AppRoute.plannerItemAddScreen,
       extra: PlannerItemAddArgs(
-        plannerItemBloc: plannerItemBloc,
         attachmentBloc: attachmentBloc,
         eventId: eventId,
         homeworkId: homeworkId,
@@ -52,7 +50,6 @@ void showPlannerItemAdd(
       context,
       child: MultiBlocProvider(
         providers: [
-          BlocProvider<PlannerItemBloc>.value(value: plannerItemBloc),
           BlocProvider<AttachmentBloc>.value(value: attachmentBloc),
         ],
         child: PlannerItemAddScreen(
@@ -146,12 +143,11 @@ class _PlannerItemAddScreenState
     if (currentStep != 0) return null;
     // Return function that evaluates widget state when called, not when getter runs
     return () {
-      if (isSubmitting) return;
-      final widgetSubmit = _detailsKey.currentState?.onSubmit;
-      if (widgetSubmit != null) {
-        setState(() => isSubmitting = true);
-        widgetSubmit();
-      }
+      final detailsState = _detailsKey.currentState;
+      if (detailsState == null) return;
+      if (detailsState.isLoading || isSubmitting) return;
+      setState(() => isSubmitting = true);
+      detailsState.onSubmit();
     };
   }
 
@@ -296,4 +292,3 @@ class _PlannerItemAddScreenState
   @override
   List<MultiStepDefinition> get steps => _steps;
 }
-

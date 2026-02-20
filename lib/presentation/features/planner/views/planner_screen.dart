@@ -92,7 +92,6 @@ class PlannerScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: _providerHelpers.createPlannerItemBloc()),
         BlocProvider(create: _providerHelpers.createAttachmentBloc()),
         BlocProvider(
           create: (context) => PlannerBloc(
@@ -143,7 +142,6 @@ class _CalendarScreenState
 
   @override
   List<BlocProvider>? get inheritableProviders => [
-    BlocProvider<PlannerItemBloc>.value(value: context.read<PlannerItemBloc>()),
     BlocProvider<AttachmentBloc>.value(value: context.read<AttachmentBloc>()),
   ];
 
@@ -159,7 +157,6 @@ class _CalendarScreenState
         ? truncatedNow
         : _calendarController.selectedDate;
 
-    final plannerItemBloc = context.read<PlannerItemBloc>();
     final attachmentBloc = context.read<AttachmentBloc>();
 
     showPlannerItemAdd(
@@ -168,7 +165,6 @@ class _CalendarScreenState
       isFromMonthView: _calendarController.view == CalendarView.month,
       isEdit: false,
       isNew: true,
-      plannerItemBloc: plannerItemBloc,
       attachmentBloc: attachmentBloc,
     );
   };
@@ -356,6 +352,21 @@ class _CalendarScreenState
           } else if (state is EventDeleted) {
             showSnackBar(context, 'Event deleted');
             _plannerItemDataSource!.removePlannerItem(state.id);
+          } else if (state is AllEventsDeleted) {
+            _log.info('All Events deleted, refreshing calendar sources');
+
+            final visibleStart = _visibleDates.isNotEmpty
+                ? _visibleDates.first
+                : null;
+            final visibleEnd = _visibleDates.isNotEmpty
+                ? _visibleDates.last
+                : null;
+
+            _plannerItemDataSource!.refreshCalendarSources(
+              visibleStart: visibleStart,
+              visibleEnd: visibleEnd,
+            );
+            unawaited(_refreshExternalCalendarsMap());
           } else if (state is HomeworkCreated) {
             _plannerItemDataSource!.addPlannerItem(state.homework);
           } else if (state is HomeworkUpdated) {
@@ -692,7 +703,6 @@ class _CalendarScreenState
         ? plannerItem.id
         : null;
 
-    final plannerItemBloc = context.read<PlannerItemBloc>();
     final attachmentBloc = context.read<AttachmentBloc>();
 
     showPlannerItemAdd(
@@ -701,7 +711,6 @@ class _CalendarScreenState
       homeworkId: homeworkId,
       isEdit: true,
       isNew: false,
-      plannerItemBloc: plannerItemBloc,
       attachmentBloc: attachmentBloc,
     );
 
@@ -1512,7 +1521,9 @@ class _CalendarScreenState
         userSettings!.timeZone,
       ).difference(startDateTime);
 
-      final roundedMinute = PlannerHelper.roundMinute(dropDetails.droppingTime!.minute);
+      final roundedMinute = PlannerHelper.roundMinute(
+        dropDetails.droppingTime!.minute,
+      );
 
       final DateTime start = tz.TZDateTime(
         userSettings!.timeZone,
@@ -1694,6 +1705,7 @@ class _CalendarScreenState
     showConfirmDeleteDialog(
       parentContext: context,
       item: plannerItem,
+      additionalWarning: 'Attachments will also be deleted.',
       onDelete: onDelete,
     );
   }

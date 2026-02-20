@@ -23,6 +23,7 @@ abstract class ReminderRemoteDataSource extends BaseDataSource {
     bool? sent,
     bool? dismissed,
     int? type,
+    DateTime? startOfRange,
   });
 
   Future<ReminderModel> createReminder(ReminderRequestModel request);
@@ -44,6 +45,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
     bool? sent,
     bool? dismissed,
     int? type,
+    DateTime? startOfRange,
   }) async {
     try {
       final parentInfo = eventId != null
@@ -59,6 +61,10 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
       if (sent != null) queryParameters['sent'] = sent;
       if (dismissed != null) queryParameters['dismissed'] = dismissed;
       if (type != null) queryParameters['type'] = type;
+      if (startOfRange != null) {
+        queryParameters['start_of_range__lte'] =
+            startOfRange.toUtc().toIso8601String();
+      }
 
       final response = await dioClient.dio.get(
         ApiUrl.plannerRemindersListUrl,

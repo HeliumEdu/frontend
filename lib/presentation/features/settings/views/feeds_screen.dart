@@ -30,7 +30,7 @@ import 'package:share_plus/share_plus.dart';
 /// Shows as a dialog on desktop, or navigates on mobile.
 void showFeeds(BuildContext context) {
   if (Responsive.isMobile(context)) {
-    context.push(AppRoute.feedsScreen);
+    context.push(AppRoute.feedsScreen, extra: true);
   } else {
     showScreenAsDialog(
       context,

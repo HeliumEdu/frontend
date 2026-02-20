@@ -30,4 +30,6 @@ abstract class EventRepository {
   });
 
   Future<void> deleteEvent({required int eventId});
+
+  Future<void> deleteAllEvents();
 }

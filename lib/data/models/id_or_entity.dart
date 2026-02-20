@@ -49,4 +49,11 @@ class IdOrEntity<T extends BaseModel> {
 
   @override
   int get hashCode => Object.hash(id, entity);
+
+  IdOrEntity<T> copyWith({T? entity}) {
+    return IdOrEntity<T>(
+      id: entity?.id ?? id,
+      entity: entity ?? this.entity,
+    );
+  }
 }

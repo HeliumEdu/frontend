@@ -126,6 +126,10 @@ class EventDeleted extends PlannerItemState {
   EventDeleted({required super.origin, required this.id});
 }
 
+class AllEventsDeleted extends PlannerItemState {
+  AllEventsDeleted({required super.origin});
+}
+
 class HomeworkFetched extends HomeworkEntityState {
   HomeworkFetched({
     required super.origin,

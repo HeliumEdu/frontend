@@ -11,7 +11,6 @@ import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
-import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/notification/notification_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
@@ -23,6 +22,7 @@ import 'package:heliumapp/data/sources/reminder_remote_data_source.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_state.dart';
@@ -46,33 +46,12 @@ final _log = Logger('presentation.views');
 
 /// Shows notifications as a dialog on desktop, or navigates on mobile.
 void showNotifications(BuildContext context) {
-  PlannerItemBloc? plannerItemBloc;
-  try {
-    final found = context.read<PlannerItemBloc>();
-    plannerItemBloc = found.isClosed ? null : found;
-  } catch (_) {
-    _log.info('PlannerItemBloc not passed, will create a new one');
-  }
-  AttachmentBloc? attachmentBloc;
-  try {
-    final found = context.read<AttachmentBloc>();
-    attachmentBloc = found.isClosed ? null : found;
-  } catch (_) {
-    _log.info('AttachmentBloc not passed, will create a new one');
-  }
-
-  final args = NotificationArgs(
-    plannerItemBloc: plannerItemBloc,
-    attachmentBloc: attachmentBloc,
-  );
-
   if (Responsive.isMobile(context)) {
-    context.go(AppRoute.notificationsScreen, extra: args);
+    context.push(AppRoute.notificationsScreen);
   } else {
     showScreenAsDialog(
       context,
       child: NotificationsScreen(),
-      extra: args,
       width: AppConstants.notificationsDialogWidth,
       alignment: Alignment.centerRight,
       insetPadding: const EdgeInsets.only(
@@ -155,6 +134,7 @@ class _NotificationsScreenState
         sent: true,
         dismissed: false,
         type: 3,
+        startOfRange: DateTime.now(),
       ),
     );
   }
@@ -169,17 +149,55 @@ class _NotificationsScreenState
           } else if (state is RemindersFetched) {
             _populateInitialStateData(state);
           } else if (state is ReminderUpdated) {
-            if (state.reminder.dismissed) {
-              showSnackBar(context, 'Reminder dismissed');
+            final reminder = state.reminder;
+            final shouldRemove = reminder.dismissed ||
+                !reminder.sent ||
+                reminder.startOfRange.isAfter(DateTime.now());
 
+            if (shouldRemove) {
+              if (reminder.dismissed) {
+                showSnackBar(context, 'Reminder dismissed');
+              }
               setState(() {
-                _notifications.removeWhere((n) => n.id == state.reminder.id);
+                _notifications.removeWhere((n) => n.reminder.id == reminder.id);
               });
-
-              _readNotificationIds.remove(state.reminder.id);
-
+              _readNotificationIds.remove(reminder.id);
               _storeReadNotifications();
+            } else {
+              final index = _notifications.indexWhere(
+                (n) => n.reminder.id == reminder.id,
+              );
+              if (index != -1) {
+                final notification = _notifications[index];
+                setState(() {
+                  _notifications[index] = _mapReminderToNotification(
+                    reminder,
+                    existingColor: notification.color,
+                  );
+                });
+              }
             }
+          } else if (state is ReminderDeleted) {
+            setState(() {
+              _notifications.removeWhere((n) => n.reminder.id == state.id);
+            });
+            _readNotificationIds.remove(state.id);
+            _storeReadNotifications();
+          }
+        },
+      ),
+      BlocListener<PlannerItemBloc, PlannerItemState>(
+        listener: (context, state) {
+          // When homework/event is updated or deleted, remove the notification
+          // since the backend may have reset the reminder's sent flag
+          if (state is EventUpdated) {
+            _removeNotificationByPlannerItemId(eventId: state.event.id);
+          } else if (state is EventDeleted) {
+            _removeNotificationByPlannerItemId(eventId: state.id);
+          } else if (state is HomeworkUpdated) {
+            _removeNotificationByPlannerItemId(homeworkId: state.homework.id);
+          } else if (state is HomeworkDeleted) {
+            _removeNotificationByPlannerItemId(homeworkId: state.id);
           }
         },
       ),
@@ -204,6 +222,7 @@ class _NotificationsScreenState
                   sent: true,
                   dismissed: false,
                   type: 3,
+                  startOfRange: DateTime.now(),
                 ),
               );
             },
@@ -247,7 +266,22 @@ class _NotificationsScreenState
     });
   }
 
-  NotificationModel _mapReminderToNotification(ReminderModel reminder) {
+  void _removeNotificationByPlannerItemId({int? eventId, int? homeworkId}) {
+    setState(() {
+      _notifications.removeWhere((n) {
+        if (eventId != null) return n.reminder.event?.entity?.id == eventId;
+        if (homeworkId != null) {
+          return n.reminder.homework?.entity?.id == homeworkId;
+        }
+        return false;
+      });
+    });
+  }
+
+  NotificationModel _mapReminderToNotification(
+    ReminderModel reminder, {
+    Color? existingColor,
+  }) {
     final PlannerItemBaseModel? plannerItem;
     final String title;
     final Color? color;
@@ -257,7 +291,7 @@ class _NotificationsScreenState
       final category = reminder.homework?.entity?.category.entity;
 
       title = reminder.homework?.entity?.title as String;
-      color =
+      color = existingColor ??
           (userSettings?.colorByCategory == true
               ? category?.color
               : course?.color) ??
@@ -265,7 +299,9 @@ class _NotificationsScreenState
     } else {
       plannerItem = reminder.event?.entity;
       title = reminder.event?.entity?.title as String;
-      color = userSettings?.eventsColor ?? FallbackConstants.fallbackColor;
+      color = existingColor ??
+          userSettings?.eventsColor ??
+          FallbackConstants.fallbackColor;
     }
 
     return NotificationModel(
@@ -489,17 +525,6 @@ class _NotificationsScreenState
       Navigator.of(context).pop();
     }
 
-    PlannerItemBloc? plannerItemBloc;
-    try {
-      final found = context.read<PlannerItemBloc>();
-      plannerItemBloc = found.isClosed ? null : found;
-    } catch (_) {
-      // Bloc not in context
-    }
-    if (plannerItemBloc == null) {
-      _log.fine('PlannerItemBloc not in context or closed, creating a new one');
-      plannerItemBloc = ProviderHelpers().createPlannerItemBloc()(context);
-    }
     AttachmentBloc? attachmentBloc;
     try {
       final found = context.read<AttachmentBloc>();
@@ -518,7 +543,6 @@ class _NotificationsScreenState
       homeworkId: notification.reminder.homework?.id,
       isEdit: true,
       isNew: false,
-      plannerItemBloc: plannerItemBloc,
       attachmentBloc: attachmentBloc,
     );
   }
