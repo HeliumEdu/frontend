@@ -52,7 +52,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
 
   // State
   List<CourseModel> _courses = [];
-  bool _isLoading = true;
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -98,7 +98,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
   }
 
   Widget _buildContent(BuildContext context) {
-    if (_isLoading) {
+    if (isLoading) {
       return const Center(child: LoadingIndicator(expanded: false));
     }
 
@@ -273,11 +273,12 @@ class ResourceDetailsState extends State<ResourceDetails> {
         );
       }
 
-      _isLoading = false;
+      isLoading = false;
     });
   }
 
   Future<void> onSubmit() async {
+    if (isLoading) return;
     if (_formController.validateAndScrollToError()) {
       final request = ResourceRequestModel(
         title: _formController.titleController.text.trim(),
