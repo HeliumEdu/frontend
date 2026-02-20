@@ -1557,7 +1557,6 @@ class _CalendarScreenState
         final request = EventRequestModel(
           start: start.toIso8601String(),
           end: end.toIso8601String(),
-          showEndTime: true,
         );
 
         context.read<PlannerItemBloc>().add(
