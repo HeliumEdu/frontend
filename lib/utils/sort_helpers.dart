@@ -24,18 +24,19 @@ class Sort {
   };
 
   /// Calculates seconds to subtract from start time to encode sort order for timed events.
-  /// SfCalendar truncates sub-second precision, so we use seconds-based adjustments.
+  /// SfCalendar truncates sub-second precision, so seconds are the finest usable unit.
   /// Higher priority items (lower priority value) get more seconds subtracted,
-  /// making them appear earlier.
+  /// making them appear earlier. One second per type level keeps the total adjustment
+  /// imperceptibly small (max ~103 seconds) so calendar slot positions are not affected.
   static int getTimedEventStartTimeAdjustmentSeconds(
     int priority,
     int position,
   ) {
-    // Type priority: Use thousands of seconds (3000, 2000, 1000, 0)
+    // Type priority: Use 1 second per level (3, 2, 1, 0)
     // This ensures homework < course schedule < event < external
-    final baseSeconds = (3 - priority) * 1000;
+    final baseSeconds = 3 - priority;
 
-    // Position: Add seconds with reverse order (position 0 gets most)
+    // Position: Add 1 second per position slot (position 0 gets most)
     // This allows up to 100 items at same time to maintain alphabetical order
     final positionSeconds = 100 - position;
 
@@ -43,19 +44,15 @@ class Sort {
   }
 
   /// Calculates the Duration to subtract from end time for timed events.
-  /// Uses minutes to avoid visibly shortening events too much.
+  /// Uses the same 1-second-per-level scale as the start time adjustment.
   static Duration getTimedEventEndTimeAdjustment(int priority, int position) {
-    // Type priority: Use minutes (3, 2, 1, 0)
-    final baseMinutes = 3 - priority;
+    // Type priority: Use 1 second per level (3, 2, 1, 0 seconds)
+    final baseSeconds = 3 - priority;
 
-    // Position: Add seconds for fine-grained ordering within same type/time
-    final positionMinutes = (100 - position) / 60.0;
+    // Position: Add 1 second per position slot
+    final positionSeconds = 100 - position;
 
-    final totalMinutes = baseMinutes + positionMinutes;
-    return Duration(
-      minutes: totalMinutes.floor(),
-      seconds: ((totalMinutes % 1) * 60).round(),
-    );
+    return Duration(seconds: baseSeconds + positionSeconds);
   }
 
   /// Compares dates only (ignoring time components).
