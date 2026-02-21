@@ -14,19 +14,11 @@
       },
       "oauth_client": [
         {
-          "client_id": "643279973445-apkpinbi2mf6grji6tppb10e2dhjm61i.apps.googleusercontent.com",
+          "client_id": "643279973445-1rs1vp0ssuagu3907j7upqccaci281om.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.heliumedu.heliumapp",
-            "certificate_hash": "14d7e2bb1bfb3d1437779219e5964d1f9523cc0a"
-          }
-        },
-        {
-          "client_id": "643279973445-ejlde20sn4ka9411t5o5t1l34d2rsr7a.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.heliumedu.heliumapp",
-            "certificate_hash": "0367da6cae287498246a4f8cfb9201464587e2c3"
+            "certificate_hash": "2c61c59687b4af243c9550dd41382adc1fb8ce2a"
           }
         },
         {
@@ -38,7 +30,7 @@
           }
         },
         {
-          "client_id": "643279973445-fqbgapisqmn2pusst3qk2eurpps0pang.apps.googleusercontent.com",
+          "client_id": "643279973445-fpeupna9ake6b39kius66ks43d8sqo08.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.heliumedu.heliumapp",
@@ -46,11 +38,19 @@
           }
         },
         {
-          "client_id": "643279973445-ntgsjd6i725loqcuklp0g9g9446cqu8v.apps.googleusercontent.com",
+          "client_id": "643279973445-g9t3vov0vg11f3sqvjvblasmi1147a3q.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.heliumedu.heliumapp",
-            "certificate_hash": "2c61c59687b4af243c9550dd41382adc1fb8ce2a"
+            "certificate_hash": "0367da6cae287498246a4f8cfb9201464587e2c3"
+          }
+        },
+        {
+          "client_id": "643279973445-h1fv7ig59416ehbbpoegsg9p2nr0jm56.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.heliumedu.heliumapp",
+            "certificate_hash": "14d7e2bb1bfb3d1437779219e5964d1f9523cc0a"
           }
         },
         {

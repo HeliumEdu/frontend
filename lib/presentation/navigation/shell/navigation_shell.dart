@@ -25,7 +25,10 @@ import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:logging/logging.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+final _log = Logger('presentation.navigation');
 
 /// Notifier for screens to share their inheritable providers with NavigationShell.
 class InheritableProvidersNotifier extends ChangeNotifier {
@@ -151,26 +154,34 @@ class _NavigationShellState extends State<NavigationShell> {
   }
 
   Future<void> _checkGettingStartedDialog() async {
-    if (_isShowingGettingStarted) return;
+    if (_isShowingGettingStarted || !mounted) return;
 
-    final settings = await DioClient().getSettings();
-    final showGettingStarted =
-        settings?.showGettingStarted ??
-        FallbackConstants.defaultShowGettingStarted;
+    try {
+      final settings = await DioClient().getSettings();
+      final showGettingStarted =
+          settings?.showGettingStarted ??
+          FallbackConstants.defaultShowGettingStarted;
 
-    if (!mounted || !showGettingStarted) return;
-
-    _isShowingGettingStarted = true;
-    await showGettingStartedDialog(context);
-    _isShowingGettingStarted = false;
+      if (!mounted || !showGettingStarted) return;
+      await _showGettingStartedDialogSafely();
+    } catch (e) {
+      _log.warning('Failed to check getting started dialog state: $e');
+    }
   }
 
   Future<void> _checkDialogs() async {
-    final settings = await DioClient().getSettings();
-    final showGettingStarted =
-        settings?.showGettingStarted ??
-        FallbackConstants.defaultShowGettingStarted;
-    final showWhatsNew = await WhatsNewService().shouldShowWhatsNew();
+    bool showGettingStarted = FallbackConstants.defaultShowGettingStarted;
+    bool showWhatsNew = false;
+
+    try {
+      final settings = await DioClient().getSettings();
+      showGettingStarted =
+          settings?.showGettingStarted ??
+          FallbackConstants.defaultShowGettingStarted;
+      showWhatsNew = await WhatsNewService().shouldShowWhatsNew();
+    } catch (e) {
+      _log.warning('Failed to prepare startup dialogs: $e');
+    }
 
     if (!mounted) return;
 
@@ -178,16 +189,31 @@ class _NavigationShellState extends State<NavigationShell> {
       if (!mounted) return;
 
       if (showGettingStarted) {
-        _isShowingGettingStarted = true;
-        await showGettingStartedDialog(context);
-        _isShowingGettingStarted = false;
+        await _showGettingStartedDialogSafely();
         if (!mounted) return;
       }
 
       if (showWhatsNew) {
-        await showWhatsNewDialog(context);
+        try {
+          await showWhatsNewDialog(context);
+        } catch (e) {
+          _log.warning('Failed to show What\'s New dialog: $e');
+        }
       }
     });
+  }
+
+  Future<void> _showGettingStartedDialogSafely() async {
+    if (_isShowingGettingStarted || !mounted) return;
+
+    _isShowingGettingStarted = true;
+    try {
+      await showGettingStartedDialog(context);
+    } catch (e) {
+      _log.warning('Failed to show getting started dialog: $e');
+    } finally {
+      _isShowingGettingStarted = false;
+    }
   }
 
   NavigationPage _getCurrentPage(BuildContext context) {

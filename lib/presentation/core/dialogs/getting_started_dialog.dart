@@ -26,9 +26,17 @@ class _GettingStartedDialogWidget extends StatelessWidget {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthExampleScheduleDeleted) {
-          Navigator.pop(context);
+          if (!context.mounted) return;
+
+          final navigator = Navigator.maybeOf(context);
+          if (navigator?.canPop() ?? false) {
+            navigator!.pop();
+          }
+
+          if (!context.mounted) return;
           context.go(AppRoute.coursesScreen);
         } else if (state is AuthError) {
+          if (!context.mounted) return;
           SnackBarHelper.show(
             context,
             'Failed to delete example schedule: ${state.message}',
