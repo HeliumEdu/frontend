@@ -6,9 +6,14 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 class ApiUrl {
+  static const _environmentPrefix = String.fromEnvironment(
+    'ENVIRONMENT_PREFIX',
+    defaultValue: '',
+  );
+
   static const baseUrl = String.fromEnvironment(
     'PROJECT_API_HOST',
-    defaultValue: 'https://api.heliumedu.com',
+    defaultValue: 'https://api.${_environmentPrefix}heliumedu.com',
   );
 
   // Unauthenticated URLs
