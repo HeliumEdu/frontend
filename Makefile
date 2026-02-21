@@ -1,4 +1,4 @@
-.PHONY: all env install clean icons build-android build-android-release build-ios-dev build-ios build-ios-release update-version build-web upload-web-sourcemaps test coverage run-devserver build-docker run-docker stop-docker restart-docker publish
+.PHONY: all env install clean icons build-android build-android-release build-ios-dev build-ios build-ios-release update-version firebase-config build-web upload-web-sourcemaps test coverage run-devserver build-docker run-docker stop-docker restart-docker publish
 
 SHELL := /usr/bin/env bash
 TAG_VERSION ?= latest
@@ -62,6 +62,9 @@ icons:
 
 update-version:
 	dart tool/update_version.dart
+
+firebase-config:
+	flutterfire config --project=helium-edu --yes
 
 build-web: install
 	flutter build web --release --source-maps $(WEB_ARGS)

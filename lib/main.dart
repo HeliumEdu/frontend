@@ -21,6 +21,7 @@ import 'package:heliumapp/core/log_service.dart';
 import 'package:heliumapp/core/sentry_service.dart';
 import 'package:heliumapp/data/repositories/auth_repository_impl.dart';
 import 'package:heliumapp/data/sources/auth_remote_data_source.dart';
+import 'package:heliumapp/firebase_environment.dart';
 import 'package:heliumapp/firebase_options.dart';
 import 'package:heliumapp/helium_app.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
@@ -52,9 +53,7 @@ void main() async {
   tz.initializeTimeZones();
 
   try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
+    await Firebase.initializeApp(options: firebaseOptionsWithOverrides());
   } catch (e) {
     _log.severe('Firebase initialization failed', e);
   }
