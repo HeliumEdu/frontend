@@ -39,6 +39,7 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
 
   Timer? _pollTimer;
   bool _isPolling = false;
+  int _consecutiveStatusFailures = 0;
 
   @override
   void initState() {
@@ -92,19 +93,30 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
     _checkSetupStatus();
 
     _pollTimer = Timer.periodic(const Duration(milliseconds: 1500), (_) {
+      if (!mounted) {
+        _pollTimer?.cancel();
+        return;
+      }
       _checkSetupStatus();
     });
   }
 
   Future<void> _initializeSetupFlow() async {
-    if (widget.autoDetectTimeZone) {
-      await _updateDetectedTimeZone();
-    } else {
-      _log.info(
-        'Setup started from non-OAuth flow, skipping timezone auto-update',
-      );
+    try {
+      if (widget.autoDetectTimeZone) {
+        await _updateDetectedTimeZone();
+      } else {
+        _log.info(
+          'Setup started from non-OAuth flow, skipping timezone auto-update',
+        );
+      }
+    } catch (e) {
+      _log.warning('Unexpected setup initialization error: $e');
+    } finally {
+      if (mounted) {
+        _startPolling();
+      }
     }
-    _startPolling();
   }
 
   Future<void> _updateDetectedTimeZone() async {
@@ -131,20 +143,46 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
       final settings = await DioClient().fetchSettings(forceRefresh: true);
 
       if (settings != null && settings.isSetupComplete) {
+        _consecutiveStatusFailures = 0;
         _log.info('... setup complete, navigating to planner');
         _pollTimer?.cancel();
 
         if (mounted) {
           context.replace(AppRoute.plannerScreen);
         }
+      } else if (settings == null) {
+        await _handleTransientStatusFailure('Settings response was null');
       } else {
+        _consecutiveStatusFailures = 0;
         _log.info('--> Setup not yet complete, continuing to poll');
       }
     } catch (e) {
-      _log.warning('Error checking setup status: $e');
+      await _handleTransientStatusFailure(e.toString());
     } finally {
       _isPolling = false;
     }
   }
-}
 
+  Future<void> _handleTransientStatusFailure(String errorMessage) async {
+    _consecutiveStatusFailures++;
+    _log.warning(
+      'Error checking setup status ($errorMessage), '
+      'failure count=$_consecutiveStatusFailures',
+    );
+
+    // After transient failures, fall back to any cached setup state so users
+    // who are already configured are not blocked on /setup.
+    if (_consecutiveStatusFailures < 2 || !mounted) return;
+
+    try {
+      final cachedSettings = await DioClient().getSettings();
+      if (cachedSettings?.isSetupComplete == true && mounted) {
+        _log.info('Cached setup indicates complete, routing to planner');
+        _pollTimer?.cancel();
+        context.replace(AppRoute.plannerScreen);
+      }
+    } catch (e) {
+      _log.warning('Failed cached setup fallback check: $e');
+    }
+  }
+}
