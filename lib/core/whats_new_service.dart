@@ -7,6 +7,10 @@
 
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
+import 'package:heliumapp/utils/app_globals.dart';
+import 'package:logging/logging.dart';
+
+final _log = Logger('core');
 
 class WhatsNewService {
   // Bump this number to show the "What's New" dialog to users again
@@ -21,13 +25,25 @@ class WhatsNewService {
   final DioClient _dioClient = DioClient();
 
   Future<bool> shouldShowWhatsNew() async {
-    final seenVersion = (await _dioClient.getSettings())!.whatsNewVersionSeen;
-    return seenVersion < currentWhatsNewVersion;
+    try {
+      final settings = await _dioClient.getSettings();
+      final seenVersion =
+          settings?.whatsNewVersionSeen ??
+          FallbackConstants.defaultWhatsNewVersionSeen;
+      return seenVersion < currentWhatsNewVersion;
+    } catch (e) {
+      _log.warning('Failed to evaluate What\'s New visibility: $e');
+      return false;
+    }
   }
 
   Future<void> markWhatsNewAsSeen() async {
-    await _dioClient.updateSettings(
-      UpdateSettingsRequestModel(whatsNewVersionSeen: currentWhatsNewVersion),
-    );
+    try {
+      await _dioClient.updateSettings(
+        UpdateSettingsRequestModel(whatsNewVersionSeen: currentWhatsNewVersion),
+      );
+    } catch (e) {
+      _log.warning('Failed to mark What\'s New as seen: $e');
+    }
   }
 }

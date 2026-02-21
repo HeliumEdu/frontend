@@ -35,10 +35,12 @@ import 'package:heliumapp/presentation/features/settings/views/preferences_scree
 import 'package:heliumapp/presentation/features/settings/views/settings_screen.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:logging/logging.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 final shellNavigatorKey = GlobalKey<NavigatorState>();
 late final GoRouter router;
+final _log = Logger('config.router');
 
 void initializeRouter() {
   // Enable URL updates for push/pop on web. Direct URL access to sub-sub pages
@@ -342,7 +344,17 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
   if (isLoggedIn) {
     await DioClient().fetchSettings();
 
-    final isSetupComplete = PrefService().getBool('is_setup_complete') ?? true;
+    final isSetupComplete = PrefService().getBool('is_setup_complete');
+
+    // Defensive fallback: if setup state is temporarily unavailable
+    // (e.g. first load during API blip), avoid forcing a redirect.
+    if (isSetupComplete == null) {
+      _log.warning(
+        'Setup completion flag unavailable during auth redirect '
+        '(location=$matchedLocation), skipping setup-based redirect',
+      );
+      return null;
+    }
 
     // On public routes: redirect to setup or planner based on setup status
     if (publicRoutes.contains(matchedLocation)) {
