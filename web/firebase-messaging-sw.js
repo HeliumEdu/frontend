@@ -5,7 +5,7 @@ importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-comp
 // Initialize Firebase in the service worker with web configuration
 firebase.initializeApp({
   apiKey: "AIzaSyCY_r9WBr_QOfui39GKjwLr-cRx0gaA8XM",
-  authDomain: "helium-edu.firebaseapp.com",
+  authDomain: "auth.heliumedu.com",
   projectId: "helium-edu",
   storageBucket: "helium-edu.firebasestorage.app",
   messagingSenderId: "643279973445",
