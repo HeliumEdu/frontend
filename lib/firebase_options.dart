@@ -70,7 +70,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '643279973445',
     projectId: 'helium-edu',
     storageBucket: 'helium-edu.firebasestorage.app',
-    androidClientId: '643279973445-apkpinbi2mf6grji6tppb10e2dhjm61i.apps.googleusercontent.com',
+    androidClientId: '643279973445-1rs1vp0ssuagu3907j7upqccaci281om.apps.googleusercontent.com',
     iosClientId: '643279973445-jfl7v2elnh84ld4drtlkekt5b8e5llg0.apps.googleusercontent.com',
     iosBundleId: 'com.heliumedu.heliumapp',
   );
