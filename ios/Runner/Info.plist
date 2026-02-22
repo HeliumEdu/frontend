@@ -45,12 +45,6 @@
 		<true/>
 		<key>UIApplicationSupportsIndirectInputEvents</key>
 		<true/>
-		<key>NSPhotoLibraryUsageDescription</key>
-		<string>Helium needs access to your photo library to upload images and videos as course attachments.</string>
-		<key>NSPhotoLibraryAddUsageDescription</key>
-		<string>Helium needs permission to save downloaded course attachments to your photo library.</string>
-		<key>NSPhotoLibraryAddOnlyUsageDescription</key>
-		<string>Helium needs permission to save downloaded course attachments to your photo library.</string>
 		<key>UIBackgroundModes</key>
 		<array>
 			<string>remote-notification</string>

@@ -4,10 +4,6 @@
     <!-- Internet access for API calls and file downloads -->
     <uses-permission android:name="android.permission.INTERNET"/>
 
-    <!-- Storage permissions for Android < 13 (API < 33) - Required for file uploads via file picker -->
-    <!-- These permissions are only requested on older Android versions for backward compatibility -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
-
     <!-- Write permission needed for downloading to public Downloads folder on Android < 10 -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
 
