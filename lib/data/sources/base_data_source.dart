@@ -38,6 +38,12 @@ abstract class BaseDataSource {
             code: '401',
             httpStatusCode: 401,
           );
+        } else if (statusCode == 403) {
+          return UnauthorizedException(
+            message: 'Access denied. Please login again.',
+            code: '403',
+            httpStatusCode: 403,
+          );
         } else if (statusCode == 400) {
           String errorMessage = 'Unknown validation error occurred.';
 
