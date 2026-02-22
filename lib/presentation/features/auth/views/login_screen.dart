@@ -205,6 +205,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                 prefixIcon: Icons.email_outlined,
                 controller: _formController.emailController,
                 validator: BasicFormController.validateRequiredEmail,
+                onFieldSubmitted: (value) => _onSubmit(),
                 keyboardType: TextInputType.emailAddress,
                 autofillHints: const [AutofillHints.email],
               ),
