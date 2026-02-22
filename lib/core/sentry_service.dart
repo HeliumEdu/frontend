@@ -86,11 +86,17 @@ class SentryService {
       return true;
     }
 
-    // Check for DioException with auth status codes
+    // Check for DioException with auth status codes (type or value may contain "dio")
     if (type.contains('dioexception') || combined.contains('dio')) {
       if (_containsAuthStatusCode(combined)) {
         return true;
       }
+    }
+
+    // Check for "status code of 401/403" pattern (common in DioException messages)
+    if (value.contains('status code of 401') ||
+        value.contains('status code of 403')) {
+      return true;
     }
 
     // Check for any HTTP error with auth status codes
