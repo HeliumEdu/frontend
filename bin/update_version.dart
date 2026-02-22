@@ -13,7 +13,7 @@ import 'dart:io';
 /// placeholder in the built output. The source web/index.html should always
 /// keep the {{VERSION}} placeholder.
 ///
-/// Usage: dart tool/update_version.dart
+/// Usage: dart bin/update_version.dart
 void main() async {
   // ignore: avoid_print
   print('Updating version in build/web/index.html from pubspec.yaml...');
@@ -39,11 +39,11 @@ void main() async {
   }
 
   final fullVersion = versionMatch.group(1)!.trim();
-  // Extract just the version number before the '+' (e.g., "1.0.25" from "1.0.25+25")
-  final version = fullVersion.split('+').first;
+  // Keep the full version (e.g., "1.0.25+25") so build number is included.
+  final versionWithBuild = fullVersion;
 
   // ignore: avoid_print
-  print('Found version: $version');
+  print('Found version: $versionWithBuild');
 
   // Read built index.html
   final indexFile = File('build/web/index.html');
@@ -56,11 +56,14 @@ void main() async {
   final indexContent = await indexFile.readAsString();
 
   // Replace {{VERSION}} placeholder with actual version
-  final updatedContent = indexContent.replaceAll('{{VERSION}}', version);
+  final updatedContent =
+      indexContent.replaceAll('{{VERSION}}', versionWithBuild);
 
   // Write updated content
   await indexFile.writeAsString(updatedContent);
 
   // ignore: avoid_print
-  print('Successfully updated version to $version in build/web/index.html');
+  print(
+    'Successfully updated version to $versionWithBuild in build/web/index.html',
+  );
 }

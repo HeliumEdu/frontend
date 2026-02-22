@@ -15,7 +15,7 @@ RUN set -eux; \
     if [ -n "${PROJECT_API_HOST:-}" ]; then BUILD_ARGS="$BUILD_ARGS --dart-define=PROJECT_API_HOST=${PROJECT_API_HOST}"; fi; \
     if [ -n "${SENTRY_RELEASE:-}" ]; then BUILD_ARGS="$BUILD_ARGS --dart-define=SENTRY_RELEASE=${SENTRY_RELEASE}"; fi; \
     flutter build web --release --source-maps $BUILD_ARGS; \
-    dart tool/update_version.dart
+    dart bin/update_version.dart
 
 ######################################################################
 
