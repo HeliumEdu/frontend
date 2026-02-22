@@ -45,6 +45,8 @@
 		<true/>
 		<key>UIApplicationSupportsIndirectInputEvents</key>
 		<true/>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>Helium allows you to upload photos as attachments to your classes and calendar items.</string>
 		<key>UIBackgroundModes</key>
 		<array>
 			<string>remote-notification</string>
