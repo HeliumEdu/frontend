@@ -204,6 +204,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
                 prefixIcon: Icons.email_outlined,
                 controller: _formController.emailController,
                 validator: BasicFormController.validateRequiredEmail,
+                onFieldSubmitted: (value) => _onSubmit(),
                 keyboardType: TextInputType.emailAddress,
                 autofillHints: const [AutofillHints.email],
               ),
@@ -214,6 +215,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
                 prefixIcon: Icons.lock_outline,
                 controller: _formController.passwordController,
                 validator: BasicFormController.validatePassword,
+                onFieldSubmitted: (value) => _onSubmit(),
                 obscureText: !_formController.isPasswordVisible,
                 autofillHints: const [AutofillHints.newPassword],
                 suffixIcon: IconButton(
@@ -238,6 +240,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
                 prefixIcon: Icons.repeat,
                 controller: _formController.confirmPasswordController,
                 validator: _formController.validateConfirmPassword,
+                onFieldSubmitted: (value) => _onSubmit(),
                 obscureText: !_formController.isConfirmPasswordVisible,
                 autofillHints: const [AutofillHints.newPassword],
                 suffixIcon: IconButton(
