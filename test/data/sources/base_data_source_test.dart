@@ -82,6 +82,25 @@ void main() {
         });
       });
 
+      group('403 Forbidden', () {
+        test('returns UnauthorizedException for 403 response', () {
+          // GIVEN
+          final error = givenDioException(
+            type: DioExceptionType.badResponse,
+            statusCode: 403,
+            responseData: {'detail': 'Access denied'},
+          );
+
+          // WHEN
+          final result = dataSource.handleDioError(error, StackTrace.current);
+
+          // THEN
+          expect(result, isA<UnauthorizedException>());
+          expect(result.code, equals('403'));
+          expect(result.message, contains('Access denied'));
+        });
+      });
+
       group('400 Validation errors', () {
         test('parses Map validation errors with List values', () {
           // GIVEN
@@ -202,8 +221,8 @@ void main() {
           // GIVEN
           final error = givenDioException(
             type: DioExceptionType.badResponse,
-            statusCode: 403,
-            responseData: {'message': 'Access denied'},
+            statusCode: 422,
+            responseData: {'message': 'Unprocessable entity'},
           );
 
           // WHEN
@@ -211,8 +230,8 @@ void main() {
 
           // THEN
           expect(result, isA<ServerException>());
-          expect(result.code, equals('403'));
-          expect(result.message, equals('Access denied'));
+          expect(result.code, equals('422'));
+          expect(result.message, equals('Unprocessable entity'));
         });
 
         test('extracts error from response data', () {
