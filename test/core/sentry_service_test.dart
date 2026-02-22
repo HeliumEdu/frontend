@@ -316,6 +316,59 @@ void main() {
       });
     });
 
+    group('Global error handler edge cases', () {
+      test('403 wrapped as generic Error type - global handler capture', () {
+        // When DioException escapes to global error handlers, it may be
+        // wrapped as a generic "Error" type but the value contains the
+        // original DioException message
+        final event = SentryEvent(
+          exceptions: [
+            SentryException(
+              type: 'Error',
+              value:
+                  'DioException [bad response]: This exception was thrown because the response has a status code of 403 and RequestOptions.validateStatus was configured to throw for this status code.\n'
+                  'The status code of 403 has the following meaning: "Client error - the request contains bad syntax or cannot be fulfilled"\n'
+                  'Read more about status codes at https://developer.mozilla.org/en-US/docs/Web/HTTP/Status\n'
+                  'In order to resolve this exception you typically have either to verify and fix your request code or you have to fix the server code.',
+            ),
+          ],
+        );
+
+        expect(SentryService.shouldFilterEvent(event), isTrue,
+            reason: 'Global handler captured 403 should be filtered');
+      });
+
+      test('401 wrapped as generic Error type - global handler capture', () {
+        final event = SentryEvent(
+          exceptions: [
+            SentryException(
+              type: 'Error',
+              value:
+                  'DioException [bad response]: This exception was thrown because the response has a status code of 401 and RequestOptions.validateStatus was configured to throw for this status code.',
+            ),
+          ],
+        );
+
+        expect(SentryService.shouldFilterEvent(event), isTrue,
+            reason: 'Global handler captured 401 should be filtered');
+      });
+
+      test('403 with only value containing status code', () {
+        // Even if the type is something generic, the "status code of 403"
+        // pattern should trigger filtering
+        final event = SentryEvent(
+          exceptions: [
+            SentryException(
+              type: 'UnknownException',
+              value: 'response has a status code of 403',
+            ),
+          ],
+        );
+
+        expect(SentryService.shouldFilterEvent(event), isTrue);
+      });
+    });
+
     group('Edge cases', () {
       test('Empty event', () {
         expect(SentryService.shouldFilterEvent(SentryEvent()), isFalse);
