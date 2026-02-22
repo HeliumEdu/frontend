@@ -18,7 +18,8 @@ import 'package:heliumapp/utils/storage_helpers_mobile.dart'
 final _log = Logger('utils');
 
 class HeliumStorage {
-  /// - Android 13+: Requests READ_MEDIA_* permissions for accessing gallery files
+  /// Requests storage permission for file picking operations.
+  /// - Android 13+: No permission needed (file_picker uses Storage Access Framework)
   /// - Android <13: Requests READ_EXTERNAL_STORAGE for accessing files
   /// - iOS/Web: No permissions needed
   static Future<bool> requestStoragePermission() async {
@@ -28,14 +29,9 @@ class HeliumStorage {
       final int sdkVersion = androidInfo.version.sdkInt;
 
       if (sdkVersion >= 33) {
-        // Android 13+ uses granular media permissions for file picking
-        final photoStatus = await Permission.photos.request();
-        final videoStatus = await Permission.videos.request();
-        final audioStatus = await Permission.audio.request();
-
-        return photoStatus.isGranted ||
-            videoStatus.isGranted ||
-            audioStatus.isGranted;
+        // Android 13+ file_picker uses Storage Access Framework (SAF)
+        // which grants temporary access to user-selected files without permissions
+        return true;
       } else {
         // Android <13 uses legacy storage permission for file picking
         final status = await Permission.storage.request();
