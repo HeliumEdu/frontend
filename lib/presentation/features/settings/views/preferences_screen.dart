@@ -371,6 +371,9 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
               label: 'Time zone',
               initialValue: TimeZoneConstants.items.firstWhere(
                 (tz) => tz.value == _selectedTimeZone,
+                orElse: () => TimeZoneConstants.items.firstWhere(
+                  (tz) => tz.value == 'Etc/UTC',
+                ),
               ),
               items: TimeZoneConstants.items,
               onChanged: (value) {
