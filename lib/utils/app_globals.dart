@@ -15,11 +15,10 @@ class AppConstants {
   static const appName = 'Helium';
 
   static const iosUrl = 'https://apps.apple.com/app/app-name/id6758323154';
-
   static const androidUrl = 'https://groups.google.com/g/helium-edu/about';
-
   // TODO: Once Android app is approved, update to Play URL instead
   //'https://play.google.com/store/apps/details?id=com.heliumedu.heliumapp';
+  static const patreonUrl = 'https://www.patreon.com/c/alexdlaird';
 
   static const assignmentIcon = Icons.assignment_outlined;
   static const eventIcon = Icons.event_outlined;

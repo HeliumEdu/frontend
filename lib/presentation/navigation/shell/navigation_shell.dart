@@ -398,6 +398,13 @@ class _NavigationShellState extends State<NavigationShell> {
               tooltip: 'Get it on Google Play',
               url: AppConstants.androidUrl,
             ),
+            const SizedBox(height: 8),
+            _buildAppStoreButton(
+              context: context,
+              icon: Icons.volunteer_activism,
+              tooltip: 'Support on Patreon',
+              url: AppConstants.patreonUrl,
+            ),
           ],
           const SizedBox(width: 40, child: Divider()),
           settingsButton,
