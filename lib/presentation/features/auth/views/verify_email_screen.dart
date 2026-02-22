@@ -196,6 +196,7 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
               prefixIcon: Icons.email_outlined,
               controller: _emailController,
               validator: BasicFormController.validateRequiredEmail,
+              onFieldSubmitted: (value) => _onSubmit(),
               keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 12),
