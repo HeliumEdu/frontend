@@ -181,7 +181,8 @@
     // Populate version from meta tag
     var versionMeta = document.querySelector('meta[name="version"]');
     if (versionMeta) {
-      document.getElementById('splash-version').textContent = 'v' + versionMeta.content;
+      var displayVersion = versionMeta.content.split('+')[0] || versionMeta.content;
+      document.getElementById('splash-version').textContent = 'v' + displayVersion;
     }
   </script>
   
