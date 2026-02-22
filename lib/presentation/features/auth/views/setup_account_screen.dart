@@ -20,6 +20,7 @@ import 'package:heliumapp/presentation/ui/layout/responsive_center_card.dart';
 import 'package:heliumapp/utils/app_assets.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/time_zone_constants.dart';
 import 'package:logging/logging.dart';
 
 final _log = Logger('presentation.views');
@@ -121,8 +122,9 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
 
   Future<void> _updateDetectedTimeZone() async {
     try {
+      final tz = (await FlutterTimezone.getLocalTimezone()).identifier;
       final detectedTimeZone =
-          (await FlutterTimezone.getLocalTimezone()).identifier;
+          TimeZoneConstants.all.contains(tz) ? tz : 'Etc/UTC';
 
       await DioClient().updateSettings(
         UpdateSettingsRequestModel(timeZone: detectedTimeZone),

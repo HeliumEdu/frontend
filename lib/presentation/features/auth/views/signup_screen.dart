@@ -18,7 +18,7 @@ import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
-import 'package:heliumapp/presentation/features/auth/controllers/register_form_controller.dart';
+import 'package:heliumapp/presentation/features/auth/controllers/signup_form_controller.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
@@ -263,6 +263,9 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
               SearchableDropdown(
                 initialValue: TimeZoneConstants.items.firstWhere(
                   (tz) => tz.value == _formController.selectedTimeZone,
+                  orElse: () => TimeZoneConstants.items.firstWhere(
+                    (tz) => tz.value == 'Etc/UTC',
+                  ),
                 ),
                 items: TimeZoneConstants.items,
                 onChanged: (value) {
