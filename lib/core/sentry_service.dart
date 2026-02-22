@@ -27,6 +27,14 @@ class SentryService {
         options.environment = 'prod';
       }
 
+      // Performance monitoring
+      options.tracesSampleRate = 0.1;
+      options.profilesSampleRate = 0.1;
+
+      // Track user interactions and navigation
+      options.enableAutoPerformanceTracing = true;
+      options.enableUserInteractionTracing = true;
+
       options.beforeSend = _beforeSend;
     });
 
