@@ -61,7 +61,7 @@ icons:
 	cp web/icons/Icon-192.png web/favicon.png
 
 update-version:
-	dart tool/update_version.dart
+	dart bin/update_version.dart
 
 firebase-config:
 	flutterfire config --project=helium-edu --yes
