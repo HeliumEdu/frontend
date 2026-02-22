@@ -180,6 +180,10 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
 
             const SizedBox(height: 12),
 
+            _buildSupportArea(),
+
+            const SizedBox(height: 12),
+
             _buildSubSettingsArea(),
 
             const SizedBox(height: 12),
@@ -208,7 +212,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
 
   Widget _buildProfileArea() {
     return ShadowContainer(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -282,6 +286,70 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSupportArea() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            context.colorScheme.primary.withValues(alpha: 0.08),
+            context.colorScheme.secondary.withValues(alpha: 0.08),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: context.colorScheme.primary.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => launchUrl(Uri.parse(AppConstants.patreonUrl)),
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.volunteer_activism,
+                  color: context.colorScheme.primary,
+                  size: 32,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Support Helium',
+                        style: AppStyles.menuItem(context).copyWith(
+                          color: context.colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'A passion project, free for everyone. '
+                        'Your support helps cover Helium\'s hosting costs, and keeps development going.',
+                        style: AppStyles.menuItemHint(context),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  color: context.colorScheme.onSurface.withValues(alpha: 0.3),
+                  size: 16,
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

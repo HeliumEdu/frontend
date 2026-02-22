@@ -167,6 +167,7 @@ class FcmService {
       description: 'Notifications for Helium',
       importance: Importance.high,
       playSound: true,
+      enableVibration: true,
     );
 
     await _localNotifications
@@ -424,6 +425,7 @@ class FcmService {
           importance: Importance.high,
           priority: Priority.high,
           showWhen: true,
+          enableVibration: true,
         );
 
     const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
