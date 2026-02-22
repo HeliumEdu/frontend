@@ -67,7 +67,7 @@ firebase-config:
 	flutterfire config --project=helium-edu --yes
 
 build-web: install
-	flutter build web --release --source-maps $(WEB_ARGS)
+	flutter build web --release --source-maps --no-tree-shake-icons $(WEB_ARGS)
 	$(MAKE) update-version
 
 upload-web-sourcemaps:
