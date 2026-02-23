@@ -11,6 +11,7 @@ import 'package:heliumapp/core/whats_new_service.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class _WhatsNewDialogWidget extends StatelessWidget {
   const _WhatsNewDialogWidget();
@@ -87,6 +88,36 @@ class _WhatsNewDialogWidget extends StatelessWidget {
                       icon: Icons.rocket_launch_outlined,
                       title: 'New surprises ahead',
                       description: 'Exciting new features on the horizon',
+                    ),
+                    const SizedBox(height: 16),
+                    TextButton(
+                      onPressed: () => launchUrl(
+                        Uri.parse(
+                          'https://heliumedu.freshdesk.com/support/solutions/articles/159000427014',
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Learn more',
+                            style: AppStyles.buttonText(context).copyWith(
+                              color: context.colorScheme.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.arrow_forward,
+                            size: Responsive.getIconSize(
+                              context,
+                              mobile: 18,
+                              tablet: 20,
+                              desktop: 22,
+                            ),
+                            color: context.colorScheme.primary,
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
