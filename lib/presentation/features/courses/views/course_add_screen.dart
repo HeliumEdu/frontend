@@ -231,7 +231,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
       ),
     ),
     MultiStepDefinition(
-      icon: Icons.category_outline,
+      icon: Icons.category_outlined,
       tooltip: 'Categories',
       stepScreenType: ScreenType.subPage,
       builder: (context) => CourseCategories(
