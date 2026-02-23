@@ -307,7 +307,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
                 Expanded(
                   child: CheckboxListTile(
                     title: Text(
-                      'Allow drag-and-drop on mobile',
+                      'Allow drag-and-drop on touch devices',
                       style: AppStyles.formLabel(context),
                     ),
                     value: _isDragAndDropOnMobile,
