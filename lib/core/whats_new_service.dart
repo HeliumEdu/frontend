@@ -14,7 +14,7 @@ final _log = Logger('core');
 
 class WhatsNewService {
   // Bump this number to show the "What's New" dialog to users again
-  static const int currentWhatsNewVersion = 3;
+  static const int currentWhatsNewVersion = 4;
 
   static final WhatsNewService _instance = WhatsNewService._internal();
 
