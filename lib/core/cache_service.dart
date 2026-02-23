@@ -27,7 +27,7 @@ class CacheService with WidgetsBindingObserver {
   static const cacheTtl = Duration(minutes: 30);
 
   /// If app is backgrounded longer than this, cache is invalidated on resume.
-  static const inactivityThreshold = Duration(minutes: 5);
+  static const inactivityThreshold = Duration(minutes: 10);
 
   DateTime? _pausedAt;
   final List<VoidCallback> _onInactivityResumeCallbacks = [];
