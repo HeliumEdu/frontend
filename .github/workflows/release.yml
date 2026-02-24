@@ -128,7 +128,7 @@ jobs:
             --method PATCH \
             -H "Accept: application/vnd.github+json" \
             /repos/${{ github.repository }}/actions/runs/${{ github.run_id }} \
-            -f name="Release \`$VERSION\`"
+            -f name="Release \`$VERSION\` to `$ENVIRONMENT`"
 
   build-android-release:
     name: Build Android Release AAB
