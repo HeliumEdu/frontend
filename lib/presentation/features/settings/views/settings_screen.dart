@@ -180,7 +180,8 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
 
             const SizedBox(height: 12),
 
-            _buildSupportArea(),
+            if (!Responsive.isIOSPlatform())
+              _buildSupportArea(),
 
             const SizedBox(height: 12),
 
