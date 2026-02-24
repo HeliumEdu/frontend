@@ -1,6 +1,6 @@
 name: "Release"
 
-run-name: "Release"
+run-name: "Release `${{ inputs.bump_type }}` to `${{ inputs.environment }}`"
 
 on:
   workflow_dispatch:
@@ -29,6 +29,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   test:
@@ -127,7 +128,7 @@ jobs:
             --method PATCH \
             -H "Accept: application/vnd.github+json" \
             /repos/${{ github.repository }}/actions/runs/${{ github.run_id }} \
-            -f name="Release \`$VERSION\`"
+            -f name="Release \`$VERSION\` to `$ENVIRONMENT`"
 
   build-android-release:
     name: Build Android Release AAB
