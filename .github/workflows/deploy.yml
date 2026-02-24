@@ -1,6 +1,6 @@
 name: "Deploy"
 
-run-name: "Deploy ${{ inputs.version_type == 'latest' && 'latest' || inputs.specific_version }} to ${{ inputs.environment }}"
+run-name: "Deploy `${{ inputs.version_type == 'latest' && 'latest' || inputs.specific_version }}` to `${{ inputs.environment }}`"
 
 on:
   workflow_dispatch:
@@ -63,6 +63,7 @@ on:
 
 permissions:
   contents: read
+  actions: write
 
 jobs:
   update-run-name:
@@ -71,7 +72,7 @@ jobs:
     steps:
       - name: Determine version and update run name
         env:
-          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           ENVIRONMENT: ${{ inputs.environment }}
           PLATFORMS: ${{ inputs.platforms }}
         run: |
