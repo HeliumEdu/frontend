@@ -1,6 +1,6 @@
 name: "Release and Deploy"
 
-run-name: "Release and deploy `${{ inputs.bump_type }}` to `${{ inputs.environment }}`"
+run-name: "Release and deploy `${{ inputs.bump_type }}` to `${{ inputs.environment }}` (`${{ inputs.platforms }}`)"
 
 on:
   workflow_dispatch:
@@ -36,6 +36,7 @@ on:
 
 permissions:
   actions: write
+  contents: write
 
 jobs:
   release:
