@@ -1,6 +1,6 @@
 name: "Release and Deploy"
 
-run-name: "Release and deploy to ${{ inputs.environment }} (${{ inputs.platforms }})"
+run-name: "Release and deploy `${{ inputs.bump_type }}` to `${{ inputs.environment }}` (`${{ inputs.platforms }}`)"
 
 on:
   workflow_dispatch:
@@ -35,36 +35,83 @@ on:
           - ios
 
 jobs:
-  release:
-    name: Release
-    uses: ./.github/workflows/release.yml
-    secrets: inherit
-    with:
-      bump_type: ${{ inputs.bump_type }}
-
-  deploy:
-    name: Deploy
-    needs: release
-    uses: ./.github/workflows/deploy.yml
-    secrets: inherit
-    with:
-      version_type: specific
-      specific_version: ${{ needs.release.outputs.version }}
-      artifact_run_id: ${{ github.run_id }}
-      environment: ${{ inputs.environment }}
-      platforms: ${{ inputs.platforms }}
-
-  summary:
-    name: Summary
-    needs: [release, deploy]
-    if: always() && needs.release.result == 'success' && needs.deploy.result == 'success'
+  release-and-deploy:
+    name: Release and Deploy
     runs-on: ubuntu-latest
-
     steps:
-      - name: Release and deployment summary
+      - name: Trigger release workflow
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
-          echo "### Release and Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          gh workflow run release.yml \
+            --repo ${{ github.repository }} \
+            -f bump_type="${{ inputs.bump_type }}"
+
+          echo "Release workflow triggered, waiting for completion..."
+
+      - name: Wait for release to complete
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        run: |
+          # Wait a moment for the workflow to be created
+          sleep 5
+
+          # Get the most recent release workflow run
+          RUN_ID=$(gh run list \
+            --repo ${{ github.repository }} \
+            --workflow=release.yml \
+            --limit 1 \
+            --json databaseId \
+            --jq '.[0].databaseId')
+
+          echo "Waiting for release run $RUN_ID to complete..."
+          gh run watch "$RUN_ID" --repo ${{ github.repository }}
+
+          # Check if it succeeded
+          STATUS=$(gh run view "$RUN_ID" --repo ${{ github.repository }} --json conclusion --jq '.conclusion')
+          if [ "$STATUS" != "success" ]; then
+            echo "Release workflow failed with status: $STATUS"
+            exit 1
+          fi
+
+          echo "Release workflow completed successfully"
+
+      - name: Get released version
+        id: version
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        run: |
+          # Get the latest semver+build tag (e.g., 1.2.3+45)
+          VERSION=$(gh api repos/${{ github.repository }}/tags --jq '[.[] | select(.name | test("^[0-9]+\\.[0-9]+\\.[0-9]+\\+[0-9]+$"))][0].name')
+
+          if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
+            echo "Error: Could not determine released version"
+            exit 1
+          fi
+
+          echo "Released version: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Trigger deploy workflow
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+          ENVIRONMENT: ${{ inputs.environment }}
+          PLATFORMS: ${{ inputs.platforms }}
+        run: |
+          gh workflow run deploy.yml \
+            --repo ${{ github.repository }} \
+            -f version_type=specific \
+            -f specific_version="$VERSION" \
+            -f environment="$ENVIRONMENT" \
+            -f platforms="$PLATFORMS"
+
+          echo "### Release and Deploy Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Version**: ${{ needs.release.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Environment**: ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Platforms**: ${{ inputs.platforms }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: $VERSION" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment**: $ENVIRONMENT" >> $GITHUB_STEP_SUMMARY
+          echo "- **Platforms**: $PLATFORMS" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Workflows triggered:" >> $GITHUB_STEP_SUMMARY
+          echo "- [Release](https://github.com/${{ github.repository }}/actions/workflows/release.yml)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Deploy](https://github.com/${{ github.repository }}/actions/workflows/deploy.yml)" >> $GITHUB_STEP_SUMMARY
