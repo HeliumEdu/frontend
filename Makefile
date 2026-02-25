@@ -114,7 +114,7 @@ test: install
 	flutter analyze --no-pub --no-fatal-infos --no-fatal-warnings
 	flutter test --no-pub --coverage
 
-test-integration: clean-chrome
+test-integration:
 ifeq ($(ENVIRONMENT),dev-local)
 	@curl -fsSL "https://raw.githubusercontent.com/HeliumEdu/platform/main/bin/start-platform.sh?$$(date +%s)" | bash
 	@chromedriver --port=4444 & sleep 2 && flutter drive --target=$(INTEGRATION_TARGET) $(DRIVE_ARGS); TEST_EXIT=$$?; \
@@ -125,7 +125,7 @@ else
 	@chromedriver --port=4444 & sleep 2 && flutter drive --target=$(INTEGRATION_TARGET) $(DRIVE_ARGS); TEST_EXIT=$$?; pkill -f chromedriver || true; exit $$TEST_EXIT
 endif
 
-test-integration-smoke: clean-chrome
+test-integration-smoke:
 	@chromedriver --port=4444 & sleep 2 && flutter drive --target=integration_test/smoke_test.dart $(DRIVE_ARGS); TEST_EXIT=$$?; pkill -f chromedriver || true; exit $$TEST_EXIT
 
 coverage:
