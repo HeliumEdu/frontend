@@ -74,4 +74,31 @@ class ApiHelper {
       // Don't fail the test - cleanup is best-effort
     }
   }
+
+  /// Checks if a user with the given email exists.
+  ///
+  /// Attempts to log in with the test password. Returns true if login succeeds
+  /// (user exists), false otherwise.
+  Future<bool> userExists(String email) async {
+    final password = _config.testPassword;
+    final apiHost = _config.projectApiHost;
+
+    try {
+      final loginResponse = await http.post(
+        Uri.parse('$apiHost/auth/token/'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'username': email,
+          'password': password,
+        }),
+      );
+
+      // 200 means user exists and password is correct
+      // 401/400 means user doesn't exist or wrong password
+      return loginResponse.statusCode == 200;
+    } catch (e) {
+      _log.warning('Error checking if user exists: $e');
+      return false;
+    }
+  }
 }
