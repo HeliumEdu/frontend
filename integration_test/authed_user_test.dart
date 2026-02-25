@@ -12,89 +12,10 @@ import 'package:integration_test/integration_test.dart';
 import 'package:logging/logging.dart';
 
 import 'helpers/api_helper.dart';
-import 'helpers/email_helper.dart';
 import 'helpers/test_app.dart';
 import 'helpers/test_config.dart';
 
-final _log = Logger('integration_test');
-
-// State tracking for dependent tests
-bool _registrationSucceeded = false;
-bool _verificationSucceeded = false;
-bool _loginSucceeded = false;
-
-// Track the homework item title for CRUD test
-String? _homeworkItemTitle;
-
-/// Helper to log in and navigate to planner, handling setup/welcome dialogs
-Future<bool> loginAndNavigateToPlanner(
-  WidgetTester tester,
-  String email,
-  String password,
-) async {
-  final log = Logger('loginAndNavigateToPlanner');
-
-  // Use helper for web-compatible text entry
-  await enterTextInField(tester, find.widgetWithText(TextField, 'Email'), email);
-  await enterTextInField(tester, find.widgetWithText(TextField, 'Password'), password);
-
-  await tester.tap(find.text('Sign In'));
-
-  // Wait for either setup screen, welcome dialog, or planner to appear
-  // Setup can take 15-30 seconds under high load
-  log.info('Waiting for post-login screen...');
-  const postLoginTimeout = Duration(seconds: 45);
-  final endTime = DateTime.now().add(postLoginTimeout);
-
-  while (DateTime.now().isBefore(endTime)) {
-    await tester.pump(const Duration(milliseconds: 500));
-
-    // Check for setup screen
-    if (find.text('Set Up Your Account').evaluate().isNotEmpty) {
-      log.info('Setup screen detected, skipping...');
-      final skipButton = find.text('Skip');
-      final continueButton = find.text('Continue');
-
-      if (skipButton.evaluate().isNotEmpty) {
-        await tester.tap(skipButton);
-      } else if (continueButton.evaluate().isNotEmpty) {
-        await tester.tap(continueButton);
-      }
-      await tester.pumpAndSettle(const Duration(seconds: 10));
-      break;
-    }
-
-    // Check for welcome dialog (means we bypassed setup)
-    if (find.text('Welcome to Helium!').evaluate().isNotEmpty) {
-      log.info('Welcome dialog detected');
-      break;
-    }
-
-    // Check for planner (means we bypassed both setup and welcome)
-    if (find.text('Planner').evaluate().isNotEmpty) {
-      log.info('Planner screen detected');
-      break;
-    }
-  }
-
-  // Handle welcome dialog if present
-  final welcomeDialog = find.text('Welcome to Helium!');
-  if (welcomeDialog.evaluate().isNotEmpty) {
-    log.info('Dismissing welcome dialog...');
-    await tester.tap(find.text("I'll explore first"));
-    await tester.pumpAndSettle();
-  }
-
-  // Wait for planner to load
-  final plannerFound = await waitForWidget(
-    tester,
-    find.text('Planner'),
-    timeout: const Duration(seconds: 30),
-  );
-
-  log.info('Login flow complete, planner found: $plannerFound');
-  return plannerFound;
-}
+final _log = Logger('authed_user_test');
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -108,167 +29,41 @@ void main() {
 
   final config = TestConfig();
   // ignore: avoid_print
-  print('Running full integration tests against: ${config.environment}');
+  print('Running authenticated user tests against: ${config.environment}');
   // ignore: avoid_print
   print('API host: ${config.projectApiHost}');
 
-  group('User Registration Flow', () {
+  group('Authenticated User Tests', () {
     final testEmail = config.testEmail;
     final testPassword = config.testPassword;
-    final emailHelper = EmailHelper();
     final apiHelper = ApiHelper();
+
+    // Track if preconditions are met
+    bool canProceed = false;
 
     setUpAll(() async {
       _log.info('Test email: $testEmail');
 
-      // Reset state flags
-      _registrationSucceeded = false;
-      _verificationSucceeded = false;
-      _loginSucceeded = false;
-      _homeworkItemTitle = null;
-
-      // Clean up test user from previous runs
-      await apiHelper.cleanupTestUser();
-    });
-
-    tearDownAll(() async {
-      // Test 9 deletes the account, so only clean up if tests didn't complete
-      // or if the account somehow still exists
-      final userStillExists = await apiHelper.userExists(testEmail);
-      if (userStillExists) {
-        _log.info('Cleaning up test user after all tests...');
-        await apiHelper.cleanupTestUser();
+      // Check if user can login (requires signup_user_test to have run first)
+      final userExists = await apiHelper.userExists(testEmail);
+      if (!userExists) {
+        _log.warning('Test user does not exist. Run signup_user_test first.');
+        canProceed = false;
       } else {
-        _log.info('Test user already deleted (by test 9 or not created)');
+        _log.info('Test user exists, proceeding with tests');
+        canProceed = true;
       }
     });
 
-    testWidgets('1. User can sign up for a new account', (tester) async {
-      await initializeTestApp(tester);
-
-      // Navigate to signup screen
-      await tester.tap(find.text('Need an account?'));
-      await tester.pumpAndSettle();
-
-      // Verify we're on the signup screen
-      expect(find.text('Create an Account'), findsOneWidget);
-
-      // Fill in the signup form using helper for web compatibility
-      await enterTextInField(
-        tester,
-        find.widgetWithText(TextField, 'Email'),
-        testEmail,
-      );
-
-      await enterTextInField(
-        tester,
-        find.widgetWithText(TextField, 'Password'),
-        testPassword,
-      );
-
-      await enterTextInField(
-        tester,
-        find.widgetWithText(TextField, 'Confirm password'),
-        testPassword,
-      );
-
-      // Agree to terms - find and tap the checkbox
-      final checkbox = find.byType(CheckboxListTile);
-      await tester.tap(checkbox);
-      await tester.pumpAndSettle();
-
-      // Submit the form
-      await tester.tap(find.text('Sign Up'));
-      await tester.pumpAndSettle(const Duration(seconds: 5));
-
-      // Should navigate to verify email screen
-      final verifyScreenFound = await waitForWidget(
-        tester,
-        find.text('Verify Email'),
-        timeout: const Duration(seconds: 15),
-      );
-      expect(
-        verifyScreenFound,
-        isTrue,
-        reason: 'Should navigate to verify email screen',
-      );
-
-      _registrationSucceeded = true;
-      _log.info('Registration succeeded');
-    });
-
-    testWidgets('2. User can verify email with code from S3', (tester) async {
-      if (!_registrationSucceeded) {
-        _log.warning('Skipping: registration did not succeed');
-        markTestSkipped('Skipped: registration did not succeed');
+    namedTestWidgets('1. Verified user can login and see planner', (tester) async {
+      if (!canProceed) {
+        _log.warning('Skipping: user does not exist');
+        markTestSkipped('Skipped: user does not exist (run signup_user_test first)');
         return;
       }
 
       await initializeTestApp(tester);
-
-      // Fetch the verification code from S3
-      _log.info('Fetching verification code from S3...');
-      final verificationCode = await emailHelper.getVerificationCode(testEmail);
-      _log.info('Got verification code: $verificationCode');
-
-      // Navigate to verify email screen via login with unverified account
-      await enterTextInField(tester, find.widgetWithText(TextField, 'Email'), testEmail);
-      await enterTextInField(tester, find.widgetWithText(TextField, 'Password'), testPassword);
-
-      await tester.tap(find.text('Sign In'));
-      await tester.pumpAndSettle(const Duration(seconds: 5));
-
-      // Either: shows snackbar with "Resend Email" OR navigates to verify screen
-      // Check if we're on verify screen
-      var onVerifyScreen = find.text('Verify Email').evaluate().isNotEmpty;
-
-      if (!onVerifyScreen) {
-        // Look for "Resend Email" button in snackbar and tap it
-        final resendButton = find.text('Resend Email');
-        if (resendButton.evaluate().isNotEmpty) {
-          await tester.tap(resendButton);
-          await tester.pumpAndSettle(const Duration(seconds: 5));
-          onVerifyScreen = find.text('Verify Email').evaluate().isNotEmpty;
-        }
-      }
-
-      expect(onVerifyScreen, isTrue, reason: 'Should be on verify email screen');
-
-      // Email field should be pre-filled, enter verification code
-      await enterTextInField(
-        tester,
-        find.widgetWithText(TextField, 'Verification code'),
-        verificationCode,
-      );
-
-      // Submit verification
-      await tester.tap(find.text('Verify & Login'));
-      await tester.pumpAndSettle(const Duration(seconds: 10));
-
-      // Should navigate to setup account screen after verification
-      final setupScreenFound = await waitForWidget(
-        tester,
-        find.text('Set Up Your Account'),
-        timeout: const Duration(seconds: 15),
-      );
-      expect(
-        setupScreenFound,
-        isTrue,
-        reason: 'Should navigate to setup screen after verification',
-      );
-
-      _verificationSucceeded = true;
-      _log.info('Verification succeeded');
-    });
-
-    testWidgets('3. Verified user can login and see planner', (tester) async {
-      if (!_verificationSucceeded) {
-        _log.warning('Skipping: verification did not succeed');
-        markTestSkipped('Skipped: verification did not succeed');
-        return;
-      }
-
-      await initializeTestApp(tester);
+      await ensureOnLoginScreen(tester);
 
       // Login with the verified account
       await enterTextInField(tester, find.widgetWithText(TextField, 'Email'), testEmail);
@@ -277,16 +72,12 @@ void main() {
       await tester.tap(find.text('Sign In'));
       await tester.pumpAndSettle(const Duration(seconds: 10));
 
-      // Should navigate to setup screen (first login after verify)
-      // or planner if setup was somehow already done
+      // Skip setup screen if present (routing logic tested in unit tests)
       final setupScreen = find.text('Set Up Your Account');
       if (setupScreen.evaluate().isNotEmpty) {
-        _log.info('On setup screen, completing setup...');
-
-        // Look for the "Continue" button to skip setup
+        _log.info('Setup screen detected, skipping...');
         final skipButton = find.text('Skip');
         final continueButton = find.text('Continue');
-
         if (skipButton.evaluate().isNotEmpty) {
           await tester.tap(skipButton);
         } else if (continueButton.evaluate().isNotEmpty) {
@@ -295,7 +86,7 @@ void main() {
         await tester.pumpAndSettle(const Duration(seconds: 5));
       }
 
-      // Now verify we're on the planner screen
+      // Verify we reach the planner
       final plannerFound = await waitForWidget(
         tester,
         find.text('Planner'),
@@ -303,19 +94,18 @@ void main() {
       );
 
       expect(plannerFound, isTrue, reason: 'Should be on planner screen');
-
-      _loginSucceeded = true;
       _log.info('Login succeeded');
     });
 
-    testWidgets('4. First login shows welcome dialog', (tester) async {
-      if (!_verificationSucceeded) {
-        _log.warning('Skipping: verification did not succeed');
-        markTestSkipped('Skipped: verification did not succeed');
+    namedTestWidgets('2. First login shows welcome dialog', (tester) async {
+      if (!canProceed) {
+        _log.warning('Skipping: user does not exist');
+        markTestSkipped('Skipped: user does not exist (run signup_user_test first)');
         return;
       }
 
       await initializeTestApp(tester);
+      await ensureOnLoginScreen(tester);
 
       // Login with the test account
       await enterTextInField(tester, find.widgetWithText(TextField, 'Email'), testEmail);
@@ -324,7 +114,7 @@ void main() {
       await tester.tap(find.text('Sign In'));
       await tester.pumpAndSettle(const Duration(seconds: 10));
 
-      // Handle setup screen if present
+      // Handle setup screen if present (shown when example schedule import hasn't finished)
       final setupScreen = find.text('Set Up Your Account');
       if (setupScreen.evaluate().isNotEmpty) {
         final skipButton = find.text('Skip');
@@ -338,7 +128,7 @@ void main() {
         await tester.pumpAndSettle(const Duration(seconds: 5));
       }
 
-      // Wait for the welcome dialog to appear (on first planner load)
+      // Wait for the welcome dialog to appear (shown on first planner load)
       final welcomeDialogFound = await waitForWidget(
         tester,
         find.text('Welcome to Helium!'),
@@ -367,10 +157,10 @@ void main() {
       expect(find.text('Planner'), findsOneWidget);
     });
 
-    testWidgets('5. Calendar displays example schedule items', (tester) async {
-      if (!_loginSucceeded) {
-        _log.warning('Skipping: login did not succeed');
-        markTestSkipped('Skipped: login did not succeed');
+    namedTestWidgets('3. Calendar displays example schedule items', (tester) async {
+      if (!canProceed) {
+        _log.warning('Skipping: user does not exist');
+        markTestSkipped('Skipped: user does not exist (run signup_user_test first)');
         return;
       }
 
@@ -382,12 +172,7 @@ void main() {
       );
       expect(loggedIn, isTrue, reason: 'Should be logged in');
 
-      // The example schedule is adjusted to the first Monday of the previous month
-      // We need to navigate to that month to see the items
-      // First, let's check if we can see any example data on the current view
-
       // Look for a homework item (has assignment icon or specific title pattern)
-      // Example homework titles: "Homework 1", "Quiz 1", "Essay 1", etc.
       final homeworkFinder = find.textContaining('Homework');
       final quizFinder = find.textContaining('Quiz');
 
@@ -401,7 +186,6 @@ void main() {
       final psychologyFinder = find.textContaining('Psychology');
 
       // Navigate to previous month where example data should be
-      // Find and tap the left arrow to go to previous month
       final prevMonthButton = find.byIcon(Icons.chevron_left);
       if (prevMonthButton.evaluate().isNotEmpty) {
         await tester.tap(prevMonthButton);
@@ -409,39 +193,23 @@ void main() {
       }
 
       // Now check for example schedule items
-      // At least one homework item should be visible
       final hasHomework = homeworkFinder.evaluate().isNotEmpty ||
           quizFinder.evaluate().isNotEmpty;
-
-      // At least one event should be visible
       final hasEvent = workshopFinder.evaluate().isNotEmpty ||
           meetingFinder.evaluate().isNotEmpty;
-
-      // At least one course schedule should be visible
       final hasCourseSchedule = programmingFinder.evaluate().isNotEmpty ||
           writingFinder.evaluate().isNotEmpty ||
           psychologyFinder.evaluate().isNotEmpty;
-
-      _log.info('Found homework: $hasHomework');
-      _log.info('Found event: $hasEvent');
-      _log.info('Found course schedule: $hasCourseSchedule');
-
-      // Store a homework title for later CRUD test
-      if (homeworkFinder.evaluate().isNotEmpty) {
-        final widget = homeworkFinder.evaluate().first.widget as Text;
-        _homeworkItemTitle = widget.data;
-        _log.info('Stored homework title for CRUD test: $_homeworkItemTitle');
-      }
 
       expect(hasHomework, isTrue, reason: 'Should display homework items');
       expect(hasEvent, isTrue, reason: 'Should display event items');
       expect(hasCourseSchedule, isTrue, reason: 'Should display course schedule');
     });
 
-    testWidgets('6. Top-level navigation works correctly', (tester) async {
-      if (!_loginSucceeded) {
-        _log.warning('Skipping: login did not succeed');
-        markTestSkipped('Skipped: login did not succeed');
+    namedTestWidgets('4. Top-level navigation works correctly', (tester) async {
+      if (!canProceed) {
+        _log.warning('Skipping: user does not exist');
+        markTestSkipped('Skipped: user does not exist (run signup_user_test first)');
         return;
       }
 
@@ -459,7 +227,7 @@ void main() {
       await tester.tap(classesTab);
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
-      // Verify we see example course data (course group or course)
+      // Verify we see example course data
       final hasCourseData = find.textContaining('Fall Semester').evaluate().isNotEmpty ||
           find.textContaining('Programming').evaluate().isNotEmpty ||
           find.textContaining('Writing').evaluate().isNotEmpty;
@@ -498,10 +266,10 @@ void main() {
       expect(find.text('Planner'), findsOneWidget);
     });
 
-    testWidgets('7. Settings opens correctly based on screen width', (tester) async {
-      if (!_loginSucceeded) {
-        _log.warning('Skipping: login did not succeed');
-        markTestSkipped('Skipped: login did not succeed');
+    namedTestWidgets('5. Settings opens correctly based on screen width', (tester) async {
+      if (!canProceed) {
+        _log.warning('Skipping: user does not exist');
+        markTestSkipped('Skipped: user does not exist (run signup_user_test first)');
         return;
       }
 
@@ -509,10 +277,8 @@ void main() {
       final originalSize = tester.view.physicalSize;
       final originalDevicePixelRatio = tester.view.devicePixelRatio;
 
-      // Use widths relative to the actual mobile breakpoint
-      // Mobile: < ResponsiveBreakpoints.mobile, Non-mobile: >= ResponsiveBreakpoints.mobile
-      const nonMobileWidth = ResponsiveBreakpoints.mobile + 100; // Above mobile breakpoint
-      const mobileWidth = ResponsiveBreakpoints.mobile - 100; // Below mobile breakpoint
+      const nonMobileWidth = ResponsiveBreakpoints.mobile + 100;
+      const mobileWidth = ResponsiveBreakpoints.mobile - 100;
       const testHeight = 800.0;
 
       await initializeTestApp(tester);
@@ -524,21 +290,15 @@ void main() {
       expect(loggedIn, isTrue, reason: 'Should be logged in');
 
       // --- PART 1: Desktop/Tablet (wide) - Settings opens as dialog ---
-      _log.info('Testing non-mobile view (wide browser, width=$nonMobileWidth)...');
-
-      // Set to non-mobile width
       tester.view.physicalSize = const Size(nonMobileWidth, testHeight);
       tester.view.devicePixelRatio = 1.0;
       await tester.pumpAndSettle();
 
-      // Find and tap the settings button
       var settingsButton = find.byIcon(Icons.settings);
       expect(settingsButton, findsOneWidget, reason: 'Settings button should exist');
       await tester.tap(settingsButton);
       await tester.pumpAndSettle(const Duration(seconds: 2));
 
-      // On non-mobile, settings should open as a dialog overlay
-      // The dialog should have a close button (X icon)
       final closeButton = find.byIcon(Icons.close);
       expect(
         closeButton,
@@ -546,36 +306,25 @@ void main() {
         reason: 'Non-mobile: Settings should open as dialog with close button',
       );
 
-      // Verify settings content is visible
       final hasSettingsContent = find.text('Account').evaluate().isNotEmpty ||
           find.text('Preferences').evaluate().isNotEmpty;
       expect(hasSettingsContent, isTrue, reason: 'Settings content should be visible');
 
-      _log.info('Non-mobile: Settings opened as dialog');
-
-      // Close the dialog
       await tester.tap(closeButton);
       await tester.pumpAndSettle();
 
-      // Verify we're back on Planner
       expect(find.text('Planner'), findsOneWidget, reason: 'Should be back on Planner after closing dialog');
 
       // --- PART 2: Mobile (narrow) - Settings navigates to screen ---
-      _log.info('Testing mobile view (narrow browser, width=$mobileWidth)...');
-
-      // Resize to mobile width
       tester.view.physicalSize = const Size(mobileWidth, testHeight);
       tester.view.devicePixelRatio = 1.0;
       await tester.pumpAndSettle(const Duration(seconds: 2));
 
-      // Find and tap the settings button again
       settingsButton = find.byIcon(Icons.settings);
       expect(settingsButton, findsOneWidget, reason: 'Settings button should exist on mobile');
       await tester.tap(settingsButton);
       await tester.pumpAndSettle(const Duration(seconds: 2));
 
-      // On mobile, settings should navigate to a new screen (no dialog close button)
-      // Instead, there should be a back arrow
       final backButton = find.byIcon(Icons.arrow_back);
       expect(
         backButton,
@@ -583,34 +332,27 @@ void main() {
         reason: 'Mobile: Settings should navigate to screen with back button',
       );
 
-      // The close button should NOT be present (it's not a dialog)
       expect(
         find.byIcon(Icons.close),
         findsNothing,
         reason: 'Mobile: Should not have dialog close button',
       );
 
-      _log.info('Mobile: Settings navigated to screen');
-
-      // Navigate back
       await tester.tap(backButton);
       await tester.pumpAndSettle();
 
-      // Verify we're back on Planner
       expect(find.text('Planner'), findsOneWidget, reason: 'Should be back on Planner after back navigation');
 
       // Restore original size
       tester.view.physicalSize = originalSize;
       tester.view.devicePixelRatio = originalDevicePixelRatio;
       await tester.pumpAndSettle();
-
-      _log.info('Settings responsive behavior test completed');
     });
 
-    testWidgets('8. Can edit homework item (CRUD operation)', (tester) async {
-      if (!_loginSucceeded) {
-        _log.warning('Skipping: login did not succeed');
-        markTestSkipped('Skipped: login did not succeed');
+    namedTestWidgets('6. Can edit homework item (CRUD operation)', (tester) async {
+      if (!canProceed) {
+        _log.warning('Skipping: user does not exist');
+        markTestSkipped('Skipped: user does not exist (run signup_user_test first)');
         return;
       }
 
@@ -630,7 +372,6 @@ void main() {
       }
 
       // Find a homework item to edit
-      // Look for "Homework 1" or similar
       var homeworkItem = find.textContaining('Homework 1');
       if (homeworkItem.evaluate().isEmpty) {
         homeworkItem = find.textContaining('Homework');
@@ -645,7 +386,6 @@ void main() {
       // Get the original title
       final originalWidget = homeworkItem.evaluate().first.widget as Text;
       final originalTitle = originalWidget.data ?? 'Homework';
-      _log.info('Found homework item: $originalTitle');
 
       // Tap on the homework item to open edit screen
       await tester.tap(homeworkItem.first);
@@ -678,7 +418,6 @@ void main() {
         await tester.tap(saveButton);
         await tester.pumpAndSettle(const Duration(seconds: 3));
       } else {
-        // Try finding a check/save icon button
         final saveIcon = find.byIcon(Icons.check);
         if (saveIcon.evaluate().isNotEmpty) {
           await tester.tap(saveIcon);
@@ -707,41 +446,35 @@ void main() {
         findsOneWidget,
         reason: 'Homework title should be updated',
       );
-
-      _log.info('Successfully edited homework item');
     });
 
-    testWidgets('9. User can clear example schedule', (tester) async {
-      if (!_loginSucceeded) {
-        _log.warning('Skipping: login did not succeed');
-        markTestSkipped('Skipped: login did not succeed');
+    namedTestWidgets('7. User can clear example schedule', (tester) async {
+      if (!canProceed) {
+        _log.warning('Skipping: user does not exist');
+        markTestSkipped('Skipped: user does not exist (run signup_user_test first)');
         return;
       }
 
       await initializeTestApp(tester);
+      await ensureOnLoginScreen(tester);
 
       // Log in - but DON'T dismiss the welcome dialog automatically
-      // We need to manually handle login to click "Clear Example Data" instead
       await enterTextInField(tester, find.widgetWithText(TextField, 'Email'), testEmail);
       await enterTextInField(tester, find.widgetWithText(TextField, 'Password'), testPassword);
 
       await tester.tap(find.text('Sign In'));
 
       // Wait for the welcome dialog to appear
-      // (skipping setup screen handling since it should be done from previous tests)
       final welcomeDialogFound = await waitForWidget(
         tester,
         find.text('Welcome to Helium!'),
         timeout: const Duration(seconds: 45),
       );
 
-      // If welcome dialog doesn't appear, the setting might have been cleared
-      // Try refreshing/re-initializing to trigger it
       if (!welcomeDialogFound) {
-        _log.warning('Welcome dialog not found on first try, reinitializing app...');
         await initializeTestApp(tester);
+        await ensureOnLoginScreen(tester);
 
-        // Log in again
         await enterTextInField(tester, find.widgetWithText(TextField, 'Email'), testEmail);
         await enterTextInField(tester, find.widgetWithText(TextField, 'Password'), testPassword);
 
@@ -754,13 +487,10 @@ void main() {
         );
 
         if (!retryWelcomeFound) {
-          _log.warning('Welcome dialog still not found, example schedule may already be cleared');
           markTestSkipped('Skipped: Welcome dialog not available (example schedule may be cleared)');
           return;
         }
       }
-
-      _log.info('Welcome dialog found, clicking Clear Example Data...');
 
       // Click "Clear Example Data" button
       final clearButton = find.text('Clear Example Data');
@@ -779,124 +509,18 @@ void main() {
         reason: 'Should navigate to Classes screen after clearing example data',
       );
 
-      // Wait a bit for the UI to settle
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
-      // Assert the Classes screen is empty (no example schedule data)
-      // The example data includes "Fall Semester" course group and courses like
-      // "Creative Writing", "Programming", "Psychology"
+      // Assert the Classes screen is empty
       final hasFallSemester = find.textContaining('Fall Semester').evaluate().isNotEmpty;
       final hasProgramming = find.textContaining('Programming').evaluate().isNotEmpty;
       final hasWriting = find.textContaining('Writing').evaluate().isNotEmpty;
       final hasPsychology = find.textContaining('Psychology').evaluate().isNotEmpty;
 
-      expect(
-        hasFallSemester,
-        isFalse,
-        reason: 'Fall Semester should be cleared',
-      );
-      expect(
-        hasProgramming,
-        isFalse,
-        reason: 'Programming course should be cleared',
-      );
-      expect(
-        hasWriting,
-        isFalse,
-        reason: 'Writing course should be cleared',
-      );
-      expect(
-        hasPsychology,
-        isFalse,
-        reason: 'Psychology course should be cleared',
-      );
-
-      _log.info('Example schedule successfully cleared');
+      expect(hasFallSemester, isFalse, reason: 'Fall Semester should be cleared');
+      expect(hasProgramming, isFalse, reason: 'Programming course should be cleared');
+      expect(hasWriting, isFalse, reason: 'Writing course should be cleared');
+      expect(hasPsychology, isFalse, reason: 'Psychology course should be cleared');
     });
-
-    testWidgets('10. User can delete their account', (tester) async {
-      if (!_loginSucceeded) {
-        _log.warning('Skipping: login did not succeed');
-        markTestSkipped('Skipped: login did not succeed');
-        return;
-      }
-
-      await initializeTestApp(tester);
-      final loggedIn = await loginAndNavigateToPlanner(
-        tester,
-        testEmail,
-        testPassword,
-      );
-      expect(loggedIn, isTrue, reason: 'Should be logged in');
-
-      // Open settings
-      final settingsButton = find.byIcon(Icons.settings);
-      await tester.tap(settingsButton);
-      await tester.pumpAndSettle(const Duration(seconds: 2));
-
-      // Find and tap "Danger Zone"
-      final dangerZone = find.text('Danger Zone');
-      expect(dangerZone, findsOneWidget, reason: 'Danger Zone should exist');
-      await tester.tap(dangerZone);
-      await tester.pumpAndSettle(const Duration(seconds: 2));
-
-      // Find and tap "Delete Account"
-      final deleteAccount = find.text('Delete Account');
-      expect(deleteAccount, findsOneWidget, reason: 'Delete Account should exist');
-      await tester.tap(deleteAccount);
-      await tester.pumpAndSettle(const Duration(seconds: 2));
-
-      // Enter password in the confirmation dialog
-      final passwordField = find.widgetWithText(TextField, 'Password');
-      if (passwordField.evaluate().isNotEmpty) {
-        await enterTextInField(tester, passwordField, testPassword);
-      }
-
-      // Confirm deletion
-      final confirmButton = find.text('Confirm');
-      if (confirmButton.evaluate().isNotEmpty) {
-        await tester.tap(confirmButton);
-        await tester.pumpAndSettle(const Duration(seconds: 5));
-      } else {
-        // Try "Delete" button
-        final deleteButton = find.text('Delete');
-        if (deleteButton.evaluate().isNotEmpty) {
-          await tester.tap(deleteButton);
-          await tester.pumpAndSettle(const Duration(seconds: 5));
-        }
-      }
-
-      // Verify we're redirected to login screen
-      final loginScreenFound = await waitForWidget(
-        tester,
-        find.text('Sign In'),
-        timeout: const Duration(seconds: 30),
-      );
-      expect(
-        loginScreenFound,
-        isTrue,
-        reason: 'Should be redirected to login after account deletion',
-      );
-
-      // Verify account is actually deleted via API (with polling)
-      _log.info('Verifying account deletion via API...');
-      var accountDeleted = false;
-      const maxAttempts = 36; // 3 minutes with 5-second intervals
-      for (var i = 0; i < maxAttempts && !accountDeleted; i++) {
-        await Future.delayed(const Duration(seconds: 5));
-        accountDeleted = !(await apiHelper.userExists(testEmail));
-        if (!accountDeleted) {
-          _log.info('Account still exists, waiting... (${i + 1}/$maxAttempts)');
-        }
-      }
-
-      expect(
-        accountDeleted,
-        isTrue,
-        reason: 'Account should be deleted from backend',
-      );
-      _log.info('Account successfully deleted');
-    });
-
   });
 }

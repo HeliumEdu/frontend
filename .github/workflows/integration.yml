@@ -129,12 +129,3 @@ jobs:
               AWS_S3_ACCESS_KEY_ID="${{ env.AWS_S3_ACCESS_KEY_ID }}" \
               AWS_S3_SECRET_ACCESS_KEY="${{ env.AWS_S3_SECRET_ACCESS_KEY }}"
           fi
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: integration-test-results-${{ inputs.suite }}-${{ env.ENVIRONMENT }}
-          path: build/integration_test_results/
-          retention-days: 7
-          if-no-files-found: ignore
