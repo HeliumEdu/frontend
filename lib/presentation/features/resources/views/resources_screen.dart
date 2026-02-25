@@ -241,6 +241,7 @@ class _ResourcesScreenState
         if (state is ResourcesError && state.origin == EventOrigin.screen) {
           return ErrorCard(
             message: state.message!,
+            source: 'resources_screen',
             onReload: () {
               context.read<ResourceBloc>().add(
                 FetchResourcesScreenDataEvent(origin: EventOrigin.screen),

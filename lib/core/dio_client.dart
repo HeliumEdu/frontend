@@ -25,7 +25,6 @@ import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 final _log = Logger('core');
 
@@ -140,7 +139,7 @@ class DioClient {
               final refreshToken = await getRefreshToken();
 
               if (refreshToken == null || refreshToken.isEmpty) {
-                _log.warning('No refresh token available');
+                _log.info('No refresh token available, redirecting to login');
                 _isRefreshing = false;
                 _refreshCompleter!.completeError('No refresh token');
                 _refreshCompleter = null;
@@ -211,7 +210,6 @@ class DioClient {
                 return handler.next(error);
               }
             } catch (e) {
-              _log.severe('Error during token refresh', e);
               _isRefreshing = false;
               if (_refreshCompleter != null) {
                 _refreshCompleter!.completeError(e);
@@ -222,9 +220,10 @@ class DioClient {
               // or if the user/account no longer exists
               bool shouldLogout = false;
               if (e is DioException) {
-                if (e.response?.statusCode == 403) {
+                final statusCode = e.response?.statusCode;
+                if (statusCode == 401 || statusCode == 403) {
                   _log.info(
-                    'Got 403 during token refresh, account may not exist',
+                    'Got $statusCode during token refresh, session expired',
                   );
                   shouldLogout = true;
                 } else if (_isInvalidTokenError(e.response?.data)) {
@@ -238,9 +237,8 @@ class DioClient {
               if (shouldLogout) {
                 await _forceLogout('Please login to continue.');
               } else {
-                _log.warning(
-                  'Refresh failed due to network/transient error, not logging out',
-                );
+                // Only log severe for truly unexpected errors (network, etc.)
+                _log.severe('Unexpected error during token refresh', e);
               }
               return handler.next(error);
             }
@@ -336,73 +334,43 @@ class DioClient {
     await _prefService.init();
 
     try {
-      // Check for critical field to detect race conditions
+      // Check for critical field to detect if settings have been fetched
       final timeZone = _prefService.getString('time_zone');
       if (timeZone == null) {
-        const msg =
-            'Race condition detected: time_zone is null in getSettings(), _prefService may not be fully populated';
-        _log.severe(msg);
-        await Sentry.captureException(
-          Exception(msg),
-          stackTrace: StackTrace.current,
-        );
+        // Settings not in cache - fetch from API to ensure they're available
+        _log.info('Settings not in cache, fetching from API...');
+        final fetchedSettings = await fetchSettings();
+        if (fetchedSettings != null) {
+          return fetchedSettings;
+        }
+        // Fetch failed - return null so page can show error state with retry
+        _log.warning('Failed to fetch settings from API');
+        return null;
       }
 
       return UserSettingsModel.fromJson({
-        'time_zone': timeZone ?? FallbackConstants.defaultTimeZone,
-        'color_by_category':
-            _prefService.getBool('color_by_category') ??
-            FallbackConstants.defaultColorByCategory,
-        'default_view':
-            _prefService.getInt('default_view') ??
-            FallbackConstants.defaultViewIndex,
-        'color_scheme_theme':
-            _prefService.getInt('color_scheme_theme') ??
-            FallbackConstants.defaultColorSchemeTheme,
-        'week_starts_on':
-            _prefService.getInt('week_starts_on') ??
-            FallbackConstants.defaultWeekStartsOn,
-        'all_day_offset':
-            _prefService.getInt('all_day_offset') ??
-            FallbackConstants.defaultAllDayOffset,
-        'whats_new_version_seen':
-            _prefService.getInt('whats_new_version_seen') ??
-            FallbackConstants.defaultWhatsNewVersionSeen,
-        'show_getting_started':
-            _prefService.getBool('show_getting_started') ??
-            FallbackConstants.defaultShowGettingStarted,
-        'events_color':
-            _prefService.getString('events_color') ??
-            FallbackConstants.defaultEventsColor,
-        'material_color':
-            _prefService.getString('resource_color') ??
-            FallbackConstants.defaultResourceColor,
-        'grade_color':
-            _prefService.getString('grade_color') ??
-            FallbackConstants.defaultGradeColor,
-        'default_reminder_type':
-            _prefService.getInt('default_reminder_type') ??
-            FallbackConstants.defaultReminderType,
-        'default_reminder_offset':
-            _prefService.getInt('default_reminder_offset') ??
-            FallbackConstants.defaultReminderOffset,
+        'time_zone': timeZone,
+        'color_by_category': _prefService.getBool('color_by_category'),
+        'default_view': _prefService.getInt('default_view'),
+        'color_scheme_theme': _prefService.getInt('color_scheme_theme'),
+        'week_starts_on': _prefService.getInt('week_starts_on'),
+        'all_day_offset': _prefService.getInt('all_day_offset'),
+        'whats_new_version_seen': _prefService.getInt('whats_new_version_seen'),
+        'show_getting_started': _prefService.getBool('show_getting_started'),
+        'events_color': _prefService.getString('events_color'),
+        'material_color': _prefService.getString('resource_color'),
+        'grade_color': _prefService.getString('grade_color'),
+        'default_reminder_type': _prefService.getInt('default_reminder_type'),
+        'default_reminder_offset': _prefService.getInt('default_reminder_offset'),
         'default_reminder_offset_type':
-            _prefService.getInt('default_reminder_offset_type') ??
-            FallbackConstants.defaultReminderOffsetType,
+            _prefService.getInt('default_reminder_offset_type'),
         'calendar_use_category_colors':
-            _prefService.getBool('calendar_use_category_colors') ??
-            FallbackConstants.defaultCalendarUseCategoryColors,
-        'show_planner_tooltips':
-            _prefService.getBool('show_planner_tooltips') ??
-            FallbackConstants.defaultShowPlannerTooltips,
-        'remember_filter_state':
-            _prefService.getBool('remember_filter_state') ??
-            FallbackConstants.defaultRememberFilterState,
+            _prefService.getBool('calendar_use_category_colors'),
+        'show_planner_tooltips': _prefService.getBool('show_planner_tooltips'),
+        'remember_filter_state': _prefService.getBool('remember_filter_state'),
         'drag_and_drop_on_mobile':
-            _prefService.getBool('drag_and_drop_on_mobile') ??
-            FallbackConstants.defaultDragAndDropOnMobile,
-        'is_setup_complete':
-            _prefService.getBool('is_setup_complete') ?? true,
+            _prefService.getBool('drag_and_drop_on_mobile'),
+        'is_setup_complete': _prefService.getBool('is_setup_complete'),
       });
     } catch (parseError) {
       _log.info('Failed to parse cached settings: $parseError');

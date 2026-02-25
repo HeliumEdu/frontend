@@ -205,6 +205,7 @@ abstract class BaseReminderScreenState<T>
                   state.origin == EventOrigin.subScreen) {
                 return ErrorCard(
                   message: state.message!,
+                  source: 'reminder_sub_screen',
                   onReload: () {
                     context.read<ReminderBloc>().add(
                       createFetchRemindersEvent(),

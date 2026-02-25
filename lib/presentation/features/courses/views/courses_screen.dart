@@ -274,6 +274,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
         if (state is CoursesError && state.origin == EventOrigin.screen) {
           return ErrorCard(
             message: state.message!,
+            source: 'courses_screen',
             onReload: () {
               context.read<CourseBloc>().add(
                 FetchCoursesScreenDataEvent(origin: EventOrigin.screen),

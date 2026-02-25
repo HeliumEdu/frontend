@@ -189,6 +189,7 @@ class _ExternalCalendarsProvidedScreenState
             state.origin == EventOrigin.screen) {
           return ErrorCard(
             message: state.message!,
+            source: 'external_calendars_screen',
             onReload: () {
               context.read<ExternalCalendarBloc>().add(
                 FetchExternalCalendarsEvent(origin: EventOrigin.screen),

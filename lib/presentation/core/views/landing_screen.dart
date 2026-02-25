@@ -73,8 +73,6 @@ class _LandingScreenState extends State<LandingScreen> {
         if (state is AuthAuthenticated || state is AuthTokenRefreshed) {
           _log.info('Access token is valid, navigating to home');
 
-          await _dioClient.fetchSettings();
-
           await _authSubscription?.cancel();
           _navigateToTarget();
         } else if (state is AuthUnauthenticated || state is AuthError) {
