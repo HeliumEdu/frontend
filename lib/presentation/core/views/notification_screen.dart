@@ -215,6 +215,7 @@ class _NotificationsScreenState
         if (state is RemindersError) {
           return ErrorCard(
             message: state.message!,
+            source: 'notification_screen',
             onReload: () {
               context.read<ReminderBloc>().add(
                 FetchRemindersEvent(

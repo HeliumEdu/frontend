@@ -180,6 +180,7 @@ abstract class BaseAttachmentScreenState<T>
                 if (state is AttachmentsError) {
                   return ErrorCard(
                     message: state.message!,
+                    source: 'attachment_sub_screen',
                     onReload: () {
                       context.read<AttachmentBloc>().add(
                         createFetchAttachmentsEvent(),
