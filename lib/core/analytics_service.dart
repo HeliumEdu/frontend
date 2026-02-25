@@ -7,12 +7,23 @@
 
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:logging/logging.dart';
 
 final _log = Logger('analytics');
 
+/// A no-op navigator observer for use when analytics is disabled.
+class _NoOpNavigatorObserver extends NavigatorObserver {}
+
 class AnalyticsService {
-  late final FirebaseAnalytics _analytics;
+  FirebaseAnalytics? _analytics;
+
+  /// Whether analytics is enabled. Configured via ANALYTICS_ENABLED env var.
+  /// Defaults to true. Set to 'false' to disable analytics collection.
+  static const _analyticsEnabled =
+      String.fromEnvironment('ANALYTICS_ENABLED', defaultValue: 'true');
+
+  bool get isEnabled => _analyticsEnabled.toLowerCase() == 'true';
 
   bool _isInitialized = false;
 
@@ -20,7 +31,7 @@ class AnalyticsService {
 
   factory AnalyticsService() => _instance;
 
-  AnalyticsService._internal() : _analytics = FirebaseAnalytics.instance;
+  AnalyticsService._internal();
 
   @visibleForTesting
   AnalyticsService.forTesting({required FirebaseAnalytics analytics})
@@ -36,16 +47,23 @@ class AnalyticsService {
     _instance = instance;
   }
 
-  FirebaseAnalytics get analytics => _analytics;
+  FirebaseAnalytics get analytics {
+    _analytics ??= FirebaseAnalytics.instance;
+    return _analytics!;
+  }
 
-  FirebaseAnalyticsObserver get observer =>
-      FirebaseAnalyticsObserver(analytics: _analytics);
+  NavigatorObserver get observer {
+    if (!isEnabled) {
+      return _NoOpNavigatorObserver();
+    }
+    return FirebaseAnalyticsObserver(analytics: analytics);
+  }
 
   Future<void> init() async {
-    if (_isInitialized) return;
+    if (_isInitialized || !isEnabled) return;
 
     try {
-      await _analytics.setAnalyticsCollectionEnabled(true);
+      await analytics.setAnalyticsCollectionEnabled(true);
       _isInitialized = true;
       _log.info('Analytics initialized successfully');
     } catch (e, s) {
@@ -55,8 +73,9 @@ class AnalyticsService {
   }
 
   Future<void> logScreenView({required String screenName}) async {
+    if (!isEnabled) return;
     try {
-      await _analytics.logScreenView(screenName: screenName);
+      await analytics.logScreenView(screenName: screenName);
     } catch (e) {
       _log.warning('Failed to log screen view: $screenName', e);
     }
@@ -66,32 +85,36 @@ class AnalyticsService {
     required String name,
     Map<String, Object>? parameters,
   }) async {
+    if (!isEnabled) return;
     try {
-      await _analytics.logEvent(name: name, parameters: parameters);
+      await analytics.logEvent(name: name, parameters: parameters);
     } catch (e) {
       _log.warning('Failed to log event: $name', e);
     }
   }
 
   Future<void> logLogin({String? loginMethod}) async {
+    if (!isEnabled) return;
     try {
-      await _analytics.logLogin(loginMethod: loginMethod);
+      await analytics.logLogin(loginMethod: loginMethod);
     } catch (e) {
       _log.warning('Failed to log login event', e);
     }
   }
 
   Future<void> logSignUp({String signUpMethod = 'email'}) async {
+    if (!isEnabled) return;
     try {
-      await _analytics.logSignUp(signUpMethod: signUpMethod);
+      await analytics.logSignUp(signUpMethod: signUpMethod);
     } catch (e) {
       _log.warning('Failed to log sign up event', e);
     }
   }
 
   Future<void> setUserId(String? userId) async {
+    if (!isEnabled) return;
     try {
-      await _analytics.setUserId(id: userId);
+      await analytics.setUserId(id: userId);
     } catch (e) {
       _log.warning('Failed to set user ID', e);
     }

@@ -1,4 +1,4 @@
-.PHONY: all env install clean icons build-android build-android-release build-ios-dev build-ios build-ios-release update-version firebase-config build-web upload-web-sourcemaps test coverage run-devserver build-docker run-docker stop-docker restart-docker publish
+.PHONY: all env install clean icons build-android build-android-release build-ios-dev build-ios build-ios-release update-version firebase-config build-web upload-web-sourcemaps test test-integration coverage run-devserver build-docker run-docker stop-docker restart-docker publish
 
 SHELL := /usr/bin/env bash
 TAG_VERSION ?= latest
@@ -28,6 +28,27 @@ ifdef SENTRY_RELEASE
     WEB_ARGS := --dart-define=SENTRY_RELEASE=$(SENTRY_RELEASE)
 else
     WEB_ARGS :=
+endif
+
+# Integration test configuration
+ENVIRONMENT ?= dev-local
+INTEGRATION_HEADLESS ?= false
+# Set API host based on environment
+ifeq ($(ENVIRONMENT),dev-local)
+    PROJECT_API_HOST ?= http://localhost:8000
+endif
+DRIVE_ARGS := --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart -d chrome --dart-define=ENVIRONMENT=$(ENVIRONMENT) --dart-define=ANALYTICS_ENABLED=false
+ifdef PROJECT_API_HOST
+    DRIVE_ARGS += --dart-define=PROJECT_API_HOST=$(PROJECT_API_HOST)
+endif
+ifdef AWS_S3_ACCESS_KEY_ID
+    DRIVE_ARGS += --dart-define=AWS_S3_ACCESS_KEY_ID=$(AWS_S3_ACCESS_KEY_ID)
+endif
+ifdef AWS_S3_SECRET_ACCESS_KEY
+    DRIVE_ARGS += --dart-define=AWS_S3_SECRET_ACCESS_KEY=$(AWS_S3_SECRET_ACCESS_KEY)
+endif
+ifeq ($(INTEGRATION_HEADLESS),true)
+    DRIVE_ARGS += --headless
 endif
 
 all: test
@@ -81,6 +102,17 @@ endif
 test: install
 	flutter analyze --no-pub --no-fatal-infos --no-fatal-warnings
 	flutter test --no-pub --coverage
+
+test-integration: install
+ifeq ($(ENVIRONMENT),dev-local)
+	@curl -fsSL "https://raw.githubusercontent.com/HeliumEdu/platform/main/bin/start-platform.sh?$$(date +%s)" | bash
+	@chromedriver --port=4444 & sleep 2 && flutter drive $(DRIVE_ARGS); TEST_EXIT=$$?; \
+		pkill -f chromedriver || true; \
+		(curl -fsSL "https://raw.githubusercontent.com/HeliumEdu/platform/main/bin/stop-platform.sh?$$(date +%s)" | bash > /dev/null 2>&1 &); \
+		exit $$TEST_EXIT
+else
+	@chromedriver --port=4444 & sleep 2 && flutter drive $(DRIVE_ARGS); TEST_EXIT=$$?; pkill -f chromedriver || true; exit $$TEST_EXIT
+endif
 
 coverage:
 	dart pub global activate test_cov_console
