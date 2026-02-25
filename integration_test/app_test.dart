@@ -18,7 +18,7 @@ import 'helpers/test_config.dart';
 final _log = Logger('integration_test');
 
 void main() {
-  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   // Set up logging
   Logger.root.level = Level.INFO;
@@ -29,20 +29,9 @@ void main() {
 
   final config = TestConfig();
   // ignore: avoid_print
-  print('Running integration tests against: ${config.environment}');
+  print('Running full integration tests against: ${config.environment}');
   // ignore: avoid_print
   print('API host: ${config.projectApiHost}');
-
-  group('Smoke Tests', () {
-    testWidgets('app launches and shows login screen', (tester) async {
-      await initializeTestApp(tester);
-
-      // Verify the login screen is displayed
-      expect(find.text('Sign In'), findsOneWidget);
-      expect(find.text('Email'), findsOneWidget);
-      expect(find.text('Password'), findsOneWidget);
-    });
-  });
 
   group('User Registration Flow', () {
     final testEmail = config.testEmail;

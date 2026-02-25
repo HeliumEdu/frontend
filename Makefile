@@ -1,4 +1,4 @@
-.PHONY: all env install clean icons build-android build-android-release build-ios-dev build-ios build-ios-release update-version firebase-config build-web upload-web-sourcemaps test test-integration coverage run-devserver build-docker run-docker stop-docker restart-docker publish
+.PHONY: all env install clean icons build-android build-android-release build-ios-dev build-ios build-ios-release update-version firebase-config build-web upload-web-sourcemaps test test-integration test-integration-smoke coverage run-devserver build-docker run-docker stop-docker restart-docker publish
 
 SHELL := /usr/bin/env bash
 TAG_VERSION ?= latest
@@ -33,11 +33,12 @@ endif
 # Integration test configuration
 ENVIRONMENT ?= dev-local
 INTEGRATION_HEADLESS ?= false
+INTEGRATION_TARGET ?= integration_test/app_test.dart
 # Set API host based on environment
 ifeq ($(ENVIRONMENT),dev-local)
     PROJECT_API_HOST ?= http://localhost:8000
 endif
-DRIVE_ARGS := --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart -d chrome --dart-define=ENVIRONMENT=$(ENVIRONMENT) --dart-define=ANALYTICS_ENABLED=false
+DRIVE_ARGS := --driver=test_driver/integration_test.dart --target=$(INTEGRATION_TARGET) -d chrome --dart-define=ENVIRONMENT=$(ENVIRONMENT) --dart-define=ANALYTICS_ENABLED=false
 ifdef PROJECT_API_HOST
     DRIVE_ARGS += --dart-define=PROJECT_API_HOST=$(PROJECT_API_HOST)
 endif
@@ -113,6 +114,10 @@ ifeq ($(ENVIRONMENT),dev-local)
 else
 	@chromedriver --port=4444 & sleep 2 && flutter drive $(DRIVE_ARGS); TEST_EXIT=$$?; pkill -f chromedriver || true; exit $$TEST_EXIT
 endif
+
+test-integration-smoke: INTEGRATION_TARGET = integration_test/smoke_test.dart
+test-integration-smoke: install
+	@chromedriver --port=4444 & sleep 2 && flutter drive $(DRIVE_ARGS); TEST_EXIT=$$?; pkill -f chromedriver || true; exit $$TEST_EXIT
 
 coverage:
 	dart pub global activate test_cov_console
