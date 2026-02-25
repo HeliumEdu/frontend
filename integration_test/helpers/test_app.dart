@@ -66,13 +66,16 @@ Future<void> initializeTestApp(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
-/// Helper to enter text into a field by hint text
+/// Helper to enter text into a field by hint text.
+/// On web, fields must be tapped to focus before enterText works.
 Future<void> enterTextByHint(
   WidgetTester tester,
   String hintText,
   String text,
 ) async {
   final field = find.widgetWithText(TextField, hintText);
+  await tester.tap(field);
+  await tester.pumpAndSettle();
   await tester.enterText(field, text);
   await tester.pumpAndSettle();
 }

@@ -117,16 +117,16 @@ test: install
 test-integration:
 ifeq ($(ENVIRONMENT),dev-local)
 	@curl -fsSL "https://raw.githubusercontent.com/HeliumEdu/platform/main/bin/start-platform.sh?$$(date +%s)" | bash
-	@chromedriver --port=4444 & sleep 2 && flutter drive --target=$(INTEGRATION_TARGET) $(DRIVE_ARGS); TEST_EXIT=$$?; \
-		pkill -f chromedriver || true; \
+	@chromedriver --port=4444 & CHROME_PID=$$!; sleep 2 && flutter drive --target=$(INTEGRATION_TARGET) $(DRIVE_ARGS); TEST_EXIT=$$?; \
+		kill $$CHROME_PID 2>/dev/null || true; \
 		(curl -fsSL "https://raw.githubusercontent.com/HeliumEdu/platform/main/bin/stop-platform.sh?$$(date +%s)" | bash > /dev/null 2>&1 &); \
 		exit $$TEST_EXIT
 else
-	@chromedriver --port=4444 & sleep 2 && flutter drive --target=$(INTEGRATION_TARGET) $(DRIVE_ARGS); TEST_EXIT=$$?; pkill -f chromedriver || true; exit $$TEST_EXIT
+	@chromedriver --port=4444 & CHROME_PID=$$!; sleep 2 && flutter drive --target=$(INTEGRATION_TARGET) $(DRIVE_ARGS); TEST_EXIT=$$?; kill $$CHROME_PID 2>/dev/null || true; exit $$TEST_EXIT
 endif
 
 test-integration-smoke:
-	@chromedriver --port=4444 & sleep 2 && flutter drive --target=integration_test/smoke_test.dart $(DRIVE_ARGS); TEST_EXIT=$$?; pkill -f chromedriver || true; exit $$TEST_EXIT
+	@chromedriver --port=4444 & CHROME_PID=$$!; sleep 2 && flutter drive --target=integration_test/smoke_test.dart $(DRIVE_ARGS); TEST_EXIT=$$?; kill $$CHROME_PID 2>/dev/null || true; exit $$TEST_EXIT
 
 coverage:
 	dart pub global activate test_cov_console
