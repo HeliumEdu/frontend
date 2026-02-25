@@ -38,7 +38,7 @@ INTEGRATION_HEADLESS ?= true
 ifeq ($(ENVIRONMENT),dev-local)
     PROJECT_API_HOST ?= http://localhost:8000
 endif
-DRIVE_ARGS := --driver=test_driver/integration_test.dart -d web-server --browser-name=chrome --profile --dart-define=ENVIRONMENT=$(ENVIRONMENT) --dart-define=ANALYTICS_ENABLED=false --test-arguments=test --test-arguments=--reporter=expanded
+DRIVE_ARGS := --driver=test_driver/integration_test.dart -d web-server --browser-name=chrome --profile --dart-define=ENVIRONMENT=$(ENVIRONMENT) --dart-define=ANALYTICS_ENABLED=false
 ifeq ($(INTEGRATION_HEADLESS),true)
     DRIVE_ARGS += --headless
 else
