@@ -1,4 +1,4 @@
-.PHONY: all env install clean clean-chrome icons build-android build-android-release build-ios-dev build-ios build-ios-release update-version firebase-config build-web upload-web-sourcemaps test test-integration test-integration-smoke coverage run-devserver build-docker run-docker stop-docker restart-docker publish
+.PHONY: all env install clean clean-chrome icons build-android build-android-release build-ios-dev build-ios build-ios-release update-version firebase-config build-web upload-web-sourcemaps test start-platform stop-platform test-integration test-integration-smoke coverage run-devserver build-docker run-docker stop-docker restart-docker publish
 
 SHELL := /usr/bin/env bash
 TAG_VERSION ?= latest
@@ -114,12 +114,22 @@ test: install
 	flutter analyze --no-pub --no-fatal-infos --no-fatal-warnings
 	flutter test --no-pub --coverage
 
+start-platform:
+	@if curl -s http://localhost:8000/health/ > /dev/null 2>&1; then \
+		echo "Platform already running"; \
+	else \
+		echo "Starting platform..."; \
+		curl -fsSL "https://raw.githubusercontent.com/HeliumEdu/platform/main/bin/start-platform.sh?$$(date +%s)" | bash; \
+	fi
+
+stop-platform:
+	@curl -fsSL "https://raw.githubusercontent.com/HeliumEdu/platform/main/bin/stop-platform.sh?$$(date +%s)" | bash
+
 test-integration:
 ifeq ($(ENVIRONMENT),dev-local)
-	@curl -fsSL "https://raw.githubusercontent.com/HeliumEdu/platform/main/bin/start-platform.sh?$$(date +%s)" | bash
+	@$(MAKE) start-platform
 	@chromedriver --port=4444 & CHROME_PID=$$!; sleep 2 && flutter drive --target=$(INTEGRATION_TARGET) $(DRIVE_ARGS); TEST_EXIT=$$?; \
 		kill $$CHROME_PID 2>/dev/null || true; \
-		(curl -fsSL "https://raw.githubusercontent.com/HeliumEdu/platform/main/bin/stop-platform.sh?$$(date +%s)" | bash > /dev/null 2>&1 &); \
 		exit $$TEST_EXIT
 else
 	@chromedriver --port=4444 & CHROME_PID=$$!; sleep 2 && flutter drive --target=$(INTEGRATION_TARGET) $(DRIVE_ARGS); TEST_EXIT=$$?; kill $$CHROME_PID 2>/dev/null || true; exit $$TEST_EXIT
