@@ -32,7 +32,7 @@ endif
 
 # Integration test configuration
 ENVIRONMENT ?= dev-local
-INTEGRATION_TARGET ?= integration_test/app_test.dart
+INTEGRATION_TARGET ?= integration_test/full_test.dart
 INTEGRATION_HEADLESS ?= true
 # Set API host based on environment
 ifeq ($(ENVIRONMENT),dev-local)

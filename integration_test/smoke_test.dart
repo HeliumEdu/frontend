@@ -22,7 +22,7 @@ void main() {
   print('API host: ${config.projectApiHost}');
 
   group('Smoke Tests', () {
-    testWidgets('app launches and shows login screen', (tester) async {
+    namedTestWidgets('app launches and shows login screen', (tester) async {
       await initializeTestApp(tester);
 
       // Verify the logo is displayed (match our logo asset, not package assets)
@@ -71,7 +71,7 @@ void main() {
       );
     });
 
-    testWidgets('can navigate to signup screen', (tester) async {
+    namedTestWidgets('can navigate to signup screen', (tester) async {
       await initializeTestApp(tester);
 
       // Tap "Need an account?" link

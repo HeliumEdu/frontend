@@ -38,7 +38,6 @@ class EmailHelper {
   /// Returns the verification code, or throws if not found within timeout.
   Future<String> getVerificationCode(String username, {int retry = 0}) async {
     _log.info('Polling for verification email (attempt ${retry + 1}/$_maxRetries)');
-
     try {
       // List objects in the inbound email prefix
       final results = await _minio.listObjects(
@@ -85,17 +84,14 @@ class EmailHelper {
       final emailBody = parseResult.body;
 
       // Check if email is within the test window
+      // Add 1 second buffer to left window to account for millisecond truncation in email dates
       final now = DateTime.now().toUtc();
       final windowPadding = Duration(seconds: 15 + (retry * _retryDelay.inSeconds));
-      final leftWindow = now.subtract(windowPadding);
+      final leftWindow = now.subtract(windowPadding + const Duration(seconds: 1));
       final rightWindow = now.add(windowPadding);
 
-      _log.info('Left window: $leftWindow');
-      _log.info('Email date: $emailDate');
-      _log.info('Right window: $rightWindow');
-
       final inTestWindow = emailDate != null &&
-          emailDate.isAfter(leftWindow) &&
+          !emailDate.isBefore(leftWindow) &&
           emailDate.isBefore(rightWindow);
 
       // Verify this email is for our user and is recent
