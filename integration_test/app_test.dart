@@ -17,6 +17,10 @@ import 'helpers/test_config.dart';
 
 final _log = Logger('integration_test');
 
+// State tracking for dependent tests
+bool _registrationSucceeded = false;
+bool _verificationSucceeded = false;
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
@@ -42,7 +46,16 @@ void main() {
     setUpAll(() async {
       _log.info('Test email: $testEmail');
 
+      // Reset state flags
+      _registrationSucceeded = false;
+      _verificationSucceeded = false;
+
       // Clean up test user from previous runs
+      await apiHelper.cleanupTestUser();
+    });
+
+    tearDownAll(() async {
+      _log.info('Cleaning up test user after all tests...');
       await apiHelper.cleanupTestUser();
     });
 
@@ -95,9 +108,18 @@ void main() {
         isTrue,
         reason: 'Should navigate to verify email screen',
       );
+
+      _registrationSucceeded = true;
+      _log.info('Registration succeeded');
     });
 
     testWidgets('2. User can verify email with code from S3', (tester) async {
+      if (!_registrationSucceeded) {
+        _log.warning('Skipping: registration did not succeed');
+        markTestSkipped('Skipped: registration did not succeed');
+        return;
+      }
+
       await initializeTestApp(tester);
 
       // Fetch the verification code from S3
@@ -155,9 +177,18 @@ void main() {
         isTrue,
         reason: 'Should navigate to setup screen after verification',
       );
+
+      _verificationSucceeded = true;
+      _log.info('Verification succeeded');
     });
 
     testWidgets('3. Verified user can login and see planner', (tester) async {
+      if (!_verificationSucceeded) {
+        _log.warning('Skipping: verification did not succeed');
+        markTestSkipped('Skipped: verification did not succeed');
+        return;
+      }
+
       await initializeTestApp(tester);
 
       // Login with the verified account
@@ -201,6 +232,12 @@ void main() {
     });
 
     testWidgets('4. First login shows welcome dialog', (tester) async {
+      if (!_verificationSucceeded) {
+        _log.warning('Skipping: verification did not succeed');
+        markTestSkipped('Skipped: verification did not succeed');
+        return;
+      }
+
       await initializeTestApp(tester);
 
       // Login with the test account
