@@ -1,10 +1,18 @@
 name: "Integration Tests"
 
-run-name: "Integration Tests (`${{ inputs.environment }}`)"
+run-name: "Integration Tests (`${{ inputs.suite }}` on `${{ inputs.environment }}`)"
 
 on:
   workflow_dispatch:
     inputs:
+      suite:
+        description: 'Test suite to run'
+        required: true
+        type: choice
+        default: full
+        options:
+          - smoke
+          - full
       environment:
         description: 'Environment to test against'
         required: true
@@ -89,17 +97,23 @@ jobs:
 
       - name: Run integration tests
         run: |
-          make test-integration \
-            ENVIRONMENT=${{ env.ENVIRONMENT }} \
-            INTEGRATION_HEADLESS=true \
-            AWS_S3_ACCESS_KEY_ID="${{ env.AWS_S3_ACCESS_KEY_ID }}" \
-            AWS_S3_SECRET_ACCESS_KEY="${{ env.AWS_S3_SECRET_ACCESS_KEY }}"
+          if [ "${{ inputs.suite }}" = "smoke" ]; then
+            make test-integration-smoke \
+              ENVIRONMENT=${{ env.ENVIRONMENT }} \
+              INTEGRATION_HEADLESS=true
+          else
+            make test-integration \
+              ENVIRONMENT=${{ env.ENVIRONMENT }} \
+              INTEGRATION_HEADLESS=true \
+              AWS_S3_ACCESS_KEY_ID="${{ env.AWS_S3_ACCESS_KEY_ID }}" \
+              AWS_S3_SECRET_ACCESS_KEY="${{ env.AWS_S3_SECRET_ACCESS_KEY }}"
+          fi
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: integration-test-results-${{ env.ENVIRONMENT }}
+          name: integration-test-results-${{ inputs.suite }}-${{ env.ENVIRONMENT }}
           path: build/integration_test_results/
           retention-days: 7
           if-no-files-found: ignore
