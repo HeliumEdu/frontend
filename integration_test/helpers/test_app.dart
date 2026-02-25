@@ -6,6 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -66,6 +67,40 @@ Future<void> initializeTestApp(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
+/// Helper to enter text into a field by hint/label text.
+/// On web, we need special handling for text input - directly update the
+/// EditableText state since enterText doesn't work reliably with web-server.
+Future<void> enterTextInField(
+  WidgetTester tester,
+  Finder fieldFinder,
+  String text,
+) async {
+  // Tap to focus the field
+  await tester.tap(fieldFinder);
+  await tester.pump(const Duration(milliseconds: 100));
+
+  // Find the EditableText within the TextField and update its value directly
+  final editableTextFinder = find.descendant(
+    of: fieldFinder,
+    matching: find.byType(EditableText),
+  );
+
+  if (editableTextFinder.evaluate().isNotEmpty) {
+    final editableTextState = tester.state<EditableTextState>(editableTextFinder);
+    editableTextState.updateEditingValue(
+      TextEditingValue(
+        text: text,
+        selection: TextSelection.collapsed(offset: text.length),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+  } else {
+    // Fallback to standard enterText
+    await tester.enterText(fieldFinder, text);
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+}
+
 /// Helper to enter text into a field by hint text.
 /// On web, fields must be tapped to focus before enterText works.
 Future<void> enterTextByHint(
@@ -74,10 +109,7 @@ Future<void> enterTextByHint(
   String text,
 ) async {
   final field = find.widgetWithText(TextField, hintText);
-  await tester.tap(field);
-  await tester.pumpAndSettle();
-  await tester.enterText(field, text);
-  await tester.pumpAndSettle();
+  await enterTextInField(tester, field, text);
 }
 
 /// Helper to tap a button by text
