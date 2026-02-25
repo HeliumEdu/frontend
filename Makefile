@@ -115,11 +115,20 @@ test: install
 	flutter test --no-pub --coverage
 
 start-platform:
-	@if curl -s http://localhost:8000/health/ > /dev/null 2>&1; then \
+	@if curl -sf http://localhost:8000/status/ > /dev/null 2>&1; then \
 		echo "Platform already running"; \
 	else \
 		echo "Starting platform..."; \
 		curl -fsSL "https://raw.githubusercontent.com/HeliumEdu/platform/main/bin/start-platform.sh?$$(date +%s)" | bash; \
+	fi
+	@if [ -n "$$PLATFORM_EMAIL_HOST_USER" ] && [ -n "$$PLATFORM_EMAIL_HOST_PASSWORD" ]; then \
+		WORK_DIR=$${TMPDIR:-/tmp}/helium-platform; \
+		if grep -q '<SMTP_USERNAME>' "$$WORK_DIR/.env" 2>/dev/null; then \
+			echo "Injecting SMTP credentials and restarting API..."; \
+			sed -i.bak "s/<SMTP_USERNAME>/$$PLATFORM_EMAIL_HOST_USER/" $$WORK_DIR/.env; \
+			sed -i.bak "s/<SMTP_PASSWORD>/$$PLATFORM_EMAIL_HOST_PASSWORD/" $$WORK_DIR/.env; \
+			cd $$WORK_DIR && docker compose up -d api worker; \
+		fi; \
 	fi
 
 stop-platform:
@@ -178,6 +187,9 @@ publish: build-docker
 
 	docker tag helium/frontend-web:$(PLATFORM)-$(DOCKER_TAG_VERSION) public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-$(DOCKER_TAG_VERSION)
 	docker push public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-$(DOCKER_TAG_VERSION)
+
+	docker tag helium/frontend-web:$(PLATFORM)-$(DOCKER_TAG_VERSION) public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-latest
+	docker push public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-latest
 
 	docker create --name frontend-web helium/frontend-web:$(PLATFORM)-$(DOCKER_TAG_VERSION)
 	docker cp frontend-web:/app build
