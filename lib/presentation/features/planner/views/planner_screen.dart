@@ -461,6 +461,7 @@ class _CalendarScreenState
         if (state is PlannerError) {
           return ErrorCard(
             message: state.message!,
+            source: 'planner_screen',
             onReload: () {
               FetchPlannerScreenDataEvent();
             },

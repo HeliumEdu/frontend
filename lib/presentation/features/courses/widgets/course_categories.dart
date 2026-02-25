@@ -192,6 +192,7 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
                   state.origin == EventOrigin.screen) {
                 return ErrorCard(
                   message: state.message!,
+                  source: 'course_categories',
                   onReload: () {
                     context.read<CategoryBloc>().add(
                       FetchCategoriesEvent(

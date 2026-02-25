@@ -8,7 +8,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-class _ResponsiveBreakpoints {
+class ResponsiveBreakpoints {
   static const double mobile = 600;
 
   static const double tablet = 1024;
@@ -38,16 +38,16 @@ class Responsive {
   }
 
   static bool isMobileWidth(double width) {
-    return width < _ResponsiveBreakpoints.mobile;
+    return width < ResponsiveBreakpoints.mobile;
   }
 
   static bool isTabletWidth(double width) {
-    return width >= _ResponsiveBreakpoints.mobile &&
-        width < _ResponsiveBreakpoints.tablet;
+    return width >= ResponsiveBreakpoints.mobile &&
+        width < ResponsiveBreakpoints.tablet;
   }
 
   static bool isDesktopWidth(double width) {
-    return width >= _ResponsiveBreakpoints.tablet;
+    return width >= ResponsiveBreakpoints.tablet;
   }
 
   static int getColumnCountForWidth(
@@ -76,9 +76,9 @@ class Responsive {
 
   static DeviceType getDeviceType(BuildContext context) {
     final double width = MediaQuery.of(context).size.width;
-    if (width >= _ResponsiveBreakpoints.tablet) {
+    if (width >= ResponsiveBreakpoints.tablet) {
       return DeviceType.desktop;
-    } else if (width >= _ResponsiveBreakpoints.mobile) {
+    } else if (width >= ResponsiveBreakpoints.mobile) {
       return DeviceType.tablet;
     } else {
       return DeviceType.mobile;
@@ -86,9 +86,9 @@ class Responsive {
   }
 
   static DeviceType getDeviceTypeFromSize(Size size) {
-    if (size.width >= _ResponsiveBreakpoints.tablet) {
+    if (size.width >= ResponsiveBreakpoints.tablet) {
       return DeviceType.desktop;
-    } else if (size.width >= _ResponsiveBreakpoints.mobile) {
+    } else if (size.width >= ResponsiveBreakpoints.mobile) {
       return DeviceType.tablet;
     } else {
       return DeviceType.mobile;

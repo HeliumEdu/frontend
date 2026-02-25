@@ -14,6 +14,7 @@ import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
+import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
@@ -217,6 +218,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   // State
   UserSettingsModel? userSettings;
   bool settingsLoaded = false;
+  bool settingsError = false;
   bool isLoading = false;
   bool isSubmitting = false;
 
@@ -263,11 +265,19 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
             userSettings = settings;
             if (userSettings != null) {
               settingsLoaded = true;
+              settingsError = false;
+            } else {
+              settingsError = true;
             }
           });
           return settings;
         })
         .catchError((error) {
+          if (mounted) {
+            setState(() {
+              settingsError = true;
+            });
+          }
           throw error;
         });
   }
@@ -301,8 +311,27 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       padding: const EdgeInsets.only(left: 12, right: 12, top: 8, bottom: 0),
       child: Column(
         children: [
+          // Show error card if settings failed to load
+          if (settingsError)
+            ErrorCard(
+              message: 'An unknown error occurred',
+              source: 'settings',
+              onReload: () {
+                setState(() {
+                  settingsError = false;
+                  isLoading = true;
+                });
+                loadSettings().whenComplete(() {
+                  if (mounted) {
+                    setState(() {
+                      isLoading = false;
+                    });
+                  }
+                });
+              },
+            )
           // Show loading until settings are loaded for authenticated screens
-          if (isLoading || (isAuthenticatedScreen && !settingsLoaded))
+          else if (isLoading || (isAuthenticatedScreen && !settingsLoaded))
             const LoadingIndicator()
           else ...[
             buildHeaderArea(context),

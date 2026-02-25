@@ -173,6 +173,7 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
               if (state is AttachmentsError) {
                 return ErrorCard(
                   message: state.message!,
+                  source: 'attachments_widget',
                   onReload: () {
                     context.read<AttachmentBloc>().add(
                       createFetchAttachmentsEvent(),
