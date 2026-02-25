@@ -37,6 +37,14 @@ jobs:
           version: "3.38.9"
           cache: true
 
+      - name: Cache pub dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
       - name: Add pub cache to PATH
         run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
       - name: Install lcov
@@ -76,6 +84,14 @@ jobs:
           version: "3.38.9"
           cache: true
 
+      - name: Cache pub dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
       - name: Build Android
         run: make build-android
 
@@ -100,6 +116,14 @@ jobs:
           version: "3.38.9"
           cache: true
 
+      - name: Cache pub dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
       - name: Build iOS
         run: make build-ios
 
@@ -117,6 +141,14 @@ jobs:
           channel: stable
           version: "3.38.9"
           cache: true
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
 
       - name: Build web
         run: make build-web
