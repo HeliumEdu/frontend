@@ -34,14 +34,10 @@ Future<bool> loginAndNavigateToPlanner(
 ) async {
   final log = Logger('loginAndNavigateToPlanner');
 
-  await tester.enterText(
-    find.widgetWithText(TextField, 'Email'),
-    email,
-  );
-  await tester.enterText(
-    find.widgetWithText(TextField, 'Password'),
-    password,
-  );
+  // Use helper for web-compatible text entry
+  await enterTextInField(tester, find.widgetWithText(TextField, 'Email'), email);
+  await enterTextInField(tester, find.widgetWithText(TextField, 'Password'), password);
+
   await tester.tap(find.text('Sign In'));
 
   // Wait for either setup screen, welcome dialog, or planner to appear
@@ -157,24 +153,24 @@ void main() {
       // Verify we're on the signup screen
       expect(find.text('Create an Account'), findsOneWidget);
 
-      // Fill in the signup form
-      await tester.enterText(
+      // Fill in the signup form using helper for web compatibility
+      await enterTextInField(
+        tester,
         find.widgetWithText(TextField, 'Email'),
         testEmail,
       );
-      await tester.pumpAndSettle();
 
-      await tester.enterText(
+      await enterTextInField(
+        tester,
         find.widgetWithText(TextField, 'Password'),
         testPassword,
       );
-      await tester.pumpAndSettle();
 
-      await tester.enterText(
+      await enterTextInField(
+        tester,
         find.widgetWithText(TextField, 'Confirm password'),
         testPassword,
       );
-      await tester.pumpAndSettle();
 
       // Agree to terms - find and tap the checkbox
       final checkbox = find.byType(CheckboxListTile);
@@ -216,14 +212,9 @@ void main() {
       _log.info('Got verification code: $verificationCode');
 
       // Navigate to verify email screen via login with unverified account
-      await tester.enterText(
-        find.widgetWithText(TextField, 'Email'),
-        testEmail,
-      );
-      await tester.enterText(
-        find.widgetWithText(TextField, 'Password'),
-        testPassword,
-      );
+      await enterTextInField(tester, find.widgetWithText(TextField, 'Email'), testEmail);
+      await enterTextInField(tester, find.widgetWithText(TextField, 'Password'), testPassword);
+
       await tester.tap(find.text('Sign In'));
       await tester.pumpAndSettle(const Duration(seconds: 5));
 
@@ -244,11 +235,11 @@ void main() {
       expect(onVerifyScreen, isTrue, reason: 'Should be on verify email screen');
 
       // Email field should be pre-filled, enter verification code
-      await tester.enterText(
+      await enterTextInField(
+        tester,
         find.widgetWithText(TextField, 'Verification code'),
         verificationCode,
       );
-      await tester.pumpAndSettle();
 
       // Submit verification
       await tester.tap(find.text('Verify & Login'));
@@ -280,14 +271,9 @@ void main() {
       await initializeTestApp(tester);
 
       // Login with the verified account
-      await tester.enterText(
-        find.widgetWithText(TextField, 'Email'),
-        testEmail,
-      );
-      await tester.enterText(
-        find.widgetWithText(TextField, 'Password'),
-        testPassword,
-      );
+      await enterTextInField(tester, find.widgetWithText(TextField, 'Email'), testEmail);
+      await enterTextInField(tester, find.widgetWithText(TextField, 'Password'), testPassword);
+
       await tester.tap(find.text('Sign In'));
       await tester.pumpAndSettle(const Duration(seconds: 10));
 
@@ -332,14 +318,9 @@ void main() {
       await initializeTestApp(tester);
 
       // Login with the test account
-      await tester.enterText(
-        find.widgetWithText(TextField, 'Email'),
-        testEmail,
-      );
-      await tester.enterText(
-        find.widgetWithText(TextField, 'Password'),
-        testPassword,
-      );
+      await enterTextInField(tester, find.widgetWithText(TextField, 'Email'), testEmail);
+      await enterTextInField(tester, find.widgetWithText(TextField, 'Password'), testPassword);
+
       await tester.tap(find.text('Sign In'));
       await tester.pumpAndSettle(const Duration(seconds: 10));
 
@@ -681,8 +662,7 @@ void main() {
       // Find the title field and change it
       final titleField = find.widgetWithText(TextField, originalTitle);
       if (titleField.evaluate().isNotEmpty) {
-        await tester.enterText(titleField, '$originalTitle (Edited)');
-        await tester.pumpAndSettle();
+        await enterTextInField(tester, titleField, '$originalTitle (Edited)');
       }
 
       // Find and tap the "Completed" checkbox
@@ -742,14 +722,9 @@ void main() {
 
       // Log in - but DON'T dismiss the welcome dialog automatically
       // We need to manually handle login to click "Clear Example Data" instead
-      await tester.enterText(
-        find.widgetWithText(TextField, 'Email'),
-        testEmail,
-      );
-      await tester.enterText(
-        find.widgetWithText(TextField, 'Password'),
-        testPassword,
-      );
+      await enterTextInField(tester, find.widgetWithText(TextField, 'Email'), testEmail);
+      await enterTextInField(tester, find.widgetWithText(TextField, 'Password'), testPassword);
+
       await tester.tap(find.text('Sign In'));
 
       // Wait for the welcome dialog to appear
@@ -767,14 +742,9 @@ void main() {
         await initializeTestApp(tester);
 
         // Log in again
-        await tester.enterText(
-          find.widgetWithText(TextField, 'Email'),
-          testEmail,
-        );
-        await tester.enterText(
-          find.widgetWithText(TextField, 'Password'),
-          testPassword,
-        );
+        await enterTextInField(tester, find.widgetWithText(TextField, 'Email'), testEmail);
+        await enterTextInField(tester, find.widgetWithText(TextField, 'Password'), testPassword);
+
         await tester.tap(find.text('Sign In'));
 
         final retryWelcomeFound = await waitForWidget(
@@ -879,8 +849,7 @@ void main() {
       // Enter password in the confirmation dialog
       final passwordField = find.widgetWithText(TextField, 'Password');
       if (passwordField.evaluate().isNotEmpty) {
-        await tester.enterText(passwordField, testPassword);
-        await tester.pumpAndSettle();
+        await enterTextInField(tester, passwordField, testPassword);
       }
 
       // Confirm deletion

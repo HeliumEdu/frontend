@@ -59,6 +59,14 @@ jobs:
           version: ${{ env.FLUTTER_VERSION }}
           cache: true
 
+      - name: Cache pub dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
       - name: Install Chrome
         uses: browser-actions/setup-chrome@v1
         with:
@@ -94,6 +102,19 @@ jobs:
           echo "PLATFORM_RESOURCE_IMAGE=public.ecr.aws/heliumedu/helium/platform-resource:$VERSION" >> $GITHUB_ENV
           echo "PLATFORM_API_IMAGE=public.ecr.aws/heliumedu/helium/platform-api:$VERSION" >> $GITHUB_ENV
           echo "PLATFORM_WORKER_IMAGE=public.ecr.aws/heliumedu/helium/platform-worker:$VERSION" >> $GITHUB_ENV
+
+      - name: Pre-pull platform images (dev-local only)
+        if: ${{ inputs.environment == 'dev-local' }}
+        run: |
+          echo "Pulling platform images..."
+          docker pull "$PLATFORM_RESOURCE_IMAGE" &
+          docker pull "$PLATFORM_API_IMAGE" &
+          docker pull "$PLATFORM_WORKER_IMAGE" &
+          docker pull localstack/localstack:latest &
+          docker pull redis:7-alpine &
+          docker pull mysql:8 &
+          wait
+          echo "All images pulled"
 
       - name: Run integration tests
         run: |

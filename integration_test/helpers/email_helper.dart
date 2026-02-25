@@ -99,7 +99,9 @@ class EmailHelper {
           emailDate.isBefore(rightWindow);
 
       // Verify this email is for our user and is recent
-      final usernamePattern = 'username=${Uri.encodeComponent(username)}&code';
+      // The verification URL uses just the local part of the email (before @), not URL-encoded
+      final localPart = username.split('@').first;
+      final usernamePattern = 'username=$localPart&code';
       final isForOurUser = emailBody?.contains(usernamePattern) ?? false;
 
       if (!inTestWindow || !isForOurUser || emailBody == null) {
@@ -112,7 +114,8 @@ class EmailHelper {
       }
 
       // Extract verification code from the URL
-      final verifyPattern = 'verify?username=${Uri.encodeComponent(username)}&code=';
+      // The verification URL uses just the local part of the email (before @), not URL-encoded
+      final verifyPattern = 'verify?username=$localPart&code=';
       final codeStart = emailBody.indexOf(verifyPattern);
       if (codeStart == -1) {
         return _retryOrFail(username, retry, 'Verification URL not found in email');

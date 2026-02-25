@@ -20,7 +20,6 @@ import 'package:heliumapp/data/models/auth/request/refresh_token_request_model.d
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/data/models/auth/token_response_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
-import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:logging/logging.dart';
@@ -361,15 +360,20 @@ class DioClient {
         'material_color': _prefService.getString('resource_color'),
         'grade_color': _prefService.getString('grade_color'),
         'default_reminder_type': _prefService.getInt('default_reminder_type'),
-        'default_reminder_offset': _prefService.getInt('default_reminder_offset'),
-        'default_reminder_offset_type':
-            _prefService.getInt('default_reminder_offset_type'),
-        'calendar_use_category_colors':
-            _prefService.getBool('calendar_use_category_colors'),
+        'default_reminder_offset': _prefService.getInt(
+          'default_reminder_offset',
+        ),
+        'default_reminder_offset_type': _prefService.getInt(
+          'default_reminder_offset_type',
+        ),
+        'calendar_use_category_colors': _prefService.getBool(
+          'calendar_use_category_colors',
+        ),
         'show_planner_tooltips': _prefService.getBool('show_planner_tooltips'),
         'remember_filter_state': _prefService.getBool('remember_filter_state'),
-        'drag_and_drop_on_mobile':
-            _prefService.getBool('drag_and_drop_on_mobile'),
+        'drag_and_drop_on_mobile': _prefService.getBool(
+          'drag_and_drop_on_mobile',
+        ),
         'is_setup_complete': _prefService.getBool('is_setup_complete'),
       });
     } catch (parseError) {
