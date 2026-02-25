@@ -13,28 +13,30 @@ The `frontend` for [Helium](https://www.heliumedu.com/), including mobile and we
 - Dart (>= 3.10)
 - Flutter (>= 3.38)
 - Android or iOS Emulator
+- ChromeDriver (for Integration Tests)
 
 ## Getting Started
 
 ## Development
 
-With an emulator running, you can start the app by executing:
-
-```sh
-make run
-```
-
-To build a development version of the app Android or iOS, execute:
+To build a development versions of the app for Android and iOS, execute:
 
 ```sh
 make build-android
 make build-ios
 ```
 
+Tun run a development version of the app for `web`, executing:
+
+```sh
+make run-devserver
+```
+
 Before commits are made, be sure to also run tests.
 
 ```sh
 make test
+make test-integration
 ```
 
 When running a local `web` version of the project but hitting `prod` APIs, CORS will need to be disabled

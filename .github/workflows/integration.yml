@@ -1,0 +1,105 @@
+name: "Integration Tests"
+
+run-name: "Integration Tests (`${{ inputs.environment }}`)"
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to test against'
+        required: true
+        type: choice
+        default: dev-local
+        options:
+          - dev-local
+          - dev
+      platform_version:
+        description: 'Platform version (for dev-local only, e.g. "arm64-latest" or "amd64-1.0.0")'
+        required: false
+        type: string
+        default: 'amd64-latest'
+
+permissions:
+  contents: read
+
+# Only allow one integration test run at a time to avoid user pollution
+concurrency:
+  group: integration-tests
+  cancel-in-progress: false
+
+env:
+  FLUTTER_VERSION: "3.38.9"
+
+jobs:
+  integration-test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+
+    env:
+      ENVIRONMENT: ${{ inputs.environment || 'dev-local' }}
+      AWS_S3_ACCESS_KEY_ID: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
+      AWS_S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
+      PLATFORM: amd64
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Flutter SDK
+        uses: flutter-actions/setup-flutter@v4
+        with:
+          channel: stable
+          version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Install Chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
+      - name: Install ChromeDriver
+        uses: nanasess/setup-chromedriver@v2
+
+      - name: Start ChromeDriver
+        run: chromedriver --port=4444 &
+
+      - name: Install dependencies
+        run: make install
+
+      # dev-local: Login to ECR to avoid rate limits
+      - name: Configure AWS credentials (dev-local only)
+        if: ${{ inputs.environment == 'dev-local' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Login to AWS ECR Public (dev-local only)
+        if: ${{ inputs.environment == 'dev-local' }}
+        run: |
+          aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/heliumedu
+
+      - name: Set platform image versions (dev-local only)
+        if: ${{ inputs.environment == 'dev-local' }}
+        run: |
+          VERSION="${{ inputs.platform_version || 'amd64-latest' }}"
+          echo "PLATFORM_RESOURCE_IMAGE=public.ecr.aws/heliumedu/helium/platform-resource:$VERSION" >> $GITHUB_ENV
+          echo "PLATFORM_API_IMAGE=public.ecr.aws/heliumedu/helium/platform-api:$VERSION" >> $GITHUB_ENV
+          echo "PLATFORM_WORKER_IMAGE=public.ecr.aws/heliumedu/helium/platform-worker:$VERSION" >> $GITHUB_ENV
+
+      - name: Run integration tests
+        run: |
+          make test-integration \
+            ENVIRONMENT=${{ env.ENVIRONMENT }} \
+            INTEGRATION_HEADLESS=true \
+            AWS_S3_ACCESS_KEY_ID="${{ env.AWS_S3_ACCESS_KEY_ID }}" \
+            AWS_S3_SECRET_ACCESS_KEY="${{ env.AWS_S3_SECRET_ACCESS_KEY }}"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results-${{ env.ENVIRONMENT }}
+          path: build/integration_test_results/
+          retention-days: 7
+          if-no-files-found: ignore
