@@ -1,4 +1,4 @@
-.PHONY: all env install clean icons build-android build-android-release build-ios-dev build-ios build-ios-release update-version firebase-config build-web upload-web-sourcemaps test test-integration test-integration-smoke coverage run-devserver build-docker run-docker stop-docker restart-docker publish
+.PHONY: all env install clean clean-chrome icons build-android build-android-release build-ios-dev build-ios build-ios-release update-version firebase-config build-web upload-web-sourcemaps test test-integration test-integration-smoke coverage run-devserver build-docker run-docker stop-docker restart-docker publish
 
 SHELL := /usr/bin/env bash
 TAG_VERSION ?= latest
@@ -32,13 +32,18 @@ endif
 
 # Integration test configuration
 ENVIRONMENT ?= dev-local
-INTEGRATION_HEADLESS ?= false
 INTEGRATION_TARGET ?= integration_test/app_test.dart
+INTEGRATION_HEADLESS ?= true
 # Set API host based on environment
 ifeq ($(ENVIRONMENT),dev-local)
     PROJECT_API_HOST ?= http://localhost:8000
 endif
-DRIVE_ARGS := --driver=test_driver/integration_test.dart --target=$(INTEGRATION_TARGET) -d chrome --dart-define=ENVIRONMENT=$(ENVIRONMENT) --dart-define=ANALYTICS_ENABLED=false
+DRIVE_ARGS := --driver=test_driver/integration_test.dart -d web-server --browser-name=chrome --profile --dart-define=ENVIRONMENT=$(ENVIRONMENT) --dart-define=ANALYTICS_ENABLED=false --test-arguments=test --test-arguments=--reporter=expanded
+ifeq ($(INTEGRATION_HEADLESS),true)
+    DRIVE_ARGS += --headless
+else
+    DRIVE_ARGS += --no-headless
+endif
 ifdef PROJECT_API_HOST
     DRIVE_ARGS += --dart-define=PROJECT_API_HOST=$(PROJECT_API_HOST)
 endif
@@ -47,9 +52,6 @@ ifdef AWS_S3_ACCESS_KEY_ID
 endif
 ifdef AWS_S3_SECRET_ACCESS_KEY
     DRIVE_ARGS += --dart-define=AWS_S3_SECRET_ACCESS_KEY=$(AWS_S3_SECRET_ACCESS_KEY)
-endif
-ifeq ($(INTEGRATION_HEADLESS),true)
-    DRIVE_ARGS += --headless
 endif
 
 all: test
@@ -62,6 +64,14 @@ install: env
 
 clean:
 	flutter clean
+
+clean-chrome:
+	@echo "Killing stale Chrome and chromedriver processes..."
+	@pkill -f chromedriver || true
+	@pkill -f "Chrome.*--remote-debugging" || true
+	@pkill -f "Google Chrome for Testing" || true
+	@sleep 1
+	@echo "Done"
 
 build-android: install
 	flutter build apk --debug
@@ -104,20 +114,19 @@ test: install
 	flutter analyze --no-pub --no-fatal-infos --no-fatal-warnings
 	flutter test --no-pub --coverage
 
-test-integration: install
+test-integration: clean-chrome
 ifeq ($(ENVIRONMENT),dev-local)
 	@curl -fsSL "https://raw.githubusercontent.com/HeliumEdu/platform/main/bin/start-platform.sh?$$(date +%s)" | bash
-	@chromedriver --port=4444 & sleep 2 && flutter drive $(DRIVE_ARGS); TEST_EXIT=$$?; \
+	@chromedriver --port=4444 & sleep 2 && flutter drive --target=$(INTEGRATION_TARGET) $(DRIVE_ARGS); TEST_EXIT=$$?; \
 		pkill -f chromedriver || true; \
 		(curl -fsSL "https://raw.githubusercontent.com/HeliumEdu/platform/main/bin/stop-platform.sh?$$(date +%s)" | bash > /dev/null 2>&1 &); \
 		exit $$TEST_EXIT
 else
-	@chromedriver --port=4444 & sleep 2 && flutter drive $(DRIVE_ARGS); TEST_EXIT=$$?; pkill -f chromedriver || true; exit $$TEST_EXIT
+	@chromedriver --port=4444 & sleep 2 && flutter drive --target=$(INTEGRATION_TARGET) $(DRIVE_ARGS); TEST_EXIT=$$?; pkill -f chromedriver || true; exit $$TEST_EXIT
 endif
 
-test-integration-smoke: INTEGRATION_TARGET = integration_test/smoke_test.dart
-test-integration-smoke: install
-	@chromedriver --port=4444 & sleep 2 && flutter drive $(DRIVE_ARGS); TEST_EXIT=$$?; pkill -f chromedriver || true; exit $$TEST_EXIT
+test-integration-smoke: clean-chrome
+	@chromedriver --port=4444 & sleep 2 && flutter drive --target=integration_test/smoke_test.dart $(DRIVE_ARGS); TEST_EXIT=$$?; pkill -f chromedriver || true; exit $$TEST_EXIT
 
 coverage:
 	dart pub global activate test_cov_console

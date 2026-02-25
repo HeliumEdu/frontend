@@ -25,8 +25,13 @@ void main() {
     testWidgets('app launches and shows login screen', (tester) async {
       await initializeTestApp(tester);
 
-      // Verify the logo is displayed
-      final logoFinder = find.byType(Image);
+      // Verify the logo is displayed (match our logo asset, not package assets)
+      final logoFinder = find.byWidgetPredicate(
+        (widget) =>
+            widget is Image &&
+            widget.image is AssetImage &&
+            (widget.image as AssetImage).assetName.startsWith('assets/img/logo'),
+      );
       expect(logoFinder, findsOneWidget, reason: 'Logo should be displayed');
 
       // Verify the login form elements are displayed
@@ -111,7 +116,7 @@ void main() {
 
       // Verify back to login link
       expect(
-        find.text('Have an account?'),
+        find.text('Back to login'),
         findsOneWidget,
         reason: 'Back to login link should be displayed',
       );
