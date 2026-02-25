@@ -230,6 +230,9 @@ void main() {
           () => mockPrefService.getInt('whats_new_version_seen'),
         ).thenReturn(0);
         when(
+          () => mockPrefService.getBool('show_getting_started'),
+        ).thenReturn(false);
+        when(
           () => mockPrefService.getString('events_color'),
         ).thenReturn('#FF0000');
         when(
@@ -245,7 +248,7 @@ void main() {
           () => mockPrefService.getInt('default_reminder_offset'),
         ).thenReturn(15);
         when(
-          () => mockPrefService.getInt('DEFAULT_REMINDER_OFFSET_TYPE'),
+          () => mockPrefService.getInt('default_reminder_offset_type'),
         ).thenReturn(0);
         when(
           () => mockPrefService.getBool('calendar_use_category_colors'),
