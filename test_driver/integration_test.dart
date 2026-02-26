@@ -78,7 +78,13 @@ void _processResult(Map<String, dynamic> data) {
       // ignore: avoid_print
       print('${_cyan}API host: ${data['apiHost']}$_reset');
       // ignore: avoid_print
-      print('${_grey}Log level: ${data['logLevel']}$_reset\n');
+      print('${_grey}Integration log level: ${data['logLevel']}$_reset');
+      final appLogLevel = data['appLogLevel'] as String?;
+      if (appLogLevel != null) {
+        print('${_grey}App log level: $appLogLevel$_reset');
+      }
+      // ignore: avoid_print
+      print('');
       break;
 
     case 'testStart':
