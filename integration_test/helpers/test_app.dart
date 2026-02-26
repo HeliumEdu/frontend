@@ -5,15 +5,16 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/core/log_formatter.dart';
 import 'package:heliumapp/data/repositories/auth_repository_impl.dart';
 import 'package:heliumapp/data/sources/auth_remote_data_source.dart';
 import 'package:heliumapp/helium_app.dart';
@@ -21,10 +22,45 @@ import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
+import 'package:http/http.dart' as http;
+import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 
 bool _initialized = false;
 bool _loggingInitialized = false;
+
+/// Log level for integration tests.
+/// - info: Only test names and pass/fail results (default)
+/// - fine: Also includes app service logs
+enum TestLogLevel { info, fine }
+
+/// Current log level for integration tests.
+TestLogLevel _testLogLevel = TestLogLevel.info;
+
+/// Port for the real-time logging server (must match driver).
+const _logServerPort = 4445;
+
+/// Get the current test log level.
+TestLogLevel get testLogLevel => _testLogLevel;
+
+/// Send a log message to the driver's log server for real-time output.
+Future<void> _sendLog(Map<String, dynamic> data) async {
+  try {
+    final response = await http.post(
+      Uri.parse('http://localhost:$_logServerPort/log'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(data),
+    );
+    if (response.statusCode != 200) {
+      // ignore: avoid_print
+      print('Warning: Log server returned ${response.statusCode}');
+    }
+  } catch (e) {
+    // ignore: avoid_print
+    print('Warning: Could not reach log server: $e');
+  }
+}
 
 /// Initialize logging for integration tests.
 /// Safe to call multiple times - only sets up the listener once.
@@ -32,35 +68,67 @@ void initializeTestLogging({required String environment, required String apiHost
   if (_loggingInitialized) return;
   _loggingInitialized = true;
 
-  // ignore: avoid_print
-  print('Running integration tests against: $environment');
-  // ignore: avoid_print
-  print('API host: $apiHost');
+  // Parse log level from environment
+  const logLevelStr = String.fromEnvironment('TEST_LOG_LEVEL', defaultValue: 'info');
+  _testLogLevel = logLevelStr == 'fine' ? TestLogLevel.fine : TestLogLevel.info;
 
+  // Send init info to driver
+  _sendLog(<String, dynamic>{
+    'type': 'init',
+    'environment': environment,
+    'apiHost': apiHost,
+    'logLevel': _testLogLevel.name,
+  });
+
+  // Configure app logging based on level
   Logger.root.level = Level.INFO;
   Logger.root.onRecord.listen((record) {
+    final formatted = LogFormatter.format(record);
+
+    // Send to driver for terminal output if fine level enabled
+    if (_testLogLevel == TestLogLevel.fine) {
+      _sendLog(<String, dynamic>{
+        'type': 'log',
+        'message': formatted,
+      });
+    }
+
+    // Always print to browser console for DevTools debugging
     // ignore: avoid_print
-    print('${record.level.name}: ${record.time}: ${record.message}');
+    print(formatted);
   });
 }
 
-/// Wrapper around testWidgets that prints the test name to console.
-/// Useful for debugging in non-headless mode with DevTools open.
-/// On failure, pauses to allow reading the console before browser closes.
+/// Wrapper around testWidgets that reports test results to the driver.
+/// - At info level: reports test name and pass/fail
+/// - At fine level: also includes app service logs
 @isTest
 void namedTestWidgets(
   String description,
   Future<void> Function(WidgetTester) callback,
 ) {
   testWidgets(description, (tester) async {
+    // Report test start
+    await _sendLog(<String, dynamic>{
+      'type': 'testStart',
+      'test': description,
+    });
+
     // ignore: avoid_print
     print('\n========================================');
     // ignore: avoid_print
     print('RUNNING: $description');
     // ignore: avoid_print
     print('========================================\n');
+
     try {
       await callback(tester);
+
+      // Report success
+      await _sendLog(<String, dynamic>{
+        'type': 'testPass',
+        'test': description,
+      });
     } catch (e, stack) {
       // ignore: avoid_print
       print('\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
@@ -72,6 +140,15 @@ void namedTestWidgets(
       print('STACK: $stack');
       // ignore: avoid_print
       print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n');
+
+      // Report failure with error details
+      await _sendLog(<String, dynamic>{
+        'type': 'testFail',
+        'test': description,
+        'error': e.toString(),
+        'stack': stack.toString(),
+      });
+
       // Pause to allow reading the error when running with visible browser
       const postTestDelay = int.fromEnvironment('POST_TEST_DELAY', defaultValue: 0);
       if (postTestDelay > 0) {
