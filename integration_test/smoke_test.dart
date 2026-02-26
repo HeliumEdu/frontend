@@ -14,12 +14,11 @@ import 'helpers/test_config.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-
   final config = TestConfig();
-  // ignore: avoid_print
-  print('Running smoke tests against: ${config.environment}');
-  // ignore: avoid_print
-  print('API host: ${config.projectApiHost}');
+  initializeTestLogging(
+    environment: config.environment,
+    apiHost: config.projectApiHost,
+  );
 
   group('Smoke Tests', () {
     namedTestWidgets('app launches and shows login screen', (tester) async {

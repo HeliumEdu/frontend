@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/pref_service.dart';
@@ -23,6 +24,25 @@ import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helper
 import 'package:timezone/data/latest_all.dart' as tz;
 
 bool _initialized = false;
+bool _loggingInitialized = false;
+
+/// Initialize logging for integration tests.
+/// Safe to call multiple times - only sets up the listener once.
+void initializeTestLogging({required String environment, required String apiHost}) {
+  if (_loggingInitialized) return;
+  _loggingInitialized = true;
+
+  // ignore: avoid_print
+  print('Running integration tests against: $environment');
+  // ignore: avoid_print
+  print('API host: $apiHost');
+
+  Logger.root.level = Level.INFO;
+  Logger.root.onRecord.listen((record) {
+    // ignore: avoid_print
+    print('${record.level.name}: ${record.time}: ${record.message}');
+  });
+}
 
 /// Wrapper around testWidgets that prints the test name to console.
 /// Useful for debugging in non-headless mode with DevTools open.

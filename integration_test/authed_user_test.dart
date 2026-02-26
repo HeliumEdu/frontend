@@ -19,19 +19,11 @@ final _log = Logger('authed_user_test');
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-
-  // Set up logging
-  Logger.root.level = Level.INFO;
-  Logger.root.onRecord.listen((record) {
-    // ignore: avoid_print
-    print('${record.level.name}: ${record.time}: ${record.message}');
-  });
-
   final config = TestConfig();
-  // ignore: avoid_print
-  print('Running authenticated user tests against: ${config.environment}');
-  // ignore: avoid_print
-  print('API host: ${config.projectApiHost}');
+  initializeTestLogging(
+    environment: config.environment,
+    apiHost: config.projectApiHost,
+  );
 
   group('Authenticated User Tests', () {
     final testEmail = config.testEmail;
