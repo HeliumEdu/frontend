@@ -86,6 +86,19 @@ void main() {
       );
 
       expect(plannerFound, isTrue, reason: 'Should be on planner screen');
+
+      // Dismiss dialogs so they don't interfere with subsequent tests
+      await tester.pumpAndSettle(const Duration(seconds: 2));
+      if (find.text('Welcome to Helium!').evaluate().isNotEmpty) {
+        await tester.tap(find.text("I'll explore first"));
+        await tester.pumpAndSettle();
+      }
+      await tester.pumpAndSettle(const Duration(seconds: 2));
+      if (find.text('Welcome to the new Helium!').evaluate().isNotEmpty) {
+        await tester.tap(find.text('Dive In!'));
+        await tester.pumpAndSettle();
+      }
+
       _log.info('Login succeeded');
     });
 
@@ -142,6 +155,13 @@ void main() {
 
         // Dismiss the dialog
         await tester.tap(find.text("I'll explore first"));
+        await tester.pumpAndSettle();
+      }
+
+      // Also dismiss what's new dialog if present (can appear behind welcome dialog)
+      await tester.pumpAndSettle(const Duration(seconds: 2));
+      if (find.text('Welcome to the new Helium!').evaluate().isNotEmpty) {
+        await tester.tap(find.text('Dive In!'));
         await tester.pumpAndSettle();
       }
 
@@ -488,6 +508,14 @@ void main() {
       final clearButton = find.text('Clear Example Data');
       expect(clearButton, findsOneWidget, reason: 'Clear Example Data button should exist');
       await tester.tap(clearButton);
+      await tester.pumpAndSettle();
+
+      // Also dismiss what's new dialog if present (can appear behind welcome dialog)
+      await tester.pumpAndSettle(const Duration(seconds: 2));
+      if (find.text('Welcome to the new Helium!').evaluate().isNotEmpty) {
+        await tester.tap(find.text('Dive In!'));
+        await tester.pumpAndSettle();
+      }
 
       // Wait for navigation to Classes screen
       final classesScreenFound = await waitForWidget(
