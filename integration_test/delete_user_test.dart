@@ -49,7 +49,7 @@ void main() {
     namedTestWidgets('1. User can delete their account', (tester) async {
       if (!canProceed) {
         _log.warning('Skipping: user does not exist');
-        markTestSkipped('Skipped: user does not exist (run signup_user_test first)');
+        skipTest('user does not exist (run signup_user_test first)');
         return;
       }
 

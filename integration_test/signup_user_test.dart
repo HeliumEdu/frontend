@@ -99,7 +99,7 @@ void main() {
 
     namedTestWidgets('2. User can verify email with code from S3', (tester) async {
       if (!registrationSucceeded) {
-        markTestSkipped('Skipped: registration did not succeed');
+        skipTest('registration did not succeed');
         return;
       }
 
