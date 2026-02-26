@@ -47,10 +47,8 @@ on:
 permissions:
   contents: read
 
-# Only allow one integration test run at a time to avoid user pollution
 concurrency:
-  group: integration-tests
-  cancel-in-progress: false
+  group: "integration-tests-${{inputs.environment}}"
 
 env:
   FLUTTER_VERSION: "3.38.9"
