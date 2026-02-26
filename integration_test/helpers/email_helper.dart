@@ -69,7 +69,7 @@ class EmailHelper {
       final usernamePattern = 'username=$localPart&code';
       final verifyPattern = 'verify?username=$localPart&code=';
 
-      // Iterate through ALL emails to find one matching our criteria
+      // Look for our email
       for (final obj in allObjects) {
         if (obj.key == null) continue;
 
@@ -87,7 +87,6 @@ class EmailHelper {
         final inTestWindow = emailDate != null &&
             !emailDate.isBefore(leftWindow) &&
             emailDate.isBefore(rightWindow);
-        final isStale = emailDate != null && emailDate.isBefore(staleThreshold);
 
         if (isForOurUser && inTestWindow) {
           // Found our email within the time window - extract the code
@@ -107,31 +106,18 @@ class EmailHelper {
 
           _log.info('Extracted verification code: $verificationCode');
 
-          // Delete the email object after successful extraction
+          // Delete our email
           await _minio.removeObject(_config.s3BucketName, obj.key!);
-          _log.info('Deleted email object: ${obj.key}');
+          _log.info('Deleted matching email: ${obj.key}');
+
+          // Clean up old emails (>10 min) now that we succeeded
+          await _cleanupOldEmails(allObjects, staleThreshold);
 
           return verificationCode;
         }
-
-        if (isForOurUser && !inTestWindow) {
-          // Email is for our user but outside time window - it's stale
-          _log.info('Found stale email for our user: ${obj.key}, deleting ...');
-          await _minio.removeObject(_config.s3BucketName, obj.key!);
-          continue;
-        }
-
-        if (isStale) {
-          // Email is >10 minutes old - safe to clean up regardless of user
-          _log.info('Found stale email (>10 min old): ${obj.key}, deleting ...');
-          await _minio.removeObject(_config.s3BucketName, obj.key!);
-          continue;
-        }
-
-        // Email is not for us and not stale - leave it for concurrent test
       }
 
-      // No matching email found in this pass
+      // No matching email found - don't touch anything, just retry
       return _retryOrFail(username, retry, 'No matching email found');
     } catch (e) {
       _log.warning('Error during email fetch: $e');
@@ -148,6 +134,26 @@ class EmailHelper {
     throw Exception(
       'No matching verification email found after ${_maxRetries * _retryDelay.inSeconds} seconds. Last reason: $reason',
     );
+  }
+
+  /// Cleans up old emails (>10 min) after successfully finding our email.
+  Future<void> _cleanupOldEmails(
+    List<minio_models.Object> allObjects,
+    DateTime staleThreshold,
+  ) async {
+    var cleanedCount = 0;
+    for (final obj in allObjects) {
+      if (obj.key == null || obj.lastModified == null) continue;
+
+      // Use S3 object's lastModified for simple staleness check
+      if (obj.lastModified!.isBefore(staleThreshold)) {
+        await _minio.removeObject(_config.s3BucketName, obj.key!);
+        cleanedCount++;
+      }
+    }
+    if (cleanedCount > 0) {
+      _log.info('Cleaned up $cleanedCount old email(s)');
+    }
   }
 
   /// Parses a raw email string to extract date and plain text body.
