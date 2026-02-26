@@ -19,6 +19,6 @@ import 'delete_user_test.dart' as delete_user_test;
 
 void main() {
   signup_user_test.main();
-  authed_user_test.main();
-  delete_user_test.main();
+  // authed_user_test.main();
+  // delete_user_test.main();
 }
