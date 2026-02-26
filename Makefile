@@ -6,6 +6,24 @@ PLATFORM ?= arm64
 DOCKER_TAG_VERSION := $(subst +,_,$(TAG_VERSION))
 DOCKER_CACHE_DIR ?= .docker-cache
 
+ENVIRONMENT ?= dev-local
+INTEGRATION_TARGET ?= integration_test/full_test.dart
+INTEGRATION_HEADLESS ?= true
+ifeq ($(ENVIRONMENT),dev-local)
+    PROJECT_API_HOST := http://localhost:8000
+else
+    PROJECT_API_HOST := https://api.$(ENVIRONMENT_PREFIX)heliumedu.com
+endif
+DRIVE_ARGS := --driver=test_driver/integration_test.dart -d web-server --web-port=8080 --browser-name=chrome --profile --dart-define=ENVIRONMENT=$(ENVIRONMENT) --dart-define=ANALYTICS_ENABLED=false
+DRIVE_ARGS += --web-browser-flag="--disable-web-security"
+DRIVE_ARGS += --web-browser-flag="--user-data-dir=/tmp/chrome_test_profile"
+
+ifeq ($(ENVIRONMENT), prod)
+    ENVIRONMENT_PREFIX :=
+else
+    ENVIRONMENT_PREFIX := $(ENVIRONMENT).
+endif
+
 RUN_ARGS :=
 
 ifneq ($(HEADLESS),false)
@@ -33,15 +51,6 @@ else
     WEB_ARGS :=
 endif
 
-# Integration test configuration
-ENVIRONMENT ?= dev-local
-INTEGRATION_TARGET ?= integration_test/full_test.dart
-INTEGRATION_HEADLESS ?= true
-# Set API host based on environment
-ifeq ($(ENVIRONMENT),dev-local)
-    PROJECT_API_HOST ?= http://localhost:8000
-endif
-DRIVE_ARGS := --driver=test_driver/integration_test.dart -d web-server --web-port=8080 --browser-name=chrome --profile --dart-define=ENVIRONMENT=$(ENVIRONMENT) --dart-define=ANALYTICS_ENABLED=false
 ifeq ($(INTEGRATION_HEADLESS),true)
     DRIVE_ARGS += --headless
 else
@@ -146,12 +155,10 @@ stop-platform:
 test-integration:
 ifeq ($(ENVIRONMENT),dev-local)
 	@$(MAKE) start-platform
+endif
 	@chromedriver --port=4444 & CHROME_PID=$$!; sleep 2 && flutter drive --target=$(INTEGRATION_TARGET) $(DRIVE_ARGS); TEST_EXIT=$$?; \
 		kill $$CHROME_PID 2>/dev/null || true; \
 		exit $$TEST_EXIT
-else
-	@chromedriver --port=4444 & CHROME_PID=$$!; sleep 2 && flutter drive --target=$(INTEGRATION_TARGET) $(DRIVE_ARGS); TEST_EXIT=$$?; kill $$CHROME_PID 2>/dev/null || true; exit $$TEST_EXIT
-endif
 
 test-integration-smoke:
 	@chromedriver --port=4444 & CHROME_PID=$$!; sleep 2 && flutter drive --target=integration_test/smoke_test.dart $(DRIVE_ARGS); TEST_EXIT=$$?; kill $$CHROME_PID 2>/dev/null || true; exit $$TEST_EXIT
