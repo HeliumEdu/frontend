@@ -56,6 +56,9 @@ endif
 ifdef POST_TEST_DELAY
     DRIVE_ARGS += --dart-define=POST_TEST_DELAY=$(POST_TEST_DELAY)
 endif
+ifdef TEST_LOG_LEVEL
+    DRIVE_ARGS += --dart-define=TEST_LOG_LEVEL=$(TEST_LOG_LEVEL)
+endif
 
 all: test
 
