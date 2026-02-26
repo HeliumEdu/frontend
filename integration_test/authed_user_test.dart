@@ -86,6 +86,7 @@ void main() {
       );
 
       expect(plannerFound, isTrue, reason: 'Should be on planner screen');
+      expectOnPlannerScreen();
 
       // Dismiss dialogs so they don't interfere with subsequent tests
       await tester.pumpAndSettle(const Duration(seconds: 2));
@@ -166,7 +167,7 @@ void main() {
       }
 
       // Verify we're on the planner screen
-      expect(find.text('Planner'), findsOneWidget);
+      expectOnPlannerScreen();
     });
 
     namedTestWidgets('3. Calendar displays example schedule items', (tester) async {
@@ -239,11 +240,8 @@ void main() {
       await tester.tap(classesTab);
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
-      // Verify we see example course data
-      final hasCourseData = find.textContaining('Fall Semester').evaluate().isNotEmpty ||
-          find.textContaining('Programming').evaluate().isNotEmpty ||
-          find.textContaining('Writing').evaluate().isNotEmpty;
-      expect(hasCourseData, isTrue, reason: 'Should see course data on Classes screen');
+      // Verify we're on Classes screen
+      expectOnClassesScreen();
 
       // Navigate to Resources
       final resourcesTab = find.text('Resources');
@@ -251,11 +249,8 @@ void main() {
       await tester.tap(resourcesTab);
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
-      // Verify we see example resource data
-      final hasResourceData = find.textContaining('Textbooks').evaluate().isNotEmpty ||
-          find.textContaining('Supplies').evaluate().isNotEmpty ||
-          find.textContaining('Digital').evaluate().isNotEmpty;
-      expect(hasResourceData, isTrue, reason: 'Should see resource data on Resources screen');
+      // Verify we're on Resources screen
+      expectOnResourcesScreen();
 
       // Navigate to Grades
       final gradesTab = find.text('Grades');
@@ -263,10 +258,8 @@ void main() {
       await tester.tap(gradesTab);
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
-      // Verify we see example grades data
-      final hasGradesData = find.textContaining('Fall Semester').evaluate().isNotEmpty ||
-          find.textContaining('%').evaluate().isNotEmpty;
-      expect(hasGradesData, isTrue, reason: 'Should see grades data on Grades screen');
+      // Verify we're on Grades screen
+      expectOnGradesScreen();
 
       // Navigate back to Planner
       final plannerTab = find.text('Planner');
@@ -275,7 +268,7 @@ void main() {
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
       // Verify we're back on planner
-      expect(find.text('Planner'), findsOneWidget);
+      expectOnPlannerScreen();
     });
 
     namedTestWidgets('5. Settings opens correctly based on screen width', (tester) async {
@@ -306,7 +299,7 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       await tester.pumpAndSettle();
 
-      var settingsButton = find.byIcon(Icons.settings);
+      var settingsButton = find.byIcon(Icons.settings_outlined);
       expect(settingsButton, findsOneWidget, reason: 'Settings button should exist');
       await tester.tap(settingsButton);
       await tester.pumpAndSettle(const Duration(seconds: 2));
@@ -318,21 +311,20 @@ void main() {
         reason: 'Non-mobile: Settings should open as dialog with close button',
       );
 
-      final hasSettingsContent = find.text('Account').evaluate().isNotEmpty ||
-          find.text('Preferences').evaluate().isNotEmpty;
-      expect(hasSettingsContent, isTrue, reason: 'Settings content should be visible');
+      // Verify settings content and browser title stays on Planner (dialog mode)
+      expectOnSettingsScreen(isDialog: true);
 
       await tester.tap(closeButton);
       await tester.pumpAndSettle();
 
-      expect(find.text('Planner'), findsOneWidget, reason: 'Should be back on Planner after closing dialog');
+      expectOnPlannerScreen();
 
       // --- PART 2: Mobile (narrow) - Settings navigates to screen ---
       tester.view.physicalSize = const Size(mobileWidth, testHeight);
       tester.view.devicePixelRatio = 1.0;
       await tester.pumpAndSettle(const Duration(seconds: 2));
 
-      settingsButton = find.byIcon(Icons.settings);
+      settingsButton = find.byIcon(Icons.settings_outlined);
       expect(settingsButton, findsOneWidget, reason: 'Settings button should exist on mobile');
       await tester.tap(settingsButton);
       await tester.pumpAndSettle(const Duration(seconds: 2));
@@ -350,10 +342,13 @@ void main() {
         reason: 'Mobile: Should not have dialog close button',
       );
 
+      // Verify settings content and browser title changes to Settings (screen mode)
+      expectOnSettingsScreen(isDialog: false);
+
       await tester.tap(backButton);
       await tester.pumpAndSettle();
 
-      expect(find.text('Planner'), findsOneWidget, reason: 'Should be back on Planner after back navigation');
+      expectOnPlannerScreen();
 
       // Restore original size
       tester.view.physicalSize = originalSize;
@@ -361,7 +356,138 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    namedTestWidgets('6. Can edit homework item (CRUD operation)', (tester) async {
+    namedTestWidgets('6. Todos view filtering and checkbox toggle', (tester) async {
+      if (!canProceed) {
+        _log.warning('Skipping: user does not exist');
+        markTestSkipped('Skipped: user does not exist (run signup_user_test first)');
+        return;
+      }
+
+      await initializeTestApp(tester);
+      final loggedIn = await loginAndNavigateToPlanner(
+        tester,
+        testEmail,
+        testPassword,
+      );
+      expect(loggedIn, isTrue, reason: 'Should be logged in');
+
+      // 1. Click "Change view" menu and switch to "Todos"
+      final viewButton = find.text('Month');
+      expect(viewButton, findsOneWidget, reason: 'View button should show current view');
+      await tester.tap(viewButton);
+      await tester.pumpAndSettle();
+
+      final todosOption = find.text('Todos');
+      expect(todosOption, findsOneWidget, reason: 'Todos option should be in view menu');
+      await tester.tap(todosOption);
+      await tester.pumpAndSettle(const Duration(seconds: 3));
+
+      // 2. Assert "Showing X to Y of 53" is shown (X and Y may vary, 53 is fixed)
+      final showingTextFinder = find.textContaining(RegExp(r'Showing \d+ to \d+ of 53'));
+      expect(showingTextFinder, findsOneWidget, reason: 'Should show "Showing X to Y of 53"');
+
+      // 3. Tap filters, tap checkbox next to "Fundamentals"
+      final filterButton = find.byIcon(Icons.filter_alt);
+      await tester.tap(filterButton);
+      await tester.pumpAndSettle();
+
+      final fundamentalsCheckbox = find.text('Fundamentals');
+      expect(fundamentalsCheckbox, findsOneWidget, reason: 'Fundamentals course should be in filters');
+      await tester.tap(fundamentalsCheckbox);
+      await tester.pumpAndSettle();
+
+      // 3.1 Assert footer shows "Showing 1 to 10 of 20"
+      expect(
+        find.text('Showing 1 to 10 of 20'),
+        findsOneWidget,
+        reason: 'After Fundamentals filter: should show "Showing 1 to 10 of 20"',
+      );
+
+      // 4. Still in filters, tap checkbox next to "Homework" category
+      final homeworkCheckbox = find.text('Homework');
+      expect(homeworkCheckbox, findsOneWidget, reason: 'Homework category should be in filters');
+      await tester.tap(homeworkCheckbox);
+      await tester.pumpAndSettle();
+
+      // 4.1 Assert footer shows "Showing 1 to 7 of 7"
+      expect(
+        find.text('Showing 1 to 7 of 7'),
+        findsOneWidget,
+        reason: 'After Homework filter: should show "Showing 1 to 7 of 7"',
+      );
+
+      // 5. Close filters menu (tap outside), then tap search icon and enter "1"
+      // Tap outside the filter menu to close it
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+
+      final searchButton = find.byIcon(Icons.search);
+      await tester.tap(searchButton.first);
+      await tester.pumpAndSettle();
+
+      // Find and enter text in the search field
+      final searchField = find.byType(TextField);
+      await enterTextInField(tester, searchField.last, '1');
+      await tester.pumpAndSettle();
+
+      // 5.1 Assert footer shows "Showing 1 to 1 of 1"
+      expect(
+        find.text('Showing 1 to 1 of 1'),
+        findsOneWidget,
+        reason: 'After search "1": should show "Showing 1 to 1 of 1"',
+      );
+
+      // 6. Assert the row shows "Homework 1" with strikethrough, "11 am", "Fundamentals", and "80.00%"
+      // Find the strikethrough text (completed item)
+      final homework1Finder = find.byWidgetPredicate(
+        (widget) =>
+            widget is Text &&
+            widget.data == 'Homework 1' &&
+            widget.style?.decoration == TextDecoration.lineThrough,
+      );
+      expect(homework1Finder, findsOneWidget, reason: 'Homework 1 should have strikethrough (completed)');
+
+      expect(find.text('11 am'), findsOneWidget, reason: 'Row should show "11 am"');
+      expect(find.textContaining('Fundamentals'), findsWidgets, reason: 'Row should show "Fundamentals"');
+      expect(find.text('80.00%'), findsOneWidget, reason: 'Row should show grade "80.00%"');
+
+      // 7. Tap the checkbox at the start of the row to uncheck it
+      final checkbox = find.byType(Checkbox);
+      expect(checkbox, findsOneWidget, reason: 'Row should have a checkbox');
+      await tester.tap(checkbox);
+      await tester.pumpAndSettle(const Duration(seconds: 2));
+
+      // 7.1 Assert checkbox is unchecked, "Homework 1" no longer has strikethrough, grade disappears
+      // Find the non-strikethrough text (uncompleted item)
+      final homework1NoStrikethrough = find.byWidgetPredicate(
+        (widget) =>
+            widget is Text &&
+            widget.data == 'Homework 1' &&
+            (widget.style?.decoration == null ||
+                widget.style?.decoration == TextDecoration.none),
+      );
+      expect(
+        homework1NoStrikethrough,
+        findsOneWidget,
+        reason: 'Homework 1 should no longer have strikethrough after unchecking',
+      );
+
+      // Grade should disappear when uncompleted
+      expect(
+        find.text('80.00%'),
+        findsNothing,
+        reason: 'Grade should disappear after unchecking',
+      );
+
+      // Verify the edit dialog did NOT open (we should still be on Todos view)
+      expect(
+        find.text('Edit Assignment'),
+        findsNothing,
+        reason: 'Edit dialog should NOT open when clicking checkbox',
+      );
+    });
+
+    namedTestWidgets('7. Can edit homework item (CRUD operation)', (tester) async {
       if (!canProceed) {
         _log.warning('Skipping: user does not exist');
         markTestSkipped('Skipped: user does not exist (run signup_user_test first)');
@@ -403,13 +529,17 @@ void main() {
       await tester.tap(homeworkItem.first);
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
-      // Verify we're on the edit screen
+      // Verify we're on the edit screen and store reference to the dialog
+      final editDialogTitle = find.text('Edit Assignment');
       final editScreenFound = await waitForWidget(
         tester,
-        find.byType(TextField),
+        editDialogTitle,
         timeout: const Duration(seconds: 10),
       );
       expect(editScreenFound, isTrue, reason: 'Should navigate to edit screen');
+      // Edit screen shows title in page header, browser title stays on Planner
+      expect(editDialogTitle, findsOneWidget, reason: 'Edit screen: "Edit Assignment" title should be shown in page header');
+      expectBrowserTitle('Planner');
 
       // Find the title field and change it
       final titleField = find.widgetWithText(TextField, originalTitle);
@@ -437,13 +567,15 @@ void main() {
         }
       }
 
-      // Verify we're back on the planner
-      final plannerFound = await waitForWidget(
+      // Verify the edit dialog has closed (opposite of how we detected it opened)
+      final dialogClosed = await waitForWidgetToDisappear(
         tester,
-        find.text('Planner'),
+        editDialogTitle,
         timeout: const Duration(seconds: 10),
       );
-      expect(plannerFound, isTrue, reason: 'Should return to planner after save');
+      expect(dialogClosed, isTrue, reason: 'Edit dialog should close after save');
+      expect(editDialogTitle, findsNothing, reason: 'Edit Assignment title should no longer be visible');
+      expectOnPlannerScreen();
 
       // Navigate to previous month again to see the updated item
       if (prevMonthButton.evaluate().isNotEmpty) {
@@ -460,7 +592,7 @@ void main() {
       );
     });
 
-    namedTestWidgets('7. User can clear example schedule', (tester) async {
+    namedTestWidgets('8. User can clear example schedule', (tester) async {
       if (!canProceed) {
         _log.warning('Skipping: user does not exist');
         markTestSkipped('Skipped: user does not exist (run signup_user_test first)');

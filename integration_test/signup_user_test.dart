@@ -50,6 +50,7 @@ void main() {
 
       // Verify we're on the signup screen
       expect(find.text('Create an Account'), findsOneWidget);
+      expectBrowserTitle('Create an Account');
 
       // Fill in the signup form using helper for web compatibility
       await enterTextInField(
@@ -90,6 +91,7 @@ void main() {
         isTrue,
         reason: 'Should navigate to verify email screen',
       );
+      expectBrowserTitle('Verify Email');
 
       registrationSucceeded = true;
       _log.info('Registration succeeded');
@@ -132,6 +134,7 @@ void main() {
       }
 
       expect(onVerifyScreen, isTrue, reason: 'Should be on verify email screen');
+      expectBrowserTitle('Verify Email');
 
       // Verify Email field is pre-populated from query params
       final emailField = find.widgetWithText(TextField, 'Email');
@@ -189,6 +192,7 @@ void main() {
         isTrue,
         reason: 'Should reach planner after verification',
       );
+      expectBrowserTitle('Planner');
     });
   });
 }

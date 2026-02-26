@@ -60,9 +60,10 @@ void main() {
         testPassword,
       );
       expect(loggedIn, isTrue, reason: 'Should be logged in');
+      expectBrowserTitle('Planner');
 
       // Open settings
-      final settingsButton = find.byIcon(Icons.settings);
+      final settingsButton = find.byIcon(Icons.settings_outlined);
       await tester.tap(settingsButton);
       await tester.pumpAndSettle(const Duration(seconds: 2));
 
@@ -108,6 +109,7 @@ void main() {
         isTrue,
         reason: 'Should be redirected to login after account deletion',
       );
+      expectBrowserTitle('Login');
 
       // Verify account is actually deleted via API (with polling)
       _log.info('Verifying account deletion via API ...');
