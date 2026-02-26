@@ -127,6 +127,7 @@ class _NavigationShellState extends State<NavigationShell> {
   final InheritableProvidersNotifier _inheritableProvidersNotifier =
       InheritableProvidersNotifier();
   bool _isShowingGettingStarted = false;
+  bool _isLoggingOut = false;
 
   @override
   void initState() {
@@ -154,7 +155,7 @@ class _NavigationShellState extends State<NavigationShell> {
   }
 
   Future<void> _checkGettingStartedDialog() async {
-    if (_isShowingGettingStarted || !mounted) return;
+    if (_isShowingGettingStarted || !mounted || _isLoggingOut) return;
 
     try {
       final settings = await DioClient().getSettings();
@@ -186,11 +187,11 @@ class _NavigationShellState extends State<NavigationShell> {
     if (!mounted) return;
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!mounted) return;
+      if (!mounted || _isLoggingOut) return;
 
       if (showGettingStarted) {
         await _showGettingStartedDialogSafely();
-        if (!mounted) return;
+        if (!mounted || _isLoggingOut) return;
       }
 
       if (showWhatsNew) {
@@ -204,7 +205,7 @@ class _NavigationShellState extends State<NavigationShell> {
   }
 
   Future<void> _showGettingStartedDialogSafely() async {
-    if (_isShowingGettingStarted || !mounted) return;
+    if (_isShowingGettingStarted || !mounted || _isLoggingOut) return;
 
     _isShowingGettingStarted = true;
     try {
@@ -236,6 +237,7 @@ class _NavigationShellState extends State<NavigationShell> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthLoggedOut) {
+          _isLoggingOut = true;
           // Pop any open dialogs before navigating to login
           Navigator.of(context, rootNavigator: true).popUntil((route) => route.isFirst);
           context.go(AppRoute.loginScreen);
