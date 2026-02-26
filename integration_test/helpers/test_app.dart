@@ -31,6 +31,7 @@ import 'package:timezone/data/latest_all.dart' as tz;
 
 bool _initialized = false;
 bool _loggingInitialized = false;
+String _currentTestDisplayName = '';
 
 /// Log level for integration tests.
 /// - info: Only test names and pass/fail results (default)
@@ -85,6 +86,11 @@ void initializeTestLogging({required String environment, required String apiHost
   // Hook into the test framework's exception reporter to capture test failures
   final originalReporter = reportTestException;
   reportTestException = (FlutterErrorDetails details, String testDescription) {
+    // Use our tracked display name which includes the group prefix
+    final displayName = _currentTestDisplayName.isNotEmpty
+        ? _currentTestDisplayName
+        : testDescription;
+
     // Send failure log to driver
     _sendLog(<String, dynamic>{
       'type': 'log',
@@ -92,7 +98,7 @@ void initializeTestLogging({required String environment, required String apiHost
     });
     _sendLog(<String, dynamic>{
       'type': 'testFail',
-      'test': testDescription,
+      'test': displayName,
       'error': details.exceptionAsString(),
       'stack': details.stack?.toString() ?? '',
     });
@@ -137,6 +143,9 @@ void namedTestWidgets(
     final displayName = groupName.isNotEmpty
         ? '$groupName: $description'
         : description;
+
+    // Store for use by reportTestException hook
+    _currentTestDisplayName = displayName;
 
     // Report test start
     await _sendLog(<String, dynamic>{
