@@ -21,6 +21,7 @@ on:
         options:
           - dev-local
           - dev
+          - prod
       platform_version:
         description: 'Platform version (for dev-local only, e.g. "arm64-latest" or "amd64-1.0.0")'
         required: false
