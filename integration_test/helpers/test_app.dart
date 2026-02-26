@@ -8,6 +8,8 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+// ignore: implementation_imports
+import 'package:test_api/src/backend/invoker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -80,6 +82,25 @@ void initializeTestLogging({required String environment, required String apiHost
     'logLevel': _testLogLevel.name,
   });
 
+  // Hook into the test framework's exception reporter to capture test failures
+  final originalReporter = reportTestException;
+  reportTestException = (FlutterErrorDetails details, String testDescription) {
+    // Send failure log to driver
+    _sendLog(<String, dynamic>{
+      'type': 'log',
+      'message': '\x1B[91mTEST EXCEPTION:\x1B[0m ${details.exceptionAsString()}',
+    });
+    _sendLog(<String, dynamic>{
+      'type': 'testFail',
+      'test': testDescription,
+      'error': details.exceptionAsString(),
+      'stack': details.stack?.toString() ?? '',
+    });
+
+    // Call original reporter to maintain framework behavior
+    originalReporter(details, testDescription);
+  };
+
   // Configure app logging based on level
   Logger.root.level = Level.INFO;
   Logger.root.onRecord.listen((record) {
@@ -102,73 +123,42 @@ void initializeTestLogging({required String environment, required String apiHost
 /// Wrapper around testWidgets that reports test results to the driver.
 /// - At info level: reports test name and pass/fail
 /// - At fine level: also includes app service logs
+///
+/// Note: Test failures are reported via reportTestException hook in initializeTestLogging.
 @isTest
 void namedTestWidgets(
   String description,
   Future<void> Function(WidgetTester) callback,
 ) {
   testWidgets(description, (tester) async {
+    // Build display name with group prefix from test framework
+    final groups = Invoker.current?.liveTest.groups ?? [];
+    final groupName = groups.length > 1 ? groups.last.name : '';
+    final displayName = groupName.isNotEmpty
+        ? '$groupName: $description'
+        : description;
+
     // Report test start
     await _sendLog(<String, dynamic>{
       'type': 'testStart',
-      'test': description,
+      'test': displayName,
     });
 
     // ignore: avoid_print
     print('\n========================================');
     // ignore: avoid_print
-    print('RUNNING: $description');
+    print('RUNNING: $displayName');
     // ignore: avoid_print
     print('========================================\n');
 
-    Object? caughtError;
-    StackTrace? caughtStack;
+    // Run the test callback - failures are handled by reportTestException hook
+    await callback(tester);
 
-    try {
-      await callback(tester);
-    } catch (error, stack) {
-      caughtError = error;
-      caughtStack = stack;
-    }
-
-    // Report result after test completes
-    if (caughtError != null) {
-      // ignore: avoid_print
-      print('\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-      // ignore: avoid_print
-      print('TEST FAILED: $description');
-      // ignore: avoid_print
-      print('ERROR: $caughtError');
-      // ignore: avoid_print
-      print('STACK: $caughtStack');
-      // ignore: avoid_print
-      print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n');
-
-      await _sendLog(<String, dynamic>{
-        'type': 'log',
-        'message': '\x1B[91mASSERTION FAILED:\x1B[0m $caughtError',
-      });
-      await _sendLog(<String, dynamic>{
-        'type': 'testFail',
-        'test': description,
-        'error': caughtError.toString(),
-        'stack': caughtStack.toString(),
-      });
-
-      // Pause to allow reading the error when running with visible browser
-      const postTestDelay = int.fromEnvironment('POST_TEST_DELAY', defaultValue: 0);
-      if (postTestDelay > 0) {
-        await Future.delayed(const Duration(seconds: postTestDelay));
-      }
-
-      // Re-throw to mark test as failed
-      throw caughtError!;
-    } else {
-      await _sendLog(<String, dynamic>{
-        'type': 'testPass',
-        'test': description,
-      });
-    }
+    // If we get here, the test passed
+    await _sendLog(<String, dynamic>{
+      'type': 'testPass',
+      'test': displayName,
+    });
   });
 }
 
