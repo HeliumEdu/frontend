@@ -236,6 +236,8 @@ class _NavigationShellState extends State<NavigationShell> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthLoggedOut) {
+          // Pop any open dialogs before navigating to login
+          Navigator.of(context, rootNavigator: true).popUntil((route) => route.isFirst);
           context.go(AppRoute.loginScreen);
         }
       },
