@@ -47,6 +47,9 @@ ifeq ($(INTEGRATION_HEADLESS),true)
 else
     DRIVE_ARGS += --no-headless
 endif
+ifdef PROJECT_API_HOST
+    DRIVE_ARGS += --dart-define=PROJECT_API_HOST=$(PROJECT_API_HOST)
+endif
 ifdef LOG_LEVEL
     DRIVE_ARGS += --dart-define=LOG_LEVEL=$(LOG_LEVEL)
 endif

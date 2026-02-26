@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:flutter/foundation.dart';
 import 'package:heliumapp/core/log_formatter.dart';
 import 'package:logging/logging.dart';
 
@@ -26,9 +27,13 @@ class LogService {
       orElse: () => Level.INFO,
     );
 
-    Logger.root.onRecord.listen((record) {
-      // ignore: avoid_print
-      print(LogFormatter.format(record));
-    });
+    // Only print logs in non-release builds (debug and profile modes)
+    // In release builds, logs are handled by Sentry
+    if (!kReleaseMode) {
+      Logger.root.onRecord.listen((record) {
+        // ignore: avoid_print
+        print(LogFormatter.format(record));
+      });
+    }
   }
 }
