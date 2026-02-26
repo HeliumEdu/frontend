@@ -35,6 +35,8 @@ final _log = Logger('test_app_helper');
 bool _initialized = false;
 bool _loggingInitialized = false;
 String _currentTestDisplayName = '';
+bool _currentTestSkipped = false;
+String? _currentTestSkipReason;
 
 /// Log level for integration tests.
 /// - info: Only test names and pass/fail results (default)
@@ -164,6 +166,14 @@ void initializeTestLogging({
   });
 }
 
+/// Mark the current test as skipped with a reason.
+/// Call this and then return early from the test.
+void skipTest(String reason) {
+  _currentTestSkipped = true;
+  _currentTestSkipReason = reason;
+  markTestSkipped(reason);
+}
+
 /// Wrapper around testWidgets that reports test results to the driver.
 /// - At info level: reports test name and pass/fail only
 /// - At fine level: also includes logs from test files (for debugging tests)
@@ -176,6 +186,10 @@ void namedTestWidgets(
   Future<void> Function(WidgetTester) callback,
 ) {
   testWidgets(description, (tester) async {
+    // Reset skip state for this test
+    _currentTestSkipped = false;
+    _currentTestSkipReason = null;
+
     // Build display name with group prefix from test framework
     final groups = Invoker.current?.liveTest.groups ?? [];
     final groupName = groups.length > 1 ? groups.last.name : '';
@@ -199,8 +213,17 @@ void namedTestWidgets(
     // Run the test callback - failures are handled by reportTestException hook
     await callback(tester);
 
-    // If we get here, the test passed
-    await _sendLog(<String, dynamic>{'type': 'testPass', 'test': displayName});
+    // Check if the test was skipped
+    if (_currentTestSkipped) {
+      await _sendLog(<String, dynamic>{
+        'type': 'testSkip',
+        'test': displayName,
+        'reason': _currentTestSkipReason,
+      });
+    } else {
+      // If we get here and not skipped, the test passed
+      await _sendLog(<String, dynamic>{'type': 'testPass', 'test': displayName});
+    }
   });
 }
 

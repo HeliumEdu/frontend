@@ -12,6 +12,7 @@ import 'package:integration_test/integration_test_driver.dart';
 
 // ANSI color codes
 const _green = '\x1B[32m';
+const _yellow = '\x1B[33m';
 const _red = '\x1B[91m';
 const _cyan = '\x1B[36m';
 const _grey = '\x1B[90m';
@@ -95,7 +96,18 @@ void _processResult(Map<String, dynamic> data) {
 
     case 'testPass':
       // ignore: avoid_print
-      print('$_green✓ PASS:$_reset ${data['test']}');
+      print('$_green✓ PASS:$_reset ${data['test']}\n');
+      break;
+
+    case 'testSkip':
+      // ignore: avoid_print
+      print('$_yellow⊘ SKIP:$_reset ${data['test']}');
+      if (data['reason'] != null) {
+        // ignore: avoid_print
+        print('${_grey}Reason: ${data['reason']}$_reset');
+      }
+      // ignore: avoid_print
+      print('');
       break;
 
     case 'testFail':
@@ -104,7 +116,7 @@ void _processResult(Map<String, dynamic> data) {
       // ignore: avoid_print
       print('${_red}ERROR:$_reset ${data['error']}');
       // ignore: avoid_print
-      print('${_grey}STACK:$_reset ${data['stack']}');
+      print('${_grey}STACK:$_reset ${data['stack']}\n');
       stdout.flush();
       break;
 

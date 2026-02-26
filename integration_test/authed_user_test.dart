@@ -50,7 +50,7 @@ void main() {
     namedTestWidgets('1. Verified user can login and see planner', (tester) async {
       if (!canProceed) {
         _log.warning('Skipping: user does not exist');
-        markTestSkipped('Skipped: user does not exist (run signup_user_test first)');
+        skipTest('user does not exist (run signup_user_test first)');
         return;
       }
 
@@ -106,7 +106,7 @@ void main() {
     namedTestWidgets('2. First login shows welcome dialog', (tester) async {
       if (!canProceed) {
         _log.warning('Skipping: user does not exist');
-        markTestSkipped('Skipped: user does not exist (run signup_user_test first)');
+        skipTest('user does not exist (run signup_user_test first)');
         return;
       }
 
@@ -173,7 +173,7 @@ void main() {
     namedTestWidgets('3. Calendar displays example schedule items', (tester) async {
       if (!canProceed) {
         _log.warning('Skipping: user does not exist');
-        markTestSkipped('Skipped: user does not exist (run signup_user_test first)');
+        skipTest('user does not exist (run signup_user_test first)');
         return;
       }
 
@@ -222,7 +222,7 @@ void main() {
     namedTestWidgets('4. Top-level navigation works correctly', (tester) async {
       if (!canProceed) {
         _log.warning('Skipping: user does not exist');
-        markTestSkipped('Skipped: user does not exist (run signup_user_test first)');
+        skipTest('user does not exist (run signup_user_test first)');
         return;
       }
 
@@ -274,7 +274,7 @@ void main() {
     namedTestWidgets('5. Settings opens correctly based on screen width', (tester) async {
       if (!canProceed) {
         _log.warning('Skipping: user does not exist');
-        markTestSkipped('Skipped: user does not exist (run signup_user_test first)');
+        skipTest('user does not exist (run signup_user_test first)');
         return;
       }
 
@@ -359,7 +359,7 @@ void main() {
     namedTestWidgets('6. Todos view filtering and checkbox toggle', (tester) async {
       if (!canProceed) {
         _log.warning('Skipping: user does not exist');
-        markTestSkipped('Skipped: user does not exist (run signup_user_test first)');
+        skipTest('user does not exist (run signup_user_test first)');
         return;
       }
 
@@ -512,7 +512,7 @@ void main() {
     namedTestWidgets('7. Can edit homework item (CRUD operation)', (tester) async {
       if (!canProceed) {
         _log.warning('Skipping: user does not exist');
-        markTestSkipped('Skipped: user does not exist (run signup_user_test first)');
+        skipTest('user does not exist (run signup_user_test first)');
         return;
       }
 
@@ -695,7 +695,7 @@ void main() {
     namedTestWidgets('8. User can clear example schedule', (tester) async {
       if (!canProceed) {
         _log.warning('Skipping: user does not exist');
-        markTestSkipped('Skipped: user does not exist (run signup_user_test first)');
+        skipTest('user does not exist (run signup_user_test first)');
         return;
       }
 
@@ -731,7 +731,7 @@ void main() {
         );
 
         if (!retryWelcomeFound) {
-          markTestSkipped('Skipped: Welcome dialog not available (example schedule may be cleared)');
+          skipTest('Welcome dialog not available (example schedule may be cleared)');
           return;
         }
       }
