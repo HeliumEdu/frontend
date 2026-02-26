@@ -35,17 +35,20 @@ class TestConfig {
     return 'https://api.${_envPrefix}heliumedu.com';
   }
 
-  /// AWS S3 access key for email verification
+  /// AWS S3 access key for email verification (shared integration bucket)
   String get awsS3AccessKeyId =>
-      const String.fromEnvironment('AWS_S3_ACCESS_KEY_ID');
+      const String.fromEnvironment('AWS_INTEGRATION_S3_ACCESS_KEY_ID');
 
-  /// AWS S3 secret key for email verification
+  /// AWS S3 secret key for email verification (shared integration bucket)
   String get awsS3SecretAccessKey =>
-      const String.fromEnvironment('AWS_S3_SECRET_ACCESS_KEY');
+      const String.fromEnvironment('AWS_INTEGRATION_S3_SECRET_ACCESS_KEY');
 
-  /// S3 bucket name for inbound emails
-  /// Format: heliumedu.{environment}
-  String get s3BucketName => 'heliumedu.$environment';
+  /// S3 bucket name for inbound emails (shared across all environments)
+  String get s3BucketName => 'heliumedu-integration';
+
+  /// S3 object key prefix for this environment's emails
+  /// SES receipt rule stores at: {environment}/inbound.email/heliumedu-cluster/
+  String get s3ObjectKeyPrefix => '$environment/inbound.email/heliumedu-cluster/';
 
   /// Email domain for test users
   /// SES receipt rule stores at: inbound.email/heliumedu-cluster/
