@@ -18,6 +18,7 @@ import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/log_formatter.dart';
+import 'package:heliumapp/core/log_service.dart';
 import 'package:heliumapp/data/repositories/auth_repository_impl.dart';
 import 'package:heliumapp/data/sources/auth_remote_data_source.dart';
 import 'package:heliumapp/helium_app.dart';
@@ -82,6 +83,10 @@ void initializeTestLogging({required String environment, required String apiHost
     'fine' => TestLogLevel.fine,
     _ => TestLogLevel.info,
   };
+
+  // Initialize app logging (LOG_LEVEL can be set via dart-define)
+  // Must be called before reading Logger.root.level below
+  LogService().init();
 
   // Send init info to driver
   // Only include appLogLevel when finer is enabled (showing app logs)
