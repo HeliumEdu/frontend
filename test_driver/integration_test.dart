@@ -81,6 +81,7 @@ void _processResult(Map<String, dynamic> data) {
       print('${_grey}Integration log level: ${data['logLevel']}$_reset');
       final appLogLevel = data['appLogLevel'] as String?;
       if (appLogLevel != null) {
+        // ignore: avoid_print
         print('${_grey}App log level: $appLogLevel$_reset');
       }
       // ignore: avoid_print
@@ -109,7 +110,7 @@ void _processResult(Map<String, dynamic> data) {
 
     case 'log':
       // ignore: avoid_print
-      print('  ${data['message']}');
+      print('${data['message']}');
       break;
   }
 }

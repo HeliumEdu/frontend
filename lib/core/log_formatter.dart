@@ -35,12 +35,27 @@ class LogColors {
 
 /// Formats a log record for console output with colors.
 class LogFormatter {
+  /// Check if a logger name is from test code (vs app code).
+  static bool isTestLogger(String loggerName) {
+    return loggerName.endsWith('_test') || loggerName.endsWith('_helper');
+  }
+
   /// Format a log record with colors.
-  static String format(LogRecord record, {bool includeLoggerName = true}) {
+  static String format(LogRecord record, {bool includeLoggerName = true, bool includeSourcePrefix = false}) {
     final colorCode = LogColors.forLevel(record.level);
     const resetCode = LogColors.reset;
 
     final buffer = StringBuffer();
+
+    // Add TEST/APP prefix when requested (for integration test output)
+    if (includeSourcePrefix) {
+      if (isTestLogger(record.loggerName)) {
+        buffer.write('${LogColors.info}TEST$resetCode | ');
+      } else {
+        buffer.write('${LogColors.debug}APP $resetCode | ');
+      }
+    }
+
     if (includeLoggerName) {
       buffer.write(
         '$colorCode${record.level.name}$resetCode: ${record.time}: [${record.loggerName}] ${record.message}',
