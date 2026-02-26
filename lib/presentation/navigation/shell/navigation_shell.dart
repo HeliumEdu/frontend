@@ -187,7 +187,8 @@ class _NavigationShellState extends State<NavigationShell> {
     if (!mounted) return;
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!mounted || _isLoggingOut) return;
+      // Double-check we're still authenticated before showing dialogs
+      if (!mounted || _isLoggingOut || !await DioClient().isAuthenticated()) return;
 
       if (showGettingStarted) {
         await _showGettingStartedDialogSafely();
@@ -195,6 +196,7 @@ class _NavigationShellState extends State<NavigationShell> {
       }
 
       if (showWhatsNew) {
+        if (!await DioClient().isAuthenticated() || !mounted) return;
         try {
           await showWhatsNewDialog(context);
         } catch (e) {
