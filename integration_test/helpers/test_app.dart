@@ -8,6 +8,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:web/web.dart' as web;
 // ignore: implementation_imports
 import 'package:test_api/src/backend/invoker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -285,6 +286,23 @@ Future<bool> waitForWidget(
   return false;
 }
 
+/// Helper to wait for a widget to disappear with timeout.
+/// Returns true if the widget disappeared, false if timeout was reached.
+Future<bool> waitForWidgetToDisappear(
+  WidgetTester tester,
+  Finder finder, {
+  Duration timeout = const Duration(seconds: 10),
+}) async {
+  final endTime = DateTime.now().add(timeout);
+  while (DateTime.now().isBefore(endTime)) {
+    await tester.pump(const Duration(milliseconds: 100));
+    if (finder.evaluate().isEmpty) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /// Helper to ensure we're on the login screen.
 /// On web, URL persists between tests, so we may start on any screen.
 /// After initializeTestApp clears storage, authenticated routes redirect to login.
@@ -378,4 +396,128 @@ Future<bool> loginAndNavigateToPlanner(
   );
 
   return plannerFound;
+}
+
+/// Get the current browser document title.
+String getBrowserTitle() {
+  return web.document.title;
+}
+
+/// Verify the browser title contains the expected page name.
+/// The app uses format: "PageName | Helium"
+void expectBrowserTitle(String expectedPageName) {
+  final title = getBrowserTitle();
+  expect(
+    title.contains(expectedPageName),
+    isTrue,
+    reason: 'Browser title should contain "$expectedPageName", but was "$title"',
+  );
+}
+
+/// Verify the browser title matches exactly.
+void expectBrowserTitleExact(String expectedTitle) {
+  final title = getBrowserTitle();
+  expect(
+    title,
+    equals(expectedTitle),
+    reason: 'Browser title should be "$expectedTitle", but was "$title"',
+  );
+}
+
+/// Assert we're on the Planner screen.
+/// Verifies: "Today" button, Filter icon, Search icon, and FAB are shown.
+void expectOnPlannerScreen() {
+  expect(find.text('Today'), findsOneWidget, reason: 'Planner: Today button should be shown');
+  expect(find.byIcon(Icons.filter_alt), findsOneWidget, reason: 'Planner: Filter icon should be shown');
+  expect(find.byIcon(Icons.search), findsWidgets, reason: 'Planner: Search icon should be shown');
+  expect(find.byType(FloatingActionButton), findsOneWidget, reason: 'Planner: FAB should be shown');
+  expect(find.text('Planner'), findsNWidgets(2), reason: 'Planner: Title or menu button not found');
+  expectBrowserTitle('Planner');
+}
+
+/// Assert we're on the Classes screen.
+/// Verifies: FAB is shown, 3 course cards with expected titles (titles end with emojis).
+void expectOnClassesScreen() {
+  expect(find.byType(FloatingActionButton), findsOneWidget, reason: 'Classes: FAB should be shown');
+  expect(find.byType(Card), findsNWidgets(3), reason: 'Classes: Should show 3 course cards');
+  expect(find.text('Fall Semester'), findsOneWidget, reason: 'Classes: Fall Semester group should be shown');
+  expect(find.textContaining('Creative Writing'), findsOneWidget, reason: 'Classes: Creative Writing course should be shown');
+  expect(find.textContaining('Fundamentals'), findsOneWidget, reason: 'Classes: Fundamentals course should be shown');
+  expect(find.textContaining('Intro to Psych'), findsOneWidget, reason: 'Classes: Intro to Psych course should be shown');
+  expect(find.text('Classes'), findsNWidgets(2), reason: 'Classes: Title or menu button not found');
+  expectBrowserTitle('Classes');
+}
+
+/// Assert we're on the Resources screen.
+/// Verifies: FAB is shown, 1 resource card with expected title.
+void expectOnResourcesScreen() {
+  expect(find.byType(FloatingActionButton), findsOneWidget, reason: 'Resources: FAB should be shown');
+  expect(find.byType(Card), findsOneWidget, reason: 'Resources: Should show 1 resource card');
+  expect(find.text('Textbooks'), findsOneWidget, reason: 'Resources: Google Workspace should be shown');
+  expect(find.text('Google Workspace'), findsOneWidget, reason: 'Resources: Google Workspace should be shown');
+  expect(find.text('Resources'), findsNWidgets(2), reason: 'Resources: Title or menu button not found');
+  expectBrowserTitle('Resources');
+}
+
+/// Assert we're on the Grades screen.
+/// Verifies: "Grade Trend" text shown, FAB NOT shown, 4 summary widgets at top,
+/// "28" below "Pending Impact", 3 course grade cards.
+void expectOnGradesScreen() {
+  expect(find.text('Grade Trend'), findsOneWidget, reason: 'Grades: Grade Trend text should be shown');
+  expect(find.byType(FloatingActionButton), findsNothing, reason: 'Grades: FAB should NOT be shown');
+  // Check for 4 summary widgets at top (Overall, Trend, Pending Impact, Target)
+  expect(find.text('Overall'), findsOneWidget, reason: 'Grades: Overall summary should be shown');
+  expect(find.text('Trend'), findsOneWidget, reason: 'Grades: Trend summary should be shown');
+  expect(find.text('Pending Impact'), findsOneWidget, reason: 'Grades: Pending Impact summary should be shown');
+  expect(find.text('Target'), findsOneWidget, reason: 'Grades: Target summary should be shown');
+  // Check for the pending impact count
+  expect(find.text('28'), findsOneWidget, reason: 'Grades: Pending Impact should show 28');
+  // Check for 3 course grade cards (same titles as Classes screen, titles end with emojis)
+  expect(find.byType(Card), findsNWidgets(3), reason: 'Grades: Should show 3 course grade cards');
+  expect(find.textContaining('Creative Writing'), findsOneWidget, reason: 'Grades: Creative Writing grade card should be shown');
+  expect(find.textContaining('Fundamentals'), findsOneWidget, reason: 'Grades: Fundamentals grade card should be shown');
+  expect(find.textContaining('Intro to Psych'), findsOneWidget, reason: 'Grades: Intro to Psych grade card should be shown');
+  expect(find.text('Grades'), findsNWidgets(2), reason: 'Grades: Title or menu button not found');
+  expectBrowserTitle('Grades');
+}
+
+/// Assert we're on the Settings screen/dialog.
+/// Verifies: volunteer_activism icon, "Support Helium" text, and "Change Password" button.
+/// For dialog mode: FAB IS shown (from underlying Planner), browser title stays "Planner".
+/// For mobile screen mode: FAB NOT shown, "Settings" shown in page header (browser title unchanged).
+void expectOnSettingsScreen({required bool isDialog}) {
+  expect(
+    find.byIcon(Icons.volunteer_activism),
+    findsWidgets,
+    reason: 'Settings: giving icon should be shown',
+  );
+  expect(
+    find.text('Support Helium'),
+    findsOneWidget,
+    reason: 'Settings: "Support Helium" text should be shown',
+  );
+  expect(
+    find.text('Change Password'),
+    findsOneWidget,
+    reason: 'Settings: "Change Password" button should be shown',
+  );
+  if (isDialog) {
+    // Dialog mode: FAB from underlying Planner is still visible, title stays on Planner
+    expect(find.byType(FloatingActionButton), findsOneWidget, reason: 'Settings dialog: FAB should be shown (from Planner)');
+    expectBrowserTitle('Planner');
+  } else {
+    // Mobile screen mode: no FAB, "Settings" title shown in page header (not browser title)
+    expect(find.byType(FloatingActionButton), findsNothing, reason: 'Settings screen: FAB should NOT be shown');
+    expect(find.text('Settings'), findsOneWidget, reason: 'Settings screen: Settings title should be shown in page header');
+    expectBrowserTitle('Planner');
+  }
+}
+
+/// Assert we're on the Login screen.
+/// Verifies: browser title is "Login".
+void expectOnLoginScreen() {
+  expect(find.text('Sign In'), findsOneWidget, reason: 'Login: Sign In button should be shown');
+  expect(find.widgetWithText(TextField, 'Email'), findsOneWidget, reason: 'Login: Email field should be shown');
+  expect(find.widgetWithText(TextField, 'Password'), findsOneWidget, reason: 'Login: Password field should be shown');
+  expectBrowserTitle('Login');
 }

@@ -62,6 +62,9 @@ void main() {
         reason: 'Forgot password link should be displayed',
       );
 
+      // Verify browser title is set correctly
+      expectBrowserTitle('Login');
+
       // Verify OAuth options are present
       expect(
         find.text('Sign in with Google'),
@@ -83,6 +86,7 @@ void main() {
         findsOneWidget,
         reason: 'Should navigate to signup screen',
       );
+      expectBrowserTitle('Create an Account');
 
       // Verify signup form elements are displayed
       expect(
