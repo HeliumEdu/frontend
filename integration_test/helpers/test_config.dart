@@ -16,8 +16,8 @@ class TestConfig {
       const String.fromEnvironment('ENVIRONMENT', defaultValue: 'dev-local');
 
   /// Environment prefix for URLs.
-  /// e.g., dev -> "dev.", dev-local -> "dev-local."
-  String get _envPrefix => '$environment.';
+  /// e.g., dev -> "dev.", dev-local -> "dev-local.", prod -> ""
+  String get _envPrefix => environment == 'prod' ? '' : '$environment.';
 
   /// AWS region for S3 access
   /// Matches Terraform: dev-local uses us-east-2, all others use us-east-1
