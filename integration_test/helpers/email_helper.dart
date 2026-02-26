@@ -42,10 +42,10 @@ class EmailHelper {
   Future<String> getVerificationCode(String username, {int retry = 0}) async {
     _log.info('Polling for verification email (attempt ${retry + 1}/$_maxRetries)');
     try {
-      // List objects in the inbound email prefix
+      // List objects in the inbound email prefix (environment-specific)
       final results = await _minio.listObjects(
         _config.s3BucketName,
-        prefix: 'inbound.email/heliumedu-cluster/',
+        prefix: _config.s3ObjectKeyPrefix,
       ).toList();
 
       // Flatten all objects from all results
