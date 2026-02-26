@@ -30,6 +30,8 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 
+final _log = Logger('test_app_helper');
+
 bool _initialized = false;
 bool _loggingInitialized = false;
 String _currentTestDisplayName = '';
@@ -335,15 +337,21 @@ Future<void> ensureOnLoginScreen(WidgetTester tester) async {
   // Check if we're already on login screen
   if (find.text('Sign In').evaluate().isNotEmpty &&
       find.widgetWithText(TextField, 'Email').evaluate().isNotEmpty) {
+    _log.info('Already on login screen');
     return;
   }
 
   // Wait for redirect to login (authenticated routes should redirect after storage cleared)
-  await waitForWidget(
+  _log.info('Waiting for redirect to login screen ...');
+  final found = await waitForWidget(
     tester,
     find.text('Sign In'),
     timeout: const Duration(seconds: 10),
   );
+
+  if (!found) {
+    _log.warning('Login screen not found within timeout');
+  }
 
   await tester.pumpAndSettle();
 }
@@ -361,6 +369,7 @@ Future<bool> loginAndNavigateToPlanner(
   await enterTextInField(tester, find.widgetWithText(TextField, 'Email'), email);
   await enterTextInField(tester, find.widgetWithText(TextField, 'Password'), password);
 
+  _log.info('Submitting login ...');
   await tester.tap(find.text('Sign In'));
 
   // Wait for either setup screen, welcome dialog, or planner to appear
@@ -373,6 +382,7 @@ Future<bool> loginAndNavigateToPlanner(
 
     // Check for setup screen
     if (find.text('Set Up Your Account').evaluate().isNotEmpty) {
+      _log.info('Setup screen detected, skipping ...');
       final skipButton = find.text('Skip');
       final continueButton = find.text('Continue');
 
@@ -387,11 +397,13 @@ Future<bool> loginAndNavigateToPlanner(
 
     // Check for welcome dialog (means we bypassed setup)
     if (find.text('Welcome to Helium!').evaluate().isNotEmpty) {
+      _log.info('Welcome dialog detected (bypassed setup)');
       break;
     }
 
     // Check for planner (means we bypassed both setup and welcome)
     if (find.text('Planner').evaluate().isNotEmpty) {
+      _log.info('Planner detected (bypassed setup and welcome)');
       break;
     }
   }
@@ -399,6 +411,7 @@ Future<bool> loginAndNavigateToPlanner(
   // Handle getting started dialog if present ("Welcome to Helium!")
   final gettingStartedDialog = find.text('Welcome to Helium!');
   if (gettingStartedDialog.evaluate().isNotEmpty) {
+    _log.info('Dismissing getting started dialog ...');
     await tester.tap(find.text("I'll explore first"));
     await tester.pumpAndSettle();
   }
@@ -406,6 +419,7 @@ Future<bool> loginAndNavigateToPlanner(
   // Handle what's new dialog if present ("Welcome to the new Helium!")
   final whatsNewDialog = find.text('Welcome to the new Helium!');
   if (whatsNewDialog.evaluate().isNotEmpty) {
+    _log.info('Dismissing what\'s new dialog ...');
     await tester.tap(find.text('Dive In!'));
     await tester.pumpAndSettle();
   }
@@ -416,6 +430,12 @@ Future<bool> loginAndNavigateToPlanner(
     find.text('Planner'),
     timeout: const Duration(seconds: 30),
   );
+
+  if (plannerFound) {
+    _log.info('Successfully navigated to planner');
+  } else {
+    _log.warning('Failed to navigate to planner within timeout');
+  }
 
   return plannerFound;
 }

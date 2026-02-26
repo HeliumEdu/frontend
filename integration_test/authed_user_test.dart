@@ -387,6 +387,7 @@ void main() {
       expect(showingTextFinder, findsOneWidget, reason: 'Should show "Showing X to Y of 53"');
 
       // 3. Tap filters, tap checkbox next to "Fundamentals"
+      _log.info('Opening filter menu ...');
       final filterButton = find.byIcon(Icons.filter_alt);
       await tester.tap(filterButton);
       await tester.pumpAndSettle();
@@ -555,6 +556,7 @@ void main() {
       await enterTextInField(tester, titleField, 'Quiz 4 (Edited)');
 
       // 2. Change time to 2pm - tap on the time field to open time picker
+      _log.info('Opening time picker to change time to 2pm ...');
       final timeFields = find.byIcon(Icons.access_time);
       if (timeFields.evaluate().isNotEmpty) {
         await tester.tap(timeFields.first);
@@ -564,6 +566,7 @@ void main() {
         // Clear and enter new time in the input field
         final hourField = find.byType(TextField);
         if (hourField.evaluate().isNotEmpty) {
+          _log.info('Time picker opened, entering time ...');
           // Time picker input mode - enter the time
           await tester.enterText(hourField.first, '2');
           await tester.pumpAndSettle();
@@ -582,8 +585,13 @@ void main() {
           if (okButton.evaluate().isNotEmpty) {
             await tester.tap(okButton);
             await tester.pumpAndSettle();
+            _log.info('Time picker closed');
           }
+        } else {
+          _log.warning('Time picker did not show text fields');
         }
+      } else {
+        _log.warning('Time field icon not found');
       }
 
       // 3. Scroll down to find the completed checkbox
@@ -609,6 +617,7 @@ void main() {
       }
 
       // Find and tap the Save button
+      _log.info('Saving homework changes ...');
       final saveButton = find.text('Save');
       if (saveButton.evaluate().isNotEmpty) {
         await tester.tap(saveButton);

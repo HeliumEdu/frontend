@@ -112,8 +112,11 @@ void main() {
       // On web, the URL persists between tests
       var onVerifyScreen = find.text('Verify Email').evaluate().isNotEmpty;
 
-      if (!onVerifyScreen) {
+      if (onVerifyScreen) {
+        _log.info('Already on verify screen from previous test redirect');
+      } else {
         // Need to navigate to verify screen via login with unverified account
+        _log.info('Navigating to verify screen via login ...');
         await enterTextByHint(tester, 'Email', testEmail);
         await enterTextByHint(tester, 'Password', testPassword);
 
@@ -124,6 +127,7 @@ void main() {
 
         if (!onVerifyScreen) {
           // Look for "Resend Email" button in snackbar and tap it
+          _log.info('Verify screen not shown, looking for Resend Email button ...');
           final resendButton = find.text('Resend Email');
           if (resendButton.evaluate().isNotEmpty) {
             await tester.tap(resendButton);
