@@ -485,6 +485,27 @@ void main() {
         findsNothing,
         reason: 'Edit dialog should NOT open when clicking checkbox',
       );
+
+      // Verify the completed state change was persisted to the backend API
+      _log.info('Verifying homework completion state via API ...');
+      final homework = await apiHelper.findHomeworkByTitle('Homework 1');
+      expect(
+        homework,
+        isNotNull,
+        reason: 'Homework 1 should exist in API response',
+      );
+      expect(
+        homework!['completed'],
+        isFalse,
+        reason: 'Homework 1 should be marked incomplete in API after unchecking',
+      );
+      // Grade should still be present even though completed is now false
+      expect(
+        homework['current_grade'],
+        equals('80/100'),
+        reason: 'Grade should still be 80/100 even after unchecking completed',
+      );
+      _log.info('API verification successful: homework marked incomplete, grade preserved');
     });
 
     namedTestWidgets('7. Can edit homework item (CRUD operation)', (tester) async {
@@ -509,21 +530,9 @@ void main() {
         await tester.pumpAndSettle(const Duration(seconds: 3));
       }
 
-      // Find a homework item to edit
-      var homeworkItem = find.textContaining('Homework 1');
-      if (homeworkItem.evaluate().isEmpty) {
-        homeworkItem = find.textContaining('Homework');
-      }
-
-      if (homeworkItem.evaluate().isEmpty) {
-        _log.warning('No homework item found to edit');
-        markTestSkipped('Skipped: no homework item found');
-        return;
-      }
-
-      // Get the original title
-      final originalWidget = homeworkItem.evaluate().first.widget as Text;
-      final originalTitle = originalWidget.data ?? 'Homework';
+      // Find "Quiz 4" to edit
+      final homeworkItem = find.textContaining('Quiz 4');
+      expect(homeworkItem, findsWidgets, reason: 'Quiz 4 should exist');
 
       // Tap on the homework item to open edit screen
       await tester.tap(homeworkItem.first);
@@ -537,20 +546,65 @@ void main() {
         timeout: const Duration(seconds: 10),
       );
       expect(editScreenFound, isTrue, reason: 'Should navigate to edit screen');
-      // Edit screen shows title in page header, browser title stays on Planner
-      expect(editDialogTitle, findsOneWidget, reason: 'Edit screen: "Edit Assignment" title should be shown in page header');
+      expect(editDialogTitle, findsOneWidget, reason: 'Edit screen: "Edit Assignment" title should be shown');
       expectBrowserTitle('Planner');
 
-      // Find the title field and change it
-      final titleField = find.widgetWithText(TextField, originalTitle);
-      if (titleField.evaluate().isNotEmpty) {
-        await enterTextInField(tester, titleField, '$originalTitle (Edited)');
+      // 1. Change title to "Quiz 4 (Edited)"
+      final titleField = find.widgetWithText(TextField, 'Quiz 4');
+      expect(titleField, findsOneWidget, reason: 'Title field should show "Quiz 4"');
+      await enterTextInField(tester, titleField, 'Quiz 4 (Edited)');
+
+      // 2. Change time to 2pm - tap on the time field to open time picker
+      final timeFields = find.byIcon(Icons.access_time);
+      if (timeFields.evaluate().isNotEmpty) {
+        await tester.tap(timeFields.first);
+        await tester.pumpAndSettle();
+
+        // In the time picker, enter 2:00 PM
+        // Clear and enter new time in the input field
+        final hourField = find.byType(TextField);
+        if (hourField.evaluate().isNotEmpty) {
+          // Time picker input mode - enter the time
+          await tester.enterText(hourField.first, '2');
+          await tester.pumpAndSettle();
+          // Find minute field and enter 00
+          if (hourField.evaluate().length > 1) {
+            await tester.enterText(hourField.at(1), '00');
+            await tester.pumpAndSettle();
+          }
+          // Tap PM if needed and confirm
+          final pmButton = find.text('PM');
+          if (pmButton.evaluate().isNotEmpty) {
+            await tester.tap(pmButton);
+            await tester.pumpAndSettle();
+          }
+          final okButton = find.text('OK');
+          if (okButton.evaluate().isNotEmpty) {
+            await tester.tap(okButton);
+            await tester.pumpAndSettle();
+          }
+        }
       }
 
-      // Find and tap the "Completed" checkbox
-      final completedCheckbox = find.byType(Checkbox);
-      if (completedCheckbox.evaluate().isNotEmpty) {
-        await tester.tap(completedCheckbox.first);
+      // 3. Scroll down to find the completed checkbox
+      final scrollable = find.byType(SingleChildScrollView);
+      if (scrollable.evaluate().isNotEmpty) {
+        await tester.drag(scrollable.first, const Offset(0, -200));
+        await tester.pumpAndSettle();
+      }
+
+      // 4. Toggle "Completed" checkbox (this will make the grade field appear)
+      // Find checkboxes - we need the one that's not All Day or Show End
+      final checkboxes = find.byType(Checkbox);
+      expect(checkboxes, findsWidgets, reason: 'Checkboxes should exist');
+      // Tap the last checkbox which should be Completed
+      await tester.tap(checkboxes.last);
+      await tester.pumpAndSettle();
+
+      // 5. Set a grade (grade field appears when completed is checked)
+      final gradeField = find.widgetWithText(TextField, 'Grade');
+      if (gradeField.evaluate().isNotEmpty) {
+        await enterTextInField(tester, gradeField, '95/100');
         await tester.pumpAndSettle();
       }
 
@@ -567,7 +621,7 @@ void main() {
         }
       }
 
-      // Verify the edit dialog has closed (opposite of how we detected it opened)
+      // Verify the edit dialog has closed
       final dialogClosed = await waitForWidgetToDisappear(
         tester,
         editDialogTitle,
@@ -577,19 +631,56 @@ void main() {
       expect(editDialogTitle, findsNothing, reason: 'Edit Assignment title should no longer be visible');
       expectOnPlannerScreen();
 
-      // Navigate to previous month again to see the updated item
-      if (prevMonthButton.evaluate().isNotEmpty) {
-        await tester.tap(prevMonthButton);
-        await tester.pumpAndSettle(const Duration(seconds: 3));
-      }
+      // Verify changes were persisted to the backend API
+      _log.info('Verifying homework update via API ...');
+      final items = await apiHelper.getHomeworkItems();
+      expect(items, isNotNull, reason: 'Should be able to fetch homework items');
 
-      // Verify the title was updated
-      final updatedItem = find.textContaining('(Edited)');
+      // Find items with "(Edited)" in the title
+      final editedItems = items!.where(
+        (item) => (item['title'] as String).contains('(Edited)'),
+      ).toList();
+
       expect(
-        updatedItem,
-        findsOneWidget,
-        reason: 'Homework title should be updated',
+        editedItems.length,
+        equals(1),
+        reason: 'Exactly 1 homework item should have "(Edited)" in title',
       );
+
+      final editedHomework = editedItems.first;
+      _log.info('Edited homework: $editedHomework');
+
+      // Verify all our changes
+      expect(
+        editedHomework['title'],
+        equals('Quiz 4 (Edited)'),
+        reason: 'Title should be "Quiz 4 (Edited)"',
+      );
+      // Verify time was changed to 2pm local (API returns UTC)
+      final startTimeUtc = DateTime.parse(editedHomework['start'] as String);
+      final startTimeLocal = startTimeUtc.toLocal();
+      expect(
+        startTimeLocal.hour,
+        equals(14),
+        reason: 'Start time hour should be 14 (2pm local)',
+      );
+      expect(
+        startTimeLocal.minute,
+        equals(0),
+        reason: 'Start time minute should be 0',
+      );
+      expect(
+        editedHomework['completed'],
+        isTrue,
+        reason: 'Completed should be true',
+      );
+      expect(
+        editedHomework['current_grade'],
+        equals('95/100'),
+        reason: 'Grade should be "95/100"',
+      );
+
+      _log.info('API verification successful: all homework changes persisted');
     });
 
     namedTestWidgets('8. User can clear example schedule', (tester) async {

@@ -122,4 +122,79 @@ class ApiHelper {
       return false;
     }
   }
+
+  /// Gets an access token for the test user.
+  Future<String?> getAccessToken() async {
+    final email = _config.testEmail;
+    final password = _config.testPassword;
+    final apiHost = _config.projectApiHost;
+
+    try {
+      final loginResponse = await http.post(
+        Uri.parse('$apiHost/auth/token/'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'username': email,
+          'password': password,
+        }),
+      );
+
+      if (loginResponse.statusCode == 200) {
+        final tokens = jsonDecode(loginResponse.body) as Map<String, dynamic>;
+        return tokens['access'] as String;
+      }
+      return null;
+    } catch (e) {
+      _log.warning('Error getting access token: $e');
+      return null;
+    }
+  }
+
+  /// Fetches all homework items for the test user.
+  /// Returns a list of homework items as maps, or null if fetch fails.
+  Future<List<Map<String, dynamic>>?> getHomeworkItems() async {
+    final apiHost = _config.projectApiHost;
+    final accessToken = await getAccessToken();
+
+    if (accessToken == null) {
+      _log.warning('Could not get access token to fetch homework');
+      return null;
+    }
+
+    try {
+      final response = await http.get(
+        Uri.parse('$apiHost/planner/homework/'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> items = jsonDecode(response.body);
+        return items.cast<Map<String, dynamic>>();
+      }
+      _log.warning('Failed to fetch homework: ${response.statusCode}');
+      return null;
+    } catch (e) {
+      _log.warning('Error fetching homework: $e');
+      return null;
+    }
+  }
+
+  /// Finds a homework item by title (partial match).
+  /// Returns the homework item as a map, or null if not found.
+  Future<Map<String, dynamic>?> findHomeworkByTitle(String titleContains) async {
+    final items = await getHomeworkItems();
+    if (items == null) return null;
+
+    try {
+      return items.firstWhere(
+        (item) => (item['title'] as String).contains(titleContains),
+      );
+    } catch (e) {
+      _log.info('No homework found with title containing: $titleContains');
+      return null;
+    }
+  }
 }
