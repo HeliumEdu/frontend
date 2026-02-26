@@ -18,7 +18,6 @@ permissions:
 jobs:
   test:
     name: Test
-
     runs-on: ubuntu-latest
 
     steps:
@@ -60,6 +59,13 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage/lcov.info
           fail_ci_if_error: false
+
+  integration-test:
+    name: Integration Test
+    uses: ./.github/workflows/integration.yml
+    with:
+      suite: full
+    secrets: inherit
 
   build-android:
     name: Build Android

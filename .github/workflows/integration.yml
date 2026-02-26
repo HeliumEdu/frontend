@@ -26,6 +26,23 @@ on:
         required: false
         type: string
         default: 'amd64-latest'
+  workflow_call:
+    inputs:
+      suite:
+        description: 'Test suite to run'
+        required: false
+        type: string
+        default: 'smoke'
+      environment:
+        description: 'Environment to test against'
+        required: false
+        type: string
+        default: 'dev-local'
+      platform_version:
+        description: 'Platform version (for dev-local only)'
+        required: false
+        type: string
+        default: 'amd64-latest'
 
 permissions:
   contents: read
