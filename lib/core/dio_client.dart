@@ -140,7 +140,10 @@ class DioClient {
               if (refreshToken == null || refreshToken.isEmpty) {
                 _log.info('No refresh token available, redirecting to login');
                 _isRefreshing = false;
-                _refreshCompleter!.completeError('No refresh token');
+                // Use complete() instead of completeError() to avoid unhandled
+                // exception when no other requests are waiting on the completer.
+                // Waiting requests check for null token after completion.
+                _refreshCompleter!.complete();
                 _refreshCompleter = null;
                 await _forceLogout('Please login to continue.');
                 return handler.next(error);
