@@ -18,19 +18,11 @@ final _log = Logger('delete_user_test');
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-
-  // Set up logging
-  Logger.root.level = Level.INFO;
-  Logger.root.onRecord.listen((record) {
-    // ignore: avoid_print
-    print('${record.level.name}: ${record.time}: ${record.message}');
-  });
-
   final config = TestConfig();
-  // ignore: avoid_print
-  print('Running delete user test against: ${config.environment}');
-  // ignore: avoid_print
-  print('API host: ${config.projectApiHost}');
+  initializeTestLogging(
+    environment: config.environment,
+    apiHost: config.projectApiHost,
+  );
 
   group('Delete User Test', () {
     final testEmail = config.testEmail;

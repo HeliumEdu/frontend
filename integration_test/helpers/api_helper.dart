@@ -22,6 +22,7 @@ class ApiHelper {
   ///
   /// This attempts to log in with the test credentials and delete the user.
   /// If login fails (e.g., user is unverified), tries the inactive user deletion endpoint.
+  /// Always polls afterward to verify deletion completed.
   Future<void> cleanupTestUser() async {
     final email = _config.testEmail;
     final password = _config.testPassword;
@@ -29,9 +30,54 @@ class ApiHelper {
 
     _log.info('Checking if test user exists: $email');
 
-    try {
-      // Attempt to log in
-      final loginResponse = await http.post(
+    // Attempt to log in to check if user exists
+    var loginResponse = await http.post(
+      Uri.parse('$apiHost/auth/token/'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'username': email,
+        'password': password,
+      }),
+    );
+
+    if (loginResponse.statusCode == 200) {
+      // User exists and is verified - delete via authenticated endpoint
+      final tokens = jsonDecode(loginResponse.body) as Map<String, dynamic>;
+      final accessToken = tokens['access'] as String;
+
+      _log.info('User exists from previous run, cleaning up...');
+
+      final deleteRequest =
+          http.Request('DELETE', Uri.parse('$apiHost/auth/user/delete/'));
+      deleteRequest.headers['Content-Type'] = 'application/json';
+      deleteRequest.headers['Authorization'] = 'Bearer $accessToken';
+      deleteRequest.body = jsonEncode({'password': password});
+
+      await deleteRequest.send();
+    } else {
+      // Login failed - user might be unverified, try inactive deletion endpoint
+      _log.info('Attempting to delete inactive user (if exists from previous failed run)...');
+
+      final deleteInactiveRequest =
+          http.Request('DELETE', Uri.parse('$apiHost/auth/user/delete/inactive/'));
+      deleteInactiveRequest.headers['Content-Type'] = 'application/json';
+      deleteInactiveRequest.body = jsonEncode({
+        'username': email,
+        'password': password,
+      });
+
+      await deleteInactiveRequest.send();
+    }
+
+    // Poll until user is confirmed deleted (login returns 401)
+    const maxRetries = 10;
+    const retryDelay = Duration(seconds: 3);
+
+    for (var i = 0; i < maxRetries && loginResponse.statusCode != 401; i++) {
+      _log.info('Response ${loginResponse.statusCode}, waiting for user deletion to complete...');
+      await Future.delayed(retryDelay);
+
+      loginResponse = await http.post(
         Uri.parse('$apiHost/auth/token/'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
@@ -39,90 +85,15 @@ class ApiHelper {
           'password': password,
         }),
       );
-
-      if (loginResponse.statusCode == 200) {
-        // User exists and is verified - delete via authenticated endpoint
-        final tokens = jsonDecode(loginResponse.body) as Map<String, dynamic>;
-        final accessToken = tokens['access'] as String?;
-
-        if (accessToken != null) {
-          _log.info('Test user exists (verified). Deleting...');
-
-          // Use http.Request to ensure body is sent with DELETE
-          // (some HTTP clients don't send body with DELETE by default)
-          final deleteRequest = http.Request('DELETE', Uri.parse('$apiHost/auth/user/delete/'));
-          deleteRequest.headers['Content-Type'] = 'application/json';
-          deleteRequest.headers['Authorization'] = 'Bearer $accessToken';
-          deleteRequest.body = jsonEncode({'password': password});
-
-          final deleteStreamedResponse = await deleteRequest.send();
-          final deleteResponse = await http.Response.fromStream(deleteStreamedResponse);
-
-          if (deleteResponse.statusCode == 204 || deleteResponse.statusCode == 200) {
-            _log.info('Test user deletion scheduled');
-          } else {
-            _log.warning('Failed to delete test user: ${deleteResponse.statusCode}');
-          }
-        }
-      } else {
-        // Login failed - user might be unverified or doesn't exist
-        // Try the inactive user deletion endpoint
-        _log.info('Attempting to delete inactive user (if exists from previous failed run)...');
-
-        // Use http.Request to ensure body is sent with DELETE
-        final deleteInactiveRequest = http.Request('DELETE', Uri.parse('$apiHost/auth/user/delete/inactive/'));
-        deleteInactiveRequest.headers['Content-Type'] = 'application/json';
-        deleteInactiveRequest.body = jsonEncode({
-          'username': email,
-          'password': password,
-        });
-
-        final deleteInactiveStreamedResponse = await deleteInactiveRequest.send();
-        final deleteInactiveResponse = await http.Response.fromStream(deleteInactiveStreamedResponse);
-
-        if (deleteInactiveResponse.statusCode == 204 || deleteInactiveResponse.statusCode == 200) {
-          _log.info('Inactive test user deleted successfully');
-        } else if (deleteInactiveResponse.statusCode == 404) {
-          _log.info('No inactive user found. Workspace is clean.');
-        } else {
-          _log.info('Inactive user deletion returned: ${deleteInactiveResponse.statusCode}');
-        }
-      }
-
-      // Wait and verify user is deleted
-      await _waitForUserDeletion(email, password, apiHost);
-    } catch (e) {
-      _log.warning('Error during test user cleanup: $e');
-      // Don't fail the test - cleanup is best-effort
     }
-  }
 
-  /// Polls until the user no longer exists (login returns 401).
-  Future<void> _waitForUserDeletion(String email, String password, String apiHost) async {
-    const maxRetries = 20;
-    const retryDelay = Duration(seconds: 3);
-
-    for (var i = 0; i < maxRetries; i++) {
-      final response = await http.post(
-        Uri.parse('$apiHost/auth/token/'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'username': email, 'password': password}),
+    if (loginResponse.statusCode != 401) {
+      throw Exception(
+        'Workspace could not be initialized, user from previous run was never deleted',
       );
-
-      // User is deleted when login returns 401
-      if (response.statusCode == 401) {
-        _log.info('User deletion confirmed');
-        return;
-      }
-
-      _log.info('Waiting for user deletion... (${i + 1}/$maxRetries)');
-      await Future.delayed(retryDelay);
     }
 
-    throw Exception(
-      'User was not fully deleted after ${maxRetries * retryDelay.inSeconds}s. '
-      'Test cannot proceed with existing user.',
-    );
+    _log.info('Workspace is clean');
   }
 
   /// Checks if a user with the given email exists.
