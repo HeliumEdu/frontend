@@ -36,6 +36,9 @@ class EmailHelper {
   ///
   /// [username] is the email address used during signup (URL-encoded in the verification link).
   /// Returns the verification code, or throws if not found within timeout.
+  ///
+  /// Matches the Python cluster-tests logic: find the most recent email first,
+  /// then validate it matches our criteria.
   Future<String> getVerificationCode(String username, {int retry = 0}) async {
     _log.info('Polling for verification email (attempt ${retry + 1}/$_maxRetries)');
     try {
@@ -57,70 +60,77 @@ class EmailHelper {
 
       _log.info('Found ${allObjects.length} email(s) in bucket');
 
-      // Calculate time windows using UTC for consistency across environments
+      // Find the most recent email by S3 lastModified (matches Python logic)
+      minio_models.Object? latestObj;
+      for (final obj in allObjects) {
+        if (obj.key == null || obj.lastModified == null) continue;
+        if (latestObj == null || obj.lastModified!.isAfter(latestObj.lastModified!)) {
+          latestObj = obj;
+        }
+      }
+
+      if (latestObj == null) {
+        return _retryOrFail(username, retry, 'No valid emails found');
+      }
+
+      final s3Timestamp = latestObj.lastModified!;
+      _log.info('Latest email: ${latestObj.key} (S3 timestamp: $s3Timestamp)');
+
+      // Get the email content
+      final stream = await _minio.getObject(_config.s3BucketName, latestObj.key!);
+      final bytes = await stream.fold<List<int>>([], (prev, chunk) => prev..addAll(chunk));
+      final emailStr = utf8.decode(bytes);
+
+      // Parse email to extract body
+      final emailBody = _parseEmailBody(emailStr);
+
+      // Calculate time window (matches Python: ±(15 + retry * 5) seconds)
       final nowUtc = DateTime.now().toUtc();
-      final windowPadding = Duration(seconds: 30 + (retry * _retryDelay.inSeconds));
-      final windowStart = nowUtc.subtract(windowPadding);
+      final windowPadding = Duration(seconds: 15 + (retry * _retryDelay.inSeconds));
+      final leftWindow = nowUtc.subtract(windowPadding);
+      final rightWindow = nowUtc.add(windowPadding);
       final staleThreshold = nowUtc.subtract(const Duration(minutes: 10));
 
-      // The verification URL uses just the local part of the email (before @)
+      _log.fine('leftWindow: $leftWindow');
+      _log.fine('s3Timestamp: $s3Timestamp');
+      _log.fine('rightWindow: $rightWindow');
+
+      // Validate: in time window, for our user, and has verification code
       final localPart = username.split('@').first;
       final usernamePattern = 'username=$localPart&code';
       final verifyPattern = 'verify?username=$localPart&code=';
 
-      // Look for our email
-      for (final obj in allObjects) {
-        if (obj.key == null || obj.lastModified == null) continue;
+      final inTestWindow = !s3Timestamp.isBefore(leftWindow) && s3Timestamp.isBefore(rightWindow);
+      final isForOurUser = emailBody?.contains(usernamePattern) ?? false;
+      final hasVerifyUrl = emailBody?.contains(verifyPattern) ?? false;
 
-        // Use S3's lastModified (always UTC) for time window check
-        final s3Timestamp = obj.lastModified!;
-        final inTestWindow = s3Timestamp.isAfter(windowStart);
-
-        if (!inTestWindow) {
-          // Skip old emails without fetching content
-          continue;
-        }
-
-        // Get the email content
-        final stream = await _minio.getObject(_config.s3BucketName, obj.key!);
-        final bytes = await stream.fold<List<int>>([], (prev, chunk) => prev..addAll(chunk));
-        final emailStr = utf8.decode(bytes);
-
-        // Parse email to extract body
-        final emailBody = _parseEmailBody(emailStr);
-        final isForOurUser = emailBody?.contains(usernamePattern) ?? false;
-
-        if (isForOurUser) {
-          // Found our email - extract the code
-          _log.info('Found matching email: ${obj.key} (S3 timestamp: $s3Timestamp)');
-
-          final codeStart = emailBody!.indexOf(verifyPattern);
-          if (codeStart == -1) {
-            _log.warning('Email matched but verification URL not found, skipping');
-            continue;
-          }
-
-          final codeStartIndex = codeStart + verifyPattern.length;
-          final codeEndIndex = emailBody.indexOf('\n', codeStartIndex);
-          final verificationCode = emailBody
-              .substring(codeStartIndex, codeEndIndex == -1 ? null : codeEndIndex)
-              .trim();
-
-          _log.info('Extracted verification code: $verificationCode');
-
-          // Delete our email
-          await _minio.removeObject(_config.s3BucketName, obj.key!);
-          _log.info('Deleted matching email: ${obj.key}');
-
-          // Clean up old emails (>10 min) now that we succeeded
-          await _cleanupOldEmails(allObjects, staleThreshold);
-
-          return verificationCode;
-        }
+      if (!inTestWindow || !isForOurUser || !hasVerifyUrl) {
+        final reason = !inTestWindow
+            ? 'Email outside time window'
+            : !isForOurUser
+                ? 'Email not for our user'
+                : 'Email missing verification URL';
+        return _retryOrFail(username, retry, reason);
       }
 
-      // No matching email found - don't touch anything, just retry
-      return _retryOrFail(username, retry, 'No matching email found');
+      // Extract the verification code
+      final codeStart = emailBody!.indexOf(verifyPattern);
+      final codeStartIndex = codeStart + verifyPattern.length;
+      final codeEndIndex = emailBody.indexOf('\n', codeStartIndex);
+      final verificationCode = emailBody
+          .substring(codeStartIndex, codeEndIndex == -1 ? null : codeEndIndex)
+          .trim();
+
+      _log.info('Extracted verification code: $verificationCode');
+
+      // Delete our email
+      await _minio.removeObject(_config.s3BucketName, latestObj.key!);
+      _log.info('Deleted matching email: ${latestObj.key}');
+
+      // Clean up old emails (>10 min) now that we succeeded
+      await _cleanupOldEmails(allObjects, staleThreshold);
+
+      return verificationCode;
     } catch (e) {
       _log.warning('Error during email fetch: $e');
       return _retryOrFail(username, retry, 'Error: $e');
