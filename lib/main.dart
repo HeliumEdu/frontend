@@ -36,10 +36,10 @@ void main() async {
   // Always ensure this is the first thing initialized
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Only print logs in debug mode; rely on Sentry in release
-  if (kDebugMode) {
-    LogService().init();
-  } else {
+  // Initialize logging (log level can be set via --dart-define=LOG_LEVEL=FINE)
+  // In release mode, also initialize Sentry for error reporting
+  LogService().init();
+  if (!kDebugMode) {
     try {
       await SentryService().init();
     } catch (e) {
