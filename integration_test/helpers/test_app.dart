@@ -36,8 +36,9 @@ String _currentTestDisplayName = '';
 
 /// Log level for integration tests.
 /// - info: Only test names and pass/fail results (default)
-/// - fine: Also includes app service logs
-enum TestLogLevel { info, fine }
+/// - fine: For debugging tests - prints/logs from test files will be present
+/// - finer: For debugging the app - app-level logger logs are let through
+enum TestLogLevel { info, fine, finer }
 
 /// Current log level for integration tests.
 TestLogLevel _testLogLevel = TestLogLevel.info;
@@ -73,15 +74,22 @@ void initializeTestLogging({required String environment, required String apiHost
   _loggingInitialized = true;
 
   // Parse log level from environment
-  const logLevelStr = String.fromEnvironment('TEST_LOG_LEVEL', defaultValue: 'info');
-  _testLogLevel = logLevelStr == 'fine' ? TestLogLevel.fine : TestLogLevel.info;
+  const logLevelStr = String.fromEnvironment('INTEGRATION_LOG_LEVEL', defaultValue: 'info');
+  _testLogLevel = switch (logLevelStr) {
+    'finer' => TestLogLevel.finer,
+    'fine' => TestLogLevel.fine,
+    _ => TestLogLevel.info,
+  };
 
   // Send init info to driver
+  // Only include appLogLevel when finer is enabled (showing app logs)
   _sendLog(<String, dynamic>{
     'type': 'init',
     'environment': environment,
     'apiHost': apiHost,
     'logLevel': _testLogLevel.name,
+    if (_testLogLevel == TestLogLevel.finer)
+      'appLogLevel': Logger.root.level.name.toLowerCase(),
   });
 
   // Hook into the test framework's exception reporter to capture test failures
@@ -108,13 +116,26 @@ void initializeTestLogging({required String environment, required String apiHost
     originalReporter(details, testDescription);
   };
 
-  // Configure app logging based on level
-  Logger.root.level = Level.INFO;
+  // Configure log forwarding to driver based on integration log level
+  // Note: App log level is controlled by LOG_LEVEL env var via LogService
   Logger.root.onRecord.listen((record) {
     final formatted = LogFormatter.format(record);
+    final loggerName = record.loggerName;
 
-    // Send to driver for terminal output if fine level enabled
-    if (_testLogLevel == TestLogLevel.fine) {
+    // Determine if this is a test logger (integration test files and helpers)
+    final isTestLogger = loggerName.endsWith('_test') || loggerName.endsWith('_helper');
+
+    // Send to driver for terminal output based on log level:
+    // - info: no logs sent
+    // - fine: only test logs (for debugging tests themselves)
+    // - finer: all logs including app logs (for debugging the app)
+    final shouldSendToDriver = switch (_testLogLevel) {
+      TestLogLevel.info => false,
+      TestLogLevel.fine => isTestLogger,
+      TestLogLevel.finer => true,
+    };
+
+    if (shouldSendToDriver) {
       _sendLog(<String, dynamic>{
         'type': 'log',
         'message': formatted,
@@ -128,8 +149,9 @@ void initializeTestLogging({required String environment, required String apiHost
 }
 
 /// Wrapper around testWidgets that reports test results to the driver.
-/// - At info level: reports test name and pass/fail
-/// - At fine level: also includes app service logs
+/// - At info level: reports test name and pass/fail only
+/// - At fine level: also includes logs from test files (for debugging tests)
+/// - At finer level: also includes app-level logs (for debugging the app)
 ///
 /// Note: Test failures are reported via reportTestException hook in initializeTestLogging.
 @isTest
