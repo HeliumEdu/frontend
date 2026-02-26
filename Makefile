@@ -53,6 +53,9 @@ endif
 ifdef AWS_S3_SECRET_ACCESS_KEY
     DRIVE_ARGS += --dart-define=AWS_S3_SECRET_ACCESS_KEY=$(AWS_S3_SECRET_ACCESS_KEY)
 endif
+ifdef POST_TEST_DELAY
+    DRIVE_ARGS += --dart-define=POST_TEST_DELAY=$(POST_TEST_DELAY)
+endif
 
 all: test
 

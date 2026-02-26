@@ -72,8 +72,11 @@ void namedTestWidgets(
       print('STACK: $stack');
       // ignore: avoid_print
       print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n');
-      // Pause to allow reading the error in console
-      await Future.delayed(const Duration(seconds: 30));
+      // Pause to allow reading the error when running with visible browser
+      const postTestDelay = int.fromEnvironment('POST_TEST_DELAY', defaultValue: 0);
+      if (postTestDelay > 0) {
+        await Future.delayed(const Duration(seconds: postTestDelay));
+      }
       rethrow;
     }
   });

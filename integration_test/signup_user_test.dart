@@ -189,6 +189,20 @@ void main() {
         isTrue,
         reason: 'Should reach planner after verification',
       );
+
+      // Dismiss dialogs so they don't interfere with subsequent tests
+      // Wait briefly for getting_started to potentially appear
+      await tester.pumpAndSettle(const Duration(seconds: 2));
+      if (find.text('Welcome to Helium!').evaluate().isNotEmpty) {
+        await tester.tap(find.text("I'll explore first"));
+        await tester.pumpAndSettle();
+      }
+      // Wait briefly for whats_new to potentially appear behind getting_started
+      await tester.pumpAndSettle(const Duration(seconds: 2));
+      if (find.text('Welcome to the new Helium!').evaluate().isNotEmpty) {
+        await tester.tap(find.text('Dive In!'));
+        await tester.pumpAndSettle();
+      }
     });
   });
 }
