@@ -16,7 +16,7 @@ import 'dart:io';
 /// Usage: dart bin/update_version.dart
 void main() async {
   // ignore: avoid_print
-  print('Updating version in build/web/index.html from pubspec.yaml...');
+  print('Updating version in build/web/index.html from pubspec.yaml ...');
 
   // Read pubspec.yaml
   final pubspecFile = File('pubspec.yaml');

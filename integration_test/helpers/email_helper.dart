@@ -138,7 +138,7 @@ class EmailHelper {
 
   Future<String> _retryOrFail(String username, int retry, String reason) async {
     if (retry < _maxRetries) {
-      _log.info('$reason. Retrying in ${_retryDelay.inSeconds}s...');
+      _log.info('$reason. Retrying in ${_retryDelay.inSeconds}s ...');
       await Future.delayed(_retryDelay);
       return getVerificationCode(username, retry: retry + 1);
     }

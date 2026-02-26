@@ -17,25 +17,25 @@ FRONTEND_IMAGE="${FRONTEND_IMAGE:-public.ecr.aws/heliumedu/helium/frontend-web:$
 
 CONTAINER_NAME="helium-frontend-web"
 
-echo "Starting frontend container..."
+echo "Starting frontend container ..."
 echo "  Image: ${FRONTEND_IMAGE}"
 
 # Stop any existing container
 docker rm -f "${CONTAINER_NAME}" 2>/dev/null || true
 
 # Pull the image
-echo "Pulling image..."
+echo "Pulling image ..."
 docker pull "${FRONTEND_IMAGE}"
 
 # Start the container
-echo "Starting container..."
+echo "Starting container ..."
 docker run -d \
     --name "${CONTAINER_NAME}" \
     -p 8080:8080 \
     "${FRONTEND_IMAGE}"
 
 # Wait for the frontend to be ready
-echo "Waiting for frontend to be ready..."
+echo "Waiting for frontend to be ready ..."
 MAX_ATTEMPTS=30
 ATTEMPT=0
 until curl -sf http://localhost:8080 > /dev/null 2>&1; do

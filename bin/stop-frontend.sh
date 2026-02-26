@@ -9,6 +9,6 @@ set -euo pipefail
 
 CONTAINER_NAME="helium-frontend-web"
 
-echo "Stopping frontend container..."
+echo "Stopping frontend container ..."
 docker rm -f "${CONTAINER_NAME}" 2>/dev/null || true
 echo "Frontend container stopped"

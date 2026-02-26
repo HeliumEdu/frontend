@@ -72,7 +72,7 @@ clean:
 	flutter clean
 
 clean-chrome:
-	@echo "Killing stale Chrome and chromedriver processes..."
+	@echo "Killing stale Chrome and chromedriver processes ..."
 	@pkill -f chromedriver || true
 	@pkill -f "Chrome.*--remote-debugging" || true
 	@pkill -f "Google Chrome for Testing" || true
@@ -124,13 +124,13 @@ start-platform:
 	@if curl -sf http://localhost:8000/status/ > /dev/null 2>&1; then \
 		echo "Platform already running"; \
 	else \
-		echo "Starting platform..."; \
+		echo "Starting platform ..."; \
 		curl -fsSL "https://raw.githubusercontent.com/HeliumEdu/platform/main/bin/start-platform.sh?$$(date +%s)" | bash; \
 	fi
 	@if [ -n "$$PLATFORM_EMAIL_HOST_USER" ] && [ -n "$$PLATFORM_EMAIL_HOST_PASSWORD" ]; then \
 		WORK_DIR=$${TMPDIR:-/tmp}/helium-platform; \
 		if grep -q '<SMTP_USERNAME>' "$$WORK_DIR/.env" 2>/dev/null; then \
-			echo "Injecting SMTP credentials and restarting API..."; \
+			echo "Injecting SMTP credentials and restarting API ..."; \
 			sed -i.bak "s/<SMTP_USERNAME>/$$PLATFORM_EMAIL_HOST_USER/" $$WORK_DIR/.env; \
 			sed -i.bak "s/<SMTP_PASSWORD>/$$PLATFORM_EMAIL_HOST_PASSWORD/" $$WORK_DIR/.env; \
 			cd $$WORK_DIR && docker compose up -d api worker; \

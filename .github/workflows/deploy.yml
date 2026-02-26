@@ -109,7 +109,7 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           SEMVER="${VERSION}"
 
-          echo "Looking for artifact matching version ${SEMVER}..."
+          echo "Looking for artifact matching version ${SEMVER} ..."
 
           # Get recent successful release workflow runs
           RUNS=$(gh api "repos/HeliumEdu/frontend/actions/workflows/release.yml/runs?status=success&per_page=20" \
@@ -155,7 +155,7 @@ jobs:
           RUN_ID="${{ steps.find_run.outputs.run_id }}"
           ARTIFACT_NAME="${{ steps.find_run.outputs.artifact_name }}"
 
-          echo "Downloading artifact ${ARTIFACT_NAME} from run ${RUN_ID}..."
+          echo "Downloading artifact ${ARTIFACT_NAME} from run ${RUN_ID} ..."
 
           gh run download ${RUN_ID} \
             --repo HeliumEdu/frontend \
@@ -179,7 +179,7 @@ jobs:
         run: |
           BUCKET_NAME="heliumedu.${ENVIRONMENT}.frontend-app.static"
 
-          echo "Deploying version ${VERSION} to s3://${BUCKET_NAME}..."
+          echo "Deploying version ${VERSION} to s3://${BUCKET_NAME} ..."
 
           # Sync the web build to S3
           aws s3 sync ./web-build "s3://${BUCKET_NAME}" \
@@ -225,7 +225,7 @@ jobs:
             --output text)
 
           if [ -n "$DISTRIBUTION_ID" ] && [ "$DISTRIBUTION_ID" != "None" ]; then
-            echo "Invalidating CloudFront distribution ${DISTRIBUTION_ID} for ${DOMAIN}..."
+            echo "Invalidating CloudFront distribution ${DISTRIBUTION_ID} for ${DOMAIN} ..."
             aws cloudfront create-invalidation \
               --distribution-id "$DISTRIBUTION_ID" \
               --paths "/*"
@@ -298,7 +298,7 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           SEMVER="${VERSION}"
 
-          echo "Looking for artifact matching version ${SEMVER}..."
+          echo "Looking for artifact matching version ${SEMVER} ..."
 
           # Get recent successful release workflow runs
           RUNS=$(gh api "repos/HeliumEdu/frontend/actions/workflows/release.yml/runs?status=success&per_page=20" \
@@ -344,7 +344,7 @@ jobs:
           RUN_ID="${{ steps.find_run.outputs.run_id }}"
           ARTIFACT_NAME="${{ steps.find_run.outputs.artifact_name }}"
 
-          echo "Downloading artifact ${ARTIFACT_NAME} from run ${RUN_ID}..."
+          echo "Downloading artifact ${ARTIFACT_NAME} from run ${RUN_ID} ..."
 
           gh run download ${RUN_ID} \
             --repo HeliumEdu/frontend \
@@ -375,7 +375,7 @@ jobs:
           FULL_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
         run: |
           cd android
-          echo "Deploying to Google Play Internal Track..."
+          echo "Deploying to Google Play Internal Track ..."
           SEMVER="${FULL_VERSION%%+*}"
           bundle exec fastlane deploy_internal aab_path:../android-build/app-release.aab version:$SEMVER
 
@@ -440,7 +440,7 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           SEMVER="${VERSION}"
 
-          echo "Looking for artifact matching version ${SEMVER}..."
+          echo "Looking for artifact matching version ${SEMVER} ..."
 
           # Get recent successful release workflow runs
           RUNS=$(gh api "repos/HeliumEdu/frontend/actions/workflows/release.yml/runs?status=success&per_page=20" \
@@ -486,7 +486,7 @@ jobs:
           RUN_ID="${{ steps.find_run.outputs.run_id }}"
           ARTIFACT_NAME="${{ steps.find_run.outputs.artifact_name }}"
 
-          echo "Downloading artifact ${ARTIFACT_NAME} from run ${RUN_ID}..."
+          echo "Downloading artifact ${ARTIFACT_NAME} from run ${RUN_ID} ..."
 
           gh run download ${RUN_ID} \
             --repo HeliumEdu/frontend \
@@ -515,7 +515,7 @@ jobs:
           APP_STORE_CONNECT_TEAM_ID: ${{ secrets.APP_STORE_CONNECT_TEAM_ID }}
         run: |
           cd ios
-          echo "Deploying to TestFlight..."
+          echo "Deploying to TestFlight ..."
 
           # Create App Store Connect API key file
           mkdir -p ~/.appstoreconnect/private_keys

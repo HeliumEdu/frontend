@@ -45,7 +45,7 @@ class ApiHelper {
       final tokens = jsonDecode(loginResponse.body) as Map<String, dynamic>;
       final accessToken = tokens['access'] as String;
 
-      _log.info('User exists from previous run, cleaning up...');
+      _log.info('User exists from previous run, cleaning up ...');
 
       final deleteRequest =
           http.Request('DELETE', Uri.parse('$apiHost/auth/user/delete/'));
@@ -56,7 +56,7 @@ class ApiHelper {
       await deleteRequest.send();
     } else {
       // Login failed - user might be unverified, try inactive deletion endpoint
-      _log.info('Attempting to delete inactive user (if exists from previous failed run)...');
+      _log.info('Attempting to delete inactive user (if exists from previous failed run) ...');
 
       final deleteInactiveRequest =
           http.Request('DELETE', Uri.parse('$apiHost/auth/user/delete/inactive/'));
@@ -74,7 +74,7 @@ class ApiHelper {
     const retryDelay = Duration(seconds: 3);
 
     for (var i = 0; i < maxRetries && loginResponse.statusCode != 401; i++) {
-      _log.info('Response ${loginResponse.statusCode}, waiting for user deletion to complete...');
+      _log.info('Response ${loginResponse.statusCode}, waiting for user deletion to complete ...');
       await Future.delayed(retryDelay);
 
       loginResponse = await http.post(

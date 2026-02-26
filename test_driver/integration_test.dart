@@ -98,6 +98,7 @@ void _processResult(Map<String, dynamic> data) {
       print('${_red}ERROR:$_reset ${data['error']}');
       // ignore: avoid_print
       print('${_grey}STACK:$_reset ${data['stack']}');
+      stdout.flush();
       break;
 
     case 'log':

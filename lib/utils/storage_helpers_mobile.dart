@@ -61,7 +61,7 @@ Future<bool> _downloadFileAndroid(String url, String filename) async {
 
     // Create Downloads directory if it doesn't exist
     if (!await downloadsDir.exists()) {
-      _log.info('Public Downloads directory does not exist, creating...');
+      _log.info('Public Downloads directory does not exist, creating ...');
       try {
         await downloadsDir.create(recursive: true);
       } catch (e) {
