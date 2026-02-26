@@ -8,9 +8,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:web/web.dart' as web;
-// ignore: implementation_imports
-import 'package:test_api/src/backend/invoker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -29,7 +26,9 @@ import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helper
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:test_api/src/backend/invoker.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:web/web.dart' as web;
 
 final _log = Logger('test_app_helper');
 
@@ -72,12 +71,18 @@ Future<void> _sendLog(Map<String, dynamic> data) async {
 
 /// Initialize logging for integration tests.
 /// Safe to call multiple times - only sets up the listener once.
-void initializeTestLogging({required String environment, required String apiHost}) {
+void initializeTestLogging({
+  required String environment,
+  required String apiHost,
+}) {
   if (_loggingInitialized) return;
   _loggingInitialized = true;
 
   // Parse log level from environment
-  const logLevelStr = String.fromEnvironment('INTEGRATION_LOG_LEVEL', defaultValue: 'info');
+  const logLevelStr = String.fromEnvironment(
+    'INTEGRATION_LOG_LEVEL',
+    defaultValue: 'info',
+  );
   _testLogLevel = switch (logLevelStr) {
     'finer' => TestLogLevel.finer,
     'fine' => TestLogLevel.fine,
@@ -110,7 +115,8 @@ void initializeTestLogging({required String environment, required String apiHost
     // Send failure log to driver
     _sendLog(<String, dynamic>{
       'type': 'log',
-      'message': '\x1B[91mTEST EXCEPTION:\x1B[0m ${details.exceptionAsString()}',
+      'message':
+          '\x1B[91mTEST EXCEPTION:\x1B[0m ${details.exceptionAsString()}',
     });
     _sendLog(<String, dynamic>{
       'type': 'testFail',
@@ -126,11 +132,17 @@ void initializeTestLogging({required String environment, required String apiHost
   // Configure log forwarding to driver based on integration log level
   // Note: App log level is controlled by LOG_LEVEL env var via LogService
   Logger.root.onRecord.listen((record) {
-    final formatted = LogFormatter.format(record);
+    // Only show TEST/APP prefix when app logs are enabled (finer level)
+    final includePrefix = _testLogLevel == TestLogLevel.finer;
+    final formatted = LogFormatter.format(
+      record,
+      includeSourcePrefix: includePrefix,
+    );
     final loggerName = record.loggerName;
 
     // Determine if this is a test logger (integration test files and helpers)
-    final isTestLogger = loggerName.endsWith('_test') || loggerName.endsWith('_helper');
+    final isTestLogger =
+        loggerName.endsWith('_test') || loggerName.endsWith('_helper');
 
     // Send to driver for terminal output based on log level:
     // - info: no logs sent
@@ -143,10 +155,7 @@ void initializeTestLogging({required String environment, required String apiHost
     };
 
     if (shouldSendToDriver) {
-      _sendLog(<String, dynamic>{
-        'type': 'log',
-        'message': formatted,
-      });
+      _sendLog(<String, dynamic>{'type': 'log', 'message': formatted});
     }
 
     // Always print to browser console for DevTools debugging
@@ -178,10 +187,7 @@ void namedTestWidgets(
     _currentTestDisplayName = displayName;
 
     // Report test start
-    await _sendLog(<String, dynamic>{
-      'type': 'testStart',
-      'test': displayName,
-    });
+    await _sendLog(<String, dynamic>{'type': 'testStart', 'test': displayName});
 
     // ignore: avoid_print
     print('\n========================================');
@@ -194,10 +200,7 @@ void namedTestWidgets(
     await callback(tester);
 
     // If we get here, the test passed
-    await _sendLog(<String, dynamic>{
-      'type': 'testPass',
-      'test': displayName,
-    });
+    await _sendLog(<String, dynamic>{'type': 'testPass', 'test': displayName});
   });
 }
 
@@ -266,7 +269,9 @@ Future<void> enterTextInField(
   );
 
   if (editableTextFinder.evaluate().isNotEmpty) {
-    final editableTextState = tester.state<EditableTextState>(editableTextFinder);
+    final editableTextState = tester.state<EditableTextState>(
+      editableTextFinder,
+    );
     editableTextState.updateEditingValue(
       TextEditingValue(
         text: text,
@@ -371,8 +376,16 @@ Future<bool> loginAndNavigateToPlanner(
   await ensureOnLoginScreen(tester);
 
   // Use helper for web-compatible text entry
-  await enterTextInField(tester, find.widgetWithText(TextField, 'Email'), email);
-  await enterTextInField(tester, find.widgetWithText(TextField, 'Password'), password);
+  await enterTextInField(
+    tester,
+    find.widgetWithText(TextField, 'Email'),
+    email,
+  );
+  await enterTextInField(
+    tester,
+    find.widgetWithText(TextField, 'Password'),
+    password,
+  );
 
   _log.info('Submitting login ...');
   await tester.tap(find.text('Sign In'));
@@ -457,7 +470,8 @@ void expectBrowserTitle(String expectedPageName) {
   expect(
     title.contains(expectedPageName),
     isTrue,
-    reason: 'Browser title should contain "$expectedPageName", but was "$title"',
+    reason:
+        'Browser title should contain "$expectedPageName", but was "$title"',
   );
 }
 
@@ -474,35 +488,103 @@ void expectBrowserTitleExact(String expectedTitle) {
 /// Assert we're on the Planner screen.
 /// Verifies: "Today" button, Filter icon, Search icon, and FAB are shown.
 void expectOnPlannerScreen() {
-  expect(find.text('Today'), findsOneWidget, reason: 'Planner: Today button should be shown');
-  expect(find.byIcon(Icons.filter_alt), findsOneWidget, reason: 'Planner: Filter icon should be shown');
-  expect(find.byIcon(Icons.search), findsWidgets, reason: 'Planner: Search icon should be shown');
-  expect(find.byType(FloatingActionButton), findsOneWidget, reason: 'Planner: FAB should be shown');
-  expect(find.text('Planner'), findsNWidgets(2), reason: 'Planner: Title or menu button not found');
+  expect(
+    find.text('Today'),
+    findsOneWidget,
+    reason: 'Planner: Today button should be shown',
+  );
+  expect(
+    find.byIcon(Icons.filter_alt),
+    findsOneWidget,
+    reason: 'Planner: Filter icon should be shown',
+  );
+  expect(
+    find.byIcon(Icons.search),
+    findsWidgets,
+    reason: 'Planner: Search icon should be shown',
+  );
+  expect(
+    find.byType(FloatingActionButton),
+    findsOneWidget,
+    reason: 'Planner: FAB should be shown',
+  );
+  expect(
+    find.text('Planner'),
+    findsNWidgets(2),
+    reason: 'Planner: Title or menu button not found',
+  );
   expectBrowserTitle('Planner');
 }
 
 /// Assert we're on the Classes screen.
 /// Verifies: FAB is shown, 3 course cards with expected titles (titles end with emojis).
 void expectOnClassesScreen() {
-  expect(find.byType(FloatingActionButton), findsOneWidget, reason: 'Classes: FAB should be shown');
-  expect(find.byType(Card), findsNWidgets(3), reason: 'Classes: Should show 3 course cards');
-  expect(find.text('Fall Semester'), findsOneWidget, reason: 'Classes: Fall Semester group should be shown');
-  expect(find.textContaining('Creative Writing'), findsOneWidget, reason: 'Classes: Creative Writing course should be shown');
-  expect(find.textContaining('Fundamentals'), findsOneWidget, reason: 'Classes: Fundamentals course should be shown');
-  expect(find.textContaining('Intro to Psych'), findsOneWidget, reason: 'Classes: Intro to Psych course should be shown');
-  expect(find.text('Classes'), findsNWidgets(2), reason: 'Classes: Title or menu button not found');
+  expect(
+    find.byType(FloatingActionButton),
+    findsOneWidget,
+    reason: 'Classes: FAB should be shown',
+  );
+  expect(
+    find.byType(Card),
+    findsNWidgets(3),
+    reason: 'Classes: Should show 3 course cards',
+  );
+  expect(
+    find.text('Fall Semester'),
+    findsOneWidget,
+    reason: 'Classes: Fall Semester group should be shown',
+  );
+  expect(
+    find.textContaining('Creative Writing'),
+    findsOneWidget,
+    reason: 'Classes: Creative Writing course should be shown',
+  );
+  expect(
+    find.textContaining('Fundamentals'),
+    findsOneWidget,
+    reason: 'Classes: Fundamentals course should be shown',
+  );
+  expect(
+    find.textContaining('Intro to Psych'),
+    findsOneWidget,
+    reason: 'Classes: Intro to Psych course should be shown',
+  );
+  expect(
+    find.text('Classes'),
+    findsNWidgets(2),
+    reason: 'Classes: Title or menu button not found',
+  );
   expectBrowserTitle('Classes');
 }
 
 /// Assert we're on the Resources screen.
 /// Verifies: FAB is shown, 1 resource card with expected title.
 void expectOnResourcesScreen() {
-  expect(find.byType(FloatingActionButton), findsOneWidget, reason: 'Resources: FAB should be shown');
-  expect(find.byType(Card), findsOneWidget, reason: 'Resources: Should show 1 resource card');
-  expect(find.text('Textbooks'), findsOneWidget, reason: 'Resources: Google Workspace should be shown');
-  expect(find.text('Google Workspace'), findsOneWidget, reason: 'Resources: Google Workspace should be shown');
-  expect(find.text('Resources'), findsNWidgets(2), reason: 'Resources: Title or menu button not found');
+  expect(
+    find.byType(FloatingActionButton),
+    findsOneWidget,
+    reason: 'Resources: FAB should be shown',
+  );
+  expect(
+    find.byType(Card),
+    findsOneWidget,
+    reason: 'Resources: Should show 1 resource card',
+  );
+  expect(
+    find.text('Textbooks'),
+    findsOneWidget,
+    reason: 'Resources: Google Workspace should be shown',
+  );
+  expect(
+    find.text('Google Workspace'),
+    findsOneWidget,
+    reason: 'Resources: Google Workspace should be shown',
+  );
+  expect(
+    find.text('Resources'),
+    findsNWidgets(2),
+    reason: 'Resources: Title or menu button not found',
+  );
   expectBrowserTitle('Resources');
 }
 
@@ -510,21 +592,69 @@ void expectOnResourcesScreen() {
 /// Verifies: "Grade Trend" text shown, FAB NOT shown, 4 summary widgets at top,
 /// "28" below "Pending Impact", 3 course grade cards.
 void expectOnGradesScreen() {
-  expect(find.text('Grade Trend'), findsOneWidget, reason: 'Grades: Grade Trend text should be shown');
-  expect(find.byType(FloatingActionButton), findsNothing, reason: 'Grades: FAB should NOT be shown');
+  expect(
+    find.text('Grade Trend'),
+    findsOneWidget,
+    reason: 'Grades: Grade Trend text should be shown',
+  );
+  expect(
+    find.byType(FloatingActionButton),
+    findsNothing,
+    reason: 'Grades: FAB should NOT be shown',
+  );
   // Check for 4 summary widgets at top (Overall, Trend, Pending Impact, Target)
-  expect(find.text('Overall'), findsOneWidget, reason: 'Grades: Overall summary should be shown');
-  expect(find.text('Trend'), findsOneWidget, reason: 'Grades: Trend summary should be shown');
-  expect(find.text('Pending Impact'), findsOneWidget, reason: 'Grades: Pending Impact summary should be shown');
-  expect(find.text('Target'), findsOneWidget, reason: 'Grades: Target summary should be shown');
+  expect(
+    find.text('Overall'),
+    findsOneWidget,
+    reason: 'Grades: Overall summary should be shown',
+  );
+  expect(
+    find.text('Trend'),
+    findsOneWidget,
+    reason: 'Grades: Trend summary should be shown',
+  );
+  expect(
+    find.text('Pending Impact'),
+    findsOneWidget,
+    reason: 'Grades: Pending Impact summary should be shown',
+  );
+  expect(
+    find.text('Target'),
+    findsOneWidget,
+    reason: 'Grades: Target summary should be shown',
+  );
   // Check for the pending impact count
-  expect(find.text('28'), findsOneWidget, reason: 'Grades: Pending Impact should show 28');
+  expect(
+    find.text('28'),
+    findsOneWidget,
+    reason: 'Grades: Pending Impact should show 28',
+  );
   // Check for 3 course grade cards (same titles as Classes screen, titles end with emojis)
-  expect(find.byType(Card), findsNWidgets(3), reason: 'Grades: Should show 3 course grade cards');
-  expect(find.textContaining('Creative Writing'), findsOneWidget, reason: 'Grades: Creative Writing grade card should be shown');
-  expect(find.textContaining('Fundamentals'), findsOneWidget, reason: 'Grades: Fundamentals grade card should be shown');
-  expect(find.textContaining('Intro to Psych'), findsOneWidget, reason: 'Grades: Intro to Psych grade card should be shown');
-  expect(find.text('Grades'), findsNWidgets(2), reason: 'Grades: Title or menu button not found');
+  expect(
+    find.byType(Card),
+    findsNWidgets(3),
+    reason: 'Grades: Should show 3 course grade cards',
+  );
+  expect(
+    find.textContaining('Creative Writing'),
+    findsOneWidget,
+    reason: 'Grades: Creative Writing grade card should be shown',
+  );
+  expect(
+    find.textContaining('Fundamentals'),
+    findsOneWidget,
+    reason: 'Grades: Fundamentals grade card should be shown',
+  );
+  expect(
+    find.textContaining('Intro to Psych'),
+    findsOneWidget,
+    reason: 'Grades: Intro to Psych grade card should be shown',
+  );
+  expect(
+    find.text('Grades'),
+    findsNWidgets(2),
+    reason: 'Grades: Title or menu button not found',
+  );
   expectBrowserTitle('Grades');
 }
 
@@ -550,12 +680,24 @@ void expectOnSettingsScreen({required bool isDialog}) {
   );
   if (isDialog) {
     // Dialog mode: FAB from underlying Planner is still visible, title stays on Planner
-    expect(find.byType(FloatingActionButton), findsOneWidget, reason: 'Settings dialog: FAB should be shown (from Planner)');
+    expect(
+      find.byType(FloatingActionButton),
+      findsOneWidget,
+      reason: 'Settings dialog: FAB should be shown (from Planner)',
+    );
     expectBrowserTitle('Planner');
   } else {
     // Mobile screen mode: no FAB, "Settings" title shown in page header (not browser title)
-    expect(find.byType(FloatingActionButton), findsNothing, reason: 'Settings screen: FAB should NOT be shown');
-    expect(find.text('Settings'), findsOneWidget, reason: 'Settings screen: Settings title should be shown in page header');
+    expect(
+      find.byType(FloatingActionButton),
+      findsNothing,
+      reason: 'Settings screen: FAB should NOT be shown',
+    );
+    expect(
+      find.text('Settings'),
+      findsOneWidget,
+      reason: 'Settings screen: Settings title should be shown in page header',
+    );
     expectBrowserTitle('Planner');
   }
 }
@@ -563,8 +705,20 @@ void expectOnSettingsScreen({required bool isDialog}) {
 /// Assert we're on the Login screen.
 /// Verifies: browser title is "Login".
 void expectOnLoginScreen() {
-  expect(find.text('Sign In'), findsOneWidget, reason: 'Login: Sign In button should be shown');
-  expect(find.widgetWithText(TextField, 'Email'), findsOneWidget, reason: 'Login: Email field should be shown');
-  expect(find.widgetWithText(TextField, 'Password'), findsOneWidget, reason: 'Login: Password field should be shown');
+  expect(
+    find.text('Sign In'),
+    findsOneWidget,
+    reason: 'Login: Sign In button should be shown',
+  );
+  expect(
+    find.widgetWithText(TextField, 'Email'),
+    findsOneWidget,
+    reason: 'Login: Email field should be shown',
+  );
+  expect(
+    find.widgetWithText(TextField, 'Password'),
+    findsOneWidget,
+    reason: 'Login: Password field should be shown',
+  );
   expectBrowserTitle('Login');
 }
