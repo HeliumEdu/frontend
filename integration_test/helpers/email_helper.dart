@@ -57,12 +57,11 @@ class EmailHelper {
 
       _log.info('Found ${allObjects.length} email(s) in bucket');
 
-      // Calculate time windows
-      final now = DateTime.now().toUtc();
-      final windowPadding = Duration(seconds: 15 + (retry * _retryDelay.inSeconds));
-      final leftWindow = now.subtract(windowPadding + const Duration(seconds: 1));
-      final rightWindow = now.add(windowPadding);
-      final staleThreshold = now.subtract(const Duration(minutes: 10));
+      // Calculate time windows using UTC for consistency across environments
+      final nowUtc = DateTime.now().toUtc();
+      final windowPadding = Duration(seconds: 30 + (retry * _retryDelay.inSeconds));
+      final windowStart = nowUtc.subtract(windowPadding);
+      final staleThreshold = nowUtc.subtract(const Duration(minutes: 10));
 
       // The verification URL uses just the local part of the email (before @)
       final localPart = username.split('@').first;
@@ -71,26 +70,29 @@ class EmailHelper {
 
       // Look for our email
       for (final obj in allObjects) {
-        if (obj.key == null) continue;
+        if (obj.key == null || obj.lastModified == null) continue;
+
+        // Use S3's lastModified (always UTC) for time window check
+        final s3Timestamp = obj.lastModified!;
+        final inTestWindow = s3Timestamp.isAfter(windowStart);
+
+        if (!inTestWindow) {
+          // Skip old emails without fetching content
+          continue;
+        }
 
         // Get the email content
         final stream = await _minio.getObject(_config.s3BucketName, obj.key!);
         final bytes = await stream.fold<List<int>>([], (prev, chunk) => prev..addAll(chunk));
         final emailStr = utf8.decode(bytes);
 
-        // Parse email to extract date and body
-        final parseResult = _parseEmail(emailStr);
-        final emailDate = parseResult.date;
-        final emailBody = parseResult.body;
-
+        // Parse email to extract body
+        final emailBody = _parseEmailBody(emailStr);
         final isForOurUser = emailBody?.contains(usernamePattern) ?? false;
-        final inTestWindow = emailDate != null &&
-            !emailDate.isBefore(leftWindow) &&
-            emailDate.isBefore(rightWindow);
 
-        if (isForOurUser && inTestWindow) {
-          // Found our email within the time window - extract the code
-          _log.info('Found matching email: ${obj.key}');
+        if (isForOurUser) {
+          // Found our email - extract the code
+          _log.info('Found matching email: ${obj.key} (S3 timestamp: $s3Timestamp)');
 
           final codeStart = emailBody!.indexOf(verifyPattern);
           if (codeStart == -1) {
@@ -156,30 +158,15 @@ class EmailHelper {
     }
   }
 
-  /// Parses a raw email string to extract date and plain text body.
-  _EmailParseResult _parseEmail(String emailStr) {
-    DateTime? emailDate;
-    String? emailBody;
-
-    // Simple email parsing - look for Date header and text/plain content
+  /// Parses a raw email string to extract the plain text body.
+  String? _parseEmailBody(String emailStr) {
+    // Simple email parsing - look for text/plain content
     final lines = emailStr.split('\n');
     bool inBody = false;
     bool inPlainText = false;
     final bodyLines = <String>[];
 
-    for (var i = 0; i < lines.length; i++) {
-      final line = lines[i];
-
-      // Parse Date header
-      if (line.startsWith('Date: ') && emailDate == null) {
-        try {
-          final dateStr = line.substring(6).trim();
-          emailDate = _parseRfc2822Date(dateStr);
-        } catch (e) {
-          _log.warning('Failed to parse date: $e');
-        }
-      }
-
+    for (final line in lines) {
       // Detect content type boundaries
       if (line.contains('Content-Type: text/plain')) {
         inPlainText = true;
@@ -207,61 +194,6 @@ class EmailHelper {
       }
     }
 
-    if (bodyLines.isNotEmpty) {
-      emailBody = bodyLines.join('\n');
-    }
-
-    return _EmailParseResult(date: emailDate, body: emailBody);
+    return bodyLines.isNotEmpty ? bodyLines.join('\n') : null;
   }
-
-  /// Parse RFC 2822 date format (e.g., "Mon, 24 Feb 2025 10:30:00 +0000")
-  DateTime? _parseRfc2822Date(String dateStr) {
-    try {
-      // Remove day name if present
-      var cleaned = dateStr;
-      if (cleaned.contains(',')) {
-        cleaned = cleaned.substring(cleaned.indexOf(',') + 1).trim();
-      }
-
-      // Parse: "24 Feb 2025 10:30:00 +0000"
-      final parts = cleaned.split(' ');
-      if (parts.length < 5) return null;
-
-      final day = int.parse(parts[0]);
-      final month = _monthFromString(parts[1]);
-      final year = int.parse(parts[2]);
-      final timeParts = parts[3].split(':');
-      final hour = int.parse(timeParts[0]);
-      final minute = int.parse(timeParts[1]);
-      final second = int.parse(timeParts[2]);
-
-      // Parse timezone offset
-      final tzOffset = parts[4];
-      final tzSign = tzOffset.startsWith('-') ? -1 : 1;
-      final tzHours = int.parse(tzOffset.substring(1, 3));
-      final tzMinutes = int.parse(tzOffset.substring(3, 5));
-      final offsetDuration = Duration(hours: tzHours, minutes: tzMinutes) * tzSign;
-
-      final utcTime = DateTime.utc(year, month, day, hour, minute, second);
-      return utcTime.subtract(offsetDuration);
-    } catch (e) {
-      _log.warning('Failed to parse RFC 2822 date "$dateStr": $e');
-      return null;
-    }
-  }
-
-  int _monthFromString(String month) {
-    const months = {
-      'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6,
-      'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12,
-    };
-    return months[month] ?? 1;
-  }
-}
-
-class _EmailParseResult {
-  final DateTime? date;
-  final String? body;
-
-  _EmailParseResult({this.date, this.body});
 }
