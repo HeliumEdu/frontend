@@ -12,8 +12,16 @@
 set -euo pipefail
 
 # Determine the image to use
+# Prefer local images if available, otherwise fall back to ECR Public
 PLATFORM="${PLATFORM:-arm64}"
-FRONTEND_IMAGE="${FRONTEND_IMAGE:-public.ecr.aws/heliumedu/helium/frontend-web:${PLATFORM}-latest}"
+LOCAL_IMAGE="helium/frontend-web:${PLATFORM}-latest"
+if docker image inspect "$LOCAL_IMAGE" &>/dev/null; then
+    echo "Using local image..."
+    FRONTEND_IMAGE="${FRONTEND_IMAGE:-helium/frontend-web:${PLATFORM}-latest}"
+else
+    echo "Local image not found, will pull from ECR Public..."
+    FRONTEND_IMAGE="${FRONTEND_IMAGE:-public.ecr.aws/heliumedu/helium/frontend-web:${PLATFORM}-latest}"
+fi
 
 CONTAINER_NAME="helium-frontend-web"
 
@@ -23,9 +31,13 @@ echo "  Image: ${FRONTEND_IMAGE}"
 # Stop any existing container
 docker rm -f "${CONTAINER_NAME}" 2>/dev/null || true
 
-# Pull the image
-echo "Pulling image ..."
-docker pull "${FRONTEND_IMAGE}"
+# Pull the image if using ECR
+if [[ "$FRONTEND_IMAGE" == *"public.ecr.aws"* ]]; then
+    echo "Pulling image ..."
+    # Logout from ECR to prevent credential helper issues
+    docker logout public.ecr.aws 2>/dev/null || true
+    docker pull "${FRONTEND_IMAGE}"
+fi
 
 # Start the container
 echo "Starting container ..."

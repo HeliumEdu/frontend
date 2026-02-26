@@ -17,6 +17,9 @@ endif
 ifdef PROJECT_API_HOST
     RUN_ARGS += --dart-define=PROJECT_API_HOST=$(PROJECT_API_HOST)
 endif
+ifdef LOG_LEVEL
+    RUN_ARGS += --dart-define=LOG_LEVEL=$(LOG_LEVEL)
+endif
 
 ifdef PORT
     RUN_ARGS += --web-port=$(PORT)
@@ -44,8 +47,8 @@ ifeq ($(INTEGRATION_HEADLESS),true)
 else
     DRIVE_ARGS += --no-headless
 endif
-ifdef PROJECT_API_HOST
-    DRIVE_ARGS += --dart-define=PROJECT_API_HOST=$(PROJECT_API_HOST)
+ifdef LOG_LEVEL
+    DRIVE_ARGS += --dart-define=LOG_LEVEL=$(LOG_LEVEL)
 endif
 ifdef AWS_S3_ACCESS_KEY_ID
     DRIVE_ARGS += --dart-define=AWS_S3_ACCESS_KEY_ID=$(AWS_S3_ACCESS_KEY_ID)
@@ -53,11 +56,8 @@ endif
 ifdef AWS_S3_SECRET_ACCESS_KEY
     DRIVE_ARGS += --dart-define=AWS_S3_SECRET_ACCESS_KEY=$(AWS_S3_SECRET_ACCESS_KEY)
 endif
-ifdef POST_TEST_DELAY
-    DRIVE_ARGS += --dart-define=POST_TEST_DELAY=$(POST_TEST_DELAY)
-endif
-ifdef TEST_LOG_LEVEL
-    DRIVE_ARGS += --dart-define=TEST_LOG_LEVEL=$(TEST_LOG_LEVEL)
+ifdef INTEGRATION_LOG_LEVEL
+    DRIVE_ARGS += --dart-define=INTEGRATION_LOG_LEVEL=$(INTEGRATION_LOG_LEVEL)
 endif
 
 all: test
