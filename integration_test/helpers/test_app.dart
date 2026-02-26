@@ -121,32 +121,38 @@ void namedTestWidgets(
     // ignore: avoid_print
     print('========================================\n');
 
+    Object? caughtError;
+    StackTrace? caughtStack;
+
     try {
       await callback(tester);
+    } catch (error, stack) {
+      caughtError = error;
+      caughtStack = stack;
+    }
 
-      // Report success
-      await _sendLog(<String, dynamic>{
-        'type': 'testPass',
-        'test': description,
-      });
-    } catch (e, stack) {
+    // Report result after test completes
+    if (caughtError != null) {
       // ignore: avoid_print
       print('\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
       // ignore: avoid_print
       print('TEST FAILED: $description');
       // ignore: avoid_print
-      print('ERROR: $e');
+      print('ERROR: $caughtError');
       // ignore: avoid_print
-      print('STACK: $stack');
+      print('STACK: $caughtStack');
       // ignore: avoid_print
       print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n');
 
-      // Report failure with error details
+      await _sendLog(<String, dynamic>{
+        'type': 'log',
+        'message': '\x1B[91mASSERTION FAILED:\x1B[0m $caughtError',
+      });
       await _sendLog(<String, dynamic>{
         'type': 'testFail',
         'test': description,
-        'error': e.toString(),
-        'stack': stack.toString(),
+        'error': caughtError.toString(),
+        'stack': caughtStack.toString(),
       });
 
       // Pause to allow reading the error when running with visible browser
@@ -154,7 +160,14 @@ void namedTestWidgets(
       if (postTestDelay > 0) {
         await Future.delayed(const Duration(seconds: postTestDelay));
       }
-      rethrow;
+
+      // Re-throw to mark test as failed
+      throw caughtError!;
+    } else {
+      await _sendLog(<String, dynamic>{
+        'type': 'testPass',
+        'test': description,
+      });
     }
   });
 }

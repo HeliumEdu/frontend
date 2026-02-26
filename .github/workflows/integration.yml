@@ -106,7 +106,7 @@ jobs:
       - name: Pre-pull platform images (dev-local only)
         if: ${{ inputs.environment == 'dev-local' }}
         run: |
-          echo "Pulling platform images..."
+          echo "Pulling platform images ..."
           docker pull "$PLATFORM_RESOURCE_IMAGE" &
           docker pull "$PLATFORM_API_IMAGE" &
           docker pull "$PLATFORM_WORKER_IMAGE" &

@@ -110,7 +110,7 @@ void main() {
       );
 
       // Verify account is actually deleted via API (with polling)
-      _log.info('Verifying account deletion via API...');
+      _log.info('Verifying account deletion via API ...');
       var accountDeleted = false;
       const maxAttempts = 36; // 3 minutes with 5-second intervals
       for (var i = 0; i < maxAttempts && !accountDeleted; i++) {

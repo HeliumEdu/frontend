@@ -303,7 +303,7 @@ class DioClient {
 
   Future<UserSettingsModel?> fetchSettings({bool forceRefresh = false}) async {
     try {
-      _log.info('Fetching settings from API...');
+      _log.info('Fetching settings from API ...');
       final response = await _dio.get(
         ApiUrl.authUserUrl,
         options: forceRefresh ? _cacheService.forceRefreshOptions() : null,
@@ -337,7 +337,7 @@ class DioClient {
       final timeZone = _prefService.getString('time_zone');
       if (timeZone == null) {
         // Settings not in cache - fetch from API to ensure they're available
-        _log.info('Settings not in cache, fetching from API...');
+        _log.info('Settings not in cache, fetching from API ...');
         final fetchedSettings = await fetchSettings();
         if (fetchedSettings != null) {
           return fetchedSettings;

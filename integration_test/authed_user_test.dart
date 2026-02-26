@@ -67,7 +67,7 @@ void main() {
       // Skip setup screen if present (routing logic tested in unit tests)
       final setupScreen = find.text('Set Up Your Account');
       if (setupScreen.evaluate().isNotEmpty) {
-        _log.info('Setup screen detected, skipping...');
+        _log.info('Setup screen detected, skipping ...');
         final skipButton = find.text('Skip');
         final continueButton = find.text('Continue');
         if (skipButton.evaluate().isNotEmpty) {
