@@ -79,6 +79,25 @@ void main() {
         testPassword,
       );
 
+      // Select Chicago timezone for consistent test assertions
+      // The SearchableDropdown uses Autocomplete with a TextFormField
+      final timezoneField = find.byWidgetPredicate(
+        (widget) =>
+            widget is EditableText &&
+            widget.controller.text.contains('UTC'),
+      );
+      await tester.tap(timezoneField);
+      await tester.pumpAndSettle();
+
+      // Clear existing text and type "Chicago" to filter
+      await tester.enterText(timezoneField, 'Chicago');
+      await tester.pumpAndSettle();
+
+      // Wait for dropdown options to appear and select America/Chicago
+      await waitForWidget(tester, find.text('America/Chicago'));
+      await tester.tap(find.text('America/Chicago'));
+      await tester.pumpAndSettle();
+
       // Agree to terms - find and tap the checkbox
       final checkbox = find.byType(CheckboxListTile);
       await tester.tap(checkbox);
