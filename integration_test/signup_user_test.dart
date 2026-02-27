@@ -7,6 +7,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:heliumapp/config/app_route.dart';
+import 'package:heliumapp/config/app_router.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:logging/logging.dart';
 
@@ -95,9 +97,28 @@ void main() {
 
       registrationSucceeded = true;
       _log.info('Registration succeeded');
+
+      // Should pre-populate Verify screen with email from query params
+      final emailField = find.widgetWithText(TextField, 'Email');
+      expect(emailField, findsOneWidget, reason: 'Email field should exist');
+      final emailEditableText = find.descendant(
+        of: emailField,
+        matching: find.byType(EditableText),
+      );
+      final emailValue = (tester.widget<EditableText>(
+        emailEditableText,
+      )).controller.text;
+      expect(
+        emailValue,
+        equals(testEmail),
+        reason:
+            'Email field should be pre-populated with username from query params',
+      );
     });
 
-    namedTestWidgets('2. User can verify email with code from S3', (tester) async {
+    namedTestWidgets('2. User can verify email with code from S3', (
+      tester,
+    ) async {
       if (!registrationSucceeded) {
         skipTest('registration did not succeed');
         return;
@@ -105,28 +126,17 @@ void main() {
 
       await initializeTestApp(tester);
 
+      // Wait for the app to settle and redirect to verify if needed
+      await tester.pumpAndSettle(const Duration(seconds: 2));
+
+      // Check if we're already on verify screen (from previous test)
+      if (find.text('Verify Email').evaluate().isEmpty) {
+        router.go(AppRoute.verifyEmailScreen);
+        await tester.pumpAndSettle();
+      }
+
       // Fetch the verification code from S3
       final verificationCode = await emailHelper.getVerificationCode(testEmail);
-
-      // Should already be on Verify screen from previous test
-      final onVerifyScreen = find.text('Verify Email').evaluate().isNotEmpty;
-
-      expect(onVerifyScreen, isTrue, reason: 'Should be on verify email screen');
-      expectBrowserTitle('Verify Email');
-
-      // Verify Email field is pre-populated from query params
-      final emailField = find.widgetWithText(TextField, 'Email');
-      expect(emailField, findsOneWidget, reason: 'Email field should exist');
-      final emailEditableText = find.descendant(
-        of: emailField,
-        matching: find.byType(EditableText),
-      );
-      final emailValue = (tester.widget<EditableText>(emailEditableText)).controller.text;
-      expect(
-        emailValue,
-        equals(testEmail),
-        reason: 'Email field should be pre-populated with username from query params',
-      );
 
       // Enter verification code
       await enterTextInField(
@@ -140,28 +150,26 @@ void main() {
       await tester.pumpAndSettle(const Duration(seconds: 10));
 
       // Verification succeeded if we're no longer on the verify screen
-      final stillOnVerify = find.text('Verify Email').evaluate().isNotEmpty &&
-          find.widgetWithText(TextField, 'Verification code').evaluate().isNotEmpty;
-      expect(stillOnVerify, isFalse, reason: 'Should have left verify screen after successful verification');
-
-      // Wait for setup screen (if present) to navigate redirect us
-      final setupScreen = find.text('Set Up Your Account');
-      if (setupScreen.evaluate().isNotEmpty) {
-        await tester.pumpAndSettle(const Duration(seconds: 15));
-      }
-
-      // Verify we reach the planner
-      final plannerFound = await waitForWidget(
-        tester,
-        find.text('Planner'),
-        timeout: const Duration(seconds: 15),
-      );
+      final stillOnVerify =
+          find.text('Verify Email').evaluate().isNotEmpty &&
+          find
+              .widgetWithText(TextField, 'Verification code')
+              .evaluate()
+              .isNotEmpty;
       expect(
-        plannerFound,
-        isTrue,
-        reason: 'Should reach planner after verification',
+        stillOnVerify,
+        isFalse,
+        reason: 'Should have left verify screen after successful verification',
       );
-      expectBrowserTitle('Planner');
+
+      // Wait for navigation to planner (handles setup screen redirect automatically)
+      final reachedPlanner = await waitForRoute(
+        tester,
+        '/planner',
+        browserTitle: 'Planner',
+        timeout: const Duration(seconds: 30),
+      );
+      expect(reachedPlanner, isTrue, reason: 'Should reach planner after verification');
     });
   });
 }

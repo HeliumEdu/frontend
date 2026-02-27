@@ -67,8 +67,9 @@ void main() {
       await tester.tap(settingsButton);
       await tester.pumpAndSettle(const Duration(seconds: 2));
 
-      // Find and tap "Danger Zone"
+      // Find and tap "Danger Zone" (may need to scroll)
       final dangerZone = find.text('Danger Zone');
+      await scrollUntilVisible(tester, dangerZone);
       expect(dangerZone, findsOneWidget, reason: 'Danger Zone should exist');
       await tester.tap(dangerZone);
       await tester.pumpAndSettle(const Duration(seconds: 2));
@@ -79,18 +80,24 @@ void main() {
       await tester.tap(deleteAccount);
       await tester.pumpAndSettle(const Duration(seconds: 2));
 
-      // Enter password in the confirmation dialog
-      final passwordField = find.widgetWithText(TextField, 'Password');
-      if (passwordField.evaluate().isNotEmpty) {
-        await enterTextInField(tester, passwordField, testPassword);
-      }
+      // Enter password in the confirmation dialog (find the only TextField in the dialog)
+      final dialog = find.byType(AlertDialog);
+      expect(dialog, findsOneWidget, reason: 'Delete confirmation dialog should be open');
+      final passwordField = find.descendant(
+        of: dialog,
+        matching: find.byType(TextField),
+      );
+      expect(passwordField, findsOneWidget, reason: 'Password field should be in dialog');
+      await enterTextInField(tester, passwordField, testPassword);
 
       // Confirm deletion
-      final deleteButton = find.text('Delete');
-      if (deleteButton.evaluate().isNotEmpty) {
-        await tester.tap(deleteButton);
-        await tester.pumpAndSettle(const Duration(seconds: 5));
-      }
+      final deleteButton = find.descendant(
+        of: dialog,
+        matching: find.text('Delete'),
+      );
+      expect(deleteButton, findsOneWidget, reason: 'Delete button should be in dialog');
+      await tester.tap(deleteButton);
+      await tester.pumpAndSettle(const Duration(seconds: 5));
 
       // Verify we're redirected to login screen
       final loginScreenFound = await waitForWidget(

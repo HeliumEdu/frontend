@@ -134,7 +134,7 @@ void main() {
         await tester.pumpAndSettle(const Duration(seconds: 5));
       }
 
-      // Wait for the welcome dialog to appear (shown on first planner load)
+      // Wait for the welcome dialog to appear
       final welcomeDialogFound = await waitForWidget(
         tester,
         find.text('Welcome to Helium!'),
