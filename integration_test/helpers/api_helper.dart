@@ -7,6 +7,10 @@
 
 import 'dart:convert';
 
+import 'package:heliumapp/core/api_url.dart';
+import 'package:heliumapp/data/models/planner/course_model.dart';
+import 'package:heliumapp/data/models/planner/homework_model.dart';
+import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 
@@ -31,8 +35,8 @@ class ApiHelper {
     _log.info('Checking if test user exists: $email');
 
     // Attempt to log in to check if user exists
-    var loginResponse = await http.post(
-      Uri.parse('$apiHost/auth/token/'),
+    final loginResponse = await http.post(
+      Uri.parse('$apiHost${ApiUrl.authTokenUrl}'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'username': email, 'password': password}),
     );
@@ -46,7 +50,7 @@ class ApiHelper {
 
       final deleteRequest = http.Request(
         'DELETE',
-        Uri.parse('$apiHost/auth/user/delete/'),
+        Uri.parse('$apiHost${ApiUrl.authUserDeleteUrl}'),
       );
       deleteRequest.headers['Content-Type'] = 'application/json';
       deleteRequest.headers['Authorization'] = 'Bearer $accessToken';
@@ -61,7 +65,7 @@ class ApiHelper {
 
       final deleteInactiveRequest = http.Request(
         'DELETE',
-        Uri.parse('$apiHost/auth/user/delete/inactive/'),
+        Uri.parse('$apiHost${ApiUrl.authUserDeleteUrl}inactive/'),
       );
       deleteInactiveRequest.headers['Content-Type'] = 'application/json';
       deleteInactiveRequest.body = jsonEncode({
@@ -106,7 +110,7 @@ class ApiHelper {
 
     try {
       final loginResponse = await http.post(
-        Uri.parse('$apiHost/auth/token/'),
+        Uri.parse('$apiHost${ApiUrl.authTokenUrl}'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'username': email, 'password': password}),
       );
@@ -128,7 +132,7 @@ class ApiHelper {
 
     try {
       final loginResponse = await http.post(
-        Uri.parse('$apiHost/auth/token/'),
+        Uri.parse('$apiHost${ApiUrl.authTokenUrl}'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'username': email, 'password': password}),
       );
@@ -144,9 +148,39 @@ class ApiHelper {
     }
   }
 
+  /// Fetches all courses for the test user.
+  Future<List<CourseModel>?> getCourses() async {
+    final apiHost = _config.projectApiHost;
+    final accessToken = await getAccessToken();
+
+    if (accessToken == null) {
+      _log.warning('Could not get access token to fetch courses');
+      return null;
+    }
+
+    try {
+      final response = await http.get(
+        Uri.parse('$apiHost${ApiUrl.plannerCoursesListUrl}'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> items = jsonDecode(response.body);
+        return items.map((item) => CourseModel.fromJson(item)).toList();
+      }
+      _log.warning('Failed to fetch courses: ${response.statusCode}');
+      return null;
+    } catch (e) {
+      _log.warning('Error fetching courses: $e');
+      return null;
+    }
+  }
+
   /// Fetches all homework items for the test user.
-  /// Returns a list of homework items as maps, or null if fetch fails.
-  Future<List<Map<String, dynamic>>?> getHomeworkItems() async {
+  Future<List<HomeworkModel>?> getHomeworkItems() async {
     final apiHost = _config.projectApiHost;
     final accessToken = await getAccessToken();
 
@@ -157,7 +191,7 @@ class ApiHelper {
 
     try {
       final response = await http.get(
-        Uri.parse('$apiHost/planner/homework/'),
+        Uri.parse('$apiHost${ApiUrl.plannerHomeworkListUrl}'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $accessToken',
@@ -166,7 +200,7 @@ class ApiHelper {
 
       if (response.statusCode == 200) {
         final List<dynamic> items = jsonDecode(response.body);
-        return items.cast<Map<String, dynamic>>();
+        return items.map((item) => HomeworkModel.fromJson(item)).toList();
       }
       _log.warning('Failed to fetch homework: ${response.statusCode}');
       return null;
@@ -177,20 +211,57 @@ class ApiHelper {
   }
 
   /// Finds a homework item by title (partial match).
-  /// Returns the homework item as a map, or null if not found.
-  Future<Map<String, dynamic>?> findHomeworkByTitle(
-    String titleContains,
-  ) async {
+  Future<HomeworkModel?> findHomeworkByTitle(String titleContains) async {
     final items = await getHomeworkItems();
     if (items == null) return null;
 
     try {
       return items.firstWhere(
-        (item) => (item['title'] as String).contains(titleContains),
+        (item) => item.title.contains(titleContains),
       );
     } catch (e) {
       _log.info('No homework found with title containing: $titleContains');
       return null;
+    }
+  }
+
+  /// Updates a homework item.
+  /// Follows the same signature pattern as HomeworkRemoteDataSource.
+  Future<bool> updateHomework({
+    required int groupId,
+    required int courseId,
+    required int homeworkId,
+    required HomeworkRequestModel request,
+  }) async {
+    final apiHost = _config.projectApiHost;
+    final accessToken = await getAccessToken();
+
+    if (accessToken == null) {
+      _log.warning('Could not get access token to update homework');
+      return false;
+    }
+
+    try {
+      final response = await http.patch(
+        Uri.parse(
+          '$apiHost${ApiUrl.plannerCourseGroupsCoursesHomeworkDetailsUrl(groupId, courseId, homeworkId)}',
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode(request.toJson()),
+      );
+
+      if (response.statusCode == 200) {
+        _log.info('Updated homework $homeworkId');
+        return true;
+      }
+      _log.warning('Failed to update homework: ${response.statusCode}');
+      return false;
+    } catch (e) {
+      _log.warning('Error updating homework: $e');
+      return false;
     }
   }
 }
