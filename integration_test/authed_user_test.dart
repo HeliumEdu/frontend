@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:logging/logging.dart';
@@ -79,12 +80,12 @@ void main() {
       }
 
       // Verify we reach the planner
-      final plannerFound = await waitForWidget(
+      final plannerFound = await waitForRoute(
         tester,
-        find.text('Planner'),
+        AppRoute.plannerScreen,
+        browserTitle: 'Planner',
         timeout: const Duration(seconds: 15),
       );
-
       expect(plannerFound, isTrue, reason: 'Should be on planner screen');
       expectOnPlannerScreen();
 
@@ -750,16 +751,13 @@ void main() {
       }
 
       // Wait for navigation to Classes screen
-      final classesScreenFound = await waitForWidget(
+      final classesScreenFound = await waitForRoute(
         tester,
-        find.text('Classes'),
+        AppRoute.coursesScreen,
+        browserTitle: 'Classes',
         timeout: const Duration(seconds: 30),
       );
-      expect(
-        classesScreenFound,
-        isTrue,
-        reason: 'Should navigate to Classes screen after clearing example data',
-      );
+      expect(classesScreenFound, isTrue, reason: 'Should navigate to Classes screen after clearing example data');
 
       await tester.pumpAndSettle(const Duration(seconds: 3));
 

@@ -83,17 +83,13 @@ void main() {
       await tester.pumpAndSettle(const Duration(seconds: 5));
 
       // Should navigate to verify email screen
-      final verifyScreenFound = await waitForWidget(
+      final verifyScreenFound = await waitForRoute(
         tester,
-        find.text('Verify Email'),
+        AppRoute.verifyEmailScreen,
+        browserTitle: 'Verify Email',
         timeout: const Duration(seconds: 15),
       );
-      expect(
-        verifyScreenFound,
-        isTrue,
-        reason: 'Should navigate to verify email screen',
-      );
-      expectBrowserTitle('Verify Email');
+      expect(verifyScreenFound, isTrue, reason: 'Should navigate to verify email screen');
 
       registrationSucceeded = true;
       _log.info('Registration succeeded');
@@ -162,10 +158,10 @@ void main() {
         reason: 'Should have left verify screen after successful verification',
       );
 
-      // Wait for navigation to planner (handles setup screen redirect automatically)
+      // Wait for navigation to planner
       final reachedPlanner = await waitForRoute(
         tester,
-        '/planner',
+        AppRoute.plannerScreen,
         browserTitle: 'Planner',
         timeout: const Duration(seconds: 30),
       );

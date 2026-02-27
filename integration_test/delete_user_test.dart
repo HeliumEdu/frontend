@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:logging/logging.dart';
 
@@ -67,7 +68,7 @@ void main() {
       await tester.tap(settingsButton);
       await tester.pumpAndSettle(const Duration(seconds: 2));
 
-      // Find and tap "Danger Zone" (may need to scroll)
+      // Find and tap "Danger Zone"
       final dangerZone = find.text('Danger Zone');
       await scrollUntilVisible(tester, dangerZone);
       expect(dangerZone, findsOneWidget, reason: 'Danger Zone should exist');
@@ -80,7 +81,7 @@ void main() {
       await tester.tap(deleteAccount);
       await tester.pumpAndSettle(const Duration(seconds: 2));
 
-      // Enter password in the confirmation dialog (find the only TextField in the dialog)
+      // Enter password in the confirmation dialog
       final dialog = find.byType(AlertDialog);
       expect(dialog, findsOneWidget, reason: 'Delete confirmation dialog should be open');
       final passwordField = find.descendant(
@@ -99,18 +100,13 @@ void main() {
       await tester.tap(deleteButton);
       await tester.pumpAndSettle(const Duration(seconds: 5));
 
-      // Verify we're redirected to login screen
-      final loginScreenFound = await waitForWidget(
+      final loginScreenFound = await waitForRoute(
         tester,
-        find.text('Sign In'),
+        AppRoute.loginScreen,
+        browserTitle: 'Login',
         timeout: const Duration(seconds: 30),
       );
-      expect(
-        loginScreenFound,
-        isTrue,
-        reason: 'Should be redirected to login after account deletion',
-      );
-      expectBrowserTitle('Login');
+      expect(loginScreenFound, isTrue, reason: 'Should be redirected to login after account deletion');
 
       // Verify account is actually deleted via API (with polling)
       _log.info('Verifying account deletion via API ...');
