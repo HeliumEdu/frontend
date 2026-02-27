@@ -434,7 +434,6 @@ Future<void> ensureOnLoginScreen(WidgetTester tester) async {
   // Check if we're already on login screen
   if (find.text('Sign In').evaluate().isNotEmpty &&
       find.widgetWithText(TextField, 'Email').evaluate().isNotEmpty) {
-    _log.info('Already on login screen');
     return;
   }
 
