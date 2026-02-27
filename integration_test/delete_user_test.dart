@@ -63,8 +63,10 @@ void main() {
       expect(loggedIn, isTrue, reason: 'Should be logged in');
       expectBrowserTitle('Planner');
 
-      // Open settings
+      // Open settings (wait for button to be visible after navigation shell loads)
       final settingsButton = find.byIcon(Icons.settings_outlined);
+      final settingsFound = await waitForWidget(tester, settingsButton, timeout: const Duration(seconds: 10));
+      expect(settingsFound, isTrue, reason: 'Settings button should be visible');
       await tester.tap(settingsButton);
       await tester.pumpAndSettle(const Duration(seconds: 2));
 

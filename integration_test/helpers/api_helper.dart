@@ -69,31 +69,26 @@ class ApiHelper {
       await deleteInactiveRequest.send();
     }
 
-    // Poll until user is confirmed deleted (login returns 401)
-    const maxRetries = 10;
-    const retryDelay = Duration(seconds: 3);
+    // Poll until user is confirmed deleted (auth stops working)
+    // Use same timeout as delete_user_test (3 minutes) to handle slow deletions
+    const maxRetries = 36;
+    const retryDelay = Duration(seconds: 5);
 
-    for (var i = 0; i < maxRetries && loginResponse.statusCode != 401; i++) {
-      _log.info('Response ${loginResponse.statusCode}, waiting for user deletion to complete ...');
+    for (var i = 0; i < maxRetries; i++) {
       await Future.delayed(retryDelay);
 
-      loginResponse = await http.post(
-        Uri.parse('$apiHost/auth/token/'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'username': email,
-          'password': password,
-        }),
-      );
+      final exists = await userExists(email);
+      if (!exists) {
+        _log.info('Workspace is clean');
+        return;
+      }
+
+      _log.info('User still exists, waiting for deletion to complete ... (${i + 1}/$maxRetries)');
     }
 
-    if (loginResponse.statusCode != 401) {
-      throw Exception(
-        'Workspace could not be initialized, user from previous run was never deleted',
-      );
-    }
-
-    _log.info('Workspace is clean');
+    throw Exception(
+      'Workspace could not be initialized, user from previous run was never deleted after ${maxRetries * retryDelay.inSeconds} seconds',
+    );
   }
 
   /// Checks if a user with the given email exists.

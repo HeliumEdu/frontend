@@ -53,9 +53,12 @@ class TestConfig {
   /// SES receipt rule stores at: inbound.email/heliumedu-cluster/
   String get emailDomain => '${_envPrefix}heliumedu.dev';
 
-  /// Consistent test email address for CI
-  /// Only one integration test run is allowed at a time to avoid user pollution
-  String get testEmail => 'heliumedu-cluster+3@$emailDomain';
+  /// Email suffix for test accounts (reuse to avoid test account pollution)
+  String get emailSuffix =>
+      const String.fromEnvironment('INTEGRATION_EMAIL_SUFFIX', defaultValue: 'integration');
+
+  /// Test email address: heliumedu-cluster-{emailSuffix}@{emailDomain}
+  String get testEmail => 'heliumedu-cluster+$emailSuffix@$emailDomain';
 
   /// Consistent test password for CI
   String get testPassword => 'IntegrationTestPassword123!';

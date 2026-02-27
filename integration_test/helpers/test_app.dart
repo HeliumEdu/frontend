@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
@@ -445,16 +446,86 @@ Future<void> ensureOnLoginScreen(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
-/// Helper to log in and navigate to planner, handling setup/welcome dialogs
+/// Dismisses the "Getting Started" dialog if present.
+/// This dialog appears on first login and after browser hard refresh.
+/// Returns true if the dialog was found and dismissed, false otherwise.
+Future<bool> dismissGettingStartedDialog(
+  WidgetTester tester, {
+  Duration timeout = const Duration(seconds: 5),
+}) async {
+  final dialogFinder = find.text('Welcome to Helium!');
+
+  // Wait for dialog to appear (it may take a moment after navigation)
+  final appeared = await waitForWidget(tester, dialogFinder, timeout: timeout);
+  if (!appeared) {
+    return false;
+  }
+
+  _log.info('Dismissing Getting Started dialog ...');
+  await tester.tap(find.text("I'll explore first"));
+  await tester.pumpAndSettle();
+
+  // Wait for dialog to fully close before proceeding
+  final closed = await waitForWidgetToDisappear(
+    tester,
+    dialogFinder,
+    timeout: const Duration(seconds: 5),
+  );
+
+  if (!closed) {
+    _log.warning('Getting Started dialog did not close within timeout');
+  }
+
+  return true;
+}
+
+/// Dismisses the "What's New" dialog if present.
+/// This dialog appears once after the Getting Started dialog (stored in prefs).
+/// Returns true if the dialog was found and dismissed, false otherwise.
+Future<bool> dismissWhatsNewDialog(
+  WidgetTester tester, {
+  Duration timeout = const Duration(seconds: 5),
+}) async {
+  final dialogFinder = find.text("What's New?");
+
+  // Wait for dialog to appear (it may take a moment after Getting Started closes)
+  final appeared = await waitForWidget(tester, dialogFinder, timeout: timeout);
+  if (!appeared) {
+    return false;
+  }
+
+  _log.info('Dismissing What\'s New dialog ...');
+  await tester.tap(find.text('Dive In!'));
+  await tester.pumpAndSettle();
+
+  // Wait for dialog to fully close before proceeding
+  final closed = await waitForWidgetToDisappear(
+    tester,
+    dialogFinder,
+    timeout: const Duration(seconds: 5),
+  );
+
+  if (!closed) {
+    _log.warning('What\'s New dialog did not close within timeout');
+  }
+
+  return true;
+}
+
+/// Helper to log in and navigate to planner, handling dialogs.
+/// [expectWhatsNew] - if true, asserts What's New appears (first login after signup).
+///                    if false (default), asserts What's New does NOT appear.
+/// Returns true if planner was reached and is ready for interaction.
 Future<bool> loginAndNavigateToPlanner(
   WidgetTester tester,
   String email,
-  String password,
-) async {
-  // First ensure we're on the login screen
+  String password, {
+  bool expectWhatsNew = false,
+}) async {
+  // Ensure we're on the login screen
   await ensureOnLoginScreen(tester);
 
-  // Use helper for web-compatible text entry
+  // Enter credentials
   await enterTextInField(
     tester,
     find.widgetWithText(TextField, 'Email'),
@@ -469,64 +540,39 @@ Future<bool> loginAndNavigateToPlanner(
   _log.info('Submitting login ...');
   await tester.tap(find.text('Sign In'));
 
-  // Wait for either setup screen, welcome dialog, or planner to appear
-  // Setup can take some time under high load
-  const postLoginTimeout = Duration(seconds: 45);
-  final endTime = DateTime.now().add(postLoginTimeout);
-
-  while (DateTime.now().isBefore(endTime)) {
-    await tester.pump(const Duration(milliseconds: 500));
-
-    // Check for setup screen
-    if (find.text('Set Up Your Account').evaluate().isNotEmpty) {
-      _log.info('Setup screen detected');
-
-      await tester.pumpAndSettle(const Duration(seconds: 15));
-      break;
-    }
-
-    if (find.text('Welcome to Helium!').evaluate().isNotEmpty) {
-      _log.info('Welcome dialog detected');
-      break;
-    }
-
-    // Check for planner (means we bypassed both setup and welcome)
-    if (find.text('Planner').evaluate().isNotEmpty) {
-      _log.info('Planner detected (bypassed setup and welcome)');
-      break;
-    }
-  }
-
-  // Handle getting started dialog
-  final gettingStartedDialog = find.text('Welcome to Helium!');
-  if (gettingStartedDialog.evaluate().isNotEmpty) {
-    _log.info('Dismissing getting started dialog ...');
-    await tester.tap(find.text("I'll explore first"));
-    await tester.pumpAndSettle();
-  }
-
-  // Handle what's new dialog
-  final whatsNewDialog = find.text('Welcome to the new Helium!');
-  if (whatsNewDialog.evaluate().isNotEmpty) {
-    _log.info('Dismissing what\'s new dialog ...');
-    await tester.tap(find.text('Dive In!'));
-    await tester.pumpAndSettle();
-  }
-
-  // Wait for planner to load
-  final plannerFound = await waitForWidget(
+  // Wait for planner route
+  final reachedPlanner = await waitForRoute(
     tester,
-    find.text('Planner'),
+    AppRoute.plannerScreen,
+    browserTitle: 'Planner',
     timeout: const Duration(seconds: 30),
   );
 
-  if (plannerFound) {
-    _log.info('Successfully navigated to planner');
-  } else {
-    _log.warning('Failed to navigate to planner within timeout');
+  if (!reachedPlanner) {
+    _log.warning('Failed to reach planner after login');
+    return false;
   }
 
-  return plannerFound;
+  // Dismiss Getting Started dialog if present (shown after login and browser refresh)
+  await dismissGettingStartedDialog(tester);
+
+  // Handle What's New dialog based on expectation
+  final whatsNewAppeared = await dismissWhatsNewDialog(tester);
+  if (expectWhatsNew && !whatsNewAppeared) {
+    throw Exception(
+      "What's New dialog should appear on first login after signup",
+    );
+  } else if (!expectWhatsNew && whatsNewAppeared) {
+    throw Exception(
+      "What's New dialog should not appear - it only appears once after signup",
+    );
+  }
+
+  // Extra settle to ensure navigation shell is fully rendered
+  await tester.pumpAndSettle();
+  _log.info('Successfully navigated to planner');
+
+  return true;
 }
 
 /// Get the current browser document title.

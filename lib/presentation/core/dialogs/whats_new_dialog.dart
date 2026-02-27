@@ -29,7 +29,7 @@ class _WhatsNewDialogWidget extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Text(
-            'Welcome to the new Helium!',
+            "What's New?",
             style: AppStyles.pageTitle(context),
           ),
         ],

@@ -48,130 +48,7 @@ void main() {
       }
     });
 
-    namedTestWidgets('1. Verified user can login and see planner', (tester) async {
-      if (!canProceed) {
-        _log.warning('Skipping: user does not exist');
-        skipTest('user does not exist (run signup_user_test first)');
-        return;
-      }
-
-      await initializeTestApp(tester);
-      await ensureOnLoginScreen(tester);
-
-      // Login with the verified account
-      await enterTextInField(tester, find.widgetWithText(TextField, 'Email'), testEmail);
-      await enterTextInField(tester, find.widgetWithText(TextField, 'Password'), testPassword);
-
-      await tester.tap(find.text('Sign In'));
-      await tester.pumpAndSettle(const Duration(seconds: 10));
-
-      // Skip setup screen if present (routing logic tested in unit tests)
-      final setupScreen = find.text('Set Up Your Account');
-      if (setupScreen.evaluate().isNotEmpty) {
-        _log.info('Setup screen detected, skipping ...');
-        final skipButton = find.text('Skip');
-        final continueButton = find.text('Continue');
-        if (skipButton.evaluate().isNotEmpty) {
-          await tester.tap(skipButton);
-        } else if (continueButton.evaluate().isNotEmpty) {
-          await tester.tap(continueButton);
-        }
-        await tester.pumpAndSettle(const Duration(seconds: 5));
-      }
-
-      // Verify we reach the planner
-      final plannerFound = await waitForRoute(
-        tester,
-        AppRoute.plannerScreen,
-        browserTitle: 'Planner',
-        timeout: const Duration(seconds: 15),
-      );
-      expect(plannerFound, isTrue, reason: 'Should be on planner screen');
-      expectOnPlannerScreen();
-
-      // Dismiss dialogs so they don't interfere with subsequent tests
-      await tester.pumpAndSettle(const Duration(seconds: 2));
-      if (find.text('Welcome to Helium!').evaluate().isNotEmpty) {
-        await tester.tap(find.text("I'll explore first"));
-        await tester.pumpAndSettle();
-      }
-      await tester.pumpAndSettle(const Duration(seconds: 2));
-      if (find.text('Welcome to the new Helium!').evaluate().isNotEmpty) {
-        await tester.tap(find.text('Dive In!'));
-        await tester.pumpAndSettle();
-      }
-
-      _log.info('Login succeeded');
-    });
-
-    namedTestWidgets('2. First login shows welcome dialog', (tester) async {
-      if (!canProceed) {
-        _log.warning('Skipping: user does not exist');
-        skipTest('user does not exist (run signup_user_test first)');
-        return;
-      }
-
-      await initializeTestApp(tester);
-      await ensureOnLoginScreen(tester);
-
-      // Login with the test account
-      await enterTextInField(tester, find.widgetWithText(TextField, 'Email'), testEmail);
-      await enterTextInField(tester, find.widgetWithText(TextField, 'Password'), testPassword);
-
-      await tester.tap(find.text('Sign In'));
-      await tester.pumpAndSettle(const Duration(seconds: 10));
-
-      // Handle setup screen if present (shown when example schedule import hasn't finished)
-      final setupScreen = find.text('Set Up Your Account');
-      if (setupScreen.evaluate().isNotEmpty) {
-        final skipButton = find.text('Skip');
-        final continueButton = find.text('Continue');
-
-        if (skipButton.evaluate().isNotEmpty) {
-          await tester.tap(skipButton);
-        } else if (continueButton.evaluate().isNotEmpty) {
-          await tester.tap(continueButton);
-        }
-        await tester.pumpAndSettle(const Duration(seconds: 5));
-      }
-
-      // Wait for the welcome dialog to appear
-      final welcomeDialogFound = await waitForWidget(
-        tester,
-        find.text('Welcome to Helium!'),
-        timeout: const Duration(seconds: 15),
-      );
-
-      if (welcomeDialogFound) {
-        // Verify dialog content
-        expect(
-          find.text("I'll explore first"),
-          findsOneWidget,
-          reason: 'Should have explore button',
-        );
-        expect(
-          find.text('Clear Example Data'),
-          findsOneWidget,
-          reason: 'Should have clear data button',
-        );
-
-        // Dismiss the dialog
-        await tester.tap(find.text("I'll explore first"));
-        await tester.pumpAndSettle();
-      }
-
-      // Also dismiss what's new dialog if present (can appear behind welcome dialog)
-      await tester.pumpAndSettle(const Duration(seconds: 2));
-      if (find.text('Welcome to the new Helium!').evaluate().isNotEmpty) {
-        await tester.tap(find.text('Dive In!'));
-        await tester.pumpAndSettle();
-      }
-
-      // Verify we're on the planner screen
-      expectOnPlannerScreen();
-    });
-
-    namedTestWidgets('3. Calendar displays example schedule items', (tester) async {
+    namedTestWidgets('1. Calendar displays example schedule items', (tester) async {
       if (!canProceed) {
         _log.warning('Skipping: user does not exist');
         skipTest('user does not exist (run signup_user_test first)');
@@ -220,7 +97,7 @@ void main() {
       expect(hasCourseSchedule, isTrue, reason: 'Should display course schedule');
     });
 
-    namedTestWidgets('4. Top-level navigation works correctly', (tester) async {
+    namedTestWidgets('2. Top-level navigation works correctly', (tester) async {
       if (!canProceed) {
         _log.warning('Skipping: user does not exist');
         skipTest('user does not exist (run signup_user_test first)');
@@ -272,7 +149,7 @@ void main() {
       expectOnPlannerScreen();
     });
 
-    namedTestWidgets('5. Settings opens correctly based on screen width', (tester) async {
+    namedTestWidgets('3. Settings opens correctly based on screen width', (tester) async {
       if (!canProceed) {
         _log.warning('Skipping: user does not exist');
         skipTest('user does not exist (run signup_user_test first)');
@@ -357,7 +234,7 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    namedTestWidgets('6. Todos view filtering and checkbox toggle', (tester) async {
+    namedTestWidgets('4. Todos view filtering and checkbox toggle', (tester) async {
       if (!canProceed) {
         _log.warning('Skipping: user does not exist');
         skipTest('user does not exist (run signup_user_test first)');
@@ -510,7 +387,7 @@ void main() {
       _log.info('API verification successful: homework marked incomplete, grade preserved');
     });
 
-    namedTestWidgets('7. Can edit homework item (CRUD operation)', (tester) async {
+    namedTestWidgets('5. Can edit homework item (CRUD operation)', (tester) async {
       if (!canProceed) {
         _log.warning('Skipping: user does not exist');
         skipTest('user does not exist (run signup_user_test first)');
@@ -693,7 +570,7 @@ void main() {
       _log.info('API verification successful: all homework changes persisted');
     });
 
-    namedTestWidgets('8. User can clear example schedule', (tester) async {
+    namedTestWidgets('6. User can clear example schedule', (tester) async {
       if (!canProceed) {
         _log.warning('Skipping: user does not exist');
         skipTest('user does not exist (run signup_user_test first)');
@@ -742,13 +619,6 @@ void main() {
       expect(clearButton, findsOneWidget, reason: 'Clear Example Data button should exist');
       await tester.tap(clearButton);
       await tester.pumpAndSettle();
-
-      // Also dismiss what's new dialog if present (can appear behind welcome dialog)
-      await tester.pumpAndSettle(const Duration(seconds: 2));
-      if (find.text('Welcome to the new Helium!').evaluate().isNotEmpty) {
-        await tester.tap(find.text('Dive In!'));
-        await tester.pumpAndSettle();
-      }
 
       // Wait for navigation to Classes screen
       final classesScreenFound = await waitForRoute(

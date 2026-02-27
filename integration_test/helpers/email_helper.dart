@@ -35,11 +35,14 @@ class EmailHelper {
   /// Polls S3 for a verification email and extracts the verification code.
   ///
   /// [username] is the email address used during signup (URL-encoded in the verification link).
+  /// [sentAfter] is the timestamp before the email-triggering action was initiated.
+  ///   Emails must have S3 timestamp >= sentAfter to be considered.
   /// Returns the verification code, or throws if not found within timeout.
-  ///
-  /// Matches the Python cluster-tests logic: find the most recent email first,
-  /// then validate it matches our criteria.
-  Future<String> getVerificationCode(String username, {int retry = 0}) async {
+  Future<String> getVerificationCode(
+    String username, {
+    required DateTime sentAfter,
+    int retry = 0,
+  }) async {
     _log.info('Polling for verification email (attempt ${retry + 1}/$_maxRetries)');
     try {
       // List objects in the inbound email prefix (environment-specific)
@@ -55,7 +58,7 @@ class EmailHelper {
       }
 
       if (allObjects.isEmpty) {
-        return _retryOrFail(username, retry, 'No emails found in bucket');
+        return _retryOrFail(username, sentAfter, retry, 'No emails found in bucket');
       }
 
       _log.info('Found ${allObjects.length} email(s) in bucket');
@@ -70,7 +73,7 @@ class EmailHelper {
       }
 
       if (latestObj == null) {
-        return _retryOrFail(username, retry, 'No valid emails found');
+        return _retryOrFail(username, sentAfter, retry, 'No valid emails found');
       }
 
       final s3Timestamp = latestObj.lastModified!;
@@ -84,33 +87,29 @@ class EmailHelper {
       // Parse email to extract body
       final emailBody = _parseEmailBody(emailStr);
 
-      // Calculate time window (matches Python: ±(15 + retry * 5) seconds)
+      // Validate email arrived after the action was triggered
       final nowUtc = DateTime.now().toUtc();
-      final windowPadding = Duration(seconds: 15 + (retry * _retryDelay.inSeconds));
-      final leftWindow = nowUtc.subtract(windowPadding);
-      final rightWindow = nowUtc.add(windowPadding);
       final staleThreshold = nowUtc.subtract(const Duration(minutes: 10));
 
-      _log.fine('leftWindow: $leftWindow');
+      _log.fine('sentAfter: $sentAfter');
       _log.fine('s3Timestamp: $s3Timestamp');
-      _log.fine('rightWindow: $rightWindow');
 
-      // Validate: in time window, for our user, and has verification code
+      // Validate: arrived after sentAfter, for our user, and has verification code
       final localPart = username.split('@').first;
       final usernamePattern = 'username=$localPart&code';
       final verifyPattern = 'verify?username=$localPart&code=';
 
-      final inTestWindow = !s3Timestamp.isBefore(leftWindow) && s3Timestamp.isBefore(rightWindow);
+      final arrivedAfterAction = !s3Timestamp.isBefore(sentAfter);
       final isForOurUser = emailBody?.contains(usernamePattern) ?? false;
       final hasVerifyUrl = emailBody?.contains(verifyPattern) ?? false;
 
-      if (!inTestWindow || !isForOurUser || !hasVerifyUrl) {
-        final reason = !inTestWindow
-            ? 'Email outside time window'
+      if (!arrivedAfterAction || !isForOurUser || !hasVerifyUrl) {
+        final reason = !arrivedAfterAction
+            ? 'Email arrived before action was triggered'
             : !isForOurUser
                 ? 'Email not for our user'
                 : 'Email missing verification URL';
-        return _retryOrFail(username, retry, reason);
+        return _retryOrFail(username, sentAfter, retry, reason);
       }
 
       // Extract the verification code
@@ -133,15 +132,20 @@ class EmailHelper {
       return verificationCode;
     } catch (e) {
       _log.warning('Error during email fetch: $e');
-      return _retryOrFail(username, retry, 'Error: $e');
+      return _retryOrFail(username, sentAfter, retry, 'Error: $e');
     }
   }
 
-  Future<String> _retryOrFail(String username, int retry, String reason) async {
+  Future<String> _retryOrFail(
+    String username,
+    DateTime sentAfter,
+    int retry,
+    String reason,
+  ) async {
     if (retry < _maxRetries) {
       _log.info('$reason. Retrying in ${_retryDelay.inSeconds}s ...');
       await Future.delayed(_retryDelay);
-      return getVerificationCode(username, retry: retry + 1);
+      return getVerificationCode(username, sentAfter: sentAfter, retry: retry + 1);
     }
     throw Exception(
       'No matching verification email found after ${_maxRetries * _retryDelay.inSeconds} seconds. Last reason: $reason',
