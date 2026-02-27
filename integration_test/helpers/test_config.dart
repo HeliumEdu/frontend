@@ -19,9 +19,8 @@ class TestConfig {
   /// e.g., dev -> "dev.", dev-local -> "dev-local.", prod -> ""
   String get _envPrefix => environment == 'prod' ? '' : '$environment.';
 
-  /// AWS region for S3 access
-  /// Matches Terraform: dev-local uses us-east-2, all others use us-east-1
-  String get awsRegion => environment == 'dev-local' ? 'us-east-2' : 'us-east-1';
+  /// AWS region for S3 integration bucket (always us-east-2, where the bucket is created)
+  String get awsRegion => 'us-east-2';
 
   /// Frontend app host
   String get projectAppHost {
