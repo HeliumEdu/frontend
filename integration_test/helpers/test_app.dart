@@ -365,6 +365,16 @@ Future<bool> waitForRoute(
   return false;
 }
 
+/// Finder for RichText widgets containing the given text.
+/// Use this for calendar items which render as RichText with inline icons.
+Finder findRichTextContaining(String text) {
+  return find.byWidgetPredicate(
+    (widget) =>
+        widget is RichText && widget.text.toPlainText().contains(text),
+    description: 'RichText containing "$text"',
+  );
+}
+
 /// Helper to wait for a widget to appear with timeout
 Future<bool> waitForWidget(
   WidgetTester tester,
@@ -609,12 +619,13 @@ void expectBrowserTitleExact(String expectedTitle) {
 }
 
 /// Assert we're on the Planner screen.
-/// Verifies: "Today" button, Filter icon, Search icon, and FAB are shown.
+/// Verifies: Today button (icon), Filter icon, Search icon, and FAB are shown.
 void expectOnPlannerScreen() {
+  // Use icon instead of text - text is hidden on mobile
   expect(
-    find.text('Today'),
+    find.byIcon(Icons.calendar_today),
     findsOneWidget,
-    reason: 'Planner: Today button should be shown',
+    reason: 'Planner: Today button (calendar_today icon) should be shown',
   );
   expect(
     find.byIcon(Icons.filter_alt),
@@ -658,19 +669,19 @@ void expectOnClassesScreen() {
     reason: 'Classes: Fall Semester group should be shown',
   );
   expect(
-    find.textContaining('Creative Writing'),
+    find.text('Creative Writing ✍️'),
     findsOneWidget,
-    reason: 'Classes: Creative Writing course should be shown',
+    reason: 'Classes: Creative Writing ✍️ course should be shown',
   );
   expect(
-    find.textContaining('Fundamentals'),
+    find.text('Fundamentals of Programming 💻'),
     findsOneWidget,
-    reason: 'Classes: Fundamentals course should be shown',
+    reason: 'Classes: Fundamentals of Programming 💻 course should be shown',
   );
   expect(
-    find.textContaining('Intro to Psych'),
+    find.text('Intro to Psychology 🧠'),
     findsOneWidget,
-    reason: 'Classes: Intro to Psych course should be shown',
+    reason: 'Classes: Intro to Psychology 🧠 course should be shown',
   );
   expect(
     find.text('Classes'),
@@ -694,14 +705,14 @@ void expectOnResourcesScreen() {
     reason: 'Resources: Should show 1 resource card',
   );
   expect(
-    find.text('Textbooks'),
+    find.text('Digital Tools'),
     findsOneWidget,
-    reason: 'Resources: Google Workspace should be shown',
+    reason: 'Resources: Digital Tools group should be shown',
   );
   expect(
-    find.text('Google Workspace'),
+    find.text('Google Workspace (Docs, Drive)'),
     findsOneWidget,
-    reason: 'Resources: Google Workspace should be shown',
+    reason: 'Resources: Google Workspace (Docs, Drive) resource should be shown',
   );
   expect(
     find.text('Resources'),
@@ -716,25 +727,19 @@ void expectOnResourcesScreen() {
 /// "28" below "Pending Impact", 3 course grade cards.
 void expectOnGradesScreen() {
   expect(
-    find.text('Grade Trend'),
-    findsOneWidget,
-    reason: 'Grades: Grade Trend text should be shown',
-  );
-  expect(
     find.byType(FloatingActionButton),
     findsNothing,
     reason: 'Grades: FAB should NOT be shown',
   );
-  // Check for 4 summary widgets at top (Overall, Trend, Pending Impact, Target)
   expect(
-    find.text('Overall'),
-    findsOneWidget,
-    reason: 'Grades: Overall summary should be shown',
+    find.text('Overall Grade'),
+    findsNWidgets(2),
+    reason: 'Grades: Overall Grade should be shown in summary, and as series in trend graph',
   );
   expect(
-    find.text('Trend'),
+    find.text('All classes passing!'),
     findsOneWidget,
-    reason: 'Grades: Trend summary should be shown',
+    reason: 'Grades: At-Risk text did not match expectation',
   );
   expect(
     find.text('Pending Impact'),
@@ -742,36 +747,44 @@ void expectOnGradesScreen() {
     reason: 'Grades: Pending Impact summary should be shown',
   );
   expect(
-    find.text('Target'),
-    findsOneWidget,
-    reason: 'Grades: Target summary should be shown',
-  );
-  // Check for the pending impact count
-  expect(
     find.text('28'),
     findsOneWidget,
-    reason: 'Grades: Pending Impact should show 28',
+    reason: 'Grades: Pending Impact did not match expectation',
   );
-  // Check for 3 course grade cards (same titles as Classes screen, titles end with emojis)
   expect(
-    find.byType(Card),
+    find.text('Grade Trend'),
+    findsOneWidget,
+    reason: 'Grades: Grade Trend text should be shown',
+  );
+  // Check for 4 summary cards (no GlobalKey) and 3 course grade cards (with GlobalKey)
+  expect(
+    find.byWidgetPredicate(
+      (widget) => widget is Card && widget.key is! GlobalKey,
+    ),
+    findsNWidgets(4),
+    reason: 'Grades: Should show 4 summary cards',
+  );
+  expect(
+    find.byWidgetPredicate(
+      (widget) => widget is Card && widget.key is GlobalKey,
+    ),
     findsNWidgets(3),
     reason: 'Grades: Should show 3 course grade cards',
   );
   expect(
-    find.textContaining('Creative Writing'),
+    find.text('Creative Writing ✍️'),
     findsOneWidget,
-    reason: 'Grades: Creative Writing grade card should be shown',
+    reason: 'Grades: Creative Writing ✍️ grade card should be shown',
   );
   expect(
-    find.textContaining('Fundamentals'),
+    find.text('Fundamentals of Programming 💻'),
     findsOneWidget,
-    reason: 'Grades: Fundamentals grade card should be shown',
+    reason: 'Grades: Fundamentals of Programming 💻 grade card should be shown',
   );
   expect(
-    find.textContaining('Intro to Psych'),
+    find.text('Intro to Psychology 🧠'),
     findsOneWidget,
-    reason: 'Grades: Intro to Psych grade card should be shown',
+    reason: 'Grades: Intro to Psychology 🧠 grade card should be shown',
   );
   expect(
     find.text('Grades'),

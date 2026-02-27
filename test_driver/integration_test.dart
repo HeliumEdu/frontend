@@ -8,7 +8,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:integration_test/integration_test_driver.dart';
+import 'package:flutter_driver/flutter_driver.dart';
+import 'package:integration_test/common.dart';
 
 // ANSI color codes
 const _green = '\x1B[32m';
@@ -28,16 +29,23 @@ Future<void> main() async {
   // Start HTTP server for real-time test output
   final server = await _startLogServer();
 
+  // Custom driver implementation to suppress default "Failure Details:" output
+  // since our log server already provides better formatted output
   try {
-    // Use custom callback to suppress default "Failure Details:" output
-    // since our log server already provides better formatted output
-    await integrationDriver(
-      responseDataCallback: (data) async {
-        // Silently ignore - our log server handles all output
-      },
+    final driver = await FlutterDriver.connect();
+    final jsonResult = await driver.requestData(
+      null,
+      timeout: const Duration(minutes: 20),
     );
-  } finally {
+    final response = Response.fromJson(jsonResult);
+    await driver.close();
     await server.close();
+
+    // Exit with appropriate code (no "Failure Details:" print)
+    exit(response.allTestsPassed ? 0 : 1);
+  } catch (e) {
+    await server.close();
+    rethrow;
   }
 }
 
