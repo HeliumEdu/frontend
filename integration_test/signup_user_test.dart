@@ -108,34 +108,8 @@ void main() {
       // Fetch the verification code from S3
       final verificationCode = await emailHelper.getVerificationCode(testEmail);
 
-      // Check if we're already on verify screen (from test 1 redirect)
-      // On web, the URL persists between tests
-      var onVerifyScreen = find.text('Verify Email').evaluate().isNotEmpty;
-
-      if (onVerifyScreen) {
-        _log.info('Already on verify screen from previous test redirect');
-      } else {
-        // Need to navigate to verify screen via login with unverified account
-        _log.info('Navigating to verify screen via login ...');
-        await enterTextByHint(tester, 'Email', testEmail);
-        await enterTextByHint(tester, 'Password', testPassword);
-
-        await tester.tap(find.text('Sign In'));
-        await tester.pumpAndSettle(const Duration(seconds: 5));
-
-        onVerifyScreen = find.text('Verify Email').evaluate().isNotEmpty;
-
-        if (!onVerifyScreen) {
-          // Look for "Resend Email" button in snackbar and tap it
-          _log.info('Verify screen not shown, looking for Resend Email button ...');
-          final resendButton = find.text('Resend Email');
-          if (resendButton.evaluate().isNotEmpty) {
-            await tester.tap(resendButton);
-            await tester.pumpAndSettle(const Duration(seconds: 5));
-            onVerifyScreen = find.text('Verify Email').evaluate().isNotEmpty;
-          }
-        }
-      }
+      // Should already be on Verify screen from previous test
+      final onVerifyScreen = find.text('Verify Email').evaluate().isNotEmpty;
 
       expect(onVerifyScreen, isTrue, reason: 'Should be on verify email screen');
       expectBrowserTitle('Verify Email');
@@ -170,29 +144,20 @@ void main() {
           find.widgetWithText(TextField, 'Verification code').evaluate().isNotEmpty;
       expect(stillOnVerify, isFalse, reason: 'Should have left verify screen after successful verification');
 
-      // Skip setup screen if present and navigate to planner
+      // Wait for setup screen (if present) to navigate redirect us
       final setupScreen = find.text('Set Up Your Account');
       if (setupScreen.evaluate().isNotEmpty) {
-        final skipButton = find.text('Skip');
-        final continueButton = find.text('Continue');
-        if (skipButton.evaluate().isNotEmpty) {
-          await tester.tap(skipButton);
-        } else if (continueButton.evaluate().isNotEmpty) {
-          await tester.tap(continueButton);
-        }
-        await tester.pumpAndSettle(const Duration(seconds: 5));
+        await tester.pumpAndSettle(const Duration(seconds: 15));
       }
 
-      // Verify we reach the planner (with or without dialogs)
+      // Verify we reach the planner
       final plannerFound = await waitForWidget(
         tester,
         find.text('Planner'),
         timeout: const Duration(seconds: 15),
       );
-      final gettingStartedFound = find.text('Welcome to Helium!').evaluate().isNotEmpty;
-      final whatsNewFound = find.text('Welcome to the new Helium!').evaluate().isNotEmpty;
       expect(
-        plannerFound || gettingStartedFound || whatsNewFound,
+        plannerFound,
         isTrue,
         reason: 'Should reach planner after verification',
       );
