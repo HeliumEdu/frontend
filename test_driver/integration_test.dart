@@ -29,7 +29,13 @@ Future<void> main() async {
   final server = await _startLogServer();
 
   try {
-    await integrationDriver();
+    // Use custom callback to suppress default "Failure Details:" output
+    // since our log server already provides better formatted output
+    await integrationDriver(
+      responseDataCallback: (data) async {
+        // Silently ignore - our log server handles all output
+      },
+    );
   } finally {
     await server.close();
   }
@@ -140,21 +146,19 @@ void _processResult(Map<String, dynamic> data) {
     case 'testFail':
       _inTest = false;
       // ignore: avoid_print
-      print(' $_red✗  FAIL:$_reset ${data['test']}');
-      // ignore: avoid_print
       print('    ${_red}ERROR:$_reset ${data['error']}');
-      // ignore: avoid_print
-      print('    ${_grey}STACK:$_reset');
       final stack = (data['stack'] as String?)?.split('\n') ?? [];
       for (final line in stack.take(10)) {
         // ignore: avoid_print
-        print('      $line');
+        print('      $_grey$line$_reset');
       }
+      // ignore: avoid_print
+      print(' $_red✗  FAIL:$_reset ${data['test']}');
       stdout.flush();
       break;
 
     case 'log':
-      final prefix = _inTest ? '   ' : ' ';
+      final prefix = _inTest ? '    ' : ' ';
       // ignore: avoid_print
       print('$prefix${data['message']}');
       break;
