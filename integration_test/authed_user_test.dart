@@ -346,7 +346,7 @@ void main() {
           matching: find.byType(CheckboxListTile),
         ),
         findsNothing,
-        reason: 'TYPES filters should be hidden in Todos view',
+        reason: 'Assignments filter should be hidden in Todos view',
       );
       expect(
         find.ancestor(
@@ -354,7 +354,7 @@ void main() {
           matching: find.byType(CheckboxListTile),
         ),
         findsNothing,
-        reason: 'TYPES filters should be hidden in Todos view',
+        reason: 'Events filter should be hidden in Todos view',
       );
       expect(
         find.ancestor(
@@ -362,7 +362,7 @@ void main() {
           matching: find.byType(CheckboxListTile),
         ),
         findsNothing,
-        reason: 'TYPES filters should be hidden in Todos view',
+        reason: 'Class Schedules filter should be hidden in Todos view',
       );
       expect(
         find.ancestor(
@@ -370,7 +370,7 @@ void main() {
           matching: find.byType(CheckboxListTile),
         ),
         findsNothing,
-        reason: 'TYPES filters should be hidden in Todos view',
+        reason: 'External Calendars filter should be hidden in Todos view',
       );
 
       // Find the CheckboxListTile containing "Fundamentals"
@@ -600,13 +600,21 @@ void main() {
 
       // 1. Change title to "Quiz 4 (Edited)"
       // TextField content is in EditableText, not Text, so use a custom finder
+      // Match field containing "Quiz 4" (handles both fresh and previously edited)
       final titleField = find.byWidgetPredicate((widget) {
         if (widget is! TextField) return false;
-        return widget.controller?.text == 'Quiz 4';
+        final text = widget.controller?.text ?? '';
+        return text.contains('Quiz 4');
       });
-      expect(
+      // Wait for the title field to load
+      final titleFieldFound = await waitForWidget(
+        tester,
         titleField,
-        findsOneWidget,
+        timeout: const Duration(seconds: 5),
+      );
+      expect(
+        titleFieldFound,
+        isTrue,
         reason: 'Title field should show "Quiz 4"',
       );
       await enterTextInField(tester, titleField, 'Quiz 4 (Edited)');
