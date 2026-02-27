@@ -327,6 +327,36 @@ Future<void> tapButtonByText(WidgetTester tester, String buttonText) async {
   await tester.pumpAndSettle();
 }
 
+/// Helper to wait until navigation reaches a specific route.
+/// [routePath] - The route path to wait for (e.g., '/planner')
+/// [browserTitle] - Optional browser title to also verify
+/// [timeout] - How long to wait before giving up
+/// Returns true if the route was reached, false if timeout.
+Future<bool> waitForRoute(
+  WidgetTester tester,
+  String routePath, {
+  String? browserTitle,
+  Duration timeout = const Duration(seconds: 30),
+}) async {
+  final endTime = DateTime.now().add(timeout);
+
+  while (DateTime.now().isBefore(endTime)) {
+    await tester.pump(const Duration(milliseconds: 100));
+
+    // Check current route using GoRouter
+    final currentPath = router.routerDelegate.currentConfiguration.uri.path;
+    if (currentPath == routePath || currentPath.startsWith('$routePath/')) {
+      // Also verify browser title if provided
+      if (browserTitle != null && !getBrowserTitle().contains(browserTitle)) {
+        continue;
+      }
+      await tester.pumpAndSettle();
+      return true;
+    }
+  }
+  return false;
+}
+
 /// Helper to wait for a widget to appear with timeout
 Future<bool> waitForWidget(
   WidgetTester tester,
@@ -341,6 +371,32 @@ Future<bool> waitForWidget(
     }
   }
   return false;
+}
+
+/// Helper to scroll until a widget becomes visible.
+/// Useful for finding elements that may be off-screen in a scrollable area.
+/// [finder] - The widget to find
+/// [delta] - Scroll amount per step (positive = down, negative = up). Default 200.
+/// [scrollableFinder] - Optional finder for the scrollable. Defaults to last Scrollable.
+/// [maxScrolls] - Maximum scroll attempts before giving up. Default 50.
+Future<void> scrollUntilVisible(
+  WidgetTester tester,
+  Finder finder, {
+  double delta = 200.0,
+  Finder? scrollableFinder,
+  int maxScrolls = 50,
+}) async {
+  await tester.pumpAndSettle();
+
+  final scrollable = scrollableFinder ?? find.byType(Scrollable).last;
+
+  await tester.scrollUntilVisible(
+    finder,
+    delta,
+    scrollable: scrollable,
+    maxScrolls: maxScrolls,
+  );
+  await tester.pumpAndSettle();
 }
 
 /// Helper to wait for a widget to disappear with timeout.
@@ -414,7 +470,7 @@ Future<bool> loginAndNavigateToPlanner(
   await tester.tap(find.text('Sign In'));
 
   // Wait for either setup screen, welcome dialog, or planner to appear
-  // Setup can take 15-30 seconds under high load
+  // Setup can take some time under high load
   const postLoginTimeout = Duration(seconds: 45);
   final endTime = DateTime.now().add(postLoginTimeout);
 
@@ -423,22 +479,14 @@ Future<bool> loginAndNavigateToPlanner(
 
     // Check for setup screen
     if (find.text('Set Up Your Account').evaluate().isNotEmpty) {
-      _log.info('Setup screen detected, skipping ...');
-      final skipButton = find.text('Skip');
-      final continueButton = find.text('Continue');
+      _log.info('Setup screen detected');
 
-      if (skipButton.evaluate().isNotEmpty) {
-        await tester.tap(skipButton);
-      } else if (continueButton.evaluate().isNotEmpty) {
-        await tester.tap(continueButton);
-      }
-      await tester.pumpAndSettle(const Duration(seconds: 10));
+      await tester.pumpAndSettle(const Duration(seconds: 15));
       break;
     }
 
-    // Check for welcome dialog (means we bypassed setup)
     if (find.text('Welcome to Helium!').evaluate().isNotEmpty) {
-      _log.info('Welcome dialog detected (bypassed setup)');
+      _log.info('Welcome dialog detected');
       break;
     }
 
@@ -449,7 +497,7 @@ Future<bool> loginAndNavigateToPlanner(
     }
   }
 
-  // Handle getting started dialog if present ("Welcome to Helium!")
+  // Handle getting started dialog
   final gettingStartedDialog = find.text('Welcome to Helium!');
   if (gettingStartedDialog.evaluate().isNotEmpty) {
     _log.info('Dismissing getting started dialog ...');
@@ -457,7 +505,7 @@ Future<bool> loginAndNavigateToPlanner(
     await tester.pumpAndSettle();
   }
 
-  // Handle what's new dialog if present ("Welcome to the new Helium!")
+  // Handle what's new dialog
   final whatsNewDialog = find.text('Welcome to the new Helium!');
   if (whatsNewDialog.evaluate().isNotEmpty) {
     _log.info('Dismissing what\'s new dialog ...');
