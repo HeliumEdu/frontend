@@ -86,16 +86,10 @@ void main() {
       }
 
       // Confirm deletion
-      final confirmButton = find.text('Confirm');
-      if (confirmButton.evaluate().isNotEmpty) {
-        await tester.tap(confirmButton);
+      final deleteButton = find.text('Delete');
+      if (deleteButton.evaluate().isNotEmpty) {
+        await tester.tap(deleteButton);
         await tester.pumpAndSettle(const Duration(seconds: 5));
-      } else {
-        final deleteButton = find.text('Delete');
-        if (deleteButton.evaluate().isNotEmpty) {
-          await tester.tap(deleteButton);
-          await tester.pumpAndSettle(const Duration(seconds: 5));
-        }
       }
 
       // Verify we're redirected to login screen
