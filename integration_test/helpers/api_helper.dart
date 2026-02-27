@@ -34,10 +34,7 @@ class ApiHelper {
     var loginResponse = await http.post(
       Uri.parse('$apiHost/auth/token/'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'username': email,
-        'password': password,
-      }),
+      body: jsonEncode({'username': email, 'password': password}),
     );
 
     if (loginResponse.statusCode == 200) {
@@ -47,8 +44,10 @@ class ApiHelper {
 
       _log.info('User exists from previous run, cleaning up ...');
 
-      final deleteRequest =
-          http.Request('DELETE', Uri.parse('$apiHost/auth/user/delete/'));
+      final deleteRequest = http.Request(
+        'DELETE',
+        Uri.parse('$apiHost/auth/user/delete/'),
+      );
       deleteRequest.headers['Content-Type'] = 'application/json';
       deleteRequest.headers['Authorization'] = 'Bearer $accessToken';
       deleteRequest.body = jsonEncode({'password': password});
@@ -56,10 +55,14 @@ class ApiHelper {
       await deleteRequest.send();
     } else {
       // Login failed - user might be unverified, try inactive deletion endpoint
-      _log.info('Attempting to delete inactive user (if exists from previous failed run) ...');
+      _log.info(
+        'Cleanup inactive user from previous run (if present) ...',
+      );
 
-      final deleteInactiveRequest =
-          http.Request('DELETE', Uri.parse('$apiHost/auth/user/delete/inactive/'));
+      final deleteInactiveRequest = http.Request(
+        'DELETE',
+        Uri.parse('$apiHost/auth/user/delete/inactive/'),
+      );
       deleteInactiveRequest.headers['Content-Type'] = 'application/json';
       deleteInactiveRequest.body = jsonEncode({
         'username': email,
@@ -79,15 +82,17 @@ class ApiHelper {
 
       final exists = await userExists(email);
       if (!exists) {
-        _log.info('Workspace is clean');
+        _log.info('No user from previous runs, ready for testing');
         return;
       }
 
-      _log.info('User still exists, waiting for deletion to complete ... (${i + 1}/$maxRetries)');
+      _log.info(
+        'User still exists, waiting for deletion to complete ... (${i + 1}/$maxRetries)',
+      );
     }
 
     throw Exception(
-      'Workspace could not be initialized, user from previous run was never deleted after ${maxRetries * retryDelay.inSeconds} seconds',
+      'Test could not be initialized, user from previous run was never deleted after ${maxRetries * retryDelay.inSeconds} seconds',
     );
   }
 
@@ -103,10 +108,7 @@ class ApiHelper {
       final loginResponse = await http.post(
         Uri.parse('$apiHost/auth/token/'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'username': email,
-          'password': password,
-        }),
+        body: jsonEncode({'username': email, 'password': password}),
       );
 
       // 200 means user exists and password is correct
@@ -128,10 +130,7 @@ class ApiHelper {
       final loginResponse = await http.post(
         Uri.parse('$apiHost/auth/token/'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'username': email,
-          'password': password,
-        }),
+        body: jsonEncode({'username': email, 'password': password}),
       );
 
       if (loginResponse.statusCode == 200) {
@@ -179,7 +178,9 @@ class ApiHelper {
 
   /// Finds a homework item by title (partial match).
   /// Returns the homework item as a map, or null if not found.
-  Future<Map<String, dynamic>?> findHomeworkByTitle(String titleContains) async {
+  Future<Map<String, dynamic>?> findHomeworkByTitle(
+    String titleContains,
+  ) async {
     final items = await getHomeworkItems();
     if (items == null) return null;
 
