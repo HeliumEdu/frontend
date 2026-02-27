@@ -7,7 +7,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:logging/logging.dart';
@@ -38,7 +37,6 @@ void main() {
       await startSuite('Authenticated User Tests');
       _log.info('Test email: $testEmail');
 
-      // Check if user can login (requires signup_user_test to have run first)
       final userExists = await apiHelper.userExists(testEmail);
       if (!userExists) {
         _log.warning('Test user does not exist. Run signup_user_test first.');
@@ -53,7 +51,59 @@ void main() {
       await endSuite();
     });
 
-    namedTestWidgets('1. Calendar displays example schedule items', (
+    namedTestWidgets('1. Top-level navigation works correctly', (tester) async {
+      if (!canProceed) {
+        _log.warning('Skipping: user does not exist');
+        skipTest('user does not exist (run signup_user_test first)');
+        return;
+      }
+
+      await initializeTestApp(tester);
+      final loggedIn = await loginAndNavigateToPlanner(
+        tester,
+        testEmail,
+        testPassword,
+      );
+      expect(loggedIn, isTrue, reason: 'Should be logged in');
+
+      final classesTab = find.text('Classes');
+      expect(classesTab, findsOneWidget, reason: 'Classes tab should exist');
+      await tester.tap(classesTab);
+      await tester.pumpAndSettle(const Duration(seconds: 3));
+
+      expectOnClassesScreen();
+      _log.info('Successfully navigated to classes');
+
+      final resourcesTab = find.text('Resources');
+      expect(
+        resourcesTab,
+        findsOneWidget,
+        reason: 'Resources tab should exist',
+      );
+      await tester.tap(resourcesTab);
+      await tester.pumpAndSettle(const Duration(seconds: 3));
+
+      expectOnResourcesScreen();
+      _log.info('Successfully navigated to resources');
+
+      final gradesTab = find.text('Grades');
+      expect(gradesTab, findsOneWidget, reason: 'Grades tab should exist');
+      await tester.tap(gradesTab);
+      await tester.pumpAndSettle(const Duration(seconds: 3));
+
+      expectOnGradesScreen();
+      _log.info('Successfully navigated to grades');
+
+      final plannerTab = find.text('Planner');
+      expect(plannerTab, findsOneWidget, reason: 'Planner tab should exist');
+      await tester.tap(plannerTab);
+      await tester.pumpAndSettle(const Duration(seconds: 3));
+
+      expectOnPlannerScreen();
+      _log.info('Successfully navigated back to planner');
+    });
+
+    namedTestWidgets('2. Calendar displays example schedule items', (
       tester,
     ) async {
       if (!canProceed) {
@@ -70,8 +120,6 @@ void main() {
       );
       expect(loggedIn, isTrue, reason: 'Should be logged in');
 
-      // Wait for calendar items to load (loading indicator may prevent pumpAndSettle from waiting)
-      // Calendar uses RichText widgets (not Text) with inline icons, so use findRichTextContaining
       final quizLoaded = await waitForWidget(
         tester,
         findRichTextContaining('Quiz 4'),
@@ -79,68 +127,14 @@ void main() {
       );
       expect(quizLoaded, isTrue, reason: 'Quiz 4 should appear after loading');
 
-      expect(findRichTextContaining('Final Portfolio Writing Workshop'), findsOneWidget);
-      expect(findRichTextContaining('Intro to Psychology 🧠'), findsAtLeastNWidgets(12));
-    });
-
-    namedTestWidgets('2. Top-level navigation works correctly', (tester) async {
-      if (!canProceed) {
-        _log.warning('Skipping: user does not exist');
-        skipTest('user does not exist (run signup_user_test first)');
-        return;
-      }
-
-      await initializeTestApp(tester);
-      final loggedIn = await loginAndNavigateToPlanner(
-        tester,
-        testEmail,
-        testPassword,
-      );
-      expect(loggedIn, isTrue, reason: 'Should be logged in');
-
-      // Navigate to Classes
-      final classesTab = find.text('Classes');
-      expect(classesTab, findsOneWidget, reason: 'Classes tab should exist');
-      await tester.tap(classesTab);
-      await tester.pumpAndSettle(const Duration(seconds: 3));
-
-      // Verify we're on Classes screen
-      expectOnClassesScreen();
-      _log.info('Successfully navigated to classes');
-
-      // Navigate to Resources
-      final resourcesTab = find.text('Resources');
       expect(
-        resourcesTab,
+        findRichTextContaining('Final Portfolio Writing Workshop'),
         findsOneWidget,
-        reason: 'Resources tab should exist',
       );
-      await tester.tap(resourcesTab);
-      await tester.pumpAndSettle(const Duration(seconds: 3));
-
-      // Verify we're on Resources screen
-      expectOnResourcesScreen();
-      _log.info('Successfully navigated to resources');
-
-      // Navigate to Grades
-      final gradesTab = find.text('Grades');
-      expect(gradesTab, findsOneWidget, reason: 'Grades tab should exist');
-      await tester.tap(gradesTab);
-      await tester.pumpAndSettle(const Duration(seconds: 3));
-
-      // Verify we're on Grades screen
-      expectOnGradesScreen();
-      _log.info('Successfully navigated to grades');
-
-      // Navigate back to Planner
-      final plannerTab = find.text('Planner');
-      expect(plannerTab, findsOneWidget, reason: 'Planner tab should exist');
-      await tester.tap(plannerTab);
-      await tester.pumpAndSettle(const Duration(seconds: 3));
-
-      // Verify we're back on planner
-      expectOnPlannerScreen();
-      _log.info('Successfully navigated back to planner');
+      expect(
+        findRichTextContaining('Intro to Psychology 🧠'),
+        findsAtLeastNWidgets(12),
+      );
     });
 
     namedTestWidgets('3. Settings opens correctly based on screen width', (
@@ -187,7 +181,8 @@ void main() {
         expect(
           closeButton,
           findsOneWidget,
-          reason: 'Non-mobile: Settings should open as dialog with close button',
+          reason:
+              'Non-mobile: Settings should open as dialog with close button',
         );
 
         // Verify settings content and browser title stays on Planner (dialog mode)
@@ -235,7 +230,6 @@ void main() {
 
         expectOnPlannerScreen(isMobile: true);
       } finally {
-        // Always restore original size, even if test fails
         tester.view.physicalSize = originalSize;
         tester.view.devicePixelRatio = originalDevicePixelRatio;
         await tester.pumpAndSettle();
@@ -270,12 +264,14 @@ void main() {
       await tester.tap(viewButton);
       await tester.pumpAndSettle();
 
+      // Wait for menu to open
       final todosOption = find.text('Todos');
-      expect(
+      final menuOpened = await waitForWidget(
+        tester,
         todosOption,
-        findsOneWidget,
-        reason: 'Todos option should be in view menu',
+        timeout: const Duration(seconds: 5),
       );
+      expect(menuOpened, isTrue, reason: 'Todos option should be in view menu');
       await tester.tap(todosOption);
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
