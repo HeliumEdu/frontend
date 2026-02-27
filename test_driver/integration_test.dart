@@ -21,6 +21,9 @@ const _reset = '\x1B[0m';
 /// Port for the real-time logging server.
 const _logServerPort = 4445;
 
+/// Track current test for log indentation
+bool _inTest = false;
+
 Future<void> main() async {
   // Start HTTP server for real-time test output
   final server = await _startLogServer();
@@ -34,15 +37,24 @@ Future<void> main() async {
 
 /// Starts an HTTP server that receives test results and prints them immediately.
 Future<HttpServer> _startLogServer() async {
-  final server = await HttpServer.bind(InternetAddress.loopbackIPv4, _logServerPort);
+  final server = await HttpServer.bind(
+    InternetAddress.loopbackIPv4,
+    _logServerPort,
+  );
   // ignore: avoid_print
   print('${_grey}Log server started on port $_logServerPort$_reset\n');
 
   server.listen((request) async {
     // Add CORS headers for browser requests
     request.response.headers.add('Access-Control-Allow-Origin', '*');
-    request.response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    request.response.headers.add('Access-Control-Allow-Headers', 'Content-Type');
+    request.response.headers.add(
+      'Access-Control-Allow-Methods',
+      'POST, OPTIONS',
+    );
+    request.response.headers.add(
+      'Access-Control-Allow-Headers',
+      'Content-Type',
+    );
 
     // Handle CORS preflight
     if (request.method == 'OPTIONS') {
@@ -75,7 +87,9 @@ void _processResult(Map<String, dynamic> data) {
   switch (type) {
     case 'init':
       // ignore: avoid_print
-      print('${_cyan}Running integration tests against: ${data['environment']}$_reset');
+      print(
+        '${_cyan}Running integration tests against: ${data['environment']}$_reset',
+      );
       // ignore: avoid_print
       print('${_cyan}API host: ${data['apiHost']}$_reset');
       // ignore: avoid_print
@@ -89,40 +103,60 @@ void _processResult(Map<String, dynamic> data) {
       print('');
       break;
 
-    case 'testStart':
+    case 'suiteStart':
       // ignore: avoid_print
-      print('${_grey}Running: ${data['test']}$_reset');
+      print('$_grey${'─' * 70}$_reset');
+      // ignore: avoid_print
+      print('${_grey}SUITE: ${data['suite']}$_reset');
+      break;
+
+    case 'suiteEnd':
+      // ignore: avoid_print
+      print('$_grey${'─' * 70}$_reset\n');
+      break;
+
+    case 'testStart':
+      _inTest = true;
+      // ignore: avoid_print
+      print('\n ${_grey}RUNNING: ${data['test']}$_reset');
       break;
 
     case 'testPass':
+      _inTest = false;
       // ignore: avoid_print
-      print('$_green✓ PASS:$_reset ${data['test']}\n');
+      print(' $_green✓ PASS:$_reset ${data['test']}');
       break;
 
     case 'testSkip':
+      _inTest = false;
       // ignore: avoid_print
-      print('$_yellow⊘ SKIP:$_reset ${data['test']}');
+      print(' $_yellow⊘ SKIP:$_reset ${data['test']}');
       if (data['reason'] != null) {
         // ignore: avoid_print
-        print('${_grey}Reason: ${data['reason']}$_reset');
+        print('   ${_grey}Reason: ${data['reason']}$_reset');
       }
-      // ignore: avoid_print
-      print('');
       break;
 
     case 'testFail':
+      _inTest = false;
       // ignore: avoid_print
-      print('$_red✗ FAIL:$_reset ${data['test']}');
+      print(' $_red✗ FAIL:$_reset ${data['test']}');
       // ignore: avoid_print
-      print('${_red}ERROR:$_reset ${data['error']}');
+      print('   ${_red}ERROR:$_reset ${data['error']}');
       // ignore: avoid_print
-      print('${_grey}STACK:$_reset ${data['stack']}\n');
+      print('   ${_grey}STACK:$_reset');
+      final stack = (data['stack'] as String?)?.split('\n') ?? [];
+      for (final line in stack.take(10)) {
+        // ignore: avoid_print
+        print('     $line');
+      }
       stdout.flush();
       break;
 
     case 'log':
+      final prefix = _inTest ? '   ' : ' ';
       // ignore: avoid_print
-      print('${data['message']}');
+      print('$prefix${data['message']}');
       break;
   }
 }

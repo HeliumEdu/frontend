@@ -34,6 +34,7 @@ void main() {
     bool canProceed = false;
 
     setUpAll(() async {
+      await startSuite('Delete User Test');
       _log.info('Test email: $testEmail');
 
       // Check if user can login (requires signup_user_test to have run first)
@@ -45,6 +46,10 @@ void main() {
         _log.info('Test user exists, proceeding with test');
         canProceed = true;
       }
+    });
+
+    tearDownAll(() async {
+      await endSuite();
     });
 
     namedTestWidgets('1. User can delete their account', (tester) async {
@@ -65,8 +70,16 @@ void main() {
 
       // Open settings (wait for button to be visible after navigation shell loads)
       final settingsButton = find.byIcon(Icons.settings_outlined);
-      final settingsFound = await waitForWidget(tester, settingsButton, timeout: const Duration(seconds: 10));
-      expect(settingsFound, isTrue, reason: 'Settings button should be visible');
+      final settingsFound = await waitForWidget(
+        tester,
+        settingsButton,
+        timeout: const Duration(seconds: 10),
+      );
+      expect(
+        settingsFound,
+        isTrue,
+        reason: 'Settings button should be visible',
+      );
       await tester.tap(settingsButton);
       await tester.pumpAndSettle(const Duration(seconds: 2));
 
@@ -79,18 +92,30 @@ void main() {
 
       // Find and tap "Delete Account"
       final deleteAccount = find.text('Delete Account');
-      expect(deleteAccount, findsOneWidget, reason: 'Delete Account should exist');
+      expect(
+        deleteAccount,
+        findsOneWidget,
+        reason: 'Delete Account should exist',
+      );
       await tester.tap(deleteAccount);
       await tester.pumpAndSettle(const Duration(seconds: 2));
 
       // Enter password in the confirmation dialog
       final dialog = find.byType(AlertDialog);
-      expect(dialog, findsOneWidget, reason: 'Delete confirmation dialog should be open');
+      expect(
+        dialog,
+        findsOneWidget,
+        reason: 'Delete confirmation dialog should be open',
+      );
       final passwordField = find.descendant(
         of: dialog,
         matching: find.byType(TextField),
       );
-      expect(passwordField, findsOneWidget, reason: 'Password field should be in dialog');
+      expect(
+        passwordField,
+        findsOneWidget,
+        reason: 'Password field should be in dialog',
+      );
       await enterTextInField(tester, passwordField, testPassword);
 
       // Confirm deletion
@@ -98,7 +123,11 @@ void main() {
         of: dialog,
         matching: find.text('Delete'),
       );
-      expect(deleteButton, findsOneWidget, reason: 'Delete button should be in dialog');
+      expect(
+        deleteButton,
+        findsOneWidget,
+        reason: 'Delete button should be in dialog',
+      );
       await tester.tap(deleteButton);
       await tester.pumpAndSettle(const Duration(seconds: 5));
 
@@ -108,7 +137,11 @@ void main() {
         browserTitle: 'Login',
         timeout: const Duration(seconds: 30),
       );
-      expect(loginScreenFound, isTrue, reason: 'Should be redirected to login after account deletion');
+      expect(
+        loginScreenFound,
+        isTrue,
+        reason: 'Should be redirected to login after account deletion',
+      );
 
       // Verify account is actually deleted via API (with polling)
       _log.info('Verifying account deletion via API ...');

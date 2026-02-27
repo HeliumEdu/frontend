@@ -39,6 +39,12 @@ String _currentTestDisplayName = '';
 bool _currentTestSkipped = false;
 String? _currentTestSkipReason;
 
+// Suite tracking
+String _currentSuiteName = '';
+int _suitePassed = 0;
+int _suiteFailed = 0;
+int _suiteSkipped = 0;
+
 /// Log level for integration tests.
 /// - info: Only test names and pass/fail results (default)
 /// - fine: For debugging tests - prints/logs from test files will be present
@@ -70,6 +76,33 @@ Future<void> _sendLog(Map<String, dynamic> data) async {
     // ignore: avoid_print
     print('Warning: Could not reach log server: $e');
   }
+}
+
+/// Start a test suite. Call this in setUpAll().
+Future<void> startSuite(String name) async {
+  // End previous suite if any
+  if (_currentSuiteName.isNotEmpty) {
+    await endSuite();
+  }
+  _currentSuiteName = name;
+  _suitePassed = 0;
+  _suiteFailed = 0;
+  _suiteSkipped = 0;
+  await _sendLog(<String, dynamic>{'type': 'suiteStart', 'suite': name});
+}
+
+/// End the current test suite. Called automatically when a new suite starts,
+/// or can be called explicitly in tearDownAll().
+Future<void> endSuite() async {
+  if (_currentSuiteName.isEmpty) return;
+  await _sendLog(<String, dynamic>{
+    'type': 'suiteEnd',
+    'suite': _currentSuiteName,
+    'passed': _suitePassed,
+    'failed': _suiteFailed,
+    'skipped': _suiteSkipped,
+  });
+  _currentSuiteName = '';
 }
 
 /// Initialize logging for integration tests.
@@ -115,12 +148,10 @@ void initializeTestLogging({
         ? _currentTestDisplayName
         : testDescription;
 
+    // Track failure in suite
+    _suiteFailed++;
+
     // Send failure log to driver
-    _sendLog(<String, dynamic>{
-      'type': 'log',
-      'message':
-          '\x1B[91mTEST EXCEPTION:\x1B[0m ${details.exceptionAsString()}',
-    });
     _sendLog(<String, dynamic>{
       'type': 'testFail',
       'test': displayName,
@@ -204,18 +235,12 @@ void namedTestWidgets(
     // Report test start
     await _sendLog(<String, dynamic>{'type': 'testStart', 'test': displayName});
 
-    // ignore: avoid_print
-    print('\n========================================');
-    // ignore: avoid_print
-    print('RUNNING: $displayName');
-    // ignore: avoid_print
-    print('========================================\n');
-
     // Run the test callback - failures are handled by reportTestException hook
     await callback(tester);
 
     // Check if the test was skipped
     if (_currentTestSkipped) {
+      _suiteSkipped++;
       await _sendLog(<String, dynamic>{
         'type': 'testSkip',
         'test': displayName,
@@ -223,7 +248,11 @@ void namedTestWidgets(
       });
     } else {
       // If we get here and not skipped, the test passed
-      await _sendLog(<String, dynamic>{'type': 'testPass', 'test': displayName});
+      _suitePassed++;
+      await _sendLog(<String, dynamic>{
+        'type': 'testPass',
+        'test': displayName,
+      });
     }
   });
 }

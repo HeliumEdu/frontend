@@ -39,10 +39,14 @@ void main() {
     late DateTime signupInitiatedAt;
 
     setUpAll(() async {
-      _log.info('Test email: $testEmail');
+      await startSuite('User Signup Flow');
 
       // Clean up test user from previous runs
       await apiHelper.cleanupTestUser();
+    });
+
+    tearDownAll(() async {
+      await endSuite();
     });
 
     namedTestWidgets('1. User can sign up for a new account', (tester) async {
@@ -94,7 +98,11 @@ void main() {
         browserTitle: 'Verify Email',
         timeout: const Duration(seconds: 15),
       );
-      expect(verifyScreenFound, isTrue, reason: 'Should navigate to verify email screen');
+      expect(
+        verifyScreenFound,
+        isTrue,
+        reason: 'Should navigate to verify email screen',
+      );
 
       registrationSucceeded = true;
       _log.info('Registration succeeded');
@@ -149,6 +157,8 @@ void main() {
         verificationCode,
       );
 
+      _log.info('Submitting verification code, then will wait for account setup to finish');
+
       // Submit verification
       await tester.tap(find.text('Verify & Login'));
       await tester.pumpAndSettle(const Duration(seconds: 10));
@@ -174,7 +184,11 @@ void main() {
         browserTitle: 'Planner',
         timeout: const Duration(seconds: 30),
       );
-      expect(reachedPlanner, isTrue, reason: 'Should reach planner after verification');
+      expect(
+        reachedPlanner,
+        isTrue,
+        reason: 'Should reach planner after verification',
+      );
 
       verificationSucceeded = true;
       _log.info('Email verification succeeded');
