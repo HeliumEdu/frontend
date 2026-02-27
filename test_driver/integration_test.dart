@@ -124,31 +124,31 @@ void _processResult(Map<String, dynamic> data) {
     case 'testPass':
       _inTest = false;
       // ignore: avoid_print
-      print(' $_green✓ PASS:$_reset ${data['test']}');
+      print(' $_green✓  PASS:$_reset ${data['test']}');
       break;
 
     case 'testSkip':
       _inTest = false;
       // ignore: avoid_print
-      print(' $_yellow⊘ SKIP:$_reset ${data['test']}');
+      print(' $_yellow⊘  SKIP:$_reset ${data['test']}');
       if (data['reason'] != null) {
         // ignore: avoid_print
-        print('   ${_grey}Reason: ${data['reason']}$_reset');
+        print('    ${_grey}Reason: ${data['reason']}$_reset');
       }
       break;
 
     case 'testFail':
       _inTest = false;
       // ignore: avoid_print
-      print(' $_red✗ FAIL:$_reset ${data['test']}');
+      print(' $_red✗  FAIL:$_reset ${data['test']}');
       // ignore: avoid_print
-      print('   ${_red}ERROR:$_reset ${data['error']}');
+      print('    ${_red}ERROR:$_reset ${data['error']}');
       // ignore: avoid_print
-      print('   ${_grey}STACK:$_reset');
+      print('    ${_grey}STACK:$_reset');
       final stack = (data['stack'] as String?)?.split('\n') ?? [];
       for (final line in stack.take(10)) {
         // ignore: avoid_print
-        print('     $line');
+        print('      $line');
       }
       stdout.flush();
       break;

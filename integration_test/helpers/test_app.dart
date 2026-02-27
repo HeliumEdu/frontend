@@ -27,7 +27,6 @@ import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helper
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
-import 'package:test_api/src/backend/invoker.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:web/web.dart' as web;
 
@@ -41,9 +40,6 @@ String? _currentTestSkipReason;
 
 // Suite tracking
 String _currentSuiteName = '';
-int _suitePassed = 0;
-int _suiteFailed = 0;
-int _suiteSkipped = 0;
 
 /// Log level for integration tests.
 /// - info: Only test names and pass/fail results (default)
@@ -85,9 +81,6 @@ Future<void> startSuite(String name) async {
     await endSuite();
   }
   _currentSuiteName = name;
-  _suitePassed = 0;
-  _suiteFailed = 0;
-  _suiteSkipped = 0;
   await _sendLog(<String, dynamic>{'type': 'suiteStart', 'suite': name});
 }
 
@@ -98,9 +91,6 @@ Future<void> endSuite() async {
   await _sendLog(<String, dynamic>{
     'type': 'suiteEnd',
     'suite': _currentSuiteName,
-    'passed': _suitePassed,
-    'failed': _suiteFailed,
-    'skipped': _suiteSkipped,
   });
   _currentSuiteName = '';
 }
@@ -147,9 +137,6 @@ void initializeTestLogging({
     final displayName = _currentTestDisplayName.isNotEmpty
         ? _currentTestDisplayName
         : testDescription;
-
-    // Track failure in suite
-    _suiteFailed++;
 
     // Send failure log to driver
     _sendLog(<String, dynamic>{
@@ -222,36 +209,27 @@ void namedTestWidgets(
     _currentTestSkipped = false;
     _currentTestSkipReason = null;
 
-    // Build display name with group prefix from test framework
-    final groups = Invoker.current?.liveTest.groups ?? [];
-    final groupName = groups.length > 1 ? groups.last.name : '';
-    final displayName = groupName.isNotEmpty
-        ? '$groupName: $description'
-        : description;
-
     // Store for use by reportTestException hook
-    _currentTestDisplayName = displayName;
+    _currentTestDisplayName = description;
 
     // Report test start
-    await _sendLog(<String, dynamic>{'type': 'testStart', 'test': displayName});
+    await _sendLog(<String, dynamic>{'type': 'testStart', 'test': description});
 
     // Run the test callback - failures are handled by reportTestException hook
     await callback(tester);
 
     // Check if the test was skipped
     if (_currentTestSkipped) {
-      _suiteSkipped++;
       await _sendLog(<String, dynamic>{
         'type': 'testSkip',
-        'test': displayName,
+        'test': description,
         'reason': _currentTestSkipReason,
       });
     } else {
       // If we get here and not skipped, the test passed
-      _suitePassed++;
       await _sendLog(<String, dynamic>{
         'type': 'testPass',
-        'test': displayName,
+        'test': description,
       });
     }
   });
