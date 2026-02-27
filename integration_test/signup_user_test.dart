@@ -35,6 +35,8 @@ void main() {
 
     // State tracking for dependent tests within this suite
     bool registrationSucceeded = false;
+    bool verificationSucceeded = false;
+    late DateTime signupInitiatedAt;
 
     setUpAll(() async {
       _log.info('Test email: $testEmail');
@@ -77,6 +79,9 @@ void main() {
       final checkbox = find.byType(CheckboxListTile);
       await tester.tap(checkbox);
       await tester.pumpAndSettle();
+
+      // Capture timestamp before submitting (for email polling)
+      signupInitiatedAt = DateTime.now().toUtc();
 
       // Submit the form
       await tester.tap(find.text('Sign Up'));
@@ -132,7 +137,10 @@ void main() {
       }
 
       // Fetch the verification code from S3
-      final verificationCode = await emailHelper.getVerificationCode(testEmail);
+      final verificationCode = await emailHelper.getVerificationCode(
+        testEmail,
+        sentAfter: signupInitiatedAt,
+      );
 
       // Enter verification code
       await enterTextInField(
@@ -145,7 +153,6 @@ void main() {
       await tester.tap(find.text('Verify & Login'));
       await tester.pumpAndSettle(const Duration(seconds: 10));
 
-      // Verification succeeded if we're no longer on the verify screen
       final stillOnVerify =
           find.text('Verify Email').evaluate().isNotEmpty &&
           find
@@ -158,7 +165,9 @@ void main() {
         reason: 'Should have left verify screen after successful verification',
       );
 
-      // Wait for navigation to planner
+      // On first login, the user will first be taken to /setup, then /planner,
+      // once their account is setup—time on on /setup can vary, but what
+      // matters is that they get to /planner
       final reachedPlanner = await waitForRoute(
         tester,
         AppRoute.plannerScreen,
@@ -166,6 +175,30 @@ void main() {
         timeout: const Duration(seconds: 30),
       );
       expect(reachedPlanner, isTrue, reason: 'Should reach planner after verification');
+
+      verificationSucceeded = true;
+      _log.info('Email verification succeeded');
+    });
+
+    namedTestWidgets('3. First login shows welcome dialogs', (tester) async {
+      if (!verificationSucceeded) {
+        skipTest('verification did not succeed');
+        return;
+      }
+
+      await initializeTestApp(tester);
+
+      final loggedIn = await loginAndNavigateToPlanner(
+        tester,
+        testEmail,
+        testPassword,
+        expectWhatsNew: true,
+      );
+      expect(loggedIn, isTrue, reason: 'Should log in and see welcome dialogs');
+
+      // Once dialogs are dismissed, planner should be accesible
+      expectOnPlannerScreen();
+      _log.info('First login flow complete: dialogs shown and dismissed');
     });
   });
 }
