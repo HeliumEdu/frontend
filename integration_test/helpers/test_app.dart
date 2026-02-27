@@ -619,24 +619,35 @@ void expectBrowserTitleExact(String expectedTitle) {
 }
 
 /// Assert we're on the Planner screen.
-/// Verifies: Today button (icon), Filter icon, Search icon, and FAB are shown.
-void expectOnPlannerScreen() {
+/// Verifies: Today button (icon), Filter/Menu icon, Search icon, and FAB are shown.
+/// [isMobile] - when true, expects menu_open icon instead of filter_alt and search icons.
+void expectOnPlannerScreen({bool isMobile = false}) {
   // Use icon instead of text - text is hidden on mobile
   expect(
     find.byIcon(Icons.calendar_today),
     findsOneWidget,
     reason: 'Planner: Today button (calendar_today icon) should be shown',
   );
-  expect(
-    find.byIcon(Icons.filter_alt),
-    findsOneWidget,
-    reason: 'Planner: Filter icon should be shown',
-  );
-  expect(
-    find.byIcon(Icons.search),
-    findsWidgets,
-    reason: 'Planner: Search icon should be shown',
-  );
+  if (isMobile) {
+    // On mobile, filter and search are hidden behind the menu
+    expect(
+      find.byIcon(Icons.menu_open),
+      findsOneWidget,
+      reason: 'Planner: Menu icon should be shown on mobile',
+    );
+  } else {
+    // On desktop, filter and search icons are visible
+    expect(
+      find.byIcon(Icons.filter_alt),
+      findsOneWidget,
+      reason: 'Planner: Filter icon should be shown on desktop',
+    );
+    expect(
+      find.byIcon(Icons.search),
+      findsWidgets,
+      reason: 'Planner: Search icon should be shown on desktop',
+    );
+  }
   expect(
     find.byType(FloatingActionButton),
     findsOneWidget,
@@ -773,18 +784,18 @@ void expectOnGradesScreen() {
   );
   expect(
     find.text('Creative Writing ✍️'),
-    findsOneWidget,
-    reason: 'Grades: Creative Writing ✍️ grade card should be shown',
+    findsNWidgets(2),
+    reason: 'Grades: Creative Writing ✍️ grade card should be shown, and time series filter',
   );
   expect(
     find.text('Fundamentals of Programming 💻'),
-    findsOneWidget,
-    reason: 'Grades: Fundamentals of Programming 💻 grade card should be shown',
+    findsNWidgets(2),
+    reason: 'Grades: Fundamentals of Programming 💻 grade card should be shown, and time series filter',
   );
   expect(
     find.text('Intro to Psychology 🧠'),
-    findsOneWidget,
-    reason: 'Grades: Intro to Psychology 🧠 grade card should be shown',
+    findsNWidgets(2),
+    reason: 'Grades: Intro to Psychology 🧠 grade card should be shown, and time series filter',
   );
   expect(
     find.text('Grades'),

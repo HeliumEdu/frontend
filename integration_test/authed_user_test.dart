@@ -233,7 +233,7 @@ void main() {
         await tester.tap(backButton);
         await tester.pumpAndSettle();
 
-        expectOnPlannerScreen();
+        expectOnPlannerScreen(isMobile: true);
       } finally {
         // Always restore original size, even if test fails
         tester.view.physicalSize = originalSize;
@@ -475,8 +475,8 @@ void main() {
         await tester.pumpAndSettle(const Duration(seconds: 3));
       }
 
-      // Find "Quiz 4" to edit
-      final homeworkItem = find.textContaining('Quiz 4');
+      // Find "Quiz 4" to edit (calendar uses RichText, not Text)
+      final homeworkItem = findRichTextContaining('Quiz 4');
       expect(homeworkItem, findsWidgets, reason: 'Quiz 4 should exist');
 
       // Tap on the homework item to open edit screen
@@ -499,7 +499,11 @@ void main() {
       expectBrowserTitle('Planner');
 
       // 1. Change title to "Quiz 4 (Edited)"
-      final titleField = find.widgetWithText(TextField, 'Quiz 4');
+      // TextField content is in EditableText, not Text, so use a custom finder
+      final titleField = find.byWidgetPredicate((widget) {
+        if (widget is! TextField) return false;
+        return widget.controller?.text == 'Quiz 4';
+      });
       expect(
         titleField,
         findsOneWidget,
