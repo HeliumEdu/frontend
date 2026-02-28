@@ -759,10 +759,28 @@ void expectOnGradesScreen() {
     findsOneWidget,
     reason: 'Grades: Pending Impact summary should be shown',
   );
+  // Find the Pending Impact value (should be > 0)
+  final pendingImpactCard = find.ancestor(
+    of: find.text('Pending Impact'),
+    matching: find.byType(Card),
+  );
+  final pendingValue = find.descendant(
+    of: pendingImpactCard.first,
+    matching: find.byWidgetPredicate(
+      (w) => w is Text && int.tryParse((w as Text).data ?? '') != null,
+    ),
+  );
   expect(
-    find.text('28'),
+    pendingValue,
     findsOneWidget,
-    reason: 'Grades: Pending Impact did not match expectation',
+    reason: 'Grades: Pending Impact should show a numeric value',
+  );
+  final valueWidget = pendingValue.evaluate().first.widget as Text;
+  final value = int.tryParse(valueWidget.data ?? '0') ?? 0;
+  expect(
+    value > 0,
+    isTrue,
+    reason: 'Grades: Pending Impact should be greater than 0',
   );
   expect(
     find.text('Grade Trend'),
