@@ -79,18 +79,23 @@ void main() {
         testPassword,
       );
 
-      // Select Chicago timezone for consistent test assertions
-      // The SearchableDropdown uses Autocomplete with a TextFormField
       final timezoneField = find.byWidgetPredicate(
         (widget) =>
-            widget is EditableText &&
-            widget.controller.text.contains('UTC'),
+            widget is TextField &&
+            widget.decoration?.suffixIcon is Icon &&
+            (widget.decoration?.suffixIcon as Icon).icon ==
+                Icons.keyboard_arrow_down,
+      );
+      expect(
+        timezoneField,
+        findsOneWidget,
+        reason: 'Timezone dropdown should be present',
       );
       await tester.tap(timezoneField);
       await tester.pumpAndSettle();
 
       // Clear existing text and type "Chicago" to filter
-      await tester.enterText(timezoneField, 'Chicago');
+      await enterTextInField(tester, timezoneField, 'Chicago');
       await tester.pumpAndSettle();
 
       // Wait for dropdown options to appear and select America/Chicago
@@ -176,7 +181,9 @@ void main() {
         verificationCode,
       );
 
-      _log.info('Submitting verification code, then will wait for account setup to finish');
+      _log.info(
+        'Submitting verification code, then will wait for account setup to finish',
+      );
 
       // Submit verification
       await tester.tap(find.text('Verify & Login'));
