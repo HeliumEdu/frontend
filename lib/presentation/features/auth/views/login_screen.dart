@@ -178,11 +178,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
 
   @override
   Widget buildScaffold(BuildContext context) {
-    return Title(
-      title: '$screenTitle | ${AppConstants.appName}',
-      color: context.colorScheme.primary,
-      child: Scaffold(body: SafeArea(child: buildMainArea(context))),
-    );
+    return Scaffold(body: SafeArea(child: buildMainArea(context)));
   }
 
   @override
