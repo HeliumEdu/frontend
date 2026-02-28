@@ -767,7 +767,7 @@ void expectOnGradesScreen() {
   final pendingValue = find.descendant(
     of: pendingImpactCard.first,
     matching: find.byWidgetPredicate(
-      (w) => w is Text && int.tryParse((w as Text).data ?? '') != null,
+      (w) => w is Text && int.tryParse(w.data ?? '') != null,
     ),
   );
   expect(
