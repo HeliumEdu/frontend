@@ -94,6 +94,12 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
 
             if (!context.mounted) return;
 
+            showSnackBar(
+              context,
+              'Welcome to Helium!',
+              seconds: 3,
+            );
+
             // Check if account setup is complete
             final isSetupComplete =
                 PrefService().getBool('is_setup_complete') ?? true;
