@@ -366,16 +366,23 @@ void main() {
       );
       expect(menuOpened, isTrue, reason: 'Todos option should be in view menu');
       await tester.tap(todosOption);
-      await tester.pumpAndSettle(const Duration(seconds: 3));
+      await tester.pumpAndSettle();
 
-      // 2. Assert "Showing X to Y of 53" is shown (X and Y may vary, 53 is fixed)
+      // 2. Wait for Todos view to initialize and assert "Showing X to Y of 53"
+      // (X and Y may vary, 53 is fixed). TodosTable._initializeData expands the
+      // data window via a network call; on CI this may take several seconds.
       final showingTextFinder = find.textContaining(
         RegExp(r'Showing \d+ to \d+ of 53'),
       );
-      expect(
+      final todosInitialized = await waitForWidget(
+        tester,
         showingTextFinder,
-        findsOneWidget,
-        reason: 'Should show "Showing X to Y of 53"',
+        timeout: const Duration(seconds: 15),
+      );
+      expect(
+        todosInitialized,
+        isTrue,
+        reason: 'Should show "Showing X to Y of 53" after Todos view initializes',
       );
 
       // 3. Tap filters, tap checkbox next to "Fundamentals"
