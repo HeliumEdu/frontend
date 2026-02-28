@@ -5,12 +5,16 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:web/web.dart' as web;
+
+// Conditional import for web platform
+import 'package:heliumapp/presentation/navigation/shell/navigation_shell_title_stub.dart'
+    if (dart.library.js_interop) 'package:heliumapp/presentation/navigation/shell/navigation_shell_title_web.dart'
+    as title_helper;
 import 'package:heliumapp/config/app_route.dart';
+import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/whats_new_service.dart';
@@ -238,20 +242,20 @@ class _NavigationShellState extends State<NavigationShell> {
   /// shell. This avoids using a Title widget which would compete with pushed
   /// routes like Settings/Notifications for control of the browser title.
   void _updateBrowserTitle(NavigationPage page) {
-    if (kIsWeb) {
-      web.document.title = '${page.label} | ${AppConstants.appName}';
-    }
+    title_helper.setTitle('${page.label} | ${AppConstants.appName}');
   }
 
   @override
   Widget build(BuildContext context) {
     final currentPage = _getCurrentPage(context);
 
-    // Only update browser title if no other route is pushed on top of the shell
-    // Check if the full router location is a shell route
-    final fullLocation =
-        GoRouterState.of(context).uri.toString().split('?').first;
-    final isShellRoute = NavigationPage.values.any((p) => p.route == fullLocation);
+    // Only update browser title if no other route is pushed on top of the shell.
+    // Use global router state since the shell's local GoRouterState doesn't know
+    // about routes pushed outside of it (like Settings or Notifications).
+    final globalLocation =
+        router.routerDelegate.currentConfiguration.uri.path;
+    final isShellRoute =
+        NavigationPage.values.any((p) => p.route == globalLocation);
     if (isShellRoute) {
       _updateBrowserTitle(currentPage);
     }
