@@ -651,7 +651,17 @@ void main() {
         findsOneWidget,
         reason: 'Edit screen: "Edit Assignment" title should be shown',
       );
-      expectBrowserTitle('Planner');
+      // Browser title updates asynchronously once the screen resolves its type
+      final titleUpdated = await waitForBrowserTitle(
+        tester,
+        'Edit Assignment',
+        timeout: const Duration(seconds: 5),
+      );
+      expect(
+        titleUpdated,
+        isTrue,
+        reason: 'Browser title should update to "Edit Assignment | Helium"',
+      );
       _log.info('Edit Assignment dialog opened ...');
 
       // 1. Change title to "Quiz 4 (Edited)"
