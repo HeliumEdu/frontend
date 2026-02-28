@@ -5,9 +5,11 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:web/web.dart' as web;
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
@@ -232,9 +234,27 @@ class _NavigationShellState extends State<NavigationShell> {
     }
   }
 
+  /// Updates the browser title directly via DOM when navigating within the
+  /// shell. This avoids using a Title widget which would compete with pushed
+  /// routes like Settings/Notifications for control of the browser title.
+  void _updateBrowserTitle(NavigationPage page) {
+    if (kIsWeb) {
+      web.document.title = '${page.label} | ${AppConstants.appName}';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentPage = _getCurrentPage(context);
+
+    // Only update browser title if no other route is pushed on top of the shell
+    // Check if the full router location is a shell route
+    final fullLocation =
+        GoRouterState.of(context).uri.toString().split('?').first;
+    final isShellRoute = NavigationPage.values.any((p) => p.route == fullLocation);
+    if (isShellRoute) {
+      _updateBrowserTitle(currentPage);
+    }
 
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {

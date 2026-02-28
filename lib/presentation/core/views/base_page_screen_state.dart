@@ -356,23 +356,20 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       );
     }
 
-    // When inside NavigationScaffold, don't wrap in another Scaffold
-    // The NavigationScaffold already provides the Scaffold with navigation
+    // When inside NavigationShell, don't wrap in another Scaffold or Title.
+    // The NavigationShell manages the browser title via direct DOM manipulation
+    // to avoid Title widget conflicts with pushed routes (Settings, Notifications).
     if (hasNavigationShell) {
-      return Title(
-        title: '$screenTitle | ${AppConstants.appName}',
-        color: context.colorScheme.primary,
-        child: Stack(
-          children: [
-            content,
-            if (showActionButton && actionButtonCallback != null)
-              Positioned(
-                right: 16,
-                bottom: 16,
-                child: buildFloatingActionButton(),
-              ),
-          ],
-        ),
+      return Stack(
+        children: [
+          content,
+          if (showActionButton && actionButtonCallback != null)
+            Positioned(
+              right: 16,
+              bottom: 16,
+              child: buildFloatingActionButton(),
+            ),
+        ],
       );
     }
 
