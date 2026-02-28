@@ -14,6 +14,9 @@ import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
+import 'package:heliumapp/presentation/navigation/shell/navigation_shell_title_stub.dart'
+    if (dart.library.js_interop) 'package:heliumapp/presentation/navigation/shell/navigation_shell_title_web.dart'
+    as title_helper;
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
@@ -166,8 +169,7 @@ class _DialogRouteListenerState extends State<_DialogRouteListener> {
   void _onRouteChanged() {
     final currentUri = router.routerDelegate.currentConfiguration.uri;
 
-    // Ignore query-only URL changes (for example: clearing ?dialog=... after
-    // opening a desktop dialog). Close only when the route path changes.
+    // Ignore query-only URL changes, close only when the route path changes.
     if (currentUri.path != _initialUri.path && mounted) {
       _log.info(
         'Browser navigation detected, closing dialog: '
@@ -251,6 +253,23 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
         if (!mounted) return;
 
         notifier.setProviders(inheritableProviders);
+      });
+    }
+
+    // Set browser title for non-shell screens (both dialog and full-screen).
+    // ModalRoute.of registers a _ModalScopeStatus dependency so this fires
+    // whenever isCurrent changes (push, pop, returning from sub-screen).
+    // Shell routes are excluded — NavigationShell manages their titles.
+    // postFrameCallback ensures the foreground route's title wins regardless
+    // of widget tree depth (e.g., nested screens inside a StatelessWidget wrapper).
+    final bool hasNavigationShell = NavigationShellProvider.of(context);
+    if (!hasNavigationShell) {
+      ModalRoute.of(context); // Register _ModalScopeStatus dependency
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        if (ModalRoute.of(context)?.isCurrent ?? false) {
+          title_helper.setTitle('$screenTitle | ${AppConstants.appName}');
+        }
       });
     }
   }
@@ -356,9 +375,8 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       );
     }
 
-    // When inside NavigationShell, don't wrap in another Scaffold or Title.
-    // The NavigationShell manages the browser title via direct DOM manipulation
-    // to avoid Title widget conflicts with pushed routes (Settings, Notifications).
+    // When inside NavigationShell, don't wrap in another Scaffold.
+    // NavigationShell manages the browser title for shell routes.
     if (hasNavigationShell) {
       return Stack(
         children: [
@@ -374,12 +392,9 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     }
 
     // When NOT inside NavigationScaffold (sub-pages), use full Scaffold.
-    // Only apply the Title widget while this route is the active/topmost route.
-    // During the exit animation isCurrent is false, which prevents the Title
-    // widget from overriding the browser title already set by NavigationShell
-    // (e.g. "Planner") while the old screen slides out.
-    final isCurrentRoute = ModalRoute.of(context)?.isCurrent ?? true;
-    final scaffold = Scaffold(
+    // The browser title is managed via didChangeDependencies + isCurrent rather
+    // than a Title widget, avoiding race conditions during exit animations.
+    return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
@@ -395,14 +410,6 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       floatingActionButton: showActionButton && actionButtonCallback != null
           ? buildFloatingActionButton()
           : null,
-    );
-    if (!isCurrentRoute) {
-      return scaffold;
-    }
-    return Title(
-      title: '$screenTitle | ${AppConstants.appName}',
-      color: context.colorScheme.primary,
-      child: scaffold,
     );
   }
 
