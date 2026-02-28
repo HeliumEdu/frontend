@@ -250,7 +250,7 @@ void main() {
         );
         expect(dialogClosed, isTrue, reason: 'Settings dialog should close');
         _log.info('Settings dialog closed');
-        
+
         expectBrowserTitle('Planner');
 
         // 3. Assert that "Quiz 4" can be seen on desktop calendar
@@ -304,11 +304,14 @@ void main() {
         );
         _log.info('Settings screen opened, browser title is Settings');
 
-        // 7. Click back button, wait until we're back on the Planner screen
+        // 7. Click back button, wait until we're back on the Planner screen.
+        // Use waitForRoute with browserTitle so we confirm both the route and
+        // the browser title have settled before resizing back to desktop.
         await tester.tap(backButton);
-        final backToPlanner = await waitForWidgetToDisappear(
+        final backToPlanner = await waitForRoute(
           tester,
-          backButton,
+          AppRoute.plannerScreen,
+          browserTitle: 'Planner',
           timeout: const Duration(seconds: 5),
         );
         expect(
@@ -317,7 +320,6 @@ void main() {
           reason: 'Should navigate back to Planner',
         );
 
-        expectBrowserTitle('Planner');
         expectOnPlannerScreen(isMobile: true);
         _log.info('Back on Planner screen');
       } finally {
