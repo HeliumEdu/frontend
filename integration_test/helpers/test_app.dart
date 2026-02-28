@@ -598,6 +598,25 @@ String getBrowserTitle() {
   return web.document.title;
 }
 
+/// Wait for the browser title to contain the expected page name.
+/// Returns true if the title matched within the timeout, false otherwise.
+/// Use this when the title may update asynchronously (e.g., after navigation
+/// or when a screen resolves its title dynamically).
+Future<bool> waitForBrowserTitle(
+  WidgetTester tester,
+  String expectedPageName, {
+  Duration timeout = const Duration(seconds: 5),
+}) async {
+  final endTime = DateTime.now().add(timeout);
+  while (DateTime.now().isBefore(endTime)) {
+    await tester.pump(const Duration(milliseconds: 100));
+    if (getBrowserTitle().contains(expectedPageName)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /// Verify the browser title contains the expected page name.
 /// The app uses format: "PageName | Helium"
 void expectBrowserTitle(String expectedPageName) {
