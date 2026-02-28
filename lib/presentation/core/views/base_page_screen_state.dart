@@ -256,21 +256,11 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       });
     }
 
-    // Set browser title for non-shell screens (both dialog and full-screen).
-    // ModalRoute.of registers a _ModalScopeStatus dependency so this fires
-    // whenever isCurrent changes (push, pop, returning from sub-screen).
+    // Register _ModalScopeStatus dependency for non-shell screens so build()
+    // is called whenever isCurrent changes (sub-screen pushed/popped).
     // Shell routes are excluded — NavigationShell manages their titles.
-    // postFrameCallback ensures the foreground route's title wins regardless
-    // of widget tree depth (e.g., nested screens inside a StatelessWidget wrapper).
-    final bool hasNavigationShell = NavigationShellProvider.of(context);
-    if (!hasNavigationShell) {
+    if (!NavigationShellProvider.of(context)) {
       ModalRoute.of(context); // Register _ModalScopeStatus dependency
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        if (ModalRoute.of(context)?.isCurrent ?? false) {
-          title_helper.setTitle('$screenTitle | ${AppConstants.appName}');
-        }
-      });
     }
   }
 
@@ -303,6 +293,21 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
   @override
   Widget build(BuildContext context) {
+    // Update browser title on every build for non-shell screens. Using build()
+    // rather than didChangeDependencies catches dynamic screenTitle changes
+    // (e.g., PlannerItemAdd resolving its type after user interaction).
+    // postFrameCallback ensures the foreground route's title wins when multiple
+    // screens rebuild simultaneously. Skips empty titles so the previous title
+    // (e.g., "Planner | Helium") remains until this screen knows its own title.
+    if (!NavigationShellProvider.of(context) && screenTitle.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        if (ModalRoute.of(context)?.isCurrent ?? false) {
+          title_helper.setTitle('$screenTitle | ${AppConstants.appName}');
+        }
+      });
+    }
+
     final listeners = buildListeners(context);
     if (listeners.isNotEmpty) {
       return MultiBlocListener(
