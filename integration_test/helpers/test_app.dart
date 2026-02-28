@@ -845,17 +845,37 @@ void expectOnSettingsScreen({required bool isDialog}) {
     findsOneWidget,
     reason: 'Settings: "Change Password" button should be shown',
   );
+  // Browser title updates to Settings in both dialog and screen mode
+  expectBrowserTitle('Settings');
   if (isDialog) {
-    // Dialog mode: title stays on Planner (dialog doesn't change browser title)
-    expectBrowserTitle('Planner');
+    // Dialog mode: close (X) button in dialog header, no back button
+    expect(
+      find.byIcon(Icons.close),
+      findsOneWidget,
+      reason: 'Settings dialog: close button should be shown',
+    );
+    expect(
+      find.byIcon(Icons.keyboard_arrow_left),
+      findsNothing,
+      reason: 'Settings dialog: back button should not be shown',
+    );
   } else {
-    // Mobile screen mode: "Settings" title shown in page header, browser title updates
+    // Screen mode: "Settings" title in page header, back button, no close button
     expect(
       find.text('Settings'),
       findsOneWidget,
       reason: 'Settings screen: Settings title should be shown in page header',
     );
-    expectBrowserTitle('Settings');
+    expect(
+      find.byIcon(Icons.keyboard_arrow_left),
+      findsOneWidget,
+      reason: 'Settings screen: back button should be shown',
+    );
+    expect(
+      find.byIcon(Icons.close),
+      findsNothing,
+      reason: 'Settings screen: dialog close button should not be shown',
+    );
   }
 }
 
