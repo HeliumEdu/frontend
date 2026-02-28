@@ -5,11 +5,16 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
+import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:logging/logging.dart';
+import 'package:timezone/standalone.dart' as tz;
 
 import 'helpers/api_helper.dart';
 import 'helpers/test_app.dart';
@@ -45,236 +50,10 @@ void main() {
         _log.info('Test user exists, proceeding with tests');
         canProceed = true;
       }
-    });
-
-    tearDownAll(() async {
-      await endSuite();
-    });
-
-    // namedTestWidgets('1. Top-level navigation works correctly', (tester) async {
-    //   if (!canProceed) {
-    //     _log.warning('Skipping: user does not exist');
-    //     skipTest('user does not exist (run signup_user_test first)');
-    //     return;
-    //   }
-    //
-    //   await initializeTestApp(tester);
-    //   final loggedIn = await loginAndNavigateToPlanner(
-    //     tester,
-    //     testEmail,
-    //     testPassword,
-    //   );
-    //   expect(loggedIn, isTrue, reason: 'Should be logged in');
-    //
-    //   final classesTab = find.text('Classes');
-    //   expect(classesTab, findsOneWidget, reason: 'Classes tab should exist');
-    //   await tester.tap(classesTab);
-    //   await tester.pumpAndSettle(const Duration(seconds: 3));
-    //
-    //   expectOnClassesScreen();
-    //   _log.info('Successfully navigated to classes');
-    //
-    //   final resourcesTab = find.text('Resources');
-    //   expect(
-    //     resourcesTab,
-    //     findsOneWidget,
-    //     reason: 'Resources tab should exist',
-    //   );
-    //   await tester.tap(resourcesTab);
-    //   await tester.pumpAndSettle(const Duration(seconds: 3));
-    //
-    //   expectOnResourcesScreen();
-    //   _log.info('Successfully navigated to resources');
-    //
-    //   final gradesTab = find.text('Grades');
-    //   expect(gradesTab, findsOneWidget, reason: 'Grades tab should exist');
-    //   await tester.tap(gradesTab);
-    //   await tester.pumpAndSettle(const Duration(seconds: 3));
-    //
-    //   expectOnGradesScreen();
-    //   _log.info('Successfully navigated to grades');
-    //
-    //   final plannerTab = find.text('Planner');
-    //   expect(plannerTab, findsOneWidget, reason: 'Planner tab should exist');
-    //   await tester.tap(plannerTab);
-    //   await tester.pumpAndSettle(const Duration(seconds: 3));
-    //
-    //   expectOnPlannerScreen();
-    //   _log.info('Successfully navigated back to planner');
-    // });
-    //
-    // namedTestWidgets('2. Calendar displays example schedule items', (
-    //   tester,
-    // ) async {
-    //   if (!canProceed) {
-    //     _log.warning('Skipping: user does not exist');
-    //     skipTest('user does not exist (run signup_user_test first)');
-    //     return;
-    //   }
-    //
-    //   await initializeTestApp(tester);
-    //   final loggedIn = await loginAndNavigateToPlanner(
-    //     tester,
-    //     testEmail,
-    //     testPassword,
-    //   );
-    //   expect(loggedIn, isTrue, reason: 'Should be logged in');
-    //
-    //   final quizLoaded = await waitForWidget(
-    //     tester,
-    //     findRichTextContaining('Quiz 4'),
-    //     timeout: const Duration(seconds: 15),
-    //   );
-    //   expect(quizLoaded, isTrue, reason: 'Quiz 4 should appear after loading');
-    //
-    //   expect(
-    //     findRichTextContaining('Final Portfolio Writing Workshop'),
-    //     findsOneWidget,
-    //   );
-    //   expect(
-    //     findRichTextContaining('Intro to Psychology 🧠'),
-    //     findsAtLeastNWidgets(12),
-    //   );
-    // });
-
-    // namedTestWidgets('3. Settings opens correctly based on screen width', (
-    //   tester,
-    // ) async {
-    //   if (!canProceed) {
-    //     _log.warning('Skipping: user does not exist');
-    //     skipTest('user does not exist (run signup_user_test first)');
-    //     return;
-    //   }
-    //
-    //   // Store original size to restore later
-    //   final originalSize = tester.view.physicalSize;
-    //   final originalDevicePixelRatio = tester.view.devicePixelRatio;
-    //
-    //   const nonMobileWidth = ResponsiveBreakpoints.mobile + 100;
-    //   const mobileWidth = ResponsiveBreakpoints.mobile - 100;
-    //   const testHeight = 800.0;
-    //
-    //   try {
-    //     await initializeTestApp(tester);
-    //     final loggedIn = await loginAndNavigateToPlanner(
-    //       tester,
-    //       testEmail,
-    //       testPassword,
-    //     );
-    //     expect(loggedIn, isTrue, reason: 'Should be logged in');
-    //
-    //     // --- PART 1: Desktop/Tablet (wide) - Settings opens as dialog ---
-    //     tester.view.physicalSize = const Size(nonMobileWidth, testHeight);
-    //     tester.view.devicePixelRatio = 1.0;
-    //     await tester.pumpAndSettle();
-    //
-    //     // 1. Click settings, wait for dialog to be shown
-    //     _log.info('Opening settings dialog on desktop ...');
-    //     var settingsButton = find.byIcon(Icons.settings_outlined);
-    //     expect(settingsButton, findsOneWidget, reason: 'Settings button should exist');
-    //     await tester.tap(settingsButton);
-    //
-    //     // Wait for close button to appear (dialog is open)
-    //     final closeButton = find.byIcon(Icons.close);
-    //     final dialogOpened = await waitForWidget(
-    //       tester,
-    //       closeButton,
-    //       timeout: const Duration(seconds: 5),
-    //     );
-    //     expect(dialogOpened, isTrue, reason: 'Settings dialog should open');
-    //
-    //     // Verify browser title did NOT change (dialog mode)
-    //     expectBrowserTitle('Planner');
-    //     expectOnSettingsScreen(isDialog: true);
-    //     _log.info('Settings dialog opened, browser title still Planner');
-    //
-    //     // 2. Click close button, wait until dialog is definitely closed
-    //     await tester.tap(closeButton);
-    //     final dialogClosed = await waitForWidgetToDisappear(
-    //       tester,
-    //       closeButton,
-    //       timeout: const Duration(seconds: 5),
-    //     );
-    //     expect(dialogClosed, isTrue, reason: 'Settings dialog should close');
-    //     _log.info('Settings dialog closed');
-    //
-    //     // 3. Assert that "Quiz 4" can be seen on desktop calendar
-    //     expect(
-    //       findRichTextContaining('Quiz 4'),
-    //       findsWidgets,
-    //       reason: 'Quiz 4 should be visible on desktop calendar',
-    //     );
-    //     _log.info('Quiz 4 visible on desktop');
-    //
-    //     // --- PART 2: Mobile (narrow) - Settings navigates to screen ---
-    //     // 4. Resize screen to mobile
-    //     _log.info('Resizing to mobile width ...');
-    //     tester.view.physicalSize = const Size(mobileWidth, testHeight);
-    //     tester.view.devicePixelRatio = 1.0;
-    //     await tester.pumpAndSettle(const Duration(seconds: 2));
-    //
-    //     // 5. Assert that "Quiz 4" is no longer shown (calendar items shown as dots on mobile)
-    //     expect(
-    //       findRichTextContaining('Quiz 4'),
-    //       findsNothing,
-    //       reason: 'Quiz 4 should not be visible on mobile (shown as dots)',
-    //     );
-    //     _log.info('Quiz 4 not visible on mobile (as expected)');
-    //
-    //     // 6. Click settings, wait until new screen is shown (browser title should update)
-    //     _log.info('Opening settings screen on mobile ...');
-    //     settingsButton = find.byIcon(Icons.settings_outlined);
-    //     expect(settingsButton, findsOneWidget, reason: 'Settings button should exist on mobile');
-    //     await tester.tap(settingsButton);
-    //
-    //     // Wait for back button to appear (screen navigation complete)
-    //     final backButton = find.byIcon(Icons.keyboard_arrow_left);
-    //     final screenOpened = await waitForWidget(
-    //       tester,
-    //       backButton,
-    //       timeout: const Duration(seconds: 5),
-    //     );
-    //     expect(screenOpened, isTrue, reason: 'Settings screen should open');
-    //
-    //     // Verify browser title changed to Settings (screen mode)
-    //     expectBrowserTitle('Settings');
-    //     expectOnSettingsScreen(isDialog: false);
-    //     expect(find.byIcon(Icons.close), findsNothing, reason: 'Should not have dialog close button');
-    //     _log.info('Settings screen opened, browser title is Settings');
-    //
-    //     // 7. Click back button, wait until we're back on the Planner screen
-    //     await tester.tap(backButton);
-    //     final backToPlanner = await waitForWidgetToDisappear(
-    //       tester,
-    //       backButton,
-    //       timeout: const Duration(seconds: 5),
-    //     );
-    //     expect(backToPlanner, isTrue, reason: 'Should navigate back to Planner');
-    //
-    //     expectBrowserTitle('Planner');
-    //     expectOnPlannerScreen(isMobile: true);
-    //     _log.info('Back on Planner screen');
-    //   } finally {
-    //     // 8. Whether pass or fail, resize screen back to desktop size
-    //     tester.view.physicalSize = originalSize;
-    //     tester.view.devicePixelRatio = originalDevicePixelRatio;
-    //     await tester.pumpAndSettle();
-    //   }
-    // });
-
-    namedTestWidgets('4. Todos view filtering and checkbox toggle', (
-      tester,
-    ) async {
-      if (!canProceed) {
-        _log.warning('Skipping: user does not exist');
-        skipTest('user does not exist (run signup_user_test first)');
-        return;
-      }
 
       // Ensure Homework 1 is marked completed (in case previous run failed)
       final homework1Setup = await apiHelper.findHomeworkByTitle('Homework 1');
       if (homework1Setup != null && !homework1Setup.completed) {
-        _log.info('Resetting Homework 1 to completed state ...');
         final courseId = homework1Setup.course.id;
         final courses = await apiHelper.getCourses();
         final course = courses!.firstWhere((c) => c.id == courseId);
@@ -284,6 +63,278 @@ void main() {
           homeworkId: homework1Setup.id,
           request: HomeworkRequestModel(course: courseId, completed: true),
         );
+      }
+
+      var quiz4Setup = await apiHelper.findHomeworkByTitle('Quiz 4 (Edited)');
+      quiz4Setup ??= await apiHelper.findHomeworkByTitle('Quiz 4');
+      if (quiz4Setup != null) {
+        final courseId = quiz4Setup.course.id;
+        final courses = await apiHelper.getCourses();
+        final course = courses!.firstWhere((c) => c.id == courseId);
+
+        final startUtc = DateTime.utc(
+          quiz4Setup.start.year,
+          quiz4Setup.start.month,
+          quiz4Setup.start.day,
+          18,
+          0,
+        );
+        final endUtc = startUtc.add(const Duration(minutes: 30));
+
+        await apiHelper.updateHomework(
+          groupId: course.courseGroup,
+          courseId: courseId,
+          homeworkId: quiz4Setup.id,
+          request: HomeworkRequestModel(
+            course: courseId,
+            title: 'Quiz 4',
+            start: startUtc.toIso8601String(),
+            end: endUtc.toIso8601String(),
+            completed: false,
+            currentGrade: '-1/100',
+          ),
+        );
+      }
+    });
+
+    tearDownAll(() async {
+      await endSuite();
+    });
+
+    namedTestWidgets('1. Top-level navigation works correctly', (tester) async {
+      if (!canProceed) {
+        _log.warning('Skipping: user does not exist');
+        skipTest('user does not exist (run signup_user_test first)');
+        return;
+      }
+
+      await initializeTestApp(tester);
+      final loggedIn = await loginAndNavigateToPlanner(
+        tester,
+        testEmail,
+        testPassword,
+      );
+      expect(loggedIn, isTrue, reason: 'Should be logged in');
+
+      final classesTab = find.text('Classes');
+      expect(classesTab, findsOneWidget, reason: 'Classes tab should exist');
+      await tester.tap(classesTab);
+      await tester.pumpAndSettle(const Duration(seconds: 3));
+
+      expectOnClassesScreen();
+      _log.info('Successfully navigated to classes');
+
+      final resourcesTab = find.text('Resources');
+      expect(
+        resourcesTab,
+        findsOneWidget,
+        reason: 'Resources tab should exist',
+      );
+      await tester.tap(resourcesTab);
+      await tester.pumpAndSettle(const Duration(seconds: 3));
+
+      expectOnResourcesScreen();
+      _log.info('Successfully navigated to resources');
+
+      final gradesTab = find.text('Grades');
+      expect(gradesTab, findsOneWidget, reason: 'Grades tab should exist');
+      await tester.tap(gradesTab);
+      await tester.pumpAndSettle(const Duration(seconds: 3));
+
+      expectOnGradesScreen();
+      _log.info('Successfully navigated to grades');
+
+      final plannerTab = find.text('Planner');
+      expect(plannerTab, findsOneWidget, reason: 'Planner tab should exist');
+      await tester.tap(plannerTab);
+      await tester.pumpAndSettle(const Duration(seconds: 3));
+
+      expectOnPlannerScreen();
+      _log.info('Successfully navigated back to planner');
+    });
+
+    namedTestWidgets('2. Calendar displays example schedule items', (
+      tester,
+    ) async {
+      if (!canProceed) {
+        _log.warning('Skipping: user does not exist');
+        skipTest('user does not exist (run signup_user_test first)');
+        return;
+      }
+
+      await initializeTestApp(tester);
+      final loggedIn = await loginAndNavigateToPlanner(
+        tester,
+        testEmail,
+        testPassword,
+      );
+      expect(loggedIn, isTrue, reason: 'Should be logged in');
+
+      final quizLoaded = await waitForWidget(
+        tester,
+        findRichTextContaining('Quiz 4'),
+        timeout: const Duration(seconds: 15),
+      );
+      expect(quizLoaded, isTrue, reason: 'Quiz 4 should appear after loading');
+
+      expect(
+        findRichTextContaining('Final Portfolio Writing Workshop'),
+        findsOneWidget,
+      );
+      expect(
+        findRichTextContaining('Intro to Psychology 🧠'),
+        findsAtLeastNWidgets(12),
+      );
+    });
+
+    namedTestWidgets('3. Settings opens correctly based on screen width', (
+      tester,
+    ) async {
+      if (!canProceed) {
+        _log.warning('Skipping: user does not exist');
+        skipTest('user does not exist (run signup_user_test first)');
+        return;
+      }
+
+      // Store original size to restore later
+      final originalSize = tester.view.physicalSize;
+      final originalDevicePixelRatio = tester.view.devicePixelRatio;
+
+      const nonMobileWidth = ResponsiveBreakpoints.mobile + 100;
+      const mobileWidth = ResponsiveBreakpoints.mobile - 100;
+      const testHeight = 800.0;
+
+      try {
+        await initializeTestApp(tester);
+        final loggedIn = await loginAndNavigateToPlanner(
+          tester,
+          testEmail,
+          testPassword,
+        );
+        expect(loggedIn, isTrue, reason: 'Should be logged in');
+
+        // --- PART 1: Desktop/Tablet (wide) - Settings opens as dialog ---
+        tester.view.physicalSize = const Size(nonMobileWidth, testHeight);
+        tester.view.devicePixelRatio = 1.0;
+        await tester.pumpAndSettle();
+
+        // 1. Click settings, wait for dialog to be shown
+        _log.info('Opening settings dialog on desktop ...');
+        var settingsButton = find.byIcon(Icons.settings_outlined);
+        expect(
+          settingsButton,
+          findsOneWidget,
+          reason: 'Settings button should exist',
+        );
+        await tester.tap(settingsButton);
+
+        // Wait for close button to appear (dialog is open)
+        final closeButton = find.byIcon(Icons.close);
+        final dialogOpened = await waitForWidget(
+          tester,
+          closeButton,
+          timeout: const Duration(seconds: 5),
+        );
+        expect(dialogOpened, isTrue, reason: 'Settings dialog should open');
+
+        // Verify browser title did NOT change (dialog mode)
+        expectBrowserTitle('Planner');
+        expectOnSettingsScreen(isDialog: true);
+        _log.info('Settings dialog opened, browser title still Planner');
+
+        // 2. Click close button, wait until dialog is definitely closed
+        await tester.tap(closeButton);
+        final dialogClosed = await waitForWidgetToDisappear(
+          tester,
+          closeButton,
+          timeout: const Duration(seconds: 5),
+        );
+        expect(dialogClosed, isTrue, reason: 'Settings dialog should close');
+        _log.info('Settings dialog closed');
+
+        // 3. Assert that "Quiz 4" can be seen on desktop calendar
+        expect(
+          findRichTextContaining('Quiz 4'),
+          findsWidgets,
+          reason: 'Quiz 4 should be visible on desktop calendar',
+        );
+        _log.info('Quiz 4 visible on desktop');
+
+        // --- PART 2: Mobile (narrow) - Settings navigates to screen ---
+        // 4. Resize screen to mobile
+        _log.info('Resizing to mobile width ...');
+        tester.view.physicalSize = const Size(mobileWidth, testHeight);
+        tester.view.devicePixelRatio = 1.0;
+        await tester.pumpAndSettle(const Duration(seconds: 2));
+
+        // 5. Assert that "Quiz 4" is no longer shown (calendar items shown as dots on mobile)
+        expect(
+          findRichTextContaining('Quiz 4'),
+          findsNothing,
+          reason: 'Quiz 4 should not be visible on mobile (shown as dots)',
+        );
+        _log.info('Quiz 4 hides on mobile, dots shown instead');
+
+        // 6. Click settings, wait until new screen is shown (browser title should update)
+        _log.info('Opening settings screen on mobile ...');
+        settingsButton = find.byIcon(Icons.settings_outlined);
+        expect(
+          settingsButton,
+          findsOneWidget,
+          reason: 'Settings button should exist on mobile',
+        );
+        await tester.tap(settingsButton);
+
+        // Wait for back button to appear (screen navigation complete)
+        final backButton = find.byIcon(Icons.keyboard_arrow_left);
+        final screenOpened = await waitForWidget(
+          tester,
+          backButton,
+          timeout: const Duration(seconds: 5),
+        );
+        expect(screenOpened, isTrue, reason: 'Settings screen should open');
+
+        // Verify browser title changed to Settings (screen mode)
+        expectBrowserTitle('Settings');
+        expectOnSettingsScreen(isDialog: false);
+        expect(
+          find.byIcon(Icons.close),
+          findsNothing,
+          reason: 'Should not have dialog close button',
+        );
+        _log.info('Settings screen opened, browser title is Settings');
+
+        // 7. Click back button, wait until we're back on the Planner screen
+        await tester.tap(backButton);
+        final backToPlanner = await waitForWidgetToDisappear(
+          tester,
+          backButton,
+          timeout: const Duration(seconds: 5),
+        );
+        expect(
+          backToPlanner,
+          isTrue,
+          reason: 'Should navigate back to Planner',
+        );
+
+        expectBrowserTitle('Planner');
+        expectOnPlannerScreen(isMobile: true);
+        _log.info('Back on Planner screen');
+      } finally {
+        // 8. Whether pass or fail, resize screen back to desktop size
+        tester.view.physicalSize = originalSize;
+        tester.view.devicePixelRatio = originalDevicePixelRatio;
+        await tester.pumpAndSettle();
+      }
+    });
+
+    namedTestWidgets('4. Todos view filtering and checkbox toggle', (
+      tester,
+    ) async {
+      if (!canProceed) {
+        _log.warning('Skipping: user does not exist');
+        skipTest('user does not exist (run signup_user_test first)');
+        return;
       }
 
       await initializeTestApp(tester);
@@ -476,8 +527,7 @@ void main() {
       // User timezone is set to America/Chicago during registration
       expect(
         find.byWidgetPredicate(
-          (w) =>
-              w is SelectableText && (w.data?.contains('11 AM') ?? false),
+          (w) => w is SelectableText && (w.data?.contains('11 AM') ?? false),
         ),
         findsOneWidget,
         reason: 'Row should show due date with 11 AM (Chicago timezone)',
@@ -527,9 +577,15 @@ void main() {
       );
 
       // Verify the edit dialog did NOT open (we should still be on Todos view)
-      expect(
+      // Wait to ensure it doesn't open after a delay
+      final editDialogOpened = await waitForWidget(
+        tester,
         find.text('Edit Assignment'),
-        findsNothing,
+        timeout: const Duration(seconds: 10),
+      );
+      expect(
+        editDialogOpened,
+        isFalse,
         reason: 'Edit dialog should NOT open when clicking checkbox',
       );
 
@@ -553,12 +609,9 @@ void main() {
         equals('40/50'),
         reason: 'Grade should still be 40/50 even after unchecking completed',
       );
-      _log.info(
-        'API verification successful: homework marked incomplete, grade preserved',
-      );
     });
 
-    namedTestWidgets('5. Can edit homework item (CRUD operation)', (
+    namedTestWidgets('5. Month view edit assignment and checkbox toggle', (
       tester,
     ) async {
       if (!canProceed) {
@@ -597,6 +650,7 @@ void main() {
         reason: 'Edit screen: "Edit Assignment" title should be shown',
       );
       expectBrowserTitle('Planner');
+      _log.info('Edit Assignment dialog opened ...');
 
       // 1. Change title to "Quiz 4 (Edited)"
       // TextField content is in EditableText, not Text, so use a custom finder
@@ -620,78 +674,68 @@ void main() {
       await enterTextInField(tester, titleField, 'Quiz 4 (Edited)');
 
       // 2. Change time to 2pm - tap on the time field to open time picker
-      _log.info('Opening time picker to change time to 2pm ...');
+      _log.info('Change time to 2pm ...');
       final timeFields = find.byIcon(Icons.access_time);
-      if (timeFields.evaluate().isNotEmpty) {
-        await tester.tap(timeFields.first);
-        await tester.pumpAndSettle();
+      expect(
+        timeFields,
+        findsWidgets,
+        reason: 'Time field icon should be present',
+      );
 
-        // In the time picker, enter 2:00 PM
-        // Clear and enter new time in the input field
-        final hourField = find.byType(TextField);
-        if (hourField.evaluate().isNotEmpty) {
-          _log.info('Time picker opened, entering time ...');
-          // Time picker input mode - enter the time
-          await tester.enterText(hourField.first, '2');
-          await tester.pumpAndSettle();
-          // Find minute field and enter 00
-          if (hourField.evaluate().length > 1) {
-            await tester.enterText(hourField.at(1), '00');
-            await tester.pumpAndSettle();
-          }
-          // Tap PM if needed and confirm
-          final pmButton = find.text('PM');
-          if (pmButton.evaluate().isNotEmpty) {
-            await tester.tap(pmButton);
-            await tester.pumpAndSettle();
-          }
-          final okButton = find.text('OK');
-          if (okButton.evaluate().isNotEmpty) {
-            await tester.tap(okButton);
-            await tester.pumpAndSettle();
-            _log.info('Time picker closed');
-          }
-        } else {
-          _log.warning('Time picker did not show text fields');
-        }
-      } else {
-        _log.warning('Time field icon not found');
-      }
-
-      // 3. Scroll down to find the completed checkbox
-      final scrollable = find.byType(SingleChildScrollView);
-      if (scrollable.evaluate().isNotEmpty) {
-        await tester.drag(scrollable.first, const Offset(0, -200));
-        await tester.pumpAndSettle();
-      }
-
-      // 4. Toggle "Completed" checkbox (this will make the grade field appear)
-      // Find checkboxes - we need the one that's not All Day or Show End
-      final checkboxes = find.byType(Checkbox);
-      expect(checkboxes, findsWidgets, reason: 'Checkboxes should exist');
-      // Tap the last checkbox which should be Completed
-      await tester.tap(checkboxes.last);
+      await tester.tap(timeFields.first);
       await tester.pumpAndSettle();
+
+      // Switch to dial mode to tap on clock face
+      final switchToDial = find.byTooltip('Switch to dial picker mode');
+      if (switchToDial.evaluate().isNotEmpty) {
+        await tester.tap(switchToDial);
+        await tester.pumpAndSettle();
+      }
+
+      // Find the dial and tap at 2 o'clock position
+      final dialFinder = find.byWidgetPredicate(
+        (Widget w) => '${w.runtimeType}' == '_Dial',
+      );
+      final center = tester.getCenter(dialFinder);
+      final topRight = tester.getTopRight(dialFinder);
+      final radius = topRight.dx - center.dx;
+
+      // 2 o'clock = 60 degrees from 12 (top), in radians: (60 - 90) * pi / 180
+      const hour2Angle = (60 - 90) * 3.14159 / 180;
+      final tapAt = Offset(
+        center.dx + radius * 0.7 * cos(hour2Angle),
+        center.dy + radius * 0.7 * sin(hour2Angle),
+      );
+      await tester.tapAt(tapAt);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      // 3. Scroll to and tap the Complete checkbox
+      final completeCheckbox = find.widgetWithText(
+        CheckboxListTile,
+        'Complete',
+      );
+      await scrollUntilVisible(tester, completeCheckbox);
+      await tester.tap(completeCheckbox);
+      await tester.pumpAndSettle();
+      _log.info('Tapped complete checkbox');
 
       // 5. Set a grade (grade field appears when completed is checked)
       final gradeField = find.widgetWithText(TextField, 'Grade');
       if (gradeField.evaluate().isNotEmpty) {
         await enterTextInField(tester, gradeField, '95/100');
         await tester.pumpAndSettle();
+        _log.info('Entered grade: 95/100');
       }
 
       // Find and tap the Save button
       _log.info('Saving homework changes ...');
-      final saveButton = find.text('Save');
-      if (saveButton.evaluate().isNotEmpty) {
-        await tester.tap(saveButton);
+      final saveIcon = find.byIcon(Icons.check);
+      if (saveIcon.evaluate().isNotEmpty) {
+        await tester.tap(saveIcon);
         await tester.pumpAndSettle(const Duration(seconds: 3));
-      } else {
-        final saveIcon = find.byIcon(Icons.check);
-        if (saveIcon.evaluate().isNotEmpty) {
-          await tester.tap(saveIcon);
-          await tester.pumpAndSettle(const Duration(seconds: 3));
-        }
       }
 
       // Verify the edit dialog has closed
@@ -712,6 +756,20 @@ void main() {
       );
       expectOnPlannerScreen();
 
+      // Wait for updated item to appear in calendar
+      final updatedItem = findRichTextContaining('Quiz 4 (Edited)');
+      final itemAppeared = await waitForWidget(
+        tester,
+        updatedItem,
+        timeout: const Duration(seconds: 10),
+      );
+      expect(
+        itemAppeared,
+        isTrue,
+        reason: 'Calendar should show homework with updated title',
+      );
+      _log.info('UI shows updated homework title');
+
       // Verify changes were persisted to the backend API
       _log.info('Verifying homework update via API ...');
       final editedHomework = await apiHelper.findHomeworkByTitle('(Edited)');
@@ -729,15 +787,25 @@ void main() {
         equals('Quiz 4 (Edited)'),
         reason: 'Title should be "Quiz 4 (Edited)"',
       );
-      // Verify time was changed to 2pm local (model already has DateTime)
-      final startTimeLocal = editedHomework.start.toLocal();
-      expect(
-        startTimeLocal.hour,
-        equals(14),
-        reason: 'Start time hour should be 14 (2pm local)',
+      // Verify time was changed to 2pm Chicago time
+      // Convert expected 2pm Chicago to UTC using the homework's actual date
+      final chicago = tz.getLocation('America/Chicago');
+      final expected2pmChicago = tz.TZDateTime(
+        chicago,
+        editedHomework.start.year,
+        editedHomework.start.month,
+        editedHomework.start.day,
+        14, // 2pm
+        0,
       );
       expect(
-        startTimeLocal.minute,
+        editedHomework.start.toUtc().hour,
+        equals(expected2pmChicago.toUtc().hour),
+        reason:
+            'Start time should be 2pm Chicago (${expected2pmChicago.toUtc().hour}:00 UTC)',
+      );
+      expect(
+        editedHomework.start.minute,
         equals(0),
         reason: 'Start time minute should be 0',
       );
@@ -752,145 +820,216 @@ void main() {
         reason: 'Grade should be "95/100"',
       );
 
-      _log.info('API verification successful: all homework changes persisted');
+      // 6. Tap the checkbox on the calendar item to uncheck it
+      _log.info('Tapping checkbox in month view ...');
+
+      // Find the edited homework item
+      final editedItemOnCalendar = findRichTextContaining('Quiz 4 (Edited)');
+      expect(
+        editedItemOnCalendar,
+        findsWidgets,
+        reason: 'Should find edited item',
+      );
+
+      // Find the KeyedSubtree ancestor (each calendar item has ValueKey('planner_item_$id'))
+      final itemContainer = find
+          .ancestor(
+            of: editedItemOnCalendar.first,
+            matching: find.byType(KeyedSubtree),
+          )
+          .first;
+
+      // Find the Checkbox within that specific item container
+      final checkbox = find.descendant(
+        of: itemContainer,
+        matching: find.byType(Checkbox),
+      );
+      expect(
+        checkbox,
+        findsOneWidget,
+        reason: 'Should find checkbox in item container',
+      );
+
+      await tester.tap(checkbox);
+      await tester.pumpAndSettle(const Duration(seconds: 2));
+      _log.info('Tapped checkbox to uncheck');
+
+      final editDialogOpenedAgain = await waitForWidget(
+        tester,
+        find.text('Edit Assignment'),
+        timeout: const Duration(seconds: 5),
+      );
+      expect(
+        editDialogOpenedAgain,
+        isFalse,
+        reason: 'Edit dialog should NOT open when clicking checkbox',
+      );
+
+      // 7. Wait for UI to update after checkbox toggle
+      await tester.pumpAndSettle(const Duration(seconds: 2));
+      _log.info('Checkbox toggled, verifying state via API ...');
+
+      // 8. Verify via API that completed is now false
+      _log.info('Verifying unchecked state via API ...');
+      final uncheckedHomework = await apiHelper.findHomeworkByTitle(
+        'Quiz 4 (Edited)',
+      );
+      expect(
+        uncheckedHomework,
+        isNotNull,
+        reason: 'Should find homework via API',
+      );
+      expect(
+        uncheckedHomework!.completed,
+        isFalse,
+        reason: 'Homework should be marked incomplete after unchecking',
+      );
+      // Grade should still be present
+      expect(
+        uncheckedHomework.currentGrade,
+        equals('95/100'),
+        reason: 'Grade should still be 95/100 after unchecking',
+      );
     });
 
-    // namedTestWidgets('6. User can clear example schedule', (tester) async {
-    //   if (!canProceed) {
-    //     _log.warning('Skipping: user does not exist');
-    //     skipTest('user does not exist (run signup_user_test first)');
-    //     return;
-    //   }
-    //
-    //   await initializeTestApp(tester);
-    //   await ensureOnLoginScreen(tester);
-    //
-    //   // Log in - but DON'T dismiss the welcome dialog automatically
-    //   await enterTextInField(
-    //     tester,
-    //     find.widgetWithText(TextField, 'Email'),
-    //     testEmail,
-    //   );
-    //   await enterTextInField(
-    //     tester,
-    //     find.widgetWithText(TextField, 'Password'),
-    //     testPassword,
-    //   );
-    //
-    //   await tester.tap(find.text('Sign In'));
-    //
-    //   // Wait for the welcome dialog to appear
-    //   final welcomeDialogFound = await waitForWidget(
-    //     tester,
-    //     find.text('Welcome to Helium!'),
-    //     timeout: const Duration(seconds: 45),
-    //   );
-    //
-    //   if (!welcomeDialogFound) {
-    //     await initializeTestApp(tester);
-    //     await ensureOnLoginScreen(tester);
-    //
-    //     await enterTextInField(
-    //       tester,
-    //       find.widgetWithText(TextField, 'Email'),
-    //       testEmail,
-    //     );
-    //     await enterTextInField(
-    //       tester,
-    //       find.widgetWithText(TextField, 'Password'),
-    //       testPassword,
-    //     );
-    //
-    //     await tester.tap(find.text('Sign In'));
-    //
-    //     final retryWelcomeFound = await waitForWidget(
-    //       tester,
-    //       find.text('Welcome to Helium!'),
-    //       timeout: const Duration(seconds: 45),
-    //     );
-    //
-    //     if (!retryWelcomeFound) {
-    //       skipTest(
-    //         'Welcome dialog not available (example schedule may be cleared)',
-    //       );
-    //       return;
-    //     }
-    //   }
-    //
-    //   // Click "Clear Example Data" button
-    //   final clearButton = find.text('Clear Example Data');
-    //   expect(
-    //     clearButton,
-    //     findsOneWidget,
-    //     reason: 'Clear Example Data button should exist',
-    //   );
-    //
-    //   _log.info('Clicking Clear Example Data button ...');
-    //   await tester.tap(clearButton);
-    //
-    //   // The delete operation is async - give it time to process
-    //   // pumpAndSettle may return before the API call completes
-    //   await tester.pump(const Duration(seconds: 2));
-    //   await tester.pumpAndSettle(const Duration(seconds: 5));
-    //
-    //   // Check for error snackbar (indicates API failure)
-    //   final errorSnackbar = find.textContaining('Failed to delete');
-    //   if (errorSnackbar.evaluate().isNotEmpty) {
-    //     _log.warning('Delete example schedule failed - API error');
-    //     skipTest('Delete example schedule API failed');
-    //     return;
-    //   }
-    //
-    //   // Wait for navigation to Classes screen
-    //   _log.info('Waiting for navigation to Classes screen ...');
-    //   final classesScreenFound = await waitForRoute(
-    //     tester,
-    //     AppRoute.coursesScreen,
-    //     browserTitle: 'Classes',
-    //     timeout: const Duration(seconds: 45),
-    //   );
-    //   expect(
-    //     classesScreenFound,
-    //     isTrue,
-    //     reason: 'Should navigate to Classes screen after clearing example data',
-    //   );
-    //
-    //   _log.info('Reached Classes screen, verifying example data was cleared');
-    //   await tester.pumpAndSettle(const Duration(seconds: 3));
-    //
-    //   // Assert the Classes screen is empty
-    //   final hasFallSemester = find
-    //       .textContaining('Fall Semester')
-    //       .evaluate()
-    //       .isNotEmpty;
-    //   final hasProgramming = find
-    //       .textContaining('Programming')
-    //       .evaluate()
-    //       .isNotEmpty;
-    //   final hasWriting = find.textContaining('Writing').evaluate().isNotEmpty;
-    //   final hasPsychology = find
-    //       .textContaining('Psychology')
-    //       .evaluate()
-    //       .isNotEmpty;
-    //
-    //   expect(
-    //     hasFallSemester,
-    //     isFalse,
-    //     reason: 'Fall Semester should be cleared',
-    //   );
-    //   expect(
-    //     hasProgramming,
-    //     isFalse,
-    //     reason: 'Programming course should be cleared',
-    //   );
-    //   expect(hasWriting, isFalse, reason: 'Writing course should be cleared');
-    //   expect(
-    //     hasPsychology,
-    //     isFalse,
-    //     reason: 'Psychology course should be cleared',
-    //   );
-    //
-    //   _log.info('Example data successfully cleared');
-    // });
+    namedTestWidgets('6. User can clear example schedule', (tester) async {
+      if (!canProceed) {
+        _log.warning('Skipping: user does not exist');
+        skipTest('user does not exist (run signup_user_test first)');
+        return;
+      }
+
+      await initializeTestApp(tester);
+      await ensureOnLoginScreen(tester);
+
+      // Log in - but DON'T dismiss the welcome dialog automatically
+      await enterTextInField(
+        tester,
+        find.widgetWithText(TextField, 'Email'),
+        testEmail,
+      );
+      await enterTextInField(
+        tester,
+        find.widgetWithText(TextField, 'Password'),
+        testPassword,
+      );
+
+      await tester.tap(find.text('Sign In'));
+
+      // Wait for the welcome dialog to appear
+      final welcomeDialogFound = await waitForWidget(
+        tester,
+        find.text('Welcome to Helium!'),
+        timeout: const Duration(seconds: 45),
+      );
+
+      if (!welcomeDialogFound) {
+        await initializeTestApp(tester);
+        await ensureOnLoginScreen(tester);
+
+        await enterTextInField(
+          tester,
+          find.widgetWithText(TextField, 'Email'),
+          testEmail,
+        );
+        await enterTextInField(
+          tester,
+          find.widgetWithText(TextField, 'Password'),
+          testPassword,
+        );
+
+        await tester.tap(find.text('Sign In'));
+
+        final retryWelcomeFound = await waitForWidget(
+          tester,
+          find.text('Welcome to Helium!'),
+          timeout: const Duration(seconds: 45),
+        );
+
+        if (!retryWelcomeFound) {
+          skipTest(
+            'Welcome dialog not available (example schedule may be cleared)',
+          );
+          return;
+        }
+      }
+
+      // Click "Clear Example Data" button
+      final clearButton = find.text('Clear Example Data');
+      expect(
+        clearButton,
+        findsOneWidget,
+        reason: 'Clear Example Data button should exist',
+      );
+
+      _log.info('Clicking Clear Example Data button ...');
+      await tester.tap(clearButton);
+
+      // The delete operation is async - give it time to process
+      // pumpAndSettle may return before the API call completes
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+
+      // Check for error snackbar (indicates API failure)
+      final errorSnackbar = find.textContaining('Failed to delete');
+      if (errorSnackbar.evaluate().isNotEmpty) {
+        _log.warning('Delete example schedule failed - API error');
+        skipTest('Delete example schedule API failed');
+        return;
+      }
+
+      // Wait for navigation to Classes screen
+      _log.info('Waiting for navigation to Classes screen ...');
+      final classesScreenFound = await waitForRoute(
+        tester,
+        AppRoute.coursesScreen,
+        browserTitle: 'Classes',
+        timeout: const Duration(seconds: 45),
+      );
+      expect(
+        classesScreenFound,
+        isTrue,
+        reason: 'Should navigate to Classes screen after clearing example data',
+      );
+
+      _log.info(
+        'Reached Classes screen, verifying example data was cleared ...',
+      );
+      await tester.pumpAndSettle(const Duration(seconds: 3));
+
+      // Assert the Classes screen is empty
+      final hasFallSemester = find
+          .textContaining('Fall Semester')
+          .evaluate()
+          .isNotEmpty;
+      final hasProgramming = find
+          .textContaining('Programming')
+          .evaluate()
+          .isNotEmpty;
+      final hasWriting = find.textContaining('Writing').evaluate().isNotEmpty;
+      final hasPsychology = find
+          .textContaining('Psychology')
+          .evaluate()
+          .isNotEmpty;
+
+      expect(
+        hasFallSemester,
+        isFalse,
+        reason: 'Fall Semester should be cleared',
+      );
+      expect(
+        hasProgramming,
+        isFalse,
+        reason: 'Programming course should be cleared',
+      );
+      expect(hasWriting, isFalse, reason: 'Writing course should be cleared');
+      expect(
+        hasPsychology,
+        isFalse,
+        reason: 'Psychology course should be cleared',
+      );
+
+      _log.info('... example data successfully cleared');
+    });
   });
 }

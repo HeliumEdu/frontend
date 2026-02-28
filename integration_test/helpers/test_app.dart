@@ -414,6 +414,8 @@ Future<void> scrollUntilVisible(
     scrollable: scrollable,
     maxScrolls: maxScrolls,
   );
+  // Ensure widget is fully visible, not just partially
+  await tester.ensureVisible(finder);
   await tester.pumpAndSettle();
 }
 

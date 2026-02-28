@@ -254,7 +254,6 @@ class ApiHelper {
       );
 
       if (response.statusCode == 200) {
-        _log.info('Updated homework $homeworkId');
         return true;
       }
       _log.warning('Failed to update homework: ${response.statusCode}');
