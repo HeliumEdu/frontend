@@ -373,27 +373,36 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       );
     }
 
-    // When NOT inside NavigationScaffold (sub-pages), use full Scaffold
+    // When NOT inside NavigationScaffold (sub-pages), use full Scaffold.
+    // Only apply the Title widget while this route is the active/topmost route.
+    // During the exit animation isCurrent is false, which prevents the Title
+    // widget from overriding the browser title already set by NavigationShell
+    // (e.g. "Planner") while the old screen slides out.
+    final isCurrentRoute = ModalRoute.of(context)?.isCurrent ?? true;
+    final scaffold = Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            buildPageHeader(),
+            Expanded(child: content),
+          ],
+        ),
+      ),
+      floatingActionButton: showActionButton && actionButtonCallback != null
+          ? buildFloatingActionButton()
+          : null,
+    );
+    if (!isCurrentRoute) {
+      return scaffold;
+    }
     return Title(
       title: '$screenTitle | ${AppConstants.appName}',
       color: context.colorScheme.primary,
-      child: Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        body: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              buildPageHeader(),
-              Expanded(child: content),
-            ],
-          ),
-        ),
-        floatingActionButton: showActionButton && actionButtonCallback != null
-            ? buildFloatingActionButton()
-            : null,
-      ),
+      child: scaffold,
     );
   }
 
