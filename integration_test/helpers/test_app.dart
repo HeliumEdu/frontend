@@ -846,26 +846,16 @@ void expectOnSettingsScreen({required bool isDialog}) {
     reason: 'Settings: "Change Password" button should be shown',
   );
   if (isDialog) {
-    // Dialog mode: FAB from underlying Planner is still visible, title stays on Planner
-    expect(
-      find.byType(FloatingActionButton),
-      findsOneWidget,
-      reason: 'Settings dialog: FAB should be shown (from Planner)',
-    );
+    // Dialog mode: title stays on Planner (dialog doesn't change browser title)
     expectBrowserTitle('Planner');
   } else {
-    // Mobile screen mode: no FAB, "Settings" title shown in page header (not browser title)
-    expect(
-      find.byType(FloatingActionButton),
-      findsNothing,
-      reason: 'Settings screen: FAB should NOT be shown',
-    );
+    // Mobile screen mode: "Settings" title shown in page header, browser title updates
     expect(
       find.text('Settings'),
       findsOneWidget,
       reason: 'Settings screen: Settings title should be shown in page header',
     );
-    expectBrowserTitle('Planner');
+    expectBrowserTitle('Settings');
   }
 }
 

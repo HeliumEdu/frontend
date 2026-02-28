@@ -238,7 +238,6 @@ void main() {
         expect(dialogOpened, isTrue, reason: 'Settings dialog should open');
 
         // Verify browser title did NOT change (dialog mode)
-        expectBrowserTitle('Planner');
         expectOnSettingsScreen(isDialog: true);
         _log.info('Settings dialog opened, browser title still Planner');
 
@@ -251,6 +250,8 @@ void main() {
         );
         expect(dialogClosed, isTrue, reason: 'Settings dialog should close');
         _log.info('Settings dialog closed');
+        
+        expectBrowserTitle('Planner');
 
         // 3. Assert that "Quiz 4" can be seen on desktop calendar
         expect(
@@ -295,7 +296,6 @@ void main() {
         expect(screenOpened, isTrue, reason: 'Settings screen should open');
 
         // Verify browser title changed to Settings (screen mode)
-        expectBrowserTitle('Settings');
         expectOnSettingsScreen(isDialog: false);
         expect(
           find.byIcon(Icons.close),
