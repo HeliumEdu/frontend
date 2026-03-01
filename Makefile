@@ -9,6 +9,7 @@ DOCKER_CACHE_DIR ?= .docker-cache
 ENVIRONMENT ?= dev-local
 INTEGRATION_TARGET ?= integration_test/full_test.dart
 INTEGRATION_HEADLESS ?= true
+INTEGRATION_EMAIL_SUFFIX ?= integration-$(USER)
 ifeq ($(ENVIRONMENT),dev-local)
     PROJECT_API_HOST := http://localhost:8000
 else
