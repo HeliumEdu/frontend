@@ -91,9 +91,6 @@ class EmailHelper {
       final nowUtc = DateTime.now().toUtc();
       final staleThreshold = nowUtc.subtract(const Duration(minutes: 10));
 
-      _log.fine('sentAfter: $sentAfter');
-      _log.fine('s3Timestamp: $s3Timestamp');
-
       // Validate: arrived after sentAfter, for our user, and has verification code
       final localPart = username.split('@').first;
       final usernamePattern = 'username=$localPart&code';
