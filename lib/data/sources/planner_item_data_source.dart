@@ -390,32 +390,37 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
         'Fetching data for range: $startDate to $endDate${forceRefresh ? ' (force refresh)' : ''}',
       );
 
-      final homeworks = await homeworkRepository.getHomeworks(
-        from: startDate,
-        to: endDate,
-        shownOnCalendar: true,
-        forceRefresh: forceRefresh,
-      );
-      final events = await eventRepository.getEvents(
-        from: startDate,
-        to: endDate,
-        forceRefresh: forceRefresh,
-      );
-      final courseScheduleEvents = await courseScheduleRepository
-          .getCourseScheduleEvents(
-            courses: courses ?? [],
-            from: startDate,
-            to: endDate,
-            shownOnCalendar: true,
-            forceRefresh: forceRefresh,
-          );
-      final externalCalendarEvents = await externalCalendarRepository
-          .getExternalCalendarEvents(
-            from: startDate,
-            to: endDate,
-            shownOnCalendar: true,
-            forceRefresh: forceRefresh,
-          );
+      final results = await Future.wait([
+        homeworkRepository.getHomeworks(
+          from: startDate,
+          to: endDate,
+          shownOnCalendar: true,
+          forceRefresh: forceRefresh,
+        ),
+        eventRepository.getEvents(
+          from: startDate,
+          to: endDate,
+          forceRefresh: forceRefresh,
+        ),
+        courseScheduleRepository.getCourseScheduleEvents(
+          courses: courses ?? [],
+          from: startDate,
+          to: endDate,
+          shownOnCalendar: true,
+          forceRefresh: forceRefresh,
+        ),
+        externalCalendarRepository.getExternalCalendarEvents(
+          from: startDate,
+          to: endDate,
+          shownOnCalendar: true,
+          forceRefresh: forceRefresh,
+        ),
+      ]);
+      final homeworks = results[0] as List<HomeworkModel>;
+      final events = results[1] as List<EventModel>;
+      final courseScheduleEvents = results[2] as List<CourseScheduleEventModel>;
+      final externalCalendarEvents =
+          results[3] as List<ExternalCalendarEventModel>;
 
       final plannerItems = [
         ...events,
