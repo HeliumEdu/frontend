@@ -75,6 +75,9 @@ endif
 ifdef INTEGRATION_EMAIL_SUFFIX
     DRIVE_ARGS += --dart-define=INTEGRATION_EMAIL_SUFFIX=$(INTEGRATION_EMAIL_SUFFIX)
 endif
+ifdef SENTRY_RELEASE
+    DRIVE_ARGS += --dart-define=SENTRY_RELEASE=$(SENTRY_RELEASE)
+endif
 
 all: test
 
