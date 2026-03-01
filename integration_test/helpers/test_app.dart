@@ -30,6 +30,8 @@ import 'package:meta/meta.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:web/web.dart' as web;
 
+import 'test_config.dart';
+
 final _log = Logger('test_app_helper');
 
 bool _initialized = false;
@@ -563,7 +565,7 @@ Future<bool> loginAndNavigateToPlanner(
     tester,
     AppRoute.plannerScreen,
     browserTitle: 'Planner',
-    timeout: const Duration(seconds: 30),
+    timeout: TestConfig().apiTimeout,
   );
 
   if (!reachedPlanner) {

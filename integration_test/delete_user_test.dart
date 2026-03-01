@@ -135,7 +135,7 @@ void main() {
         tester,
         AppRoute.loginScreen,
         browserTitle: 'Login',
-        timeout: const Duration(seconds: 30),
+        timeout: config.apiTimeout,
       );
       expect(
         loginScreenFound,

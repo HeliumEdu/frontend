@@ -120,7 +120,7 @@ void main() {
         tester,
         AppRoute.verifyEmailScreen,
         browserTitle: 'Verify Email',
-        timeout: const Duration(seconds: 15),
+        timeout: config.apiTimeout,
       );
       expect(
         verifyScreenFound,
@@ -208,7 +208,7 @@ void main() {
         tester,
         AppRoute.plannerScreen,
         browserTitle: 'Planner',
-        timeout: const Duration(seconds: 30),
+        timeout: config.apiTimeout,
       );
       expect(
         reachedPlanner,
