@@ -5,11 +5,20 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:io';
+
 /// Configuration for integration tests.
 class TestConfig {
   static final TestConfig _instance = TestConfig._internal();
+
   factory TestConfig() => _instance;
+
   TestConfig._internal();
+
+  final String _localUsername =
+      Platform.environment['USER'] ??
+      Platform.environment['USERNAME'] ??
+      'unknown';
 
   /// Environment: 'dev', 'dev-local', etc. (prod not supported for integration tests)
   String get environment =>
@@ -47,15 +56,18 @@ class TestConfig {
 
   /// S3 object key prefix for this environment's emails
   /// SES receipt rule stores at: {environment}/inbound.email/heliumedu-cluster/
-  String get s3ObjectKeyPrefix => '$environment/inbound.email/heliumedu-cluster/';
+  String get s3ObjectKeyPrefix =>
+      '$environment/inbound.email/heliumedu-cluster/';
 
   /// Email domain for test users
   /// SES receipt rule stores at: inbound.email/heliumedu-cluster/
   String get emailDomain => '${_envPrefix}heliumedu.dev';
 
   /// Email suffix for test accounts (reuse to avoid test account pollution)
-  String get emailSuffix =>
-      const String.fromEnvironment('INTEGRATION_EMAIL_SUFFIX', defaultValue: 'integration');
+  String get emailSuffix => String.fromEnvironment(
+    'INTEGRATION_EMAIL_SUFFIX',
+    defaultValue: 'local-$_localUsername',
+  );
 
   /// Test email address: heliumedu-cluster-{emailSuffix}@{emailDomain}
   String get testEmail => 'heliumedu-cluster+$emailSuffix@$emailDomain';
