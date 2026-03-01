@@ -64,4 +64,9 @@ class TestConfig {
   String get testPassword => 'IntegrationTestPassword123!';
 
   bool get isDevLocal => environment == 'dev-local';
+
+  /// Timeout for operations that depend on an API response (network round-trip
+  /// to the backend). CI runners can be slow under load, so 45 s gives enough
+  /// headroom without making failures take too long to surface.
+  Duration get apiTimeout => const Duration(seconds: 45);
 }

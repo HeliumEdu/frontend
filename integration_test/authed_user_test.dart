@@ -173,13 +173,19 @@ void main() {
       final quizLoaded = await waitForWidget(
         tester,
         findRichTextContaining('Quiz 4'),
-        timeout: const Duration(seconds: 15),
+        timeout: config.apiTimeout,
       );
       expect(quizLoaded, isTrue, reason: 'Quiz 4 should appear after loading');
 
-      expect(
+      final portfolioLoaded = await waitForWidget(
+        tester,
         findRichTextContaining('Final Portfolio Writing Workshop'),
-        findsOneWidget,
+        timeout: config.apiTimeout,
+      );
+      expect(
+        portfolioLoaded,
+        isTrue,
+        reason: 'Final Portfolio Writing Workshop should appear after loading',
       );
       expect(
         findRichTextContaining('Intro to Psychology 🧠'),
@@ -377,7 +383,7 @@ void main() {
       final todosInitialized = await waitForWidget(
         tester,
         showingTextFinder,
-        timeout: const Duration(seconds: 15),
+        timeout: config.apiTimeout,
       );
       expect(
         todosInitialized,
@@ -650,7 +656,7 @@ void main() {
       final editScreenFound = await waitForWidget(
         tester,
         editDialogTitle,
-        timeout: const Duration(seconds: 10),
+        timeout: config.apiTimeout,
       );
       expect(editScreenFound, isTrue, reason: 'Should navigate to edit screen');
       expect(
@@ -761,7 +767,7 @@ void main() {
       final dialogClosed = await waitForWidgetToDisappear(
         tester,
         editDialogTitle,
-        timeout: const Duration(seconds: 10),
+        timeout: config.apiTimeout,
       );
       expect(
         dialogClosed,
@@ -780,7 +786,7 @@ void main() {
       final itemAppeared = await waitForWidget(
         tester,
         updatedItem,
-        timeout: const Duration(seconds: 10),
+        timeout: config.apiTimeout,
       );
       expect(
         itemAppeared,
