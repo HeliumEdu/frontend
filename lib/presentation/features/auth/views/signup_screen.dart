@@ -73,14 +73,6 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return MultiBlocListener(
-      listeners: buildListeners(context),
-      child: buildScaffold(context),
-    );
-  }
-
-  @override
   List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
     return [
       BlocListener<AuthBloc, AuthState>(

@@ -348,7 +348,8 @@ Future<bool> waitForRoute(
   String? browserTitle,
   Duration timeout = const Duration(seconds: 30),
 }) async {
-  final endTime = DateTime.now().add(timeout);
+  final startTime = DateTime.now();
+  final endTime = startTime.add(timeout);
 
   while (DateTime.now().isBefore(endTime)) {
     await tester.pump(const Duration(milliseconds: 100));
@@ -361,8 +362,16 @@ Future<bool> waitForRoute(
         continue;
       }
       await tester.pumpAndSettle();
+      if (testLogLevel == TestLogLevel.finer) {
+        final ms = DateTime.now().difference(startTime).inMilliseconds;
+        _log.fine('waitForRoute "$routePath": ${ms}ms');
+      }
       return true;
     }
+  }
+  if (testLogLevel == TestLogLevel.finer) {
+    final ms = DateTime.now().difference(startTime).inMilliseconds;
+    _log.fine('waitForRoute "$routePath": timed out after ${ms}ms');
   }
   return false;
 }
@@ -383,12 +392,21 @@ Future<bool> waitForWidget(
   Finder finder, {
   Duration timeout = const Duration(seconds: 10),
 }) async {
-  final endTime = DateTime.now().add(timeout);
+  final startTime = DateTime.now();
+  final endTime = startTime.add(timeout);
   while (DateTime.now().isBefore(endTime)) {
     await tester.pump(const Duration(milliseconds: 100));
     if (finder.evaluate().isNotEmpty) {
+      if (testLogLevel == TestLogLevel.finer) {
+        final ms = DateTime.now().difference(startTime).inMilliseconds;
+        _log.fine('waitForWidget "$finder": ${ms}ms');
+      }
       return true;
     }
+  }
+  if (testLogLevel == TestLogLevel.finer) {
+    final ms = DateTime.now().difference(startTime).inMilliseconds;
+    _log.fine('waitForWidget "$finder": timed out after ${ms}ms');
   }
   return false;
 }
@@ -428,12 +446,21 @@ Future<bool> waitForWidgetToDisappear(
   Finder finder, {
   Duration timeout = const Duration(seconds: 10),
 }) async {
-  final endTime = DateTime.now().add(timeout);
+  final startTime = DateTime.now();
+  final endTime = startTime.add(timeout);
   while (DateTime.now().isBefore(endTime)) {
     await tester.pump(const Duration(milliseconds: 100));
     if (finder.evaluate().isEmpty) {
+      if (testLogLevel == TestLogLevel.finer) {
+        final ms = DateTime.now().difference(startTime).inMilliseconds;
+        _log.fine('waitForWidgetToDisappear "$finder": ${ms}ms');
+      }
       return true;
     }
+  }
+  if (testLogLevel == TestLogLevel.finer) {
+    final ms = DateTime.now().difference(startTime).inMilliseconds;
+    _log.fine('waitForWidgetToDisappear "$finder": timed out after ${ms}ms');
   }
   return false;
 }
@@ -609,12 +636,21 @@ Future<bool> waitForBrowserTitle(
   String expectedPageName, {
   Duration timeout = const Duration(seconds: 5),
 }) async {
-  final endTime = DateTime.now().add(timeout);
+  final startTime = DateTime.now();
+  final endTime = startTime.add(timeout);
   while (DateTime.now().isBefore(endTime)) {
     await tester.pump(const Duration(milliseconds: 100));
     if (getBrowserTitle().contains(expectedPageName)) {
+      if (testLogLevel == TestLogLevel.finer) {
+        final ms = DateTime.now().difference(startTime).inMilliseconds;
+        _log.fine('waitForBrowserTitle "$expectedPageName": ${ms}ms');
+      }
       return true;
     }
+  }
+  if (testLogLevel == TestLogLevel.finer) {
+    final ms = DateTime.now().difference(startTime).inMilliseconds;
+    _log.fine('waitForBrowserTitle "$expectedPageName": timed out after ${ms}ms');
   }
   return false;
 }
