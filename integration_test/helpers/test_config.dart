@@ -76,7 +76,10 @@ class TestConfig {
   /// Timeout for operations that depend on an API response (network round-trip
   /// to the backend). CI runners can be slow under load, so this needs enough
   /// headroom without making failures take too long to surface.
-  /// Note: the delete user test's effective window is apiTimeout + 5s (for a
-  /// pumpAndSettle that precedes waitForRoute), so the total there is 65s.
   Duration get apiTimeout => const Duration(seconds: 60);
+
+  /// Extended timeout for the delete user redirect. The delete test always runs
+  /// last in the full suite, after Chrome has been executing for several minutes
+  /// and the browser/platform may be significantly slower than at suite start.
+  Duration get deleteUserTimeout => Duration(seconds: apiTimeout.inSeconds * 2);
 }

@@ -69,6 +69,7 @@ void main() {
       expectBrowserTitle('Planner');
 
       // Open settings (wait for button to be visible after navigation shell loads)
+      _log.info('Waiting for settings button ...');
       final settingsButton = find.byIcon(Icons.settings_outlined);
       final settingsFound = await waitForWidget(
         tester,
@@ -80,10 +81,12 @@ void main() {
         isTrue,
         reason: 'Settings button should be visible',
       );
+      _log.info('Tapping settings button ...');
       await tester.tap(settingsButton);
       await tester.pumpAndSettle(const Duration(seconds: 2));
 
       // Find and tap "Danger Zone"
+      _log.info('Scrolling to Danger Zone ...');
       final dangerZone = find.text('Danger Zone');
       await scrollUntilVisible(tester, dangerZone);
       expect(dangerZone, findsOneWidget, reason: 'Danger Zone should exist');
@@ -91,6 +94,7 @@ void main() {
       await tester.pumpAndSettle(const Duration(seconds: 2));
 
       // Find and tap "Delete Account"
+      _log.info('Tapping Delete Account ...');
       final deleteAccount = find.text('Delete Account');
       expect(
         deleteAccount,
@@ -101,6 +105,7 @@ void main() {
       await tester.pumpAndSettle(const Duration(seconds: 2));
 
       // Enter password in the confirmation dialog
+      _log.info('Entering password in confirmation dialog ...');
       final dialog = find.byType(AlertDialog);
       expect(
         dialog,
@@ -119,6 +124,7 @@ void main() {
       await enterTextInField(tester, passwordField, testPassword);
 
       // Confirm deletion
+      _log.info('Confirming account deletion ...');
       final deleteButton = find.descendant(
         of: dialog,
         matching: find.text('Delete'),
@@ -129,13 +135,18 @@ void main() {
         reason: 'Delete button should be in dialog',
       );
       await tester.tap(deleteButton);
-      await tester.pumpAndSettle(const Duration(seconds: 5));
 
+      // Use deleteUserTimeout (2x apiTimeout): this test always runs last in the
+      // full suite, when the browser has been running for several minutes and
+      // everything—login, API calls, navigation—takes significantly longer.
+      _log.info(
+        'Waiting for redirect to login (timeout: ${config.deleteUserTimeout.inSeconds}s) ...',
+      );
       final loginScreenFound = await waitForRoute(
         tester,
         AppRoute.loginScreen,
         browserTitle: 'Login',
-        timeout: config.apiTimeout,
+        timeout: config.deleteUserTimeout,
       );
       expect(
         loginScreenFound,
