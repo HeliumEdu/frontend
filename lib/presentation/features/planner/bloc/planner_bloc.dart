@@ -7,6 +7,9 @@
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/data/models/planner/category_model.dart';
+import 'package:heliumapp/data/models/planner/course_group_model.dart';
+import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/domain/repositories/category_repository.dart';
 import 'package:heliumapp/domain/repositories/course_repository.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planner_event.dart';
@@ -29,9 +32,14 @@ class PlannerBloc extends Bloc<PlannerEvent, PlannerState> {
   ) async {
     emit(PlannerLoading());
     try {
-      final courseGroups = await courseRepository.getCourseGroups(shownOnCalendar: true);
-      final courses = await courseRepository.getCourses(shownOnCalendar: true);
-      final categories = await categoryRepository.getCategories(shownOnCalendar: true);
+      final results = await Future.wait([
+        courseRepository.getCourseGroups(shownOnCalendar: true),
+        courseRepository.getCourses(shownOnCalendar: true),
+        categoryRepository.getCategories(shownOnCalendar: true),
+      ]);
+      final courseGroups = results[0] as List<CourseGroupModel>;
+      final courses = results[1] as List<CourseModel>;
+      final categories = results[2] as List<CategoryModel>;
 
       emit(PlannerScreenDataFetched(courseGroups: courseGroups, courses: courses, categories: categories));
     } on HeliumException catch (e) {

@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/planner/request/category_request_model.dart';
+import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/request/course_schedule_request_model.dart';
 import 'package:heliumapp/domain/repositories/category_repository.dart';
@@ -49,8 +50,12 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
   ) async {
     emit(CoursesLoading(origin: event.origin));
     try {
-      final courseGroups = await courseRepository.getCourseGroups();
-      final courses = await courseRepository.getCourses();
+      final results = await Future.wait([
+        courseRepository.getCourseGroups(),
+        courseRepository.getCourses(),
+      ]);
+      final courseGroups = results[0] as List<CourseGroupModel>;
+      final courses = results[1] as List<CourseModel>;
       emit(
         CoursesScreenDataFetched(
           origin: event.origin,
