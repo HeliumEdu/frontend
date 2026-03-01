@@ -76,5 +76,5 @@ class TestConfig {
   /// Timeout for operations that depend on an API response (network round-trip
   /// to the backend). CI runners can be slow under load, so this needs enough
   /// headroom without making failures take too long to surface.
-  Duration get apiTimeout => const Duration(seconds: 60);
+  Duration get apiTimeout => const Duration(seconds: 45);
 }
