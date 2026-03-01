@@ -136,17 +136,14 @@ void main() {
       );
       await tester.tap(deleteButton);
 
-      // Use deleteUserTimeout (2x apiTimeout): this test always runs last in the
-      // full suite, when the browser has been running for several minutes and
-      // everything—login, API calls, navigation—takes significantly longer.
       _log.info(
-        'Waiting for redirect to login (timeout: ${config.deleteUserTimeout.inSeconds}s) ...',
+        'Waiting for redirect to login (timeout: ${config.apiTimeout.inSeconds}s) ...',
       );
       final loginScreenFound = await waitForRoute(
         tester,
         AppRoute.loginScreen,
         browserTitle: 'Login',
-        timeout: config.deleteUserTimeout,
+        timeout: config.apiTimeout,
       );
       expect(
         loginScreenFound,

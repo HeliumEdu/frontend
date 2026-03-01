@@ -77,9 +77,4 @@ class TestConfig {
   /// to the backend). CI runners can be slow under load, so this needs enough
   /// headroom without making failures take too long to surface.
   Duration get apiTimeout => const Duration(seconds: 60);
-
-  /// Extended timeout for the delete user redirect. The delete test always runs
-  /// last in the full suite, after Chrome has been executing for several minutes
-  /// and the browser/platform may be significantly slower than at suite start.
-  Duration get deleteUserTimeout => Duration(seconds: apiTimeout.inSeconds * 2);
 }
