@@ -73,7 +73,7 @@ void main() {
       final settingsFound = await waitForWidget(
         tester,
         settingsButton,
-        timeout: const Duration(seconds: 10),
+        timeout: config.apiTimeout,
       );
       expect(
         settingsFound,

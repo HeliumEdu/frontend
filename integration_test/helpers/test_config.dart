@@ -5,8 +5,6 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'dart:io';
-
 /// Configuration for integration tests.
 class TestConfig {
   static final TestConfig _instance = TestConfig._internal();
@@ -14,11 +12,6 @@ class TestConfig {
   factory TestConfig() => _instance;
 
   TestConfig._internal();
-
-  final String _localUsername =
-      Platform.environment['USER'] ??
-      Platform.environment['USERNAME'] ??
-      'unknown';
 
   /// Environment: 'dev', 'dev-local', etc. (prod not supported for integration tests)
   String get environment =>
@@ -63,11 +56,14 @@ class TestConfig {
   /// SES receipt rule stores at: inbound.email/heliumedu-cluster/
   String get emailDomain => '${_envPrefix}heliumedu.dev';
 
-  /// Email suffix for test accounts (reuse to avoid test account pollution)
-  String get emailSuffix => String.fromEnvironment(
-    'INTEGRATION_EMAIL_SUFFIX',
-    defaultValue: 'local-$_localUsername',
-  );
+  /// Email suffix for test accounts (reuse to avoid test account pollution).
+  /// To use your local username, pass it at compile time:
+  ///   --dart-define=INTEGRATION_EMAIL_SUFFIX=$USER
+  String get emailSuffix =>
+      const String.fromEnvironment(
+        'INTEGRATION_EMAIL_SUFFIX',
+        defaultValue: 'integration',
+      );
 
   /// Test email address: heliumedu-cluster-{emailSuffix}@{emailDomain}
   String get testEmail => 'heliumedu-cluster+$emailSuffix@$emailDomain';
@@ -78,7 +74,9 @@ class TestConfig {
   bool get isDevLocal => environment == 'dev-local';
 
   /// Timeout for operations that depend on an API response (network round-trip
-  /// to the backend). CI runners can be slow under load, so 45 s gives enough
+  /// to the backend). CI runners can be slow under load, so this needs enough
   /// headroom without making failures take too long to surface.
-  Duration get apiTimeout => const Duration(seconds: 45);
+  /// Note: the delete user test's effective window is apiTimeout + 5s (for a
+  /// pumpAndSettle that precedes waitForRoute), so the total there is 65s.
+  Duration get apiTimeout => const Duration(seconds: 60);
 }
