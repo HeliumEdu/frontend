@@ -187,8 +187,14 @@ jobs:
           SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
           SIGNING_STORE_FILE: ${{ github.workspace }}/android/helium-release-key.jks
           SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: make build-android-release
+
+      - name: Upload debug symbols to Sentry
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: |
+          npm install -g @sentry/cli
+          make upload-android-symbols
 
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
@@ -284,9 +290,14 @@ jobs:
         run: flutter clean
 
       - name: Build iOS release IPA
+        run: make build-ios-release
+
+      - name: Upload debug symbols to Sentry
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-        run: make build-ios-release
+        run: |
+          npm install -g @sentry/cli
+          make upload-ios-symbols
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
