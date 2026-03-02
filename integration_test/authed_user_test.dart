@@ -51,6 +51,20 @@ void main() {
         canProceed = true;
       }
 
+      // Debug: Log course dates and homework count to diagnose date window issues
+      final courses = await apiHelper.getCourses();
+      if (courses != null) {
+        for (final course in courses) {
+          _log.info(
+            'Course "${course.title}": '
+            'start=${course.startDate.toIso8601String()}, '
+            'end=${course.endDate.toIso8601String()}',
+          );
+        }
+      }
+      final allHomework = await apiHelper.getHomeworkItems();
+      _log.info('Total homework items from API (no date filter): ${allHomework?.length ?? 0}');
+
       // Ensure Homework 1 is marked completed (in case previous run failed)
       final homework1Setup = await apiHelper.findHomeworkByTitle('Homework 1');
       if (homework1Setup != null && !homework1Setup.completed) {
