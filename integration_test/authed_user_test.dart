@@ -51,55 +51,6 @@ void main() {
         canProceed = true;
       }
 
-      // Debug: Log course dates and homework count to diagnose date window issues
-      final courses = await apiHelper.getCourses();
-      String? fromDate;
-      String? toDate;
-      if (courses != null) {
-        DateTime? earliestStart;
-        DateTime? latestEnd;
-        for (final course in courses) {
-          _log.info(
-            'Course "${course.title}": '
-            'start=${course.startDate.toIso8601String()}, '
-            'end=${course.endDate.toIso8601String()}',
-          );
-          if (earliestStart == null ||
-              course.startDate.isBefore(earliestStart)) {
-            earliestStart = course.startDate;
-          }
-          if (latestEnd == null || course.endDate.isAfter(latestEnd)) {
-            latestEnd = course.endDate;
-          }
-        }
-        if (earliestStart != null && latestEnd != null) {
-          // Match the frontend logic: add 1 day to end date
-          final adjustedEnd = latestEnd.add(const Duration(days: 1));
-          fromDate =
-              '${earliestStart.year}-${earliestStart.month.toString().padLeft(2, '0')}-${earliestStart.day.toString().padLeft(2, '0')}';
-          toDate =
-              '${adjustedEnd.year}-${adjustedEnd.month.toString().padLeft(2, '0')}-${adjustedEnd.day.toString().padLeft(2, '0')}';
-          _log.info('Calculated date window: from=$fromDate to=$toDate');
-        }
-      }
-      final allHomework = await apiHelper.getHomeworkItems();
-      _log.info(
-        'Total homework items from API (no date filter): ${allHomework?.length ?? 0}',
-      );
-
-      // Also test with the same date filter the Todos view uses
-      if (fromDate != null && toDate != null) {
-        final filteredHomework = await apiHelper.getHomeworkItems(
-          from: fromDate,
-          to: toDate,
-          shownOnCalendar: true,
-        );
-        _log.info(
-          'Homework items with date filter ($fromDate to $toDate, shownOnCalendar=true): '
-          '${filteredHomework?.length ?? 0}',
-        );
-      }
-
       // Ensure Homework 1 is marked completed (in case previous run failed)
       final homework1Setup = await apiHelper.findHomeworkByTitle('Homework 1');
       if (homework1Setup != null && !homework1Setup.completed) {

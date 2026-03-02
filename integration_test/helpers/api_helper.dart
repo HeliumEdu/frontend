@@ -205,8 +205,6 @@ class ApiHelper {
       final uri = Uri.parse('$apiHost${ApiUrl.plannerHomeworkListUrl}')
           .replace(queryParameters: queryParams.isEmpty ? null : queryParams);
 
-      _log.info('Fetching homework from: $uri');
-
       final response = await http.get(
         uri,
         headers: {
