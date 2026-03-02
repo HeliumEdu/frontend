@@ -166,7 +166,7 @@ Future<void> _processResult(Map<String, dynamic> data) async {
       }
       // ignore: avoid_print
       print(' $_red✗  FAIL:$_reset ${data['test']}');
-      stdout.flush();
+      await stdout.flush();
       break;
 
     case 'log':
@@ -188,7 +188,7 @@ Future<void> _processResult(Map<String, dynamic> data) async {
           final file = File('${dir.path}/${sanitized}_$timestamp.png');
           await file.writeAsBytes(bytes);
           // ignore: avoid_print
-          print('    ${_grey}📷 ${file.path}$_reset');
+          print('    $_grey📷 ${file.path}$_reset');
         } catch (e) {
           // ignore: avoid_print
           print('    ${_grey}Screenshot failed: $e$_reset');
