@@ -683,7 +683,9 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       appointments!.add(plannerItem);
       Sort.byStartThenTitle(appointments!.cast<PlannerItemBaseModel>());
       _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
-      notifyListeners(CalendarDataSourceAction.add, [plannerItem]);
+      if (!_isDisposed) {
+        notifyListeners(CalendarDataSourceAction.add, [plannerItem]);
+      }
     }
 
     _applyFiltersAndNotify();
@@ -724,13 +726,17 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     if (oldIndex != -1) {
       final oldItem = appointments![oldIndex];
       appointments!.removeAt(oldIndex);
-      notifyListeners(CalendarDataSourceAction.remove, [oldItem]);
+      if (!_isDisposed) {
+        notifyListeners(CalendarDataSourceAction.remove, [oldItem]);
+      }
 
       // Re-add at correct sorted position
       appointments!.add(plannerItem);
       Sort.byStartThenTitle(appointments!.cast<PlannerItemBaseModel>());
       _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
-      notifyListeners(CalendarDataSourceAction.add, [plannerItem]);
+      if (!_isDisposed) {
+        notifyListeners(CalendarDataSourceAction.add, [plannerItem]);
+      }
     } else {
       // Item not in current view, do full refresh
       _applyFiltersAndNotify();
@@ -761,7 +767,9 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       _completedOverrides.remove(plannerItemId);
       _sortPositions.remove(plannerItemId);
       _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
-      notifyListeners(CalendarDataSourceAction.remove, [removedItem]);
+      if (!_isDisposed) {
+        notifyListeners(CalendarDataSourceAction.remove, [removedItem]);
+      }
       _notifyChangeListeners();
     }
   }
@@ -787,7 +795,9 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     Sort.byStartThenTitle(appointments!.cast<PlannerItemBaseModel>());
     _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
 
-    notifyListeners(CalendarDataSourceAction.reset, appointments!);
+    if (!_isDisposed) {
+      notifyListeners(CalendarDataSourceAction.reset, appointments!);
+    }
     _notifyChangeListeners();
   }
 
@@ -845,7 +855,9 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     _log.fine(
       'Filters applied (sync): ${appointments!.length} of ${allPlannerItems.length} items visible',
     );
-    notifyListeners(CalendarDataSourceAction.reset, appointments!);
+    if (!_isDisposed) {
+      notifyListeners(CalendarDataSourceAction.reset, appointments!);
+    }
     _notifyChangeListeners();
   }
 
@@ -904,7 +916,9 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       _log.fine(
         'Filters applied: ${appointments!.length} of ${items.length} items visible',
       );
-      notifyListeners(CalendarDataSourceAction.reset, appointments!);
+      if (!_isDisposed) {
+        notifyListeners(CalendarDataSourceAction.reset, appointments!);
+      }
       _notifyChangeListeners();
       completer?.complete();
     } catch (e) {
