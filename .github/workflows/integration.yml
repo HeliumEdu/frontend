@@ -28,14 +28,14 @@ on:
         type: string
         default: 'amd64-latest'
       log_level:
-        description: 'Integration test log level (fine, finer, finest)'
+        description: 'Integration test log level'
         required: false
         type: choice
         default: fine
         options:
+          - info
           - fine
           - finer
-          - finest
   workflow_call:
     inputs:
       suite:
