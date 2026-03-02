@@ -180,7 +180,12 @@ class ApiHelper {
   }
 
   /// Fetches all homework items for the test user.
-  Future<List<HomeworkModel>?> getHomeworkItems() async {
+  /// If [from] and [to] are provided, filters by date range.
+  Future<List<HomeworkModel>?> getHomeworkItems({
+    String? from,
+    String? to,
+    bool? shownOnCalendar,
+  }) async {
     final apiHost = _config.projectApiHost;
     final accessToken = await getAccessToken();
 
@@ -190,8 +195,18 @@ class ApiHelper {
     }
 
     try {
+      final queryParams = <String, String>{};
+      if (from != null) queryParams['from'] = from;
+      if (to != null) queryParams['to'] = to;
+      if (shownOnCalendar != null) {
+        queryParams['shown_on_calendar'] = shownOnCalendar.toString();
+      }
+
+      final uri = Uri.parse('$apiHost${ApiUrl.plannerHomeworkListUrl}')
+          .replace(queryParameters: queryParams.isEmpty ? null : queryParams);
+
       final response = await http.get(
-        Uri.parse('$apiHost${ApiUrl.plannerHomeworkListUrl}'),
+        uri,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $accessToken',
