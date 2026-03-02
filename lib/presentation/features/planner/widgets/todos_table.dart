@@ -54,7 +54,6 @@ class TodosTable extends StatefulWidget {
 class _TodosTableState extends State<TodosTable> {
   static const List<int> _itemsPerPageOptions = [5, 10, 25, 50, 100, -1];
   bool _isInitialized = false;
-  bool _initializedWithoutCourses = false;
 
   @override
   void initState() {
@@ -67,24 +66,18 @@ class _TodosTableState extends State<TodosTable> {
   void didUpdateWidget(TodosTable oldWidget) {
     super.didUpdateWidget(oldWidget);
     // Handle the race condition where TodosTable initializes before the planner
-    // screen receives course data from the API. If we previously initialized
-    // with empty courses (skipping data window expansion), and courses have now
-    // arrived, re-initialize so handleLoadMore is called with the correct range.
-    if (_isInitialized && _initializedWithoutCourses) {
-      final courses = widget.dataSource.courses ?? [];
-      if (courses.isNotEmpty) {
-        _log.fine('Courses arrived after initialization, re-expanding data window');
-        _initializedWithoutCourses = false;
-        setState(() {
-          _isInitialized = false;
-        });
-        _initializeData();
-      }
+    // screen receives course data from the API. courses == null means the BLoC
+    // response hasn't arrived yet; retry until it does.
+    if (!_isInitialized) {
+      _initializeData();
     }
   }
 
   Future<void> _initializeData() async {
-    _initializedWithoutCourses = (widget.dataSource.courses ?? []).isEmpty;
+    // courses == null means the planner BLoC hasn't loaded them yet; wait for
+    // didUpdateWidget to retry. courses == [] means loaded with no courses, which
+    // is valid and should proceed (showing empty state).
+    if (widget.dataSource.courses == null) return;
     await _expandDataWindowForAllCourses();
     if (!mounted) return;
     setState(() {
