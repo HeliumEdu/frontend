@@ -1,4 +1,4 @@
-.PHONY: all env install clean clean-chrome icons build-android build-android-release build-ios-dev build-ios build-ios-release update-version firebase-config build-web upload-web-sourcemaps test start-platform stop-platform test-integration test-integration-smoke coverage run-devserver build-docker run-docker stop-docker restart-docker publish
+.PHONY: all env install clean clean-chrome icons build-android build-android-release build-ios-dev build-ios build-ios-release update-version firebase-config build-web upload-web-sourcemaps upload-android-symbols upload-ios-symbols test start-platform stop-platform test-integration test-integration-smoke coverage run-devserver build-docker run-docker stop-docker restart-docker publish
 
 SHELL := /usr/bin/env bash
 TAG_VERSION ?= latest
@@ -134,6 +134,12 @@ endif
 	SENTRY_PROPERTIES=sentry.properties sentry-cli releases new $(SENTRY_RELEASE)
 	SENTRY_PROPERTIES=sentry.properties sentry-cli sourcemaps upload --release $(SENTRY_RELEASE) build/web
 	SENTRY_PROPERTIES=sentry.properties sentry-cli releases finalize $(SENTRY_RELEASE)
+
+upload-android-symbols:
+	SENTRY_PROPERTIES=sentry.properties sentry-cli debug-files upload build/symbols/
+
+upload-ios-symbols:
+	SENTRY_PROPERTIES=sentry.properties sentry-cli debug-files upload build/symbols/ build/ios/archive/Runner.xcarchive/dSYMs/
 
 test: install
 	flutter analyze --no-pub --no-fatal-infos --no-fatal-warnings
