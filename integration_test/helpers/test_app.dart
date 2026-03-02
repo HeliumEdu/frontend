@@ -58,6 +58,38 @@ const _logServerPort = 4445;
 /// Get the current test log level.
 TestLogLevel get testLogLevel => _testLogLevel;
 
+/// Capture the Flutter canvas as a PNG and send it to the driver to save.
+/// Silently no-ops if the canvas can't be found or capture fails.
+Future<void> takeScreenshot(String name) async {
+  try {
+    // Flutter CanvasKit renders to a <canvas> element; grab the largest one
+    // (the main render surface) in case there are multiple overlay canvases.
+    final nodeList = web.document.querySelectorAll('canvas');
+    web.HTMLCanvasElement? mainCanvas;
+    int maxArea = 0;
+    for (int i = 0; i < nodeList.length; i++) {
+      final node = nodeList.item(i);
+      if (node == null) continue;
+      final canvas = node as web.HTMLCanvasElement;
+      final area = canvas.width * canvas.height;
+      if (area > maxArea) {
+        maxArea = area;
+        mainCanvas = canvas;
+      }
+    }
+    if (mainCanvas == null) return;
+
+    final dataUrl = mainCanvas.toDataURL('image/png');
+    await _sendLog(<String, dynamic>{
+      'type': 'screenshot',
+      'name': name,
+      'data': dataUrl,
+    });
+  } catch (e) {
+    // Best-effort — never let screenshot failure break a test
+  }
+}
+
 /// Send a log message to the driver's log server for real-time output.
 Future<void> _sendLog(Map<String, dynamic> data) async {
   try {
@@ -369,10 +401,11 @@ Future<bool> waitForRoute(
       return true;
     }
   }
+  final ms = DateTime.now().difference(startTime).inMilliseconds;
   if (testLogLevel != TestLogLevel.info) {
-    final ms = DateTime.now().difference(startTime).inMilliseconds;
     _log.info('waitForRoute "$routePath": timed out after ${ms}ms');
   }
+  await takeScreenshot('waitForRoute_timeout_${ms}ms');
   return false;
 }
 
@@ -404,10 +437,11 @@ Future<bool> waitForWidget(
       return true;
     }
   }
+  final ms = DateTime.now().difference(startTime).inMilliseconds;
   if (testLogLevel != TestLogLevel.info) {
-    final ms = DateTime.now().difference(startTime).inMilliseconds;
     _log.info('waitForWidget "$finder": timed out after ${ms}ms');
   }
+  await takeScreenshot('waitForWidget_timeout_${ms}ms');
   return false;
 }
 
@@ -458,10 +492,11 @@ Future<bool> waitForWidgetToDisappear(
       return true;
     }
   }
+  final ms = DateTime.now().difference(startTime).inMilliseconds;
   if (testLogLevel != TestLogLevel.info) {
-    final ms = DateTime.now().difference(startTime).inMilliseconds;
     _log.info('waitForWidgetToDisappear "$finder": timed out after ${ms}ms');
   }
+  await takeScreenshot('waitForWidgetToDisappear_timeout_${ms}ms');
   return false;
 }
 

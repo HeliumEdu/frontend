@@ -81,7 +81,7 @@ Future<HttpServer> _startLogServer() async {
       try {
         final body = await utf8.decoder.bind(request).join();
         final data = jsonDecode(body) as Map<String, dynamic>;
-        _processResult(data);
+        await _processResult(data);
         request.response.statusCode = 200;
       } catch (e) {
         request.response.statusCode = 500;
@@ -95,7 +95,7 @@ Future<HttpServer> _startLogServer() async {
   return server;
 }
 
-void _processResult(Map<String, dynamic> data) {
+Future<void> _processResult(Map<String, dynamic> data) async {
   final type = data['type'] as String?;
 
   switch (type) {
@@ -169,6 +169,27 @@ void _processResult(Map<String, dynamic> data) {
       final prefix = _inTest ? '    ' : ' ';
       // ignore: avoid_print
       print('$prefix${data['message']}');
+      break;
+
+    case 'screenshot':
+      final name = data['name'] as String? ?? 'screenshot';
+      final dataUrl = data['data'] as String?;
+      if (dataUrl != null && dataUrl.startsWith('data:image/png;base64,')) {
+        final base64Data = dataUrl.replaceFirst('data:image/png;base64,', '');
+        try {
+          final dir = Directory('build/integration-screenshots');
+          await dir.create(recursive: true);
+          final sanitized = name.replaceAll(RegExp(r'[^\w\-]'), '_');
+          final timestamp = DateTime.now().millisecondsSinceEpoch;
+          final file = File('${dir.path}/${sanitized}_$timestamp.png');
+          await file.writeAsBytes(base64Decode(base64Data));
+          // ignore: avoid_print
+          print('    ${_grey}📷 ${file.path}$_reset');
+        } catch (e) {
+          // ignore: avoid_print
+          print('    ${_grey}Screenshot save failed: $e$_reset');
+        }
+      }
       break;
   }
 }
