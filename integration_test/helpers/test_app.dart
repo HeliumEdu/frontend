@@ -59,25 +59,40 @@ const _logServerPort = 4445;
 TestLogLevel get testLogLevel => _testLogLevel;
 
 /// Capture the Flutter canvas as a PNG and send it to the driver to save.
-/// Silently no-ops if the canvas can't be found or capture fails.
+/// No-ops if the canvas can't be found or capture fails.
 Future<void> takeScreenshot(String name) async {
   try {
-    // Flutter CanvasKit renders to a <canvas> element; grab the largest one
-    // (the main render surface) in case there are multiple overlay canvases.
-    final nodeList = web.document.querySelectorAll('canvas');
+    // Flutter CanvasKit renders inside a shadow root under <flt-glass-pane>,
+    // so document.querySelectorAll('canvas') won't find it. Pierce the shadow
+    // root explicitly, then fall back to the document for non-shadow renderers.
     web.HTMLCanvasElement? mainCanvas;
     int maxArea = 0;
-    for (int i = 0; i < nodeList.length; i++) {
-      final node = nodeList.item(i);
-      if (node == null) continue;
-      final canvas = node as web.HTMLCanvasElement;
-      final area = canvas.width * canvas.height;
-      if (area > maxArea) {
-        maxArea = area;
-        mainCanvas = canvas;
+
+    void _scanNodeList(web.NodeList nodeList) {
+      for (int i = 0; i < nodeList.length; i++) {
+        final node = nodeList.item(i);
+        if (node == null) continue;
+        final canvas = node as web.HTMLCanvasElement;
+        final area = canvas.width * canvas.height;
+        if (area > maxArea) {
+          maxArea = area;
+          mainCanvas = canvas;
+        }
       }
     }
-    if (mainCanvas == null) return;
+
+    final glassPane = web.document.querySelector('flt-glass-pane');
+    final shadowRoot = glassPane?.shadowRoot;
+    if (shadowRoot != null) {
+      _scanNodeList(shadowRoot.querySelectorAll('canvas'));
+    }
+    // Also check the document itself (HTML renderer / fallback)
+    _scanNodeList(web.document.querySelectorAll('canvas'));
+
+    if (mainCanvas == null) {
+      _log.info('Screenshot "$name": no canvas found');
+      return;
+    }
 
     final dataUrl = mainCanvas.toDataURL('image/png');
     await _sendLog(<String, dynamic>{
@@ -86,7 +101,7 @@ Future<void> takeScreenshot(String name) async {
       'data': dataUrl,
     });
   } catch (e) {
-    // Best-effort — never let screenshot failure break a test
+    _log.info('Screenshot "$name" failed: $e');
   }
 }
 
