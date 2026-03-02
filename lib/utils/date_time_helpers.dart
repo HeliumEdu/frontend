@@ -126,21 +126,6 @@ class HeliumDateTime {
     return DateFormat('yyyy-MM-dd').format(date);
   }
 
-  /// Formats a date as midnight in the specified timezone for API query parameters.
-  ///
-  /// This ensures the backend interprets the date boundary consistently,
-  /// regardless of server timezone. The returned string is a full ISO8601
-  /// datetime like "2026-02-02T00:00:00-06:00" for America/Chicago.
-  static String formatDateForApiQuery(DateTime date, tz.Location timeZone) {
-    final tzDateTime = tz.TZDateTime(
-      timeZone,
-      date.year,
-      date.month,
-      date.day,
-    );
-    return tzDateTime.toIso8601String();
-  }
-
   static String formatDateAndTimeForApi(
     DateTime date,
     TimeOfDay? time,
