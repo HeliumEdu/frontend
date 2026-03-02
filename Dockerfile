@@ -34,6 +34,7 @@ COPY container/apache-mod-servername.conf /etc/apache2/mods-enabled/servername.c
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV APACHE_RUN_USER=ubuntu
+ENV TZ=UTC
 
 WORKDIR /app
 
