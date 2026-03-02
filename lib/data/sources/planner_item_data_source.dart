@@ -166,17 +166,15 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   Map<int, bool> get completedOverrides =>
       Map.unmodifiable(_completedOverrides);
 
-  /// Returns all planner items from all cached date ranges, deduplicated by id.
+  /// Returns all planner items from all cached date ranges, deduplicated by type and id.
   List<PlannerItemBaseModel> get allPlannerItems {
-    final seen = <int>{};
+    final seen = <String>{};
     final items = <PlannerItemBaseModel>[];
-    _log.fine('allPlannerItems: cache has ${_dateRangeCache.length} entries');
-    for (final entry in _dateRangeCache.entries) {
-      final rangeItems = entry.value;
-      final homeworkCount = rangeItems.whereType<HomeworkModel>().length;
-      _log.fine('  cache[${entry.key}]: ${rangeItems.length} items ($homeworkCount homework)');
+    for (final rangeItems in _dateRangeCache.values) {
       for (final item in rangeItems) {
-        if (seen.add(item.id)) {
+        // Use type + id as key to avoid collisions between different item types
+        final key = '${item.runtimeType}:${item.id}';
+        if (seen.add(key)) {
           items.add(item);
         }
       }
@@ -479,11 +477,8 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   }
 
   // Typed getters for all items
-  List<HomeworkModel> get allHomeworks {
-    final homeworks = allPlannerItems.whereType<HomeworkModel>().toList();
-    _log.fine('allHomeworks: ${homeworks.length} (from ${allPlannerItems.length} total items)');
-    return homeworks;
-  }
+  List<HomeworkModel> get allHomeworks =>
+      allPlannerItems.whereType<HomeworkModel>().toList();
 
   List<EventModel> get allEvents =>
       allPlannerItems.whereType<EventModel>().toList();
@@ -496,19 +491,11 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
 
   List<HomeworkModel> get filteredHomeworks {
     var homeworks = allHomeworks;
-    _log.fine('filteredHomeworks: starting with ${homeworks.length} from allHomeworks');
 
     homeworks = _applyCourseFilter(homeworks);
-    _log.fine('filteredHomeworks: after course filter: ${homeworks.length}');
-
     homeworks = _applyCategoryFilter(homeworks);
-    _log.fine('filteredHomeworks: after category filter: ${homeworks.length}');
-
     homeworks = _applyStatusFilter(homeworks);
-    _log.fine('filteredHomeworks: after status filter: ${homeworks.length}');
-
     homeworks = _applySearchFilter(homeworks);
-    _log.fine('filteredHomeworks: after search filter: ${homeworks.length}');
 
     return homeworks;
   }
