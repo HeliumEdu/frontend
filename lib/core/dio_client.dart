@@ -24,6 +24,7 @@ import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
+import 'package:sentry_dio/sentry_dio.dart';
 
 final _log = Logger('core');
 
@@ -255,6 +256,9 @@ class DioClient {
     _cacheService = CacheService();
     _dio.interceptors.add(_cacheService.interceptor);
     _dio.interceptors.add(_cacheService.loggingInterceptor);
+
+    // Add Sentry tracing for HTTP performance monitoring
+    _dio.addSentry();
 
     if (kDebugMode) {
       final logLevel = Logger.root.level;
