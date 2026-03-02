@@ -399,7 +399,7 @@ Future<bool> waitForWidget(
     if (finder.evaluate().isNotEmpty) {
       if (testLogLevel != TestLogLevel.info) {
         final ms = DateTime.now().difference(startTime).inMilliseconds;
-        _log.info('waitForWidget "$finder": ${ms}ms');
+        _log.info('waitForWidget took ${ms}ms');
       }
       return true;
     }
@@ -453,7 +453,7 @@ Future<bool> waitForWidgetToDisappear(
     if (finder.evaluate().isEmpty) {
       if (testLogLevel != TestLogLevel.info) {
         final ms = DateTime.now().difference(startTime).inMilliseconds;
-        _log.info('waitForWidgetToDisappear "$finder": ${ms}ms');
+        _log.info('waitForWidgetToDisappear took ${ms}ms');
       }
       return true;
     }
