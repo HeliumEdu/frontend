@@ -28,6 +28,7 @@ import 'package:heliumapp/domain/repositories/homework_repository.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
+import 'package:timezone/standalone.dart' as tz;
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
@@ -386,14 +387,29 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     final key = _cacheKey(startDate, endDate);
 
     if (forceRefresh || !_dateRangeCache.containsKey(key)) {
+      // Convert dates to TZDateTime in user's timezone at midnight.
+      // This ensures date boundaries are interpreted consistently on the backend.
+      final tzStartDate = tz.TZDateTime(
+        userSettings.timeZone,
+        startDate.year,
+        startDate.month,
+        startDate.day,
+      );
+      final tzEndDate = tz.TZDateTime(
+        userSettings.timeZone,
+        endDate.year,
+        endDate.month,
+        endDate.day,
+      );
+
       _log.info(
-        'Fetching data for range: $startDate to $endDate${forceRefresh ? ' (force refresh)' : ''}',
+        'Fetching data for range: $tzStartDate to $tzEndDate${forceRefresh ? ' (force refresh)' : ''}',
       );
 
       final results = await Future.wait([
         homeworkRepository.getHomeworks(
-          from: startDate,
-          to: endDate,
+          from: tzStartDate,
+          to: tzEndDate,
           shownOnCalendar: true,
           forceRefresh: forceRefresh,
         ),
