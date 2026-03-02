@@ -27,6 +27,15 @@ on:
         required: false
         type: string
         default: 'amd64-latest'
+      log_level:
+        description: 'Integration test log level (fine, finer, finest)'
+        required: false
+        type: choice
+        default: fine
+        options:
+          - fine
+          - finer
+          - finest
   workflow_call:
     inputs:
       suite:
@@ -44,6 +53,11 @@ on:
         required: false
         type: string
         default: 'amd64-latest'
+      log_level:
+        description: 'Integration test log level'
+        required: false
+        type: string
+        default: 'fine'
 
 permissions:
   contents: read
@@ -139,11 +153,11 @@ jobs:
           if [ "${{ inputs.suite }}" = "smoke" ]; then
             make test-integration-smoke \
               ENVIRONMENT=${{ env.ENVIRONMENT }} \
-              INTEGRATION_LOG_LEVEL=fine
+              INTEGRATION_LOG_LEVEL=${{ inputs.log_level || 'fine' }}
           else
             make test-integration \
               ENVIRONMENT=${{ env.ENVIRONMENT }} \
-              INTEGRATION_LOG_LEVEL=fine \
+              INTEGRATION_LOG_LEVEL=${{ inputs.log_level || 'fine' }} \
               INTEGRATION_EMAIL_SUFFIX=github-frontend \
               AWS_INTEGRATION_S3_ACCESS_KEY_ID="${{ env.AWS_INTEGRATION_S3_ACCESS_KEY_ID }}" \
               AWS_INTEGRATION_S3_SECRET_ACCESS_KEY="${{ env.AWS_INTEGRATION_S3_SECRET_ACCESS_KEY }}"
