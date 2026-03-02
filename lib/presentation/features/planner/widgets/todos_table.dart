@@ -54,6 +54,7 @@ class TodosTable extends StatefulWidget {
 class _TodosTableState extends State<TodosTable> {
   static const List<int> _itemsPerPageOptions = [5, 10, 25, 50, 100, -1];
   bool _isInitialized = false;
+  bool _initializedWithoutCourses = false;
 
   @override
   void initState() {
@@ -62,7 +63,28 @@ class _TodosTableState extends State<TodosTable> {
     _initializeData();
   }
 
+  @override
+  void didUpdateWidget(TodosTable oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Handle the race condition where TodosTable initializes before the planner
+    // screen receives course data from the API. If we previously initialized
+    // with empty courses (skipping data window expansion), and courses have now
+    // arrived, re-initialize so handleLoadMore is called with the correct range.
+    if (_isInitialized && _initializedWithoutCourses) {
+      final courses = widget.dataSource.courses ?? [];
+      if (courses.isNotEmpty) {
+        _log.fine('Courses arrived after initialization, re-expanding data window');
+        _initializedWithoutCourses = false;
+        setState(() {
+          _isInitialized = false;
+        });
+        _initializeData();
+      }
+    }
+  }
+
   Future<void> _initializeData() async {
+    _initializedWithoutCourses = (widget.dataSource.courses ?? []).isEmpty;
     await _expandDataWindowForAllCourses();
     if (!mounted) return;
     setState(() {
