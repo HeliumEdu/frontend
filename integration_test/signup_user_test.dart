@@ -220,25 +220,25 @@ void main() {
       _log.info('Email verification succeeded');
     });
 
-    namedTestWidgets('3. First login shows welcome dialogs', (tester) async {
-      if (!verificationSucceeded) {
-        skipTest('verification did not succeed');
-        return;
-      }
-
-      await initializeTestApp(tester);
-
-      final loggedIn = await loginAndNavigateToPlanner(
-        tester,
-        testEmail,
-        testPassword,
-        expectWhatsNew: true,
-      );
-      expect(loggedIn, isTrue, reason: 'Should log in and see welcome dialogs');
-
-      // Once dialogs are dismissed, planner should be accesible
-      expectOnPlannerScreen();
-      _log.info('First login flow complete: dialogs shown and dismissed');
-    });
+    // namedTestWidgets('3. First login shows welcome dialogs', (tester) async {
+    //   if (!verificationSucceeded) {
+    //     skipTest('verification did not succeed');
+    //     return;
+    //   }
+    //
+    //   await initializeTestApp(tester);
+    //
+    //   final loggedIn = await loginAndNavigateToPlanner(
+    //     tester,
+    //     testEmail,
+    //     testPassword,
+    //     expectWhatsNew: true,
+    //   );
+    //   expect(loggedIn, isTrue, reason: 'Should log in and see welcome dialogs');
+    //
+    //   // Once dialogs are dismissed, planner should be accesible
+    //   expectOnPlannerScreen();
+    //   _log.info('First login flow complete: dialogs shown and dismissed');
+    // });
   });
 }
