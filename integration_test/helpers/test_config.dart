@@ -75,5 +75,5 @@ class TestConfig {
 
   /// Timeout for operations that depend on an API response (network round-trip
   /// to the backend).
-  Duration get apiTimeout => const Duration(seconds: 20);
+  Duration get apiTimeout => const Duration(seconds: 30);
 }
