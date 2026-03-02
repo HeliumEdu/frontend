@@ -58,51 +58,11 @@ const _logServerPort = 4445;
 /// Get the current test log level.
 TestLogLevel get testLogLevel => _testLogLevel;
 
-/// Capture the Flutter canvas as a PNG and send it to the driver to save.
-/// No-ops if the canvas can't be found or capture fails.
+/// Requests a screenshot from the driver process.
+/// The driver uses FlutterDriver.screenshot() (ChromeDriver-level capture),
+/// which avoids browser canvas security restrictions entirely.
 Future<void> takeScreenshot(String name) async {
-  try {
-    // Flutter CanvasKit renders inside a shadow root under <flt-glass-pane>,
-    // so document.querySelectorAll('canvas') won't find it. Pierce the shadow
-    // root explicitly, then fall back to the document for non-shadow renderers.
-    web.HTMLCanvasElement? mainCanvas;
-    int maxArea = 0;
-
-    void _scanNodeList(web.NodeList nodeList) {
-      for (int i = 0; i < nodeList.length; i++) {
-        final node = nodeList.item(i);
-        if (node == null) continue;
-        final canvas = node as web.HTMLCanvasElement;
-        final area = canvas.width * canvas.height;
-        if (area > maxArea) {
-          maxArea = area;
-          mainCanvas = canvas;
-        }
-      }
-    }
-
-    final glassPane = web.document.querySelector('flt-glass-pane');
-    final shadowRoot = glassPane?.shadowRoot;
-    if (shadowRoot != null) {
-      _scanNodeList(shadowRoot.querySelectorAll('canvas'));
-    }
-    // Also check the document itself (HTML renderer / fallback)
-    _scanNodeList(web.document.querySelectorAll('canvas'));
-
-    if (mainCanvas == null) {
-      _log.info('Screenshot "$name": no canvas found');
-      return;
-    }
-
-    final dataUrl = mainCanvas.toDataURL('image/png');
-    await _sendLog(<String, dynamic>{
-      'type': 'screenshot',
-      'name': name,
-      'data': dataUrl,
-    });
-  } catch (e) {
-    _log.info('Screenshot "$name" failed: $e');
-  }
+  await _sendLog(<String, dynamic>{'type': 'screenshot', 'name': name});
 }
 
 /// Send a log message to the driver's log server for real-time output.

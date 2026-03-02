@@ -25,6 +25,9 @@ const _logServerPort = 4445;
 /// Track current test for log indentation
 bool _inTest = false;
 
+/// Driver reference so the log server can call screenshot() on it.
+FlutterDriver? _connectedDriver;
+
 Future<void> main() async {
   // Start HTTP server for real-time test output
   final server = await _startLogServer();
@@ -33,6 +36,7 @@ Future<void> main() async {
   // since our log server already provides better formatted output
   try {
     final driver = await FlutterDriver.connect();
+    _connectedDriver = driver;
     final jsonResult = await driver.requestData(
       null,
       timeout: const Duration(minutes: 20),
@@ -173,21 +177,21 @@ Future<void> _processResult(Map<String, dynamic> data) async {
 
     case 'screenshot':
       final name = data['name'] as String? ?? 'screenshot';
-      final dataUrl = data['data'] as String?;
-      if (dataUrl != null && dataUrl.startsWith('data:image/png;base64,')) {
-        final base64Data = dataUrl.replaceFirst('data:image/png;base64,', '');
+      final driver = _connectedDriver;
+      if (driver != null) {
         try {
+          final bytes = await driver.screenshot();
           final dir = Directory('build/integration-screenshots');
           await dir.create(recursive: true);
           final sanitized = name.replaceAll(RegExp(r'[^\w\-]'), '_');
           final timestamp = DateTime.now().millisecondsSinceEpoch;
           final file = File('${dir.path}/${sanitized}_$timestamp.png');
-          await file.writeAsBytes(base64Decode(base64Data));
+          await file.writeAsBytes(bytes);
           // ignore: avoid_print
           print('    ${_grey}📷 ${file.path}$_reset');
         } catch (e) {
           // ignore: avoid_print
-          print('    ${_grey}Screenshot save failed: $e$_reset');
+          print('    ${_grey}Screenshot failed: $e$_reset');
         }
       }
       break;
