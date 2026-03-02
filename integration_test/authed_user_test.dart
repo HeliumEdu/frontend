@@ -373,6 +373,7 @@ void main() {
       expect(menuOpened, isTrue, reason: 'Todos option should be in view menu');
       await tester.tap(todosOption);
       await tester.pumpAndSettle();
+      await takeScreenshot('todos_view_initial_state');
 
       // 2. Wait for Todos view to initialize and assert "Showing X to Y of 53"
       // (X and Y may vary, 53 is fixed). TodosTable._initializeData expands the
