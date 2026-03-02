@@ -170,7 +170,11 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   List<PlannerItemBaseModel> get allPlannerItems {
     final seen = <int>{};
     final items = <PlannerItemBaseModel>[];
-    for (final rangeItems in _dateRangeCache.values) {
+    _log.fine('allPlannerItems: cache has ${_dateRangeCache.length} entries');
+    for (final entry in _dateRangeCache.entries) {
+      final rangeItems = entry.value;
+      final homeworkCount = rangeItems.whereType<HomeworkModel>().length;
+      _log.fine('  cache[${entry.key}]: ${rangeItems.length} items ($homeworkCount homework)');
       for (final item in rangeItems) {
         if (seen.add(item.id)) {
           items.add(item);
@@ -402,10 +406,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
         endDate.day,
       );
 
-      _log.info(
-        'Fetching data for range: $tzStartDate to $tzEndDate${forceRefresh ? ' (force refresh)' : ''}',
-      );
-
       final results = await Future.wait([
         homeworkRepository.getHomeworks(
           from: tzStartDate,
@@ -479,8 +479,11 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   }
 
   // Typed getters for all items
-  List<HomeworkModel> get allHomeworks =>
-      allPlannerItems.whereType<HomeworkModel>().toList();
+  List<HomeworkModel> get allHomeworks {
+    final homeworks = allPlannerItems.whereType<HomeworkModel>().toList();
+    _log.fine('allHomeworks: ${homeworks.length} (from ${allPlannerItems.length} total items)');
+    return homeworks;
+  }
 
   List<EventModel> get allEvents =>
       allPlannerItems.whereType<EventModel>().toList();
@@ -493,11 +496,19 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
 
   List<HomeworkModel> get filteredHomeworks {
     var homeworks = allHomeworks;
+    _log.fine('filteredHomeworks: starting with ${homeworks.length} from allHomeworks');
 
     homeworks = _applyCourseFilter(homeworks);
+    _log.fine('filteredHomeworks: after course filter: ${homeworks.length}');
+
     homeworks = _applyCategoryFilter(homeworks);
+    _log.fine('filteredHomeworks: after category filter: ${homeworks.length}');
+
     homeworks = _applyStatusFilter(homeworks);
+    _log.fine('filteredHomeworks: after status filter: ${homeworks.length}');
+
     homeworks = _applySearchFilter(homeworks);
+    _log.fine('filteredHomeworks: after search filter: ${homeworks.length}');
 
     return homeworks;
   }
