@@ -15,6 +15,10 @@ permissions:
   issues: none
   pull-requests: none
 
+concurrency:
+  group: "helium-frontend-build-${{ github.ref }}"
+  cancel-in-progress: true
+
 jobs:
   test:
     name: Test
@@ -65,6 +69,7 @@ jobs:
     uses: ./.github/workflows/integration.yml
     with:
       suite: full
+      caller: build
     secrets: inherit
 
   build-android:

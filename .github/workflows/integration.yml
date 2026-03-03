@@ -58,12 +58,18 @@ on:
         required: false
         type: string
         default: 'fine'
+      caller:
+        description: 'Workflow that called this (build, release, etc.) - used to isolate concurrency groups'
+        required: false
+        type: string
+        default: 'manual'
 
 permissions:
   contents: read
 
 concurrency:
-  group: "integration-tests-${{inputs.environment}}"
+  group: "integration-tests-${{inputs.caller}}-${{inputs.environment}}"
+  cancel-in-progress: false
 
 env:
   FLUTTER_VERSION: "3.38.9"
