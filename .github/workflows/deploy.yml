@@ -71,6 +71,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v5
+
       - name: Determine version to deploy
         id: version
         if: ${{ inputs.artifact_run_id == '' }}
@@ -233,6 +235,14 @@ jobs:
             echo "Warning: Could not find CloudFront distribution for ${DOMAIN}"
           fi
 
+      - name: Notify Sentry of deploy
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          FULL_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
+        run: |
+          npm install -g @sentry/cli
+          SENTRY_PROPERTIES=sentry.properties sentry-cli releases deploys new "$FULL_VERSION" --env "${{ inputs.environment }}"
+
       - name: Deployment summary
         env:
           ENVIRONMENT: ${{ inputs.environment }}
@@ -383,6 +393,14 @@ jobs:
         if: always()
         run: rm -f android/service-account-key.json
 
+      - name: Notify Sentry of deploy
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          FULL_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
+        run: |
+          npm install -g @sentry/cli
+          SENTRY_PROPERTIES=sentry.properties sentry-cli releases deploys new "$FULL_VERSION" --env prod
+
       - name: Deployment summary
         env:
           VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.version.outputs.version }}
@@ -526,6 +544,14 @@ jobs:
       - name: Cleanup API key
         if: always()
         run: rm -rf ~/.appstoreconnect
+
+      - name: Notify Sentry of deploy
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          FULL_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
+        run: |
+          npm install -g @sentry/cli
+          SENTRY_PROPERTIES=sentry.properties sentry-cli releases deploys new "$FULL_VERSION" --env prod
 
       - name: Deployment summary
         env:
