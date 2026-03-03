@@ -36,6 +36,7 @@ class SentryService {
 
       // Performance monitoring
       options.tracesSampleRate = 0.1;
+      // ignore: experimental_member_use
       options.profilesSampleRate = 0.1;
 
       // Track user interactions and navigation
