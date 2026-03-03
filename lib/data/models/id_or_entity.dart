@@ -18,13 +18,14 @@ class IdOrEntity<T extends BaseModel> {
   IdOrEntity({required this.id, this.entity});
 
   factory IdOrEntity.from(dynamic data, Function fromJson) {
+    dynamic value = data;
     try {
-      if (data is String) {
-        data = int.tryParse(data);
+      if (value is String) {
+        value = int.tryParse(value);
       }
     } catch (_) {}
 
-    if (data is int) return IdOrEntity(id: data);
+    if (value is int) return IdOrEntity(id: value);
     try {
       if (data is Map<String, dynamic>) {
         return IdOrEntity(id: data['id'], entity: fromJson(data));
