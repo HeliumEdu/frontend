@@ -71,9 +71,6 @@ concurrency:
   group: "integration-tests-${{inputs.caller}}-${{inputs.environment}}"
   cancel-in-progress: false
 
-env:
-  FLUTTER_VERSION: "3.38.9"
-
 jobs:
   integration-test:
     name: Integration Tests
@@ -94,7 +91,6 @@ jobs:
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
-          version: ${{ env.FLUTTER_VERSION }}
           cache: true
 
       - name: Cache pub dependencies
