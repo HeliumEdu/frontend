@@ -369,6 +369,34 @@ void main() {
       });
     });
 
+    group('Browser global handler gap (covered by options.ignoreErrors)', () {
+      // When window.onerror fires on Flutter web, the JS Sentry SDK creates the
+      // event. By the time Dart deserializes it into a SentryEvent for beforeSend,
+      // exception.value may be null even though the original JS event has the full
+      // message. These events are caught by options.ignoreErrors at the JS SDK
+      // level. The tests below document this known beforeSend limitation.
+
+      test('401 with null value - beforeSend alone cannot filter', () {
+        final event = SentryEvent(
+          exceptions: [
+            SentryException(type: 'Error', value: null),
+          ],
+        );
+        expect(SentryService.shouldFilterEvent(event), isFalse,
+            reason: 'null value cannot be matched; ignoreErrors is the safety net');
+      });
+
+      test('403 with null value - beforeSend alone cannot filter', () {
+        final event = SentryEvent(
+          exceptions: [
+            SentryException(type: 'Error', value: null),
+          ],
+        );
+        expect(SentryService.shouldFilterEvent(event), isFalse,
+            reason: 'null value cannot be matched; ignoreErrors is the safety net');
+      });
+    });
+
     group('Edge cases', () {
       test('Empty event', () {
         expect(SentryService.shouldFilterEvent(SentryEvent()), isFalse);
