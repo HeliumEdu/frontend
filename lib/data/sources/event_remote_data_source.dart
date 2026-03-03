@@ -55,9 +55,11 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
     try {
       _log.info('Fetching Events ...');
 
+      // Use toIso8601String() which includes timezone offset for TZDateTime.
+      // This ensures the backend interprets date boundaries consistently.
       final Map<String, dynamic> queryParameters = {};
-      if (from != null) queryParameters['from'] = from;
-      if (to != null) queryParameters['to'] = to;
+      if (from != null) queryParameters['from'] = from.toIso8601String();
+      if (to != null) queryParameters['to'] = to.toIso8601String();
       if (search != null) queryParameters['search'] = search;
       if (title != null) queryParameters['title'] = title;
 

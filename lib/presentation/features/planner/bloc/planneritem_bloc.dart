@@ -71,26 +71,22 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
         categories = [];
         resources = [];
       } else {
-        if (event.homeworkId != null) {
-          plannerItem = await homeworkRepository.getHomework(
-            id: event.homeworkId!,
-          );
-        } else {
-          plannerItem = null;
-        }
-        courseGroups = await courseRepository.getCourseGroups(
-          shownOnCalendar: true,
-        );
-        courses = await courseRepository.getCourses(shownOnCalendar: true);
-        courseSchedules = await courseScheduleRepository.getCourseSchedules(
-          shownOnCalendar: true,
-        );
-        categories = await categoryRepository.getCategories(
-          shownOnCalendar: true,
-        );
-        resources = await resourceRepository.getResources(
-          shownOnCalendar: true,
-        );
+        final results = await Future.wait([
+          event.homeworkId != null
+              ? homeworkRepository.getHomework(id: event.homeworkId!)
+              : Future.value(null),
+          courseRepository.getCourseGroups(shownOnCalendar: true),
+          courseRepository.getCourses(shownOnCalendar: true),
+          courseScheduleRepository.getCourseSchedules(shownOnCalendar: true),
+          categoryRepository.getCategories(shownOnCalendar: true),
+          resourceRepository.getResources(shownOnCalendar: true),
+        ]);
+        plannerItem = results[0] as PlannerItemBaseModel?;
+        courseGroups = results[1] as List<CourseGroupModel>;
+        courses = results[2] as List<CourseModel>;
+        courseSchedules = results[3] as List<CourseScheduleModel>;
+        categories = results[4] as List<CategoryModel>;
+        resources = results[5] as List<ResourceModel>;
       }
 
       emit(

@@ -14,6 +14,9 @@ import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
+import 'package:heliumapp/presentation/navigation/shell/navigation_shell_title_stub.dart'
+    if (dart.library.js_interop) 'package:heliumapp/presentation/navigation/shell/navigation_shell_title_web.dart'
+    as title_helper;
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
@@ -166,8 +169,7 @@ class _DialogRouteListenerState extends State<_DialogRouteListener> {
   void _onRouteChanged() {
     final currentUri = router.routerDelegate.currentConfiguration.uri;
 
-    // Ignore query-only URL changes (for example: clearing ?dialog=... after
-    // opening a desktop dialog). Close only when the route path changes.
+    // Ignore query-only URL changes, close only when the route path changes.
     if (currentUri.path != _initialUri.path && mounted) {
       _log.info(
         'Browser navigation detected, closing dialog: '
@@ -253,6 +255,13 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
         notifier.setProviders(inheritableProviders);
       });
     }
+
+    // Register _ModalScopeStatus dependency for non-shell screens so build()
+    // is called whenever isCurrent changes (sub-screen pushed/popped).
+    // Shell routes are excluded — NavigationShell manages their titles.
+    if (!NavigationShellProvider.of(context)) {
+      ModalRoute.of(context); // Register _ModalScopeStatus dependency
+    }
   }
 
   @mustCallSuper
@@ -284,6 +293,21 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
   @override
   Widget build(BuildContext context) {
+    // Update browser title on every build for non-shell screens. Using build()
+    // rather than didChangeDependencies catches dynamic screenTitle changes
+    // (e.g., PlannerItemAdd resolving its type after user interaction).
+    // postFrameCallback ensures the foreground route's title wins when multiple
+    // screens rebuild simultaneously. Skips empty titles so the previous title
+    // (e.g., "Planner | Helium") remains until this screen knows its own title.
+    if (!NavigationShellProvider.of(context) && screenTitle.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        if (ModalRoute.of(context)?.isCurrent ?? false) {
+          title_helper.setTitle('$screenTitle | ${AppConstants.appName}');
+        }
+      });
+    }
+
     final listeners = buildListeners(context);
     if (listeners.isNotEmpty) {
       return MultiBlocListener(
@@ -356,47 +380,41 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       );
     }
 
-    // When inside NavigationScaffold, don't wrap in another Scaffold
-    // The NavigationScaffold already provides the Scaffold with navigation
+    // When inside NavigationShell, don't wrap in another Scaffold.
+    // NavigationShell manages the browser title for shell routes.
     if (hasNavigationShell) {
-      return Title(
-        title: '$screenTitle | ${AppConstants.appName}',
-        color: context.colorScheme.primary,
-        child: Stack(
-          children: [
-            content,
-            if (showActionButton && actionButtonCallback != null)
-              Positioned(
-                right: 16,
-                bottom: 16,
-                child: buildFloatingActionButton(),
-              ),
-          ],
-        ),
+      return Stack(
+        children: [
+          content,
+          if (showActionButton && actionButtonCallback != null)
+            Positioned(
+              right: 16,
+              bottom: 16,
+              child: buildFloatingActionButton(),
+            ),
+        ],
       );
     }
 
-    // When NOT inside NavigationScaffold (sub-pages), use full Scaffold
-    return Title(
-      title: '$screenTitle | ${AppConstants.appName}',
-      color: context.colorScheme.primary,
-      child: Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        body: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              buildPageHeader(),
-              Expanded(child: content),
-            ],
-          ),
+    // When NOT inside NavigationScaffold (sub-pages), use full Scaffold.
+    // The browser title is managed via didChangeDependencies + isCurrent rather
+    // than a Title widget, avoiding race conditions during exit animations.
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            buildPageHeader(),
+            Expanded(child: content),
+          ],
         ),
-        floatingActionButton: showActionButton && actionButtonCallback != null
-            ? buildFloatingActionButton()
-            : null,
       ),
+      floatingActionButton: showActionButton && actionButtonCallback != null
+          ? buildFloatingActionButton()
+          : null,
     );
   }
 

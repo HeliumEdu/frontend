@@ -8,7 +8,9 @@
 /// Configuration for integration tests.
 class TestConfig {
   static final TestConfig _instance = TestConfig._internal();
+
   factory TestConfig() => _instance;
+
   TestConfig._internal();
 
   /// Environment: 'dev', 'dev-local', etc. (prod not supported for integration tests)
@@ -16,12 +18,11 @@ class TestConfig {
       const String.fromEnvironment('ENVIRONMENT', defaultValue: 'dev-local');
 
   /// Environment prefix for URLs.
-  /// e.g., dev -> "dev.", dev-local -> "dev-local."
-  String get _envPrefix => '$environment.';
+  /// e.g., dev -> "dev.", dev-local -> "dev-local.", prod -> ""
+  String get _envPrefix => environment == 'prod' ? '' : '$environment.';
 
-  /// AWS region for S3 access
-  /// Matches Terraform: dev-local uses us-east-2, all others use us-east-1
-  String get awsRegion => environment == 'dev-local' ? 'us-east-2' : 'us-east-1';
+  /// AWS region for S3 integration bucket (always us-east-2, where the bucket is created)
+  String get awsRegion => 'us-east-2';
 
   /// Frontend app host
   String get projectAppHost {
@@ -35,28 +36,44 @@ class TestConfig {
     return 'https://api.${_envPrefix}heliumedu.com';
   }
 
-  /// AWS S3 access key for email verification
+  /// AWS S3 access key for email verification (shared integration bucket)
   String get awsS3AccessKeyId =>
-      const String.fromEnvironment('AWS_S3_ACCESS_KEY_ID');
+      const String.fromEnvironment('AWS_INTEGRATION_S3_ACCESS_KEY_ID');
 
-  /// AWS S3 secret key for email verification
+  /// AWS S3 secret key for email verification (shared integration bucket)
   String get awsS3SecretAccessKey =>
-      const String.fromEnvironment('AWS_S3_SECRET_ACCESS_KEY');
+      const String.fromEnvironment('AWS_INTEGRATION_S3_SECRET_ACCESS_KEY');
 
-  /// S3 bucket name for inbound emails
-  /// Format: heliumedu.{environment}
-  String get s3BucketName => 'heliumedu.$environment';
+  /// S3 bucket name for inbound emails (shared across all environments)
+  String get s3BucketName => 'heliumedu-integration';
+
+  /// S3 object key prefix for this environment's emails
+  /// SES receipt rule stores at: {environment}/inbound.email/heliumedu-cluster/
+  String get s3ObjectKeyPrefix =>
+      '$environment/inbound.email/heliumedu-cluster/';
 
   /// Email domain for test users
   /// SES receipt rule stores at: inbound.email/heliumedu-cluster/
   String get emailDomain => '${_envPrefix}heliumedu.dev';
 
-  /// Consistent test email address for CI
-  /// Only one integration test run is allowed at a time to avoid user pollution
-  String get testEmail => 'heliumedu-cluster+3@$emailDomain';
+  /// Email suffix for test accounts (reuse to avoid test account pollution).
+  /// To use your local username, pass it at compile time:
+  ///   --dart-define=INTEGRATION_EMAIL_SUFFIX=$USER
+  String get emailSuffix =>
+      const String.fromEnvironment(
+        'INTEGRATION_EMAIL_SUFFIX',
+        defaultValue: 'integration',
+      );
+
+  /// Test email address: heliumedu-cluster-{emailSuffix}@{emailDomain}
+  String get testEmail => 'heliumedu-cluster+$emailSuffix@$emailDomain';
 
   /// Consistent test password for CI
   String get testPassword => 'IntegrationTestPassword123!';
 
   bool get isDevLocal => environment == 'dev-local';
+
+  /// Timeout for operations that depend on an API response (network round-trip
+  /// to the backend).
+  Duration get apiTimeout => const Duration(seconds: 30);
 }

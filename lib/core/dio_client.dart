@@ -24,6 +24,7 @@ import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
+import 'package:sentry_dio/sentry_dio.dart';
 
 final _log = Logger('core');
 
@@ -140,7 +141,10 @@ class DioClient {
               if (refreshToken == null || refreshToken.isEmpty) {
                 _log.info('No refresh token available, redirecting to login');
                 _isRefreshing = false;
-                _refreshCompleter!.completeError('No refresh token');
+                // Use complete() instead of completeError() to avoid unhandled
+                // exception when no other requests are waiting on the completer.
+                // Waiting requests check for null token after completion.
+                _refreshCompleter!.complete();
                 _refreshCompleter = null;
                 await _forceLogout('Please login to continue.');
                 return handler.next(error);
@@ -253,6 +257,9 @@ class DioClient {
     _dio.interceptors.add(_cacheService.interceptor);
     _dio.interceptors.add(_cacheService.loggingInterceptor);
 
+    // Add Sentry tracing for HTTP performance monitoring
+    _dio.addSentry();
+
     if (kDebugMode) {
       final logLevel = Logger.root.level;
       final isVerbose = logLevel <= Level.FINE;
@@ -303,7 +310,7 @@ class DioClient {
 
   Future<UserSettingsModel?> fetchSettings({bool forceRefresh = false}) async {
     try {
-      _log.info('Fetching settings from API...');
+      _log.info('Fetching settings from API ...');
       final response = await _dio.get(
         ApiUrl.authUserUrl,
         options: forceRefresh ? _cacheService.forceRefreshOptions() : null,
@@ -337,7 +344,7 @@ class DioClient {
       final timeZone = _prefService.getString('time_zone');
       if (timeZone == null) {
         // Settings not in cache - fetch from API to ensure they're available
-        _log.info('Settings not in cache, fetching from API...');
+        _log.info('Settings not in cache, fetching from API ...');
         final fetchedSettings = await fetchSettings();
         if (fetchedSettings != null) {
           return fetchedSettings;

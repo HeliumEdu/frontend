@@ -141,7 +141,7 @@ class _ColorPickerWidgetState extends State<_ColorPickerWidget> {
               color: context.colorScheme.primary,
             ),
             label: Text(
-              'Custom color...',
+              'Custom color ...',
               style: TextStyle(color: context.colorScheme.primary),
             ),
           ),

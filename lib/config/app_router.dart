@@ -141,18 +141,9 @@ void initializeRouter() {
       GoRoute(
         path: AppRoute.notificationsScreen,
         parentNavigatorKey: rootNavigatorKey,
-        pageBuilder: (context, state) {
-          if (!Responsive.isMobile(context)) {
-            return const MaterialPage(
-              child: _RouteRedirect(
-                redirectTo: AppRoute.plannerScreen,
-                queryParams: {'dialog': 'notifications'},
-              ),
-            );
-          }
-
-          return MaterialPage(child: NotificationsScreen());
-        },
+        pageBuilder: (context, state) => MaterialPage(
+          child: NotificationsScreen(),
+        ),
       ),
 
       GoRoute(
@@ -247,18 +238,8 @@ void initializeRouter() {
       GoRoute(
         path: AppRoute.settingScreen,
         parentNavigatorKey: rootNavigatorKey,
-        pageBuilder: (context, state) {
-          if (!Responsive.isMobile(context)) {
-            return const MaterialPage(
-              child: _RouteRedirect(
-                redirectTo: AppRoute.plannerScreen,
-                queryParams: {'dialog': 'settings'},
-              ),
-            );
-          }
-
-          return const MaterialPage(child: SettingsScreen());
-        },
+        pageBuilder: (context, state) =>
+            const MaterialPage(child: SettingsScreen()),
       ),
       // Sub-sub settings pages redirect to /settings if accessed directly via URL
       GoRoute(

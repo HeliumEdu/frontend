@@ -35,15 +35,20 @@ class EmailHelper {
   /// Polls S3 for a verification email and extracts the verification code.
   ///
   /// [username] is the email address used during signup (URL-encoded in the verification link).
+  /// [sentAfter] is the timestamp before the email-triggering action was initiated.
+  ///   Emails must have S3 timestamp >= sentAfter to be considered.
   /// Returns the verification code, or throws if not found within timeout.
-  Future<String> getVerificationCode(String username, {int retry = 0}) async {
+  Future<String> getVerificationCode(
+    String username, {
+    required DateTime sentAfter,
+    int retry = 0,
+  }) async {
     _log.info('Polling for verification email (attempt ${retry + 1}/$_maxRetries)');
-
     try {
-      // List objects in the inbound email prefix
+      // List objects in the inbound email prefix (environment-specific)
       final results = await _minio.listObjects(
         _config.s3BucketName,
-        prefix: 'inbound.email/heliumedu-cluster/',
+        prefix: _config.s3ObjectKeyPrefix,
       ).toList();
 
       // Flatten all objects from all results
@@ -53,74 +58,58 @@ class EmailHelper {
       }
 
       if (allObjects.isEmpty) {
-        return _retryOrFail(username, retry, 'No emails found in bucket');
+        return _retryOrFail(username, sentAfter, retry, 'No emails found in bucket');
       }
 
-      // Find the latest object by last modified time
-      minio_models.Object? latestObject;
-      DateTime? latestModified;
+      _log.info('Found ${allObjects.length} email(s) in bucket');
+
+      // Find the most recent email by S3 lastModified (matches Python logic)
+      minio_models.Object? latestObj;
       for (final obj in allObjects) {
-        if (obj.key == null) continue;
-        if (latestModified == null ||
-            (obj.lastModified != null && obj.lastModified!.isAfter(latestModified))) {
-          latestObject = obj;
-          latestModified = obj.lastModified;
+        if (obj.key == null || obj.lastModified == null) continue;
+        if (latestObj == null || obj.lastModified!.isAfter(latestObj.lastModified!)) {
+          latestObj = obj;
         }
       }
 
-      if (latestObject == null || latestObject.key == null) {
-        return _retryOrFail(username, retry, 'No valid email objects found');
+      if (latestObj == null) {
+        return _retryOrFail(username, sentAfter, retry, 'No valid emails found');
       }
 
-      _log.info('Found latest email: ${latestObject.key}');
+      final s3Timestamp = latestObj.lastModified!;
+      _log.info('Latest email: ${latestObj.key} (S3 timestamp: $s3Timestamp)');
 
       // Get the email content
-      final stream = await _minio.getObject(_config.s3BucketName, latestObject.key!);
+      final stream = await _minio.getObject(_config.s3BucketName, latestObj.key!);
       final bytes = await stream.fold<List<int>>([], (prev, chunk) => prev..addAll(chunk));
       final emailStr = utf8.decode(bytes);
 
-      // Parse email to extract date and body
-      final parseResult = _parseEmail(emailStr);
-      final emailDate = parseResult.date;
-      final emailBody = parseResult.body;
+      // Parse email to extract body
+      final emailBody = _parseEmailBody(emailStr);
 
-      // Check if email is within the test window
-      final now = DateTime.now().toUtc();
-      final windowPadding = Duration(seconds: 15 + (retry * _retryDelay.inSeconds));
-      final leftWindow = now.subtract(windowPadding);
-      final rightWindow = now.add(windowPadding);
+      // Validate email arrived after the action was triggered
+      final nowUtc = DateTime.now().toUtc();
+      final staleThreshold = nowUtc.subtract(const Duration(minutes: 10));
 
-      _log.info('Left window: $leftWindow');
-      _log.info('Email date: $emailDate');
-      _log.info('Right window: $rightWindow');
+      // Validate: arrived after sentAfter, for our user, and has verification code
+      final emailPattern = 'email=$username&code';
+      final verifyPattern = 'verify?email=$username&code=';
 
-      final inTestWindow = emailDate != null &&
-          emailDate.isAfter(leftWindow) &&
-          emailDate.isBefore(rightWindow);
+      final arrivedAfterAction = !s3Timestamp.isBefore(sentAfter);
+      final isForOurUser = emailBody?.contains(emailPattern) ?? false;
+      final hasVerifyUrl = emailBody?.contains(verifyPattern) ?? false;
 
-      // Verify this email is for our user and is recent
-      // The verification URL uses just the local part of the email (before @), not URL-encoded
-      final localPart = username.split('@').first;
-      final usernamePattern = 'username=$localPart&code';
-      final isForOurUser = emailBody?.contains(usernamePattern) ?? false;
-
-      if (!inTestWindow || !isForOurUser || emailBody == null) {
-        final reason = !inTestWindow
-            ? 'Email outside test window'
+      if (!arrivedAfterAction || !isForOurUser || !hasVerifyUrl) {
+        final reason = !arrivedAfterAction
+            ? 'Email arrived before action was triggered'
             : !isForOurUser
-                ? 'Email not for user $username'
-                : 'No email body';
-        return _retryOrFail(username, retry, reason);
+                ? 'Email not for our user'
+                : 'Email missing verification URL';
+        return _retryOrFail(username, sentAfter, retry, reason);
       }
 
-      // Extract verification code from the URL
-      // The verification URL uses just the local part of the email (before @), not URL-encoded
-      final verifyPattern = 'verify?username=$localPart&code=';
-      final codeStart = emailBody.indexOf(verifyPattern);
-      if (codeStart == -1) {
-        return _retryOrFail(username, retry, 'Verification URL not found in email');
-      }
-
+      // Extract the verification code
+      final codeStart = emailBody!.indexOf(verifyPattern);
       final codeStartIndex = codeStart + verifyPattern.length;
       final codeEndIndex = emailBody.indexOf('\n', codeStartIndex);
       final verificationCode = emailBody
@@ -129,52 +118,65 @@ class EmailHelper {
 
       _log.info('Extracted verification code: $verificationCode');
 
-      // Delete the email object after successful extraction
-      await _minio.removeObject(_config.s3BucketName, latestObject.key!);
-      _log.info('Deleted email object: ${latestObject.key}');
+      // Delete our email
+      await _minio.removeObject(_config.s3BucketName, latestObj.key!);
+      _log.info('Deleted matching email: ${latestObj.key}');
+
+      // Clean up old emails (>10 min) now that we succeeded
+      await _cleanupOldEmails(allObjects, staleThreshold);
 
       return verificationCode;
     } catch (e) {
       _log.warning('Error during email fetch: $e');
-      return _retryOrFail(username, retry, 'Error: $e');
+      return _retryOrFail(username, sentAfter, retry, 'Error: $e');
     }
   }
 
-  Future<String> _retryOrFail(String username, int retry, String reason) async {
+  Future<String> _retryOrFail(
+    String username,
+    DateTime sentAfter,
+    int retry,
+    String reason,
+  ) async {
     if (retry < _maxRetries) {
-      _log.info('$reason. Retrying in ${_retryDelay.inSeconds}s...');
+      _log.info('$reason. Retrying in ${_retryDelay.inSeconds}s ...');
       await Future.delayed(_retryDelay);
-      return getVerificationCode(username, retry: retry + 1);
+      return getVerificationCode(username, sentAfter: sentAfter, retry: retry + 1);
     }
     throw Exception(
       'No matching verification email found after ${_maxRetries * _retryDelay.inSeconds} seconds. Last reason: $reason',
     );
   }
 
-  /// Parses a raw email string to extract date and plain text body.
-  _EmailParseResult _parseEmail(String emailStr) {
-    DateTime? emailDate;
-    String? emailBody;
+  /// Cleans up old emails (>10 min) after successfully finding our email.
+  Future<void> _cleanupOldEmails(
+    List<minio_models.Object> allObjects,
+    DateTime staleThreshold,
+  ) async {
+    var cleanedCount = 0;
+    for (final obj in allObjects) {
+      if (obj.key == null || obj.lastModified == null) continue;
 
-    // Simple email parsing - look for Date header and text/plain content
+      // Use S3 object's lastModified for simple staleness check
+      if (obj.lastModified!.isBefore(staleThreshold)) {
+        await _minio.removeObject(_config.s3BucketName, obj.key!);
+        cleanedCount++;
+      }
+    }
+    if (cleanedCount > 0) {
+      _log.info('Cleaned up $cleanedCount old email(s)');
+    }
+  }
+
+  /// Parses a raw email string to extract the plain text body.
+  String? _parseEmailBody(String emailStr) {
+    // Simple email parsing - look for text/plain content
     final lines = emailStr.split('\n');
     bool inBody = false;
     bool inPlainText = false;
     final bodyLines = <String>[];
 
-    for (var i = 0; i < lines.length; i++) {
-      final line = lines[i];
-
-      // Parse Date header
-      if (line.startsWith('Date: ') && emailDate == null) {
-        try {
-          final dateStr = line.substring(6).trim();
-          emailDate = _parseRfc2822Date(dateStr);
-        } catch (e) {
-          _log.warning('Failed to parse date: $e');
-        }
-      }
-
+    for (final line in lines) {
       // Detect content type boundaries
       if (line.contains('Content-Type: text/plain')) {
         inPlainText = true;
@@ -202,61 +204,6 @@ class EmailHelper {
       }
     }
 
-    if (bodyLines.isNotEmpty) {
-      emailBody = bodyLines.join('\n');
-    }
-
-    return _EmailParseResult(date: emailDate, body: emailBody);
+    return bodyLines.isNotEmpty ? bodyLines.join('\n') : null;
   }
-
-  /// Parse RFC 2822 date format (e.g., "Mon, 24 Feb 2025 10:30:00 +0000")
-  DateTime? _parseRfc2822Date(String dateStr) {
-    try {
-      // Remove day name if present
-      var cleaned = dateStr;
-      if (cleaned.contains(',')) {
-        cleaned = cleaned.substring(cleaned.indexOf(',') + 1).trim();
-      }
-
-      // Parse: "24 Feb 2025 10:30:00 +0000"
-      final parts = cleaned.split(' ');
-      if (parts.length < 5) return null;
-
-      final day = int.parse(parts[0]);
-      final month = _monthFromString(parts[1]);
-      final year = int.parse(parts[2]);
-      final timeParts = parts[3].split(':');
-      final hour = int.parse(timeParts[0]);
-      final minute = int.parse(timeParts[1]);
-      final second = int.parse(timeParts[2]);
-
-      // Parse timezone offset
-      final tzOffset = parts[4];
-      final tzSign = tzOffset.startsWith('-') ? -1 : 1;
-      final tzHours = int.parse(tzOffset.substring(1, 3));
-      final tzMinutes = int.parse(tzOffset.substring(3, 5));
-      final offsetDuration = Duration(hours: tzHours, minutes: tzMinutes) * tzSign;
-
-      final utcTime = DateTime.utc(year, month, day, hour, minute, second);
-      return utcTime.subtract(offsetDuration);
-    } catch (e) {
-      _log.warning('Failed to parse RFC 2822 date "$dateStr": $e');
-      return null;
-    }
-  }
-
-  int _monthFromString(String month) {
-    const months = {
-      'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6,
-      'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12,
-    };
-    return months[month] ?? 1;
-  }
-}
-
-class _EmailParseResult {
-  final DateTime? date;
-  final String? body;
-
-  _EmailParseResult({this.date, this.body});
 }

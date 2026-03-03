@@ -8,7 +8,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+
+// Conditional import for web platform
+import 'package:heliumapp/presentation/navigation/shell/navigation_shell_title_stub.dart'
+    if (dart.library.js_interop) 'package:heliumapp/presentation/navigation/shell/navigation_shell_title_web.dart'
+    as title_helper;
 import 'package:heliumapp/config/app_route.dart';
+import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/whats_new_service.dart';
@@ -127,6 +133,7 @@ class _NavigationShellState extends State<NavigationShell> {
   final InheritableProvidersNotifier _inheritableProvidersNotifier =
       InheritableProvidersNotifier();
   bool _isShowingGettingStarted = false;
+  bool _isLoggingOut = false;
 
   @override
   void initState() {
@@ -154,7 +161,7 @@ class _NavigationShellState extends State<NavigationShell> {
   }
 
   Future<void> _checkGettingStartedDialog() async {
-    if (_isShowingGettingStarted || !mounted) return;
+    if (_isShowingGettingStarted || !mounted || _isLoggingOut) return;
 
     try {
       final settings = await DioClient().getSettings();
@@ -186,14 +193,16 @@ class _NavigationShellState extends State<NavigationShell> {
     if (!mounted) return;
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!mounted) return;
+      // Double-check we're still authenticated before showing dialogs
+      if (!mounted || _isLoggingOut || !await DioClient().isAuthenticated()) return;
 
       if (showGettingStarted) {
         await _showGettingStartedDialogSafely();
-        if (!mounted) return;
+        if (!mounted || _isLoggingOut) return;
       }
 
       if (showWhatsNew) {
+        if (!await DioClient().isAuthenticated() || !mounted) return;
         try {
           await showWhatsNewDialog(context);
         } catch (e) {
@@ -204,7 +213,7 @@ class _NavigationShellState extends State<NavigationShell> {
   }
 
   Future<void> _showGettingStartedDialogSafely() async {
-    if (_isShowingGettingStarted || !mounted) return;
+    if (_isShowingGettingStarted || !mounted || _isLoggingOut) return;
 
     _isShowingGettingStarted = true;
     try {
@@ -229,13 +238,34 @@ class _NavigationShellState extends State<NavigationShell> {
     }
   }
 
+  /// Updates the browser title directly via DOM when navigating within the
+  /// shell. This avoids using a Title widget which would compete with pushed
+  /// routes like Settings/Notifications for control of the browser title.
+  void _updateBrowserTitle(NavigationPage page) {
+    title_helper.setTitle('${page.label} | ${AppConstants.appName}');
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentPage = _getCurrentPage(context);
 
+    // Only update browser title if no other route is pushed on top of the shell.
+    // Use global router state since the shell's local GoRouterState doesn't know
+    // about routes pushed outside of it (like Settings or Notifications).
+    final globalLocation =
+        router.routerDelegate.currentConfiguration.uri.path;
+    final isShellRoute =
+        NavigationPage.values.any((p) => p.route == globalLocation);
+    if (isShellRoute) {
+      _updateBrowserTitle(currentPage);
+    }
+
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthLoggedOut) {
+          _isLoggingOut = true;
+          // Pop any open dialogs before navigating to login
+          Navigator.of(context, rootNavigator: true).popUntil((route) => route.isFirst);
           context.go(AppRoute.loginScreen);
         }
       },

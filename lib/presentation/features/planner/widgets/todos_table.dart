@@ -62,7 +62,22 @@ class _TodosTableState extends State<TodosTable> {
     _initializeData();
   }
 
+  @override
+  void didUpdateWidget(TodosTable oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Handle the race condition where TodosTable initializes before the planner
+    // screen receives course data from the API. courses == null means the BLoC
+    // response hasn't arrived yet; retry until it does.
+    if (!_isInitialized) {
+      _initializeData();
+    }
+  }
+
   Future<void> _initializeData() async {
+    // courses == null means the planner BLoC hasn't loaded them yet; wait for
+    // didUpdateWidget to retry. courses == [] means loaded with no courses, which
+    // is valid and should proceed (showing empty state).
+    if (widget.dataSource.courses == null) return;
     await _expandDataWindowForAllCourses();
     if (!mounted) return;
     setState(() {

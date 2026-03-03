@@ -28,6 +28,7 @@ import 'package:heliumapp/domain/repositories/homework_repository.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
+import 'package:timezone/standalone.dart' as tz;
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
@@ -165,13 +166,15 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   Map<int, bool> get completedOverrides =>
       Map.unmodifiable(_completedOverrides);
 
-  /// Returns all planner items from all cached date ranges, deduplicated by id.
+  /// Returns all planner items from all cached date ranges, deduplicated by type and id.
   List<PlannerItemBaseModel> get allPlannerItems {
-    final seen = <int>{};
+    final seen = <String>{};
     final items = <PlannerItemBaseModel>[];
     for (final rangeItems in _dateRangeCache.values) {
       for (final item in rangeItems) {
-        if (seen.add(item.id)) {
+        // Use type + id as key to avoid collisions between different item types
+        final key = '${item.runtimeType}:${item.id}';
+        if (seen.add(key)) {
           items.add(item);
         }
       }
@@ -386,36 +389,52 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     final key = _cacheKey(startDate, endDate);
 
     if (forceRefresh || !_dateRangeCache.containsKey(key)) {
-      _log.info(
-        'Fetching data for range: $startDate to $endDate${forceRefresh ? ' (force refresh)' : ''}',
+      // Convert dates to TZDateTime in user's timezone at midnight.
+      // This ensures date boundaries are interpreted consistently on the backend.
+      final tzStartDate = tz.TZDateTime(
+        userSettings.timeZone,
+        startDate.year,
+        startDate.month,
+        startDate.day,
+      );
+      final tzEndDate = tz.TZDateTime(
+        userSettings.timeZone,
+        endDate.year,
+        endDate.month,
+        endDate.day,
       );
 
-      final homeworks = await homeworkRepository.getHomeworks(
-        from: startDate,
-        to: endDate,
-        shownOnCalendar: true,
-        forceRefresh: forceRefresh,
-      );
-      final events = await eventRepository.getEvents(
-        from: startDate,
-        to: endDate,
-        forceRefresh: forceRefresh,
-      );
-      final courseScheduleEvents = await courseScheduleRepository
-          .getCourseScheduleEvents(
-            courses: courses ?? [],
-            from: startDate,
-            to: endDate,
-            shownOnCalendar: true,
-            forceRefresh: forceRefresh,
-          );
-      final externalCalendarEvents = await externalCalendarRepository
-          .getExternalCalendarEvents(
-            from: startDate,
-            to: endDate,
-            shownOnCalendar: true,
-            forceRefresh: forceRefresh,
-          );
+      final results = await Future.wait([
+        homeworkRepository.getHomeworks(
+          from: tzStartDate,
+          to: tzEndDate,
+          shownOnCalendar: true,
+          forceRefresh: forceRefresh,
+        ),
+        eventRepository.getEvents(
+          from: startDate,
+          to: endDate,
+          forceRefresh: forceRefresh,
+        ),
+        courseScheduleRepository.getCourseScheduleEvents(
+          courses: courses ?? [],
+          from: startDate,
+          to: endDate,
+          shownOnCalendar: true,
+          forceRefresh: forceRefresh,
+        ),
+        externalCalendarRepository.getExternalCalendarEvents(
+          from: startDate,
+          to: endDate,
+          shownOnCalendar: true,
+          forceRefresh: forceRefresh,
+        ),
+      ]);
+      final homeworks = results[0] as List<HomeworkModel>;
+      final events = results[1] as List<EventModel>;
+      final courseScheduleEvents = results[2] as List<CourseScheduleEventModel>;
+      final externalCalendarEvents =
+          results[3] as List<ExternalCalendarEventModel>;
 
       final plannerItems = [
         ...events,
@@ -678,7 +697,9 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       appointments!.add(plannerItem);
       Sort.byStartThenTitle(appointments!.cast<PlannerItemBaseModel>());
       _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
-      notifyListeners(CalendarDataSourceAction.add, [plannerItem]);
+      if (!_isDisposed) {
+        notifyListeners(CalendarDataSourceAction.add, [plannerItem]);
+      }
     }
 
     _applyFiltersAndNotify();
@@ -719,13 +740,17 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     if (oldIndex != -1) {
       final oldItem = appointments![oldIndex];
       appointments!.removeAt(oldIndex);
-      notifyListeners(CalendarDataSourceAction.remove, [oldItem]);
+      if (!_isDisposed) {
+        notifyListeners(CalendarDataSourceAction.remove, [oldItem]);
+      }
 
       // Re-add at correct sorted position
       appointments!.add(plannerItem);
       Sort.byStartThenTitle(appointments!.cast<PlannerItemBaseModel>());
       _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
-      notifyListeners(CalendarDataSourceAction.add, [plannerItem]);
+      if (!_isDisposed) {
+        notifyListeners(CalendarDataSourceAction.add, [plannerItem]);
+      }
     } else {
       // Item not in current view, do full refresh
       _applyFiltersAndNotify();
@@ -756,7 +781,9 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       _completedOverrides.remove(plannerItemId);
       _sortPositions.remove(plannerItemId);
       _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
-      notifyListeners(CalendarDataSourceAction.remove, [removedItem]);
+      if (!_isDisposed) {
+        notifyListeners(CalendarDataSourceAction.remove, [removedItem]);
+      }
       _notifyChangeListeners();
     }
   }
@@ -782,7 +809,9 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     Sort.byStartThenTitle(appointments!.cast<PlannerItemBaseModel>());
     _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
 
-    notifyListeners(CalendarDataSourceAction.reset, appointments!);
+    if (!_isDisposed) {
+      notifyListeners(CalendarDataSourceAction.reset, appointments!);
+    }
     _notifyChangeListeners();
   }
 
@@ -840,7 +869,9 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     _log.fine(
       'Filters applied (sync): ${appointments!.length} of ${allPlannerItems.length} items visible',
     );
-    notifyListeners(CalendarDataSourceAction.reset, appointments!);
+    if (!_isDisposed) {
+      notifyListeners(CalendarDataSourceAction.reset, appointments!);
+    }
     _notifyChangeListeners();
   }
 
@@ -899,7 +930,9 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       _log.fine(
         'Filters applied: ${appointments!.length} of ${items.length} items visible',
       );
-      notifyListeners(CalendarDataSourceAction.reset, appointments!);
+      if (!_isDisposed) {
+        notifyListeners(CalendarDataSourceAction.reset, appointments!);
+      }
       _notifyChangeListeners();
       completer?.complete();
     } catch (e) {

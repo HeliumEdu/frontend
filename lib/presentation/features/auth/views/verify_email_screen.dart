@@ -88,14 +88,6 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return MultiBlocListener(
-      listeners: buildListeners(context),
-      child: buildScaffold(context),
-    );
-  }
-
-  @override
   List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
     return [
       BlocListener<AuthBloc, AuthState>(

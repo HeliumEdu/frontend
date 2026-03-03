@@ -14,15 +14,14 @@ import 'helpers/test_config.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-
   final config = TestConfig();
-  // ignore: avoid_print
-  print('Running smoke tests against: ${config.environment}');
-  // ignore: avoid_print
-  print('API host: ${config.projectApiHost}');
+  initializeTestLogging(
+    environment: config.environment,
+    apiHost: config.projectApiHost,
+  );
 
   group('Smoke Tests', () {
-    testWidgets('app launches and shows login screen', (tester) async {
+    namedTestWidgets('app launches and shows login screen', (tester) async {
       await initializeTestApp(tester);
 
       // Verify the logo is displayed (match our logo asset, not package assets)
@@ -63,6 +62,9 @@ void main() {
         reason: 'Forgot password link should be displayed',
       );
 
+      // Verify browser title is set correctly
+      expectBrowserTitle('Login');
+
       // Verify OAuth options are present
       expect(
         find.text('Sign in with Google'),
@@ -71,7 +73,7 @@ void main() {
       );
     });
 
-    testWidgets('can navigate to signup screen', (tester) async {
+    namedTestWidgets('can navigate to signup screen', (tester) async {
       await initializeTestApp(tester);
 
       // Tap "Need an account?" link
@@ -84,6 +86,7 @@ void main() {
         findsOneWidget,
         reason: 'Should navigate to signup screen',
       );
+      expectBrowserTitle('Create an Account');
 
       // Verify signup form elements are displayed
       expect(

@@ -204,9 +204,6 @@ class _CalendarScreenState
   DateTime? _storedSelectedDate;
   DateTime? _storedDisplayDate;
 
-  // Remember selectedDate on mobile (allows restoring null selection when
-  // leaving month view on mobile)
-  DateTime? _selectedDateBeforeMobileMonth;
   bool _mobileMonthAutoSelectApplied = false;
 
   List<DateTime> _visibleDates = [];
@@ -1363,12 +1360,13 @@ class _CalendarScreenState
         newView == PlannerView.day);
     final isLeavingMonthView = _currentView == PlannerView.month;
 
-    // Unset selectedDate when leaving month view on mobile (if it wasn't set
-    // before month view was entered)
+    // Clear auto-select tracking when leaving month view on mobile.
+    // Note: we intentionally do NOT restore selectedDate to null here.
+    // Syncfusion's _SelectionPainter crashes (NoSuchMethodError on null check)
+    // if selectedDate is nullified while a repaint is already pending. The
+    // auto-selected date simply remains selected when leaving month view.
     if (isLeavingMonthView && _mobileMonthAutoSelectApplied) {
-      _calendarController.selectedDate = _selectedDateBeforeMobileMonth;
       _mobileMonthAutoSelectApplied = false;
-      _selectedDateBeforeMobileMonth = null;
     }
 
     // Store calendar view state when entering Todos
@@ -1410,7 +1408,6 @@ class _CalendarScreenState
     if (Responsive.isMobile(context) &&
         newView == PlannerView.month &&
         _calendarController.selectedDate == null) {
-      _selectedDateBeforeMobileMonth = _calendarController.selectedDate;
       _mobileMonthAutoSelectApplied = true;
       final now = DateTime.now();
       _calendarController.selectedDate = DateTime(
@@ -1443,7 +1440,6 @@ class _CalendarScreenState
     // unless page is reloaded)
     if (_mobileMonthAutoSelectApplied) {
       _mobileMonthAutoSelectApplied = false;
-      _selectedDateBeforeMobileMonth = null;
     }
 
     // In month view, include the current hour in the date selection so

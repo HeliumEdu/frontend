@@ -12,7 +12,6 @@ import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
 import 'package:heliumapp/data/sources/base_data_source.dart';
-import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:logging/logging.dart';
 
 final _log = Logger('data.sources');
@@ -69,9 +68,11 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
     bool forceRefresh = false,
   }) async {
     try {
+      // Use toIso8601String() which includes timezone offset for TZDateTime.
+      // This ensures the backend interprets date boundaries consistently.
       final Map<String, dynamic> queryParameters = {
-        'from': HeliumDateTime.formatDateForApi(from),
-        'to': HeliumDateTime.formatDateForApi(to),
+        'from': from.toIso8601String(),
+        'to': to.toIso8601String(),
       };
       if (categoryTitles?.isNotEmpty ?? false) {
         final sanitizedTitles = categoryTitles

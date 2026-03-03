@@ -14,17 +14,16 @@ import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
+import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/auth/controllers/credentials_form_controller.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
-import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/layout/responsive_center_card.dart';
 import 'package:heliumapp/utils/app_assets.dart';
-import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
@@ -79,14 +78,6 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
     _formController.dispose();
 
     super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return MultiBlocListener(
-      listeners: buildListeners(context),
-      child: buildScaffold(context),
-    );
   }
 
   @override
@@ -178,11 +169,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
 
   @override
   Widget buildScaffold(BuildContext context) {
-    return Title(
-      title: '$screenTitle | ${AppConstants.appName}',
-      color: context.colorScheme.primary,
-      child: Scaffold(body: SafeArea(child: buildMainArea(context))),
-    );
+    return Scaffold(body: SafeArea(child: buildMainArea(context)));
   }
 
   @override
@@ -392,4 +379,3 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
     }
   }
 }
-

@@ -5,6 +5,8 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:flutter/foundation.dart';
+import 'package:heliumapp/core/log_formatter.dart';
 import 'package:logging/logging.dart';
 
 class LogService {
@@ -25,33 +27,13 @@ class LogService {
       orElse: () => Level.INFO,
     );
 
-    Logger.root.onRecord.listen((record) {
-      final String colorCode;
-      if (record.level >= Level.SHOUT) {
-        colorCode = '\x1B[31m'; // Dark red
-      } else if (record.level >= Level.SEVERE) {
-        colorCode = '\x1B[91m'; // Light red
-      } else if (record.level >= Level.WARNING) {
-        colorCode = '\x1B[33m'; // Yellow
-      } else if (record.level >= Level.INFO) {
-        colorCode = '\x1B[36m'; // Cyan
-      } else {
-        colorCode = '\x1B[90m'; // Grey
-      }
-      const resetCode = '\x1B[0m';
-
-      // ignore: avoid_print
-      print(
-        '$colorCode${record.level.name}$resetCode: ${record.time}: [${record.loggerName}] ${record.message}',
-      );
-      if (record.error != null) {
+    // Only print logs in non-release builds (debug and profile modes)
+    // In release builds, logs are handled by Sentry
+    if (!kReleaseMode) {
+      Logger.root.onRecord.listen((record) {
         // ignore: avoid_print
-        print('${colorCode}Error$resetCode: ${record.error}');
-      }
-      if (record.stackTrace != null) {
-        // ignore: avoid_print
-        print('${colorCode}Stack Trace:$resetCode\n${record.stackTrace}');
-      }
-    });
+        print(LogFormatter.format(record));
+      });
+    }
   }
 }

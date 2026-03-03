@@ -7,6 +7,8 @@
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/data/models/planner/course_model.dart';
+import 'package:heliumapp/data/models/planner/resource_group_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/domain/repositories/course_repository.dart';
 import 'package:heliumapp/domain/repositories/resource_repository.dart';
@@ -40,9 +42,14 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
   ) async {
     emit(ResourcesLoading(origin: event.origin));
     try {
-      final resourceGroups = await resourceRepository.getResourceGroups();
-      final resources = await resourceRepository.getResources();
-      final courses = await courseRepository.getCourses();
+      final results = await Future.wait([
+        resourceRepository.getResourceGroups(),
+        resourceRepository.getResources(),
+        courseRepository.getCourses(),
+      ]);
+      final resourceGroups = results[0] as List<ResourceGroupModel>;
+      final resources = results[1] as List<ResourceModel>;
+      final courses = results[2] as List<CourseModel>;
       emit(
         ResourcesScreenDataFetched(
           origin: event.origin,

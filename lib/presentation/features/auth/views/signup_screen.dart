@@ -73,14 +73,6 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return MultiBlocListener(
-      listeners: buildListeners(context),
-      child: buildScaffold(context),
-    );
-  }
-
-  @override
   List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
     return [
       BlocListener<AuthBloc, AuthState>(
@@ -93,6 +85,12 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
             });
 
             if (!context.mounted) return;
+
+            showSnackBar(
+              context,
+              'Welcome to Helium!',
+              seconds: 3,
+            );
 
             // Check if account setup is complete
             final isSetupComplete =

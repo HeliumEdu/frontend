@@ -1,10 +1,29 @@
-.PHONY: all env install clean clean-chrome icons build-android build-android-release build-ios-dev build-ios build-ios-release update-version firebase-config build-web upload-web-sourcemaps test start-platform stop-platform test-integration test-integration-smoke coverage run-devserver build-docker run-docker stop-docker restart-docker publish
+.PHONY: all env install clean clean-chrome icons build-android build-android-release build-ios-dev build-ios build-ios-release update-version firebase-config build-web upload-web-sourcemaps upload-android-symbols upload-ios-symbols test start-platform stop-platform test-integration test-integration-smoke coverage run-devserver build-docker run-docker stop-docker restart-docker publish
 
 SHELL := /usr/bin/env bash
 TAG_VERSION ?= latest
 PLATFORM ?= arm64
 DOCKER_TAG_VERSION := $(subst +,_,$(TAG_VERSION))
 DOCKER_CACHE_DIR ?= .docker-cache
+
+ENVIRONMENT ?= dev-local
+INTEGRATION_TARGET ?= integration_test/full_test.dart
+INTEGRATION_HEADLESS ?= true
+INTEGRATION_EMAIL_SUFFIX ?= integration-$(USER)
+ifeq ($(ENVIRONMENT),dev-local)
+    PROJECT_API_HOST := http://localhost:8000
+else
+    PROJECT_API_HOST := https://api.$(ENVIRONMENT_PREFIX)heliumedu.com
+endif
+DRIVE_ARGS := --driver=test_driver/integration_test.dart -d web-server --web-port=8080 --browser-name=chrome --profile --dart-define=ENVIRONMENT=$(ENVIRONMENT) --dart-define=ANALYTICS_ENABLED=false
+DRIVE_ARGS += --web-browser-flag="--disable-web-security"
+DRIVE_ARGS += --web-browser-flag="--user-data-dir=/tmp/chrome_test_profile"
+
+ifeq ($(ENVIRONMENT), prod)
+    ENVIRONMENT_PREFIX :=
+else
+    ENVIRONMENT_PREFIX := $(ENVIRONMENT).
+endif
 
 RUN_ARGS :=
 
@@ -16,6 +35,9 @@ endif
 
 ifdef PROJECT_API_HOST
     RUN_ARGS += --dart-define=PROJECT_API_HOST=$(PROJECT_API_HOST)
+endif
+ifdef LOG_LEVEL
+    RUN_ARGS += --dart-define=LOG_LEVEL=$(LOG_LEVEL)
 endif
 
 ifdef PORT
@@ -30,15 +52,6 @@ else
     WEB_ARGS :=
 endif
 
-# Integration test configuration
-ENVIRONMENT ?= dev-local
-INTEGRATION_TARGET ?= integration_test/app_test.dart
-INTEGRATION_HEADLESS ?= true
-# Set API host based on environment
-ifeq ($(ENVIRONMENT),dev-local)
-    PROJECT_API_HOST ?= http://localhost:8000
-endif
-DRIVE_ARGS := --driver=test_driver/integration_test.dart -d web-server --web-port=8080 --browser-name=chrome --profile --dart-define=ENVIRONMENT=$(ENVIRONMENT) --dart-define=ANALYTICS_ENABLED=false
 ifeq ($(INTEGRATION_HEADLESS),true)
     DRIVE_ARGS += --headless
 else
@@ -47,11 +60,23 @@ endif
 ifdef PROJECT_API_HOST
     DRIVE_ARGS += --dart-define=PROJECT_API_HOST=$(PROJECT_API_HOST)
 endif
-ifdef AWS_S3_ACCESS_KEY_ID
-    DRIVE_ARGS += --dart-define=AWS_S3_ACCESS_KEY_ID=$(AWS_S3_ACCESS_KEY_ID)
+ifdef LOG_LEVEL
+    DRIVE_ARGS += --dart-define=LOG_LEVEL=$(LOG_LEVEL)
 endif
-ifdef AWS_S3_SECRET_ACCESS_KEY
-    DRIVE_ARGS += --dart-define=AWS_S3_SECRET_ACCESS_KEY=$(AWS_S3_SECRET_ACCESS_KEY)
+ifdef AWS_INTEGRATION_S3_ACCESS_KEY_ID
+    DRIVE_ARGS += --dart-define=AWS_INTEGRATION_S3_ACCESS_KEY_ID=$(AWS_INTEGRATION_S3_ACCESS_KEY_ID)
+endif
+ifdef AWS_INTEGRATION_S3_SECRET_ACCESS_KEY
+    DRIVE_ARGS += --dart-define=AWS_INTEGRATION_S3_SECRET_ACCESS_KEY=$(AWS_INTEGRATION_S3_SECRET_ACCESS_KEY)
+endif
+ifdef INTEGRATION_LOG_LEVEL
+    DRIVE_ARGS += --dart-define=INTEGRATION_LOG_LEVEL=$(INTEGRATION_LOG_LEVEL)
+endif
+ifdef INTEGRATION_EMAIL_SUFFIX
+    DRIVE_ARGS += --dart-define=INTEGRATION_EMAIL_SUFFIX=$(INTEGRATION_EMAIL_SUFFIX)
+endif
+ifdef SENTRY_RELEASE
+    DRIVE_ARGS += --dart-define=SENTRY_RELEASE=$(SENTRY_RELEASE)
 endif
 
 all: test
@@ -66,7 +91,7 @@ clean:
 	flutter clean
 
 clean-chrome:
-	@echo "Killing stale Chrome and chromedriver processes..."
+	@echo "Killing stale Chrome and chromedriver processes ..."
 	@pkill -f chromedriver || true
 	@pkill -f "Chrome.*--remote-debugging" || true
 	@pkill -f "Google Chrome for Testing" || true
@@ -110,6 +135,12 @@ endif
 	SENTRY_PROPERTIES=sentry.properties sentry-cli sourcemaps upload --release $(SENTRY_RELEASE) build/web
 	SENTRY_PROPERTIES=sentry.properties sentry-cli releases finalize $(SENTRY_RELEASE)
 
+upload-android-symbols:
+	SENTRY_PROPERTIES=sentry.properties sentry-cli debug-files upload build/symbols/
+
+upload-ios-symbols:
+	SENTRY_PROPERTIES=sentry.properties sentry-cli debug-files upload build/symbols/ build/ios/archive/Runner.xcarchive/dSYMs/
+
 test: install
 	flutter analyze --no-pub --no-fatal-infos --no-fatal-warnings
 	flutter test --no-pub --coverage
@@ -118,13 +149,13 @@ start-platform:
 	@if curl -sf http://localhost:8000/status/ > /dev/null 2>&1; then \
 		echo "Platform already running"; \
 	else \
-		echo "Starting platform..."; \
+		echo "Starting platform ..."; \
 		curl -fsSL "https://raw.githubusercontent.com/HeliumEdu/platform/main/bin/start-platform.sh?$$(date +%s)" | bash; \
 	fi
 	@if [ -n "$$PLATFORM_EMAIL_HOST_USER" ] && [ -n "$$PLATFORM_EMAIL_HOST_PASSWORD" ]; then \
 		WORK_DIR=$${TMPDIR:-/tmp}/helium-platform; \
 		if grep -q '<SMTP_USERNAME>' "$$WORK_DIR/.env" 2>/dev/null; then \
-			echo "Injecting SMTP credentials and restarting API..."; \
+			echo "Injecting SMTP credentials and restarting API ..."; \
 			sed -i.bak "s/<SMTP_USERNAME>/$$PLATFORM_EMAIL_HOST_USER/" $$WORK_DIR/.env; \
 			sed -i.bak "s/<SMTP_PASSWORD>/$$PLATFORM_EMAIL_HOST_PASSWORD/" $$WORK_DIR/.env; \
 			cd $$WORK_DIR && docker compose up -d api worker; \
@@ -137,12 +168,10 @@ stop-platform:
 test-integration:
 ifeq ($(ENVIRONMENT),dev-local)
 	@$(MAKE) start-platform
+endif
 	@chromedriver --port=4444 & CHROME_PID=$$!; sleep 2 && flutter drive --target=$(INTEGRATION_TARGET) $(DRIVE_ARGS); TEST_EXIT=$$?; \
 		kill $$CHROME_PID 2>/dev/null || true; \
 		exit $$TEST_EXIT
-else
-	@chromedriver --port=4444 & CHROME_PID=$$!; sleep 2 && flutter drive --target=$(INTEGRATION_TARGET) $(DRIVE_ARGS); TEST_EXIT=$$?; kill $$CHROME_PID 2>/dev/null || true; exit $$TEST_EXIT
-endif
 
 test-integration-smoke:
 	@chromedriver --port=4444 & CHROME_PID=$$!; sleep 2 && flutter drive --target=integration_test/smoke_test.dart $(DRIVE_ARGS); TEST_EXIT=$$?; kill $$CHROME_PID 2>/dev/null || true; exit $$TEST_EXIT
