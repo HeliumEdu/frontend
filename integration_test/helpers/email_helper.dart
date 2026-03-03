@@ -92,12 +92,11 @@ class EmailHelper {
       final staleThreshold = nowUtc.subtract(const Duration(minutes: 10));
 
       // Validate: arrived after sentAfter, for our user, and has verification code
-      final localPart = username.split('@').first;
-      final usernamePattern = 'username=$localPart&code';
-      final verifyPattern = 'verify?username=$localPart&code=';
+      final emailPattern = 'email=$username&code';
+      final verifyPattern = 'verify?email=$username&code=';
 
       final arrivedAfterAction = !s3Timestamp.isBefore(sentAfter);
-      final isForOurUser = emailBody?.contains(usernamePattern) ?? false;
+      final isForOurUser = emailBody?.contains(emailPattern) ?? false;
       final hasVerifyUrl = emailBody?.contains(verifyPattern) ?? false;
 
       if (!arrivedAfterAction || !isForOurUser || !hasVerifyUrl) {
