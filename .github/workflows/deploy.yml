@@ -238,10 +238,10 @@ jobs:
       - name: Notify Sentry of deploy
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          FULL_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
+          SENTRY_RELEASE: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
         run: |
           npm install -g @sentry/cli
-          SENTRY_PROPERTIES=sentry.properties sentry-cli releases deploys new "$FULL_VERSION" --env "${{ inputs.environment }}"
+          SENTRY_PROPERTIES=sentry.properties sentry-cli releases deploys new --env "${{ inputs.environment }}"
 
       - name: Deployment summary
         env:
@@ -396,10 +396,10 @@ jobs:
       - name: Notify Sentry of deploy
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          FULL_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
+          SENTRY_RELEASE: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
         run: |
           npm install -g @sentry/cli
-          SENTRY_PROPERTIES=sentry.properties sentry-cli releases deploys new "$FULL_VERSION" --env prod
+          SENTRY_PROPERTIES=sentry.properties sentry-cli releases deploys new --env prod
 
       - name: Deployment summary
         env:
@@ -548,10 +548,10 @@ jobs:
       - name: Notify Sentry of deploy
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          FULL_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
+          SENTRY_RELEASE: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
         run: |
           npm install -g @sentry/cli
-          SENTRY_PROPERTIES=sentry.properties sentry-cli releases deploys new "$FULL_VERSION" --env prod
+          SENTRY_PROPERTIES=sentry.properties sentry-cli releases deploys new --env prod
 
       - name: Deployment summary
         env:
