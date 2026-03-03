@@ -42,6 +42,15 @@ class SentryService {
       options.enableAutoPerformanceTracing = true;
       options.enableUserInteractionTracing = true;
 
+      // Belt-and-suspenders for auth errors that escape to window.onerror on
+      // web. For those events the JS SDK creates the SentryEvent; by the time
+      // Dart deserializes it into a SentryEvent for beforeSend, exception.value
+      // may be null. ignoreErrors operates at the JS SDK level on the original
+      // event before that deserialization, so it catches what beforeSend misses.
+      options.ignoreErrors = [
+        '(?i)(status code of|http status error \\[)(401|403)',
+      ];
+
       options.beforeSend = _beforeSend;
     });
 
