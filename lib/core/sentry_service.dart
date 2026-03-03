@@ -51,6 +51,12 @@ class SentryService {
         '(?i)(status code of|http status error \\[)(401|403)',
       ];
 
+      // Ignore background/infrastructure transactions that aren't user-initiated
+      options.ignoreTransactions = [
+        '(?i)/auth/token/refresh/',
+        '(?i)/auth/user/pushtoken/',
+      ];
+
       options.beforeSend = _beforeSend;
     });
 
