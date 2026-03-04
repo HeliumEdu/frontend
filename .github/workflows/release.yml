@@ -355,7 +355,9 @@ jobs:
       - name: Build web release bundle
         env:
           SENTRY_RELEASE: ${{ needs.bump-version.outputs.version }}
-        run: make build-web
+        run: |
+          SENTRY_DIST="${SENTRY_RELEASE##*+}"
+          make build-web SENTRY_RELEASE="$SENTRY_RELEASE" SENTRY_DIST="$SENTRY_DIST"
 
       - name: Upload source maps to Sentry
         env:
@@ -363,8 +365,15 @@ jobs:
           SENTRY_RELEASE: ${{ needs.bump-version.outputs.version }}
         run: |
           npm install -g @sentry/cli
+          SENTRY_DIST="${SENTRY_RELEASE##*+}"
           SENTRY_PROPERTIES=sentry.properties sentry-cli releases new "$SENTRY_RELEASE"
-          SENTRY_PROPERTIES=sentry.properties sentry-cli sourcemaps upload --release "$SENTRY_RELEASE" build/web
+          SENTRY_PROPERTIES=sentry.properties sentry-cli sourcemaps upload \
+            --release "$SENTRY_RELEASE" \
+            --dist "$SENTRY_DIST" \
+            --rewrite \
+            --validate \
+            --url-prefix "~/" \
+            build/web
 
       - name: Upload web artifact
         uses: actions/upload-artifact@v4
@@ -400,7 +409,11 @@ jobs:
           aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/heliumedu
 
       - name: Build and publish web containers
-        run: make publish
+        env:
+          SENTRY_RELEASE: ${{ needs.bump-version.outputs.version }}
+        run: |
+          SENTRY_DIST="${SENTRY_RELEASE##*+}"
+          make publish SENTRY_RELEASE="$SENTRY_RELEASE" SENTRY_DIST="$SENTRY_DIST"
 
   create-release-tag:
     name: Create Release Tag
