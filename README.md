@@ -10,8 +10,7 @@ The `frontend` for [Helium](https://www.heliumedu.com/), including mobile and we
 
 ## Prerequisites
 
-- Dart (>= 3.10)
-- Flutter (>= 3.38)
+- Dart & Flutter (3.11, 3.41)
 - Android or iOS Emulator
 - ChromeDriver (for Integration Tests)
 

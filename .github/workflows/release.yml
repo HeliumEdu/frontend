@@ -15,6 +15,11 @@ on:
           - patch
           - minor
           - major
+      run_integration_tests:
+        description: 'Run integration tests'
+        required: true
+        type: boolean
+        default: true
   workflow_call:
     inputs:
       bump_type:
@@ -22,6 +27,11 @@ on:
         required: false
         type: string
         default: build
+      run_integration_tests:
+        description: "Run integration tests"
+        required: false
+        type: boolean
+        default: true
     outputs:
       version:
         description: "Released version"
@@ -50,7 +60,6 @@ jobs:
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
-          version: "3.38.9"
           cache: true
 
       - name: Cache pub dependencies
@@ -66,6 +75,7 @@ jobs:
 
   integration-test:
     name: Integration Test
+    if: ${{ inputs.run_integration_tests }}
     uses: ./.github/workflows/integration.yml
     with:
       suite: full
@@ -75,6 +85,7 @@ jobs:
   bump-version:
     name: Bump Version
     needs: [test, integration-test]
+    if: always() && needs.test.result == 'success' && (needs.integration-test.result == 'success' || needs.integration-test.result == 'skipped')
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.get_version.outputs.version }}
@@ -91,7 +102,6 @@ jobs:
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
-          version: "3.38.9"
           cache: true
 
       - name: Cache pub dependencies
@@ -121,6 +131,7 @@ jobs:
 
           git commit -m "Bump version to $(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' \r\n')"
 
+          git pull --rebase
           git push
 
       - name: Get version from pubspec.yaml
@@ -145,6 +156,7 @@ jobs:
   build-android-release:
     name: Build Android Release AAB
     needs: [test, bump-version]
+    if: always() && needs.test.result == 'success' && needs.bump-version.result == 'success'
     runs-on: ubuntu-latest
 
     steps:
@@ -164,7 +176,6 @@ jobs:
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
-          version: "3.38.9"
           cache: true
 
       - name: Cache pub dependencies
@@ -211,6 +222,7 @@ jobs:
   build-ios-release:
     name: Build iOS Release IPA
     needs: [test, bump-version]
+    if: always() && needs.test.result == 'success' && needs.bump-version.result == 'success'
     runs-on: macos-latest
 
     steps:
@@ -218,9 +230,9 @@ jobs:
         with:
           ref: ${{ needs.bump-version.outputs.commit_sha }}
 
-      - name: Select latest Xcode
+      - name: Select latest stable Xcode
         run: |
-          LATEST_XCODE=$(ls /Applications | grep "Xcode" | sort -V | tail -n 1)
+          LATEST_XCODE=$(ls /Applications | grep "^Xcode" | grep -v -E "(beta|Release_Candidate)" | sort -V | tail -n 1)
           sudo xcode-select -s /Applications/$LATEST_XCODE/Contents/Developer
           xcodebuild -version
 
@@ -228,7 +240,6 @@ jobs:
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
-          version: "3.38.9"
           cache: true
 
       - name: Cache pub dependencies
@@ -316,6 +327,7 @@ jobs:
   build-web-release:
     name: Build Web Release Bundle
     needs: [test, bump-version]
+    if: always() && needs.test.result == 'success' && needs.bump-version.result == 'success'
     runs-on: ubuntu-latest
 
     steps:
@@ -327,7 +339,6 @@ jobs:
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
-          version: "3.38.9"
           cache: true
 
       - name: Cache pub dependencies
@@ -365,6 +376,7 @@ jobs:
   build-and-publish-web:
     name: Build and Publish Web Containers
     needs: [test, bump-version]
+    if: always() && needs.test.result == 'success' && needs.bump-version.result == 'success'
     runs-on: ubuntu-latest
 
     env:

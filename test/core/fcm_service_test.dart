@@ -142,10 +142,10 @@ void main() {
 
         when(
           () => mockLocalNotifications.show(
-            any(),
-            any(),
-            any(),
-            any(),
+            id: any(named: 'id'),
+            title: any(named: 'title'),
+            body: any(named: 'body'),
+            notificationDetails: any(named: 'notificationDetails'),
           ),
         ).thenAnswer((_) async {});
 
@@ -155,10 +155,10 @@ void main() {
         // THEN
         verify(
           () => mockLocalNotifications.show(
-            42.hashCode,
-            'Test Title',
-            'Test Body',
-            any(that: isA<NotificationDetails>()),
+            id: 42.hashCode,
+            title: 'Test Title',
+            body: 'Test Body',
+            notificationDetails: any(named: 'notificationDetails', that: isA<NotificationDetails>()),
           ),
         ).called(1);
       });

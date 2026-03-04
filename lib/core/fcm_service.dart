@@ -151,7 +151,7 @@ class FcmService {
         );
 
     await _localNotifications.initialize(
-      initializationSettings,
+      settings: initializationSettings,
       onDidReceiveNotificationResponse: _onNotificationTapped,
     );
 
@@ -441,10 +441,10 @@ class FcmService {
     );
 
     await _localNotifications.show(
-      notification.id.hashCode,
-      notification.title,
-      notification.body,
-      platformDetails,
+      id: notification.id.hashCode,
+      title: notification.title,
+      body: notification.body,
+      notificationDetails: platformDetails,
     );
   }
 

@@ -9,6 +9,13 @@ on:
     branches: [ main ]
   schedule:
     - cron: "0 9 * * *"
+  workflow_dispatch:
+    inputs:
+      run_integration_tests:
+        description: 'Run integration tests'
+        required: true
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -37,7 +44,6 @@ jobs:
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
-          version: "3.38.9"
           cache: true
 
       - name: Cache pub dependencies
@@ -66,6 +72,7 @@ jobs:
 
   integration-test:
     name: Integration Test
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.run_integration_tests }}
     uses: ./.github/workflows/integration.yml
     with:
       suite: full
@@ -92,7 +99,6 @@ jobs:
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
-          version: "3.38.9"
           cache: true
 
       - name: Cache pub dependencies
@@ -114,9 +120,9 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Select latest Xcode
+      - name: Select latest stable Xcode
         run: |
-          LATEST_XCODE=$(ls /Applications | grep "Xcode" | sort -V | tail -n 1)
+          LATEST_XCODE=$(ls /Applications | grep "^Xcode" | grep -v -E "(beta|Release_Candidate)" | sort -V | tail -n 1)
           sudo xcode-select -s /Applications/$LATEST_XCODE/Contents/Developer
           xcodebuild -version
 
@@ -124,7 +130,6 @@ jobs:
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
-          version: "3.38.9"
           cache: true
 
       - name: Cache pub dependencies
@@ -150,7 +155,6 @@ jobs:
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
-          version: "3.38.9"
           cache: true
 
       - name: Cache pub dependencies
