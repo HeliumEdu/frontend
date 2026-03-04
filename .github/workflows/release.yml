@@ -20,6 +20,29 @@ on:
         required: true
         type: boolean
         default: true
+      trigger_deploy_after_release:
+        description: 'Trigger deploy after release'
+        required: true
+        type: boolean
+        default: true
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: choice
+        default: prod
+        options:
+          - dev
+          - prod
+      platforms:
+        description: 'Platforms to deploy'
+        required: true
+        type: choice
+        default: all
+        options:
+          - all
+          - web
+          - android
+          - ios
   workflow_call:
     inputs:
       bump_type:
@@ -32,6 +55,21 @@ on:
         required: false
         type: boolean
         default: true
+      trigger_deploy_after_release:
+        description: "Trigger deploy after release"
+        required: false
+        type: boolean
+        default: true
+      environment:
+        description: "Environment to deploy to"
+        required: false
+        type: string
+        default: prod
+      platforms:
+        description: "Platforms to deploy"
+        required: false
+        type: string
+        default: all
     outputs:
       version:
         description: "Released version"
@@ -461,3 +499,16 @@ jobs:
           SENTRY_PROPERTIES=sentry.properties sentry-cli releases new "$VERSION"
           SENTRY_PROPERTIES=sentry.properties sentry-cli releases set-commits --auto "$VERSION"
           SENTRY_PROPERTIES=sentry.properties sentry-cli releases finalize "$VERSION"
+
+  deploy:
+    name: Deploy
+    needs: [create-release-tag, bump-version]
+    if: ${{ inputs.trigger_deploy_after_release && needs.create-release-tag.result == 'success' && needs.bump-version.result == 'success' }}
+    uses: ./.github/workflows/deploy.yml
+    with:
+      version_type: specific
+      specific_version: ${{ needs.bump-version.outputs.version }}
+      environment: ${{ inputs.environment }}
+      platforms: ${{ inputs.platforms }}
+      artifact_run_id: ${{ github.run_id }}
+    secrets: inherit
