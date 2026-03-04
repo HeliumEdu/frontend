@@ -128,7 +128,6 @@ build-web: install
 	cp -r web/.well-known build/web/
 	$(MAKE) update-version
 
-
 test: install
 	flutter analyze --no-pub --no-fatal-infos --no-fatal-warnings
 	flutter test --no-pub --coverage
