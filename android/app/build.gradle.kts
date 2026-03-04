@@ -18,7 +18,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.heliumedu.heliumapp"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36
     ndkVersion = "28.2.13676358"
 
     compileOptions {
@@ -36,15 +36,12 @@ android {
         applicationId = "com.heliumedu.heliumapp"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
-        
-        minSdk = flutter.minSdkVersion
 
-        targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        // Minimum Android version - API 26 (Android 8.0, 2017)
+        minSdk = 26
+        targetSdk = 36
     }
 
     signingConfigs {
