@@ -51,6 +51,9 @@ ifdef SENTRY_RELEASE
 else
     WEB_ARGS :=
 endif
+ifdef SENTRY_DIST
+    WEB_ARGS += --dart-define=SENTRY_DIST=$(SENTRY_DIST)
+endif
 
 ifeq ($(INTEGRATION_HEADLESS),true)
     DRIVE_ARGS += --headless
@@ -77,6 +80,9 @@ ifdef INTEGRATION_EMAIL_SUFFIX
 endif
 ifdef SENTRY_RELEASE
     DRIVE_ARGS += --dart-define=SENTRY_RELEASE=$(SENTRY_RELEASE)
+endif
+ifdef SENTRY_DIST
+    DRIVE_ARGS += --dart-define=SENTRY_DIST=$(SENTRY_DIST)
 endif
 
 all: test
@@ -184,6 +190,7 @@ build-docker:
 	docker buildx build \
 		--build-arg PROJECT_API_HOST=$(PROJECT_API_HOST) \
 		--build-arg SENTRY_RELEASE=$(SENTRY_RELEASE) \
+		--build-arg SENTRY_DIST=$(SENTRY_DIST) \
 		--cache-from=type=local,src=$(DOCKER_CACHE_DIR) \
 		--cache-to=type=local,dest=$(DOCKER_CACHE_DIR),mode=max \
 		-t helium/frontend-web:$(PLATFORM)-latest \
