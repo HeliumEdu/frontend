@@ -85,6 +85,7 @@ jobs:
   bump-version:
     name: Bump Version
     needs: [test, integration-test]
+    if: always() && needs.test.result == 'success' && (needs.integration-test.result == 'success' || needs.integration-test.result == 'skipped')
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.get_version.outputs.version }}
