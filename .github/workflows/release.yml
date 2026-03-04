@@ -156,6 +156,7 @@ jobs:
   build-android-release:
     name: Build Android Release AAB
     needs: [test, bump-version]
+    if: always() && needs.test.result == 'success' && needs.bump-version.result == 'success'
     runs-on: ubuntu-latest
 
     steps:
@@ -221,6 +222,7 @@ jobs:
   build-ios-release:
     name: Build iOS Release IPA
     needs: [test, bump-version]
+    if: always() && needs.test.result == 'success' && needs.bump-version.result == 'success'
     runs-on: macos-latest
 
     steps:
@@ -325,6 +327,7 @@ jobs:
   build-web-release:
     name: Build Web Release Bundle
     needs: [test, bump-version]
+    if: always() && needs.test.result == 'success' && needs.bump-version.result == 'success'
     runs-on: ubuntu-latest
 
     steps:
@@ -373,6 +376,7 @@ jobs:
   build-and-publish-web:
     name: Build and Publish Web Containers
     needs: [test, bump-version]
+    if: always() && needs.test.result == 'success' && needs.bump-version.result == 'success'
     runs-on: ubuntu-latest
 
     env:
