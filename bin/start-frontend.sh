@@ -5,24 +5,30 @@
 #   curl -fsSL "https://raw.githubusercontent.com/HeliumEdu/frontend/main/bin/start-frontend.sh" | bash
 #
 # Environment variables:
-#   FRONTEND_IMAGE - Docker image to use (default: public.ecr.aws/heliumedu/helium/frontend-web:amd64-latest)
-#   PLATFORM - Platform architecture: arm64 or amd64 (default: arm64, used if FRONTEND_IMAGE not set)
+#   REGISTRY_PREFIX - Registry prefix (e.g., "public.ecr.aws/heliumedu/") - auto-detected if not set
+#   FRONTEND_IMAGE  - Full image to use (optional, overrides REGISTRY_PREFIX)
+#   PLATFORM        - Platform architecture: arm64 or amd64 (default: arm64)
 #
 
 set -euo pipefail
 
-# Determine the image to use
-# Prefer local images if available, otherwise fall back to ECR Public
 PLATFORM="${PLATFORM:-arm64}"
-LOCAL_IMAGE="helium/frontend-web:${PLATFORM}-latest"
-if docker image inspect "$LOCAL_IMAGE" &>/dev/null; then
-    echo "Using local image..."
-    FRONTEND_IMAGE="${FRONTEND_IMAGE:-helium/frontend-web:${PLATFORM}-latest}"
+
+# Determine registry prefix - prefer local images if available
+if [[ -z "${REGISTRY_PREFIX:-}" ]]; then
+    LOCAL_IMAGE="helium/frontend-web:${PLATFORM}-latest"
+    if docker image inspect "$LOCAL_IMAGE" &>/dev/null; then
+        echo "Using local image..."
+        REGISTRY_PREFIX=""
+    else
+        echo "Local image not found, will pull from ECR Public..."
+        REGISTRY_PREFIX="public.ecr.aws/heliumedu/"
+    fi
 else
-    echo "Local image not found, will pull from ECR Public..."
-    FRONTEND_IMAGE="${FRONTEND_IMAGE:-public.ecr.aws/heliumedu/helium/frontend-web:${PLATFORM}-latest}"
+    echo "Using provided REGISTRY_PREFIX: $REGISTRY_PREFIX"
 fi
 
+FRONTEND_IMAGE="${FRONTEND_IMAGE:-${REGISTRY_PREFIX}helium/frontend-web:${PLATFORM}-latest}"
 CONTAINER_NAME="helium-frontend-web"
 
 echo "Starting frontend container ..."

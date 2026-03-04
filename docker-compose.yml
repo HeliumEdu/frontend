@@ -1,5 +1,5 @@
 services:
   frontend:
-    image: ${FRONTEND_IMAGE:-helium/frontend-web:${PLATFORM:-arm64}-latest}
+    image: ${FRONTEND_IMAGE:-${REGISTRY_PREFIX:-}helium/frontend-web:${PLATFORM:-arm64}-latest}
     ports:
       - 8080:8080

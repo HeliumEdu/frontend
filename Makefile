@@ -113,6 +113,12 @@ build-ios: install
 build-ios-release: install
 	flutter build ipa --release --export-options-plist=ios/ExportOptions.plist --obfuscate --split-debug-info=build/symbols
 
+build-web: install
+	flutter build web --release --source-maps --no-tree-shake-icons $(WEB_ARGS)
+	cp -r web/.well-known build/web/
+	rm -f build/web/.last_build_id
+	$(MAKE) update-version
+
 icons:
 	flutter pub run flutter_launcher_icons
 	cp web/icons/Icon-192.png web/favicon.png
@@ -122,12 +128,6 @@ update-version:
 
 firebase-config:
 	flutterfire config --project=helium-edu --yes
-
-build-web: install
-	flutter build web --release --source-maps --no-tree-shake-icons $(WEB_ARGS)
-	cp -r web/.well-known build/web/
-	rm -f build/web/.last_build_id
-	$(MAKE) update-version
 
 test: install
 	flutter analyze --no-pub --no-fatal-infos --no-fatal-warnings
