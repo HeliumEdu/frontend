@@ -15,6 +15,11 @@ on:
           - patch
           - minor
           - major
+      run_integration_tests:
+        description: 'Run integration tests'
+        required: true
+        type: boolean
+        default: true
   workflow_call:
     inputs:
       bump_type:
@@ -22,6 +27,11 @@ on:
         required: false
         type: string
         default: build
+      run_integration_tests:
+        description: "Run integration tests"
+        required: false
+        type: boolean
+        default: true
     outputs:
       version:
         description: "Released version"
@@ -65,6 +75,7 @@ jobs:
 
   integration-test:
     name: Integration Test
+    if: ${{ inputs.run_integration_tests }}
     uses: ./.github/workflows/integration.yml
     with:
       suite: full
