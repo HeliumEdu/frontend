@@ -6,6 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -91,8 +92,18 @@ class PrefService {
     return _secureStorage.read(key: key);
   }
 
-  Future<void>? setSecure(String key, String value) {
-    return _secureStorage.write(key: key, value: value);
+  Future<void> setSecure(String key, String value) async {
+    try {
+      await _secureStorage.write(key: key, value: value);
+    } on PlatformException catch (e) {
+      // iOS keychain error -25299: item already exists. Delete and retry.
+      if (e.message?.contains('-25299') == true) {
+        await _secureStorage.delete(key: key);
+        await _secureStorage.write(key: key, value: value);
+      } else {
+        rethrow;
+      }
+    }
   }
 
   Future<void>? deleteSecure(String key) {

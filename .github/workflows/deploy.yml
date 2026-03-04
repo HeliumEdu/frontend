@@ -195,18 +195,11 @@ jobs:
             --cache-control "no-cache, no-store, must-revalidate"
 
           # Upload manifest and other JSON files (preserving directory structure)
-          find ./web-build -name "*.json" -exec sh -c 'RELPATH="${1#./web-build/}"; aws s3 cp "$1" "s3://'"${BUCKET_NAME}"'/${RELPATH}" --cache-control "no-cache, no-store, must-revalidate"' _ {} \;
+          find ./web-build -name "*.json" ! -path "./web-build/.well-known/*" -exec sh -c 'RELPATH="${1#./web-build/}"; aws s3 cp "$1" "s3://'"${BUCKET_NAME}"'/${RELPATH}" --cache-control "no-cache, no-store, must-revalidate" --content-type "application/json"' _ {} \;
 
-          # Upload .well-known files with correct content type
+          # Upload all .well-known files with correct content-type (includes extensionless files)
           if [ -d ./web-build/.well-known ]; then
-            aws s3 cp ./web-build/.well-known/apple-app-site-association \
-              "s3://${BUCKET_NAME}/.well-known/apple-app-site-association" \
-              --content-type "application/json" \
-              --cache-control "public, max-age=86400"
-            aws s3 cp ./web-build/.well-known/assetlinks.json \
-              "s3://${BUCKET_NAME}/.well-known/assetlinks.json" \
-              --content-type "application/json" \
-              --cache-control "public, max-age=86400"
+            find ./web-build/.well-known -type f -exec sh -c 'RELPATH="${1#./web-build/}"; aws s3 cp "$1" "s3://'"${BUCKET_NAME}"'/${RELPATH}" --content-type "application/json" --cache-control "public, max-age=86400"' _ {} \;
           fi
 
           echo "Deployment complete!"
