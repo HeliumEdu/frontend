@@ -126,6 +126,7 @@ firebase-config:
 build-web: install
 	flutter build web --release --source-maps --no-tree-shake-icons $(WEB_ARGS)
 	cp -r web/.well-known build/web/
+	rm -f build/web/.last_build_id
 	$(MAKE) update-version
 
 test: install
