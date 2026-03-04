@@ -130,6 +130,7 @@ jobs:
 
           git commit -m "Bump version to $(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' \r\n')"
 
+          git pull --rebase
           git push
 
       - name: Get version from pubspec.yaml
