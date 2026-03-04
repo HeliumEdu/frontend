@@ -371,6 +371,7 @@ jobs:
         with:
           name: helium-${{ needs.bump-version.outputs.version }}-web
           path: build/web
+          include-hidden-files: true
           retention-days: 30
 
   build-and-publish-web:
