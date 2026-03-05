@@ -249,14 +249,16 @@ class _NavigationShellState extends State<NavigationShell> {
   Widget build(BuildContext context) {
     final currentPage = _getCurrentPage(context);
 
-    // Only update browser title if no other route is pushed on top of the shell.
+    // Only update browser title if no other route or dialog is on top of the shell.
     // Use global router state since the shell's local GoRouterState doesn't know
     // about routes pushed outside of it (like Settings or Notifications).
+    // Also check ModalRoute.isCurrent to skip when dialogs are open.
     final globalLocation =
         router.routerDelegate.currentConfiguration.uri.path;
     final isShellRoute =
         NavigationPage.values.any((p) => p.route == globalLocation);
-    if (isShellRoute) {
+    final isCurrentRoute = ModalRoute.of(context)?.isCurrent ?? false;
+    if (isShellRoute && isCurrentRoute) {
       _updateBrowserTitle(currentPage);
     }
 
