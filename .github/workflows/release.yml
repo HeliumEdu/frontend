@@ -527,12 +527,15 @@ jobs:
         run: |
           npm install -g @sentry/cli
           SENTRY_DIST="${SENTRY_RELEASE##*+}"
+          test -f build/web/main.dart.js.map
           SENTRY_PROPERTIES=sentry.properties sentry-cli releases new "$SENTRY_RELEASE"
           SENTRY_PROPERTIES=sentry.properties sentry-cli sourcemaps upload \
             --release "$SENTRY_RELEASE" \
             --dist "$SENTRY_DIST" \
             --rewrite \
             --validate \
+            --strict \
+            --ignore "build/web/canvaskit" \
             --url-prefix "~/" \
             build/web
 
