@@ -98,7 +98,7 @@ jobs:
           BRANCH_NAME="release/${{ github.run_id }}-${{ github.run_attempt }}"
           BASE_SHA="$(git rev-parse HEAD)"
 
-          git push origin "HEAD:${BRANCH_NAME}"
+          git push origin "HEAD:refs/heads/${BRANCH_NAME}"
 
           echo "branch_name=${BRANCH_NAME}" >> "$GITHUB_OUTPUT"
           echo "base_sha=${BASE_SHA}" >> "$GITHUB_OUTPUT"
@@ -150,8 +150,7 @@ jobs:
 
   refresh-lockfiles:
     name: Refresh Lockfiles
-    needs: [create-release-branch, test]
-    if: ${{ needs.test.result == 'success' }}
+    needs: [create-release-branch]
     runs-on: macos-latest
     outputs:
       commit_sha: ${{ steps.commit_lockfiles.outputs.commit_sha }}
@@ -204,13 +203,13 @@ jobs:
           fi
 
           git commit -m "Refresh lockfiles"
-          git push origin "HEAD:${{ needs.create-release-branch.outputs.branch_name }}"
+          git push origin "HEAD:refs/heads/${{ needs.create-release-branch.outputs.branch_name }}"
           echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
   bump-version:
     name: Bump Version
-    needs: [create-release-branch, integration-test, refresh-lockfiles]
-    if: always() && needs.refresh-lockfiles.result == 'success' && (needs.integration-test.result == 'success' || needs.integration-test.result == 'skipped')
+    needs: [create-release-branch, test, integration-test, refresh-lockfiles]
+    if: always() && needs.test.result == 'success' && needs.refresh-lockfiles.result == 'success' && (needs.integration-test.result == 'success' || needs.integration-test.result == 'skipped')
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.get_version.outputs.version }}
@@ -257,7 +256,7 @@ jobs:
 
           git commit -m "Bump version to $(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' \r\n')"
 
-          git push origin "HEAD:${{ needs.create-release-branch.outputs.branch_name }}"
+          git push origin "HEAD:refs/heads/${{ needs.create-release-branch.outputs.branch_name }}"
 
       - name: Get version from pubspec.yaml
         id: get_version
