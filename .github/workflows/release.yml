@@ -111,7 +111,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ needs.create-release-branch.outputs.base_sha }}
+          ref: ${{ needs['create-release-branch'].outputs.base_sha }}
 
       - name: Setup Java 17
         uses: actions/setup-java@v4
@@ -159,7 +159,7 @@ jobs:
       - uses: actions/checkout@v5
         with:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-          ref: ${{ needs.create-release-branch.outputs.branch_name }}
+          ref: ${{ needs['create-release-branch'].outputs.branch_name }}
 
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v4
@@ -203,13 +203,13 @@ jobs:
           fi
 
           git commit -m "Refresh lockfiles"
-          git push origin "HEAD:refs/heads/${{ needs.create-release-branch.outputs.branch_name }}"
+          git push origin "HEAD:refs/heads/${{ needs['create-release-branch'].outputs.branch_name }}"
           echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
   bump-version:
     name: Bump Version
     needs: [create-release-branch, test, integration-test, refresh-lockfiles]
-    if: always() && needs.test.result == 'success' && needs.refresh-lockfiles.result == 'success' && (needs.integration-test.result == 'success' || needs.integration-test.result == 'skipped')
+    if: always() && needs.test.result == 'success' && needs['refresh-lockfiles'].result == 'success' && (needs['integration-test'].result == 'success' || needs['integration-test'].result == 'skipped')
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.get_version.outputs.version }}
@@ -221,7 +221,7 @@ jobs:
       - uses: actions/checkout@v5
         with:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-          ref: ${{ needs.refresh-lockfiles.outputs.commit_sha }}
+          ref: ${{ needs['refresh-lockfiles'].outputs.commit_sha }}
 
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v4
@@ -256,7 +256,7 @@ jobs:
 
           git commit -m "Bump version to $(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' \r\n')"
 
-          git push origin "HEAD:refs/heads/${{ needs.create-release-branch.outputs.branch_name }}"
+          git push origin "HEAD:refs/heads/${{ needs['create-release-branch'].outputs.branch_name }}"
 
       - name: Get version from pubspec.yaml
         id: get_version
@@ -280,7 +280,7 @@ jobs:
   merge-release-branch:
     name: Merge Release Branch to Main
     needs: [create-release-branch, bump-version]
-    if: ${{ needs.bump-version.result == 'success' }}
+    if: always() && needs['create-release-branch'].result == 'success' && needs['bump-version'].result == 'success'
     runs-on: ubuntu-latest
     outputs:
       merged_commit_sha: ${{ steps.merge.outputs.merged_commit_sha }}
@@ -295,7 +295,7 @@ jobs:
       - name: Merge release branch
         id: merge
         env:
-          RELEASE_BRANCH: ${{ needs.create-release-branch.outputs.branch_name }}
+          RELEASE_BRANCH: ${{ needs['create-release-branch'].outputs.branch_name }}
         run: |
           git config --global user.name "GitHub Release Bot"
           git config --global user.email "<support@heliumedu.com>"
@@ -310,20 +310,20 @@ jobs:
       - name: Cleanup release branch
         if: always()
         env:
-          RELEASE_BRANCH: ${{ needs.create-release-branch.outputs.branch_name }}
+          RELEASE_BRANCH: ${{ needs['create-release-branch'].outputs.branch_name }}
         run: |
           git push origin --delete "$RELEASE_BRANCH" || true
 
   build-android-release:
     name: Build Android Release AAB
     needs: [merge-release-branch, bump-version]
-    if: always() && needs.merge-release-branch.result == 'success' && needs.bump-version.result == 'success'
+    if: always() && needs['merge-release-branch'].result == 'success' && needs['bump-version'].result == 'success'
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ needs.merge-release-branch.outputs.merged_commit_sha }}
+          ref: ${{ needs['merge-release-branch'].outputs.merged_commit_sha }}
 
       - name: Setup Java 17
         uses: actions/setup-java@v4
@@ -372,7 +372,7 @@ jobs:
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
         with:
-          name: helium-${{ needs.bump-version.outputs.version }}-android.aab
+          name: helium-${{ needs['bump-version'].outputs.version }}-android.aab
           path: build/app/outputs/bundle/release/app-release.aab
           retention-days: 30
 
@@ -383,13 +383,13 @@ jobs:
   build-ios-release:
     name: Build iOS Release IPA
     needs: [merge-release-branch, bump-version]
-    if: always() && needs.merge-release-branch.result == 'success' && needs.bump-version.result == 'success'
+    if: always() && needs['merge-release-branch'].result == 'success' && needs['bump-version'].result == 'success'
     runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ needs.merge-release-branch.outputs.merged_commit_sha }}
+          ref: ${{ needs['merge-release-branch'].outputs.merged_commit_sha }}
 
       - name: Select latest stable Xcode
         run: |
@@ -475,7 +475,7 @@ jobs:
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
-          name: helium-${{ needs.bump-version.outputs.version }}-ios.ipa
+          name: helium-${{ needs['bump-version'].outputs.version }}-ios.ipa
           path: build/ios/ipa/Helium.ipa
           retention-days: 30
 
@@ -488,13 +488,13 @@ jobs:
   build-web-release:
     name: Build Web Release Bundle
     needs: [merge-release-branch, bump-version]
-    if: always() && needs.merge-release-branch.result == 'success' && needs.bump-version.result == 'success'
+    if: always() && needs['merge-release-branch'].result == 'success' && needs['bump-version'].result == 'success'
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ needs.merge-release-branch.outputs.merged_commit_sha }}
+          ref: ${{ needs['merge-release-branch'].outputs.merged_commit_sha }}
 
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v4
@@ -515,7 +515,7 @@ jobs:
 
       - name: Build web release bundle
         env:
-          SENTRY_RELEASE: ${{ needs.bump-version.outputs.version }}
+          SENTRY_RELEASE: ${{ needs['bump-version'].outputs.version }}
         run: |
           SENTRY_DIST="${SENTRY_RELEASE##*+}"
           make build-web SENTRY_RELEASE="$SENTRY_RELEASE" SENTRY_DIST="$SENTRY_DIST"
@@ -523,7 +523,7 @@ jobs:
       - name: Upload source maps to Sentry
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_RELEASE: ${{ needs.bump-version.outputs.version }}
+          SENTRY_RELEASE: ${{ needs['bump-version'].outputs.version }}
         run: |
           npm install -g @sentry/cli
           SENTRY_DIST="${SENTRY_RELEASE##*+}"
@@ -539,7 +539,7 @@ jobs:
       - name: Upload web artifact
         uses: actions/upload-artifact@v4
         with:
-          name: helium-${{ needs.bump-version.outputs.version }}-web
+          name: helium-${{ needs['bump-version'].outputs.version }}-web
           path: build/web
           include-hidden-files: true
           retention-days: 30
@@ -547,20 +547,20 @@ jobs:
   build-and-publish-web:
     name: Build and Publish Web Containers
     needs: [merge-release-branch, bump-version]
-    if: always() && needs.merge-release-branch.result == 'success' && needs.bump-version.result == 'success'
+    if: always() && needs['merge-release-branch'].result == 'success' && needs['bump-version'].result == 'success'
     runs-on: ubuntu-latest
 
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       PLATFORM: amd64
-      TAG_VERSION: ${{ needs.bump-version.outputs.version }}
+      TAG_VERSION: ${{ needs['bump-version'].outputs.version }}
       ENVIRONMENT: prod
 
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ needs.merge-release-branch.outputs.merged_commit_sha }}
+          ref: ${{ needs['merge-release-branch'].outputs.merged_commit_sha }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -571,7 +571,7 @@ jobs:
 
       - name: Build and publish web containers
         env:
-          SENTRY_RELEASE: ${{ needs.bump-version.outputs.version }}
+          SENTRY_RELEASE: ${{ needs['bump-version'].outputs.version }}
         run: |
           SENTRY_DIST="${SENTRY_RELEASE##*+}"
           make publish SENTRY_RELEASE="$SENTRY_RELEASE" SENTRY_DIST="$SENTRY_DIST"
@@ -579,7 +579,7 @@ jobs:
   create-release-tag:
     name: Create Release Tag
     needs: [merge-release-branch, bump-version, build-android-release, build-ios-release, build-web-release, build-and-publish-web]
-    if: always() && needs.merge-release-branch.result == 'success' && needs.bump-version.result == 'success' && (needs.build-android-release.result == 'success' || needs.build-android-release.result == 'skipped') && (needs.build-ios-release.result == 'success' || needs.build-ios-release.result == 'skipped') && (needs.build-web-release.result == 'success' || needs.build-web-release.result == 'skipped') && (needs.build-and-publish-web.result == 'success' || needs.build-and-publish-web.result == 'skipped')
+    if: always() && needs['merge-release-branch'].result == 'success' && needs['bump-version'].result == 'success' && (needs['build-android-release'].result == 'success' || needs['build-android-release'].result == 'skipped') && (needs['build-ios-release'].result == 'success' || needs['build-ios-release'].result == 'skipped') && (needs['build-web-release'].result == 'success' || needs['build-web-release'].result == 'skipped') && (needs['build-and-publish-web'].result == 'success' || needs['build-and-publish-web'].result == 'skipped')
     runs-on: ubuntu-latest
 
     steps:
@@ -590,12 +590,12 @@ jobs:
 
       - name: Display release info
         run: |
-          echo "### Release ${{ needs.bump-version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "### Release ${{ needs['bump-version'].outputs.version }}" >> $GITHUB_STEP_SUMMARY
 
       - name: Create and push tag
         env:
-          FULL_VERSION: ${{ needs.bump-version.outputs.version }}
-          COMMIT_SHA: ${{ needs.merge-release-branch.outputs.merged_commit_sha }}
+          FULL_VERSION: ${{ needs['bump-version'].outputs.version }}
+          COMMIT_SHA: ${{ needs['merge-release-branch'].outputs.merged_commit_sha }}
         run: |
           git config --global user.name "GitHub Release Bot"
           git config --global user.email "<support@heliumedu.com>"
@@ -616,7 +616,7 @@ jobs:
       - name: Create Sentry release
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          VERSION: ${{ needs.bump-version.outputs.version }}
+          VERSION: ${{ needs['bump-version'].outputs.version }}
         run: |
           npm install -g @sentry/cli
           SENTRY_PROPERTIES=sentry.properties sentry-cli releases new "$VERSION"
@@ -626,13 +626,13 @@ jobs:
   deploy:
     name: Trigger Deploy Workflow
     needs: [create-release-tag, bump-version]
-    if: ${{ inputs.trigger_deploy_after_release && needs.create-release-tag.result == 'success' && needs.bump-version.result == 'success' }}
+    if: always() && inputs.trigger_deploy_after_release && needs['create-release-tag'].result == 'success' && needs['bump-version'].result == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Trigger deploy workflow
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-          VERSION: ${{ needs.bump-version.outputs.version }}
+          VERSION: ${{ needs['bump-version'].outputs.version }}
           ENVIRONMENT: ${{ inputs.environment }}
           PLATFORMS: ${{ inputs.platforms }}
         run: |
@@ -645,7 +645,7 @@ jobs:
 
       - name: Deployment trigger summary
         env:
-          VERSION: ${{ needs.bump-version.outputs.version }}
+          VERSION: ${{ needs['bump-version'].outputs.version }}
           ENVIRONMENT: ${{ inputs.environment }}
           PLATFORMS: ${{ inputs.platforms }}
         run: |
