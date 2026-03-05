@@ -120,10 +120,65 @@ jobs:
       caller: release
     secrets: inherit
 
+  refresh-lockfiles:
+    name: Refresh Lockfiles
+    needs: [test]
+    if: ${{ needs.test.result == 'success' }}
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          ref: ${{ github.ref_name }}
+
+      - name: Setup Flutter SDK
+        uses: flutter-actions/setup-flutter@v4
+        with:
+          channel: stable
+          cache: true
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
+      - name: Refresh lockfiles
+        run: |
+          flutter pub get
+          cd ios
+          pod install
+
+      - name: Commit lockfile refresh
+        run: |
+          git config --global user.name "GitHub Release Bot"
+          git config --global user.email "<support@heliumedu.com>"
+
+          git add pubspec.lock ios/Podfile.lock
+
+          UNEXPECTED_FILES=$(git status --porcelain | awk '{print $2}' | grep -Ev '^(pubspec.lock|ios/Podfile.lock)$' || true)
+          if [ -n "$UNEXPECTED_FILES" ]; then
+            echo "Unexpected file changes detected:"
+            echo "$UNEXPECTED_FILES"
+            exit 1
+          fi
+
+          if git diff --cached --quiet; then
+            echo "Lockfiles already up to date."
+            exit 0
+          fi
+
+          git commit -m "Refresh lockfiles"
+          git pull --rebase origin "${{ github.ref_name }}"
+          git push origin "HEAD:${{ github.ref_name }}"
+
   bump-version:
     name: Bump Version
-    needs: [test, integration-test]
-    if: always() && needs.test.result == 'success' && (needs.integration-test.result == 'success' || needs.integration-test.result == 'skipped')
+    needs: [integration-test, refresh-lockfiles]
+    if: always() && needs.refresh-lockfiles.result == 'success' && (needs.integration-test.result == 'success' || needs.integration-test.result == 'skipped')
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.get_version.outputs.version }}
@@ -135,6 +190,7 @@ jobs:
       - uses: actions/checkout@v5
         with:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          ref: ${{ github.ref_name }}
 
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v4
@@ -456,7 +512,7 @@ jobs:
   create-release-tag:
     name: Create Release Tag
     needs: [test, bump-version, build-android-release, build-ios-release, build-web-release, build-and-publish-web]
-    if: always() && needs.test.result == 'success' && (needs.build-android-release.result == 'success' || needs.build-android-release.result == 'skipped') && (needs.build-ios-release.result == 'success' || needs.build-ios-release.result == 'skipped') && (needs.build-web-release.result == 'success' || needs.build-web-release.result == 'skipped') && (needs.build-and-publish-web.result == 'success' || needs.build-and-publish-web.result == 'skipped')
+    if: always() && needs.test.result == 'success' && needs.bump-version.result == 'success' && (needs.build-android-release.result == 'success' || needs.build-android-release.result == 'skipped') && (needs.build-ios-release.result == 'success' || needs.build-ios-release.result == 'skipped') && (needs.build-web-release.result == 'success' || needs.build-web-release.result == 'skipped') && (needs.build-and-publish-web.result == 'success' || needs.build-and-publish-web.result == 'skipped')
     runs-on: ubuntu-latest
 
     steps:
