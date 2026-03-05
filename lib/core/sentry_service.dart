@@ -29,9 +29,13 @@ class SentryService {
       options.dsn =
           'https://d6522731f64a56983e3504ed78390601@o4510767194570752.ingest.us.sentry.io/4510767197519872';
       const release = String.fromEnvironment('SENTRY_RELEASE');
+      const dist = String.fromEnvironment('SENTRY_DIST');
       if (release.isNotEmpty) {
         options.release = release;
         options.environment = 'prod';
+      }
+      if (dist.isNotEmpty) {
+        options.dist = dist;
       }
 
       // Performance monitoring

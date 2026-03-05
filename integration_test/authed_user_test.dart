@@ -991,18 +991,9 @@ void main() {
       _log.info('Clicking Clear Example Data button ...');
       await tester.tap(clearButton);
 
-      // The delete operation is async - give it time to process
-      // pumpAndSettle may return before the API call completes
-      await tester.pump(const Duration(seconds: 2));
-      await tester.pumpAndSettle(const Duration(seconds: 5));
-
-      // Check for error snackbar (indicates API failure)
-      final errorSnackbar = find.textContaining('Failed to delete');
-      if (errorSnackbar.evaluate().isNotEmpty) {
-        _log.warning('Delete example schedule failed - API error');
-        skipTest('Delete example schedule API failed');
-        return;
-      }
+      // The delete API is synchronous - data is cleared when it returns.
+      // Just let the UI settle after the operation completes.
+      await tester.pumpAndSettle(const Duration(seconds: 10));
 
       // Wait for navigation to Classes screen
       _log.info('Waiting for navigation to Classes screen ...');

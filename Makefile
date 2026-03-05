@@ -51,6 +51,9 @@ ifdef SENTRY_RELEASE
 else
     WEB_ARGS :=
 endif
+ifdef SENTRY_DIST
+    WEB_ARGS += --dart-define=SENTRY_DIST=$(SENTRY_DIST)
+endif
 
 ifeq ($(INTEGRATION_HEADLESS),true)
     DRIVE_ARGS += --headless
@@ -77,6 +80,9 @@ ifdef INTEGRATION_EMAIL_SUFFIX
 endif
 ifdef SENTRY_RELEASE
     DRIVE_ARGS += --dart-define=SENTRY_RELEASE=$(SENTRY_RELEASE)
+endif
+ifdef SENTRY_DIST
+    DRIVE_ARGS += --dart-define=SENTRY_DIST=$(SENTRY_DIST)
 endif
 
 all: test
@@ -113,6 +119,12 @@ build-ios: install
 build-ios-release: install
 	flutter build ipa --release --export-options-plist=ios/ExportOptions.plist --obfuscate --split-debug-info=build/symbols
 
+build-web: install
+	flutter build web --release --source-maps --no-tree-shake-icons $(WEB_ARGS)
+	cp -r web/.well-known build/web/
+	rm -f build/web/.last_build_id
+	$(MAKE) update-version
+
 icons:
 	flutter pub run flutter_launcher_icons
 	cp web/icons/Icon-192.png web/favicon.png
@@ -122,11 +134,6 @@ update-version:
 
 firebase-config:
 	flutterfire config --project=helium-edu --yes
-
-build-web: install
-	flutter build web --release --source-maps --no-tree-shake-icons $(WEB_ARGS)
-	cp -r web/.well-known build/web/
-	$(MAKE) update-version
 
 test: install
 	flutter analyze --no-pub --no-fatal-infos --no-fatal-warnings
@@ -183,6 +190,7 @@ build-docker:
 	docker buildx build \
 		--build-arg PROJECT_API_HOST=$(PROJECT_API_HOST) \
 		--build-arg SENTRY_RELEASE=$(SENTRY_RELEASE) \
+		--build-arg SENTRY_DIST=$(SENTRY_DIST) \
 		--cache-from=type=local,src=$(DOCKER_CACHE_DIR) \
 		--cache-to=type=local,dest=$(DOCKER_CACHE_DIR),mode=max \
 		-t helium/frontend-web:$(PLATFORM)-latest \
