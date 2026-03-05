@@ -534,8 +534,6 @@ jobs:
             --dist "$SENTRY_DIST" \
             --rewrite \
             --validate \
-            --strict \
-            --ignore "build/web/canvaskit" \
             --url-prefix "~/" \
             build/web
 

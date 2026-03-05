@@ -54,6 +54,10 @@ class SentryService {
       // event before that deserialization, so it catches what beforeSend misses.
       options.ignoreErrors = [
         '(?i)(status code of|http status error \\[)(401|403)',
+        // Filter CanvasKit initialization failures - these are Flutter runtime
+        // issues we can't fix (usually caused by WASM loading failures or
+        // browser incompatibility)
+        '(?i)flutterCanvasKit.*is not a constructor',
       ];
 
       // Ignore background/infrastructure transactions that aren't user-initiated

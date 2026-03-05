@@ -253,7 +253,10 @@ jobs:
           SENTRY_RELEASE: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
         run: |
           npm install -g @sentry/cli
-          SENTRY_PROPERTIES=sentry.properties sentry-cli releases deploys new --env "${{ inputs.environment }}"
+          SENTRY_DIST="${SENTRY_RELEASE##*+}"
+          SENTRY_PROPERTIES=sentry.properties sentry-cli releases deploys "$SENTRY_RELEASE" new \
+            --env "${{ inputs.environment }}" \
+            --name "dist-${SENTRY_DIST}"
 
       - name: Deployment summary
         env:
@@ -411,7 +414,10 @@ jobs:
           SENTRY_RELEASE: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
         run: |
           npm install -g @sentry/cli
-          SENTRY_PROPERTIES=sentry.properties sentry-cli releases deploys new --env prod
+          SENTRY_DIST="${SENTRY_RELEASE##*+}"
+          SENTRY_PROPERTIES=sentry.properties sentry-cli releases deploys "$SENTRY_RELEASE" new \
+            --env prod \
+            --name "dist-${SENTRY_DIST}"
 
       - name: Deployment summary
         env:
@@ -563,7 +569,10 @@ jobs:
           SENTRY_RELEASE: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
         run: |
           npm install -g @sentry/cli
-          SENTRY_PROPERTIES=sentry.properties sentry-cli releases deploys new --env prod
+          SENTRY_DIST="${SENTRY_RELEASE##*+}"
+          SENTRY_PROPERTIES=sentry.properties sentry-cli releases deploys "$SENTRY_RELEASE" new \
+            --env prod \
+            --name "dist-${SENTRY_DIST}"
 
       - name: Deployment summary
         env:
