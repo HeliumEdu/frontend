@@ -263,6 +263,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
               const SizedBox(height: 12),
 
               SearchableDropdown(
+                key: const Key(SignupFormController.timeZoneField),
                 initialValue: TimeZoneConstants.items.firstWhere(
                   (tz) => tz.value == _formController.selectedTimeZone,
                   orElse: () => TimeZoneConstants.items.firstWhere(

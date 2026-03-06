@@ -426,5 +426,150 @@ void main() {
         expect(SentryService.shouldFilterEvent(event), isTrue);
       });
     });
+
+    group('Emulator and test device filtering', () {
+      test('Filters events from sdk_phone emulator', () {
+        final event = SentryEvent(
+          contexts: Contexts(
+            operatingSystem: SentryOperatingSystem(
+              build: 'sdk_phone_armv7-userdebug 11 RSR1.201013.001 6903271',
+            ),
+          ),
+          exceptions: [
+            SentryException(type: 'Exception', value: 'Some crash'),
+          ],
+        );
+        expect(SentryService.shouldFilterEvent(event), isTrue,
+            reason: 'sdk_phone emulators should be filtered');
+      });
+
+      test('Filters events from sdk_gphone emulator', () {
+        final event = SentryEvent(
+          contexts: Contexts(
+            operatingSystem: SentryOperatingSystem(
+              build: 'sdk_gphone64_arm64-userdebug 12 SE1A.220630.001 8789670',
+            ),
+          ),
+          exceptions: [
+            SentryException(type: 'Exception', value: 'Some crash'),
+          ],
+        );
+        expect(SentryService.shouldFilterEvent(event), isTrue,
+            reason: 'sdk_gphone emulators should be filtered');
+      });
+
+      test('Filters events from test-keys signed builds', () {
+        final event = SentryEvent(
+          contexts: Contexts(
+            operatingSystem: SentryOperatingSystem(
+              build: 'OPR1.170623.027 test-keys',
+            ),
+          ),
+          exceptions: [
+            SentryException(type: 'Exception', value: 'Some crash'),
+          ],
+        );
+        expect(SentryService.shouldFilterEvent(event), isTrue,
+            reason: 'test-keys builds should be filtered');
+      });
+
+      test('Filters events from dev-keys signed builds', () {
+        final event = SentryEvent(
+          contexts: Contexts(
+            operatingSystem: SentryOperatingSystem(
+              build: 'OPR1.170623.027 dev-keys',
+            ),
+          ),
+          exceptions: [
+            SentryException(type: 'Exception', value: 'Some crash'),
+          ],
+        );
+        expect(SentryService.shouldFilterEvent(event), isTrue,
+            reason: 'dev-keys builds should be filtered');
+      });
+
+      test('Filters events from userdebug builds (Play Console test lab)', () {
+        final event = SentryEvent(
+          contexts: Contexts(
+            operatingSystem: SentryOperatingSystem(
+              build: 'sunfish-userdebug 11 RQ3A.211001.001 7641976',
+            ),
+          ),
+          exceptions: [
+            SentryException(type: 'Exception', value: 'Some crash'),
+          ],
+        );
+        expect(SentryService.shouldFilterEvent(event), isTrue,
+            reason: 'userdebug builds should be filtered');
+      });
+
+      test('Does NOT filter events from real production devices', () {
+        final event = SentryEvent(
+          contexts: Contexts(
+            operatingSystem: SentryOperatingSystem(
+              build: 'RP1A.201005.001',
+            ),
+          ),
+          exceptions: [
+            SentryException(type: 'Exception', value: 'Some crash'),
+          ],
+        );
+        expect(SentryService.shouldFilterEvent(event), isFalse,
+            reason: 'Real production devices should NOT be filtered');
+      });
+
+      test('Does NOT filter events from OnePlus production builds', () {
+        final event = SentryEvent(
+          contexts: Contexts(
+            operatingSystem: SentryOperatingSystem(
+              build: 'RKQ1.201217.002 release-keys',
+            ),
+          ),
+          exceptions: [
+            SentryException(type: 'Exception', value: 'Some crash'),
+          ],
+        );
+        expect(SentryService.shouldFilterEvent(event), isFalse,
+            reason: 'OnePlus production builds should NOT be filtered');
+      });
+
+      test('Does NOT filter events when os context is missing', () {
+        final event = SentryEvent(
+          exceptions: [
+            SentryException(type: 'Exception', value: 'Some crash'),
+          ],
+        );
+        expect(SentryService.shouldFilterEvent(event), isFalse,
+            reason: 'Missing os context should NOT trigger filtering');
+      });
+
+      test('Does NOT filter events when os.build is missing', () {
+        final event = SentryEvent(
+          contexts: Contexts(
+            operatingSystem: SentryOperatingSystem(name: 'Android'),
+          ),
+          exceptions: [
+            SentryException(type: 'Exception', value: 'Some crash'),
+          ],
+        );
+        expect(SentryService.shouldFilterEvent(event), isFalse,
+            reason: 'Missing os.build should NOT trigger filtering');
+      });
+
+      test('Case insensitive emulator matching', () {
+        final event = SentryEvent(
+          contexts: Contexts(
+            operatingSystem: SentryOperatingSystem(
+              build: 'SDK_PHONE_ARMV7-USERDEBUG 11 RSR1.201013.001',
+            ),
+          ),
+          exceptions: [
+            SentryException(type: 'Exception', value: 'Some crash'),
+          ],
+        );
+        expect(SentryService.shouldFilterEvent(event), isTrue,
+            reason: 'Emulator detection should be case insensitive');
+      });
+    });
   });
 }

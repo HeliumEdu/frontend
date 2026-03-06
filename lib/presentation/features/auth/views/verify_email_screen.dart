@@ -27,6 +27,10 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 class VerifyEmailScreen extends StatefulWidget {
+  // Field name constants for integration testing
+  static const String emailField = 'verify_email_email';
+  static const String codeField = 'verify_email_code';
+
   final String? email;
   final String? code;
 
@@ -183,6 +187,7 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
             const SizedBox(height: 25),
 
             LabelAndTextFormField(
+              key: const Key(VerifyEmailScreen.emailField),
               hintText: 'Email',
               autofocus: kIsWeb && widget.email == null,
               prefixIcon: Icons.email_outlined,
@@ -194,6 +199,7 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
             const SizedBox(height: 12),
 
             LabelAndTextFormField(
+              key: const Key(VerifyEmailScreen.codeField),
               hintText: 'Verification code',
               autofocus: widget.email != null && widget.code == null,
               prefixIcon: Icons.pin,

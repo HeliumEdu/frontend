@@ -9,6 +9,11 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 
 class PlannerItemFormController extends BasicFormController {
+  // Field name constants for integration testing
+  static const String titleField = 'planner_item_title';
+  static const String gradeField = 'planner_item_grade';
+  static const String completeField = 'planner_item_complete';
+
   final TextEditingController titleController = TextEditingController();
   final TextEditingController gradeController = TextEditingController();
   final gradeFocusNode = FocusNode();

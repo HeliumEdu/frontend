@@ -229,6 +229,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                   ),
                   const SizedBox(height: 14),
                   LabelAndTextFormField(
+                    key: const Key(PlannerItemFormController.titleField),
                     label: 'Title',
                     autofocus: kIsWeb || !widget.isEdit,
                     controller: _formController.titleController,
@@ -604,6 +605,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
               SizedBox(
                 width: 140,
                 child: CheckboxListTile(
+                  key: const Key(PlannerItemFormController.completeField),
                   title: Text('Complete', style: AppStyles.formLabel(context)),
                   value: _formController.isCompleted,
                   onChanged: (value) {
@@ -619,6 +621,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: LabelAndTextFormField(
+                    key: const Key(PlannerItemFormController.gradeField),
                     hintText: 'Grade',
                     controller: _formController.gradeController,
                     inputFormatters: [
