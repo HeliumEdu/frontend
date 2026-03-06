@@ -6,8 +6,10 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_route.dart';
@@ -249,6 +251,27 @@ class DioClient {
 
           return handler.next(error);
         },
+      ),
+    );
+
+    // Retry on transient server/infrastructure errors
+    _dio.interceptors.add(
+      RetryInterceptor(
+        dio: _dio,
+        logPrint: (message) => _log.info(message),
+        retries: 3,
+        retryDelays: const [
+          Duration(seconds: 1),
+          Duration(seconds: 2),
+          Duration(seconds: 3),
+        ],
+        retryEvaluator: DefaultRetryEvaluator({
+          HttpStatus.requestTimeout,
+          HttpStatus.internalServerError,
+          HttpStatus.badGateway,
+          HttpStatus.serviceUnavailable,
+          HttpStatus.gatewayTimeout,
+        }).evaluate,
       ),
     );
 
