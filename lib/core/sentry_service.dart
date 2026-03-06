@@ -84,7 +84,7 @@ class SentryService {
     if (event.exceptions != null) {
       for (final exception in event.exceptions!) {
         if (_shouldFilterSentryException(exception)) {
-          _log.info('Filtered auth error from Sentry (via SentryException)');
+          _log.info('Filtered event from Sentry (via SentryException)');
           return true;
         }
       }
@@ -92,7 +92,7 @@ class SentryService {
 
     // Fall back to text-based filtering for edge cases
     if (_shouldFilterByText(event)) {
-      _log.info('Filtered auth error from Sentry (via text matching)');
+      _log.info('Filtered event from Sentry (via text matching)');
       return true;
     }
 
@@ -104,6 +104,15 @@ class SentryService {
     final type = exception.type?.toLowerCase() ?? '';
     final value = exception.value?.toLowerCase() ?? '';
     final combined = '$type $value';
+
+    // Filter CanvasKit initialization failures - these are Flutter runtime
+    // issues we can't fix (usually caused by WASM loading failures or
+    // browser incompatibility). This complements ignoreErrors which only
+    // catches window.onerror events, not FlutterError mechanism events.
+    if (value.contains('fluttercanvaskit') &&
+        value.contains('is not a constructor')) {
+      return true;
+    }
 
     // Check exception types directly
     if (type.contains('unauthorizedexception')) {
