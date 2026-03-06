@@ -9,6 +9,10 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 
 class CredentialsFormController extends BasicFormController {
+  // Field name constants - must match backend API field names
+  static const String emailField = 'email';
+  static const String passwordField = 'password';
+
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool isPasswordVisible = false;
