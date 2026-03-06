@@ -85,7 +85,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
   // State
   bool isLoading = true;
-  bool isSubmitting = false;
   bool _isEvent = false;
   PlannerItemBaseModel? _plannerItem;
   List<CourseGroupModel> _courseGroups = [];
@@ -150,12 +149,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       listener: (context, state) {
         if (state is PlannerItemScreenDataFetched) {
           _populateInitialPlannerItemStateData(state);
-        }
-
-        if (state is! PlannerItemsLoading) {
-          setState(() {
-            isSubmitting = false;
-          });
         }
       },
       child: _buildContent(context),
@@ -853,7 +846,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   }
 
   Future<void> onSubmit() async {
-    if (isLoading || isSubmitting) return;
+    if (isLoading) return;
     if (_formController.validateAndScrollToError()) {
       if (_formController.endDate.isBefore(_formController.startDate)) {
         SnackBarHelper.show(
@@ -864,9 +857,8 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
         return;
       }
 
-      setState(() {
-        isSubmitting = true;
-      });
+      // Notify parent that action is starting (validation passed)
+      widget.onActionStarted?.call();
 
       final start = HeliumDateTime.formatDateAndTimeForApi(
         _formController.startDate,
@@ -1125,9 +1117,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     if (_plannerItem == null) return;
 
     widget.onActionStarted?.call();
-    setState(() {
-      isSubmitting = true;
-    });
 
     final clonedTitle = PlannerHelper.generateClonedTitle(_plannerItem!.title);
 

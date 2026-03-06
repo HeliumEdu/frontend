@@ -39,6 +39,7 @@ class CourseDetails extends StatefulWidget {
   final bool isNew;
   final UserSettingsModel? userSettings;
   final VoidCallback? onSubmitRequested;
+  final VoidCallback? onActionStarted;
 
   const CourseDetails({
     super.key,
@@ -48,6 +49,7 @@ class CourseDetails extends StatefulWidget {
     required this.isNew,
     this.userSettings,
     this.onSubmitRequested,
+    this.onActionStarted,
   });
 
   @override
@@ -59,7 +61,6 @@ class CourseDetailsState extends State<CourseDetails> {
 
   // State
   bool isLoading = true;
-  bool isSubmitting = false;
 
   @override
   void initState() {
@@ -97,12 +98,6 @@ class CourseDetailsState extends State<CourseDetails> {
       listener: (context, state) {
         if (state is CourseScreenDataFetched) {
           _populateInitialStateData(state);
-        }
-
-        if (state is! CoursesLoading) {
-          setState(() {
-            isSubmitting = false;
-          });
         }
       },
       child: _buildContent(context),
@@ -444,7 +439,7 @@ class CourseDetailsState extends State<CourseDetails> {
 
   /// Submit the form. Called by parent screen when header save is pressed.
   bool onSubmit() {
-    if (isLoading || isSubmitting) return false;
+    if (isLoading) return false;
     if (_formController.validateAndScrollToError()) {
       if (_formController.endDate!.isBefore(_formController.startDate!)) {
         SnackBarHelper.show(
@@ -455,9 +450,8 @@ class CourseDetailsState extends State<CourseDetails> {
         return false;
       }
 
-      setState(() {
-        isSubmitting = true;
-      });
+      // Notify parent that action is starting (validation passed)
+      widget.onActionStarted?.call();
 
       final request = CourseRequestModel(
         title: _formController.titleController.text.trim(),

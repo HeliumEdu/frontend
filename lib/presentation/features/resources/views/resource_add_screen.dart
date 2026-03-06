@@ -86,11 +86,12 @@ class _ResourceAddScreenState
       return null;
     }
     // Return function that evaluates widget state when called, not when getter runs
+    // Note: Don't set isSubmitting here - let validation complete first.
+    // Otherwise, validation failures leave spinner stuck.
     return () {
       final detailsState = _detailsKey.currentState;
       if (detailsState == null) return;
       if (detailsState.isLoading || isSubmitting) return;
-      setState(() => isSubmitting = true);
       detailsState.onSubmit();
     };
   }
@@ -127,6 +128,7 @@ class _ResourceAddScreenState
         resourceId: widget.resourceId,
         isEdit: widget.isEdit,
         onSubmitRequested: () => saveAction?.call(),
+        onActionStarted: () => setState(() => isSubmitting = true),
       ),
     ),
   ];

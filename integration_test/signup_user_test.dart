@@ -9,6 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
+import 'package:heliumapp/presentation/features/auth/controllers/credentials_form_controller.dart';
+import 'package:heliumapp/presentation/features/auth/controllers/signup_form_controller.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:logging/logging.dart';
 
@@ -63,19 +65,19 @@ void main() {
       // Fill in the signup form using helper for web compatibility
       await enterTextInField(
         tester,
-        find.widgetWithText(TextField, 'Email'),
+        find.byKey(const Key(CredentialsFormController.emailField)),
         testEmail,
       );
 
       await enterTextInField(
         tester,
-        find.widgetWithText(TextField, 'Password'),
+        find.byKey(const Key(CredentialsFormController.passwordField)),
         testPassword,
       );
 
       await enterTextInField(
         tester,
-        find.widgetWithText(TextField, 'Confirm password'),
+        find.byKey(const Key(SignupFormController.confirmPasswordField)),
         testPassword,
       );
 

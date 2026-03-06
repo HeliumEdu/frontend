@@ -21,6 +21,7 @@ import 'package:heliumapp/data/repositories/auth_repository_impl.dart';
 import 'package:heliumapp/data/sources/auth_remote_data_source.dart';
 import 'package:heliumapp/helium_app.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
+import 'package:heliumapp/presentation/features/auth/controllers/credentials_form_controller.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
@@ -482,9 +483,10 @@ Future<void> ensureOnLoginScreen(WidgetTester tester) async {
   // Wait for the app to settle and redirect to login if needed
   await tester.pumpAndSettle(const Duration(seconds: 2));
 
-  // Check if we're already on login screen
+  // Check if we're already on login screen using field keys
+  final emailFieldFinder = find.byKey(const Key(CredentialsFormController.emailField));
   if (find.text('Sign In').evaluate().isNotEmpty &&
-      find.widgetWithText(TextField, 'Email').evaluate().isNotEmpty) {
+      emailFieldFinder.evaluate().isNotEmpty) {
     return;
   }
 
@@ -582,15 +584,15 @@ Future<bool> loginAndNavigateToPlanner(
   // Ensure we're on the login screen
   await ensureOnLoginScreen(tester);
 
-  // Enter credentials
+  // Enter credentials using field keys
   await enterTextInField(
     tester,
-    find.widgetWithText(TextField, 'Email'),
+    find.byKey(const Key(CredentialsFormController.emailField)),
     email,
   );
   await enterTextInField(
     tester,
-    find.widgetWithText(TextField, 'Password'),
+    find.byKey(const Key(CredentialsFormController.passwordField)),
     password,
   );
 
@@ -955,12 +957,12 @@ void expectOnLoginScreen() {
     reason: 'Login: Sign In button should be shown',
   );
   expect(
-    find.widgetWithText(TextField, 'Email'),
+    find.byKey(const Key(CredentialsFormController.emailField)),
     findsOneWidget,
     reason: 'Login: Email field should be shown',
   );
   expect(
-    find.widgetWithText(TextField, 'Password'),
+    find.byKey(const Key(CredentialsFormController.passwordField)),
     findsOneWidget,
     reason: 'Login: Password field should be shown',
   );

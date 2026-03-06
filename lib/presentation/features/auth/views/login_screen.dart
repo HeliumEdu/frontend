@@ -187,6 +187,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
               const SizedBox(height: 50),
 
               LabelAndTextFormField(
+                key: const Key(CredentialsFormController.emailField),
                 hintText: 'Email',
                 autofocus: kIsWeb,
                 prefixIcon: Icons.email_outlined,
@@ -199,6 +200,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
               const SizedBox(height: 32),
 
               LabelAndTextFormField(
+                key: const Key(CredentialsFormController.passwordField),
                 hintText: 'Password',
                 prefixIcon: Icons.lock,
                 controller: _formController.passwordController,

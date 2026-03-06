@@ -7,6 +7,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:heliumapp/presentation/features/auth/controllers/credentials_form_controller.dart';
+import 'package:heliumapp/presentation/features/auth/controllers/signup_form_controller.dart';
 import 'package:integration_test/integration_test.dart';
 
 import 'helpers/test_app.dart';
@@ -40,12 +42,12 @@ void main() {
         reason: 'Sign In button should be displayed',
       );
       expect(
-        find.widgetWithText(TextField, 'Email'),
+        find.byKey(const Key(CredentialsFormController.emailField)),
         findsOneWidget,
         reason: 'Email field should be displayed',
       );
       expect(
-        find.widgetWithText(TextField, 'Password'),
+        find.byKey(const Key(CredentialsFormController.passwordField)),
         findsOneWidget,
         reason: 'Password field should be displayed',
       );
@@ -90,17 +92,17 @@ void main() {
 
       // Verify signup form elements are displayed
       expect(
-        find.widgetWithText(TextField, 'Email'),
+        find.byKey(const Key(CredentialsFormController.emailField)),
         findsOneWidget,
         reason: 'Email field should be displayed on signup',
       );
       expect(
-        find.widgetWithText(TextField, 'Password'),
+        find.byKey(const Key(CredentialsFormController.passwordField)),
         findsOneWidget,
         reason: 'Password field should be displayed on signup',
       );
       expect(
-        find.widgetWithText(TextField, 'Confirm password'),
+        find.byKey(const Key(SignupFormController.confirmPasswordField)),
         findsOneWidget,
         reason: 'Confirm password field should be displayed on signup',
       );

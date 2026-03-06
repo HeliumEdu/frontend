@@ -12,6 +12,10 @@ import 'package:heliumapp/presentation/features/shared/controllers/basic_form_co
 import 'package:heliumapp/utils/time_zone_constants.dart';
 
 class SignupFormController extends CredentialsFormController {
+  // Field name constants - must match backend API field names
+  static const String confirmPasswordField = 'confirm_password';
+  static const String timeZoneField = 'time_zone';
+
   final TextEditingController confirmPasswordController =
       TextEditingController();
   bool isConfirmPasswordVisible = false;

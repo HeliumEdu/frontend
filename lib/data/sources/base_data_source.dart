@@ -6,6 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:dio/dio.dart';
+import 'package:heliumapp/core/api_error_parser.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:logging/logging.dart';
 
@@ -45,39 +46,10 @@ abstract class BaseDataSource {
             httpStatusCode: 403,
           );
         } else if (statusCode == 400) {
-          String errorMessage = 'Unknown validation error occurred.';
-
-          if (responseData != null) {
-            try {
-              if (responseData is Map<String, dynamic>) {
-                final errors = <String>[];
-                responseData.forEach((key, value) {
-                  if (value is List) {
-                    for (var msg in value) {
-                      errors.add('$key: $msg');
-                    }
-                  } else {
-                    errors.add('$key: $value');
-                  }
-                });
-                if (errors.isNotEmpty) {
-                  errorMessage = errors.join('\n');
-                }
-              } else if (responseData is List<dynamic>) {
-                final errors = <String>[];
-                for (var value in responseData) {
-                  errors.add(value);
-                }
-                if (errors.isNotEmpty) {
-                  errorMessage = errors.join('\n');
-                }
-              } else if (responseData is String) {
-                errorMessage = responseData;
-              }
-            } catch (e) {
-              errorMessage = 'Validation error: ${responseData.toString()}';
-            }
-          }
+          final parsedError = ApiErrorParser.parse(responseData);
+          final errorMessage = parsedError.displayMessage.isNotEmpty
+              ? parsedError.displayMessage
+              : 'Unknown validation error occurred.';
 
           _log.severe('Error message: ${e.message}', e, s);
 
@@ -86,6 +58,7 @@ abstract class BaseDataSource {
             code: '400',
             httpStatusCode: 400,
             details: responseData,
+            parsedError: parsedError,
           );
         } else if (statusCode == 500) {
           return ServerException(
