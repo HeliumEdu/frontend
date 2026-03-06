@@ -63,5 +63,58 @@ void main() {
         expect(HeliumColors.getColorForPriority(150), const Color(0xffD92727));
       });
     });
+
+    group('contrastingTextColor', () {
+      test('returns black for light backgrounds', () {
+        expect(
+          HeliumColors.contrastingTextColor(Colors.white),
+          Colors.black,
+        );
+        expect(
+          HeliumColors.contrastingTextColor(Colors.yellow),
+          Colors.black,
+        );
+        expect(
+          HeliumColors.contrastingTextColor(const Color(0xFFFFFF00)),
+          Colors.black,
+        );
+        expect(
+          HeliumColors.contrastingTextColor(const Color(0xFFCCCCCC)),
+          Colors.black,
+        );
+      });
+
+      test('returns white for dark backgrounds', () {
+        expect(
+          HeliumColors.contrastingTextColor(Colors.black),
+          Colors.white,
+        );
+        expect(
+          HeliumColors.contrastingTextColor(const Color(0xFF333333)),
+          Colors.white,
+        );
+        expect(
+          HeliumColors.contrastingTextColor(Colors.blue),
+          Colors.white,
+        );
+        expect(
+          HeliumColors.contrastingTextColor(const Color(0xFF800000)),
+          Colors.white,
+        );
+      });
+
+      test('handles mid-luminance colors appropriately', () {
+        // Red has luminance ~0.21, should return white
+        expect(
+          HeliumColors.contrastingTextColor(Colors.red),
+          Colors.white,
+        );
+        // Light green has high luminance, should return black
+        expect(
+          HeliumColors.contrastingTextColor(const Color(0xFF90EE90)),
+          Colors.black,
+        );
+      });
+    });
   });
 }

@@ -8,6 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 class ResourceTitleLabel extends StatelessWidget {
@@ -41,7 +42,7 @@ class ResourceTitleLabel extends StatelessWidget {
             child: Center(
               child: Icon(
                 Icons.book_outlined,
-                color: Colors.white,
+                color: HeliumColors.contrastingTextColor(userSettings.resourceColor),
                 size: Responsive.getIconSize(
                   context,
                   mobile: 14,
