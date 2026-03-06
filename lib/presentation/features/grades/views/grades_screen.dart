@@ -826,7 +826,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
               shape: BoxShape.circle,
               color: ungradedCount > 0
                   ? context.semanticColors.warning.withValues(alpha: 0.15)
-                  : context.colorScheme.surfaceContainerHighest,
+                  : context.colorScheme.surfaceContainer,
               border: Border.all(
                 color: ungradedCount > 0
                     ? context.semanticColors.warning
