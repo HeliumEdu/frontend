@@ -56,13 +56,13 @@ class ResourceTitleLabel extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: userSettings.resourceColor.withValues(alpha: 0.1),
+                color: BadgeColors.background(context, userSettings.resourceColor),
                 borderRadius: const BorderRadius.only(
                   topRight: Radius.circular(10),
                   bottomRight: Radius.circular(10),
                 ),
                 border: Border.all(
-                  color: userSettings.resourceColor.withValues(alpha: 0.2),
+                  color: BadgeColors.border(context, userSettings.resourceColor),
                 ),
               ),
               child: Row(
@@ -73,7 +73,7 @@ class ResourceTitleLabel extends StatelessWidget {
                       title,
                       style: AppStyles.standardBodyText(
                         context,
-                      ).copyWith(color: userSettings.resourceColor),
+                      ).copyWith(color: BadgeColors.foreground(context, userSettings.resourceColor)),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -89,8 +89,8 @@ class ResourceTitleLabel extends StatelessWidget {
                         tablet: 18,
                         desktop: 20,
                       ),
-                      color: userSettings.resourceColor,
-                      hoverColor: userSettings.resourceColor.withValues(alpha: 0.3),
+                      color: BadgeColors.foreground(context, userSettings.resourceColor),
+                      hoverColor: BadgeColors.border(context, userSettings.resourceColor),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                       visualDensity: VisualDensity.compact,

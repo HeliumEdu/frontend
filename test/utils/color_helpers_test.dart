@@ -137,4 +137,48 @@ void main() {
       expect(result1, equals(result2));
     });
   });
+
+  group('BadgeColors', () {
+    testWidgets('background returns a blended color', (tester) async {
+      late Color result;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData.light(),
+          home: Builder(
+            builder: (context) {
+              result = BadgeColors.background(context, Colors.red);
+              return const SizedBox();
+            },
+          ),
+        ),
+      );
+
+      // Result should be a valid color (not null, not transparent)
+      expect(result.alpha, equals(255));
+      // Result should be different from pure red (it's blended)
+      expect(result, isNot(equals(Colors.red)));
+    });
+
+    testWidgets('border returns a blended color', (tester) async {
+      late Color result;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData.light(),
+          home: Builder(
+            builder: (context) {
+              result = BadgeColors.border(context, Colors.red);
+              return const SizedBox();
+            },
+          ),
+        ),
+      );
+
+      // Result should be a valid color
+      expect(result.alpha, equals(255));
+      // Result should be different from pure red
+      expect(result, isNot(equals(Colors.red)));
+    });
+  });
 }

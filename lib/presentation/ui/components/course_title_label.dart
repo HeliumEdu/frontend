@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 class CourseTitleLabel extends StatelessWidget {
@@ -30,9 +31,9 @@ class CourseTitleLabel extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: BadgeColors.background(context, color),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
+        border: Border.all(color: BadgeColors.border(context, color)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -40,7 +41,7 @@ class CourseTitleLabel extends StatelessWidget {
           if (showIcon) ...[
             Icon(
               Icons.school_outlined,
-              color: color,
+              color: BadgeColors.foreground(context, color),
               size: Responsive.getIconSize(
                 context,
                 mobile: 14,
@@ -57,7 +58,7 @@ class CourseTitleLabel extends StatelessWidget {
                   (compact
                           ? AppStyles.smallSecondaryText(context)
                           : AppStyles.standardBodyText(context))
-                      .copyWith(color: color),
+                      .copyWith(color: BadgeColors.foreground(context, color)),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -73,8 +74,8 @@ class CourseTitleLabel extends StatelessWidget {
                 tablet: 18,
                 desktop: 20,
               ),
-              color: color,
-              hoverColor: color.withValues(alpha: 0.3),
+              color: BadgeColors.foreground(context, color),
+              hoverColor: BadgeColors.border(context, color),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
               visualDensity: VisualDensity.compact,

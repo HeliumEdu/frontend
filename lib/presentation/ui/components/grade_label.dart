@@ -31,7 +31,7 @@ class GradeLabel extends StatelessWidget {
         (compact
                 ? AppStyles.smallSecondaryText(context)
                 : AppStyles.standardBodyText(context))
-            .copyWith(color: userSettings.gradeColor);
+            .copyWith(color: BadgeColors.foreground(context, userSettings.gradeColor));
     final Widget gradeTextWidget = selectable
         ? SelectableText(grade, style: gradeTextStyle, maxLines: 1)
         : Text(
@@ -76,13 +76,13 @@ class GradeLabel extends StatelessWidget {
               ),
               padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
               decoration: BoxDecoration(
-                color: userSettings.gradeColor.withValues(alpha: 0.1),
+                color: BadgeColors.background(context, userSettings.gradeColor),
                 borderRadius: const BorderRadius.only(
                   topRight: Radius.circular(6),
                   bottomRight: Radius.circular(6),
                 ),
                 border: Border.all(
-                  color: userSettings.gradeColor.withValues(alpha: 0.2),
+                  color: BadgeColors.border(context, userSettings.gradeColor),
                 ),
               ),
               child: ClipRect(child: Center(child: gradeTextWidget)),
