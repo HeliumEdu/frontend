@@ -114,3 +114,17 @@ class HeliumColors {
         : Colors.white;
   }
 }
+
+/// Extension on Color that provides a memoized contrasting color.
+/// Useful for screens with many items sharing a small set of colors
+/// (e.g., planner items colored by course/category).
+extension ContrastingColor on Color {
+  static final _cache = <int, Color>{};
+
+  /// Returns a contrasting text color (white or black) based on luminance.
+  /// Results are cached by color value for efficiency.
+  Color get contrasting => _cache.putIfAbsent(
+        toARGB32(),
+        () => HeliumColors.contrastingTextColor(this),
+      );
+}
