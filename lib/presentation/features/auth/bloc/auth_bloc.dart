@@ -64,7 +64,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       emit(AuthRegistered(email: response.email));
     } on HeliumException catch (e) {
-      emit(AuthError(message: e.message));
+      emit(AuthError(
+        message: e.displayMessage,
+        code: e.code,
+        httpStatusCode: e.httpStatusCode,
+        parsedError: e.parsedError,
+      ));
     } catch (e) {
       emit(AuthError(message: 'An unexpected error occurred: $e'));
     }
@@ -108,7 +113,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       emit(AuthVerificationResent());
     } on HeliumException catch (e) {
-      emit(AuthError(message: e.message));
+      emit(AuthError(
+        message: e.displayMessage,
+        code: e.code,
+        httpStatusCode: e.httpStatusCode,
+        parsedError: e.parsedError,
+      ));
     } catch (e) {
       emit(AuthError(message: 'An unexpected error occurred: $e'));
     }
@@ -130,7 +140,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       emit(AuthPasswordChanged());
     } on HeliumException catch (e) {
-      emit(AuthError(message: e.message));
+      emit(AuthError(
+        message: e.displayMessage,
+        code: e.code,
+        httpStatusCode: e.httpStatusCode,
+        parsedError: e.parsedError,
+      ));
     } catch (e) {
       emit(AuthError(message: 'An unexpected error occurred: $e'));
     }
@@ -147,7 +162,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await authRepository.forgotPassword(request);
       emit(AuthPasswordReset());
     } on HeliumException catch (e) {
-      emit(AuthError(message: e.message));
+      emit(AuthError(
+        message: e.displayMessage,
+        code: e.code,
+        httpStatusCode: e.httpStatusCode,
+        parsedError: e.parsedError,
+      ));
     } catch (e) {
       emit(AuthError(message: 'An unexpected error occurred: $e'));
     }
@@ -260,7 +280,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await authRepository.logout();
       emit(AuthLoggedOut());
     } on HeliumException catch (e) {
-      emit(AuthError(message: e.message));
+      emit(AuthError(
+        message: e.displayMessage,
+        code: e.code,
+        httpStatusCode: e.httpStatusCode,
+        parsedError: e.parsedError,
+      ));
     } catch (e) {
       emit(AuthError(message: 'An unexpected error occurred: $e'));
     }
@@ -276,7 +301,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final user = await authRepository.getUser();
       emit(AuthProfileFetched(user: user));
     } on HeliumException catch (e) {
-      emit(AuthError(message: e.message));
+      emit(AuthError(
+        message: e.displayMessage,
+        code: e.code,
+        httpStatusCode: e.httpStatusCode,
+        parsedError: e.parsedError,
+      ));
     } catch (e) {
       emit(AuthError(message: 'An unexpected error occurred: $e'));
     }
@@ -338,7 +368,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthUnauthenticated(message: 'Please login to continue.'));
     } on HeliumException catch (e) {
       await dioClient.clearStorage();
-      emit(AuthError(message: e.message));
+      emit(AuthError(
+        message: e.displayMessage,
+        code: e.code,
+        httpStatusCode: e.httpStatusCode,
+        parsedError: e.parsedError,
+      ));
     } catch (e) {
       await dioClient.clearStorage();
       emit(AuthError(message: 'An unexpected error occurred: $e'));
@@ -358,7 +393,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       emit(AuthProfileUpdated(user: user));
     } on HeliumException catch (e) {
-      emit(AuthError(message: e.message));
+      emit(AuthError(
+        message: e.displayMessage,
+        code: e.code,
+        httpStatusCode: e.httpStatusCode,
+        parsedError: e.parsedError,
+      ));
     } catch (e) {
       emit(AuthError(message: 'An unexpected error occurred: $e'));
     }
@@ -376,7 +416,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       emit(AuthProfileFetched(user: user));
     } on HeliumException catch (e) {
-      emit(AuthError(message: e.message));
+      emit(AuthError(
+        message: e.displayMessage,
+        code: e.code,
+        httpStatusCode: e.httpStatusCode,
+        parsedError: e.parsedError,
+      ));
     } catch (e) {
       emit(AuthError(message: 'An unexpected error occurred: $e'));
     }
@@ -394,7 +439,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       emit(AuthProfileFetched(user: user));
     } on HeliumException catch (e) {
-      emit(AuthError(message: e.message));
+      emit(AuthError(
+        message: e.displayMessage,
+        code: e.code,
+        httpStatusCode: e.httpStatusCode,
+        parsedError: e.parsedError,
+      ));
     } catch (e) {
       emit(AuthError(message: 'An unexpected error occurred: $e'));
     }
@@ -411,16 +461,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await authRepository.deleteAccount(request);
 
       emit(AuthAccountDeleted());
-    } on ValidationException catch (e) {
-      emit(AuthError(message: e.message, code: e.code));
-    } on NetworkException catch (e) {
-      emit(AuthError(message: e.message, code: e.code));
-    } on ServerException catch (e) {
-      emit(AuthError(message: e.message, code: e.code));
-    } on UnauthorizedException catch (e) {
-      emit(AuthError(message: e.message, code: e.code));
     } on HeliumException catch (e) {
-      emit(AuthError(message: e.message, code: e.code));
+      emit(AuthError(
+        message: e.displayMessage,
+        code: e.code,
+        httpStatusCode: e.httpStatusCode,
+        parsedError: e.parsedError,
+      ));
     } catch (e) {
       emit(AuthError(message: 'An unexpected error occurred: $e'));
     }
@@ -440,7 +487,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       emit(AuthExampleScheduleDeleted());
     } on HeliumException catch (e) {
-      emit(AuthError(message: e.message));
+      emit(AuthError(
+        message: e.displayMessage,
+        code: e.code,
+        httpStatusCode: e.httpStatusCode,
+        parsedError: e.parsedError,
+      ));
     } catch (e) {
       emit(AuthError(message: 'An unexpected error occurred: $e'));
     }

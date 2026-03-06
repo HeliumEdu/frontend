@@ -18,6 +18,7 @@ import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
+import 'package:heliumapp/presentation/features/auth/controllers/credentials_form_controller.dart';
 import 'package:heliumapp/presentation/features/auth/controllers/signup_form_controller.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
@@ -197,6 +198,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
               const SizedBox(height: 25),
 
               LabelAndTextFormField(
+                key: const Key(CredentialsFormController.emailField),
                 hintText: 'Email',
                 autofocus: kIsWeb,
                 prefixIcon: Icons.email_outlined,
@@ -209,6 +211,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
               const SizedBox(height: 12),
 
               LabelAndTextFormField(
+                key: const Key(CredentialsFormController.passwordField),
                 hintText: 'Password',
                 prefixIcon: Icons.lock_outline,
                 controller: _formController.passwordController,
@@ -234,6 +237,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
               const SizedBox(height: 12),
 
               LabelAndTextFormField(
+                key: const Key(SignupFormController.confirmPasswordField),
                 hintText: 'Confirm password',
                 prefixIcon: Icons.repeat,
                 controller: _formController.confirmPasswordController,

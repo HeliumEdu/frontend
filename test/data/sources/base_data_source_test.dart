@@ -115,8 +115,13 @@ void main() {
           // THEN
           expect(result, isA<ValidationException>());
           expect(result.code, equals('400'));
-          expect(result.message, contains('email'));
-          expect(result.message, contains('password'));
+          // Message should contain the error text without field prefixes
+          expect(result.message, contains('Email is required'));
+          expect(result.message, contains('Password is too short'));
+          // Field errors should be accessible via parsedError
+          expect(result.parsedError, isNotNull);
+          expect(result.parsedError!.getFieldError('email'), equals('Email is required'));
+          expect(result.parsedError!.getFieldError('password'), equals('Password is too short'));
         });
 
         test('parses Map validation errors with String values', () {
@@ -132,8 +137,11 @@ void main() {
 
           // THEN
           expect(result, isA<ValidationException>());
-          expect(result.message, contains('field'));
+          // Message should contain the error text without field prefix
           expect(result.message, contains('Error message'));
+          // Field error should be accessible via parsedError
+          expect(result.parsedError, isNotNull);
+          expect(result.parsedError!.getFieldError('field'), equals('Error message'));
         });
 
         test('parses List validation errors', () {

@@ -27,6 +27,7 @@ class CourseSchedule extends StatefulWidget {
   final bool isEdit;
   final bool isNew;
   final UserSettingsModel? userSettings;
+  final VoidCallback? onActionStarted;
 
   const CourseSchedule({
     super.key,
@@ -35,6 +36,7 @@ class CourseSchedule extends StatefulWidget {
     required this.isEdit,
     required this.isNew,
     this.userSettings,
+    this.onActionStarted,
   });
 
   @override
@@ -44,7 +46,6 @@ class CourseSchedule extends StatefulWidget {
 class CourseScheduleState extends State<CourseSchedule> {
   // State
   bool isLoading = true;
-  bool isSubmitting = false;
   int? _scheduleId;
   bool _variesByDay = false;
   Set<int> _selectedDays = {};
@@ -93,12 +94,6 @@ class CourseScheduleState extends State<CourseSchedule> {
       listener: (context, state) {
         if (state is CourseScheduleFetched) {
           _populateInitialStateData(state);
-        }
-
-        if (state is! CoursesLoading) {
-          setState(() {
-            isSubmitting = false;
-          });
         }
       },
       child: _buildContent(context),
@@ -425,7 +420,7 @@ class CourseScheduleState extends State<CourseSchedule> {
 
   /// Submit the form. Called by parent screen when header save is pressed.
   bool onSubmit() {
-    if (isLoading || isSubmitting) return false;
+    if (isLoading) return false;
     if (_scheduleId == null) {
       return false;
     }
@@ -466,9 +461,8 @@ class CourseScheduleState extends State<CourseSchedule> {
       }
     }
 
-    setState(() {
-      isSubmitting = true;
-    });
+    // Notify parent that action is starting (validation passed)
+    widget.onActionStarted?.call();
 
     final String daysOfWeek = _generateDaysOfWeek();
     const TimeOfDay defaultTime = TimeOfDay(hour: 0, minute: 0);

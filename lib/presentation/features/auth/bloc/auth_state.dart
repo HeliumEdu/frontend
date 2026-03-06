@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:heliumapp/core/api_error_parser.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 
 abstract class AuthState {
@@ -66,8 +67,20 @@ class AuthUnauthenticated extends AuthState {
 class AuthError extends AuthState {
   final String? code;
   final int? httpStatusCode;
+  final ParsedApiError? parsedError;
 
-  AuthError({required super.message, this.code, this.httpStatusCode});
+  AuthError({
+    required super.message,
+    this.code,
+    this.httpStatusCode,
+    this.parsedError,
+  });
+
+  /// Returns the error message for a specific field, or null if none.
+  String? getFieldError(String fieldName) => parsedError?.getFieldError(fieldName);
+
+  /// Whether this error has field-specific errors.
+  bool get hasFieldErrors => parsedError?.hasFieldErrors ?? false;
 }
 
 class AuthProfileError extends AuthError {

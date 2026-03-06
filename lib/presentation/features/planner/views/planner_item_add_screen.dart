@@ -142,11 +142,12 @@ class _PlannerItemAddScreenState
     }
     if (currentStep != 0) return null;
     // Return function that evaluates widget state when called, not when getter runs
+    // Note: Don't set isSubmitting here - let onActionStarted callback handle it
+    // after validation passes. Otherwise, validation failures leave spinner stuck.
     return () {
       final detailsState = _detailsKey.currentState;
       if (detailsState == null) return;
       if (detailsState.isLoading || isSubmitting) return;
-      setState(() => isSubmitting = true);
       detailsState.onSubmit();
     };
   }
