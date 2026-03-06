@@ -8,6 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/color_helpers.dart';
 
 class PillBadge extends StatelessWidget {
   final String text;
@@ -17,21 +18,20 @@ class PillBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final effectiveColor = color ?? context.semanticColors.success;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: (color ?? context.semanticColors.success).withValues(alpha: 0.1),
+        color: BadgeColors.background(context, effectiveColor),
         borderRadius: BorderRadius.circular(2),
         border: Border.all(
-          color: (color ?? context.semanticColors.success).withValues(
-            alpha: 0.2,
-          ),
+          color: BadgeColors.border(context, effectiveColor),
         ),
       ),
       child: Text(
         text,
         style: AppStyles.smallSecondaryText(context).copyWith(
-          color: color ?? context.semanticColors.success.withValues(alpha: 0.8),
+          color: BadgeColors.foreground(context, effectiveColor),
         ),
       ),
     );
