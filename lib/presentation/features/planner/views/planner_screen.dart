@@ -2241,7 +2241,7 @@ class _CalendarScreenState
       _currentView,
     );
 
-    final foregroundColor = HeliumColors.contrastingTextColor(backgroundColor);
+    final foregroundColor = backgroundColor.contrasting;
 
     Widget titleRowWidget;
     if (inlineIcon != null || showTimeBeforeTitle) {
@@ -2352,7 +2352,7 @@ class _CalendarScreenState
     CourseModel? course,
     required Color backgroundColor,
   }) {
-    final foregroundColor = HeliumColors.contrastingTextColor(backgroundColor);
+    final foregroundColor = backgroundColor.contrasting;
     final buttons = <Widget>[];
 
     if (course?.teacherEmail.isNotEmpty ?? false) {
@@ -3367,7 +3367,7 @@ class _CalendarScreenState
         completedOverride ??
         (plannerItem is HomeworkModel && plannerItem.completed);
 
-    final foregroundColor = HeliumColors.contrastingTextColor(backgroundColor);
+    final foregroundColor = backgroundColor.contrasting;
     final titleStyle = AppStyles.smallSecondaryTextLight(context).copyWith(
       color: foregroundColor,
       decoration: isCompleted
@@ -3399,7 +3399,7 @@ class _CalendarScreenState
   }
 
   Widget _buildRecurringIndicatorIcon({required Color backgroundColor}) {
-    final foregroundColor = HeliumColors.contrastingTextColor(backgroundColor);
+    final foregroundColor = backgroundColor.contrasting;
     return Icon(
       Icons.repeat,
       size: 12,
@@ -3465,7 +3465,7 @@ class _CalendarScreenState
         completedOverride ??
         homework.completed;
 
-    final foregroundColor = HeliumColors.contrastingTextColor(backgroundColor);
+    final foregroundColor = backgroundColor.contrasting;
     return SizedBox(
       width: 16,
       height: 16,
@@ -3487,7 +3487,7 @@ class _CalendarScreenState
   }
 
   Widget _buildSchoolIconWidget({required Color backgroundColor}) {
-    final foregroundColor = HeliumColors.contrastingTextColor(backgroundColor);
+    final foregroundColor = backgroundColor.contrasting;
     return SizedBox(
       width: 16,
       height: 16,
@@ -3507,7 +3507,7 @@ class _CalendarScreenState
     bool isInAgenda = false,
     required Color backgroundColor,
   }) {
-    final foregroundColor = HeliumColors.contrastingTextColor(backgroundColor);
+    final foregroundColor = backgroundColor.contrasting;
     final timeText = Text(
       HeliumDateTime.formatTime(
         HeliumDateTime.toLocal(plannerItem.start, userSettings!.timeZone),
@@ -3539,7 +3539,7 @@ class _CalendarScreenState
     bool isInAgenda = false,
     required Color backgroundColor,
   }) {
-    final foregroundColor = HeliumColors.contrastingTextColor(backgroundColor);
+    final foregroundColor = backgroundColor.contrasting;
     return Row(
       children: [
         if (_shouldShowRecurringIconWithTime(
@@ -3578,7 +3578,7 @@ class _CalendarScreenState
   }
 
   Widget _buildRecurringTimePrefixIcon({required Color backgroundColor}) {
-    final foregroundColor = HeliumColors.contrastingTextColor(backgroundColor);
+    final foregroundColor = backgroundColor.contrasting;
     return Icon(
       Icons.repeat,
       size: 10,
@@ -3590,7 +3590,7 @@ class _CalendarScreenState
     String location, {
     required Color backgroundColor,
   }) {
-    final foregroundColor = HeliumColors.contrastingTextColor(backgroundColor);
+    final foregroundColor = backgroundColor.contrasting;
     return Row(
       children: [
         Icon(

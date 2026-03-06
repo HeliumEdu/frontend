@@ -117,4 +117,24 @@ void main() {
       });
     });
   });
+
+  group('ContrastingColor extension', () {
+    test('returns same results as static method', () {
+      expect(Colors.white.contrasting, Colors.black);
+      expect(Colors.black.contrasting, Colors.white);
+      expect(Colors.yellow.contrasting, Colors.black);
+      expect(Colors.blue.contrasting, Colors.white);
+    });
+
+    test('caches results for same color value', () {
+      final color1 = const Color(0xFFABCDEF);
+      final color2 = const Color(0xFFABCDEF);
+
+      // Both should return the same cached result
+      final result1 = color1.contrasting;
+      final result2 = color2.contrasting;
+
+      expect(result1, equals(result2));
+    });
+  });
 }
