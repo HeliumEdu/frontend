@@ -105,4 +105,12 @@ class HeliumColors {
         return context.colorScheme.error;
     }
   }
+
+  /// Returns a contrasting text color (white or black) based on background luminance.
+  /// Uses WCAG luminance threshold of 0.5 for optimal contrast.
+  static Color contrastingTextColor(Color backgroundColor) {
+    return backgroundColor.computeLuminance() > 0.5
+        ? Colors.black
+        : Colors.white;
+  }
 }
