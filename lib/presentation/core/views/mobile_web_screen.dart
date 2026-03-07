@@ -129,10 +129,16 @@ class _MobileWebScreenState extends BasePageScreenState<MobileWebScreen> {
     final isIOS = Responsive.isIOSPlatform();
     final isAndroid = Responsive.isAndroidPlatform();
 
+    // Use itms-apps:// scheme on iOS to directly open App Store without
+    // browser redirect issues (works reliably on both Safari and Chrome)
+    final iosStoreUrl = isIOS
+        ? AppConstants.iosUrl.replaceFirst('https://', 'itms-apps://')
+        : AppConstants.iosUrl;
+
     final iosButton = _buildStoreButton(
       button: Buttons.apple,
       text: 'Download on the App Store',
-      onPressed: () => _openStore(AppConstants.iosUrl),
+      onPressed: () => _openStore(iosStoreUrl),
     );
     final androidButton = _buildStoreButton(
       button: Buttons.googleDark,
