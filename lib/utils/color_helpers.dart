@@ -105,4 +105,67 @@ class HeliumColors {
         return context.colorScheme.error;
     }
   }
+
+  /// Returns a contrasting text color (white or black) based on background luminance.
+  /// Uses WCAG luminance threshold of 0.5 for optimal contrast.
+  static Color contrastingTextColor(Color backgroundColor) {
+    return backgroundColor.computeLuminance() > 0.5
+        ? Colors.black
+        : Colors.white;
+  }
+}
+
+/// Extension on Color that provides a memoized contrasting color.
+/// Useful for screens with many items sharing a small set of colors
+/// (e.g., planner items colored by course/category).
+extension ContrastingColor on Color {
+  static final _cache = <int, Color>{};
+
+  /// Returns a contrasting text color (white or black) based on luminance.
+  /// Results are cached by color value for efficiency.
+  Color get contrasting => _cache.putIfAbsent(
+        toARGB32(),
+        () => HeliumColors.contrastingTextColor(this),
+      );
+}
+
+/// Helpers for creating badge-style backgrounds that work in both light and dark mode.
+/// Instead of using alpha transparency (which fails with dark colors on dark backgrounds),
+/// these blend the user's color with the surface color.
+class BadgeColors {
+  /// Creates a subtle background tint by blending the color with the surface.
+  /// Works in both light and dark mode, unlike alpha transparency.
+  static Color background(BuildContext context, Color color) {
+    return Color.lerp(
+      context.colorScheme.surface,
+      color,
+      0.15,
+    )!;
+  }
+
+  /// Creates a border color by blending the color with the surface at higher ratio.
+  static Color border(BuildContext context, Color color) {
+    return Color.lerp(
+      context.colorScheme.surface,
+      color,
+      0.35,
+    )!;
+  }
+
+  /// Returns a foreground color (for text/icons) that ensures readability.
+  /// In dark mode, lightens dark colors. In light mode, darkens light colors.
+  static Color foreground(BuildContext context, Color color) {
+    final isDark = context.isDarkMode;
+    final luminance = color.computeLuminance();
+
+    if (isDark && luminance < 0.4) {
+      // Dark mode with dark color - lighten it for readability
+      return Color.lerp(color, Colors.white, 0.5)!;
+    } else if (!isDark && luminance > 0.7) {
+      // Light mode with light color - darken it for readability
+      return Color.lerp(color, Colors.black, 0.4)!;
+    }
+
+    return color;
+  }
 }

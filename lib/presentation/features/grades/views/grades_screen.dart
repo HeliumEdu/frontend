@@ -583,7 +583,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                         '$completionPercent%',
                         style: AppStyles.smallSecondaryText(context).copyWith(
                           color: completionPercent > 50
-                              ? Colors.white
+                              ? HeliumColors.contrastingTextColor(statusColor)
                               : context.colorScheme.onSurface,
                           fontWeight: FontWeight.w600,
                         ),
@@ -632,7 +632,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                         '$timePercent%',
                         style: AppStyles.smallSecondaryText(context).copyWith(
                           color: timePercent > 50
-                              ? Colors.white
+                              ? HeliumColors.contrastingTextColor(
+                                  context.colorScheme.outline,
+                                )
                               : context.colorScheme.onSurface,
                           fontWeight: FontWeight.w600,
                         ),
@@ -824,7 +826,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
               shape: BoxShape.circle,
               color: ungradedCount > 0
                   ? context.semanticColors.warning.withValues(alpha: 0.15)
-                  : context.colorScheme.surfaceContainerHighest,
+                  : context.colorScheme.surfaceContainer,
               border: Border.all(
                 color: ungradedCount > 0
                     ? context.semanticColors.warning

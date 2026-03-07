@@ -190,9 +190,20 @@ class CourseScheduleState extends State<CourseSchedule> {
                             mobile: 12,
                             desktop: 13,
                           ),
-                          color: context.colorScheme.onPrimaryFixed,
                         ),
                       ),
+                      foregroundColor: WidgetStateProperty.resolveWith((states) {
+                        if (states.contains(WidgetState.selected)) {
+                          return context.colorScheme.onPrimary;
+                        }
+                        return context.colorScheme.onSurfaceVariant;
+                      }),
+                      backgroundColor: WidgetStateProperty.resolveWith((states) {
+                        if (states.contains(WidgetState.selected)) {
+                          return context.colorScheme.primary;
+                        }
+                        return Colors.transparent;
+                      }),
                     ),
                     selected: _selectedDays,
                     onSelectionChanged: (Set<int> newSelection) {

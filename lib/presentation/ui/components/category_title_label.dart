@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 class CategoryTitleLabel extends StatelessWidget {
@@ -26,16 +27,16 @@ class CategoryTitleLabel extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: BadgeColors.background(context, color),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
+        border: Border.all(color: BadgeColors.border(context, color)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
             Icons.category_outlined,
-            color: color,
+            color: BadgeColors.foreground(context, color),
             size: Responsive.getIconSize(
               context,
               mobile: 14,
@@ -51,7 +52,7 @@ class CategoryTitleLabel extends StatelessWidget {
                   (compact
                           ? AppStyles.smallSecondaryText(context)
                           : AppStyles.standardBodyText(context))
-                      .copyWith(color: color),
+                      .copyWith(color: BadgeColors.foreground(context, color)),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
