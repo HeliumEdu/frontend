@@ -203,7 +203,7 @@ class _MobileWebScreenState extends BasePageScreenState<MobileWebScreen> {
 
     final opened = await launchUrl(
       Uri.parse(storeUrl),
-      mode: LaunchMode.externalApplication,
+      mode: LaunchMode.platformDefault,
     );
 
     if (!opened && mounted) {
