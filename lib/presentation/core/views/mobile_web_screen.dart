@@ -129,16 +129,10 @@ class _MobileWebScreenState extends BasePageScreenState<MobileWebScreen> {
     final isIOS = Responsive.isIOSPlatform();
     final isAndroid = Responsive.isAndroidPlatform();
 
-    // Use itms-apps:// scheme on iOS to directly open App Store without
-    // browser redirect issues (works reliably on both Safari and Chrome)
-    final iosStoreUrl = isIOS
-        ? AppConstants.iosUrl.replaceFirst('https://', 'itms-apps://')
-        : AppConstants.iosUrl;
-
     final iosButton = _buildStoreButton(
       button: Buttons.apple,
       text: 'Download on the App Store',
-      onPressed: () => _openStore(iosStoreUrl),
+      onPressed: () => _openStore(AppConstants.iosUrl),
     );
     final androidButton = _buildStoreButton(
       button: Buttons.googleDark,
@@ -207,9 +201,12 @@ class _MobileWebScreenState extends BasePageScreenState<MobileWebScreen> {
   Future<void> _openStore(String storeUrl) async {
     setState(() => _isOpeningStore = true);
 
+    // Use _self to navigate current tab instead of opening new tab.
+    // This allows iOS to properly intercept and redirect to the App Store,
+    // which doesn't work reliably when opening a new tab (especially in Chrome).
     final opened = await launchUrl(
       Uri.parse(storeUrl),
-      mode: LaunchMode.platformDefault,
+      webOnlyWindowName: '_self',
     );
 
     if (!opened && mounted) {
