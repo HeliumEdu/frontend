@@ -1,3 +1,5 @@
+name: frontend
+
 services:
   frontend:
     image: ${FRONTEND_IMAGE:-${REGISTRY_PREFIX:-}helium/frontend-web:${PLATFORM:-arm64}-latest}

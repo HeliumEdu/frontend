@@ -367,6 +367,38 @@ void main() {
 
         expect(SentryService.shouldFilterEvent(event), isTrue);
       });
+
+      test('403 wrapped in GoException during redirect', () {
+        // GoRouter wraps DioException when it occurs during redirect
+        final event = SentryEvent(
+          exceptions: [
+            SentryException(
+              type: 'GoException',
+              value:
+                  'GoException: Exception during redirect: DioException [bad response]: This exception was thrown because the response has a status code of 403 and RequestOptions.validateStatus was configured to throw for this status code.\n'
+                  'The status code of 403 has the following meaning: "Client error - the request contains bad syntax or cannot be fulfilled"',
+            ),
+          ],
+        );
+
+        expect(SentryService.shouldFilterEvent(event), isTrue,
+            reason: 'GoException wrapping 403 should be filtered');
+      });
+
+      test('401 wrapped in GoException during redirect', () {
+        final event = SentryEvent(
+          exceptions: [
+            SentryException(
+              type: 'GoException',
+              value:
+                  'GoException: Exception during redirect: DioException [bad response]: status code of 401',
+            ),
+          ],
+        );
+
+        expect(SentryService.shouldFilterEvent(event), isTrue,
+            reason: 'GoException wrapping 401 should be filtered');
+      });
     });
 
     group('Browser global handler gap (covered by options.ignoreErrors)', () {

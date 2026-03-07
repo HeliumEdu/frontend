@@ -127,8 +127,8 @@ void main() {
     });
 
     test('caches results for same color value', () {
-      final color1 = const Color(0xFFABCDEF);
-      final color2 = const Color(0xFFABCDEF);
+      const color1 = Color(0xFFABCDEF);
+      const color2 = Color(0xFFABCDEF);
 
       // Both should return the same cached result
       final result1 = color1.contrasting;
@@ -155,7 +155,7 @@ void main() {
       );
 
       // Result should be a valid color (not null, not transparent)
-      expect(result.alpha, equals(255));
+      expect((result.a * 255.0).round(), equals(255));
       // Result should be different from pure red (it's blended)
       expect(result, isNot(equals(Colors.red)));
     });
@@ -176,7 +176,7 @@ void main() {
       );
 
       // Result should be a valid color
-      expect(result.alpha, equals(255));
+      expect((result.a * 255.0).round(), equals(255));
       // Result should be different from pure red
       expect(result, isNot(equals(Colors.red)));
     });

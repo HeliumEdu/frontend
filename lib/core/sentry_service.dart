@@ -54,6 +54,8 @@ class SentryService {
       // event before that deserialization, so it catches what beforeSend misses.
       options.ignoreErrors = [
         '(?i)(status code of|http status error \\[)(401|403)',
+        // GoRouter wraps DioExceptions during redirect - catch those too
+        '(?i)goexception.*(401|403)',
         // Filter CanvasKit initialization failures - these are Flutter runtime
         // issues we can't fix (usually caused by WASM loading failures or
         // browser incompatibility)
@@ -143,6 +145,11 @@ class SentryService {
 
     // Check exception types directly
     if (type.contains('unauthorizedexception')) {
+      return true;
+    }
+
+    // Check for GoException wrapping auth errors (e.g., during GoRouter redirects)
+    if (type.contains('goexception') && _containsAuthStatusCode(combined)) {
       return true;
     }
 
