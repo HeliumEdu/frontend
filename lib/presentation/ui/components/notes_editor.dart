@@ -114,8 +114,8 @@ class NotesEditor extends StatelessWidget {
                 const Divider(height: 1),
                 ConstrainedBox(
                   constraints: const BoxConstraints(
-                    minHeight: 100,
-                    maxHeight: 300,
+                    minHeight: 200,
+                    maxHeight: 350,
                   ),
                   child: QuillEditor.basic(
                     controller: controller,
