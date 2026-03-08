@@ -51,7 +51,7 @@ class FallbackConstants {
   static const defaultShowPlannerTooltips = true;
   static const defaultDragAndDropOnMobile = true;
   static const defaultRememberFilterState = false;
-  static const defaultCollapseBusyDays = true;
+  static const defaultCollapseBusyDays = false;
 }
 
 class CalendarConstants {
