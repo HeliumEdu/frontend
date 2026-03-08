@@ -210,6 +210,7 @@ class _CalendarScreenState
   List<DateTime> _visibleDates = [];
   bool _allowCalendarDragAndDrop = true;
   bool _isCalendarInteractionInProgress = false;
+  bool _suppressCellSelection = false;
 
   PlannerItemDataSource? _plannerItemDataSource;
   final Map<int, ExternalCalendarModel> _externalCalendarsById = {};
@@ -618,6 +619,9 @@ class _CalendarScreenState
           backgroundColor: context.colorScheme.surface,
           controller: _calendarController,
           headerHeight: 0,
+          selectionDecoration: _suppressCellSelection
+              ? const BoxDecoration()
+              : null,
           showCurrentTimeIndicator: true,
           showWeekNumber: !Responsive.isMobile(context),
           allowDragAndDrop:
@@ -1784,15 +1788,30 @@ class _CalendarScreenState
     }
 
     // In month view on touch devices like iPad, SfCalendar incorrectly reports
-    // calendarCell instead of appointment for taps on calendar items.
-    // Handle taps directly on the widget to bypass this SfCalendar quirk.
+    // calendarCell instead of appointment for taps and drag initiations on
+    // calendar items. Handle taps directly and suppress cell selection
+    // decoration while a pointer is down on an item to bypass this quirk.
     if (_currentView == PlannerView.month &&
         Responsive.isTouchDevice(context)) {
-      calendarItemWidget = GestureDetector(
-        onTap: () {
-          _openPlannerItem(plannerItem);
+      calendarItemWidget = Listener(
+        onPointerDown: (_) {
+          if (!mounted || _suppressCellSelection) return;
+          setState(() => _suppressCellSelection = true);
         },
-        child: calendarItemWidget,
+        onPointerUp: (_) {
+          if (!mounted || !_suppressCellSelection) return;
+          setState(() => _suppressCellSelection = false);
+        },
+        onPointerCancel: (_) {
+          if (!mounted || !_suppressCellSelection) return;
+          setState(() => _suppressCellSelection = false);
+        },
+        child: GestureDetector(
+          onTap: () {
+            _openPlannerItem(plannerItem);
+          },
+          child: calendarItemWidget,
+        ),
       );
     }
 
