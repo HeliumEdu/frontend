@@ -27,6 +27,7 @@ class EventModel extends PlannerItemBaseModel {
     required super.priority,
     required super.url,
     required super.comments,
+    super.notes,
     required super.attachments,
     required super.reminders,
     required super.color,
@@ -44,6 +45,7 @@ class EventModel extends PlannerItemBaseModel {
       priority: json['priority'],
       url: json['url'],
       comments: json['comments'],
+      notes: json['notes'] != null ? Map<String, dynamic>.from(json['notes']) : null,
       attachments: json['attachments'] != null
           ? idOrEntityListFrom(json['attachments'], AttachmentModel.fromJson)
           : [],
@@ -77,6 +79,7 @@ class EventModel extends PlannerItemBaseModel {
     int? priority,
     String? url,
     String? comments,
+    Map<String, dynamic>? notes,
     List<IdOrEntity<AttachmentModel>>? attachments,
     List<IdOrEntity<ReminderModel>>? reminders,
     Color? color,
@@ -92,6 +95,7 @@ class EventModel extends PlannerItemBaseModel {
       priority: priority ?? this.priority,
       url: url ?? this.url,
       comments: comments ?? this.comments,
+      notes: notes ?? this.notes,
       attachments: attachments ?? this.attachments,
       reminders: reminders ?? this.reminders,
       color: color ?? this.color,

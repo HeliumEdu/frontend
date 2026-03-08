@@ -13,6 +13,7 @@ class ResourceModel extends BaseTitledModel {
   final String website;
   final String? price;
   final String? details;
+  final Map<String, dynamic>? notes;
   final int resourceGroup;
   final List<int> courses;
 
@@ -25,6 +26,7 @@ class ResourceModel extends BaseTitledModel {
     required this.website,
     this.price,
     this.details,
+    this.notes,
     required this.resourceGroup,
     required this.courses,
   });
@@ -41,6 +43,7 @@ class ResourceModel extends BaseTitledModel {
       details: json['details']?.toString().isEmpty == true
           ? null
           : json['details']?.toString(),
+      notes: json['notes'] != null ? Map<String, dynamic>.from(json['notes']) : null,
       resourceGroup: json['material_group'],
       courses: json['courses'] != null ? List<int>.from(json['courses']) : [],
     );
@@ -55,6 +58,7 @@ class ResourceModel extends BaseTitledModel {
       'website': website,
       'price': price,
       'details': details,
+      'notes': notes,
       'material_group': resourceGroup,
       'courses': courses,
     };
