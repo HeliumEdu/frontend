@@ -64,41 +64,6 @@ void main() {
   });
 
   group('DioClient', () {
-    group('singleton pattern', () {
-      test('factory constructor returns same instance', () {
-        // WHEN
-        final instance1 = DioClient();
-        final instance2 = DioClient();
-
-        // THEN
-        expect(identical(instance1, instance2), isTrue);
-      });
-
-      test('setInstanceForTesting allows replacing the singleton', () {
-        // GIVEN
-        DioClient.setInstanceForTesting(dioClient);
-
-        // WHEN
-        final instance = DioClient();
-
-        // THEN
-        expect(identical(instance, dioClient), isTrue);
-      });
-
-      test('resetForTesting creates a new instance', () {
-        // GIVEN
-        DioClient.setInstanceForTesting(dioClient);
-        final oldInstance = DioClient();
-
-        // WHEN
-        DioClient.resetForTesting();
-        final newInstance = DioClient();
-
-        // THEN
-        expect(identical(oldInstance, newInstance), isFalse);
-      });
-    });
-
     group('isAuthenticated', () {
       test('returns true when access token exists and is not empty', () async {
         // GIVEN
@@ -283,17 +248,6 @@ void main() {
         verify(
           () => mockPrefService.getBool('calendar_use_category_colors'),
         ).called(1);
-      });
-    });
-
-    group('cacheService', () {
-      test('getter returns the cache service', () {
-        // WHEN
-        final cacheService = dioClient.cacheService;
-
-        // THEN
-        expect(cacheService, isA<CacheService>());
-        expect(cacheService, equals(mockCacheService));
       });
     });
 

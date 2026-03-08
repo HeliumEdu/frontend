@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -323,7 +324,20 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
 
   // If logged in, check setup status for routing
   if (isLoggedIn) {
-    await DioClient().fetchSettings();
+    try {
+      await DioClient().fetchSettings();
+    } on DioException catch (e) {
+      // On web, a 401→refresh→403 path can escape fetchSettings()'s own
+      // try-catch due to async zone isolation. Treat auth failures here as
+      // "session gone" and redirect to login rather than letting the exception
+      // propagate into GoRouter (which wraps it as a GoException).
+      final statusCode = e.response?.statusCode;
+      if (statusCode == 401 || statusCode == 403) {
+        await DioClient().clearStorage();
+        return AppRoute.loginScreen;
+      }
+      rethrow;
+    }
 
     final isSetupComplete = PrefService().getBool('is_setup_complete');
 

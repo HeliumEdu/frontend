@@ -106,7 +106,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       emit(
         PlannerItemsError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -133,7 +133,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       emit(
         PlannerItemsError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -162,7 +162,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       emit(
         PlannerItemsError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -193,7 +193,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       emit(
         PlannerItemsError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -213,7 +213,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       emit(
         PlannerItemsError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -233,7 +233,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       emit(
         PlannerItemsError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -260,7 +260,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       emit(
         PlannerItemsError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -293,7 +293,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       emit(
         PlannerItemsError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -326,7 +326,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       emit(
         PlannerItemsError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -350,7 +350,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       emit(
         PlannerItemsError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }

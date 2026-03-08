@@ -527,13 +527,34 @@ class _CalendarScreenState
     if (_calendarController.view == CalendarView.month) {
       return LayoutBuilder(
         builder: (context, constraints) {
-          final double calendarHeight = _calculateCalendarHeight(
-            constraints.maxHeight,
-          );
+          final bool noCollapse =
+              !(userSettings?.collapseBusyDays ??
+                  FallbackConstants.defaultCollapseBusyDays) &&
+              !Responsive.isMobile(context);
+
+          int? noCollapseCount;
+          double calendarHeight;
+
+          if (noCollapse) {
+            final maxItems = _calculateMaxItemsForVisibleDates();
+            if (maxItems > 0) {
+              noCollapseCount = maxItems;
+              const double minCalendarHeight = 600;
+              calendarHeight = _calculateExpandedCalendarHeight(maxItems)
+                  .clamp(minCalendarHeight, double.infinity);
+            } else {
+              calendarHeight = _calculateCalendarHeight(constraints.maxHeight);
+            }
+          } else {
+            calendarHeight = _calculateCalendarHeight(constraints.maxHeight);
+          }
 
           return SingleChildScrollView(
             controller: _monthViewScrollController,
-            child: SizedBox(height: calendarHeight, child: _buildCalendar()),
+            child: SizedBox(
+              height: calendarHeight,
+              child: _buildCalendar(noCollapseCount: noCollapseCount),
+            ),
           );
         },
       );
@@ -561,12 +582,27 @@ class _CalendarScreenState
     return maxHeight < minCalendarHeight ? minCalendarHeight : maxHeight;
   }
 
-  Widget _buildCalendar() {
+  int _calculateMaxItemsForVisibleDates() {
+    if (_plannerItemDataSource == null || _visibleDates.isEmpty) return 0;
+    return _visibleDates
+        .map((date) => _plannerItemDataSource!.getItemsForDay(date).length)
+        .fold(0, (a, b) => a > b ? a : b);
+  }
+
+  double _calculateExpandedCalendarHeight(int maxItems) {
+    const double dayHeaderHeight = 45;
+    const double dayNumberHeight = 30;
+    const double calendarItemHeight = 21;
+    const int monthRows = 6;
+    final cellHeight = dayNumberHeight + (maxItems * calendarItemHeight);
+    return dayHeaderHeight + (monthRows * cellHeight);
+  }
+
+  Widget _buildCalendar({int? noCollapseCount}) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final calendarItemsDisplayCount = _calculateCalendarItemDisplayCount(
-          constraints.maxHeight,
-        );
+        final calendarItemsDisplayCount = noCollapseCount ??
+            _calculateCalendarItemDisplayCount(constraints.maxHeight);
 
         final agendaHeight = Responsive.isMobile(context)
             ? _agendaHeightMobile

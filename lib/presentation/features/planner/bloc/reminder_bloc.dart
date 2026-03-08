@@ -44,7 +44,7 @@ class ReminderBloc extends Bloc<ReminderEvent, ReminderState> {
       emit(
         RemindersError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -65,7 +65,7 @@ class ReminderBloc extends Bloc<ReminderEvent, ReminderState> {
       emit(
         RemindersError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -89,7 +89,7 @@ class ReminderBloc extends Bloc<ReminderEvent, ReminderState> {
       emit(
         RemindersError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -110,7 +110,7 @@ class ReminderBloc extends Bloc<ReminderEvent, ReminderState> {
       emit(
         RemindersError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }

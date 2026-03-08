@@ -139,25 +139,26 @@ abstract class BaseDataSource {
           code: 'CANCELLED',
         );
 
+      case DioExceptionType.connectionError:
       case DioExceptionType.unknown:
-        _log.severe('DioException occurred, unknown', e, s);
+        _log.severe('DioException occurred, connection/network error', e, s);
 
         if (e.message?.contains('SocketException') ?? false) {
           return NetworkException(
-            message: 'No internet connection',
+            message: 'No internet connection.',
             code: 'NO_INTERNET',
           );
         }
         return NetworkException(
           message: 'Network error. Check your connection or try again later.',
-          code: 'UNKNOWN',
+          code: 'NETWORK_ERROR',
         );
 
       default:
-        _log.severe('DioException occurred, unknown', e, s);
+        _log.severe('DioException occurred, unhandled type: ${e.type}', e, s);
 
         return NetworkException(
-          message: 'Network error: ${e.message}',
+          message: 'Network error. Check your connection or try again later.',
           code: 'NETWORK_ERROR',
         );
     }

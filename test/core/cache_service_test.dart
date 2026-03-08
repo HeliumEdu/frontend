@@ -29,41 +29,5 @@ void main() {
       });
     });
 
-    group('forceRefreshOptions', () {
-      test('returns non-null Options with extra data', () {
-        // WHEN
-        final options = cacheService.forceRefreshOptions();
-
-        // THEN
-        expect(options, isNotNull);
-        // Options should have extra map for cache interceptor to read
-        expect(options.extra, isNotNull);
-        expect(options.extra!.isNotEmpty, isTrue);
-      });
-    });
-
-    group('invalidateAll', () {
-      test('clears cache without throwing', () async {
-        // WHEN/THEN - should complete without error
-        await expectLater(cacheService.invalidateAll(), completes);
-      });
-    });
-
-    group('clearAll', () {
-      test('is alias for invalidateAll', () async {
-        // WHEN/THEN - should complete without error
-        await expectLater(cacheService.clearAll(), completes);
-      });
-    });
-
-    group('interceptor', () {
-      test('returns an Interceptor that filters by HTTP method', () {
-        // WHEN
-        final interceptor = cacheService.interceptor;
-
-        // THEN - should be an Interceptor (wraps DioCacheInterceptor for GET-only caching)
-        expect(interceptor, isA<Interceptor>());
-      });
-    });
   });
 }

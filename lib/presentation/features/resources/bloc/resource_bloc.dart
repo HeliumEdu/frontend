@@ -64,7 +64,7 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
       emit(
         ResourcesError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -100,7 +100,7 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
       emit(
         ResourcesError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -127,7 +127,7 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
       emit(
         ResourcesError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -155,7 +155,7 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
       emit(
         ResourcesError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -177,7 +177,7 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
       emit(
         ResourcesError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -200,7 +200,7 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
       emit(
         ResourcesError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -223,7 +223,7 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
       emit(
         ResourcesError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -246,7 +246,7 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
       emit(
         ResourcesError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -270,7 +270,7 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
       emit(
         ResourcesError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -293,7 +293,7 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
       emit(
         ResourcesError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }

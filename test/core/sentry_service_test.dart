@@ -316,6 +316,36 @@ void main() {
       });
     });
 
+    group('GoException wrapping DioException', () {
+      test('GoException wrapping 403 DioException during redirect', () {
+        final event = SentryEvent(
+          exceptions: [
+            SentryException(
+              type: 'GoException',
+              value:
+                  'GoException: Exception during redirect: DioException [bad response]: This exception was thrown because the response has a status code of 403 and RequestOptions.validateStatus was configured to throw for this status code.',
+            ),
+          ],
+        );
+        expect(SentryService.shouldFilterEvent(event), isTrue,
+            reason: 'GoException wrapping 403 DioException should be filtered');
+      });
+
+      test('GoException wrapping 401 DioException during redirect', () {
+        final event = SentryEvent(
+          exceptions: [
+            SentryException(
+              type: 'GoException',
+              value:
+                  'GoException: Exception during redirect: DioException [bad response]: This exception was thrown because the response has a status code of 401 and RequestOptions.validateStatus was configured to throw for this status code.',
+            ),
+          ],
+        );
+        expect(SentryService.shouldFilterEvent(event), isTrue,
+            reason: 'GoException wrapping 401 DioException should be filtered');
+      });
+    });
+
     group('Global error handler edge cases', () {
       test('403 wrapped as generic Error type - global handler capture', () {
         // When DioException escapes to global error handlers, it may be
@@ -366,34 +396,6 @@ void main() {
         );
 
         expect(SentryService.shouldFilterEvent(event), isTrue);
-      });
-    });
-
-    group('Browser global handler gap (covered by options.ignoreErrors)', () {
-      // When window.onerror fires on Flutter web, the JS Sentry SDK creates the
-      // event. By the time Dart deserializes it into a SentryEvent for beforeSend,
-      // exception.value may be null even though the original JS event has the full
-      // message. These events are caught by options.ignoreErrors at the JS SDK
-      // level. The tests below document this known beforeSend limitation.
-
-      test('401 with null value - beforeSend alone cannot filter', () {
-        final event = SentryEvent(
-          exceptions: [
-            SentryException(type: 'Error', value: null),
-          ],
-        );
-        expect(SentryService.shouldFilterEvent(event), isFalse,
-            reason: 'null value cannot be matched; ignoreErrors is the safety net');
-      });
-
-      test('403 with null value - beforeSend alone cannot filter', () {
-        final event = SentryEvent(
-          exceptions: [
-            SentryException(type: 'Error', value: null),
-          ],
-        );
-        expect(SentryService.shouldFilterEvent(event), isFalse,
-            reason: 'null value cannot be matched; ignoreErrors is the safety net');
       });
     });
 

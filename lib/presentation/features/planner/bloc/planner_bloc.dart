@@ -45,7 +45,7 @@ class PlannerBloc extends Bloc<PlannerEvent, PlannerState> {
     } on HeliumException catch (e) {
       emit(PlannerError(message: e.message));
     } catch (e) {
-      emit(PlannerError(message: 'An unexpected error occurred: $e'));
+      emit(PlannerError(message: 'An unexpected error occurred.'));
     }
   }
 }

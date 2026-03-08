@@ -100,7 +100,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
       if (e is HeliumException) {
         rethrow;
       }
-      throw HeliumException(message: 'An unexpected error occurred: $e');
+      throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
 
@@ -148,7 +148,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
       if (e is HeliumException) {
         rethrow;
       }
-      throw HeliumException(message: 'An unexpected error occurred: $e');
+      throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
 
@@ -175,7 +175,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
       if (e is HeliumException) {
         rethrow;
       }
-      throw HeliumException(message: 'An unexpected error occurred: $e');
+      throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
 }

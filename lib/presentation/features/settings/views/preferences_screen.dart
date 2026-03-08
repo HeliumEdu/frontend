@@ -72,6 +72,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
   bool _isSelectedColorByCategory = FallbackConstants.defaultColorByCategory;
   bool _isRememberFilterSelection =
       FallbackConstants.defaultRememberFilterState;
+  bool _isCollapseBusyDays = FallbackConstants.defaultCollapseBusyDays;
 
   @override
   String get screenTitle => 'Preferences';
@@ -349,6 +350,27 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
                 Expanded(
                   child: CheckboxListTile(
                     title: Text(
+                      'Collapse busy days',
+                      style: AppStyles.formLabel(context),
+                    ),
+                    value: _isCollapseBusyDays,
+                    onChanged: (value) {
+                      setState(() {
+                        _isCollapseBusyDays = value!;
+                      });
+                    },
+                    controlAffinity: ListTileControlAffinity.leading,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ],
+            ),
+
+            Row(
+              children: [
+                Expanded(
+                  child: CheckboxListTile(
+                    title: Text(
                       'Color by category',
                       style: AppStyles.formLabel(context),
                     ),
@@ -471,6 +493,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
       _isDragAndDropOnMobile = state.user.settings.dragAndDropOnMobile;
       _isSelectedColorByCategory = state.user.settings.colorByCategory;
       _isRememberFilterSelection = state.user.settings.rememberFilterState;
+      _isCollapseBusyDays = state.user.settings.collapseBusyDays;
 
       isLoading = false;
     });
@@ -512,6 +535,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
     final dragAndDropOnMobile = _isDragAndDropOnMobile;
     final colorByCategory = _isSelectedColorByCategory;
     final rememberFilterState = _isRememberFilterSelection;
+    final collapseBusyDays = _isCollapseBusyDays;
 
     context.read<AuthBloc>().add(
       UpdateProfileEvent(
@@ -529,6 +553,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
           defaultReminderOffset: reminderOffset,
           defaultReminderOffsetType: reminderOffsetType,
           rememberFilterState: rememberFilterState,
+          collapseBusyDays: collapseBusyDays,
         ),
       ),
     );
