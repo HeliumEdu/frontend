@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_quill/flutter_quill.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
@@ -61,6 +62,9 @@ class _HeliumAppState extends State<HeliumApp> {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: _themeNotifier.themeMode,
+      localizationsDelegates: const [
+        FlutterQuillLocalizations.delegate,
+      ],
     );
   }
 }

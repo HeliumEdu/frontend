@@ -80,7 +80,6 @@ class PlannerItemDetails extends StatefulWidget {
 
 class PlannerItemDetailsState extends State<PlannerItemDetails> {
   final PlannerItemFormController _formController = PlannerItemFormController();
-  QuillController _notesController = QuillController.basic();
 
   // Entity IDs (can be updated for clone)
   int? _eventId;
@@ -142,7 +141,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
   @override
   void dispose() {
-    _notesController.dispose();
     _formController.dispose();
     super.dispose();
   }
@@ -309,7 +307,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                   _buildPrioritySlider(context),
                   if (!_isEvent) ...[_buildCompletionSection(context)],
                   const SizedBox(height: 14),
-                  NotesEditor(controller: _notesController),
+                  NotesEditor(controller: _formController.notesController),
                   const SizedBox(height: 12),
                 ],
               ),
@@ -714,7 +712,8 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
         _formController.priorityValue = plannerItem.priority.toDouble();
         _formController.initialNotes = plannerItem.comments;
         if (plannerItem.notes != null) {
-          _notesController = QuillController(
+          _formController.notesController.dispose();
+          _formController.notesController = QuillController(
             document: Document.fromJson(plannerItem.notes!['ops'] as List),
             selection: const TextSelection.collapsed(offset: 0),
           );
@@ -846,7 +845,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   }
 
   Map<String, dynamic>? _buildNotesDelta() {
-    final delta = _notesController.document.toDelta();
+    final delta = _formController.notesController.document.toDelta();
     final ops = delta.toJson();
     // Only save if there's actual content (more than just a trailing newline)
     if (ops.isEmpty || (ops.length == 1 && ops[0]['insert'] == '\n')) {
