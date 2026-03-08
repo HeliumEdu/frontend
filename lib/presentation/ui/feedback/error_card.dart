@@ -50,7 +50,7 @@ class _ErrorCardState extends State<ErrorCard> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.error_outline,
+            Icons.cloud_off,
             color: context.colorScheme.error.withValues(alpha: 0.9),
             size: Responsive.getIconSize(
               context,
@@ -67,9 +67,12 @@ class _ErrorCardState extends State<ErrorCard> {
             ),
           ),
           const SizedBox(height: 16),
-          HeliumElevatedButton(
-            buttonText: 'Reload',
-            onPressed: widget.onReload,
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 200),
+            child: HeliumElevatedButton(
+              buttonText: 'Reload',
+              onPressed: widget.onReload,
+            ),
           ),
         ],
       ),

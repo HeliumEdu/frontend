@@ -44,7 +44,7 @@ class ExternalCalendarBloc
       emit(
         ExternalCalendarsError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -68,7 +68,7 @@ class ExternalCalendarBloc
       emit(
         ExternalCalendarsError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -95,7 +95,7 @@ class ExternalCalendarBloc
       emit(
         ExternalCalendarsError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -122,7 +122,7 @@ class ExternalCalendarBloc
       emit(
         ExternalCalendarsError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -145,7 +145,7 @@ class ExternalCalendarBloc
       emit(
         ExternalCalendarsError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }

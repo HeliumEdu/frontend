@@ -69,7 +69,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(
         CoursesError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -107,7 +107,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(
         CoursesError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -130,7 +130,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(
         CoursesError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -154,7 +154,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(
         CoursesError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -176,7 +176,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(
         CoursesError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -201,7 +201,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(
         CoursesError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -224,7 +224,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(
         CoursesError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -248,7 +248,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(
         CoursesError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -269,7 +269,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(
         CoursesError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -397,7 +397,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(
         CoursesError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -428,7 +428,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(
         CoursesError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -449,7 +449,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(
         CoursesError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -481,7 +481,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(
         CoursesError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }

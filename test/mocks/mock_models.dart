@@ -78,6 +78,7 @@ class MockModels {
     bool colorByCategory = false,
     bool showPlannerTooltips = true,
     bool rememberFilterState = false,
+    bool collapseBusyDays = true,
     String? privateSlug,
   }) {
     _ensureTzInitialized();
@@ -99,6 +100,7 @@ class MockModels {
       colorByCategory: colorByCategory,
       showPlannerTooltips: showPlannerTooltips,
       rememberFilterState: rememberFilterState,
+      collapseBusyDays: collapseBusyDays,
       privateSlug: privateSlug,
       dragAndDropOnMobile: true,
     );

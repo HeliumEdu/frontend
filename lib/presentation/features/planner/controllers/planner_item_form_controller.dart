@@ -6,6 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_quill/flutter_quill.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 
 class PlannerItemFormController extends BasicFormController {
@@ -29,6 +30,7 @@ class PlannerItemFormController extends BasicFormController {
   TimeOfDay endTime = const TimeOfDay(hour: 12, minute: 50);
   double priorityValue = 50.0;
   String initialNotes = '';
+  QuillController notesController = QuillController.basic();
 
   PlannerItemFormController() {
     gradeFocusNode.addListener(_onGradeFocusChange);
@@ -38,6 +40,7 @@ class PlannerItemFormController extends BasicFormController {
     titleController.dispose();
     gradeController.dispose();
     gradeFocusNode.dispose();
+    notesController.dispose();
   }
 
   void _onGradeFocusChange() {

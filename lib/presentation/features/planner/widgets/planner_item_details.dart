@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_quill/flutter_quill.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
@@ -34,11 +35,13 @@ import 'package:heliumapp/presentation/ui/components/drop_down.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
+import 'package:heliumapp/presentation/ui/components/notes_editor.dart';
 import 'package:heliumapp/presentation/ui/components/resource_title_label.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
+import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
@@ -304,6 +307,11 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                   ],
                   _buildPrioritySlider(context),
                   if (!_isEvent) ...[_buildCompletionSection(context)],
+                  const SizedBox(height: 14),
+                  NotesEditor(
+                    key: ObjectKey(_formController.notesController),
+                    controller: _formController.notesController,
+                  ),
                   const SizedBox(height: 12),
                 ],
               ),
@@ -707,6 +715,21 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
         _formController.showEndDateTime = plannerItem.showEndTime;
         _formController.priorityValue = plannerItem.priority.toDouble();
         _formController.initialNotes = plannerItem.comments;
+        _formController.notesController.dispose();
+        if (plannerItem.notes != null) {
+          _formController.notesController = QuillController(
+            document: Document.fromJson(plannerItem.notes!['ops'] as List),
+            selection: const TextSelection.collapsed(offset: 0),
+          );
+        } else if (plannerItem.comments.isNotEmpty) {
+          // TODO: Remove once `comments` is retired — pre-populate from legacy HTML
+          _formController.notesController = QuillController(
+            document: htmlToQuillDocument(plannerItem.comments),
+            selection: const TextSelection.collapsed(offset: 0),
+          );
+        } else {
+          _formController.notesController = QuillController.basic();
+        }
 
         final startDateTime = HeliumDateTime.toLocal(
           plannerItem.start,
@@ -833,6 +856,16 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     return _formController.priorityValue.round();
   }
 
+  Map<String, dynamic>? _buildNotesDelta() {
+    final delta = _formController.notesController.document.toDelta();
+    final ops = delta.toJson();
+    // Only save if there's actual content (more than just a trailing newline)
+    if (ops.isEmpty || (ops.length == 1 && ops[0]['insert'] == '\n')) {
+      return null;
+    }
+    return {'ops': ops};
+  }
+
   void _onGradeFieldSubmitted(String _) {
     _submitAfterGradeBlur();
   }
@@ -903,6 +936,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
           end: end,
           priority: _getPriorityValue(),
           comments: widget.isEdit ? _formController.initialNotes : '',
+          notes: _buildNotesDelta(),
         );
 
         if (!mounted) return;
@@ -940,6 +974,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
           end: end,
           priority: _getPriorityValue(),
           comments: widget.isEdit ? _formController.initialNotes : '',
+          notes: _buildNotesDelta(),
           currentGrade: gradeValue,
           completed: _formController.isCompleted,
           category: _formController.selectedCategory,

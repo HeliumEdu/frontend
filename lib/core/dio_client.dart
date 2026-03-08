@@ -405,6 +405,7 @@ class DioClient {
           'drag_and_drop_on_mobile',
         ),
         'is_setup_complete': _prefService.getBool('is_setup_complete'),
+        'calendar_event_limit': _prefService.getBool('calendar_event_limit'),
       });
     } catch (parseError) {
       _log.info('Failed to parse cached settings: $parseError');

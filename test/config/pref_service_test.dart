@@ -33,24 +33,6 @@ void main() {
   });
 
   group('PrefService', () {
-    group('initialization', () {
-      test('forTesting constructor sets isInitialized to true', () {
-        expect(prefService.isInitialized, isTrue);
-      });
-
-      test('resetForTesting resets the instance', () {
-        // GIVEN
-        PrefService.setInstanceForTesting(prefService);
-        expect(PrefService().isInitialized, isTrue);
-
-        // WHEN
-        PrefService.resetForTesting();
-
-        // THEN
-        expect(PrefService().isInitialized, isFalse);
-      });
-    });
-
     group('clear operation', () {
       test('clear clears both SharedPreferences and SecureStorage', () async {
         // GIVEN

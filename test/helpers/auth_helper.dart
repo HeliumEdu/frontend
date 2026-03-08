@@ -30,6 +30,7 @@ Map<String, dynamic> givenUserSettingsJson({
   bool showPlannerTooltips = true,
   bool dragAndDropOnMobile = true,
   bool rememberFilterState = false,
+  bool collapseBusyDays = true,
   String? privateSlug,
 }) {
   return {
@@ -51,6 +52,7 @@ Map<String, dynamic> givenUserSettingsJson({
     'show_planner_tooltips': showPlannerTooltips,
     'drag_and_drop_on_mobile': dragAndDropOnMobile,
     'remember_filter_state': rememberFilterState,
+    'calendar_event_limit': collapseBusyDays,
     'private_slug': privateSlug,
   };
 }
@@ -146,6 +148,7 @@ void verifyUserSettingsMatchesJson(
   );
   expect(settings.showPlannerTooltips, equals(json['show_planner_tooltips']));
   expect(settings.rememberFilterState, equals(json['remember_filter_state']));
+  expect(settings.collapseBusyDays, equals(json['calendar_event_limit']));
   expect(settings.privateSlug, equals(json['private_slug']));
 }
 

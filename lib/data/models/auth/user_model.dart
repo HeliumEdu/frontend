@@ -65,6 +65,7 @@ class UserSettingsModel {
   final bool showPlannerTooltips;
   final bool dragAndDropOnMobile;
   final bool rememberFilterState;
+  final bool collapseBusyDays;
   final String? privateSlug;
 
   UserSettingsModel({
@@ -86,6 +87,7 @@ class UserSettingsModel {
     required this.showPlannerTooltips,
     required this.dragAndDropOnMobile,
     required this.rememberFilterState,
+    required this.collapseBusyDays,
     this.privateSlug,
   });
 
@@ -115,6 +117,7 @@ class UserSettingsModel {
       showPlannerTooltips: json['show_planner_tooltips'],
       dragAndDropOnMobile: json['drag_and_drop_on_mobile'],
       rememberFilterState: json['remember_filter_state'],
+      collapseBusyDays: json['calendar_event_limit'],
       privateSlug: json['private_slug'],
     );
   }
@@ -138,6 +141,7 @@ class UserSettingsModel {
       'show_planner_tooltips': showPlannerTooltips,
       'drag_and_drop_on_mobile': dragAndDropOnMobile,
       'remember_filter_state': rememberFilterState,
+      'calendar_event_limit': collapseBusyDays,
       'private_slug': privateSlug,
     };
   }

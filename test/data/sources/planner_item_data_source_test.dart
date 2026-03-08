@@ -111,6 +111,7 @@ void main() {
       colorByCategory: false,
       showPlannerTooltips: true,
       rememberFilterState: false,
+      collapseBusyDays: true,
       isSetupComplete: true,
       dragAndDropOnMobile: true,
     );
@@ -290,6 +291,7 @@ void main() {
           colorByCategory: true,
           showPlannerTooltips: true,
           rememberFilterState: false,
+          collapseBusyDays: true,
           isSetupComplete: true,
           dragAndDropOnMobile: true,
         );

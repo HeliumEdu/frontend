@@ -41,7 +41,7 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       emit(
         CategoriesError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -66,7 +66,7 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       emit(
         CategoriesError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -92,7 +92,7 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       emit(
         CategoriesError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }
@@ -140,7 +140,7 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       emit(
         CategoriesError(
           origin: event.origin,
-          message: 'An unexpected error occurred: $e',
+          message: 'An unexpected error occurred.',
         ),
       );
     }

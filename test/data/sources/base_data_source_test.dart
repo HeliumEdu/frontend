@@ -364,7 +364,7 @@ void main() {
         );
 
         test(
-          'returns NetworkException with UNKNOWN for other unknown errors',
+          'returns NetworkException with NETWORK_ERROR for other unknown errors',
           () {
             // GIVEN
             final error = givenDioException(
@@ -377,7 +377,7 @@ void main() {
 
             // THEN
             expect(result, isA<NetworkException>());
-            expect(result.code, equals('UNKNOWN'));
+            expect(result.code, equals('NETWORK_ERROR'));
           },
         );
 
@@ -394,7 +394,7 @@ void main() {
 
           // THEN
           expect(result, isA<NetworkException>());
-          expect(result.code, equals('UNKNOWN'));
+          expect(result.code, equals('NETWORK_ERROR'));
         });
       });
 

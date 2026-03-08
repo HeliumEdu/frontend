@@ -97,7 +97,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
       if (e is HeliumException) {
         rethrow;
       }
-      throw HeliumException(message: 'An unexpected error occurred: $e');
+      throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
 
@@ -132,7 +132,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
       if (e is HeliumException) {
         rethrow;
       }
-      throw HeliumException(message: 'An unexpected error occurred: $e');
+      throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
 
@@ -172,7 +172,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
       if (e is HeliumException) {
         rethrow;
       }
-      throw HeliumException(message: 'An unexpected error occurred: $e');
+      throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
 
@@ -205,7 +205,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
       if (e is HeliumException) {
         rethrow;
       }
-      throw HeliumException(message: 'An unexpected error occurred: $e');
+      throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
 }

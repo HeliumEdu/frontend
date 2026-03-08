@@ -528,13 +528,39 @@ class _CalendarScreenState
     if (_calendarController.view == CalendarView.month) {
       return LayoutBuilder(
         builder: (context, constraints) {
-          final double calendarHeight = _calculateCalendarHeight(
-            constraints.maxHeight,
-          );
+          final bool noCollapse =
+              !(userSettings?.collapseBusyDays ??
+                  FallbackConstants.defaultCollapseBusyDays) &&
+              !Responsive.isMobile(context);
+
+          int? noCollapseCount;
+          double calendarHeight;
+
+          if (noCollapse) {
+            final maxItems = _calculateMaxItemsForVisibleDates();
+            if (maxItems > 0) {
+              final expandedHeight = _calculateExpandedCalendarHeight(maxItems);
+              if (expandedHeight > constraints.maxHeight) {
+                // Schedule is busy enough to scroll — show all items at natural size
+                noCollapseCount = maxItems;
+                calendarHeight = expandedHeight;
+              } else {
+                // All items fit within the screen — fill screen without distortion
+                calendarHeight = _calculateCalendarHeight(constraints.maxHeight);
+              }
+            } else {
+              calendarHeight = _calculateCalendarHeight(constraints.maxHeight);
+            }
+          } else {
+            calendarHeight = _calculateCalendarHeight(constraints.maxHeight);
+          }
 
           return SingleChildScrollView(
             controller: _monthViewScrollController,
-            child: SizedBox(height: calendarHeight, child: _buildCalendar()),
+            child: SizedBox(
+              height: calendarHeight,
+              child: _buildCalendar(noCollapseCount: noCollapseCount),
+            ),
           );
         },
       );
@@ -562,12 +588,27 @@ class _CalendarScreenState
     return maxHeight < minCalendarHeight ? minCalendarHeight : maxHeight;
   }
 
-  Widget _buildCalendar() {
+  int _calculateMaxItemsForVisibleDates() {
+    if (_plannerItemDataSource == null || _visibleDates.isEmpty) return 0;
+    return _visibleDates
+        .map((date) => _plannerItemDataSource!.getItemsForDay(date).length)
+        .fold(0, (a, b) => a > b ? a : b);
+  }
+
+  double _calculateExpandedCalendarHeight(int maxItems) {
+    const double dayHeaderHeight = 45;
+    const double dayNumberHeight = 30;
+    const double calendarItemHeight = 21;
+    const int monthRows = 6;
+    final cellHeight = dayNumberHeight + (maxItems * calendarItemHeight);
+    return dayHeaderHeight + (monthRows * cellHeight);
+  }
+
+  Widget _buildCalendar({int? noCollapseCount}) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final calendarItemsDisplayCount = _calculateCalendarItemDisplayCount(
-          constraints.maxHeight,
-        );
+        final calendarItemsDisplayCount = noCollapseCount ??
+            _calculateCalendarItemDisplayCount(constraints.maxHeight);
 
         final agendaHeight = Responsive.isMobile(context)
             ? _agendaHeightMobile
@@ -1743,14 +1784,15 @@ class _CalendarScreenState
     }
 
     // In month view on touch devices like iPad, SfCalendar incorrectly reports
-    // calendarCell instead of appointment for taps on calendar items.
-    // Handle taps directly on the widget to bypass this SfCalendar quirk.
+    // calendarCell instead of appointment for taps and long-presses on calendar
+    // items. Handle both directly on the widget to bypass this SfCalendar quirk
+    // (drag-and-drop in month view on touch is unsupported by SfCalendar, so
+    // consuming the long-press has no functional cost).
     if (_currentView == PlannerView.month &&
         Responsive.isTouchDevice(context)) {
       calendarItemWidget = GestureDetector(
-        onTap: () {
-          _openPlannerItem(plannerItem);
-        },
+        onTap: () => _openPlannerItem(plannerItem),
+        onLongPress: () {},
         child: calendarItemWidget,
       );
     }

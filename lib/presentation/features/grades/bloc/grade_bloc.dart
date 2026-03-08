@@ -41,7 +41,7 @@ class GradeBloc extends Bloc<GradeEvent, GradeState> {
     } on HeliumException catch (e) {
       emit(GradesError(message: e.message));
     } catch (e) {
-      emit(GradesError(message: 'An unexpected error occurred: $e'));
+      emit(GradesError(message: 'An unexpected error occurred.'));
     }
   }
 }

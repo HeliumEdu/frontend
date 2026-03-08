@@ -31,6 +31,7 @@ class HomeworkModel extends PlannerItemBaseModel {
     required super.end,
     required super.priority,
     required super.comments,
+    super.notes,
     required super.attachments,
     required super.reminders,
     required this.completed,
@@ -50,6 +51,7 @@ class HomeworkModel extends PlannerItemBaseModel {
       end: DateTime.parse(json['end']),
       priority: json['priority'],
       comments: json['comments'],
+      notes: json['notes'] != null ? Map<String, dynamic>.from(json['notes']) : null,
       attachments: json['attachments'] != null
           ? idOrEntityListFrom(json['attachments'], AttachmentModel.fromJson)
           : [],
@@ -88,6 +90,7 @@ class HomeworkModel extends PlannerItemBaseModel {
     DateTime? end,
     int? priority,
     String? comments,
+    Map<String, dynamic>? notes,
     List<IdOrEntity<AttachmentModel>>? attachments,
     List<IdOrEntity<ReminderModel>>? reminders,
     bool? completed,
@@ -105,6 +108,7 @@ class HomeworkModel extends PlannerItemBaseModel {
       end: end ?? this.end,
       priority: priority ?? this.priority,
       comments: comments ?? this.comments,
+      notes: notes ?? this.notes,
       attachments: attachments ?? this.attachments,
       reminders: reminders ?? this.reminders,
       completed: completed ?? this.completed,

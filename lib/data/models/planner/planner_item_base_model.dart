@@ -21,6 +21,8 @@ abstract class PlannerItemBaseModel extends BaseTitledModel {
   final int priority;
   final String? url;
   final String comments;
+  // TODO: Once `comments` is retired, `notes` can be made required
+  final Map<String, dynamic>? notes;
   final Color? color;
   final String? location;
   final PlannerItemType plannerItemType;
@@ -37,6 +39,7 @@ abstract class PlannerItemBaseModel extends BaseTitledModel {
     required this.priority,
     this.url,
     required this.comments,
+    this.notes,
     this.color,
     this.location,
     required this.plannerItemType,
@@ -55,6 +58,7 @@ abstract class PlannerItemBaseModel extends BaseTitledModel {
       'priority': priority,
       'url': url,
       'comments': comments,
+      'notes': notes,
       'attachments': attachments,
       'reminders': reminders,
       'calendar_item_type': plannerItemType,
