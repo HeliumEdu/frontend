@@ -8,7 +8,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_html/flutter_html.dart';
+import 'package:heliumapp/presentation/ui/components/notes_viewer.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
@@ -421,30 +421,18 @@ class _ResourcesScreenState
 
               const SizedBox(height: 12),
 
-              if (resource.details != null && resource.details!.isNotEmpty) ...[
+              if (resource.notes != null) ...[
                 const Divider(),
-
                 const SizedBox(height: 12),
-
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxHeight: 50),
-                  child: Html(
-                    data: resource.details!,
-                    style: {
-                      'body': Style(
-                        margin: Margins.zero,
-                        padding: HtmlPaddings.zero,
-                        fontSize: FontSize(
-                          AppStyles.standardBodyText(context).fontSize!,
-                        ),
-                        color: context.colorScheme.onSurface.withValues(
-                          alpha: 0.6,
-                        ),
-                        maxLines: 2,
-                        textOverflow: TextOverflow.ellipsis,
-                      ),
-                    },
-                  ),
+                NotesViewer(notes: resource.notes),
+              ] else if (resource.details != null &&
+                  resource.details!.isNotEmpty) ...[
+                const Divider(),
+                const SizedBox(height: 12),
+                Text(
+                  resource.details!.replaceAll(RegExp(r'<[^>]+>'), '').trim(),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ],

@@ -8,6 +8,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_quill/flutter_quill.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/request/resource_request_model.dart';
@@ -23,6 +24,7 @@ import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/drop_down.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
+import 'package:heliumapp/presentation/ui/components/notes_editor.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/features/resources/constants/resource_constants.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -51,6 +53,7 @@ class ResourceDetails extends StatefulWidget {
 
 class ResourceDetailsState extends State<ResourceDetails> {
   final ResourceFormController _formController = ResourceFormController();
+  QuillController _notesController = QuillController.basic();
 
   // State
   List<CourseModel> _courses = [];
@@ -74,6 +77,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
   @override
   void dispose() {
     _formController.urlFocusNode.removeListener(_onUrlFocusChange);
+    _notesController.dispose();
     _formController.dispose();
 
     super.dispose();
@@ -247,6 +251,8 @@ class ResourceDetailsState extends State<ResourceDetails> {
                     label: 'Price',
                     controller: _formController.priceController,
                   ),
+                  const SizedBox(height: 14),
+                  NotesEditor(controller: _notesController),
                   const SizedBox(height: 12),
                 ],
               ),
@@ -267,6 +273,12 @@ class ResourceDetailsState extends State<ResourceDetails> {
         _formController.urlController.text = state.resource!.website;
         _formController.priceController.text = state.resource!.price ?? '';
         _formController.initialNotes = state.resource!.details ?? '';
+        if (state.resource!.notes != null) {
+          _notesController = QuillController(
+            document: Document.fromJson(state.resource!.notes!['ops'] as List),
+            selection: const TextSelection.collapsed(offset: 0),
+          );
+        }
 
         _formController.selectedStatus = state.resource!.status;
         _formController.selectedCondition = state.resource!.condition;
@@ -277,6 +289,16 @@ class ResourceDetailsState extends State<ResourceDetails> {
 
       isLoading = false;
     });
+  }
+
+  Map<String, dynamic>? _buildNotesDelta() {
+    final delta = _notesController.document.toDelta();
+    final ops = delta.toJson();
+    // Only save if there's actual content (more than just a trailing newline)
+    if (ops.isEmpty || (ops.length == 1 && ops[0]['insert'] == '\n')) {
+      return null;
+    }
+    return {'ops': ops};
   }
 
   Future<void> onSubmit() async {
@@ -296,6 +318,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
             ? ''
             : _formController.priceController.text.trim(),
         details: widget.isEdit ? _formController.initialNotes : '',
+        notes: _buildNotesDelta(),
         courses: _formController.selectedCourses,
         resourceGroup: widget.resourceGroupId,
       );

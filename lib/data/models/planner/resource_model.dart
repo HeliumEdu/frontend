@@ -13,6 +13,7 @@ class ResourceModel extends BaseTitledModel {
   final String website;
   final String? price;
   final String? details;
+  // TODO: Once `details` is retired, `notes` can be made required
   final Map<String, dynamic>? notes;
   final int resourceGroup;
   final List<int> courses;

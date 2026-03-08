@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_quill/flutter_quill.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
@@ -34,6 +35,7 @@ import 'package:heliumapp/presentation/ui/components/drop_down.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
+import 'package:heliumapp/presentation/ui/components/notes_editor.dart';
 import 'package:heliumapp/presentation/ui/components/resource_title_label.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_globals.dart';
@@ -78,6 +80,7 @@ class PlannerItemDetails extends StatefulWidget {
 
 class PlannerItemDetailsState extends State<PlannerItemDetails> {
   final PlannerItemFormController _formController = PlannerItemFormController();
+  QuillController _notesController = QuillController.basic();
 
   // Entity IDs (can be updated for clone)
   int? _eventId;
@@ -139,6 +142,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
   @override
   void dispose() {
+    _notesController.dispose();
     _formController.dispose();
     super.dispose();
   }
@@ -304,6 +308,8 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                   ],
                   _buildPrioritySlider(context),
                   if (!_isEvent) ...[_buildCompletionSection(context)],
+                  const SizedBox(height: 14),
+                  NotesEditor(controller: _notesController),
                   const SizedBox(height: 12),
                 ],
               ),
@@ -707,6 +713,12 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
         _formController.showEndDateTime = plannerItem.showEndTime;
         _formController.priorityValue = plannerItem.priority.toDouble();
         _formController.initialNotes = plannerItem.comments;
+        if (plannerItem.notes != null) {
+          _notesController = QuillController(
+            document: Document.fromJson(plannerItem.notes!['ops'] as List),
+            selection: const TextSelection.collapsed(offset: 0),
+          );
+        }
 
         final startDateTime = HeliumDateTime.toLocal(
           plannerItem.start,
@@ -833,6 +845,16 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     return _formController.priorityValue.round();
   }
 
+  Map<String, dynamic>? _buildNotesDelta() {
+    final delta = _notesController.document.toDelta();
+    final ops = delta.toJson();
+    // Only save if there's actual content (more than just a trailing newline)
+    if (ops.isEmpty || (ops.length == 1 && ops[0]['insert'] == '\n')) {
+      return null;
+    }
+    return {'ops': ops};
+  }
+
   void _onGradeFieldSubmitted(String _) {
     _submitAfterGradeBlur();
   }
@@ -903,6 +925,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
           end: end,
           priority: _getPriorityValue(),
           comments: widget.isEdit ? _formController.initialNotes : '',
+          notes: _buildNotesDelta(),
         );
 
         if (!mounted) return;
@@ -940,6 +963,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
           end: end,
           priority: _getPriorityValue(),
           comments: widget.isEdit ? _formController.initialNotes : '',
+          notes: _buildNotesDelta(),
           currentGrade: gradeValue,
           completed: _formController.isCompleted,
           category: _formController.selectedCategory,

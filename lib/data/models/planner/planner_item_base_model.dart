@@ -21,6 +21,7 @@ abstract class PlannerItemBaseModel extends BaseTitledModel {
   final int priority;
   final String? url;
   final String comments;
+  // TODO: Once `comments` is retired, `notes` can be made required
   final Map<String, dynamic>? notes;
   final Color? color;
   final String? location;
