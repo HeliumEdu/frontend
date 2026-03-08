@@ -5,7 +5,6 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/core/cache_service.dart';
 

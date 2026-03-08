@@ -8,7 +8,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/config/pref_service.dart';
-import 'package:heliumapp/core/cache_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
@@ -229,6 +228,9 @@ void main() {
         ).thenReturn(true);
         when(
           () => mockPrefService.getBool('is_setup_complete'),
+        ).thenReturn(true);
+        when(
+          () => mockPrefService.getBool('calendar_event_limit'),
         ).thenReturn(true);
 
         // WHEN
