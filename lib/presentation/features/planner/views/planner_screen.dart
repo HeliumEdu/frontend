@@ -71,6 +71,7 @@ import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/shadow_container.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
@@ -2141,6 +2142,7 @@ class _CalendarScreenState
   Widget _buildCalendarItemLeftForAgenda({
     required PlannerItemBaseModel plannerItem,
     bool? completedOverride,
+    required Color backgroundColor,
   }) {
     Widget? iconWidget;
 
@@ -2154,13 +2156,14 @@ class _CalendarScreenState
       iconWidget = _buildCheckboxWidget(
         homework: plannerItem as HomeworkModel,
         completedOverride: completedOverride,
+        backgroundColor: backgroundColor,
       );
     } else if (PlannerHelper.shouldShowSchoolIcon(
       context,
       plannerItem,
       _currentView,
     )) {
-      iconWidget = _buildSchoolIconWidget();
+      iconWidget = _buildSchoolIconWidget(backgroundColor: backgroundColor);
     }
 
     if (iconWidget == null) {
@@ -2197,18 +2200,20 @@ class _CalendarScreenState
   Widget? _getInlineIconWidget({
     required PlannerItemBaseModel plannerItem,
     bool? completedOverride,
+    required Color backgroundColor,
   }) {
     if (PlannerHelper.shouldShowCheckbox(context, plannerItem, _currentView)) {
       return _buildCheckboxWidget(
         homework: plannerItem as HomeworkModel,
         completedOverride: completedOverride,
+        backgroundColor: backgroundColor,
       );
     } else if (PlannerHelper.shouldShowSchoolIcon(
       context,
       plannerItem,
       _currentView,
     )) {
-      return _buildSchoolIconWidget();
+      return _buildSchoolIconWidget(backgroundColor: backgroundColor);
     }
     return null;
   }
@@ -2217,6 +2222,7 @@ class _CalendarScreenState
     required PlannerItemBaseModel plannerItem,
     String? location,
     bool? completedOverride,
+    required Color backgroundColor,
   }) {
     final contentColumn = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2224,6 +2230,7 @@ class _CalendarScreenState
         _buildCalendarItemTitle(
           plannerItem,
           completedOverride: completedOverride,
+          backgroundColor: backgroundColor,
         ),
         if (PlannerHelper.shouldShowTimeBelowTitle(
           context,
@@ -2231,7 +2238,11 @@ class _CalendarScreenState
           true,
           _currentView,
         ))
-          _buildCalendarItemTimeBelowTitleRow(plannerItem, isInAgenda: true),
+          _buildCalendarItemTimeBelowTitleRow(
+            plannerItem,
+            isInAgenda: true,
+            backgroundColor: backgroundColor,
+          ),
         if (PlannerHelper.shouldShowLocationBelowTitle(
               context,
               plannerItem,
@@ -2240,7 +2251,7 @@ class _CalendarScreenState
             ) &&
             location != null &&
             location.isNotEmpty)
-          _buildCalendarItemLocationRow(location),
+          _buildCalendarItemLocationRow(location, backgroundColor: backgroundColor),
       ],
     );
 
@@ -2257,6 +2268,7 @@ class _CalendarScreenState
     String? location,
     Widget? inlineIcon,
     bool? completedOverride,
+    required Color backgroundColor,
   }) {
     final showTimeBeforeTitle = PlannerHelper.shouldShowTimeBeforeTitle(
       context,
@@ -2264,6 +2276,8 @@ class _CalendarScreenState
       false,
       _currentView,
     );
+
+    final foregroundColor = backgroundColor.contrasting;
 
     Widget titleRowWidget;
     if (inlineIcon != null || showTimeBeforeTitle) {
@@ -2289,7 +2303,11 @@ class _CalendarScreenState
               padding: EdgeInsets.only(
                 right: Responsive.isMobile(context) ? 2 : 4,
               ),
-              child: _buildCalendarItemTime(plannerItem, isInAgenda: false),
+              child: _buildCalendarItemTime(
+                plannerItem,
+                isInAgenda: false,
+                backgroundColor: backgroundColor,
+              ),
             ),
           ),
         );
@@ -2303,11 +2321,11 @@ class _CalendarScreenState
         TextSpan(
           text: plannerItem.title,
           style: AppStyles.smallSecondaryTextLight(context).copyWith(
-            color: Colors.white,
+            color: foregroundColor,
             decoration: isCompleted
                 ? TextDecoration.lineThrough
                 : TextDecoration.none,
-            decorationColor: Colors.white,
+            decorationColor: foregroundColor,
             decorationThickness: 2.0,
           ),
         ),
@@ -2325,6 +2343,7 @@ class _CalendarScreenState
       titleRowWidget = _buildCalendarItemTitle(
         plannerItem,
         completedOverride: completedOverride,
+        backgroundColor: backgroundColor,
       );
     }
 
@@ -2338,7 +2357,11 @@ class _CalendarScreenState
           false,
           _currentView,
         ))
-          _buildCalendarItemTimeBelowTitleRow(plannerItem, isInAgenda: false),
+          _buildCalendarItemTimeBelowTitleRow(
+            plannerItem,
+            isInAgenda: false,
+            backgroundColor: backgroundColor,
+          ),
         if (PlannerHelper.shouldShowLocationBelowTitle(
               context,
               plannerItem,
@@ -2347,7 +2370,7 @@ class _CalendarScreenState
             ) &&
             location != null &&
             location.isNotEmpty)
-          _buildCalendarItemLocationRow(location),
+          _buildCalendarItemLocationRow(location, backgroundColor: backgroundColor),
       ],
     );
 
@@ -2363,7 +2386,9 @@ class _CalendarScreenState
   Widget _buildCalendarItemRight({
     required PlannerItemBaseModel plannerItem,
     CourseModel? course,
+    required Color backgroundColor,
   }) {
+    final foregroundColor = backgroundColor.contrasting;
     final buttons = <Widget>[];
 
     if (course?.teacherEmail.isNotEmpty ?? false) {
@@ -2374,7 +2399,7 @@ class _CalendarScreenState
           },
           icon: Icons.email_outlined,
           tooltip: 'Email teacher',
-          color: Colors.white,
+          color: foregroundColor,
         ),
       );
     }
@@ -2390,7 +2415,7 @@ class _CalendarScreenState
           },
           icon: Icons.link_outlined,
           tooltip: 'Launch class website',
-          color: Colors.white,
+          color: foregroundColor,
         ),
       );
     }
@@ -2403,7 +2428,7 @@ class _CalendarScreenState
         HeliumIconButton(
           onPressed: () => _openPlannerItem(plannerItem),
           icon: Icons.edit_outlined,
-          color: Colors.white,
+          color: foregroundColor,
         ),
       );
     }
@@ -2413,7 +2438,7 @@ class _CalendarScreenState
         HeliumIconButton(
           onPressed: () => _deletePlannerItem(context, plannerItem),
           icon: Icons.delete_outline,
-          color: Colors.white,
+          color: foregroundColor,
         ),
       );
     }
@@ -2469,17 +2494,20 @@ class _CalendarScreenState
     final leftWidget = _buildCalendarItemLeftForAgenda(
       plannerItem: plannerItem,
       completedOverride: completedOverride,
+      backgroundColor: color,
     );
 
     final centerWidget = _buildCalendarItemCenterForAgenda(
       plannerItem: plannerItem,
       location: location,
       completedOverride: completedOverride,
+      backgroundColor: color,
     );
 
     final rightWidget = _buildCalendarItemRight(
       plannerItem: plannerItem,
       course: course,
+      backgroundColor: color,
     );
 
     return Container(
@@ -2521,6 +2549,7 @@ class _CalendarScreenState
     final inlineIcon = _getInlineIconWidget(
       plannerItem: plannerItem,
       completedOverride: completedOverride,
+      backgroundColor: color,
     );
 
     final centerWidget = _buildCalendarItemCenterForTimeline(
@@ -2528,6 +2557,7 @@ class _CalendarScreenState
       location: location,
       inlineIcon: inlineIcon,
       completedOverride: completedOverride,
+      backgroundColor: color,
     );
 
     return Container(
@@ -2540,6 +2570,7 @@ class _CalendarScreenState
       clipBehavior: Clip.hardEdge,
       child: _buildRecurringIndicatorOverlay(
         plannerItem: plannerItem,
+        backgroundColor: color,
         child: UnconstrainedBox(
           constrainedAxis: Axis.horizontal,
           alignment: PlannerHelper.getAlignmentForView(
@@ -3366,17 +3397,19 @@ class _CalendarScreenState
   Widget _buildCalendarItemTitle(
     PlannerItemBaseModel plannerItem, {
     bool? completedOverride,
+    required Color backgroundColor,
   }) {
     final isCompleted =
         completedOverride ??
         (plannerItem is HomeworkModel && plannerItem.completed);
 
+    final foregroundColor = backgroundColor.contrasting;
     final titleStyle = AppStyles.smallSecondaryTextLight(context).copyWith(
-      color: Colors.white,
+      color: foregroundColor,
       decoration: isCompleted
           ? TextDecoration.lineThrough
           : TextDecoration.none,
-      decorationColor: Colors.white,
+      decorationColor: foregroundColor,
       decorationThickness: 2.0,
     );
 
@@ -3401,17 +3434,19 @@ class _CalendarScreenState
         (plannerItem.recurrenceRule?.isNotEmpty ?? false);
   }
 
-  Widget _buildRecurringIndicatorIcon({Color? color}) {
+  Widget _buildRecurringIndicatorIcon({required Color backgroundColor}) {
+    final foregroundColor = backgroundColor.contrasting;
     return Icon(
       Icons.repeat,
       size: 12,
-      color: color ?? Colors.white.withValues(alpha: 0.75),
+      color: foregroundColor.withValues(alpha: 0.75),
     );
   }
 
   Widget _buildRecurringIndicatorOverlay({
     required PlannerItemBaseModel plannerItem,
     required Widget child,
+    required Color backgroundColor,
   }) {
     if (!_isRecurringPlannerItem(plannerItem) ||
         _currentView == PlannerView.agenda ||
@@ -3429,7 +3464,11 @@ class _CalendarScreenState
             alignment: Alignment.centerRight,
             child: Padding(
               padding: const EdgeInsets.only(right: 3),
-              child: IgnorePointer(child: _buildRecurringIndicatorIcon()),
+              child: IgnorePointer(
+                child: _buildRecurringIndicatorIcon(
+                  backgroundColor: backgroundColor,
+                ),
+              ),
             ),
           ),
         ),
@@ -3454,6 +3493,7 @@ class _CalendarScreenState
   Widget _buildCheckboxWidget({
     required HomeworkModel homework,
     bool? completedOverride,
+    required Color backgroundColor,
   }) {
     // If UI override exists, use that, to avoid a flicker
     final isCompleted =
@@ -3461,6 +3501,7 @@ class _CalendarScreenState
         completedOverride ??
         homework.completed;
 
+    final foregroundColor = backgroundColor.contrasting;
     return SizedBox(
       width: 16,
       height: 16,
@@ -3473,7 +3514,7 @@ class _CalendarScreenState
           },
           activeColor: context.colorScheme.primary,
           side: BorderSide(
-            color: Colors.white.withValues(alpha: 0.7),
+            color: foregroundColor.withValues(alpha: 0.7),
             width: 2.5,
           ),
         ),
@@ -3481,7 +3522,8 @@ class _CalendarScreenState
     );
   }
 
-  Widget _buildSchoolIconWidget() {
+  Widget _buildSchoolIconWidget({required Color backgroundColor}) {
+    final foregroundColor = backgroundColor.contrasting;
     return SizedBox(
       width: 16,
       height: 16,
@@ -3490,7 +3532,7 @@ class _CalendarScreenState
         child: Icon(
           Icons.school,
           size: 16,
-          color: Colors.white.withValues(alpha: 0.7),
+          color: foregroundColor.withValues(alpha: 0.7),
         ),
       ),
     );
@@ -3499,14 +3541,16 @@ class _CalendarScreenState
   Widget _buildCalendarItemTime(
     PlannerItemBaseModel plannerItem, {
     bool isInAgenda = false,
+    required Color backgroundColor,
   }) {
+    final foregroundColor = backgroundColor.contrasting;
     final timeText = Text(
       HeliumDateTime.formatTime(
         HeliumDateTime.toLocal(plannerItem.start, userSettings!.timeZone),
       ),
       style: AppStyles.smallSecondaryTextLight(
         context,
-      ).copyWith(color: Colors.white.withValues(alpha: 0.7)),
+      ).copyWith(color: foregroundColor.withValues(alpha: 0.7)),
     );
 
     if (!_shouldShowRecurringIconWithTime(
@@ -3519,7 +3563,7 @@ class _CalendarScreenState
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _buildRecurringTimePrefixIcon(),
+        _buildRecurringTimePrefixIcon(backgroundColor: backgroundColor),
         const SizedBox(width: 2),
         timeText,
       ],
@@ -3529,14 +3573,16 @@ class _CalendarScreenState
   Widget _buildCalendarItemTimeBelowTitleRow(
     PlannerItemBaseModel plannerItem, {
     bool isInAgenda = false,
+    required Color backgroundColor,
   }) {
+    final foregroundColor = backgroundColor.contrasting;
     return Row(
       children: [
         if (_shouldShowRecurringIconWithTime(
           plannerItem,
           isInAgenda: isInAgenda,
         )) ...[
-          _buildRecurringTimePrefixIcon(),
+          _buildRecurringTimePrefixIcon(backgroundColor: backgroundColor),
           const SizedBox(width: 2),
         ],
         Expanded(
@@ -3548,7 +3594,7 @@ class _CalendarScreenState
             ),
             style: AppStyles.smallSecondaryTextLight(
               context,
-            ).copyWith(color: Colors.white.withValues(alpha: 0.7)),
+            ).copyWith(color: foregroundColor.withValues(alpha: 0.7)),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -3567,21 +3613,26 @@ class _CalendarScreenState
             _currentView == PlannerView.day);
   }
 
-  Widget _buildRecurringTimePrefixIcon() {
+  Widget _buildRecurringTimePrefixIcon({required Color backgroundColor}) {
+    final foregroundColor = backgroundColor.contrasting;
     return Icon(
       Icons.repeat,
       size: 10,
-      color: Colors.white.withValues(alpha: 0.4),
+      color: foregroundColor.withValues(alpha: 0.4),
     );
   }
 
-  Widget _buildCalendarItemLocationRow(String location) {
+  Widget _buildCalendarItemLocationRow(
+    String location, {
+    required Color backgroundColor,
+  }) {
+    final foregroundColor = backgroundColor.contrasting;
     return Row(
       children: [
         Icon(
           Icons.pin_drop_outlined,
           size: 10,
-          color: Colors.white.withValues(alpha: 0.4),
+          color: foregroundColor.withValues(alpha: 0.4),
         ),
         const SizedBox(width: 2),
         Expanded(
@@ -3589,7 +3640,7 @@ class _CalendarScreenState
             location,
             style: AppStyles.smallSecondaryTextLight(
               context,
-            ).copyWith(color: Colors.white.withValues(alpha: 0.7)),
+            ).copyWith(color: foregroundColor.withValues(alpha: 0.7)),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),

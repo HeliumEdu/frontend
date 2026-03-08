@@ -34,6 +34,7 @@ class ResourceDetails extends StatefulWidget {
   final int? resourceId;
   final bool isEdit;
   final VoidCallback? onSubmitRequested;
+  final VoidCallback? onActionStarted;
 
   const ResourceDetails({
     super.key,
@@ -41,6 +42,7 @@ class ResourceDetails extends StatefulWidget {
     this.resourceId,
     required this.isEdit,
     this.onSubmitRequested,
+    this.onActionStarted,
   });
 
   @override
@@ -280,6 +282,9 @@ class ResourceDetailsState extends State<ResourceDetails> {
   Future<void> onSubmit() async {
     if (isLoading) return;
     if (_formController.validateAndScrollToError()) {
+      // Notify parent that action is starting (validation passed)
+      widget.onActionStarted?.call();
+
       final request = ResourceRequestModel(
         title: _formController.titleController.text.trim(),
         status: _formController.selectedStatus,

@@ -123,6 +123,8 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
       return null;
     }
     // Return function that evaluates widget state when called, not when getter runs
+    // Note: Don't set isSubmitting here - let onActionStarted callback handle it
+    // after validation passes. Otherwise, validation failures leave spinner stuck.
     return () {
       if (isSubmitting) return;
       Function? widgetSubmit;
@@ -139,7 +141,6 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
       }
       if (widgetLoading) return;
       if (widgetSubmit != null) {
-        setState(() => isSubmitting = true);
         widgetSubmit();
       }
     };
@@ -215,6 +216,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
         isNew: widget.isNew,
         userSettings: userSettings,
         onSubmitRequested: () => saveAction?.call(),
+        onActionStarted: () => setState(() => isSubmitting = true),
       ),
     ),
     MultiStepDefinition(
@@ -228,6 +230,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
         isEdit: widget.isEdit || _currentCourseId != null,
         isNew: widget.isNew,
         userSettings: userSettings,
+        onActionStarted: () => setState(() => isSubmitting = true),
       ),
     ),
     MultiStepDefinition(

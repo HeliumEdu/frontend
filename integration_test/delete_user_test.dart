@@ -8,6 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/config/app_route.dart';
+import 'package:heliumapp/presentation/features/settings/views/settings_screen.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:logging/logging.dart';
 
@@ -112,10 +113,7 @@ void main() {
         findsOneWidget,
         reason: 'Delete confirmation dialog should be open',
       );
-      final passwordField = find.descendant(
-        of: dialog,
-        matching: find.byType(TextField),
-      );
+      final passwordField = find.byKey(const Key(SettingsScreen.deleteAccountPasswordField));
       expect(
         passwordField,
         findsOneWidget,

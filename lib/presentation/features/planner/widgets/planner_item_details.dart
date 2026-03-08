@@ -85,7 +85,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
   // State
   bool isLoading = true;
-  bool isSubmitting = false;
   bool _isEvent = false;
   PlannerItemBaseModel? _plannerItem;
   List<CourseGroupModel> _courseGroups = [];
@@ -150,12 +149,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       listener: (context, state) {
         if (state is PlannerItemScreenDataFetched) {
           _populateInitialPlannerItemStateData(state);
-        }
-
-        if (state is! PlannerItemsLoading) {
-          setState(() {
-            isSubmitting = false;
-          });
         }
       },
       child: _buildContent(context),
@@ -236,6 +229,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                   ),
                   const SizedBox(height: 14),
                   LabelAndTextFormField(
+                    key: const Key(PlannerItemFormController.titleField),
                     label: 'Title',
                     autofocus: kIsWeb || !widget.isEdit,
                     controller: _formController.titleController,
@@ -611,6 +605,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
               SizedBox(
                 width: 140,
                 child: CheckboxListTile(
+                  key: const Key(PlannerItemFormController.completeField),
                   title: Text('Complete', style: AppStyles.formLabel(context)),
                   value: _formController.isCompleted,
                   onChanged: (value) {
@@ -626,6 +621,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: LabelAndTextFormField(
+                    key: const Key(PlannerItemFormController.gradeField),
                     hintText: 'Grade',
                     controller: _formController.gradeController,
                     inputFormatters: [
@@ -853,7 +849,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   }
 
   Future<void> onSubmit() async {
-    if (isLoading || isSubmitting) return;
+    if (isLoading) return;
     if (_formController.validateAndScrollToError()) {
       if (_formController.endDate.isBefore(_formController.startDate)) {
         SnackBarHelper.show(
@@ -864,9 +860,8 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
         return;
       }
 
-      setState(() {
-        isSubmitting = true;
-      });
+      // Notify parent that action is starting (validation passed)
+      widget.onActionStarted?.call();
 
       final start = HeliumDateTime.formatDateAndTimeForApi(
         _formController.startDate,
@@ -1125,9 +1120,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     if (_plannerItem == null) return;
 
     widget.onActionStarted?.call();
-    setState(() {
-      isSubmitting = true;
-    });
 
     final clonedTitle = PlannerHelper.generateClonedTitle(_plannerItem!.title);
 

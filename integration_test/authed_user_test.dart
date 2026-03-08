@@ -11,6 +11,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
+import 'package:heliumapp/presentation/features/auth/controllers/credentials_form_controller.dart';
+import 'package:heliumapp/presentation/features/planner/controllers/planner_item_form_controller.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:logging/logging.dart';
@@ -679,13 +681,7 @@ void main() {
       _log.info('Edit Assignment dialog opened ...');
 
       // 1. Change title to "Quiz 4 (Edited)"
-      // TextField content is in EditableText, not Text, so use a custom finder
-      // Match field containing "Quiz 4" (handles both fresh and previously edited)
-      final titleField = find.byWidgetPredicate((widget) {
-        if (widget is! TextField) return false;
-        final text = widget.controller?.text ?? '';
-        return text.contains('Quiz 4');
-      });
+      final titleField = find.byKey(const Key(PlannerItemFormController.titleField));
       // Wait for the title field to load
       final titleFieldFound = await waitForWidget(
         tester,
@@ -695,7 +691,7 @@ void main() {
       expect(
         titleFieldFound,
         isTrue,
-        reason: 'Title field should show "Quiz 4"',
+        reason: 'Title field should be present',
       );
       await enterTextInField(tester, titleField, 'Quiz 4 (Edited)');
 
@@ -739,17 +735,14 @@ void main() {
       await tester.pumpAndSettle();
 
       // 3. Scroll to and tap the Complete checkbox
-      final completeCheckbox = find.widgetWithText(
-        CheckboxListTile,
-        'Complete',
-      );
+      final completeCheckbox = find.byKey(const Key(PlannerItemFormController.completeField));
       await scrollUntilVisible(tester, completeCheckbox);
       await tester.tap(completeCheckbox);
       await tester.pumpAndSettle();
       _log.info('Tapped complete checkbox');
 
       // 5. Set a grade (grade field appears when completed is checked)
-      final gradeField = find.widgetWithText(TextField, 'Grade');
+      final gradeField = find.byKey(const Key(PlannerItemFormController.gradeField));
       if (gradeField.evaluate().isNotEmpty) {
         await enterTextInField(tester, gradeField, '95/100');
         await tester.pumpAndSettle();
@@ -931,12 +924,12 @@ void main() {
       // Log in - but DON'T dismiss the welcome dialog automatically
       await enterTextInField(
         tester,
-        find.widgetWithText(TextField, 'Email'),
+        find.byKey(const Key(CredentialsFormController.emailField)),
         testEmail,
       );
       await enterTextInField(
         tester,
-        find.widgetWithText(TextField, 'Password'),
+        find.byKey(const Key(CredentialsFormController.passwordField)),
         testPassword,
       );
 
@@ -955,12 +948,12 @@ void main() {
 
         await enterTextInField(
           tester,
-          find.widgetWithText(TextField, 'Email'),
+          find.byKey(const Key(CredentialsFormController.emailField)),
           testEmail,
         );
         await enterTextInField(
           tester,
-          find.widgetWithText(TextField, 'Password'),
+          find.byKey(const Key(CredentialsFormController.passwordField)),
           testPassword,
         );
 

@@ -55,6 +55,8 @@ class SentryService {
       // app_router.dart).
       options.ignoreErrors = [
         '(?i)(status code of|http status error \\[)(401|403)',
+        // GoRouter wraps DioExceptions during redirect - catch those too
+        '(?i)goexception.*(401|403)',
         // Filter CanvasKit initialization failures - these are Flutter runtime
         // issues we can't fix (usually caused by WASM loading failures or
         // browser incompatibility)
@@ -81,11 +83,17 @@ class SentryService {
   }
 
   bool _shouldFilter(SentryEvent event) {
+    // Filter events from emulators/automated testing (e.g., Play Console pre-launch)
+    if (_isEmulatorOrTestDevice(event)) {
+      _log.info('Filtered event from Sentry (emulator/test device)');
+      return true;
+    }
+
     // Check the exception types in the event
     if (event.exceptions != null) {
       for (final exception in event.exceptions!) {
         if (_shouldFilterSentryException(exception)) {
-          _log.info('Filtered auth error from Sentry (via SentryException)');
+          _log.info('Filtered event from Sentry (via SentryException)');
           return true;
         }
       }
@@ -93,7 +101,28 @@ class SentryService {
 
     // Fall back to text-based filtering for edge cases
     if (_shouldFilterByText(event)) {
-      _log.info('Filtered auth error from Sentry (via text matching)');
+      _log.info('Filtered event from Sentry (via text matching)');
+      return true;
+    }
+
+    return false;
+  }
+
+  /// Check if the event is from an emulator or automated test device
+  bool _isEmulatorOrTestDevice(SentryEvent event) {
+    final os = event.contexts.operatingSystem;
+    if (os == null) return false;
+
+    final osBuild = os.build?.toLowerCase() ?? '';
+    if (osBuild.isEmpty) return false;
+
+    // Android emulator and test device signatures
+    if (osBuild.contains('sdk_phone') || // Android SDK emulator
+        osBuild.contains('sdk_gphone') || // Google Phone emulator
+        osBuild.contains('test-keys') || // Test signing keys (not production)
+        osBuild.contains('dev-keys') || // Dev signing keys (not production)
+        osBuild.contains('-userdebug')) {
+      // Debug builds (Play Console test lab)
       return true;
     }
 
@@ -106,8 +135,22 @@ class SentryService {
     final value = exception.value?.toLowerCase() ?? '';
     final combined = '$type $value';
 
+    // Filter CanvasKit initialization failures - these are Flutter runtime
+    // issues we can't fix (usually caused by WASM loading failures or
+    // browser incompatibility). This complements ignoreErrors which only
+    // catches window.onerror events, not FlutterError mechanism events.
+    if (value.contains('fluttercanvaskit') &&
+        value.contains('is not a constructor')) {
+      return true;
+    }
+
     // Check exception types directly
     if (type.contains('unauthorizedexception')) {
+      return true;
+    }
+
+    // Check for GoException wrapping auth errors (e.g., during GoRouter redirects)
+    if (type.contains('goexception') && _containsAuthStatusCode(combined)) {
       return true;
     }
 

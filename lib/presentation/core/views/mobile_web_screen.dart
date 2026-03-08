@@ -201,9 +201,12 @@ class _MobileWebScreenState extends BasePageScreenState<MobileWebScreen> {
   Future<void> _openStore(String storeUrl) async {
     setState(() => _isOpeningStore = true);
 
+    // Use _self to navigate current tab instead of opening new tab.
+    // This allows iOS to properly intercept and redirect to the App Store,
+    // which doesn't work reliably when opening a new tab (especially in Chrome).
     final opened = await launchUrl(
       Uri.parse(storeUrl),
-      mode: LaunchMode.externalApplication,
+      webOnlyWindowName: '_self',
     );
 
     if (!opened && mounted) {

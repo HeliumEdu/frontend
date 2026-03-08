@@ -55,6 +55,9 @@ void showSettings(BuildContext context) {
 }
 
 class SettingsScreen extends StatefulWidget {
+  // Field name constants for integration testing
+  static const String deleteAccountPasswordField = 'delete_account_password';
+
   const SettingsScreen({super.key});
 
   @override
@@ -1122,6 +1125,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                           children: [
                             Expanded(
                               child: LabelAndTextFormField(
+                                key: const Key(SettingsScreen.deleteAccountPasswordField),
                                 autofocus: kIsWeb,
                                 controller: _deleteAccountPasswordController,
                                 validator:

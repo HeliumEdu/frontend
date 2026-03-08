@@ -9,6 +9,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
+import 'package:heliumapp/presentation/features/auth/controllers/credentials_form_controller.dart';
+import 'package:heliumapp/presentation/features/auth/controllers/signup_form_controller.dart';
+import 'package:heliumapp/presentation/features/auth/views/verify_email_screen.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:logging/logging.dart';
 
@@ -63,29 +66,23 @@ void main() {
       // Fill in the signup form using helper for web compatibility
       await enterTextInField(
         tester,
-        find.widgetWithText(TextField, 'Email'),
+        find.byKey(const Key(CredentialsFormController.emailField)),
         testEmail,
       );
 
       await enterTextInField(
         tester,
-        find.widgetWithText(TextField, 'Password'),
+        find.byKey(const Key(CredentialsFormController.passwordField)),
         testPassword,
       );
 
       await enterTextInField(
         tester,
-        find.widgetWithText(TextField, 'Confirm password'),
+        find.byKey(const Key(SignupFormController.confirmPasswordField)),
         testPassword,
       );
 
-      final timezoneField = find.byWidgetPredicate(
-        (widget) =>
-            widget is TextField &&
-            widget.decoration?.suffixIcon is Icon &&
-            (widget.decoration?.suffixIcon as Icon).icon ==
-                Icons.keyboard_arrow_down,
-      );
+      final timezoneField = find.byKey(const Key(SignupFormController.timeZoneField));
       expect(
         timezoneField,
         findsOneWidget,
@@ -132,7 +129,7 @@ void main() {
       _log.info('Registration succeeded');
 
       // Should pre-populate Verify screen with email from query params
-      final emailField = find.widgetWithText(TextField, 'Email');
+      final emailField = find.byKey(const Key(VerifyEmailScreen.emailField));
       expect(emailField, findsOneWidget, reason: 'Email field should exist');
       final emailEditableText = find.descendant(
         of: emailField,
@@ -177,7 +174,7 @@ void main() {
       // Enter verification code
       await enterTextInField(
         tester,
-        find.widgetWithText(TextField, 'Verification code'),
+        find.byKey(const Key(VerifyEmailScreen.codeField)),
         verificationCode,
       );
 
@@ -192,7 +189,7 @@ void main() {
       final stillOnVerify =
           find.text('Verify Email').evaluate().isNotEmpty &&
           find
-              .widgetWithText(TextField, 'Verification code')
+              .byKey(const Key(VerifyEmailScreen.codeField))
               .evaluate()
               .isNotEmpty;
       expect(

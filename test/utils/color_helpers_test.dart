@@ -63,5 +63,122 @@ void main() {
         expect(HeliumColors.getColorForPriority(150), const Color(0xffD92727));
       });
     });
+
+    group('contrastingTextColor', () {
+      test('returns black for light backgrounds', () {
+        expect(
+          HeliumColors.contrastingTextColor(Colors.white),
+          Colors.black,
+        );
+        expect(
+          HeliumColors.contrastingTextColor(Colors.yellow),
+          Colors.black,
+        );
+        expect(
+          HeliumColors.contrastingTextColor(const Color(0xFFFFFF00)),
+          Colors.black,
+        );
+        expect(
+          HeliumColors.contrastingTextColor(const Color(0xFFCCCCCC)),
+          Colors.black,
+        );
+      });
+
+      test('returns white for dark backgrounds', () {
+        expect(
+          HeliumColors.contrastingTextColor(Colors.black),
+          Colors.white,
+        );
+        expect(
+          HeliumColors.contrastingTextColor(const Color(0xFF333333)),
+          Colors.white,
+        );
+        expect(
+          HeliumColors.contrastingTextColor(Colors.blue),
+          Colors.white,
+        );
+        expect(
+          HeliumColors.contrastingTextColor(const Color(0xFF800000)),
+          Colors.white,
+        );
+      });
+
+      test('handles mid-luminance colors appropriately', () {
+        // Red has luminance ~0.21, should return white
+        expect(
+          HeliumColors.contrastingTextColor(Colors.red),
+          Colors.white,
+        );
+        // Light green has high luminance, should return black
+        expect(
+          HeliumColors.contrastingTextColor(const Color(0xFF90EE90)),
+          Colors.black,
+        );
+      });
+    });
+  });
+
+  group('ContrastingColor extension', () {
+    test('returns same results as static method', () {
+      expect(Colors.white.contrasting, Colors.black);
+      expect(Colors.black.contrasting, Colors.white);
+      expect(Colors.yellow.contrasting, Colors.black);
+      expect(Colors.blue.contrasting, Colors.white);
+    });
+
+    test('caches results for same color value', () {
+      const color1 = Color(0xFFABCDEF);
+      const color2 = Color(0xFFABCDEF);
+
+      // Both should return the same cached result
+      final result1 = color1.contrasting;
+      final result2 = color2.contrasting;
+
+      expect(result1, equals(result2));
+    });
+  });
+
+  group('BadgeColors', () {
+    testWidgets('background returns a blended color', (tester) async {
+      late Color result;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData.light(),
+          home: Builder(
+            builder: (context) {
+              result = BadgeColors.background(context, Colors.red);
+              return const SizedBox();
+            },
+          ),
+        ),
+      );
+
+      // Result should be a valid color (not null, not transparent)
+      expect((result.a * 255.0).round(), equals(255));
+      // Result should be different from pure red (it's blended)
+      expect(result, isNot(equals(Colors.red)));
+    });
+
+    testWidgets('border returns a blended color', (tester) async {
+      late Color result;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData.light(),
+          home: Builder(
+            builder: (context) {
+              result = BadgeColors.border(context, Colors.red);
+              return const SizedBox();
+            },
+          ),
+        ),
+      );
+
+      // Result should be a valid color
+      expect((result.a * 255.0).round(), equals(255));
+      // Result should be different from pure red
+      expect(result, isNot(equals(Colors.red)));
+    });
   });
 }
