@@ -37,12 +37,14 @@ IdOrEntity<T> idOrEntityFrom<T extends BaseModel>(
   return IdOrEntity<T>.from(data, fromJson);
 }
 
-/// Converts legacy HTML to a Quill [Document] by stripping tags and decoding
-/// entities into plain text. Used to pre-populate the Notes editor during the
-/// migration period while `comments`/`details` fields still exist.
+/// Converts legacy HTML to a plain-text Quill [Document] by stripping tags and
+/// decoding entities. HTML formatting (bold, italic, etc.) is not preserved —
+/// users can re-apply it in the new editor after the first save migrates the
+/// item to Notes. Used during the migration period while `comments`/`details`
+/// fields still exist.
 // TODO: Remove once `comments`/`details` are retired.
 Document htmlToQuillDocument(String html) {
-  final String text = html
+  final text = html
       .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n')
       .replaceAll(RegExp(r'</p>', caseSensitive: false), '\n')
       .replaceAll(RegExp(r'</li>', caseSensitive: false), '\n')
@@ -55,11 +57,7 @@ Document htmlToQuillDocument(String html) {
       .replaceAll('&#39;', "'")
       .replaceAll(RegExp(r'\n{3,}'), '\n\n')
       .trim();
-
-  if (text.isEmpty) {
-    return Document();
-  }
-
+  if (text.isEmpty) return Document();
   return Document.fromJson([
     {'insert': '$text\n'},
   ]);

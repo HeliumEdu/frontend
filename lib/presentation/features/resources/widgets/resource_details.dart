@@ -251,7 +251,10 @@ class ResourceDetailsState extends State<ResourceDetails> {
                     controller: _formController.priceController,
                   ),
                   const SizedBox(height: 14),
-                  NotesEditor(controller: _formController.notesController),
+                  NotesEditor(
+                    key: ObjectKey(_formController.notesController),
+                    controller: _formController.notesController,
+                  ),
                   const SizedBox(height: 12),
                 ],
               ),

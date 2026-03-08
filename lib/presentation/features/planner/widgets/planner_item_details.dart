@@ -308,7 +308,10 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                   _buildPrioritySlider(context),
                   if (!_isEvent) ...[_buildCompletionSection(context)],
                   const SizedBox(height: 14),
-                  NotesEditor(controller: _formController.notesController),
+                  NotesEditor(
+                    key: ObjectKey(_formController.notesController),
+                    controller: _formController.notesController,
+                  ),
                   const SizedBox(height: 12),
                 ],
               ),
