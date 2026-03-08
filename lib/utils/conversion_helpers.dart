@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:flutter_quill/flutter_quill.dart';
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/id_or_entity.dart';
 
@@ -34,4 +35,32 @@ IdOrEntity<T> idOrEntityFrom<T extends BaseModel>(
   Function fromJson,
 ) {
   return IdOrEntity<T>.from(data, fromJson);
+}
+
+/// Converts legacy HTML to a Quill [Document] by stripping tags and decoding
+/// entities into plain text. Used to pre-populate the Notes editor during the
+/// migration period while `comments`/`details` fields still exist.
+// TODO: Remove once `comments`/`details` are retired.
+Document htmlToQuillDocument(String html) {
+  final String text = html
+      .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n')
+      .replaceAll(RegExp(r'</p>', caseSensitive: false), '\n')
+      .replaceAll(RegExp(r'</li>', caseSensitive: false), '\n')
+      .replaceAll(RegExp(r'<[^>]+>'), '')
+      .replaceAll('&amp;', '&')
+      .replaceAll('&lt;', '<')
+      .replaceAll('&gt;', '>')
+      .replaceAll('&nbsp;', ' ')
+      .replaceAll('&quot;', '"')
+      .replaceAll('&#39;', "'")
+      .replaceAll(RegExp(r'\n{3,}'), '\n\n')
+      .trim();
+
+  if (text.isEmpty) {
+    return Document();
+  }
+
+  return Document.fromJson([
+    {'insert': '$text\n'},
+  ]);
 }

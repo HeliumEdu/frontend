@@ -81,15 +81,29 @@ class NotesEditor extends StatelessWidget {
                     showDirection: false,
                     showSearchButton: false,
                     showBackgroundColorButton: false,
-                    iconTheme: QuillIconTheme(
-                      iconButtonSelectedData: IconButtonData(
-                        color: context.colorScheme.onPrimary,
-                      ),
-                      iconButtonUnselectedData: IconButtonData(
-                        color: context.colorScheme.onSurface,
-                      ),
-                    ),
                     buttonOptions: QuillSimpleToolbarButtonOptions(
+                      base: QuillToolbarBaseButtonOptions(
+                        iconTheme: QuillIconTheme(
+                          iconButtonSelectedData: IconButtonData(
+                            style: ButtonStyle(
+                              backgroundColor: WidgetStatePropertyAll(
+                                context.colorScheme.primary,
+                              ),
+                              foregroundColor: WidgetStatePropertyAll(
+                                context.colorScheme.onPrimary,
+                              ),
+                              overlayColor: WidgetStatePropertyAll(
+                                context.colorScheme.onPrimary.withValues(
+                                  alpha: 0.1,
+                                ),
+                              ),
+                            ),
+                          ),
+                          iconButtonUnselectedData: IconButtonData(
+                            color: context.colorScheme.onSurface,
+                          ),
+                        ),
+                      ),
                       color: QuillToolbarColorButtonOptions(
                         customOnPressedCallback: (ctrl, isBackground) =>
                             _showColorPicker(context, ctrl, isBackground),

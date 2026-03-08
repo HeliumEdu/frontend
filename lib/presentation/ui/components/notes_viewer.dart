@@ -6,7 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:flutter_html/flutter_html.dart';
+import 'package:flutter_html/flutter_html.dart' as fhtml;
 import 'package:flutter_quill/flutter_quill.dart';
 
 class NotesViewer extends StatefulWidget {
@@ -40,6 +40,24 @@ class _NotesViewerState extends State<NotesViewer> {
   }
 
   @override
+  void didUpdateWidget(NotesViewer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.notes != widget.notes) {
+      _controller.dispose();
+      if (widget.notes != null) {
+        _controller = QuillController(
+          document: Document.fromJson(widget.notes!['ops'] as List),
+          selection: const TextSelection.collapsed(offset: 0),
+          readOnly: true,
+        );
+      } else {
+        _controller = QuillController.basic();
+        _controller.readOnly = true;
+      }
+    }
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     super.dispose();
@@ -61,7 +79,9 @@ class _NotesViewerState extends State<NotesViewer> {
     }
 
     if (widget.legacyHtml != null && widget.legacyHtml!.isNotEmpty) {
-      return SelectionArea(child: Html(data: widget.legacyHtml!));
+      return SelectionArea(
+        child: fhtml.Html(data: widget.legacyHtml!),
+      );
     }
 
     return const SizedBox.shrink();

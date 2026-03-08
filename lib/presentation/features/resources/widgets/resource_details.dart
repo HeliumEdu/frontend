@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/request/resource_request_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
@@ -271,12 +272,21 @@ class ResourceDetailsState extends State<ResourceDetails> {
         _formController.urlController.text = state.resource!.website;
         _formController.priceController.text = state.resource!.price ?? '';
         _formController.initialNotes = state.resource!.details ?? '';
+        _formController.notesController.dispose();
         if (state.resource!.notes != null) {
-          _formController.notesController.dispose();
           _formController.notesController = QuillController(
             document: Document.fromJson(state.resource!.notes!['ops'] as List),
             selection: const TextSelection.collapsed(offset: 0),
           );
+        } else if (state.resource!.details != null &&
+            state.resource!.details!.isNotEmpty) {
+          // TODO: Remove once `details` is retired — pre-populate from legacy HTML
+          _formController.notesController = QuillController(
+            document: htmlToQuillDocument(state.resource!.details!),
+            selection: const TextSelection.collapsed(offset: 0),
+          );
+        } else {
+          _formController.notesController = QuillController.basic();
         }
 
         _formController.selectedStatus = state.resource!.status;

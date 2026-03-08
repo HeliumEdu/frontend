@@ -41,6 +41,7 @@ import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
+import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
@@ -711,12 +712,20 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
         _formController.showEndDateTime = plannerItem.showEndTime;
         _formController.priorityValue = plannerItem.priority.toDouble();
         _formController.initialNotes = plannerItem.comments;
+        _formController.notesController.dispose();
         if (plannerItem.notes != null) {
-          _formController.notesController.dispose();
           _formController.notesController = QuillController(
             document: Document.fromJson(plannerItem.notes!['ops'] as List),
             selection: const TextSelection.collapsed(offset: 0),
           );
+        } else if (plannerItem.comments.isNotEmpty) {
+          // TODO: Remove once `comments` is retired — pre-populate from legacy HTML
+          _formController.notesController = QuillController(
+            document: htmlToQuillDocument(plannerItem.comments),
+            selection: const TextSelection.collapsed(offset: 0),
+          );
+        } else {
+          _formController.notesController = QuillController.basic();
         }
 
         final startDateTime = HeliumDateTime.toLocal(
