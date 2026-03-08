@@ -421,18 +421,14 @@ class _ResourcesScreenState
 
               const SizedBox(height: 12),
 
-              if (resource.notes != null) ...[
+              if (resource.notes != null ||
+                  (resource.details != null &&
+                      resource.details!.isNotEmpty)) ...[
                 const Divider(),
                 const SizedBox(height: 12),
-                NotesViewer(notes: resource.notes),
-              ] else if (resource.details != null &&
-                  resource.details!.isNotEmpty) ...[
-                const Divider(),
-                const SizedBox(height: 12),
-                Text(
-                  resource.details!.replaceAll(RegExp(r'<[^>]+>'), '').trim(),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
+                NotesViewer(
+                  notes: resource.notes,
+                  legacyHtml: resource.details,
                 ),
               ],
             ],
