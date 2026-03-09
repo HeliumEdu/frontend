@@ -307,11 +307,12 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
         satEndTime: defaultEnd,
       );
 
-      await courseScheduleRepository.createCourseSchedule(
+      final schedule = await courseScheduleRepository.createCourseSchedule(
         course.courseGroup,
         course.id,
         createEmptyCourseScheduleRequest,
       );
+      course.schedules.add(schedule);
 
       final createCategoryRequest1 = CategoryRequestModel(
         title: 'Homework 👨🏽‍💻',
