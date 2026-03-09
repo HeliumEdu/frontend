@@ -268,9 +268,10 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
 
     // Check for optimistic override first (drag-drop/resize - still strings)
     final override = _timeOverrides[item.id];
-    final baseTime = override != null
-        ? DateTime.parse(override.start)
-        : item.start;
+    final baseTime = tz.TZDateTime.from(
+      override != null ? DateTime.parse(override.start) : item.start,
+      userSettings.timeZone,
+    );
 
     // All-day events: no adjustment (SfCalendar handles its own all-day sorting)
     if (item.allDay) {
@@ -293,12 +294,14 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
 
     // Check for optimistic override first (drag-drop/resize - still strings)
     final override = _timeOverrides[plannerItem.id];
-    final startTime = override != null
-        ? DateTime.parse(override.start)
-        : plannerItem.start;
-    final endTime = override != null
-        ? DateTime.parse(override.end)
-        : plannerItem.end;
+    final startTime = tz.TZDateTime.from(
+      override != null ? DateTime.parse(override.start) : plannerItem.start,
+      userSettings.timeZone,
+    );
+    final endTime = tz.TZDateTime.from(
+      override != null ? DateTime.parse(override.end) : plannerItem.end,
+      userSettings.timeZone,
+    );
 
     // All-day events: sort order is encoded in start time, just adjust end for display
     if (plannerItem.allDay) {
