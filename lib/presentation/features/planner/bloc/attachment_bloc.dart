@@ -48,18 +48,17 @@ class AttachmentBloc extends Bloc<AttachmentEvent, AttachmentState> {
     emit(AttachmentsLoading());
 
     try {
-      final List<AttachmentModel> attachments = [];
-      for (var file in event.files) {
-        attachments.add(
-          await attachmentRepository.createAttachment(
+      final attachments = await Future.wait(
+        event.files.map(
+          (file) => attachmentRepository.createAttachment(
             bytes: file.bytes,
             filename: file.title,
             course: event.courseId,
             event: event.eventId,
             homework: event.homeworkId,
           ),
-        );
-      }
+        ),
+      );
       emit(AttachmentsCreated(attachments: attachments));
     } on HeliumException catch (e) {
       emit(AttachmentsError(message: e.message));

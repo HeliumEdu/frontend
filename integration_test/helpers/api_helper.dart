@@ -235,7 +235,6 @@ class ApiHelper {
         (item) => item.title.contains(titleContains),
       );
     } catch (e) {
-      _log.info('No homework found with title containing: $titleContains');
       return null;
     }
   }

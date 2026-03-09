@@ -76,17 +76,18 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
   ) async {
     emit(ResourcesLoading(origin: event.origin));
     try {
-      final ResourceModel? resource;
-      if (event.resourceId != null) {
-        resource = await resourceRepository.getResource(
-          event.resourceGroupId,
-          event.resourceId!,
-        );
-      } else {
-        resource = null;
-      }
-
-      final courses = await courseRepository.getCourses();
+      final results = await Future.wait([
+        if (event.resourceId != null)
+          resourceRepository.getResource(
+            event.resourceGroupId,
+            event.resourceId!,
+          ),
+        courseRepository.getCourses(),
+      ]);
+      final ResourceModel? resource =
+          event.resourceId != null ? results[0] as ResourceModel : null;
+      final courses = (event.resourceId != null ? results[1] : results[0])
+          as List<CourseModel>;
       emit(
         ResourceScreenDataFetched(
           origin: event.origin,

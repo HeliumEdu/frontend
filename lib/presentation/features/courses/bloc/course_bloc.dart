@@ -82,18 +82,14 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
     emit(CoursesLoading(origin: event.origin));
 
     try {
-      final courseGroup = await courseRepository.getCourseGroup(
-        event.courseGroupId,
-      );
-      final CourseModel? course;
-      if (event.courseId != null) {
-        course = await courseRepository.getCourse(
-          event.courseGroupId,
-          event.courseId!,
-        );
-      } else {
-        course = null;
-      }
+      final results = await Future.wait([
+        courseRepository.getCourseGroup(event.courseGroupId),
+        if (event.courseId != null)
+          courseRepository.getCourse(event.courseGroupId, event.courseId!),
+      ]);
+      final courseGroup = results[0] as CourseGroupModel;
+      final CourseModel? course =
+          event.courseId != null ? results[1] as CourseModel : null;
       emit(
         CourseScreenDataFetched(
           origin: event.origin,
@@ -349,41 +345,43 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
         weight: '0',
         color: '#553555',
       );
-      await categoryRepository.createCategory(
-        course.courseGroup,
-        course.id,
-        createCategoryRequest1,
-      );
-      await categoryRepository.createCategory(
-        course.courseGroup,
-        course.id,
-        createCategoryRequest2,
-      );
-      await categoryRepository.createCategory(
-        course.courseGroup,
-        course.id,
-        createCategoryRequest3,
-      );
-      await categoryRepository.createCategory(
-        course.courseGroup,
-        course.id,
-        createCategoryRequest4,
-      );
-      await categoryRepository.createCategory(
-        course.courseGroup,
-        course.id,
-        createCategoryRequest5,
-      );
-      await categoryRepository.createCategory(
-        course.courseGroup,
-        course.id,
-        createCategoryRequest6,
-      );
-      await categoryRepository.createCategory(
-        course.courseGroup,
-        course.id,
-        createCategoryRequest7,
-      );
+      await Future.wait([
+        categoryRepository.createCategory(
+          course.courseGroup,
+          course.id,
+          createCategoryRequest1,
+        ),
+        categoryRepository.createCategory(
+          course.courseGroup,
+          course.id,
+          createCategoryRequest2,
+        ),
+        categoryRepository.createCategory(
+          course.courseGroup,
+          course.id,
+          createCategoryRequest3,
+        ),
+        categoryRepository.createCategory(
+          course.courseGroup,
+          course.id,
+          createCategoryRequest4,
+        ),
+        categoryRepository.createCategory(
+          course.courseGroup,
+          course.id,
+          createCategoryRequest5,
+        ),
+        categoryRepository.createCategory(
+          course.courseGroup,
+          course.id,
+          createCategoryRequest6,
+        ),
+        categoryRepository.createCategory(
+          course.courseGroup,
+          course.id,
+          createCategoryRequest7,
+        ),
+      ]);
 
       emit(
         CourseCreated(
