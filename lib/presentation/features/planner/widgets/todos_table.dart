@@ -17,6 +17,7 @@ import 'package:heliumapp/presentation/ui/components/category_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/drop_down.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
+import 'package:heliumapp/presentation/ui/components/non_touch_selectable_text.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_globals.dart';
@@ -840,7 +841,7 @@ class _TodosTableState extends State<TodosTable> {
       child: Row(
         children: [
           Expanded(
-            child: SelectableText(
+            child: NonTouchSelectableText(
               homework.title,
               style: AppStyles.smallSecondaryText(context).copyWith(
                 decoration: isCompleted
@@ -865,7 +866,7 @@ class _TodosTableState extends State<TodosTable> {
 
     return SizedBox(
       width: TodosSortColumn.dueDate.widthForLayout(isMobile: isMobile)!,
-      child: SelectableText(
+      child: NonTouchSelectableText(
         HeliumDateTime.formatDateAndTimeForTodos(
           HeliumDateTime.toLocal(homework.start, userSettings.timeZone),
         ),
