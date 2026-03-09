@@ -538,20 +538,22 @@ class _CalendarScreenState
 
           if (noCollapse) {
             final maxItems = _calculateMaxItemsForVisibleDates();
+            final minHeight = _calculateCalendarHeight(constraints.maxHeight);
             if (maxItems > 0) {
-              // Always show all items when not collapsing, regardless of height.
-              noCollapseCount = maxItems;
               final expandedHeight = _calculateExpandedCalendarHeight(maxItems);
-              if (expandedHeight > constraints.maxHeight) {
-                // Schedule is busy enough to scroll — expand beyond screen.
-                calendarHeight = expandedHeight;
-              } else {
-                // All items fit within the screen — fill screen without distortion.
-                calendarHeight = _calculateCalendarHeight(constraints.maxHeight);
-              }
+              // Expand beyond screen if needed, otherwise fill screen.
+              calendarHeight =
+                  expandedHeight > minHeight ? expandedHeight : minHeight;
             } else {
-              calendarHeight = _calculateCalendarHeight(constraints.maxHeight);
+              calendarHeight = minHeight;
             }
+            // Use the larger of actual items or calculated fit to ensure all
+            // items show while keeping them at fixed height.
+            final fitsAtFixedHeight =
+                _calculateCalendarItemDisplayCount(calendarHeight);
+            noCollapseCount = maxItems > fitsAtFixedHeight
+                ? maxItems
+                : fitsAtFixedHeight;
           } else {
             calendarHeight = _calculateCalendarHeight(constraints.maxHeight);
           }
