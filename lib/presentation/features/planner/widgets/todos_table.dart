@@ -867,9 +867,11 @@ class _TodosTableState extends State<TodosTable> {
     return SizedBox(
       width: TodosSortColumn.dueDate.widthForLayout(isMobile: isMobile)!,
       child: NonTouchSelectableText(
-        HeliumDateTime.formatDateAndTimeForTodos(
-          HeliumDateTime.toLocal(homework.start, userSettings.timeZone),
-        ),
+        homework.allDay
+            ? HeliumDateTime.formatDateForTodos(HeliumDateTime.toLocal(homework.start, userSettings.timeZone))
+            : HeliumDateTime.formatDateAndTimeForTodos(
+                HeliumDateTime.toLocal(homework.start, userSettings.timeZone),
+              ),
         style: AppStyles.smallSecondaryText(context),
         maxLines: 1,
       ),

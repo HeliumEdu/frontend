@@ -2067,7 +2067,7 @@ class _CalendarScreenState
     final formattedDate = HeliumDateTime.formatDate(localStart);
 
     if (plannerItem.allDay) {
-      return '$formattedDate • All day';
+      return formattedDate;
     }
 
     return '$formattedDate • ${HeliumDateTime.formatTimeRange(localStart, localEnd, plannerItem.showEndTime)}';
