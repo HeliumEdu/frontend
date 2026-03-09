@@ -13,7 +13,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 class PrefService {
   FlutterSecureStorage? _secureStorageOverride;
   FlutterSecureStorage get _secureStorage =>
-      _secureStorageOverride ?? const FlutterSecureStorage();
+      _secureStorageOverride ??
+      const FlutterSecureStorage(
+        iOptions: IOSOptions(
+          accessibility: KeychainAccessibility.first_unlock,
+        ),
+      );
 
   SharedPreferencesWithCache? _sharedStorage;
 

@@ -194,11 +194,14 @@ void main() {
       test('getStartTime returns DateTime with priority adjustment', () {
         final startTime = dataSource.getStartTime(0);
         // Homework: (3-0) + (100-0) = 103 seconds subtracted
+        // Time is converted to user's timezone before adjustment
+        final expectedBase = tz.TZDateTime.from(
+          DateTime.parse('2025-01-15T10:00:00Z'),
+          userSettings.timeZone,
+        );
         expect(
           startTime,
-          DateTime.parse(
-            '2025-01-15T10:00:00Z',
-          ).subtract(const Duration(seconds: 103)),
+          expectedBase.subtract(const Duration(seconds: 103)),
         );
       });
 
@@ -207,11 +210,14 @@ void main() {
         () {
           final endTime = dataSource.getEndTime(0);
           // Homework: (3-0) + (100-0) = 103 seconds subtracted
+          // Time is converted to user's timezone before adjustment
+          final expectedBase = tz.TZDateTime.from(
+            DateTime.parse('2025-01-15T11:00:00Z'),
+            userSettings.timeZone,
+          );
           expect(
             endTime,
-            DateTime.parse(
-              '2025-01-15T11:00:00Z',
-            ).subtract(const Duration(seconds: 103)),
+            expectedBase.subtract(const Duration(seconds: 103)),
           );
         },
       );
@@ -227,7 +233,12 @@ void main() {
         dataSource.appointments!.insert(0, allDayHomework);
 
         final endTime = dataSource.getEndTime(0);
-        expect(endTime, DateTime.parse('2025-01-15T00:00:00Z'));
+        // Time is converted to user's timezone, then 1 day subtracted
+        final expectedBase = tz.TZDateTime.from(
+          DateTime.parse('2025-01-15T00:00:00Z'),
+          userSettings.timeZone,
+        );
+        expect(endTime, expectedBase);
       });
 
       test('isAllDay returns correct value', () {
@@ -943,12 +954,14 @@ void main() {
         );
 
         final startTime = dataSource.getStartTime(0);
-        // Start time: override - 103 seconds (homework priority + position)
+        // Start time: override converted to user timezone - 103 seconds
+        final expectedBase = tz.TZDateTime.from(
+          DateTime.parse('2025-01-20T09:00:00Z'),
+          userSettings.timeZone,
+        );
         expect(
           startTime,
-          DateTime.parse(
-            '2025-01-20T09:00:00Z',
-          ).subtract(const Duration(seconds: 103)),
+          expectedBase.subtract(const Duration(seconds: 103)),
         );
       });
 
@@ -960,12 +973,14 @@ void main() {
         );
 
         final endTime = dataSource.getEndTime(0);
-        // End time: override - 103 seconds (homework)
+        // End time: override converted to user timezone - 103 seconds
+        final expectedBase = tz.TZDateTime.from(
+          DateTime.parse('2025-01-20T10:00:00Z'),
+          userSettings.timeZone,
+        );
         expect(
           endTime,
-          DateTime.parse(
-            '2025-01-20T10:00:00Z',
-          ).subtract(const Duration(seconds: 103)),
+          expectedBase.subtract(const Duration(seconds: 103)),
         );
       });
 
@@ -1018,11 +1033,14 @@ void main() {
 
         final startTime = dataSource.getStartTime(0);
         // Homework: (3-0) + (100-0) = 103 seconds
+        // Time is converted to user's timezone before adjustment
+        final expectedBase = tz.TZDateTime.from(
+          DateTime.parse('2025-01-15T10:00:00Z'),
+          userSettings.timeZone,
+        );
         expect(
           startTime,
-          DateTime.parse(
-            '2025-01-15T10:00:00Z',
-          ).subtract(const Duration(seconds: 103)),
+          expectedBase.subtract(const Duration(seconds: 103)),
         );
       });
 
@@ -1032,11 +1050,14 @@ void main() {
 
         final startTime = dataSource.getStartTime(0);
         // CourseSchedule: (3-1) + (100-0) = 102 seconds
+        // Time is converted to user's timezone before adjustment
+        final expectedBase = tz.TZDateTime.from(
+          DateTime.parse('2025-01-15T10:00:00Z'),
+          userSettings.timeZone,
+        );
         expect(
           startTime,
-          DateTime.parse(
-            '2025-01-15T10:00:00Z',
-          ).subtract(const Duration(seconds: 102)),
+          expectedBase.subtract(const Duration(seconds: 102)),
         );
       });
 
@@ -1050,11 +1071,14 @@ void main() {
 
         final startTime = dataSource.getStartTime(0);
         // Event: (3-2) + (100-0) = 101 seconds
+        // Time is converted to user's timezone before adjustment
+        final expectedBase = tz.TZDateTime.from(
+          DateTime.parse('2025-01-15T10:00:00Z'),
+          userSettings.timeZone,
+        );
         expect(
           startTime,
-          DateTime.parse(
-            '2025-01-15T10:00:00Z',
-          ).subtract(const Duration(seconds: 101)),
+          expectedBase.subtract(const Duration(seconds: 101)),
         );
       });
 
@@ -1063,12 +1087,15 @@ void main() {
         dataSource.addPlannerItem(external);
 
         final startTime = dataSource.getStartTime(0);
-        // External: (3-3)*1000 + (100-0) = 100 seconds
+        // External: (3-3) + (100-0) = 100 seconds
+        // Time is converted to user's timezone before adjustment
+        final expectedBase = tz.TZDateTime.from(
+          DateTime.parse('2025-01-15T10:00:00Z'),
+          userSettings.timeZone,
+        );
         expect(
           startTime,
-          DateTime.parse(
-            '2025-01-15T10:00:00Z',
-          ).subtract(const Duration(seconds: 100)),
+          expectedBase.subtract(const Duration(seconds: 100)),
         );
       });
 
@@ -1083,7 +1110,12 @@ void main() {
 
         final startTime = dataSource.getStartTime(0);
         // All-day events should NOT have seconds subtracted (would push to previous day)
-        expect(startTime, DateTime.parse('2025-01-15T00:00:00Z'));
+        // Time is still converted to user's timezone
+        final expectedBase = tz.TZDateTime.from(
+          DateTime.parse('2025-01-15T00:00:00Z'),
+          userSettings.timeZone,
+        );
+        expect(startTime, expectedBase);
       });
 
       test('homework gets 103 seconds subtracted from end time', () {
@@ -1096,11 +1128,14 @@ void main() {
 
         final endTime = dataSource.getEndTime(0);
         // Homework: (3-0) + (100-0) = 103 seconds
+        // Time is converted to user's timezone before adjustment
+        final expectedBase = tz.TZDateTime.from(
+          DateTime.parse('2025-01-15T11:00:00Z'),
+          userSettings.timeZone,
+        );
         expect(
           endTime,
-          DateTime.parse(
-            '2025-01-15T11:00:00Z',
-          ).subtract(const Duration(seconds: 103)),
+          expectedBase.subtract(const Duration(seconds: 103)),
         );
       });
 
@@ -1114,11 +1149,14 @@ void main() {
 
         final endTime = dataSource.getEndTime(0);
         // Event: (3-2) + (100-0) = 101 seconds
+        // Time is converted to user's timezone before adjustment
+        final expectedBase = tz.TZDateTime.from(
+          DateTime.parse('2025-01-15T11:00:00Z'),
+          userSettings.timeZone,
+        );
         expect(
           endTime,
-          DateTime.parse(
-            '2025-01-15T11:00:00Z',
-          ).subtract(const Duration(seconds: 101)),
+          expectedBase.subtract(const Duration(seconds: 101)),
         );
       });
 

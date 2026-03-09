@@ -890,7 +890,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                   ),
                   const SizedBox(width: 6),
                   Flexible(
-                    child: SelectableText(
+                    child: Text(
                       '$maxUngraded in ${topCourse.title}',
                       style: AppStyles.smallSecondaryText(context),
                       maxLines: 1,
@@ -2112,7 +2112,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      SelectableText(
+                      Text(
                         '${course.numHomeworkGraded} graded',
                         style: AppStyles.standardBodyText(context).copyWith(
                           color: context.colorScheme.onSurface.withValues(
