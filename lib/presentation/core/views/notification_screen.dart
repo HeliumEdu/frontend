@@ -30,6 +30,7 @@ import 'package:heliumapp/presentation/features/planner/views/planner_item_add_s
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
+import 'package:heliumapp/presentation/ui/components/non_touch_selectable_text.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -374,7 +375,7 @@ class _NotificationsScreenState
                         // when alone, Flexible allows ellipsis
                         if (plannerItem is HomeworkModel &&
                             plannerItem.course.entity != null)
-                          SelectableText(
+                          NonTouchSelectableText(
                             notification.title,
                             style: AppStyles.standardBodyText(context).copyWith(
                               fontWeight: notification.isRead
@@ -412,7 +413,7 @@ class _NotificationsScreenState
                       ],
                     ),
                     const SizedBox(height: 4),
-                    SelectableText(
+                    NonTouchSelectableText(
                       notification.body,
                       style: AppStyles.standardBodyTextLight(context).copyWith(
                         color: context.colorScheme.onSurface.withValues(
@@ -424,7 +425,7 @@ class _NotificationsScreenState
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        SelectableText(
+                        NonTouchSelectableText(
                           HeliumDateTime.formatDateTimeRange(
                             HeliumDateTime.toLocal(
                               plannerItem.start,
