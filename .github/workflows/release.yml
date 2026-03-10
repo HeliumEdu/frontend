@@ -396,7 +396,7 @@ jobs:
           SENTRY_RELEASE: ${{ needs['bump-version'].outputs.version }}
         run: |
           SENTRY_DIST="${SENTRY_RELEASE##*+}"
-          make build-android-release ENVIRONMENT=prod SENTRY_RELEASE="$SENTRY_RELEASE" SENTRY_DIST="$SENTRY_DIST"
+          make build-android-release SENTRY_RELEASE="$SENTRY_RELEASE" SENTRY_DIST="$SENTRY_DIST"
 
       - name: Upload debug symbols to Sentry
         env:
@@ -508,7 +508,7 @@ jobs:
           SENTRY_RELEASE: ${{ needs['bump-version'].outputs.version }}
         run: |
           SENTRY_DIST="${SENTRY_RELEASE##*+}"
-          make build-ios-release ENVIRONMENT=prod SENTRY_RELEASE="$SENTRY_RELEASE" SENTRY_DIST="$SENTRY_DIST"
+          make build-ios-release SENTRY_RELEASE="$SENTRY_RELEASE" SENTRY_DIST="$SENTRY_DIST"
 
       - name: Upload debug symbols to Sentry
         env:
@@ -568,7 +568,7 @@ jobs:
           SENTRY_RELEASE: ${{ needs['bump-version'].outputs.version }}
         run: |
           SENTRY_DIST="${SENTRY_RELEASE##*+}"
-          make build-web ENVIRONMENT=prod SENTRY_RELEASE="$SENTRY_RELEASE" SENTRY_DIST="$SENTRY_DIST"
+          make build-web SENTRY_RELEASE="$SENTRY_RELEASE" SENTRY_DIST="$SENTRY_DIST"
 
       - name: Upload source maps to Sentry
         env:
