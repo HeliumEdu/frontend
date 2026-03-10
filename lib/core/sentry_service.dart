@@ -28,7 +28,7 @@ class SentryService {
     await SentryFlutter.init((options) {
       options.dsn =
           'https://d6522731f64a56983e3504ed78390601@o4510767194570752.ingest.us.sentry.io/4510767197519872';
-      const release = String.fromEnvironment('SENTRY_RELEASE');
+      const release = String.fromEnvironment('RELEASE_VERSION');
       const dist = String.fromEnvironment('SENTRY_DIST');
       const environment = String.fromEnvironment('SENTRY_ENVIRONMENT');
       if (release.isNotEmpty) {

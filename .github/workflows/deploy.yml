@@ -250,11 +250,11 @@ jobs:
       - name: Notify Sentry of deploy
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_RELEASE: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
+          RELEASE_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
         run: |
           npm install -g @sentry/cli
-          SENTRY_DIST="${SENTRY_RELEASE##*+}"
-          SENTRY_PROPERTIES=sentry.properties sentry-cli releases deploys "$SENTRY_RELEASE" new \
+          SENTRY_DIST="${RELEASE_VERSION##*+}"
+          SENTRY_PROPERTIES=sentry.properties sentry-cli releases deploys "$RELEASE_VERSION" new \
             --env "${{ inputs.environment }}" \
             --name "dist-${SENTRY_DIST}"
 
@@ -420,7 +420,7 @@ jobs:
       - name: Upload build to Sentry
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_RELEASE: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
+          RELEASE_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
         run: |
           npm install -g @sentry/cli
           SENTRY_PROPERTIES=sentry.properties sentry-cli build upload ./android-build/app-release.aab
@@ -572,7 +572,7 @@ jobs:
       - name: Upload build to Sentry
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_RELEASE: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
+          RELEASE_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
         run: |
           npm install -g @sentry/cli
           SENTRY_PROPERTIES=sentry.properties sentry-cli build upload ./ios-build/Helium.ipa
