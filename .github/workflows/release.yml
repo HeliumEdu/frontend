@@ -568,7 +568,7 @@ jobs:
           SENTRY_RELEASE: ${{ needs['bump-version'].outputs.version }}
         run: |
           SENTRY_DIST="${SENTRY_RELEASE##*+}"
-          make build-web SENTRY_RELEASE="$SENTRY_RELEASE" SENTRY_DIST="$SENTRY_DIST"
+          make build-web ENVIRONMENT=prod SENTRY_RELEASE="$SENTRY_RELEASE" SENTRY_DIST="$SENTRY_DIST"
 
       - name: Upload source maps to Sentry
         env:
