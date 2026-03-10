@@ -3,6 +3,7 @@
 .dart_tool
 .flutter-plugins-dependencies
 build
+!build/web
 coverage
 android/.gradle
 ios/Pods

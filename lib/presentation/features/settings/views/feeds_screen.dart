@@ -209,7 +209,7 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
                         child: HeliumElevatedButton(
                           onPressed: () {
                             Clipboard.setData(ClipboardData(text: url));
-                            showSnackBar(context, '$label URL copied');
+                            showSnackBar(context, '$label feed URL copied');
                           },
                           icon: Icons.copy,
                           buttonText: 'Copy',
@@ -309,7 +309,7 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
           children: [
             const WarningContainer(
               text:
-                  'Keep private feed URLs secret. If a feed is compromised, disabling and re-enabling feeds will regenerate URLs.',
+                  'Keep private feed URLs secret. Disabling and re-enabling a feed will regenerate its URL.',
               icon: Icons.privacy_tip_outlined,
             ),
 

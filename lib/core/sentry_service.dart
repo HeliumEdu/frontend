@@ -30,9 +30,14 @@ class SentryService {
           'https://d6522731f64a56983e3504ed78390601@o4510767194570752.ingest.us.sentry.io/4510767197519872';
       const release = String.fromEnvironment('SENTRY_RELEASE');
       const dist = String.fromEnvironment('SENTRY_DIST');
+      const environment = String.fromEnvironment('SENTRY_ENVIRONMENT');
       if (release.isNotEmpty) {
         options.release = release;
-        options.environment = 'prod';
+        // Default to 'prod' for release builds, but allow override
+        options.environment = environment.isNotEmpty ? environment : 'prod';
+      } else if (environment.isNotEmpty) {
+        // Local builds without a release can still set an environment
+        options.environment = environment;
       }
       if (dist.isNotEmpty) {
         options.dist = dist;
@@ -55,6 +60,9 @@ class SentryService {
       // app_router.dart).
       options.ignoreErrors = [
         '(?i)(status code of|http status error \\[)(401|403)',
+        // DioException "bad response" format with auth status codes
+        '(?i)dioexception.*bad response.*(401|403)',
+        '(?i)bad response.*(401|403)',
         // GoRouter wraps DioExceptions during redirect - catch those too
         '(?i)goexception.*(401|403)',
         // Filter CanvasKit initialization failures - these are Flutter runtime
@@ -79,6 +87,21 @@ class SentryService {
     if (_shouldFilter(event)) {
       return null;
     }
+
+    // Check hint for original exception - catches browser onerror cases where
+    // the exception value may be null after deserialization
+    if (hint != null) {
+      final originalError = hint.get('originalError');
+      if (originalError != null) {
+        final errorString = originalError.toString().toLowerCase();
+        if (_containsAuthStatusCode(errorString) &&
+            _looksLikeHttpError(errorString)) {
+          _log.info('Filtered event from Sentry (via hint originalError)');
+          return null;
+        }
+      }
+    }
+
     return event;
   }
 
@@ -173,6 +196,11 @@ class SentryService {
     // Check for "status code of 401/403" pattern (common in DioException messages)
     if (value.contains('status code of 401') ||
         value.contains('status code of 403')) {
+      return true;
+    }
+
+    // Check for "bad response" pattern with auth status codes
+    if (value.contains('bad response') && _containsAuthStatusCode(value)) {
       return true;
     }
 

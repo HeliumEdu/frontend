@@ -7,7 +7,6 @@
 
 import 'package:bloc/bloc.dart';
 import 'package:heliumapp/core/helium_exception.dart';
-import 'package:heliumapp/data/models/planner/attachment_model.dart';
 import 'package:heliumapp/domain/repositories/attachment_repository.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_state.dart';
