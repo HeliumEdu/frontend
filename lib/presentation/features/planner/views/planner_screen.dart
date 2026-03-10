@@ -196,6 +196,7 @@ class _CalendarScreenState
   final List<CategoryModel> _deduplicatedCategories = [];
   bool _isSearchExpanded = false;
   bool _isFilterExpanded = false;
+  bool _wasDesktop = false;
   PlannerView _currentView = PlannerHelper.mapApiViewToHeliumView(
     FallbackConstants.defaultViewIndex,
   );
@@ -239,14 +240,23 @@ class _CalendarScreenState
 
     _goToToday();
 
-    _searchFocusNode.addListener(() {
-      if (!_searchFocusNode.hasFocus && _isSearchExpanded) {
-        setState(() {
-          _isSearchExpanded = false;
-          _searchFocusNode.unfocus();
-        });
-      }
-    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final isDesktop = Responsive.isDesktop(context);
+    if (_wasDesktop && !isDesktop && _isSearchExpanded) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            _isSearchExpanded = false;
+          });
+        }
+      });
+    }
+    _wasDesktop = isDesktop;
   }
 
   @override
@@ -951,6 +961,7 @@ class _CalendarScreenState
 
   Widget _buildFilterArea({double? containerWidth}) {
     final isMobile = Responsive.isMobile(context);
+    final isDesktop = Responsive.isDesktop(context);
 
     final isExpanded = _isFilterExpanded || _isSearchExpanded;
     final double expandedToolbarWidth;
@@ -968,6 +979,20 @@ class _CalendarScreenState
       expandedToolbarWidth = isMobile
           ? calculatedWidth
           : calculatedWidth.clamp(200, 300);
+    }
+
+    if (isDesktop) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildFilterAndSearchButtons(hideSearchButton: true),
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 250,
+            child: _buildSearchField(showCloseButton: false),
+          ),
+        ],
+      );
     }
 
     if (!isMobile) {
@@ -1100,7 +1125,7 @@ class _CalendarScreenState
                           });
                         },
                         icon: Icon(
-                          Icons.close,
+                          Icons.keyboard_arrow_right,
                           color: context.colorScheme.primary,
                           size: Responsive.getIconSize(
                             context,
@@ -1121,8 +1146,19 @@ class _CalendarScreenState
     );
   }
 
-  Widget _buildSearchField() {
-    return LayoutBuilder(
+  Widget _buildSearchField({bool showCloseButton = true}) {
+    return TapRegion(
+      onTapOutside: showCloseButton
+          ? (_) {
+              if (_isSearchExpanded) {
+                setState(() {
+                  _isSearchExpanded = false;
+                  _searchFocusNode.unfocus();
+                });
+              }
+            }
+          : null,
+      child: LayoutBuilder(
       builder: (context, constraints) {
         // Only show content when width is large enough (during/after animation)
         final showContent = constraints.maxWidth > 200;
@@ -1155,6 +1191,7 @@ class _CalendarScreenState
                             controller: _searchController,
                             focusNode: _searchFocusNode,
                             onChanged: _onSearchTextFieldChanged,
+                            onTapOutside: (_) {},
                             style: AppStyles.formText(context),
                             decoration: InputDecoration(
                               hintText: 'Search ...',
@@ -1174,38 +1211,70 @@ class _CalendarScreenState
                           ),
                         ),
                       ),
-                      const SizedBox(width: 4),
-                      IconButton(
-                        onPressed: () {
-                          setState(() {
-                            _isSearchExpanded = false;
-                            _searchFocusNode.unfocus();
-                          });
+                      ValueListenableBuilder<TextEditingValue>(
+                        valueListenable: _searchController,
+                        builder: (context, value, _) {
+                          if (value.text.isEmpty) return const SizedBox.shrink();
+                          return IconButton(
+                            onPressed: () {
+                              _searchController.clear();
+                              _searchTypingTimer?.cancel();
+                              _plannerItemDataSource?.setSearchQuery('');
+                            },
+                            icon: Icon(
+                              Icons.close,
+                              color: context.colorScheme.primary,
+                              size: Responsive.getIconSize(
+                                context,
+                                mobile: 18,
+                                tablet: 18,
+                                desktop: 18,
+                              ),
+                            ),
+                            tooltip: 'Clear',
+                            style: IconButton.styleFrom(
+                              backgroundColor: context.colorScheme.surface,
+                            ),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          );
                         },
-                        icon: Icon(
-                          Icons.close,
-                          color: context.colorScheme.primary,
-                          size: Responsive.getIconSize(
-                            context,
-                            mobile: 20,
-                            tablet: 22,
-                            desktop: 24,
-                          ),
-                        ),
-                        tooltip: 'Close',
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
                       ),
+                      if (showCloseButton) ...[
+                        const SizedBox(width: 4),
+                        IconButton(
+                          onPressed: () {
+                            setState(() {
+                              _isSearchExpanded = false;
+                              _searchFocusNode.unfocus();
+                            });
+                          },
+                          icon: Icon(
+                            Icons.keyboard_arrow_right,
+                            color: context.colorScheme.primary,
+                            size: Responsive.getIconSize(
+                              context,
+                              mobile: 20,
+                              tablet: 22,
+                              desktop: 24,
+                            ),
+                          ),
+                          tooltip: 'Collapse',
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      ],
                     ],
                   )
                 : const SizedBox.shrink(),
           ),
         );
       },
+      ),
     );
   }
 
-  Widget _buildFilterAndSearchButtons() {
+  Widget _buildFilterAndSearchButtons({bool hideSearchButton = false}) {
     return LayoutBuilder(
       builder: (context, constraints) {
         if (constraints.maxWidth < 200) {
@@ -1214,18 +1283,18 @@ class _CalendarScreenState
 
         // Wrap in ListenableBuilder to rebuild when filters change
         if (_plannerItemDataSource == null) {
-          return _buildFilterButtonsRow();
+          return _buildFilterButtonsRow(hideSearchButton: hideSearchButton);
         }
 
         return ListenableBuilder(
           listenable: _plannerItemDataSource!.changeNotifier,
-          builder: (context, _) => _buildFilterButtonsRow(),
+          builder: (context, _) => _buildFilterButtonsRow(hideSearchButton: hideSearchButton),
         );
       },
     );
   }
 
-  Widget _buildFilterButtonsRow() {
+  Widget _buildFilterButtonsRow({bool hideSearchButton = false}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       mainAxisSize: MainAxisSize.min,
@@ -1267,33 +1336,35 @@ class _CalendarScreenState
             );
           },
         ),
-        const SizedBox(width: 8),
-        Builder(
-          builder: (context) {
-            final hasSearchQuery = _hasSearchQuery();
-            return IconButton.outlined(
-              onPressed: () {
-                setState(() {
-                  _isFilterExpanded = false;
-                  _isSearchExpanded = true;
-                  _searchFocusNode.requestFocus();
-                });
-              },
-              icon: const Icon(Icons.search),
-              style: IconButton.styleFrom(
-                backgroundColor: hasSearchQuery
-                    ? context.colorScheme.primary
-                    : null,
-                foregroundColor: hasSearchQuery
-                    ? context.colorScheme.onPrimary
-                    : null,
-                side: _isSearchExpanded
-                    ? BorderSide.none
-                    : BorderSide(color: context.colorScheme.primary),
-              ),
-            );
-          },
-        ),
+        if (!hideSearchButton) ...[
+          const SizedBox(width: 8),
+          Builder(
+            builder: (context) {
+              final hasSearchQuery = _hasSearchQuery();
+              return IconButton.outlined(
+                onPressed: () {
+                  setState(() {
+                    _isFilterExpanded = false;
+                    _isSearchExpanded = true;
+                    _searchFocusNode.requestFocus();
+                  });
+                },
+                icon: const Icon(Icons.search),
+                style: IconButton.styleFrom(
+                  backgroundColor: hasSearchQuery
+                      ? context.colorScheme.primary
+                      : null,
+                  foregroundColor: hasSearchQuery
+                      ? context.colorScheme.onPrimary
+                      : null,
+                  side: _isSearchExpanded
+                      ? BorderSide.none
+                      : BorderSide(color: context.colorScheme.primary),
+                ),
+              );
+            },
+          ),
+        ],
       ],
     );
   }
