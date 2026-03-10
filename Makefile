@@ -85,7 +85,7 @@ ifdef SENTRY_DIST
     DRIVE_ARGS += --dart-define=SENTRY_DIST=$(SENTRY_DIST)
 endif
 
-all: test
+all: build-docker run-docker
 
 env:
 	cp -n .env.example .env | true

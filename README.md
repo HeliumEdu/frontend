@@ -10,7 +10,7 @@ The `frontend` for [Helium](https://www.heliumedu.com/), including mobile and we
 
 ## Prerequisites
 
-- Dart & Flutter (3.11, 3.41)
+- Dart & Flutter
 - Android or iOS Emulator
 - ChromeDriver (for Integration Tests)
 
@@ -45,27 +45,17 @@ disabled.
 ### Platform
 
 The backend `platform` is served from a separate repository and can be found [here](https://github.com/HeliumEdu/platform#readme).
-If `platform` has been provisioned and is running locally and you would like to run the frontend against the local
+If `platform` has been provisioned and is running locally, and you would like to run the frontend against the local
 backend instead of production, run with `--dart-define PROJECT_API_HOST=http://localhost:8000`, or use `PROJECT_API_HOST=http://localhost:8000 make run`.
 
 Note that to reach `localhost` from within an Android emulator, use `10.0.2.2` instead.
 
-## Local Docker (web)
+## Local Docker (Web)
 
-The web app can be built and served locally in Docker as a static SPA via Apache on port `8080`.
+The web app can be built and served locally in Docker as a static SPA on port `8080`.
 
 ```sh
-# Build image (recommended when running with local platform API)
-PROJECT_API_HOST=http://localhost:8000 make build-docker
-
-# Start container
-make run-docker
+make
 ```
 
 The Docker image serves the built Flutter web assets on `http://localhost:8080`.
-
-To stop:
-
-```sh
-make stop-docker
-```
