@@ -201,6 +201,7 @@ build-docker-local: build-web
 build-docker:
 	mkdir -p $(DOCKER_CACHE_DIR)
 	docker buildx build \
+		--target frontend_web \
 		--build-arg FLUTTER_VERSION=$(FLUTTER_VERSION) \
 		--build-arg PROJECT_API_HOST=$(PROJECT_API_HOST) \
 		--build-arg SENTRY_RELEASE=$(SENTRY_RELEASE) \
