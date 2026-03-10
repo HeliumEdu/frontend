@@ -11,9 +11,9 @@ INTEGRATION_TARGET ?= integration_test/full_test.dart
 INTEGRATION_HEADLESS ?= true
 INTEGRATION_EMAIL_SUFFIX ?= integration-$(USER)
 ifeq ($(ENVIRONMENT),dev-local)
-    PROJECT_API_HOST := http://localhost:8000
+    PROJECT_API_HOST ?= http://localhost:8000
 else
-    PROJECT_API_HOST := https://api.$(ENVIRONMENT_PREFIX)heliumedu.com
+    PROJECT_API_HOST ?= https://api.$(ENVIRONMENT_PREFIX)heliumedu.com
 endif
 DRIVE_ARGS := --driver=test_driver/integration_test.dart -d web-server --web-port=8080 --browser-name=chrome --profile --dart-define=ENVIRONMENT=$(ENVIRONMENT) --dart-define=ANALYTICS_ENABLED=false
 DRIVE_ARGS += --web-browser-flag="--disable-web-security"
@@ -46,10 +46,13 @@ else
     RUN_ARGS += --web-port=8080
 endif
 
-ifdef SENTRY_RELEASE
-    WEB_ARGS := --dart-define=SENTRY_RELEASE=$(SENTRY_RELEASE)
+ifdef PROJECT_API_HOST
+    WEB_ARGS := --dart-define=PROJECT_API_HOST=$(PROJECT_API_HOST)
 else
     WEB_ARGS :=
+endif
+ifdef SENTRY_RELEASE
+    WEB_ARGS += --dart-define=SENTRY_RELEASE=$(SENTRY_RELEASE)
 endif
 ifdef SENTRY_DIST
     WEB_ARGS += --dart-define=SENTRY_DIST=$(SENTRY_DIST)
