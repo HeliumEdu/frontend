@@ -22,13 +22,13 @@ else
 endif
 
 RELEASE_ARGS :=
-ifdef SENTRY_RELEASE
-    RELEASE_ARGS += --dart-define=SENTRY_RELEASE=$(SENTRY_RELEASE)
+ifdef RELEASE_VERSION
+    RELEASE_ARGS += --dart-define=RELEASE_VERSION=$(RELEASE_VERSION)
 endif
 ifdef SENTRY_DIST
     RELEASE_ARGS += --dart-define=SENTRY_DIST=$(SENTRY_DIST)
 endif
-ifdef PROJECT_API_HOST
+ifndef RELEASE_VERSION
     RELEASE_ARGS += --dart-define=PROJECT_API_HOST=$(PROJECT_API_HOST)
 endif
 
@@ -72,8 +72,8 @@ endif
 ifdef INTEGRATION_EMAIL_SUFFIX
     DRIVE_ARGS += --dart-define=INTEGRATION_EMAIL_SUFFIX=$(INTEGRATION_EMAIL_SUFFIX)
 endif
-ifdef SENTRY_RELEASE
-    DRIVE_ARGS += --dart-define=SENTRY_RELEASE=$(SENTRY_RELEASE)
+ifdef RELEASE_VERSION
+    DRIVE_ARGS += --dart-define=RELEASE_VERSION=$(RELEASE_VERSION)
 endif
 ifdef SENTRY_DIST
     DRIVE_ARGS += --dart-define=SENTRY_DIST=$(SENTRY_DIST)
@@ -194,7 +194,7 @@ build-docker:
 	docker buildx build \
 		--target frontend_web \
 		--build-arg FLUTTER_VERSION=$(FLUTTER_VERSION) \
-		--build-arg SENTRY_RELEASE=$(SENTRY_RELEASE) \
+		--build-arg RELEASE_VERSION=$(RELEASE_VERSION) \
 		--build-arg SENTRY_DIST=$(SENTRY_DIST) \
 		--build-arg SENTRY_ENVIRONMENT=$(SENTRY_ENVIRONMENT) \
 		--cache-from=type=local,src=$(DOCKER_CACHE_DIR) \

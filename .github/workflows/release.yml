@@ -393,10 +393,10 @@ jobs:
           SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
           SIGNING_STORE_FILE: ${{ github.workspace }}/android/helium-release-key.jks
           SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
-          SENTRY_RELEASE: ${{ needs['bump-version'].outputs.version }}
+          RELEASE_VERSION: ${{ needs['bump-version'].outputs.version }}
         run: |
-          SENTRY_DIST="${SENTRY_RELEASE##*+}"
-          make build-android-release SENTRY_RELEASE="$SENTRY_RELEASE" SENTRY_DIST="$SENTRY_DIST"
+          SENTRY_DIST="${RELEASE_VERSION##*+}"
+          make build-android-release RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST"
 
       - name: Upload debug symbols to Sentry
         env:
@@ -505,10 +505,10 @@ jobs:
 
       - name: Build iOS release IPA
         env:
-          SENTRY_RELEASE: ${{ needs['bump-version'].outputs.version }}
+          RELEASE_VERSION: ${{ needs['bump-version'].outputs.version }}
         run: |
-          SENTRY_DIST="${SENTRY_RELEASE##*+}"
-          make build-ios-release SENTRY_RELEASE="$SENTRY_RELEASE" SENTRY_DIST="$SENTRY_DIST"
+          SENTRY_DIST="${RELEASE_VERSION##*+}"
+          make build-ios-release RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST"
 
       - name: Upload debug symbols to Sentry
         env:
@@ -565,22 +565,22 @@ jobs:
 
       - name: Build web release bundle
         env:
-          SENTRY_RELEASE: ${{ needs['bump-version'].outputs.version }}
+          RELEASE_VERSION: ${{ needs['bump-version'].outputs.version }}
         run: |
-          SENTRY_DIST="${SENTRY_RELEASE##*+}"
-          make build-web SENTRY_RELEASE="$SENTRY_RELEASE" SENTRY_DIST="$SENTRY_DIST"
+          SENTRY_DIST="${RELEASE_VERSION##*+}"
+          make build-web RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST"
 
       - name: Upload source maps to Sentry
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_RELEASE: ${{ needs['bump-version'].outputs.version }}
+          RELEASE_VERSION: ${{ needs['bump-version'].outputs.version }}
         run: |
           npm install -g @sentry/cli
-          SENTRY_DIST="${SENTRY_RELEASE##*+}"
+          SENTRY_DIST="${RELEASE_VERSION##*+}"
           test -f build/web/main.dart.js.map
-          SENTRY_PROPERTIES=sentry.properties sentry-cli releases new "$SENTRY_RELEASE"
+          SENTRY_PROPERTIES=sentry.properties sentry-cli releases new "$RELEASE_VERSION"
           SENTRY_PROPERTIES=sentry.properties sentry-cli sourcemaps upload \
-            --release "$SENTRY_RELEASE" \
+            --release "$RELEASE_VERSION" \
             --dist "$SENTRY_DIST" \
             --rewrite \
             --validate \
@@ -622,10 +622,10 @@ jobs:
 
       - name: Build and publish web containers
         env:
-          SENTRY_RELEASE: ${{ needs['bump-version'].outputs.version }}
+          RELEASE_VERSION: ${{ needs['bump-version'].outputs.version }}
         run: |
-          SENTRY_DIST="${SENTRY_RELEASE##*+}"
-          make publish SENTRY_RELEASE="$SENTRY_RELEASE" SENTRY_DIST="$SENTRY_DIST"
+          SENTRY_DIST="${RELEASE_VERSION##*+}"
+          make publish RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST"
 
   create-release-tag:
     name: Create Release Tag
