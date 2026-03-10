@@ -604,6 +604,104 @@ void main() {
         expect(SentryService.shouldFilterEvent(event), isTrue,
             reason: 'Emulator detection should be case insensitive');
       });
+
+      test('Filters Google Play Pre-Launch Robo test device by screen density',
+          () {
+        // All FRONTEND-28 events show screenDensity: 0.6625 on OnePlus8Pro
+        // Play test lab devices. No real production device has density < 1.0.
+        final event = SentryEvent(
+          contexts: Contexts(
+            device: SentryDevice(
+              name: 'OnePlus8Pro',
+              screenDensity: 0.6625,
+            ),
+            operatingSystem: SentryOperatingSystem(
+              build: 'RKQ1.201217.002 release-keys',
+            ),
+          ),
+          exceptions: [
+            SentryException(type: 'Exception', value: 'Some crash'),
+          ],
+        );
+        expect(SentryService.shouldFilterEvent(event), isTrue,
+            reason:
+                'Play Pre-Launch Robo test device (screenDensity < 1.0) should be filtered');
+      });
+
+      test('Filters any device with screen density below 1.0', () {
+        final event = SentryEvent(
+          contexts: Contexts(
+            device: SentryDevice(screenDensity: 0.75),
+          ),
+          exceptions: [
+            SentryException(type: 'Exception', value: 'Some crash'),
+          ],
+        );
+        expect(SentryService.shouldFilterEvent(event), isTrue,
+            reason: 'Any screenDensity < 1.0 should be filtered');
+      });
+
+      test('Does NOT filter real production device with normal screen density',
+          () {
+        final event = SentryEvent(
+          contexts: Contexts(
+            device: SentryDevice(
+              name: 'OnePlus8Pro',
+              screenDensity: 2.625,
+            ),
+            operatingSystem: SentryOperatingSystem(
+              build: 'RKQ1.201217.002 release-keys',
+            ),
+          ),
+          exceptions: [
+            SentryException(type: 'Exception', value: 'Some crash'),
+          ],
+        );
+        expect(SentryService.shouldFilterEvent(event), isFalse,
+            reason:
+                'Real OnePlus8Pro with normal screen density should NOT be filtered');
+      });
+
+      test('Does NOT filter events when device context is missing', () {
+        final event = SentryEvent(
+          contexts: Contexts(
+            operatingSystem: SentryOperatingSystem(
+              build: 'RKQ1.201217.002 release-keys',
+            ),
+          ),
+          exceptions: [
+            SentryException(type: 'Exception', value: 'Some crash'),
+          ],
+        );
+        expect(SentryService.shouldFilterEvent(event), isFalse,
+            reason: 'Missing device context should NOT trigger density filter');
+      });
+
+      test('Does NOT filter events when screenDensity is null', () {
+        final event = SentryEvent(
+          contexts: Contexts(
+            device: SentryDevice(name: 'Pixel 6'),
+          ),
+          exceptions: [
+            SentryException(type: 'Exception', value: 'Some crash'),
+          ],
+        );
+        expect(SentryService.shouldFilterEvent(event), isFalse,
+            reason: 'Null screenDensity should NOT trigger density filter');
+      });
+
+      test('Does NOT filter events with screen density exactly 1.0', () {
+        final event = SentryEvent(
+          contexts: Contexts(
+            device: SentryDevice(screenDensity: 1.0),
+          ),
+          exceptions: [
+            SentryException(type: 'Exception', value: 'Some crash'),
+          ],
+        );
+        expect(SentryService.shouldFilterEvent(event), isFalse,
+            reason: 'screenDensity == 1.0 should NOT be filtered');
+      });
     });
   });
 }
