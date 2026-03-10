@@ -240,14 +240,6 @@ class _CalendarScreenState
 
     _goToToday();
 
-    _searchFocusNode.addListener(() {
-      if (!_searchFocusNode.hasFocus && _isSearchExpanded && !Responsive.isDesktop(context)) {
-        setState(() {
-          _isSearchExpanded = false;
-          _searchFocusNode.unfocus();
-        });
-      }
-    });
   }
 
   @override
@@ -1133,7 +1125,7 @@ class _CalendarScreenState
                           });
                         },
                         icon: Icon(
-                          Icons.close,
+                          Icons.keyboard_arrow_right,
                           color: context.colorScheme.primary,
                           size: Responsive.getIconSize(
                             context,
@@ -1155,7 +1147,18 @@ class _CalendarScreenState
   }
 
   Widget _buildSearchField({bool showCloseButton = true}) {
-    return LayoutBuilder(
+    return TapRegion(
+      onTapOutside: showCloseButton
+          ? (_) {
+              if (_isSearchExpanded) {
+                setState(() {
+                  _isSearchExpanded = false;
+                  _searchFocusNode.unfocus();
+                });
+              }
+            }
+          : null,
+      child: LayoutBuilder(
       builder: (context, constraints) {
         // Only show content when width is large enough (during/after animation)
         final showContent = constraints.maxWidth > 200;
@@ -1188,6 +1191,7 @@ class _CalendarScreenState
                             controller: _searchController,
                             focusNode: _searchFocusNode,
                             onChanged: _onSearchTextFieldChanged,
+                            onTapOutside: (_) {},
                             style: AppStyles.formText(context),
                             decoration: InputDecoration(
                               hintText: 'Search ...',
@@ -1207,6 +1211,35 @@ class _CalendarScreenState
                           ),
                         ),
                       ),
+                      ValueListenableBuilder<TextEditingValue>(
+                        valueListenable: _searchController,
+                        builder: (context, value, _) {
+                          if (value.text.isEmpty) return const SizedBox.shrink();
+                          return IconButton(
+                            onPressed: () {
+                              _searchController.clear();
+                              _searchTypingTimer?.cancel();
+                              _plannerItemDataSource?.setSearchQuery('');
+                            },
+                            icon: Icon(
+                              Icons.close,
+                              color: context.colorScheme.primary,
+                              size: Responsive.getIconSize(
+                                context,
+                                mobile: 18,
+                                tablet: 18,
+                                desktop: 18,
+                              ),
+                            ),
+                            tooltip: 'Clear',
+                            style: IconButton.styleFrom(
+                              backgroundColor: context.colorScheme.surface,
+                            ),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          );
+                        },
+                      ),
                       if (showCloseButton) ...[
                         const SizedBox(width: 4),
                         IconButton(
@@ -1217,7 +1250,7 @@ class _CalendarScreenState
                             });
                           },
                           icon: Icon(
-                            Icons.close,
+                            Icons.keyboard_arrow_right,
                             color: context.colorScheme.primary,
                             size: Responsive.getIconSize(
                               context,
@@ -1226,7 +1259,7 @@ class _CalendarScreenState
                               desktop: 24,
                             ),
                           ),
-                          tooltip: 'Close',
+                          tooltip: 'Collapse',
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
                         ),
@@ -1237,6 +1270,7 @@ class _CalendarScreenState
           ),
         );
       },
+      ),
     );
   }
 
