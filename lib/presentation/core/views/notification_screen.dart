@@ -383,6 +383,7 @@ class _NotificationsScreenState
                                   : FontWeight.w600,
                             ),
                             maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           )
                         else
                           Flexible(

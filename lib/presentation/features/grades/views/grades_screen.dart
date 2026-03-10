@@ -854,6 +854,8 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                             ),
                       fontWeight: FontWeight.bold,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),

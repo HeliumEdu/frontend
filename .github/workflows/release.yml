@@ -121,10 +121,15 @@ jobs:
           cache: 'gradle'
           cache-dependency-path: android/*.gradle*
 
+      - name: Read Flutter version
+        id: flutter-version
+        run: echo "version=$(tr -d '[:space:]' < .flutter-version)" >> $GITHUB_OUTPUT
+
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
+          version: ${{ steps.flutter-version.outputs.version }}
           cache: true
 
       - name: Cache pub dependencies
@@ -161,10 +166,15 @@ jobs:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           ref: ${{ needs['create-release-branch'].outputs.branch_name }}
 
+      - name: Read Flutter version
+        id: flutter-version
+        run: echo "version=$(tr -d '[:space:]' < .flutter-version)" >> $GITHUB_OUTPUT
+
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
+          version: ${{ steps.flutter-version.outputs.version }}
           cache: true
 
       - name: Cache pub dependencies
@@ -223,10 +233,15 @@ jobs:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           ref: ${{ needs['refresh-lockfiles'].outputs.commit_sha }}
 
+      - name: Read Flutter version
+        id: flutter-version
+        run: echo "version=$(tr -d '[:space:]' < .flutter-version)" >> $GITHUB_OUTPUT
+
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
+          version: ${{ steps.flutter-version.outputs.version }}
           cache: true
 
       - name: Cache pub dependencies
@@ -346,10 +361,15 @@ jobs:
           cache: 'gradle'
           cache-dependency-path: android/*.gradle*
 
+      - name: Read Flutter version
+        id: flutter-version
+        run: echo "version=$(tr -d '[:space:]' < .flutter-version)" >> $GITHUB_OUTPUT
+
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
+          version: ${{ steps.flutter-version.outputs.version }}
           cache: true
 
       - name: Cache pub dependencies
@@ -410,10 +430,15 @@ jobs:
           sudo xcode-select -s /Applications/$LATEST_XCODE/Contents/Developer
           xcodebuild -version
 
+      - name: Read Flutter version
+        id: flutter-version
+        run: echo "version=$(tr -d '[:space:]' < .flutter-version)" >> $GITHUB_OUTPUT
+
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
+          version: ${{ steps.flutter-version.outputs.version }}
           cache: true
 
       - name: Cache pub dependencies
@@ -509,10 +534,15 @@ jobs:
         with:
           ref: ${{ needs['merge-release-branch'].outputs.merged_commit_sha }}
 
+      - name: Read Flutter version
+        id: flutter-version
+        run: echo "version=$(tr -d '[:space:]' < .flutter-version)" >> $GITHUB_OUTPUT
+
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
+          version: ${{ steps.flutter-version.outputs.version }}
           cache: true
 
       - name: Cache pub dependencies
