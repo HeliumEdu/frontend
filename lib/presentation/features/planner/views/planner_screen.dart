@@ -302,6 +302,13 @@ class _CalendarScreenState
             ),
             userSettings: settings,
           );
+
+          // If planner data was already fetched, populate the data source
+          if (_courses.isNotEmpty) {
+            _plannerItemDataSource!.courses = _courses;
+            _plannerItemDataSource!.categoriesMap = _categoriesMap;
+          }
+
           _plannerItemDataSource!.restoreFiltersIfEnabled();
           _todosController.itemsPerPage =
               _plannerItemDataSource!.todosItemsPerPage;
