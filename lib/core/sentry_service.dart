@@ -133,20 +133,30 @@ class SentryService {
 
   /// Check if the event is from an emulator or automated test device
   bool _isEmulatorOrTestDevice(SentryEvent event) {
+    // Android emulator and test device OS build signatures
     final os = event.contexts.operatingSystem;
-    if (os == null) return false;
+    if (os != null) {
+      final osBuild = os.build?.toLowerCase() ?? '';
+      if (osBuild.contains('sdk_phone') || // Android SDK emulator
+          osBuild.contains('sdk_gphone') || // Google Phone emulator
+          osBuild.contains('test-keys') || // Test signing keys (not production)
+          osBuild.contains('dev-keys') || // Dev signing keys (not production)
+          osBuild.contains('-userdebug')) {
+        // Debug builds (Play Console test lab)
+        return true;
+      }
+    }
 
-    final osBuild = os.build?.toLowerCase() ?? '';
-    if (osBuild.isEmpty) return false;
-
-    // Android emulator and test device signatures
-    if (osBuild.contains('sdk_phone') || // Android SDK emulator
-        osBuild.contains('sdk_gphone') || // Google Phone emulator
-        osBuild.contains('test-keys') || // Test signing keys (not production)
-        osBuild.contains('dev-keys') || // Dev signing keys (not production)
-        osBuild.contains('-userdebug')) {
-      // Debug builds (Play Console test lab)
-      return true;
+    // Screen density < 1.0 indicates Google Play Pre-Launch Robo test devices.
+    // No real production device ships with a screen density below 1.0; the
+    // Play test lab uses virtual small-screen devices (e.g. screenDensity ~0.66)
+    // that pass the OS build signature checks above.
+    final device = event.contexts.device;
+    if (device != null) {
+      final screenDensity = device.screenDensity;
+      if (screenDensity != null && screenDensity < 1.0) {
+        return true;
+      }
     }
 
     return false;
