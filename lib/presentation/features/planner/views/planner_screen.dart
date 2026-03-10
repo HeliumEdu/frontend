@@ -484,6 +484,7 @@ class _CalendarScreenState
   Widget _buildCalendarPage() {
     return Expanded(
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildCalendarHeader(),
 
@@ -776,7 +777,7 @@ class _CalendarScreenState
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: ShadowContainer(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: const EdgeInsets.only(left: 8, top: 4, bottom: 4),
         child: LayoutBuilder(
           builder: (context, constraints) {
             return SizedBox(
