@@ -4,18 +4,25 @@ import 'package:flutter/foundation.dart';
 
 import 'package:heliumapp/firebase_options.dart';
 
-const _environmentPrefix = String.fromEnvironment(
-  'ENVIRONMENT_PREFIX',
-  defaultValue: '',
-);
+const _overrideFirebaseAuthDomain = String.fromEnvironment('FIREBASE_AUTH_DOMAIN');
 
-const _defaultFirebaseAuthDomain = 'auth.${_environmentPrefix}heliumedu.com';
+/// Derives the Firebase auth domain from the current web hostname, or falls
+/// back to the compile-time override or the prod default for mobile.
+String get firebaseAuthDomain {
+  if (_overrideFirebaseAuthDomain.isNotEmpty) return _overrideFirebaseAuthDomain;
 
-/// Dart-define override that can be used when building/testing different envs.
-const firebaseAuthDomain = String.fromEnvironment(
-  'FIREBASE_AUTH_DOMAIN',
-  defaultValue: _defaultFirebaseAuthDomain,
-);
+  if (kIsWeb) {
+    final host = Uri.base.host;
+    if (host == 'localhost' || host == '127.0.0.1' || host.isEmpty) {
+      return 'auth.heliumedu.com';
+    }
+
+    // Derives auth domain from app host: app.{env.}heliumedu.com -> auth.{env.}heliumedu.com
+    return host.replaceFirst('app.', 'auth.');
+  }
+
+  return 'auth.heliumedu.com';
+}
 
 FirebaseOptions firebaseOptionsWithOverrides() {
   final base = DefaultFirebaseOptions.currentPlatform;

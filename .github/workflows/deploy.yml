@@ -258,6 +258,15 @@ jobs:
             --env "${{ inputs.environment }}" \
             --name "dist-${SENTRY_DIST}"
 
+      - name: Trigger frontend integration tests
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        run: |
+          gh workflow run integration.yml \
+            --repo HeliumEdu/frontend \
+            -f suite=full \
+            -f environment=${{ inputs.environment }}
+
       - name: Deployment summary
         env:
           ENVIRONMENT: ${{ inputs.environment }}
