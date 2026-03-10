@@ -46,7 +46,7 @@ disabled.
 
 The backend `platform` is served from a separate repository and can be found [here](https://github.com/HeliumEdu/platform#readme).
 If `platform` has been provisioned and is running locally, and you would like to run the frontend against the local
-backend instead of production, run with `--dart-define PROJECT_API_HOST=http://localhost:8000`, or use `PROJECT_API_HOST=http://localhost:8000 make run`.
+backend instead of production, run with `--dart-define PROJECT_API_HOST=http://localhost:8000`, or use `PROJECT_API_HOST=http://localhost:8000 make run-devserver`.
 
 Note that to reach `localhost` from within an Android emulator, use `10.0.2.2` instead.
 
