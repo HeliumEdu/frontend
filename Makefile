@@ -111,7 +111,11 @@ build-android: install
 	flutter build apk --debug
 
 build-android-release: install
+ifdef SENTRY_RELEASE
+	flutter build appbundle --release --obfuscate --split-debug-info=build/symbols --dart-define=SENTRY_RELEASE=$(SENTRY_RELEASE) --dart-define=SENTRY_DIST=$(SENTRY_DIST)
+else
 	flutter build appbundle --release --obfuscate --split-debug-info=build/symbols
+endif
 
 build-ios-dev: install
 	flutter build ios
@@ -120,7 +124,11 @@ build-ios: install
 	flutter build ios --debug --no-codesign
 
 build-ios-release: install
+ifdef SENTRY_RELEASE
+	flutter build ipa --release --export-options-plist=ios/ExportOptions.plist --obfuscate --split-debug-info=build/symbols --dart-define=SENTRY_RELEASE=$(SENTRY_RELEASE) --dart-define=SENTRY_DIST=$(SENTRY_DIST)
+else
 	flutter build ipa --release --export-options-plist=ios/ExportOptions.plist --obfuscate --split-debug-info=build/symbols
+endif
 
 build-web: install
 	flutter build web --release --source-maps --no-tree-shake-icons $(WEB_ARGS)

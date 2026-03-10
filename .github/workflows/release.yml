@@ -393,7 +393,10 @@ jobs:
           SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
           SIGNING_STORE_FILE: ${{ github.workspace }}/android/helium-release-key.jks
           SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
-        run: make build-android-release
+          SENTRY_RELEASE: ${{ needs['bump-version'].outputs.version }}
+        run: |
+          SENTRY_DIST="${SENTRY_RELEASE##*+}"
+          make build-android-release SENTRY_RELEASE="$SENTRY_RELEASE" SENTRY_DIST="$SENTRY_DIST"
 
       - name: Upload debug symbols to Sentry
         env:
@@ -501,7 +504,11 @@ jobs:
         run: flutter clean
 
       - name: Build iOS release IPA
-        run: make build-ios-release
+        env:
+          SENTRY_RELEASE: ${{ needs['bump-version'].outputs.version }}
+        run: |
+          SENTRY_DIST="${SENTRY_RELEASE##*+}"
+          make build-ios-release SENTRY_RELEASE="$SENTRY_RELEASE" SENTRY_DIST="$SENTRY_DIST"
 
       - name: Upload debug symbols to Sentry
         env:
