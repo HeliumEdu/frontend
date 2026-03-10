@@ -185,12 +185,15 @@ ifeq ($(USE_NGROK),true)
 endif
 	flutter run $(RUN_ARGS)
 
+SENTRY_ENVIRONMENT ?= $(ENVIRONMENT)
+
 build-docker:
 	mkdir -p $(DOCKER_CACHE_DIR)
 	docker buildx build \
 		--build-arg PROJECT_API_HOST=$(PROJECT_API_HOST) \
 		--build-arg SENTRY_RELEASE=$(SENTRY_RELEASE) \
 		--build-arg SENTRY_DIST=$(SENTRY_DIST) \
+		--build-arg SENTRY_ENVIRONMENT=$(SENTRY_ENVIRONMENT) \
 		--cache-from=type=local,src=$(DOCKER_CACHE_DIR) \
 		--cache-to=type=local,dest=$(DOCKER_CACHE_DIR),mode=max \
 		-t helium/frontend-web:$(PLATFORM)-latest \

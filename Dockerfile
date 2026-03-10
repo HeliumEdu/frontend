@@ -3,6 +3,7 @@ FROM ghcr.io/cirruslabs/flutter:stable AS build
 ARG PROJECT_API_HOST=
 ARG SENTRY_RELEASE=
 ARG SENTRY_DIST=
+ARG SENTRY_ENVIRONMENT=
 
 WORKDIR /app
 
@@ -16,6 +17,7 @@ RUN set -eux; \
     if [ -n "${PROJECT_API_HOST:-}" ]; then BUILD_ARGS="$BUILD_ARGS --dart-define=PROJECT_API_HOST=${PROJECT_API_HOST}"; fi; \
     if [ -n "${SENTRY_RELEASE:-}" ]; then BUILD_ARGS="$BUILD_ARGS --dart-define=SENTRY_RELEASE=${SENTRY_RELEASE}"; fi; \
     if [ -n "${SENTRY_DIST:-}" ]; then BUILD_ARGS="$BUILD_ARGS --dart-define=SENTRY_DIST=${SENTRY_DIST}"; fi; \
+    if [ -n "${SENTRY_ENVIRONMENT:-}" ]; then BUILD_ARGS="$BUILD_ARGS --dart-define=SENTRY_ENVIRONMENT=${SENTRY_ENVIRONMENT}"; fi; \
     flutter build web --release --source-maps $BUILD_ARGS; \
     dart bin/update_version.dart
 
