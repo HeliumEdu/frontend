@@ -186,10 +186,12 @@ endif
 	flutter run $(RUN_ARGS)
 
 SENTRY_ENVIRONMENT ?= $(ENVIRONMENT)
+FLUTTER_VERSION := $(shell tr -d '[:space:]' < .flutter-version)
 
 build-docker:
 	mkdir -p $(DOCKER_CACHE_DIR)
 	docker buildx build \
+		--build-arg FLUTTER_VERSION=$(FLUTTER_VERSION) \
 		--build-arg PROJECT_API_HOST=$(PROJECT_API_HOST) \
 		--build-arg SENTRY_RELEASE=$(SENTRY_RELEASE) \
 		--build-arg SENTRY_DIST=$(SENTRY_DIST) \

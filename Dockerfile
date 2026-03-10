@@ -1,4 +1,5 @@
-FROM ghcr.io/cirruslabs/flutter:stable AS build
+ARG FLUTTER_VERSION=stable
+FROM ghcr.io/cirruslabs/flutter:${FLUTTER_VERSION} AS build
 
 ARG PROJECT_API_HOST=
 ARG SENTRY_RELEASE=
