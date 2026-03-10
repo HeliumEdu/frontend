@@ -1,5 +1,27 @@
+FROM ubuntu:24.04 AS flutter-sdk
+
 ARG FLUTTER_VERSION=stable
-FROM ghcr.io/cirruslabs/flutter:${FLUTTER_VERSION} AS build
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        ca-certificates \
+        curl \
+        git \
+        unzip \
+        xz-utils && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+ENV FLUTTER_HOME=/opt/flutter
+ENV PATH="${FLUTTER_HOME}/bin:${PATH}"
+
+RUN git clone --branch ${FLUTTER_VERSION} --depth 1 https://github.com/flutter/flutter.git ${FLUTTER_HOME} && \
+    flutter precache --web && \
+    flutter config --no-analytics
+
+######################################################################
+
+FROM flutter-sdk AS build
 
 ARG PROJECT_API_HOST=
 ARG SENTRY_RELEASE=
@@ -26,25 +48,17 @@ RUN set -eux; \
 
 FROM ubuntu:24.04 AS frontend_web
 
-RUN apt-get --fix-missing update \
-    && apt-get install -y --no-install-recommends apache2 \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends nginx && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN a2enmod rewrite
-
-COPY container/apache-000-default.conf /etc/apache2/sites-enabled/000-default.conf
-COPY container/apache-ports.conf /etc/apache2/ports.conf
-COPY container/apache-mod-servername.conf /etc/apache2/mods-enabled/servername.conf
-
-ENV DEBIAN_FRONTEND=noninteractive
-ENV APACHE_RUN_USER=ubuntu
-ENV TZ=UTC
+COPY container/nginx.conf /etc/nginx/nginx.conf
 
 WORKDIR /app
 
-COPY --from=build --chown=ubuntu:ubuntu /app/build/web .
+COPY --from=build /app/build/web .
 
 EXPOSE 8080
 
-CMD ["apache2ctl", "-D", "FOREGROUND"]
+CMD ["nginx", "-g", "daemon off;"]
