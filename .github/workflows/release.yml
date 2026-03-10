@@ -123,7 +123,7 @@ jobs:
 
       - name: Read Flutter version
         id: flutter-version
-        run: echo "version=$(cat .flutter-version)" >> $GITHUB_OUTPUT
+        run: echo "version=$(tr -d '[:space:]' < .flutter-version)" >> $GITHUB_OUTPUT
 
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v4
@@ -168,7 +168,7 @@ jobs:
 
       - name: Read Flutter version
         id: flutter-version
-        run: echo "version=$(cat .flutter-version)" >> $GITHUB_OUTPUT
+        run: echo "version=$(tr -d '[:space:]' < .flutter-version)" >> $GITHUB_OUTPUT
 
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v4
@@ -235,7 +235,7 @@ jobs:
 
       - name: Read Flutter version
         id: flutter-version
-        run: echo "version=$(cat .flutter-version)" >> $GITHUB_OUTPUT
+        run: echo "version=$(tr -d '[:space:]' < .flutter-version)" >> $GITHUB_OUTPUT
 
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v4
@@ -363,7 +363,7 @@ jobs:
 
       - name: Read Flutter version
         id: flutter-version
-        run: echo "version=$(cat .flutter-version)" >> $GITHUB_OUTPUT
+        run: echo "version=$(tr -d '[:space:]' < .flutter-version)" >> $GITHUB_OUTPUT
 
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v4
@@ -432,7 +432,7 @@ jobs:
 
       - name: Read Flutter version
         id: flutter-version
-        run: echo "version=$(cat .flutter-version)" >> $GITHUB_OUTPUT
+        run: echo "version=$(tr -d '[:space:]' < .flutter-version)" >> $GITHUB_OUTPUT
 
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v4
@@ -536,7 +536,7 @@ jobs:
 
       - name: Read Flutter version
         id: flutter-version
-        run: echo "version=$(cat .flutter-version)" >> $GITHUB_OUTPUT
+        run: echo "version=$(tr -d '[:space:]' < .flutter-version)" >> $GITHUB_OUTPUT
 
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v4
