@@ -46,7 +46,7 @@ RUN set -eux; \
 
 ######################################################################
 
-FROM ubuntu:24.04 AS frontend_web
+FROM ubuntu:24.04 AS frontend_web_base
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends nginx && \
@@ -57,8 +57,20 @@ COPY container/nginx.conf /etc/nginx/nginx.conf
 
 WORKDIR /app
 
-COPY --from=build /app/build/web .
-
 EXPOSE 8080
 
 CMD ["nginx", "-g", "daemon off;"]
+
+######################################################################
+
+# Full build: uses Flutter SDK stages above
+FROM frontend_web_base AS frontend_web
+
+COPY --from=build /app/build/web .
+
+######################################################################
+
+# Local build: uses pre-built artifacts from host (skips Flutter SDK stages)
+FROM frontend_web_base AS frontend_web_local
+
+COPY build/web .

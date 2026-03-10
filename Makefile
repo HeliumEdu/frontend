@@ -1,4 +1,4 @@
-.PHONY: all env install clean clean-chrome icons build-android build-android-release build-ios-dev build-ios build-ios-release update-version firebase-config build-web test start-platform stop-platform test-integration test-integration-smoke coverage run-devserver build-docker run-docker stop-docker restart-docker publish
+.PHONY: all env install clean clean-chrome icons build-android build-android-release build-ios-dev build-ios build-ios-release update-version firebase-config build-web test start-platform stop-platform test-integration test-integration-smoke coverage run-devserver build-docker-local build-docker run-docker stop-docker restart-docker publish
 
 SHELL := /usr/bin/env bash
 TAG_VERSION ?= latest
@@ -85,7 +85,7 @@ ifdef SENTRY_DIST
     DRIVE_ARGS += --dart-define=SENTRY_DIST=$(SENTRY_DIST)
 endif
 
-all: build-docker run-docker
+all: build-docker-local run-docker
 
 env:
 	cp -n .env.example .env | true
@@ -187,6 +187,13 @@ endif
 
 SENTRY_ENVIRONMENT ?= $(ENVIRONMENT)
 FLUTTER_VERSION := $(shell tr -d '[:space:]' < .flutter-version)
+
+build-docker-local: build-web
+	docker build \
+		--target frontend_web_local \
+		-t helium/frontend-web:$(PLATFORM)-latest \
+		-t helium/frontend-web:$(PLATFORM)-$(DOCKER_TAG_VERSION) \
+		.
 
 build-docker:
 	mkdir -p $(DOCKER_CACHE_DIR)
