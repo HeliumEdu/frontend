@@ -10,62 +10,53 @@ ENVIRONMENT ?= dev-local
 INTEGRATION_TARGET ?= integration_test/full_test.dart
 INTEGRATION_HEADLESS ?= true
 INTEGRATION_EMAIL_SUFFIX ?= integration-$(USER)
+ifeq ($(ENVIRONMENT),prod)
+    ENVIRONMENT_PREFIX :=
+else
+    ENVIRONMENT_PREFIX := $(ENVIRONMENT).
+endif
 ifeq ($(ENVIRONMENT),dev-local)
     PROJECT_API_HOST ?= http://localhost:8000
 else
     PROJECT_API_HOST ?= https://api.$(ENVIRONMENT_PREFIX)heliumedu.com
 endif
-DRIVE_ARGS := --driver=test_driver/integration_test.dart -d web-server --web-port=8080 --browser-name=chrome --profile --dart-define=ENVIRONMENT=$(ENVIRONMENT) --dart-define=ANALYTICS_ENABLED=false
-DRIVE_ARGS += --web-browser-flag="--disable-web-security"
-DRIVE_ARGS += --web-browser-flag="--user-data-dir=/tmp/chrome_test_profile"
 
-ifeq ($(ENVIRONMENT), prod)
-    ENVIRONMENT_PREFIX :=
-else
-    ENVIRONMENT_PREFIX := $(ENVIRONMENT).
+RELEASE_ARGS :=
+ifdef SENTRY_RELEASE
+    RELEASE_ARGS += --dart-define=SENTRY_RELEASE=$(SENTRY_RELEASE)
+endif
+ifdef SENTRY_DIST
+    RELEASE_ARGS += --dart-define=SENTRY_DIST=$(SENTRY_DIST)
+endif
+ifdef PROJECT_API_HOST
+    RELEASE_ARGS += --dart-define=PROJECT_API_HOST=$(PROJECT_API_HOST)
 endif
 
 RUN_ARGS :=
-
 ifneq ($(HEADLESS),false)
     RUN_ARGS += -d web-server
 else
 	RUN_ARGS += --web-browser-flag=--disable-web-security
 endif
-
-ifdef PROJECT_API_HOST
-    RUN_ARGS += --dart-define=PROJECT_API_HOST=$(PROJECT_API_HOST)
-endif
+RUN_ARGS += --dart-define=PROJECT_API_HOST=$(PROJECT_API_HOST)
 ifdef LOG_LEVEL
     RUN_ARGS += --dart-define=LOG_LEVEL=$(LOG_LEVEL)
 endif
-
 ifdef PORT
     RUN_ARGS += --web-port=$(PORT)
 else
     RUN_ARGS += --web-port=8080
 endif
 
-ifdef PROJECT_API_HOST
-    WEB_ARGS := --dart-define=PROJECT_API_HOST=$(PROJECT_API_HOST)
-else
-    WEB_ARGS :=
-endif
-ifdef SENTRY_RELEASE
-    WEB_ARGS += --dart-define=SENTRY_RELEASE=$(SENTRY_RELEASE)
-endif
-ifdef SENTRY_DIST
-    WEB_ARGS += --dart-define=SENTRY_DIST=$(SENTRY_DIST)
-endif
-
+DRIVE_ARGS := --driver=test_driver/integration_test.dart -d web-server --web-port=8080 --browser-name=chrome --profile --dart-define=ENVIRONMENT=$(ENVIRONMENT) --dart-define=ANALYTICS_ENABLED=false
+DRIVE_ARGS += --web-browser-flag="--disable-web-security"
+DRIVE_ARGS += --web-browser-flag="--user-data-dir=/tmp/chrome_test_profile"
 ifeq ($(INTEGRATION_HEADLESS),true)
     DRIVE_ARGS += --headless
 else
     DRIVE_ARGS += --no-headless
 endif
-ifdef PROJECT_API_HOST
-    DRIVE_ARGS += --dart-define=PROJECT_API_HOST=$(PROJECT_API_HOST)
-endif
+DRIVE_ARGS += --dart-define=PROJECT_API_HOST=$(PROJECT_API_HOST)
 ifdef LOG_LEVEL
     DRIVE_ARGS += --dart-define=LOG_LEVEL=$(LOG_LEVEL)
 endif
@@ -111,11 +102,7 @@ build-android: install
 	flutter build apk --debug
 
 build-android-release: install
-ifdef SENTRY_RELEASE
-	flutter build appbundle --release --obfuscate --split-debug-info=build/symbols --dart-define=SENTRY_RELEASE=$(SENTRY_RELEASE) --dart-define=SENTRY_DIST=$(SENTRY_DIST)
-else
-	flutter build appbundle --release --obfuscate --split-debug-info=build/symbols
-endif
+	flutter build appbundle --release --obfuscate --split-debug-info=build/symbols $(RELEASE_ARGS)
 
 build-ios-dev: install
 	flutter build ios
@@ -124,14 +111,10 @@ build-ios: install
 	flutter build ios --debug --no-codesign
 
 build-ios-release: install
-ifdef SENTRY_RELEASE
-	flutter build ipa --release --export-options-plist=ios/ExportOptions.plist --obfuscate --split-debug-info=build/symbols --dart-define=SENTRY_RELEASE=$(SENTRY_RELEASE) --dart-define=SENTRY_DIST=$(SENTRY_DIST)
-else
-	flutter build ipa --release --export-options-plist=ios/ExportOptions.plist --obfuscate --split-debug-info=build/symbols
-endif
+	flutter build ipa --release --export-options-plist=ios/ExportOptions.plist --obfuscate --split-debug-info=build/symbols $(RELEASE_ARGS)
 
 build-web: install
-	flutter build web --release --source-maps --no-tree-shake-icons $(WEB_ARGS)
+	flutter build web --release --source-maps --no-tree-shake-icons $(RELEASE_ARGS)
 	cp -r web/.well-known build/web/
 	rm -f build/web/.last_build_id
 	$(MAKE) update-version
@@ -211,7 +194,6 @@ build-docker:
 	docker buildx build \
 		--target frontend_web \
 		--build-arg FLUTTER_VERSION=$(FLUTTER_VERSION) \
-		--build-arg PROJECT_API_HOST=$(PROJECT_API_HOST) \
 		--build-arg SENTRY_RELEASE=$(SENTRY_RELEASE) \
 		--build-arg SENTRY_DIST=$(SENTRY_DIST) \
 		--build-arg SENTRY_ENVIRONMENT=$(SENTRY_ENVIRONMENT) \

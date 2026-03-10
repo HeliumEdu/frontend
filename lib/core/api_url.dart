@@ -6,15 +6,22 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 class ApiUrl {
-  static const _environmentPrefix = String.fromEnvironment(
-    'ENVIRONMENT_PREFIX',
-    defaultValue: '',
-  );
+  static const _overrideHost = String.fromEnvironment('PROJECT_API_HOST');
 
-  static const baseUrl = String.fromEnvironment(
-    'PROJECT_API_HOST',
-    defaultValue: 'https://api.${_environmentPrefix}heliumedu.com',
-  );
+  static String get baseUrl {
+    if (_overrideHost.isNotEmpty) return _overrideHost;
+
+    final host = Uri.base.host;
+    if (host == 'localhost' || host == '127.0.0.1') {
+      return 'http://localhost:8000';
+    }
+    if (host.isEmpty) {
+      return 'https://api.heliumedu.com';
+    }
+
+    // Derives api host from app host: app.{env.}heliumedu.com -> api.{env.}heliumedu.com
+    return 'https://${host.replaceFirst('app.', 'api.')}';
+  }
 
   // Unauthenticated URLs
   static const authUserRegisterUrl = '/auth/user/register/';
