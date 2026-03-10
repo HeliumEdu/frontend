@@ -45,6 +45,7 @@ jobs:
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v4
         with:
+          channel: stable
           version: ${{ steps.flutter-version.outputs.version }}
           cache: true
 
@@ -104,6 +105,7 @@ jobs:
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v4
         with:
+          channel: stable
           version: ${{ steps.flutter-version.outputs.version }}
           cache: true
 
@@ -139,6 +141,7 @@ jobs:
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v4
         with:
+          channel: stable
           version: ${{ steps.flutter-version.outputs.version }}
           cache: true
 
@@ -168,6 +171,7 @@ jobs:
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v4
         with:
+          channel: stable
           version: ${{ steps.flutter-version.outputs.version }}
           cache: true
 
