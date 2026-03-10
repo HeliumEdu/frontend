@@ -112,9 +112,9 @@ build-android: install
 
 build-android-release: install
 ifdef SENTRY_RELEASE
-	flutter build appbundle --release --obfuscate --split-debug-info=build/symbols --dart-define=SENTRY_RELEASE=$(SENTRY_RELEASE) --dart-define=SENTRY_DIST=$(SENTRY_DIST)
+	flutter build appbundle --release --obfuscate --split-debug-info=build/symbols --dart-define=PROJECT_API_HOST=$(PROJECT_API_HOST) --dart-define=SENTRY_RELEASE=$(SENTRY_RELEASE) --dart-define=SENTRY_DIST=$(SENTRY_DIST)
 else
-	flutter build appbundle --release --obfuscate --split-debug-info=build/symbols
+	flutter build appbundle --release --obfuscate --split-debug-info=build/symbols --dart-define=PROJECT_API_HOST=$(PROJECT_API_HOST)
 endif
 
 build-ios-dev: install
@@ -125,9 +125,9 @@ build-ios: install
 
 build-ios-release: install
 ifdef SENTRY_RELEASE
-	flutter build ipa --release --export-options-plist=ios/ExportOptions.plist --obfuscate --split-debug-info=build/symbols --dart-define=SENTRY_RELEASE=$(SENTRY_RELEASE) --dart-define=SENTRY_DIST=$(SENTRY_DIST)
+	flutter build ipa --release --export-options-plist=ios/ExportOptions.plist --obfuscate --split-debug-info=build/symbols --dart-define=PROJECT_API_HOST=$(PROJECT_API_HOST) --dart-define=SENTRY_RELEASE=$(SENTRY_RELEASE) --dart-define=SENTRY_DIST=$(SENTRY_DIST)
 else
-	flutter build ipa --release --export-options-plist=ios/ExportOptions.plist --obfuscate --split-debug-info=build/symbols
+	flutter build ipa --release --export-options-plist=ios/ExportOptions.plist --obfuscate --split-debug-info=build/symbols --dart-define=PROJECT_API_HOST=$(PROJECT_API_HOST)
 endif
 
 build-web: install
