@@ -320,6 +320,7 @@ class _ImportExportScreenState extends BasePageScreenState<ImportExportScreen> {
             context,
             'Imported: $counts',
             seconds: counts == 'nothing' ? 2 : 7,
+            useRootMessenger: true,
           );
           _closeAndNavigateToClasses();
         }
@@ -460,7 +461,11 @@ class _ImportExportScreenState extends BasePageScreenState<ImportExportScreen> {
         if (mounted) {
           context.read<AuthBloc>().add(FetchProfileEvent());
           context.read<AuthBloc>().add(RefreshScheduleDataEvent());
-          showSnackBar(context, 'Example schedule imported');
+          showSnackBar(
+            context,
+            'Example schedule imported',
+            useRootMessenger: true,
+          );
           _closeAndNavigateToClasses();
         }
       } else {
