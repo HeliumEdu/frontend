@@ -5,11 +5,9 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'dart:async';
-
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
-import 'package:sentry/sentry.dart' show EventProcessor, Hint;
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 final _log = Logger('core');
@@ -20,6 +18,8 @@ class SentryService {
   factory SentryService() => _instance;
 
   SentryService._internal();
+
+  static const _channel = MethodChannel('com.heliumedu.heliumapp/sentry');
 
   /// Exposed for testing - returns true if the event should be filtered (dropped)
   @visibleForTesting
@@ -81,13 +81,27 @@ class SentryService {
       ];
 
       options.beforeSend = _beforeSend;
-
-      // Add event processor as an additional filter layer. This may catch
-      // events that bypass beforeSend (e.g., native crashes from NDK).
-      options.addEventProcessor(_TestDeviceFilterProcessor(_instance));
     });
 
+    // Register native Android EventProcessors. Native crashes (SIGABRT, etc.)
+    // bypass Dart callbacks, so we need native-level filters to catch them.
+    await _registerNativeFilters();
+
     _log.info('Sentry initialized successfully');
+  }
+
+  Future<void> _registerNativeFilters() async {
+    try {
+      // Filter test farm devices (e.g., OnePlus 8 Pro with impossible specs)
+      await _channel.invokeMethod<bool>('registerTestFarmFilter');
+      _log.fine('Registered native filters');
+    } on MissingPluginException {
+      // Expected on non-Android platforms (iOS, web)
+      _log.fine('Native filters not available on this platform');
+    } catch (e) {
+      // Don't fail init if filter registration fails
+      _log.warning('Failed to register native filters: $e');
+    }
   }
 
   SentryEvent? _beforeSend(SentryEvent event, Hint? hint) {
@@ -151,60 +165,6 @@ class SentryService {
           osBuild.contains('-userdebug')) {
         // Debug builds (Play Console test lab)
         return true;
-      }
-
-    }
-
-    if (_isFakeDevice(event)) {
-      return true;
-    }
-
-    return false;
-  }
-
-  /// Known flagship devices and their minimum real-world specs.
-  /// If a device reports one of these models, but with lower specs, then
-  /// it's emulated from Play's test farm.
-  ///
-  /// Only add devices here that have been observed in Sentry from Play's test
-  /// farm AND that bypass the OS build signature checks (sdk_phone, userdebug,
-  /// dev-keys, etc.). Pixel devices are caught by OS build checks, so they
-  /// don't need to be listed here.
-  static const _flagshipMinSpecs = <String, ({int minCores, int minMemoryGB})>{
-    // OnePlus 8 Pro: Snapdragon 865 (8 cores), 8-12GB RAM
-    // https://en.wikipedia.org/wiki/OnePlus_8_Pro
-    'oneplus8pro': (minCores: 8, minMemoryGB: 8),
-  };
-
-  /// Check if device claims to be a flagship but has impossible specs
-  bool _isFakeDevice(SentryEvent event) {
-    final device = event.contexts.device;
-    if (device == null) return false;
-
-    // Get device model, normalize to lowercase for matching
-    final model = (device.model ?? device.family ?? '').toLowerCase();
-    if (model.isEmpty) return false;
-
-    // Check against known flagships
-    for (final entry in _flagshipMinSpecs.entries) {
-      if (model.contains(entry.key)) {
-        final minSpecs = entry.value;
-
-        // Check processor count (if available)
-        final processorCount = device.processorCount;
-        if (processorCount != null && processorCount < minSpecs.minCores) {
-          return true;
-        }
-
-        // Check memory (if available) - convert bytes to GB
-        final memorySize = device.memorySize;
-        if (memorySize != null) {
-          final memoryGB = memorySize / (1024 * 1024 * 1024);
-          if (memoryGB < minSpecs.minMemoryGB - 1) {
-            // Allow 1GB tolerance for OS overhead
-            return true;
-          }
-        }
       }
     }
 
@@ -309,22 +269,5 @@ class SentryService {
         text.contains('dio') ||
         text.contains('unauthorized') ||
         text.contains('forbidden');
-  }
-}
-
-/// Event processor that filters test device events earlier in the pipeline.
-/// This runs before beforeSend and may catch native events that bypass it.
-class _TestDeviceFilterProcessor implements EventProcessor {
-  final SentryService _service;
-
-  _TestDeviceFilterProcessor(this._service);
-
-  @override
-  FutureOr<SentryEvent?> apply(SentryEvent event, Hint hint) {
-    if (_service._shouldFilter(event)) {
-      Logger('core').info('Filtered event via event processor (test device)');
-      return null;
-    }
-    return event;
   }
 }
