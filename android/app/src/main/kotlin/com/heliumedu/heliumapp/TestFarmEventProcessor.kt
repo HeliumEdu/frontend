@@ -7,6 +7,7 @@
 
 package com.heliumedu.heliumapp
 
+import android.util.Log
 import io.sentry.EventProcessor
 import io.sentry.Hint
 import io.sentry.SentryEvent
@@ -28,33 +29,51 @@ import io.sentry.SentryEvent
  */
 class TestFarmEventProcessor : EventProcessor {
 
+    override fun process(event: SentryEvent, hint: Hint): SentryEvent? {
+        val shouldFilter = isTestFarmDevice(event)
+        if (shouldFilter) {
+            Log.i(TAG, "Filtering test farm event")
+            return null
+        }
+        return event
+    }
+
+    private fun isTestFarmDevice(event: SentryEvent): Boolean {
+        val device = event.contexts.device
+        if (device == null) {
+            Log.d(TAG, "Device context is null")
+            return false
+        }
+
+        val model = device.model
+        val processorCount = device.processorCount
+        val memorySize = device.memorySize
+
+        Log.d(TAG, "Event device: model=$model, cores=$processorCount, ram=$memorySize")
+
+        if (model == null || processorCount == null || memorySize == null) {
+            Log.d(TAG, "Missing device fields")
+            return false
+        }
+
+        if (model == ONEPLUS_8_PRO_MODEL_ID || model == ONEPLUS_8_PRO_MODEL_NAME) {
+            if (processorCount < ONEPLUS_8_PRO_MIN_CORES ||
+                memorySize < ONEPLUS_8_PRO_MIN_RAM_BYTES) {
+                Log.i(TAG, "Detected test farm OnePlus8Pro: cores=$processorCount, ram=$memorySize")
+                return true
+            }
+        }
+
+        return false
+    }
+
     companion object {
+        private const val TAG = "TestFarmEventProcessor"
         // OnePlus 8 Pro real specs
         // Model can be reported as "IN2025" (hardware ID) or "OnePlus8Pro" (marketing name)
         private const val ONEPLUS_8_PRO_MODEL_ID = "IN2025"
         private const val ONEPLUS_8_PRO_MODEL_NAME = "OnePlus8Pro"
         private const val ONEPLUS_8_PRO_MIN_CORES = 8
         private const val ONEPLUS_8_PRO_MIN_RAM_BYTES = 7L * 1024 * 1024 * 1024 // 7 GB
-    }
-
-    override fun process(event: SentryEvent, hint: Hint): SentryEvent? {
-        return if (isTestFarmDevice(event)) null else event
-    }
-
-    private fun isTestFarmDevice(event: SentryEvent): Boolean {
-        val device = event.contexts.device ?: return false
-
-        val model = device.model ?: return false
-        val processorCount = device.processorCount ?: return false
-        val memorySize = device.memorySize ?: return false
-
-        if (model == ONEPLUS_8_PRO_MODEL_ID || model == ONEPLUS_8_PRO_MODEL_NAME) {
-            if (processorCount < ONEPLUS_8_PRO_MIN_CORES ||
-                memorySize < ONEPLUS_8_PRO_MIN_RAM_BYTES) {
-                return true
-            }
-        }
-
-        return false
     }
 }
