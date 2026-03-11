@@ -165,9 +165,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         oldPassword: event.oldPassword,
       );
 
-      await authRepository.changeEmail(request);
+      final user = await authRepository.changeEmail(request);
 
-      emit(AuthEmailChangeRequested(newEmail: event.newEmail));
+      // If emailChanging is null/empty, the change was cancelled (user submitted current email)
+      if (user.emailChanging == null || user.emailChanging!.isEmpty) {
+        emit(AuthEmailChangeCancelled());
+      } else {
+        emit(AuthEmailChangeRequested(newEmail: event.newEmail));
+      }
     } on HeliumException catch (e) {
       emit(AuthError(
         message: e.displayMessage,

@@ -60,6 +60,8 @@ class AuthEmailChangeRequested extends AuthState {
   AuthEmailChangeRequested({required this.newEmail});
 }
 
+class AuthEmailChangeCancelled extends AuthState {}
+
 class AuthPasswordReset extends AuthState {}
 
 class AuthAuthenticated extends AuthState {}

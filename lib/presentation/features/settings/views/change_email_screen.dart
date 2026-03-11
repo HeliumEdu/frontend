@@ -104,6 +104,20 @@ class _ChangeEmailScreenState extends BasePageScreenState<ChangeEmailScreen> {
             } else {
               context.pop();
             }
+          } else if (state is AuthEmailChangeCancelled) {
+            _formController.clearForm();
+
+            showSnackBar(
+              context,
+              'The pending email change was cancelled',
+              useRootMessenger: true,
+            );
+
+            if (DialogModeProvider.isDialogMode(context)) {
+              Navigator.of(context).pop();
+            } else {
+              context.pop();
+            }
           }
 
           if (state is! AuthLoading) {
@@ -181,8 +195,10 @@ class _ChangeEmailScreenState extends BasePageScreenState<ChangeEmailScreen> {
       return basicValidation;
     }
 
-    if (_currentEmail != null &&
-        value?.toLowerCase().trim() == _currentEmail!.toLowerCase()) {
+    // Allow submitting current email only if there's a pending change (to cancel it)
+    final isCurrentEmail = _currentEmail != null &&
+        value?.toLowerCase().trim() == _currentEmail!.toLowerCase();
+    if (isCurrentEmail && (_emailChanging == null || _emailChanging!.isEmpty)) {
       return 'New email must be different from your current email';
     }
 
