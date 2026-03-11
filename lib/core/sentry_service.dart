@@ -138,7 +138,9 @@ class SentryService {
   }
 
   bool _shouldFilter(SentryEvent event) {
-    // Filter events from emulators/automated testing (e.g., Play Console pre-launch)
+    // Note: Emulator/test farm detection is now handled natively on Android
+    // (see HeliumApplication.kt). Sentry won't even initialize on those devices.
+    // The checks below handle iOS/web emulators and provide defense-in-depth.
     if (_isEmulatorOrTestDevice(event)) {
       _log.info('Filtered event from Sentry (emulator/test device)');
       return true;
