@@ -27,7 +27,17 @@ Future<bool> downloadFilePlatform(String url, String filename) async {
       return false;
     }
 
-    final jsUint8Array = response.data!.toJS;
+    return downloadBytesPlatform(response.data!, filename);
+  } catch (e) {
+    _log.severe('Web download failed', e);
+    return false;
+  }
+}
+
+/// Downloads bytes directly to a file on web (creates blob and triggers download).
+Future<bool> downloadBytesPlatform(Uint8List bytes, String filename) async {
+  try {
+    final jsUint8Array = bytes.toJS;
     final blob = web.Blob(
       [jsUint8Array].toJS,
       web.BlobPropertyBag(type: 'application/octet-stream'),
@@ -49,7 +59,7 @@ Future<bool> downloadFilePlatform(String url, String filename) async {
     _log.info('Web download triggered for: $filename');
     return true;
   } catch (e) {
-    _log.severe('Web download failed', e);
+    _log.severe('Web bytes download failed', e);
     return false;
   }
 }

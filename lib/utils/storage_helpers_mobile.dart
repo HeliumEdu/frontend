@@ -6,6 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'dart:io';
+import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:device_info_plus/device_info_plus.dart';
@@ -149,6 +150,83 @@ Future<bool> _downloadFileIOS(String url, String filename) async {
     return true;
   } catch (e) {
     _log.severe('iOS download failed', e);
+    return false;
+  }
+}
+
+/// Downloads bytes directly to a file on mobile.
+/// - Android: Saves to Downloads folder
+/// - iOS: Saves to app Documents and opens share sheet
+Future<bool> downloadBytesPlatform(Uint8List bytes, String filename) async {
+  try {
+    if (Platform.isAndroid) {
+      return await _downloadBytesAndroid(bytes, filename);
+    } else if (Platform.isIOS) {
+      return await _downloadBytesIOS(bytes, filename);
+    } else {
+      _log.warning('Unsupported platform for bytes download');
+      return false;
+    }
+  } catch (e) {
+    _log.severe('Mobile bytes download failed', e);
+    return false;
+  }
+}
+
+Future<bool> _downloadBytesAndroid(Uint8List bytes, String filename) async {
+  try {
+    final DeviceInfoPlugin plugin = DeviceInfoPlugin();
+    final AndroidDeviceInfo androidInfo = await plugin.androidInfo;
+    final int sdkVersion = androidInfo.version.sdkInt;
+
+    // Request permission for older Android versions
+    if (sdkVersion < 29) {
+      final status = await Permission.storage.request();
+      if (!status.isGranted) {
+        _log.warning('Storage permission denied for downloads');
+        return false;
+      }
+    }
+
+    final downloadsDir = Directory('/storage/emulated/0/Download');
+    if (!await downloadsDir.exists()) {
+      await downloadsDir.create(recursive: true);
+    }
+
+    final filePath = '${downloadsDir.path}/$filename';
+    final file = File(filePath);
+    await file.writeAsBytes(bytes);
+
+    _log.info('Bytes saved to: $filePath');
+    return await file.exists();
+  } catch (e) {
+    _log.severe('Android bytes download failed', e);
+    return false;
+  }
+}
+
+Future<bool> _downloadBytesIOS(Uint8List bytes, String filename) async {
+  try {
+    final Directory appDocDir = await getApplicationDocumentsDirectory();
+    final filePath = '${appDocDir.path}/$filename';
+    final file = File(filePath);
+    await file.writeAsBytes(bytes);
+
+    _log.info('Bytes saved to: $filePath');
+
+    // On iOS, open share sheet so user can save to Files or share
+    final result = await SharePlus.instance.share(
+      ShareParams(
+        files: [XFile(filePath)],
+        subject: 'Save $filename',
+        sharePositionOrigin: const Rect.fromLTWH(0, 0, 100, 100),
+      ),
+    );
+
+    _log.info('iOS share sheet result: ${result.status}');
+    return true;
+  } catch (e) {
+    _log.severe('iOS bytes download failed', e);
     return false;
   }
 }
