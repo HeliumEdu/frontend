@@ -31,7 +31,9 @@ class ExternalCalendarBloc
   ) async {
     emit(ExternalCalendarsLoading(origin: event.origin));
     try {
-      final calendars = await externalCalendarRepository.getExternalCalendars();
+      final calendars = await externalCalendarRepository.getExternalCalendars(
+        forceRefresh: event.forceRefresh,
+      );
       emit(
         ExternalCalendarsFetched(
           origin: event.origin,

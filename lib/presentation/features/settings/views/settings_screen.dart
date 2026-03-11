@@ -581,74 +581,6 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
             ),
           ),
 
-          const Divider(height: 1, indent: 68),
-
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () => _navigateToSubSettings(
-                context,
-                (ctx) => showImportExport(ctx),
-              ),
-              borderRadius: BorderRadius.circular(16),
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: context.colorScheme.primary.withValues(
-                          alpha: 0.1,
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        Icons.swap_horiz,
-                        color: context.colorScheme.primary,
-                        size: Responsive.getIconSize(
-                          context,
-                          mobile: 22,
-                          tablet: 24,
-                          desktop: 26,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Import/Export',
-                            style: AppStyles.menuItem(context),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Backup and restore your data',
-                            style: AppStyles.menuItemHint(context),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      color: context.colorScheme.onSurface.withValues(
-                        alpha: 0.3,
-                      ),
-                      size: Responsive.getIconSize(
-                        context,
-                        mobile: 16,
-                        tablet: 18,
-                        desktop: 20,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
           if (!_hasOAuthProviders) const Divider(height: 1, indent: 68),
 
           if (!_hasOAuthProviders)
@@ -786,6 +718,74 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                 ),
               ),
             ),
+
+          const Divider(height: 1, indent: 68),
+
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => _navigateToSubSettings(
+                context,
+                (ctx) => showImportExport(ctx),
+              ),
+              borderRadius: BorderRadius.circular(16),
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: context.colorScheme.primary.withValues(
+                          alpha: 0.1,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.swap_horiz,
+                        color: context.colorScheme.primary,
+                        size: Responsive.getIconSize(
+                          context,
+                          mobile: 22,
+                          tablet: 24,
+                          desktop: 26,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Import/Export',
+                            style: AppStyles.menuItem(context),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Backup and restore your data',
+                            style: AppStyles.menuItemHint(context),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      Icons.arrow_forward_ios,
+                      color: context.colorScheme.onSurface.withValues(
+                        alpha: 0.3,
+                      ),
+                      size: Responsive.getIconSize(
+                        context,
+                        mobile: 16,
+                        tablet: 18,
+                        desktop: 20,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
 
           const Divider(height: 1, indent: 68),
 

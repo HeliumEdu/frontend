@@ -50,6 +50,7 @@ import 'package:heliumapp/presentation/features/courses/bloc/category_bloc.dart'
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_state.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_state.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planner_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planner_event.dart';
@@ -394,7 +395,7 @@ class _CalendarScreenState
         },
       ),
       BlocListener<ExternalCalendarBloc, ExternalCalendarState>(
-        listener: (context, state) {
+        listener: (context, state) async {
           if (_plannerItemDataSource == null) return;
 
           if (state is ExternalCalendarCreated ||
@@ -409,11 +410,22 @@ class _CalendarScreenState
                 ? _visibleDates.last
                 : null;
 
-            _plannerItemDataSource!.refreshCalendarSources(
+            await _plannerItemDataSource!.refreshCalendarSources(
               visibleStart: visibleStart,
               visibleEnd: visibleEnd,
             );
-            unawaited(_refreshExternalCalendarsMap());
+            await _refreshExternalCalendarsMap();
+
+            // Refresh the external calendars list in case the events endpoint
+            // disabled any calendars (external_calendars_screen will update if open)
+            if (context.mounted) {
+              context.read<ExternalCalendarBloc>().add(
+                FetchExternalCalendarsEvent(
+                  origin: EventOrigin.screen,
+                  forceRefresh: true,
+                ),
+              );
+            }
           }
         },
       ),
