@@ -10,27 +10,20 @@ package com.heliumedu.heliumapp
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
-import io.sentry.Sentry
 
 class MainActivity : FlutterActivity() {
-    private val CHANNEL = "com.heliumedu.heliumapp/sentry"
+    private val CHANNEL = "com.heliumedu.heliumapp/native"
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
-                "registerTestFarmFilter" -> {
-                    registerTestFarmEventProcessor()
-                    result.success(true)
+                "isTestFarmDevice" -> {
+                    result.success(HeliumApplication.isTestFarmDevice)
                 }
                 else -> result.notImplemented()
             }
         }
-    }
-
-    private fun registerTestFarmEventProcessor() {
-        val options = Sentry.getCurrentHub().options
-        options.addEventProcessor(TestFarmEventProcessor())
     }
 }
