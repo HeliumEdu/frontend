@@ -893,6 +893,27 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
         return;
       }
 
+      // Warn if homework dates fall outside the course's date range
+      if (!_isEvent && _formController.selectedCourse != null) {
+        final selectedCourse = _courses.firstWhere(
+          (c) => c.id == _formController.selectedCourse,
+        );
+
+        final courseStart = HeliumDateTime.dateOnly(selectedCourse.startDate);
+        final courseEnd = HeliumDateTime.dateOnly(selectedCourse.endDate);
+        final homeworkStart = HeliumDateTime.dateOnly(_formController.startDate);
+        final homeworkEnd = HeliumDateTime.dateOnly(_formController.endDate);
+
+        if (homeworkStart.isBefore(courseStart) ||
+            homeworkEnd.isAfter(courseEnd)) {
+          SnackBarHelper.show(
+            context,
+            "This assignment won't appear in the Todos view, since it is now outside the class's date range",
+            seconds: 5,
+          );
+        }
+      }
+
       // Notify parent that action is starting (validation passed)
       widget.onActionStarted?.call();
 
