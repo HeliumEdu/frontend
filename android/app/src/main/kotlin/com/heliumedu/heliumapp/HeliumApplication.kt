@@ -54,7 +54,6 @@ class HeliumApplication : Application() {
             osBuild.contains("test-keys") ||
             osBuild.contains("dev-keys") ||
             osBuild.contains("-userdebug") ||
-            fingerprint.contains("generic") ||
             fingerprint.contains("sdk_gphone") ||
             fingerprint.contains("emulator") ||
             fingerprint.contains("test-keys")) {
