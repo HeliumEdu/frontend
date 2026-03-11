@@ -8,9 +8,9 @@
 package com.heliumedu.heliumapp
 
 import android.app.ActivityManager
+import android.app.Application
 import android.content.Context
 import android.os.Build
-import io.flutter.app.FlutterApplication
 
 /**
  * Custom Application class that detects Google Play pre-launch test farm devices.
@@ -19,7 +19,7 @@ import io.flutter.app.FlutterApplication
  * so we detect test farm devices early and expose a flag to Dart. When Dart
  * sees the flag, it skips Sentry initialization entirely.
  */
-class HeliumApplication : FlutterApplication() {
+class HeliumApplication : Application() {
 
     companion object {
         /**
