@@ -5,8 +5,11 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
+import 'package:sentry/sentry.dart' show EventProcessor, Hint;
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 final _log = Logger('core');
@@ -78,6 +81,10 @@ class SentryService {
       ];
 
       options.beforeSend = _beforeSend;
+
+      // Add event processor as an additional filter layer. This may catch
+      // events that bypass beforeSend (e.g., native crashes from NDK).
+      options.addEventProcessor(_TestDeviceFilterProcessor(_instance));
     });
 
     _log.info('Sentry initialized successfully');
@@ -302,5 +309,22 @@ class SentryService {
         text.contains('dio') ||
         text.contains('unauthorized') ||
         text.contains('forbidden');
+  }
+}
+
+/// Event processor that filters test device events earlier in the pipeline.
+/// This runs before beforeSend and may catch native events that bypass it.
+class _TestDeviceFilterProcessor implements EventProcessor {
+  final SentryService _service;
+
+  _TestDeviceFilterProcessor(this._service);
+
+  @override
+  FutureOr<SentryEvent?> apply(SentryEvent event, Hint hint) {
+    if (_service._shouldFilter(event)) {
+      Logger('core').info('Filtered event via event processor (test device)');
+      return null;
+    }
+    return event;
   }
 }
