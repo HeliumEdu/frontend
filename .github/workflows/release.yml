@@ -219,7 +219,7 @@ jobs:
   bump-version:
     name: Bump Version
     needs: [create-release-branch, test, integration-test, refresh-lockfiles]
-    if: always() && needs.test.result == 'success' && needs['refresh-lockfiles'].result == 'success' && (needs['integration-test'].result == 'success' || needs['integration-test'].result == 'skipped')
+    if: "!cancelled() && needs.test.result == 'success' && needs['refresh-lockfiles'].result == 'success' && (needs['integration-test'].result == 'success' || needs['integration-test'].result == 'skipped')"
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.get_version.outputs.version }}
@@ -295,7 +295,7 @@ jobs:
   merge-release-branch:
     name: Merge Release Branch to Main
     needs: [create-release-branch, bump-version]
-    if: always() && needs['create-release-branch'].result == 'success' && needs['bump-version'].result == 'success'
+    if: "!cancelled() && needs['create-release-branch'].result == 'success' && needs['bump-version'].result == 'success'"
     runs-on: ubuntu-latest
     outputs:
       merged_commit_sha: ${{ steps.merge.outputs.merged_commit_sha }}
@@ -345,7 +345,7 @@ jobs:
   build-android-release:
     name: Build Android Release AAB
     needs: [merge-release-branch, bump-version]
-    if: always() && needs['merge-release-branch'].result == 'success' && needs['bump-version'].result == 'success'
+    if: "!cancelled() && needs['merge-release-branch'].result == 'success' && needs['bump-version'].result == 'success'"
     runs-on: ubuntu-latest
 
     steps:
@@ -419,7 +419,7 @@ jobs:
   build-ios-release:
     name: Build iOS Release IPA
     needs: [merge-release-branch, bump-version]
-    if: always() && needs['merge-release-branch'].result == 'success' && needs['bump-version'].result == 'success'
+    if: "!cancelled() && needs['merge-release-branch'].result == 'success' && needs['bump-version'].result == 'success'"
     runs-on: macos-latest
 
     steps:
@@ -533,7 +533,7 @@ jobs:
   build-web-release:
     name: Build Web Release Bundle
     needs: [merge-release-branch, bump-version]
-    if: always() && needs['merge-release-branch'].result == 'success' && needs['bump-version'].result == 'success'
+    if: "!cancelled() && needs['merge-release-branch'].result == 'success' && needs['bump-version'].result == 'success'"
     runs-on: ubuntu-latest
 
     steps:
@@ -598,7 +598,7 @@ jobs:
   build-and-publish-web:
     name: Build and Publish Web Containers
     needs: [merge-release-branch, bump-version]
-    if: always() && needs['merge-release-branch'].result == 'success' && needs['bump-version'].result == 'success'
+    if: "!cancelled() && needs['merge-release-branch'].result == 'success' && needs['bump-version'].result == 'success'"
     runs-on: ubuntu-latest
 
     env:
@@ -630,7 +630,7 @@ jobs:
   create-release-tag:
     name: Create Release Tag
     needs: [merge-release-branch, bump-version, build-android-release, build-ios-release, build-web-release, build-and-publish-web]
-    if: always() && needs['merge-release-branch'].result == 'success' && needs['bump-version'].result == 'success' && (needs['build-android-release'].result == 'success' || needs['build-android-release'].result == 'skipped') && (needs['build-ios-release'].result == 'success' || needs['build-ios-release'].result == 'skipped') && (needs['build-web-release'].result == 'success' || needs['build-web-release'].result == 'skipped') && (needs['build-and-publish-web'].result == 'success' || needs['build-and-publish-web'].result == 'skipped')
+    if: "!cancelled() && needs['merge-release-branch'].result == 'success' && needs['bump-version'].result == 'success' && (needs['build-android-release'].result == 'success' || needs['build-android-release'].result == 'skipped') && (needs['build-ios-release'].result == 'success' || needs['build-ios-release'].result == 'skipped') && (needs['build-web-release'].result == 'success' || needs['build-web-release'].result == 'skipped') && (needs['build-and-publish-web'].result == 'success' || needs['build-and-publish-web'].result == 'skipped')"
     runs-on: ubuntu-latest
 
     steps:
