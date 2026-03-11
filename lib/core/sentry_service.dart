@@ -5,6 +5,8 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:io' show Platform;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
@@ -31,6 +33,13 @@ class SentryService {
     await SentryFlutter.init((options) {
       options.dsn =
           'https://d6522731f64a56983e3504ed78390601@o4510767194570752.ingest.us.sentry.io/4510767197519872';
+
+      // On Android, we initialize the native SDK in HeliumApplication.onCreate()
+      // BEFORE Flutter starts, so that our TestFarmEventProcessor is in place
+      // before any cached crash envelopes are sent.
+      if (!kIsWeb && Platform.isAndroid) {
+        options.autoInitializeNativeSdk = false;
+      }
       const release = String.fromEnvironment('RELEASE_VERSION');
       const dist = String.fromEnvironment('SENTRY_DIST');
       const environment = String.fromEnvironment('SENTRY_ENVIRONMENT');
