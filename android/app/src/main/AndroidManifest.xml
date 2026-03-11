@@ -16,7 +16,7 @@
 
     <application
         android:label="Helium"
-        android:name="${applicationName}"
+        android:name=".HeliumApplication"
         android:icon="@mipmap/ic_launcher"
         android:networkSecurityConfig="@xml/network_security_config"
         android:usesCleartextTraffic="false"
