@@ -7,53 +7,91 @@
 
 package com.heliumedu.heliumapp
 
-import android.util.Log
-import io.flutter.app.FlutterApplication
-import io.sentry.android.core.SentryAndroid
+import android.app.ActivityManager
+import android.app.Application
+import android.content.Context
+import android.os.Build
 
 /**
- * Custom Application class that initializes Sentry BEFORE Flutter.
+ * Custom Application class that detects Google Play pre-launch test farm devices.
  *
- * Native crashes (SIGABRT, etc.) are captured by the NDK signal handler,
- * written to disk, and sent on the NEXT app launch. If we wait for
- * sentry_flutter to initialize Sentry from Dart, the cached crash envelopes
- * are sent before we can register our EventProcessor.
- *
- * By initializing Sentry here with our EventProcessor already configured,
- * we ensure test farm device crashes are filtered before being sent.
- *
- * IMPORTANT: This requires setting `autoInitializeNativeSdk = false` in
- * SentryFlutter.init() so it doesn't re-initialize the native SDK.
+ * Native crashes bypass Dart-level Sentry filters (sent via captureEnvelope),
+ * so we detect test farm devices early and expose a flag to Dart. When Dart
+ * sees the flag, it skips Sentry initialization entirely.
  */
-class HeliumApplication : FlutterApplication() {
+class HeliumApplication : Application() {
+
+    companion object {
+        /**
+         * True if running on a Google Play pre-launch test farm device.
+         * Checked by Dart before initializing Sentry.
+         */
+        @JvmStatic
+        var isTestFarmDevice: Boolean = false
+            private set
+    }
 
     override fun onCreate() {
         super.onCreate()
-
-        // Initialize Sentry BEFORE Flutter starts, with our EventProcessor.
-        // sentry_flutter will skip native init when autoInitializeNativeSdk=false.
-        try {
-            SentryAndroid.init(this) { options ->
-                options.dsn = "https://d6522731f64a56983e3504ed78390601@o4510767194570752.ingest.us.sentry.io/4510767197519872"
-
-                // Add our test farm filter BEFORE any events are processed
-                options.addEventProcessor(TestFarmEventProcessor())
-
-                // Performance monitoring (matches Dart config)
-                options.tracesSampleRate = 0.1
-                options.profilesSampleRate = 0.1
-
-                // Enable native crash handling
-                options.isEnableUncaughtExceptionHandler = true
-                options.isAnrEnabled = true
-            }
-            Log.d(TAG, "Sentry initialized with TestFarmEventProcessor")
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to initialize Sentry: ${e.message}")
-        }
+        isTestFarmDevice = detectTestFarmDevice()
     }
 
-    companion object {
-        private const val TAG = "HeliumApplication"
+    /**
+     * Detect emulators, test farm devices, and other non-production environments.
+     *
+     * Detection methods:
+     * 1. OS build/fingerprint signatures (test-keys, sdk, generic, userdebug)
+     * 2. Flagship devices with impossible specs (virtualized/throttled hardware)
+     */
+    private fun detectTestFarmDevice(): Boolean {
+        // Check OS build for test/emulator signatures
+        val osBuild = Build.DISPLAY?.lowercase() ?: ""
+        val fingerprint = Build.FINGERPRINT?.lowercase() ?: ""
+
+        // Common emulator and test build patterns
+        if (osBuild.contains("sdk_phone") ||
+            osBuild.contains("sdk_gphone") ||
+            osBuild.contains("test-keys") ||
+            osBuild.contains("dev-keys") ||
+            osBuild.contains("-userdebug") ||
+            fingerprint.contains("sdk_gphone") ||
+            fingerprint.contains("emulator") ||
+            fingerprint.contains("test-keys")) {
+            return true
+        }
+
+        // Check for flagship devices with impossible specs
+        val model = Build.MODEL ?: return false
+        val processorCount = Runtime.getRuntime().availableProcessors()
+        val memoryBytes = getDeviceMemoryBytes()
+
+        // OnePlus 8 Pro: real has 8 cores, 8-12 GB RAM
+        // Test farm version: 2 cores, ~4 GB RAM
+        if (model == "IN2025" || model == "OnePlus8Pro") {
+            if (processorCount < 8 || memoryBytes < 7L * 1024 * 1024 * 1024) {
+                return true
+            }
+        }
+
+        // Pixel 6 Pro: real has 8 cores, 12 GB RAM
+        // Test farm version: 4 cores, ~3 GB RAM
+        if (model == "Pixel 6 Pro") {
+            if (processorCount < 8 || memoryBytes < 10L * 1024 * 1024 * 1024) {
+                return true
+            }
+        }
+
+        return false
+    }
+
+    private fun getDeviceMemoryBytes(): Long {
+        return try {
+            val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+            val memInfo = ActivityManager.MemoryInfo()
+            activityManager.getMemoryInfo(memInfo)
+            memInfo.totalMem
+        } catch (e: Exception) {
+            0L
+        }
     }
 }

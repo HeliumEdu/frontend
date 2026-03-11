@@ -21,7 +21,7 @@ class SentryService {
 
   SentryService._internal();
 
-  static const _channel = MethodChannel('com.heliumedu.heliumapp/sentry');
+  static const _nativeChannel = MethodChannel('com.heliumedu.heliumapp/native');
 
   /// Exposed for testing - returns true if the event should be filtered (dropped)
   @visibleForTesting
@@ -30,16 +30,18 @@ class SentryService {
   }
 
   Future<void> init() async {
+    // Skip Sentry entirely on Google Play pre-launch test farm devices.
+    // Native crashes bypass Dart-level filters (sent via captureEnvelope),
+    // so we must prevent initialization at the source.
+    if (await _isTestFarmDevice()) {
+      _log.info('Skipping Sentry initialization (test farm device)');
+      return;
+    }
+
     await SentryFlutter.init((options) {
       options.dsn =
           'https://d6522731f64a56983e3504ed78390601@o4510767194570752.ingest.us.sentry.io/4510767197519872';
 
-      // On Android, we initialize the native SDK in HeliumApplication.onCreate()
-      // BEFORE Flutter starts, so that our TestFarmEventProcessor is in place
-      // before any cached crash envelopes are sent.
-      if (!kIsWeb && Platform.isAndroid) {
-        options.autoInitializeNativeSdk = false;
-      }
       const release = String.fromEnvironment('RELEASE_VERSION');
       const dist = String.fromEnvironment('SENTRY_DIST');
       const environment = String.fromEnvironment('SENTRY_ENVIRONMENT');
@@ -92,24 +94,24 @@ class SentryService {
       options.beforeSend = _beforeSend;
     });
 
-    // Register native Android EventProcessors. Native crashes (SIGABRT, etc.)
-    // bypass Dart callbacks, so we need native-level filters to catch them.
-    await _registerNativeFilters();
-
     _log.info('Sentry initialized successfully');
   }
 
-  Future<void> _registerNativeFilters() async {
+  /// Check if running on a Google Play pre-launch test farm device.
+  /// Only applicable on Android; returns false on other platforms.
+  Future<bool> _isTestFarmDevice() async {
+    if (kIsWeb || !Platform.isAndroid) {
+      return false;
+    }
     try {
-      // Filter test farm devices (e.g., OnePlus 8 Pro with impossible specs)
-      await _channel.invokeMethod<bool>('registerTestFarmFilter');
-      _log.fine('Registered native filters');
+      final result =
+          await _nativeChannel.invokeMethod<bool>('isTestFarmDevice');
+      return result ?? false;
     } on MissingPluginException {
-      // Expected on non-Android platforms (iOS, web)
-      _log.fine('Native filters not available on this platform');
+      return false;
     } catch (e) {
-      // Don't fail init if filter registration fails
-      _log.warning('Failed to register native filters: $e');
+      _log.warning('Failed to check test farm device status: $e');
+      return false;
     }
   }
 
@@ -136,11 +138,8 @@ class SentryService {
   }
 
   bool _shouldFilter(SentryEvent event) {
-    // Filter events from emulators/automated testing (e.g., Play Console pre-launch)
-    if (_isEmulatorOrTestDevice(event)) {
-      _log.info('Filtered event from Sentry (emulator/test device)');
-      return true;
-    }
+    // Note: Emulator/test farm detection is handled natively on Android
+    // (see HeliumApplication.kt). Sentry won't initialize on those devices.
 
     // Check the exception types in the event
     if (event.exceptions != null) {
@@ -156,25 +155,6 @@ class SentryService {
     if (_shouldFilterByText(event)) {
       _log.info('Filtered event from Sentry (via text matching)');
       return true;
-    }
-
-    return false;
-  }
-
-  /// Check if the event is from an emulator or automated test device
-  bool _isEmulatorOrTestDevice(SentryEvent event) {
-    // Android emulator and test device OS build signatures
-    final os = event.contexts.operatingSystem;
-    if (os != null) {
-      final osBuild = os.build?.toLowerCase() ?? '';
-      if (osBuild.contains('sdk_phone') || // Android SDK emulator
-          osBuild.contains('sdk_gphone') || // Google Phone emulator
-          osBuild.contains('test-keys') || // Test signing keys (not production)
-          osBuild.contains('dev-keys') || // Dev signing keys (not production)
-          osBuild.contains('-userdebug')) {
-        // Debug builds (Play Console test lab)
-        return true;
-      }
     }
 
     return false;
