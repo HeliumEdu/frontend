@@ -6,6 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -17,6 +18,8 @@ class SentryService {
   factory SentryService() => _instance;
 
   SentryService._internal();
+
+  static const _channel = MethodChannel('com.heliumedu.heliumapp/sentry');
 
   /// Exposed for testing - returns true if the event should be filtered (dropped)
   @visibleForTesting
@@ -80,7 +83,25 @@ class SentryService {
       options.beforeSend = _beforeSend;
     });
 
+    // Register native Android EventProcessors. Native crashes (SIGABRT, etc.)
+    // bypass Dart callbacks, so we need native-level filters to catch them.
+    await _registerNativeFilters();
+
     _log.info('Sentry initialized successfully');
+  }
+
+  Future<void> _registerNativeFilters() async {
+    try {
+      // Filter test farm devices (e.g., OnePlus 8 Pro with impossible specs)
+      await _channel.invokeMethod<bool>('registerTestFarmFilter');
+      _log.fine('Registered native filters');
+    } on MissingPluginException {
+      // Expected on non-Android platforms (iOS, web)
+      _log.fine('Native filters not available on this platform');
+    } catch (e) {
+      // Don't fail init if filter registration fails
+      _log.warning('Failed to register native filters: $e');
+    }
   }
 
   SentryEvent? _beforeSend(SentryEvent event, Hint? hint) {

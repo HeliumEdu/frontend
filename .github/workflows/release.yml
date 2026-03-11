@@ -677,7 +677,7 @@ jobs:
   deploy:
     name: Trigger Deploy Workflow
     needs: [create-release-tag, bump-version]
-    if: always() && (inputs.trigger_deploy_after_release == true || inputs.trigger_deploy_after_release == 'true') && needs['create-release-tag'].result == 'success' && needs['bump-version'].result == 'success'
+    if: "!cancelled() && (inputs.trigger_deploy_after_release == true || inputs.trigger_deploy_after_release == 'true') && needs['create-release-tag'].result == 'success' && needs['bump-version'].result == 'success'"
     runs-on: ubuntu-latest
     steps:
       - name: Trigger deploy workflow
