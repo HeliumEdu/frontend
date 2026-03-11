@@ -37,20 +37,27 @@ class HeliumApplication : Application() {
     }
 
     /**
-     * Detect Google Play pre-launch test farm devices.
+     * Detect emulators, test farm devices, and other non-production environments.
      *
-     * Test farm devices are identified by:
-     * 1. OS build signatures (test-keys, sdk_phone, userdebug, etc.)
+     * Detection methods:
+     * 1. OS build/fingerprint signatures (test-keys, sdk, generic, userdebug)
      * 2. Flagship devices with impossible specs (virtualized/throttled hardware)
      */
     private fun detectTestFarmDevice(): Boolean {
         // Check OS build for test/emulator signatures
         val osBuild = Build.DISPLAY?.lowercase() ?: ""
+        val fingerprint = Build.FINGERPRINT?.lowercase() ?: ""
+
+        // Common emulator and test build patterns
         if (osBuild.contains("sdk_phone") ||
             osBuild.contains("sdk_gphone") ||
             osBuild.contains("test-keys") ||
             osBuild.contains("dev-keys") ||
-            osBuild.contains("-userdebug")) {
+            osBuild.contains("-userdebug") ||
+            fingerprint.contains("generic") ||
+            fingerprint.contains("sdk_gphone") ||
+            fingerprint.contains("emulator") ||
+            fingerprint.contains("test-keys")) {
             return true
         }
 
