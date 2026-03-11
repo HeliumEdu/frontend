@@ -57,6 +57,13 @@ class ChangePasswordEvent extends AuthEvent {
   ChangePasswordEvent({required this.oldPassword, required this.newPassword});
 }
 
+class ChangeEmailEvent extends AuthEvent {
+  final String newEmail;
+  final String oldPassword;
+
+  ChangeEmailEvent({required this.newEmail, required this.oldPassword});
+}
+
 class ForgotPasswordEvent extends AuthEvent {
   final String email;
 

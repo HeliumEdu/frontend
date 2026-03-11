@@ -92,8 +92,10 @@ class EmailHelper {
       final staleThreshold = nowUtc.subtract(const Duration(minutes: 10));
 
       // Validate: arrived after sentAfter, for our user, and has verification code
-      final emailPattern = 'email=$username&code';
-      final verifyPattern = 'verify?email=$username&code=';
+      // URL-encode the username since the email template uses urlencode filter
+      final encodedUsername = Uri.encodeComponent(username);
+      final emailPattern = 'email=$encodedUsername&code';
+      final verifyPattern = 'verify?email=$encodedUsername&code=';
 
       final arrivedAfterAction = !s3Timestamp.isBefore(sentAfter);
       final isForOurUser = emailBody?.contains(emailPattern) ?? false;

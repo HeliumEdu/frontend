@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:heliumapp/data/models/auth/request/change_email_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/change_password_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/delete_account_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/forgot_password_request_model.dart';
@@ -84,6 +85,11 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<UserModel> changePassword(ChangePasswordRequestModel request) async {
     return await remoteDataSource.changePassword(request);
+  }
+
+  @override
+  Future<UserModel> changeEmail(ChangeEmailRequestModel request) async {
+    return await remoteDataSource.changeEmail(request);
   }
 
   @override

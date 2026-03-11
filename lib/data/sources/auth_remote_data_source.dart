@@ -13,6 +13,7 @@ import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/auth/login_request_model.dart';
 import 'package:heliumapp/data/models/auth/private_feed_model.dart';
 import 'package:heliumapp/data/models/auth/register_request_model.dart';
+import 'package:heliumapp/data/models/auth/request/change_email_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/change_password_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/delete_account_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/forgot_password_request_model.dart';
@@ -54,6 +55,8 @@ abstract class AuthRemoteDataSource extends BaseDataSource {
   );
 
   Future<UserModel> changePassword(ChangePasswordRequestModel request);
+
+  Future<UserModel> changeEmail(ChangeEmailRequestModel request);
 
   Future<UserSettingsModel> updateUserSettings(
     UpdateSettingsRequestModel request,
@@ -486,6 +489,33 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       } else {
         throw ServerException(
           message: 'Failed to change password',
+          code: response.statusCode.toString(),
+        );
+      }
+    } on DioException catch (e, s) {
+      throw handleDioError(e, s);
+    } catch (e, s) {
+      _log.severe('An unexpected error occurred', e, s);
+      if (e is HeliumException) {
+        rethrow;
+      }
+      throw HeliumException(message: 'An unexpected error occurred.');
+    }
+  }
+
+  @override
+  Future<UserModel> changeEmail(ChangeEmailRequestModel request) async {
+    try {
+      final response = await dioClient.dio.put(
+        ApiUrl.authUserUrl,
+        data: request.toJson(),
+      );
+
+      if (response.statusCode == 200) {
+        return UserModel.fromJson(response.data);
+      } else {
+        throw ServerException(
+          message: 'Failed to change email',
           code: response.statusCode.toString(),
         );
       }

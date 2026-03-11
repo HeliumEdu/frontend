@@ -54,6 +54,14 @@ class AuthExampleScheduleDeleted extends AuthState {}
 
 class AuthPasswordChanged extends AuthState {}
 
+class AuthEmailChangeRequested extends AuthState {
+  final String newEmail;
+
+  AuthEmailChangeRequested({required this.newEmail});
+}
+
+class AuthEmailChangeCancelled extends AuthState {}
+
 class AuthPasswordReset extends AuthState {}
 
 class AuthAuthenticated extends AuthState {}
