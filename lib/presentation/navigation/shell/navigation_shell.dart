@@ -371,28 +371,30 @@ class _NavigationShellState extends State<NavigationShell> {
             ),
             bottomNavigationBar: useNavigationRail
                 ? null
-                : NavigationBar(
-                    height: 60,
-                    selectedIndex: currentPage.index,
-                    onDestinationSelected: (index) =>
-                        _onDestinationSelected(context, index),
-                    labelBehavior:
-                        NavigationDestinationLabelBehavior.alwaysShow,
-                    labelTextStyle: WidgetStateProperty.all(
-                      AppStyles.smallSecondaryText(context),
-                    ),
-                    destinations: NavigationPage.values
-                        .map(
-                          (page) => NavigationDestination(
-                            icon: Icon(
-                              page.icon,
-                              color: context.colorScheme.primary,
+                : TooltipVisibility(
+                    visible: false,
+                    child: NavigationBar(
+                      height: 60,
+                      selectedIndex: currentPage.index,
+                      onDestinationSelected: (index) =>
+                          _onDestinationSelected(context, index),
+                      labelBehavior:
+                          NavigationDestinationLabelBehavior.alwaysShow,
+                      labelTextStyle: WidgetStateProperty.all(
+                        AppStyles.smallSecondaryText(context),
+                      ),
+                      destinations: NavigationPage.values
+                          .map(
+                            (page) => NavigationDestination(
+                              icon: Icon(
+                                page.icon,
+                                color: context.colorScheme.primary,
+                              ),
+                              label: page.label,
                             ),
-                            label: page.label,
-                            tooltip: '',
-                          ),
-                        )
-                        .toList(),
+                          )
+                          .toList(),
+                    ),
                   ),
           );
         },

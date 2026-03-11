@@ -96,7 +96,7 @@ class _ExternalCalendarsProvidedScreenState
     super.initState();
 
     context.read<ExternalCalendarBloc>().add(
-      FetchExternalCalendarsEvent(origin: EventOrigin.screen),
+      FetchExternalCalendarsEvent(origin: EventOrigin.screen, forceRefresh: true),
     );
   }
 
@@ -192,7 +192,7 @@ class _ExternalCalendarsProvidedScreenState
             source: 'external_calendars_screen',
             onReload: () {
               context.read<ExternalCalendarBloc>().add(
-                FetchExternalCalendarsEvent(origin: EventOrigin.screen),
+                FetchExternalCalendarsEvent(origin: EventOrigin.screen, forceRefresh: true),
               );
             },
           );

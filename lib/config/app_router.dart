@@ -33,6 +33,7 @@ import 'package:heliumapp/presentation/features/settings/views/change_email_scre
 import 'package:heliumapp/presentation/features/settings/views/change_password_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/external_calendars_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/feeds_screen.dart';
+import 'package:heliumapp/presentation/features/settings/views/import_export_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/preferences_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/settings_screen.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
@@ -297,6 +298,17 @@ void initializeRouter() {
             );
           }
           return const MaterialPage(child: ChangeEmailScreen());
+        },
+      ),
+      GoRoute(
+        path: AppRoute.importExportScreen,
+        pageBuilder: (context, state) {
+          if (state.extra == null) {
+            return const MaterialPage(
+              child: _RouteRedirect(redirectTo: AppRoute.settingScreen),
+            );
+          }
+          return const MaterialPage(child: ImportExportScreen());
         },
       ),
     ],

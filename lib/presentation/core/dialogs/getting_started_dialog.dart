@@ -25,7 +25,7 @@ class _GettingStartedDialogWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is AuthExampleScheduleDeleted) {
+        if (state is AuthScheduleDataRefreshed) {
           if (!context.mounted) return;
 
           final navigator = Navigator.maybeOf(context);

@@ -50,6 +50,7 @@ import 'package:heliumapp/presentation/features/courses/bloc/category_bloc.dart'
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_state.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_state.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planner_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planner_event.dart';
@@ -394,7 +395,7 @@ class _CalendarScreenState
         },
       ),
       BlocListener<ExternalCalendarBloc, ExternalCalendarState>(
-        listener: (context, state) {
+        listener: (context, state) async {
           if (_plannerItemDataSource == null) return;
 
           if (state is ExternalCalendarCreated ||
@@ -409,11 +410,22 @@ class _CalendarScreenState
                 ? _visibleDates.last
                 : null;
 
-            _plannerItemDataSource!.refreshCalendarSources(
+            await _plannerItemDataSource!.refreshCalendarSources(
               visibleStart: visibleStart,
               visibleEnd: visibleEnd,
             );
-            unawaited(_refreshExternalCalendarsMap());
+            await _refreshExternalCalendarsMap();
+
+            // Refresh the external calendars list in case the events endpoint
+            // disabled any calendars (external_calendars_screen will update if open)
+            if (context.mounted) {
+              context.read<ExternalCalendarBloc>().add(
+                FetchExternalCalendarsEvent(
+                  origin: EventOrigin.screen,
+                  forceRefresh: true,
+                ),
+              );
+            }
           }
         },
       ),
@@ -1668,6 +1680,8 @@ class _CalendarScreenState
       );
 
       if (plannerItem is HomeworkModel) {
+        _warnIfHomeworkOutsideDateRange(plannerItem, start, end);
+
         final request = HomeworkRequestModel(
           start: start.toIso8601String(),
           end: end.toIso8601String(),
@@ -1740,6 +1754,11 @@ class _CalendarScreenState
       );
       if (plannerItem.allDay) {
         end = end.add(const Duration(days: 1));
+      }
+
+      // Warn if homework is being moved outside course date range
+      if (plannerItem is HomeworkModel) {
+        _warnIfHomeworkOutsideDateRange(plannerItem, start, end);
       }
 
       // Set optimistic override immediately for instant visual feedback
@@ -2708,6 +2727,27 @@ class _CalendarScreenState
       ),
       isError: true,
     );
+  }
+
+  /// Shows a warning if homework dates fall outside the course's date range.
+  void _warnIfHomeworkOutsideDateRange(
+    HomeworkModel homework,
+    DateTime newStart,
+    DateTime newEnd,
+  ) {
+    final course = _courses.firstWhere((c) => c.id == homework.course.id);
+    final courseStart = HeliumDateTime.dateOnly(course.startDate);
+    final courseEnd = HeliumDateTime.dateOnly(course.endDate);
+    final homeworkStart = HeliumDateTime.dateOnly(newStart);
+    final homeworkEnd = HeliumDateTime.dateOnly(newEnd);
+
+    if (homeworkStart.isBefore(courseStart) || homeworkEnd.isAfter(courseEnd)) {
+      showSnackBar(
+        context,
+        "This assignment won't appear in the Todos view, since it is now outside the class's date range",
+        seconds: 5,
+      );
+    }
   }
 
   Widget _buildMoreIndicator(

@@ -141,4 +141,10 @@ class ApiUrl {
     int groupId,
     int resourceId,
   ) => '/planner/materialgroups/$groupId/materials/$resourceId/';
+
+  // Import/Export
+  static const importExportImportUrl = '/importexport/import/';
+  static const importExportExportUrl = '/importexport/export/';
+  static const importExportExampleScheduleUrl =
+      '/importexport/import/exampleschedule/';
 }

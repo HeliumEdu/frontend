@@ -86,4 +86,17 @@ class HeliumStorage {
       return false;
     }
   }
+
+  /// Downloads bytes directly to a file (for in-memory data like API responses).
+  static Future<bool> downloadBytes(
+    Uint8List bytes,
+    String filename,
+  ) async {
+    try {
+      return await downloadBytesPlatform(bytes, filename);
+    } catch (e) {
+      _log.severe('An error occurred during bytes download', e);
+      return false;
+    }
+  }
 }

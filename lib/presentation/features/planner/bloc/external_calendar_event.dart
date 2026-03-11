@@ -13,7 +13,9 @@ abstract class ExternalCalendarEvent extends BaseEvent {
 }
 
 class FetchExternalCalendarsEvent extends ExternalCalendarEvent {
-  FetchExternalCalendarsEvent({required super.origin});
+  final bool forceRefresh;
+
+  FetchExternalCalendarsEvent({required super.origin, this.forceRefresh = false});
 }
 
 class FetchExternalCalendarEventsEvent extends ExternalCalendarEvent {
