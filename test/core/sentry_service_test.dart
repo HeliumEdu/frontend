@@ -605,18 +605,129 @@ void main() {
             reason: 'Emulator detection should be case insensitive');
       });
 
-      test('Filters Google Play Pre-Launch Robo test device by screen density',
-          () {
-        // All FRONTEND-28 events show screenDensity: 0.6625 on OnePlus8Pro
-        // Play test lab devices. No real production device has density < 1.0.
+    });
+
+    group('Fake device detection (virtualized test farm devices)', () {
+      // OnePlus8Pro is the only device currently needed here because:
+      // - Pixel devices are caught by OS build checks (userdebug, dev-keys)
+      // - OnePlus8Pro from Play test farm has clean OS build but fake specs
+
+      test('Filters OnePlus8Pro with 2 cores (real has 8)', () {
+        // Play test farm reports OnePlus8Pro with only 2 cores
+        // Real OnePlus8Pro has Snapdragon 865 with 8 cores
+        // https://en.wikipedia.org/wiki/OnePlus_8_Pro
         final event = SentryEvent(
           contexts: Contexts(
             device: SentryDevice(
-              name: 'OnePlus8Pro',
-              screenDensity: 0.6625,
+              model: 'OnePlus8Pro',
+              processorCount: 2,
             ),
-            operatingSystem: SentryOperatingSystem(
-              build: 'RKQ1.201217.002 release-keys',
+          ),
+          exceptions: [
+            SentryException(type: 'Exception', value: 'SIGABRT'),
+          ],
+        );
+        expect(SentryService.shouldFilterEvent(event), isTrue,
+            reason: 'OnePlus8Pro with 2 cores is fake (real has 8)');
+      });
+
+      test('Filters OnePlus8Pro with 4GB RAM (real has 8-12GB)', () {
+        final event = SentryEvent(
+          contexts: Contexts(
+            device: SentryDevice(
+              model: 'OnePlus8Pro',
+              memorySize: 4 * 1024 * 1024 * 1024, // 4GB in bytes
+            ),
+          ),
+          exceptions: [
+            SentryException(type: 'Exception', value: 'SIGABRT'),
+          ],
+        );
+        expect(SentryService.shouldFilterEvent(event), isTrue,
+            reason: 'OnePlus8Pro with 4GB RAM is fake (real has 8-12GB)');
+      });
+
+      test('Does NOT filter real OnePlus8Pro with correct specs', () {
+        final event = SentryEvent(
+          contexts: Contexts(
+            device: SentryDevice(
+              model: 'OnePlus8Pro',
+              processorCount: 8,
+              memorySize: 12 * 1024 * 1024 * 1024, // 12GB
+            ),
+          ),
+          exceptions: [
+            SentryException(type: 'Exception', value: 'Some crash'),
+          ],
+        );
+        expect(SentryService.shouldFilterEvent(event), isFalse,
+            reason: 'Real OnePlus8Pro with correct specs should NOT be filtered');
+      });
+
+      test('Does NOT filter real OnePlus8Pro with specs near minimum', () {
+        // Real device might report slightly less memory due to OS reservation
+        final event = SentryEvent(
+          contexts: Contexts(
+            device: SentryDevice(
+              model: 'OnePlus8Pro',
+              processorCount: 8,
+              memorySize: (7.5 * 1024 * 1024 * 1024).toInt(), // 7.5GB (OS overhead)
+            ),
+          ),
+          exceptions: [
+            SentryException(type: 'Exception', value: 'Some crash'),
+          ],
+        );
+        expect(SentryService.shouldFilterEvent(event), isFalse,
+            reason: 'Real device with slight memory overhead should NOT be filtered');
+      });
+
+      test('Does NOT filter unknown device models', () {
+        final event = SentryEvent(
+          contexts: Contexts(
+            device: SentryDevice(
+              model: 'BrandX Model123',
+              processorCount: 2,
+              memorySize: 2 * 1024 * 1024 * 1024,
+            ),
+          ),
+          exceptions: [
+            SentryException(type: 'Exception', value: 'Some crash'),
+          ],
+        );
+        expect(SentryService.shouldFilterEvent(event), isFalse,
+            reason: 'Unknown device models should NOT be filtered');
+      });
+
+      test('Does NOT filter when device context is missing', () {
+        final event = SentryEvent(
+          exceptions: [
+            SentryException(type: 'Exception', value: 'Some crash'),
+          ],
+        );
+        expect(SentryService.shouldFilterEvent(event), isFalse,
+            reason: 'Missing device context should NOT trigger fake device filter');
+      });
+
+      test('Does NOT filter when only model is known but no specs', () {
+        final event = SentryEvent(
+          contexts: Contexts(
+            device: SentryDevice(model: 'OnePlus8Pro'),
+          ),
+          exceptions: [
+            SentryException(type: 'Exception', value: 'Some crash'),
+          ],
+        );
+        expect(SentryService.shouldFilterEvent(event), isFalse,
+            reason: 'Device with no specs data should NOT be filtered');
+      });
+
+      test('Matches device family when model is not set', () {
+        final event = SentryEvent(
+          contexts: Contexts(
+            device: SentryDevice(
+              family: 'OnePlus8Pro',
+              processorCount: 2,
             ),
           ),
           exceptions: [
@@ -624,83 +735,23 @@ void main() {
           ],
         );
         expect(SentryService.shouldFilterEvent(event), isTrue,
-            reason:
-                'Play Pre-Launch Robo test device (screenDensity < 1.0) should be filtered');
+            reason: 'Should match on device family as fallback');
       });
 
-      test('Filters any device with screen density below 1.0', () {
+      test('Case insensitive model matching', () {
         final event = SentryEvent(
           contexts: Contexts(
-            device: SentryDevice(screenDensity: 0.75),
+            device: SentryDevice(
+              model: 'ONEPLUS8PRO',
+              processorCount: 2,
+            ),
           ),
           exceptions: [
             SentryException(type: 'Exception', value: 'Some crash'),
           ],
         );
         expect(SentryService.shouldFilterEvent(event), isTrue,
-            reason: 'Any screenDensity < 1.0 should be filtered');
-      });
-
-      test('Does NOT filter real production device with normal screen density',
-          () {
-        final event = SentryEvent(
-          contexts: Contexts(
-            device: SentryDevice(
-              name: 'OnePlus8Pro',
-              screenDensity: 2.625,
-            ),
-            operatingSystem: SentryOperatingSystem(
-              build: 'RKQ1.201217.002 release-keys',
-            ),
-          ),
-          exceptions: [
-            SentryException(type: 'Exception', value: 'Some crash'),
-          ],
-        );
-        expect(SentryService.shouldFilterEvent(event), isFalse,
-            reason:
-                'Real OnePlus8Pro with normal screen density should NOT be filtered');
-      });
-
-      test('Does NOT filter events when device context is missing', () {
-        final event = SentryEvent(
-          contexts: Contexts(
-            operatingSystem: SentryOperatingSystem(
-              build: 'RKQ1.201217.002 release-keys',
-            ),
-          ),
-          exceptions: [
-            SentryException(type: 'Exception', value: 'Some crash'),
-          ],
-        );
-        expect(SentryService.shouldFilterEvent(event), isFalse,
-            reason: 'Missing device context should NOT trigger density filter');
-      });
-
-      test('Does NOT filter events when screenDensity is null', () {
-        final event = SentryEvent(
-          contexts: Contexts(
-            device: SentryDevice(name: 'Pixel 6'),
-          ),
-          exceptions: [
-            SentryException(type: 'Exception', value: 'Some crash'),
-          ],
-        );
-        expect(SentryService.shouldFilterEvent(event), isFalse,
-            reason: 'Null screenDensity should NOT trigger density filter');
-      });
-
-      test('Does NOT filter events with screen density exactly 1.0', () {
-        final event = SentryEvent(
-          contexts: Contexts(
-            device: SentryDevice(screenDensity: 1.0),
-          ),
-          exceptions: [
-            SentryException(type: 'Exception', value: 'Some crash'),
-          ],
-        );
-        expect(SentryService.shouldFilterEvent(event), isFalse,
-            reason: 'screenDensity == 1.0 should NOT be filtered');
+            reason: 'Model matching should be case insensitive');
       });
     });
   });
