@@ -138,11 +138,8 @@ class SentryService {
   }
 
   bool _shouldFilter(SentryEvent event) {
-    // Filter events from emulators/automated testing (e.g., Play Console pre-launch)
-    if (_isEmulatorOrTestDevice(event)) {
-      _log.info('Filtered event from Sentry (emulator/test device)');
-      return true;
-    }
+    // Note: Emulator/test farm detection is handled natively on Android
+    // (see HeliumApplication.kt). Sentry won't initialize on those devices.
 
     // Check the exception types in the event
     if (event.exceptions != null) {
@@ -158,25 +155,6 @@ class SentryService {
     if (_shouldFilterByText(event)) {
       _log.info('Filtered event from Sentry (via text matching)');
       return true;
-    }
-
-    return false;
-  }
-
-  /// Check if the event is from an emulator or automated test device
-  bool _isEmulatorOrTestDevice(SentryEvent event) {
-    // Android emulator and test device OS build signatures
-    final os = event.contexts.operatingSystem;
-    if (os != null) {
-      final osBuild = os.build?.toLowerCase() ?? '';
-      if (osBuild.contains('sdk_phone') || // Android SDK emulator
-          osBuild.contains('sdk_gphone') || // Google Phone emulator
-          osBuild.contains('test-keys') || // Test signing keys (not production)
-          osBuild.contains('dev-keys') || // Dev signing keys (not production)
-          osBuild.contains('-userdebug')) {
-        // Debug builds (Play Console test lab)
-        return true;
-      }
     }
 
     return false;

@@ -37,26 +37,46 @@ class HeliumApplication : Application() {
     }
 
     /**
-     * Detect Google Play pre-launch test farm devices.
+     * Detect emulators, test farm devices, and other non-production environments.
      *
-     * Test farm devices are real hardware with virtualized/throttled specs.
-     * We detect them by checking for flagship devices with impossible specs:
-     *
-     * OnePlus 8 Pro (IN2025):
-     *   Real specs: 8 cores, 8-12 GB RAM
-     *   Test farm:  2 cores, ~4 GB RAM
+     * Detection methods:
+     * 1. OS build/fingerprint signatures (test-keys, sdk, generic, userdebug)
+     * 2. Flagship devices with impossible specs (virtualized/throttled hardware)
      */
     private fun detectTestFarmDevice(): Boolean {
+        // Check OS build for test/emulator signatures
+        val osBuild = Build.DISPLAY?.lowercase() ?: ""
+        val fingerprint = Build.FINGERPRINT?.lowercase() ?: ""
+
+        // Common emulator and test build patterns
+        if (osBuild.contains("sdk_phone") ||
+            osBuild.contains("sdk_gphone") ||
+            osBuild.contains("test-keys") ||
+            osBuild.contains("dev-keys") ||
+            osBuild.contains("-userdebug") ||
+            fingerprint.contains("sdk_gphone") ||
+            fingerprint.contains("emulator") ||
+            fingerprint.contains("test-keys")) {
+            return true
+        }
+
+        // Check for flagship devices with impossible specs
         val model = Build.MODEL ?: return false
+        val processorCount = Runtime.getRuntime().availableProcessors()
+        val memoryBytes = getDeviceMemoryBytes()
 
-        // OnePlus 8 Pro can report as "IN2025" (hardware ID) or "OnePlus8Pro"
+        // OnePlus 8 Pro: real has 8 cores, 8-12 GB RAM
+        // Test farm version: 2 cores, ~4 GB RAM
         if (model == "IN2025" || model == "OnePlus8Pro") {
-            val processorCount = Runtime.getRuntime().availableProcessors()
-            val memoryBytes = getDeviceMemoryBytes()
-
-            // Real OnePlus 8 Pro: 8 cores, 8-12 GB RAM
-            // Test farm version: 2 cores, ~4 GB RAM
             if (processorCount < 8 || memoryBytes < 7L * 1024 * 1024 * 1024) {
+                return true
+            }
+        }
+
+        // Pixel 6 Pro: real has 8 cores, 12 GB RAM
+        // Test farm version: 4 cores, ~3 GB RAM
+        if (model == "Pixel 6 Pro") {
+            if (processorCount < 8 || memoryBytes < 10L * 1024 * 1024 * 1024) {
                 return true
             }
         }
