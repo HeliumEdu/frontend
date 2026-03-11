@@ -50,6 +50,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<ForgotPasswordEvent>(_onForgotPassword);
     on<DeleteAccountEvent>(_onDeleteAccount);
     on<DeleteExampleScheduleEvent>(_onDeleteExampleSchedule);
+    on<RefreshScheduleDataEvent>(_onRefreshScheduleData);
   }
 
   Future<void> _onRegister(RegisterEvent event, Emitter<AuthState> emit) async {
@@ -519,7 +520,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         UpdateSettingsRequestModel(showGettingStarted: false),
       );
 
-      emit(AuthExampleScheduleDeleted());
+      emit(AuthScheduleDataRefreshed());
     } on HeliumException catch (e) {
       emit(AuthError(
         message: e.displayMessage,
@@ -530,5 +531,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } catch (e) {
       emit(AuthError(message: 'An unexpected error occurred.'));
     }
+  }
+
+  void _onRefreshScheduleData(
+    RefreshScheduleDataEvent event,
+    Emitter<AuthState> emit,
+  ) {
+    emit(AuthScheduleDataRefreshed());
   }
 }

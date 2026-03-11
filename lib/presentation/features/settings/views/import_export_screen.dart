@@ -314,17 +314,14 @@ class _ImportExportScreenState extends BasePageScreenState<ImportExportScreen> {
         final data = response.data as Map<String, dynamic>;
         final counts = _formatImportCounts(data);
 
-        setState(() {
-          _selectedFileName = null;
-          _selectedFileBytes = null;
-        });
-
         if (mounted) {
+          context.read<AuthBloc>().add(RefreshScheduleDataEvent());
           showSnackBar(
             context,
             'Imported: $counts',
             seconds: counts == 'nothing' ? 2 : 7,
           );
+          _closeAndNavigateToClasses();
         }
       } else {
         showSnackBar(context, 'Import failed', isError: true);
@@ -462,7 +459,9 @@ class _ImportExportScreenState extends BasePageScreenState<ImportExportScreen> {
         await dioClient.cacheService.invalidateAll();
         if (mounted) {
           context.read<AuthBloc>().add(FetchProfileEvent());
+          context.read<AuthBloc>().add(RefreshScheduleDataEvent());
           showSnackBar(context, 'Example schedule imported');
+          _closeAndNavigateToClasses();
         }
       } else {
         showSnackBar(
@@ -487,6 +486,17 @@ class _ImportExportScreenState extends BasePageScreenState<ImportExportScreen> {
         });
       }
     }
+  }
+
+  void _closeAndNavigateToClasses() {
+    // Close the screen/dialog first
+    if (DialogModeProvider.isDialogMode(context)) {
+      Navigator.of(context).pop();
+    } else {
+      context.pop();
+    }
+    // Navigate to classes to refresh with imported data
+    context.go(AppRoute.coursesScreen);
   }
 
   String? _extractErrorMessage(DioException e) {
