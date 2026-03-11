@@ -29,6 +29,7 @@ import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dar
 import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
 import 'package:heliumapp/presentation/features/resources/views/resource_add_screen.dart';
+import 'package:heliumapp/presentation/features/settings/views/change_email_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/change_password_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/external_calendars_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/feeds_screen.dart';
@@ -287,6 +288,17 @@ void initializeRouter() {
           return const MaterialPage(child: ChangePasswordScreen());
         },
       ),
+      GoRoute(
+        path: AppRoute.changeEmailScreen,
+        pageBuilder: (context, state) {
+          if (state.extra == null) {
+            return const MaterialPage(
+              child: _RouteRedirect(redirectTo: AppRoute.settingScreen),
+            );
+          }
+          return const MaterialPage(child: ChangeEmailScreen());
+        },
+      ),
     ],
   );
 }
@@ -352,7 +364,9 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
     }
 
     // On public routes: redirect to setup or planner based on setup status
-    if (publicRoutes.contains(matchedLocation)) {
+    // Exception: verify screen should always be accessible (for email change verification)
+    if (publicRoutes.contains(matchedLocation) &&
+        matchedLocation != AppRoute.verifyEmailScreen) {
       return isSetupComplete
           ? AppRoute.plannerScreen
           : AppRoute.setupAccountScreen;

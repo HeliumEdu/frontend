@@ -29,4 +29,5 @@ class AppRoute {
   static const String feedsScreen = '/settings/feeds';
   static const String externalCalendarsScreen = '/settings/external-calendars';
   static const String changePasswordScreen = '/settings/change-password';
+  static const String changeEmailScreen = '/settings/change-email';
 }

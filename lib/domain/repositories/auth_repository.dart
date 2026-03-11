@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:heliumapp/data/models/auth/request/change_email_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/change_password_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/delete_account_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/forgot_password_request_model.dart';
@@ -41,6 +42,8 @@ abstract class AuthRepository {
   );
 
   Future<UserModel> changePassword(ChangePasswordRequestModel request);
+
+  Future<UserModel> changeEmail(ChangeEmailRequestModel request);
 
   Future<UserSettingsModel> updateUserSettings(
     UpdateSettingsRequestModel request,

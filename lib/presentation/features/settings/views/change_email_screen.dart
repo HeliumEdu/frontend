@@ -15,21 +15,22 @@ import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
-import 'package:heliumapp/presentation/features/settings/controllers/change_password_form_controller.dart';
+import 'package:heliumapp/presentation/features/settings/controllers/change_email_form_controller.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
+import 'package:heliumapp/presentation/ui/feedback/warning_container.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 /// Shows as a dialog on desktop, or navigates on mobile.
-void showChangePassword(BuildContext context) {
+void showChangeEmail(BuildContext context) {
   if (Responsive.isMobile(context)) {
-    context.push(AppRoute.changePasswordScreen, extra: true);
+    context.push(AppRoute.changeEmailScreen, extra: true);
   } else {
     showScreenAsDialog(
       context,
-      child: const ChangePasswordScreen(),
+      child: const ChangeEmailScreen(),
       width: AppConstants.leftPanelDialogWidth,
       alignment: Alignment.centerLeft,
       insetPadding: const EdgeInsets.all(0),
@@ -37,20 +38,19 @@ void showChangePassword(BuildContext context) {
   }
 }
 
-class ChangePasswordScreen extends StatefulWidget {
-  const ChangePasswordScreen({super.key});
+class ChangeEmailScreen extends StatefulWidget {
+  const ChangeEmailScreen({super.key});
 
   @override
-  State<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
+  State<ChangeEmailScreen> createState() => _ChangeEmailScreenState();
 }
 
-class _ChangePasswordScreenState
-    extends BasePageScreenState<ChangePasswordScreen> {
+class _ChangeEmailScreenState extends BasePageScreenState<ChangeEmailScreen> {
   @override
-  String get screenTitle => 'Change Password';
+  String get screenTitle => 'Change Email';
 
   @override
-  IconData get icon => Icons.lock_outlined;
+  IconData get icon => Icons.email_outlined;
 
   @override
   ScreenType get screenType => ScreenType.entityPage;
@@ -58,16 +58,16 @@ class _ChangePasswordScreenState
   @override
   Function? get saveAction => _onSubmit;
 
-  final ChangePasswordFormController _formController =
-      ChangePasswordFormController();
+  final ChangeEmailFormController _formController = ChangeEmailFormController();
+
+  String? _currentEmail;
+  String? _emailChanging;
 
   @override
   void initState() {
     super.initState();
 
-    setState(() {
-      isLoading = false;
-    });
+    context.read<AuthBloc>().add(FetchProfileEvent());
   }
 
   @override
@@ -84,10 +84,20 @@ class _ChangePasswordScreenState
         listener: (context, state) {
           if (state is AuthError) {
             showSnackBar(context, state.message!, isError: true);
-          } else if (state is AuthPasswordChanged) {
+          } else if (state is AuthProfileFetched) {
+            setState(() {
+              _currentEmail = state.user.email;
+              _emailChanging = state.user.emailChanging;
+              isLoading = false;
+            });
+          } else if (state is AuthEmailChangeRequested) {
             _formController.clearForm();
 
-            showSnackBar(context, 'Password changed', useRootMessenger: true);
+            showSnackBar(
+              context,
+              'Verification email sent to ${state.newEmail}',
+              useRootMessenger: true,
+            );
 
             if (DialogModeProvider.isDialogMode(context)) {
               Navigator.of(context).pop();
@@ -115,70 +125,41 @@ class _ChangePasswordScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (_emailChanging != null && _emailChanging!.isNotEmpty) ...[
+                WarningContainer(
+                  text:
+                      'Change pending, click the link sent to $_emailChanging to verify',
+                  icon: Icons.schedule,
+                ),
+                const SizedBox(height: 16),
+              ],
+              LabelAndTextFormField(
+                label: 'New email',
+                autofocus: kIsWeb,
+                prefixIcon: Icons.email_outlined,
+                keyboardType: TextInputType.emailAddress,
+                controller: _formController.newEmailController,
+                validator: _validateNewEmail,
+                onFieldSubmitted: (value) => _onSubmit(),
+              ),
+              const SizedBox(height: 14),
+
               LabelAndTextFormField(
                 label: 'Current password',
-                autofocus: kIsWeb,
                 prefixIcon: Icons.lock,
                 controller: _formController.oldPasswordController,
                 validator: BasicFormController.validatePassword,
                 onFieldSubmitted: (value) => _onSubmit(),
-                obscureText: !_formController.isOldPasswordVisible,
+                obscureText: !_formController.isPasswordVisible,
                 suffixIcon: IconButton(
                   onPressed: () {
                     setState(() {
-                      _formController.isOldPasswordVisible =
-                          !_formController.isOldPasswordVisible;
+                      _formController.isPasswordVisible =
+                          !_formController.isPasswordVisible;
                     });
                   },
                   icon: Icon(
-                    _formController.isOldPasswordVisible
-                        ? Icons.visibility
-                        : Icons.visibility_off,
-                    color: context.colorScheme.onSurface,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-
-              LabelAndTextFormField(
-                label: 'New password',
-                prefixIcon: Icons.lock,
-                controller: _formController.newPasswordController,
-                validator: BasicFormController.validatePassword,
-                obscureText: !_formController.isNewPasswordVisible,
-                suffixIcon: IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _formController.isNewPasswordVisible =
-                          !_formController.isNewPasswordVisible;
-                    });
-                  },
-                  icon: Icon(
-                    _formController.isNewPasswordVisible
-                        ? Icons.visibility
-                        : Icons.visibility_off,
-                    color: context.colorScheme.onSurface,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-
-              LabelAndTextFormField(
-                label: 'Confirm password',
-                prefixIcon: Icons.repeat,
-                controller: _formController.confirmPasswordController,
-                validator: _formController.validateConfirmPassword,
-                onFieldSubmitted: (value) => _onSubmit(),
-                obscureText: !_formController.isConfirmPasswordVisible,
-                suffixIcon: IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _formController.isConfirmPasswordVisible =
-                          !_formController.isConfirmPasswordVisible;
-                    });
-                  },
-                  icon: Icon(
-                    _formController.isConfirmPasswordVisible
+                    _formController.isPasswordVisible
                         ? Icons.visibility
                         : Icons.visibility_off,
                     color: context.colorScheme.onSurface,
@@ -194,6 +175,20 @@ class _ChangePasswordScreenState
     );
   }
 
+  String? _validateNewEmail(String? value) {
+    final basicValidation = BasicFormController.validateRequiredEmail(value);
+    if (basicValidation != null) {
+      return basicValidation;
+    }
+
+    if (_currentEmail != null &&
+        value?.toLowerCase().trim() == _currentEmail!.toLowerCase()) {
+      return 'New email must be different from your current email';
+    }
+
+    return null;
+  }
+
   void _onSubmit() {
     if (_formController.formKey.currentState?.validate() ?? false) {
       setState(() {
@@ -201,12 +196,11 @@ class _ChangePasswordScreenState
       });
 
       context.read<AuthBloc>().add(
-        ChangePasswordEvent(
+        ChangeEmailEvent(
+          newEmail: _formController.newEmailController.text,
           oldPassword: _formController.oldPasswordController.text,
-          newPassword: _formController.newPasswordController.text,
         ),
       );
     }
   }
 }
-

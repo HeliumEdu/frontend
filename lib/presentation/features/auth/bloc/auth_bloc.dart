@@ -12,6 +12,7 @@ import 'package:heliumapp/core/oauth_sign_in_service.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/auth/login_request_model.dart';
 import 'package:heliumapp/data/models/auth/register_request_model.dart';
+import 'package:heliumapp/data/models/auth/request/change_email_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/change_password_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/delete_account_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/forgot_password_request_model.dart';
@@ -45,6 +46,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<EnablePrivateFeedsEvent>(_onEnablePrivateFeeds);
     on<DisablePrivateFeedsEvent>(_onDisablePrivateFeeds);
     on<ChangePasswordEvent>(_onChangePassword);
+    on<ChangeEmailEvent>(_onChangeEmail);
     on<ForgotPasswordEvent>(_onForgotPassword);
     on<DeleteAccountEvent>(_onDeleteAccount);
     on<DeleteExampleScheduleEvent>(_onDeleteExampleSchedule);
@@ -139,6 +141,33 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await authRepository.changePassword(request);
 
       emit(AuthPasswordChanged());
+    } on HeliumException catch (e) {
+      emit(AuthError(
+        message: e.displayMessage,
+        code: e.code,
+        httpStatusCode: e.httpStatusCode,
+        parsedError: e.parsedError,
+      ));
+    } catch (e) {
+      emit(AuthError(message: 'An unexpected error occurred.'));
+    }
+  }
+
+  Future<void> _onChangeEmail(
+    ChangeEmailEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+
+    try {
+      final request = ChangeEmailRequestModel(
+        email: event.newEmail,
+        oldPassword: event.oldPassword,
+      );
+
+      await authRepository.changeEmail(request);
+
+      emit(AuthEmailChangeRequested(newEmail: event.newEmail));
     } on HeliumException catch (e) {
       emit(AuthError(
         message: e.displayMessage,

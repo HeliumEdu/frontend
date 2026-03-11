@@ -22,6 +22,7 @@ import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
+import 'package:heliumapp/presentation/features/settings/views/change_email_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/change_password_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/external_calendars_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/feeds_screen.dart';
@@ -31,6 +32,7 @@ import 'package:heliumapp/presentation/features/shared/controllers/basic_form_co
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
+import 'package:heliumapp/presentation/ui/feedback/warning_container.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/presentation/ui/layout/shadow_container.dart';
 import 'package:heliumapp/utils/app_globals.dart';
@@ -83,8 +85,10 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
 
   // State
   String _email = '';
+  String? _emailChanging;
   String _version = '';
   bool _hasUsablePassword = true;
+  bool _hasOAuthProviders = false;
   bool _dangerZoneExpanded = false;
   Timer? _dangerZoneTimer;
 
@@ -134,13 +138,19 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
               _version = 'v${platform.version}';
 
               _email = state.user.email;
+              _emailChanging = state.user.emailChanging;
               _hasUsablePassword = state.user.hasUsablePassword;
+              _hasOAuthProviders = state.user.hasOAuthProviders;
 
               isLoading = false;
             });
           } else if (state is AuthLoggedOut) {
             if (!context.mounted) return;
             context.go(AppRoute.loginScreen);
+          } else if (state is AuthEmailChangeRequested) {
+            setState(() {
+              _emailChanging = state.newEmail;
+            });
           } else if (state is AuthAccountDeleted) {
             showSnackBar(
               context,
@@ -287,6 +297,14 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                   ),
                 ],
               ),
+              if (_emailChanging != null && _emailChanging!.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                WarningContainer(
+                  text:
+                      'Change pending, click the link sent to $_emailChanging to verify',
+                  icon: Icons.schedule,
+                ),
+              ],
             ],
           ),
         ],
@@ -561,6 +579,75 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
               ),
             ),
           ),
+
+          if (!_hasOAuthProviders) const Divider(height: 1, indent: 68),
+
+          if (!_hasOAuthProviders)
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => _navigateToSubSettings(
+                  context,
+                  (ctx) => showChangeEmail(ctx),
+                ),
+                borderRadius: BorderRadius.circular(16),
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: context.colorScheme.primary.withValues(
+                            alpha: 0.1,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          Icons.email_outlined,
+                          color: context.colorScheme.primary,
+                          size: Responsive.getIconSize(
+                            context,
+                            mobile: 22,
+                            tablet: 24,
+                            desktop: 26,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Change Email',
+                              style: AppStyles.menuItem(context),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Update your email address',
+                              style: AppStyles.menuItemHint(context),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        color: context.colorScheme.onSurface.withValues(
+                          alpha: 0.3,
+                        ),
+                        size: Responsive.getIconSize(
+                          context,
+                          mobile: 16,
+                          tablet: 18,
+                          desktop: 20,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
 
           if (_hasUsablePassword) const Divider(height: 1, indent: 68),
 
