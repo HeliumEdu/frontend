@@ -19,6 +19,7 @@ import 'package:heliumapp/presentation/features/courses/widgets/course_details.d
 import 'package:heliumapp/presentation/features/courses/widgets/course_schedule.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/snack_bar_helpers.dart';
 
 /// Shows course add/edit as a dialog on desktop, or navigates on mobile
 void showCourseAdd(
@@ -177,7 +178,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
       BlocListener<CourseBloc, CourseState>(
         listener: (context, state) {
           if (state is CoursesError) {
-            showSnackBar(context, state.message!, isError: true);
+            showSnackBar(context, state.message!, type: SnackType.error);
             setState(() => isSubmitting = false);
           } else if (state is CourseCreated || state is CourseUpdated) {
             state as CourseEntityState;

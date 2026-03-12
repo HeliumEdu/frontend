@@ -74,7 +74,7 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
       BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthError) {
-            showSnackBar(context, state.message!, isError: true);
+            showSnackBar(context, state.message!, type: SnackType.error);
           } else if (state is AuthProfileFetched) {
             setState(() {
               isLoading = false;

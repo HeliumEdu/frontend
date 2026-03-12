@@ -19,6 +19,7 @@ import 'package:heliumapp/presentation/features/planner/widgets/planner_item_det
 import 'package:heliumapp/presentation/features/planner/widgets/planner_item_reminders.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/snack_bar_helpers.dart';
 
 /// Shows planner item add/edit as a dialog on desktop, or navigates on mobile
 void showPlannerItemAdd(
@@ -183,7 +184,7 @@ class _PlannerItemAddScreenState
       BlocListener<PlannerItemBloc, PlannerItemState>(
         listener: (context, state) {
           if (state is PlannerItemsError) {
-            showSnackBar(context, state.message!, isError: true);
+            showSnackBar(context, state.message!, type: SnackType.error);
             setState(() => isSubmitting = false);
           } else if (state is EventDeleted || state is HomeworkDeleted) {
             // Always closes after delete, show on root

@@ -24,6 +24,7 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
+export 'package:heliumapp/utils/snack_bar_helpers.dart' show SnackType;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
@@ -513,7 +514,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     BuildContext context,
     String message, {
     int seconds = 2,
-    bool isError = false,
+    SnackType type = SnackType.success,
     bool clearSnackBar = true,
     SnackBarAction? action,
     bool useRootMessenger = false,
@@ -522,7 +523,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       context,
       message,
       seconds: seconds,
-      isError: isError,
+      type: type,
       clearSnackBar: clearSnackBar,
       action: action,
       useRootMessenger: useRootMessenger,

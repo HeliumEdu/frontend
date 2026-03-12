@@ -83,7 +83,7 @@ class _ChangeEmailScreenState extends BasePageScreenState<ChangeEmailScreen> {
       BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthError) {
-            showSnackBar(context, state.message!, isError: true);
+            showSnackBar(context, state.message!, type: SnackType.error);
           } else if (state is AuthProfileFetched) {
             setState(() {
               _currentEmail = state.user.email;

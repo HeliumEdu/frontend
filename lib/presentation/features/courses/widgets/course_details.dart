@@ -445,7 +445,7 @@ class CourseDetailsState extends State<CourseDetails> {
         SnackBarHelper.show(
           context,
           '"To" date must come after "From" date',
-          isError: true,
+          type: SnackType.error,
         );
         return false;
       }
@@ -493,7 +493,7 @@ class CourseDetailsState extends State<CourseDetails> {
       SnackBarHelper.show(
         context,
         'Fix the highlighted fields, then try again.',
-        isError: true,
+        type: SnackType.error,
       );
       return false;
     }

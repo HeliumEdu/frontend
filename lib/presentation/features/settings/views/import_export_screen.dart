@@ -256,7 +256,7 @@ class _ImportExportScreenState extends BasePageScreenState<ImportExportScreen> {
             showSnackBar(
               context,
               'An error occurred while reading the file',
-              isError: true,
+              type: SnackType.error,
             );
           }
           return;
@@ -267,7 +267,7 @@ class _ImportExportScreenState extends BasePageScreenState<ImportExportScreen> {
             showSnackBar(
               context,
               'File size cannot exceed 10MB',
-              isError: true,
+              type: SnackType.error,
             );
           }
           return;
@@ -281,7 +281,7 @@ class _ImportExportScreenState extends BasePageScreenState<ImportExportScreen> {
     } catch (e) {
       _log.severe('Error picking file', e);
       if (mounted) {
-        showSnackBar(context, 'Error selecting file', isError: true);
+        showSnackBar(context, 'Error selecting file', type: SnackType.error);
       }
     }
   }
@@ -325,13 +325,13 @@ class _ImportExportScreenState extends BasePageScreenState<ImportExportScreen> {
           _closeAndNavigateToClasses();
         }
       } else {
-        showSnackBar(context, 'Import failed', isError: true);
+        showSnackBar(context, 'Import failed', type: SnackType.error);
       }
     } on DioException catch (e) {
       _log.severe('Import failed', e);
       if (mounted) {
         final message = _extractErrorMessage(e) ?? 'Import failed';
-        showSnackBar(context, message, isError: true);
+        showSnackBar(context, message, type: SnackType.error);
       }
     } finally {
       if (mounted) {
@@ -424,16 +424,16 @@ class _ImportExportScreenState extends BasePageScreenState<ImportExportScreen> {
           if (success) {
             showSnackBar(context, '"$filename" downloaded');
           } else {
-            showSnackBar(context, 'Failed to save export file', isError: true);
+            showSnackBar(context, 'Failed to save export file', type: SnackType.error);
           }
         }
       } else {
-        showSnackBar(context, 'Export failed', isError: true);
+        showSnackBar(context, 'Export failed', type: SnackType.error);
       }
     } on DioException catch (e) {
       _log.severe('Export failed', e);
       if (mounted) {
-        showSnackBar(context, 'Export failed', isError: true);
+        showSnackBar(context, 'Export failed', type: SnackType.error);
       }
     } finally {
       if (mounted) {
@@ -472,7 +472,7 @@ class _ImportExportScreenState extends BasePageScreenState<ImportExportScreen> {
         showSnackBar(
           context,
           'Failed to import example schedule',
-          isError: true,
+          type: SnackType.error,
         );
       }
     } on DioException catch (e) {
@@ -481,7 +481,7 @@ class _ImportExportScreenState extends BasePageScreenState<ImportExportScreen> {
         showSnackBar(
           context,
           'Failed to import example schedule',
-          isError: true,
+          type: SnackType.error,
         );
       }
     } finally {

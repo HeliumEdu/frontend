@@ -66,7 +66,7 @@ class _ForgotPasswordScreenState
       BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthError) {
-            showSnackBar(context, state.message!, isError: true, seconds: 4);
+            showSnackBar(context, state.message!, type: SnackType.error, seconds: 4);
           } else if (state is AuthPasswordReset) {
             showSnackBar(
               context,

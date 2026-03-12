@@ -191,7 +191,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
       BlocListener<GradeBloc, GradeState>(
         listener: (context, state) {
           if (state is GradesError) {
-            showSnackBar(context, state.message!, isError: true);
+            showSnackBar(context, state.message!, type: SnackType.error);
           } else if (state is GradeScreenDataFetched) {
             _populateInitiateStateData(state);
           }

@@ -358,7 +358,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
       SnackBarHelper.show(
         context,
         'Fix the highlighted fields, then try again.',
-        isError: true,
+        type: SnackType.error,
       );
     }
   }

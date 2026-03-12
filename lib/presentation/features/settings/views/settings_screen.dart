@@ -124,14 +124,14 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
             setState(() {
               isLoading = false;
             });
-            showSnackBar(context, state.message!, isError: true);
+            showSnackBar(context, state.message!, type: SnackType.error);
           }
         },
       ),
       BlocListener<AuthBloc, AuthState>(
         listener: (context, state) async {
           if (state is AuthError) {
-            showSnackBar(context, state.message!, isError: true);
+            showSnackBar(context, state.message!, type: SnackType.error);
           } else if (state is AuthProfileFetched) {
             final platform = await PackageInfo.fromPlatform();
 
@@ -156,7 +156,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
             showSnackBar(
               context,
               "Sorry to see you go! We've deleted all traces of your existence from Helium.",
-              isError: false,
+              type: SnackType.info,
               seconds: 6,
               useRootMessenger: true,
             );

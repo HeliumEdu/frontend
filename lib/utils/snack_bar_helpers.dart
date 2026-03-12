@@ -11,16 +11,37 @@ import 'package:heliumapp/utils/app_style.dart';
 
 final rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
+enum SnackType {
+  success,
+  info,
+  error;
+
+  Color backgroundColor(BuildContext context) {
+    return switch (this) {
+      SnackType.success => context.semanticColors.success,
+      SnackType.info => context.semanticColors.info,
+      SnackType.error => context.colorScheme.error,
+    };
+  }
+
+  Color foregroundColor(BuildContext context) {
+    return switch (this) {
+      SnackType.success => context.semanticColors.onSuccess,
+      SnackType.info => context.semanticColors.onInfo,
+      SnackType.error => context.colorScheme.onError,
+    };
+  }
+}
+
 class SnackBarHelper {
-  static void show(
-    BuildContext context,
-    String message, {
-    int seconds = 2,
-    bool isError = false,
-    bool clearSnackBar = true,
-    SnackBarAction? action,
-    bool useRootMessenger = false,
-  }) {
+  static void show(BuildContext context,
+      String message, {
+        int seconds = 2,
+        SnackType type = SnackType.success,
+        bool clearSnackBar = true,
+        SnackBarAction? action,
+        bool useRootMessenger = false,
+      }) {
     final messenger = _resolveMessenger(
       context,
       useRootMessenger: useRootMessenger,
@@ -37,11 +58,9 @@ class SnackBarHelper {
           message,
           style: AppStyles.standardBodyText(
             context,
-          ).copyWith(color: context.colorScheme.onPrimary),
+          ).copyWith(color: type.foregroundColor(context)),
         ),
-        backgroundColor: isError
-            ? context.colorScheme.error
-            : context.semanticColors.success,
+        backgroundColor: type.backgroundColor(context),
         duration: Duration(seconds: seconds),
         behavior: SnackBarBehavior.floating,
         action: action,
@@ -60,8 +79,7 @@ class SnackBarHelper {
     }
   }
 
-  static ScaffoldMessengerState? _resolveMessenger(
-    BuildContext context, {
+  static ScaffoldMessengerState? _resolveMessenger(BuildContext context, {
     required bool useRootMessenger,
   }) {
     if (!useRootMessenger) {

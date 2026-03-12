@@ -213,7 +213,7 @@ class _MobileWebScreenState extends BasePageScreenState<MobileWebScreen> {
       showSnackBar(
         context,
         'Unable to open the app store link.',
-        isError: true,
+        type: SnackType.error,
       );
     }
 

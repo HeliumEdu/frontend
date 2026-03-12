@@ -62,7 +62,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
         showSnackBar(
           context,
           'Please login to continue.',
-          isError: true,
+          type: SnackType.info,
           seconds: 4,
         );
       }
@@ -132,7 +132,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                 'Suppressing force logout ${state.httpStatusCode} error on login screen',
               );
             } else {
-              showSnackBar(context, state.message!, isError: true, seconds: 6);
+              showSnackBar(context, state.message!, type: SnackType.error, seconds: 6);
             }
           }
 
@@ -155,7 +155,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
     showSnackBar(
       context,
       message ?? 'Your account is not yet verified.',
-      isError: true,
+      type: SnackType.error,
       seconds: 10,
       action: SnackBarAction(
         label: 'Resend Email',

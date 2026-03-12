@@ -438,7 +438,7 @@ class CourseScheduleState extends State<CourseSchedule> {
 
     if (_variesByDay) {
       if (_selectedDays.isEmpty) {
-        SnackBarHelper.show(context, 'Select at least one day', isError: true);
+        SnackBarHelper.show(context, 'Select at least one day', type: SnackType.error);
         return false;
       }
 
@@ -447,7 +447,7 @@ class CourseScheduleState extends State<CourseSchedule> {
           SnackBarHelper.show(
             context,
             'Set times for all selected days',
-            isError: true,
+            type: SnackType.error,
           );
           return false;
         }
@@ -456,7 +456,7 @@ class CourseScheduleState extends State<CourseSchedule> {
           SnackBarHelper.show(
             context,
             '"End Time" for "${CalendarConstants.dayNamesAbbrev[dayIndex]}" must come after "Start Time"',
-            isError: true,
+            type: SnackType.error,
           );
           return false;
         }
@@ -466,7 +466,7 @@ class CourseScheduleState extends State<CourseSchedule> {
         SnackBarHelper.show(
           context,
           '"End Time" must come after "Start Time"',
-          isError: true,
+          type: SnackType.error,
         );
         return false;
       }
