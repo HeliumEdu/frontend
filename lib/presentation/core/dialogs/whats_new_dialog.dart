@@ -80,7 +80,7 @@ class _WhatsNewDialogWidget extends StatelessWidget {
                       icon: Icons.construction_outlined,
                       title: 'Still polishing',
                       description:
-                          'A few familiar features and settings are still on the way—classic Helium will remain available through at least the Summer',
+                          'Classic Helium will remain available through at least Summer 2026',
                     ),
                     const SizedBox(height: 12),
                     _buildFeatureItem(
