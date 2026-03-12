@@ -122,12 +122,12 @@ class DioClient {
                   return handler.resolve(retryResponse);
                 } else {
                   // Refresh completed but no token available, logout
-                  await _forceLogout('Please login to continue.');
+                  await _forceLogout();
                   return handler.next(error);
                 }
               } catch (e) {
                 // Refresh failed, logout
-                await _forceLogout('Please login to continue.');
+                await _forceLogout();
                 return handler.next(error);
               }
             }
@@ -148,7 +148,7 @@ class DioClient {
                 // Waiting requests check for null token after completion.
                 _refreshCompleter!.complete();
                 _refreshCompleter = null;
-                await _forceLogout('Please login to continue.');
+                await _forceLogout();
                 return handler.next(error);
               }
 
@@ -160,6 +160,7 @@ class DioClient {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
                   },
+                  validateStatus: (status) => status != null && status < 500,
                 ),
               );
 
@@ -168,6 +169,19 @@ class DioClient {
                 ApiUrl.authTokenRefreshUrl,
                 data: request.toJson(),
               );
+
+              // Handle auth failures from refresh endpoint explicitly
+              final refreshStatusCode = response.statusCode;
+              if (refreshStatusCode == 401 || refreshStatusCode == 403) {
+                _log.info(
+                  'Got $refreshStatusCode during token refresh, session expired',
+                );
+                _isRefreshing = false;
+                _refreshCompleter!.complete();
+                _refreshCompleter = null;
+                await _forceLogout();
+                return handler.next(error);
+              }
 
               if (response.statusCode == 200) {
                 final refreshResponse = TokenResponseModel.fromJson(
@@ -204,7 +218,7 @@ class DioClient {
                   _log.info(
                     'Refresh token is invalid/expired, clearing tokens',
                   );
-                  await _forceLogout('Please login to continue.');
+                  await _forceLogout();
                   return handler.next(error);
                 }
 
@@ -240,7 +254,7 @@ class DioClient {
               // Only logout if refresh token is actually invalid/expired
               // or account doesn't exist. Don't logout on network errors.
               if (shouldLogout) {
-                await _forceLogout('Please login to continue.');
+                await _forceLogout();
               } else {
                 // Only log severe for truly unexpected errors (network, etc.)
                 _log.severe('Unexpected error during token refresh', e);
@@ -511,7 +525,7 @@ class DioClient {
     return false;
   }
 
-  Future<void> _forceLogout(String message) async {
+  Future<void> _forceLogout([String message = 'Please login to continue.']) async {
     try {
       await clearStorage();
       final context = rootNavigatorKey.currentContext;
