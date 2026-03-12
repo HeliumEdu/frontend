@@ -118,7 +118,7 @@ abstract class BaseAttachmentScreenState<T>
       BlocListener<AttachmentBloc, AttachmentState>(
         listener: (context, state) {
           if (state is AttachmentsError) {
-            showSnackBar(context, state.message!, isError: true);
+            showSnackBar(context, state.message!, type: SnackType.error);
           } else if (state is AttachmentsFetched) {
             setState(() {
               attachments = state.attachments;
@@ -252,7 +252,7 @@ abstract class BaseAttachmentScreenState<T>
               showSnackBar(
                 context,
                 'An error occurred while reading the file: ${platFile.name}',
-                isError: true,
+                type: SnackType.error,
               );
             }
             continue;
@@ -265,7 +265,7 @@ abstract class BaseAttachmentScreenState<T>
               showSnackBar(
                 context,
                 'File size cannot exceed 10mb limit',
-                isError: true,
+                type: SnackType.error,
               );
             }
             continue;
@@ -282,7 +282,7 @@ abstract class BaseAttachmentScreenState<T>
       }
     } catch (e) {
       if (!mounted) return;
-      showSnackBar(context, 'Error picking file: $e', isError: true);
+      showSnackBar(context, 'Error picking file: $e', type: SnackType.error);
     }
   }
 
@@ -446,7 +446,7 @@ abstract class BaseAttachmentScreenState<T>
       showSnackBar(
         context,
         'Failed to download "${attachment.title}"',
-        isError: true,
+        type: SnackType.error,
       );
     }
   }

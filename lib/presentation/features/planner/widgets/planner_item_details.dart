@@ -888,7 +888,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
         SnackBarHelper.show(
           context,
           '"End Date" must come after "Start Date"',
-          isError: true,
+          type: SnackType.error,
         );
         return;
       }
@@ -910,6 +910,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
             context,
             "This assignment won't appear in the Todos view, since it is now outside the class's date range",
             seconds: 5,
+            type: SnackType.info,
           );
         }
       }
@@ -1034,7 +1035,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       SnackBarHelper.show(
         context,
         'Fix the highlighted fields, then try again.',
-        isError: true,
+        type: SnackType.error,
       );
     }
   }

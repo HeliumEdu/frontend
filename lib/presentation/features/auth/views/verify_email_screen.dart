@@ -113,7 +113,7 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
             );
             _startResendCountdown();
           } else if (state is AuthError) {
-            showSnackBar(context, state.message!, isError: true, seconds: 4);
+            showSnackBar(context, state.message!, type: SnackType.error, seconds: 4);
             setState(() {
               _isResending = false;
             });

@@ -2709,7 +2709,7 @@ class _CalendarScreenState
       context,
       "You can't edit External Calendars in Helium",
       seconds: 4,
-      isError: true,
+      type: SnackType.info,
     );
   }
 
@@ -2720,12 +2720,12 @@ class _CalendarScreenState
       seconds: 4,
       action: SnackBarAction(
         label: 'Go',
-        textColor: context.colorScheme.onPrimary,
+        textColor: context.semanticColors.onInfo,
         onPressed: () {
           context.go('${AppRoute.coursesScreen}?id=$courseId&step=1');
         },
       ),
-      isError: true,
+      type: SnackType.info,
     );
   }
 
@@ -2746,6 +2746,7 @@ class _CalendarScreenState
         context,
         "This assignment won't appear in the Todos view, since it is now outside the class's date range",
         seconds: 5,
+        type: SnackType.info,
       );
     }
   }

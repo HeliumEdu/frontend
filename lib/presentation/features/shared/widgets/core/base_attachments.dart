@@ -25,7 +25,7 @@ import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
-import 'package:heliumapp/utils/snack_bar_helpers.dart' show SnackBarHelper;
+import 'package:heliumapp/utils/snack_bar_helpers.dart' show SnackBarHelper, SnackType;
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:heliumapp/utils/storage_helpers.dart';
 import 'package:logging/logging.dart';
@@ -117,7 +117,7 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
     return BlocListener<AttachmentBloc, AttachmentState>(
       listener: (context, state) {
         if (state is AttachmentsError) {
-          SnackBarHelper.show(context, state.message!, isError: true);
+          SnackBarHelper.show(context, state.message!, type: SnackType.error);
         } else if (state is AttachmentsFetched) {
           setState(() {
             attachments = state.attachments;
@@ -237,7 +237,7 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
               SnackBarHelper.show(
                 context,
                 'An error occurred while reading the file: ${platFile.name}',
-                isError: true,
+                type: SnackType.error,
               );
             }
             continue;
@@ -250,7 +250,7 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
               SnackBarHelper.show(
                 context,
                 'File size cannot exceed 10mb limit',
-                isError: true,
+                type: SnackType.error,
               );
             }
             continue;
@@ -270,7 +270,7 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
       }
     } catch (e) {
       if (!mounted) return;
-      SnackBarHelper.show(context, 'Error picking file: $e', isError: true);
+      SnackBarHelper.show(context, 'Error picking file: $e', type: SnackType.error);
     }
   }
 
@@ -447,7 +447,7 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
       SnackBarHelper.show(
         context,
         'Failed to download "${attachment.title}"',
-        isError: true,
+        type: SnackType.error,
       );
     }
   }

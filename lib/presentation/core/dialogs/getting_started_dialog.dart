@@ -40,7 +40,7 @@ class _GettingStartedDialogWidget extends StatelessWidget {
           SnackBarHelper.show(
             context,
             'Failed to delete example schedule: ${state.message}',
-            isError: true,
+            type: SnackType.error,
           );
         }
       },

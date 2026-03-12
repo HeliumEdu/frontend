@@ -106,7 +106,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
       BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthProfileError) {
-            showSnackBar(context, state.message!, isError: true);
+            showSnackBar(context, state.message!, type: SnackType.error);
           } else if (state is AuthProfileFetched) {
             _populateInitialStateData(state);
           } else if (state is AuthProfileUpdated) {

@@ -121,7 +121,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
               showSnackBar(
                 context,
                 'Registration succeeded, but we could not load your email. Please log in to continue.',
-                isError: true,
+                type: SnackType.error,
                 seconds: 6,
               );
               return;
@@ -132,7 +132,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
               '${AppRoute.verifyEmailScreen}?email=${Uri.encodeComponent(email)}',
             );
           } else if (state is AuthError) {
-            showSnackBar(context, state.message!, isError: true, seconds: 6);
+            showSnackBar(context, state.message!, type: SnackType.error, seconds: 6);
           }
 
           if (state is! AuthLoading && state is! AuthLoggedIn) {
@@ -467,7 +467,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
         showSnackBar(
           context,
           'You must agree to Terms of Service and Privacy Policy',
-          isError: true,
+          type: SnackType.error,
           seconds: 4,
         );
         return;

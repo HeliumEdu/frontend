@@ -530,7 +530,7 @@ class DioClient {
       await clearStorage();
       final context = rootNavigatorKey.currentContext;
       if (context != null && context.mounted) {
-        SnackBarHelper.show(context, message, seconds: 4, isError: true);
+        SnackBarHelper.show(context, message, seconds: 4, type: SnackType.error);
 
         router.go(AppRoute.loginScreen);
       }

@@ -16,6 +16,7 @@ import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_c
 import 'package:heliumapp/presentation/features/resources/widgets/resource_details.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/snack_bar_helpers.dart';
 
 /// Shows resource add/edit as a dialog on desktop, or navigates on mobile
 void showResourceAdd(
@@ -102,7 +103,7 @@ class _ResourceAddScreenState
       BlocListener<ResourceBloc, ResourceState>(
         listener: (context, state) {
           if (state is ResourcesError) {
-            showSnackBar(context, state.message!, isError: true);
+            showSnackBar(context, state.message!, type: SnackType.error);
             setState(() => isSubmitting = false);
           } else if (state is ResourceCreated ||
               state is ResourceUpdated) {

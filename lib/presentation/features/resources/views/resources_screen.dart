@@ -94,7 +94,7 @@ class _ResourcesScreenState
         isEdit: false,
       );
     } else {
-      showSnackBar(context, 'Create a group first', isError: true);
+      showSnackBar(context, 'Create a group first', type: SnackType.info);
     }
   };
 
