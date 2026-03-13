@@ -8,6 +8,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
+import 'package:heliumapp/presentation/features/notes/bloc/note_bloc.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
 
 abstract class RouteArgs {
@@ -80,5 +81,27 @@ class ResourceAddArgs extends RouteArgs {
   @override
   List<BlocProvider>? toProviders() {
     return [BlocProvider<ResourceBloc>.value(value: resourceBloc)];
+  }
+}
+
+class NoteAddArgs extends RouteArgs {
+  final NoteBloc? noteBloc;
+  final int? noteId;
+  final int? homeworkId;
+  final int? eventId;
+  final int? materialId;
+
+  const NoteAddArgs({
+    this.noteBloc,
+    this.noteId,
+    this.homeworkId,
+    this.eventId,
+    this.materialId,
+  });
+
+  @override
+  List<BlocProvider>? toProviders() {
+    if (noteBloc == null) return null;
+    return [BlocProvider<NoteBloc>.value(value: noteBloc!)];
   }
 }

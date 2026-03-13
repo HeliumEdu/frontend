@@ -9,6 +9,7 @@ import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
+import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
@@ -144,6 +145,10 @@ class Sort {
 
   static void byTitle(List<BaseTitledModel> list) {
     list.sort((a, b) => a.title.compareTo(b.title));
+  }
+
+  static void byUpdatedAt(List<NoteModel> list) {
+    list.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
   }
 
   static void byStartDate(List<CourseGroupModel> list) {

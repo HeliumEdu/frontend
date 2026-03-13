@@ -13,9 +13,11 @@ import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
+import 'package:heliumapp/data/models/planner/homework_model.dart' show LinkedNoteRef;
 
 class EventModel extends PlannerItemBaseModel {
   final String? ownerId;
+  final LinkedNoteRef? linkedNote;
 
   EventModel({
     required super.id,
@@ -32,6 +34,7 @@ class EventModel extends PlannerItemBaseModel {
     required super.reminders,
     required super.color,
     this.ownerId,
+    this.linkedNote,
   }) : super(plannerItemType: PlannerItemType.event);
 
   factory EventModel.fromJson(Map<String, dynamic> json) {
@@ -56,6 +59,7 @@ class EventModel extends PlannerItemBaseModel {
       color: json['color'] != null
           ? HeliumColors.hexToColor(json['color'])
           : null,
+      linkedNote: json['note'] != null ? LinkedNoteRef.fromJson(json['note']) : null,
     );
   }
 
@@ -84,6 +88,7 @@ class EventModel extends PlannerItemBaseModel {
     List<IdOrEntity<ReminderModel>>? reminders,
     Color? color,
     String? ownerId,
+    LinkedNoteRef? linkedNote,
   }) {
     return EventModel(
       id: id ?? this.id,
@@ -100,6 +105,7 @@ class EventModel extends PlannerItemBaseModel {
       reminders: reminders ?? this.reminders,
       color: color ?? this.color,
       ownerId: ownerId ?? this.ownerId,
+      linkedNote: linkedNote ?? this.linkedNote,
     );
   }
 }

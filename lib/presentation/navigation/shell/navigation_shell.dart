@@ -26,6 +26,7 @@ import 'package:heliumapp/presentation/features/courses/views/courses_screen.dar
 import 'package:heliumapp/presentation/features/grades/views/grades_screen.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_screen.dart';
 import 'package:heliumapp/presentation/features/resources/views/resources_screen.dart';
+import 'package:heliumapp/presentation/features/notes/views/notebook_screen.dart';
 import 'package:heliumapp/presentation/ui/components/settings_button.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
@@ -85,6 +86,7 @@ class NavigationShellProvider extends InheritedWidget {
 
 enum NavigationPage {
   planner('Planner', Icons.calendar_month, AppRoute.plannerScreen),
+  notes('Notebook', Icons.library_books, AppRoute.notesScreen),
   courses('Classes', Icons.school, AppRoute.coursesScreen),
   resources('Resources', Icons.book, AppRoute.resourcesScreen),
   grades('Grades', Icons.bar_chart, AppRoute.gradesScreen);
@@ -107,6 +109,8 @@ enum NavigationPage {
     switch (this) {
       case NavigationPage.planner:
         return PlannerScreen();
+      case NavigationPage.notes:
+        return NotebookScreen();
       case NavigationPage.courses:
         return CoursesScreen();
       case NavigationPage.resources:

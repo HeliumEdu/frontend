@@ -6,6 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:heliumapp/data/models/base_model.dart';
+import 'package:heliumapp/data/models/planner/homework_model.dart' show LinkedNoteRef;
 
 class ResourceModel extends BaseTitledModel {
   final int status;
@@ -17,6 +18,7 @@ class ResourceModel extends BaseTitledModel {
   final Map<String, dynamic>? notes;
   final int resourceGroup;
   final List<int> courses;
+  final LinkedNoteRef? linkedNote;
 
   ResourceModel({
     required super.id,
@@ -30,6 +32,7 @@ class ResourceModel extends BaseTitledModel {
     this.notes,
     required this.resourceGroup,
     required this.courses,
+    this.linkedNote,
   });
 
   factory ResourceModel.fromJson(Map<String, dynamic> json) {
@@ -47,6 +50,7 @@ class ResourceModel extends BaseTitledModel {
       notes: json['notes'] != null ? Map<String, dynamic>.from(json['notes']) : null,
       resourceGroup: json['material_group'],
       courses: json['courses'] != null ? List<int>.from(json['courses']) : [],
+      linkedNote: json['note'] != null ? LinkedNoteRef.fromJson(json['note']) : null,
     );
   }
 

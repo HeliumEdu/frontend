@@ -10,6 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:go_router/go_router.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
@@ -17,7 +19,7 @@ import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
-import 'package:heliumapp/data/models/planner/homework_model.dart';
+import 'package:heliumapp/data/models/planner/homework_model.dart' show HomeworkModel, LinkedNoteRef;
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
@@ -41,7 +43,6 @@ import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
-import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
@@ -311,6 +312,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                   NotesEditor(
                     key: ObjectKey(_formController.notesController),
                     controller: _formController.notesController,
+                    onOpenInNotes: widget.isEdit ? _openInNotes : null,
                   ),
                   const SizedBox(height: 12),
                 ],
@@ -721,12 +723,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
             document: Document.fromJson(plannerItem.notes!['ops'] as List),
             selection: const TextSelection.collapsed(offset: 0),
           );
-        } else if (plannerItem.comments.isNotEmpty) {
-          // TODO: Remove once `comments` is retired — pre-populate from legacy HTML
-          _formController.notesController = QuillController(
-            document: htmlToQuillDocument(plannerItem.comments),
-            selection: const TextSelection.collapsed(offset: 0),
-          );
         } else {
           _formController.notesController = QuillController.basic();
         }
@@ -1127,6 +1123,27 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     final updated = List<int>.from(_formController.selectedResources)
       ..remove(id);
     _updateSelectedResources(updated);
+  }
+
+  void _openInNotes() {
+    // Check if there's already a linked note
+    final LinkedNoteRef? linkedNote;
+    if (_plannerItem is HomeworkModel) {
+      linkedNote = (_plannerItem as HomeworkModel).linkedNote;
+    } else if (_plannerItem is EventModel) {
+      linkedNote = (_plannerItem as EventModel).linkedNote;
+    } else {
+      linkedNote = null;
+    }
+
+    if (linkedNote != null) {
+      // Open existing note
+      context.push('${AppRoute.noteEditScreen}?id=${linkedNote.id}');
+    } else {
+      // Create new note linked to this entity
+      final param = _isEvent ? 'event_id' : 'homework_id';
+      context.push('${AppRoute.noteEditScreen}?$param=${_plannerItem!.id}');
+    }
   }
 
   void _onDelete() {

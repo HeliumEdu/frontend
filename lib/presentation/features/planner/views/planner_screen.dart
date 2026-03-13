@@ -177,7 +177,6 @@ class _CalendarScreenState
   late final CalendarController _calendarController;
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
-  Timer? _searchTypingTimer;
   final ScrollController _monthViewScrollController = ScrollController();
 
   final GlobalKey _todayButtonKey = GlobalKey();
@@ -266,7 +265,6 @@ class _CalendarScreenState
     _todosController.dispose();
     _searchController.dispose();
     _searchFocusNode.dispose();
-    _searchTypingTimer?.cancel();
     _monthViewScrollController.dispose();
     super.dispose();
   }
@@ -1184,29 +1182,20 @@ class _CalendarScreenState
         final showContent = constraints.maxWidth > 200;
 
         return ClipRect(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(6),
-              color: context.colorScheme.surface,
-            ),
-            child: showContent
-                ? Row(
-                    children: [
-                      Icon(
-                        Icons.search,
-                        color: context.colorScheme.primary,
-                        size: Responsive.getIconSize(
-                          context,
-                          mobile: 20,
-                          tablet: 22,
-                          desktop: 24,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(minWidth: 0),
+          child: showContent
+              ? Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 40,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: context.colorScheme.surface,
+                            border: Border.all(
+                              color: context.colorScheme.outline.withValues(alpha: 0.2),
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                           child: TextField(
                             controller: _searchController,
                             focusNode: _searchFocusNode,
@@ -1215,79 +1204,71 @@ class _CalendarScreenState
                             style: AppStyles.formText(context),
                             decoration: InputDecoration(
                               hintText: 'Search ...',
-                              hintStyle: AppStyles.formLabel(context).copyWith(
-                                color: context.colorScheme.onSurface.withValues(
-                                  alpha: 0.3,
-                                ),
+                              hintStyle: AppStyles.formHint(context),
+                              prefixIcon: Icon(
+                                Icons.search,
+                                color: context.colorScheme.onSurface.withValues(alpha: 0.4),
                               ),
                               border: InputBorder.none,
                               enabledBorder: InputBorder.none,
                               focusedBorder: InputBorder.none,
-                              errorBorder: InputBorder.none,
-                              focusedErrorBorder: InputBorder.none,
                               isDense: true,
-                              contentPadding: EdgeInsets.zero,
-                            ),
-                          ),
-                        ),
-                      ),
-                      ValueListenableBuilder<TextEditingValue>(
-                        valueListenable: _searchController,
-                        builder: (context, value, _) {
-                          if (value.text.isEmpty) return const SizedBox.shrink();
-                          return IconButton(
-                            onPressed: () {
-                              _searchController.clear();
-                              _searchTypingTimer?.cancel();
-                              _plannerItemDataSource?.setSearchQuery('');
-                            },
-                            icon: Icon(
-                              Icons.close,
-                              color: context.colorScheme.primary,
-                              size: Responsive.getIconSize(
-                                context,
-                                mobile: 18,
-                                tablet: 18,
-                                desktop: 18,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 10,
+                              ),
+                              suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                                valueListenable: _searchController,
+                                builder: (context, value, _) {
+                                  if (value.text.isEmpty) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  return IconButton(
+                                    onPressed: () {
+                                      _searchController.clear();
+                                      _plannerItemDataSource?.setSearchQuery('');
+                                    },
+                                    icon: Icon(
+                                      Icons.close,
+                                      size: 20,
+                                      color: context.colorScheme.onSurface.withValues(alpha: 0.4),
+                                    ),
+                                    tooltip: 'Clear',
+                                  );
+                                },
                               ),
                             ),
-                            tooltip: 'Clear',
-                            style: IconButton.styleFrom(
-                              backgroundColor: context.colorScheme.surface,
-                            ),
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                          );
-                        },
-                      ),
-                      if (showCloseButton) ...[
-                        const SizedBox(width: 4),
-                        IconButton(
-                          onPressed: () {
-                            setState(() {
-                              _isSearchExpanded = false;
-                              _searchFocusNode.unfocus();
-                            });
-                          },
-                          icon: Icon(
-                            Icons.keyboard_arrow_right,
-                            color: context.colorScheme.primary,
-                            size: Responsive.getIconSize(
-                              context,
-                              mobile: 20,
-                              tablet: 22,
-                              desktop: 24,
-                            ),
                           ),
-                          tooltip: 'Collapse',
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
                         ),
-                      ],
+                      ),
+                    ),
+                    if (showCloseButton) ...[
+                      const SizedBox(width: 4),
+                      IconButton(
+                        onPressed: () {
+                          setState(() {
+                            _isSearchExpanded = false;
+                            _searchFocusNode.unfocus();
+                          });
+                        },
+                        icon: Icon(
+                          Icons.keyboard_arrow_right,
+                          color: context.colorScheme.primary,
+                          size: Responsive.getIconSize(
+                            context,
+                            mobile: 20,
+                            tablet: 22,
+                            desktop: 24,
+                          ),
+                        ),
+                        tooltip: 'Collapse',
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
                     ],
-                  )
-                : const SizedBox.shrink(),
-          ),
+                  ],
+                )
+              : const SizedBox.shrink(),
         );
       },
       ),
@@ -1605,13 +1586,7 @@ class _CalendarScreenState
   }
 
   void _onSearchTextFieldChanged(String value) {
-    if (_searchTypingTimer?.isActive ?? false) {
-      _searchTypingTimer!.cancel();
-    }
-
-    _searchTypingTimer = Timer(const Duration(milliseconds: 500), () {
-      _plannerItemDataSource!.setSearchQuery(value);
-    });
+    _plannerItemDataSource!.setSearchQuery(value);
   }
 
   void _openCalendarItem(CalendarTapDetails tapDetails) {
@@ -3129,7 +3104,7 @@ class _CalendarScreenState
                     children: [
                       Icon(
                         AppConstants.assignmentIcon,
-                        size: 12,
+                        size: 18,
                         color: context.colorScheme.onSurface,
                       ),
                       const SizedBox(width: 8),
@@ -3167,7 +3142,7 @@ class _CalendarScreenState
                     children: [
                       Icon(
                         AppConstants.eventIcon,
-                        size: 12,
+                        size: 18,
                         color: userSettings!.eventsColor,
                       ),
                       const SizedBox(width: 8),
@@ -3205,7 +3180,7 @@ class _CalendarScreenState
                     children: [
                       Icon(
                         AppConstants.courseScheduleIcon,
-                        size: 12,
+                        size: 18,
                         color: context.colorScheme.onSurface,
                       ),
                       const SizedBox(width: 8),
@@ -3247,7 +3222,7 @@ class _CalendarScreenState
                     children: [
                       Icon(
                         AppConstants.externalCalendarIcon,
-                        size: 12,
+                        size: 18,
                         color: context.colorScheme.onSurface,
                       ),
                       const SizedBox(width: 8),

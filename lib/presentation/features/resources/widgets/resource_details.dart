@@ -9,9 +9,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:go_router/go_router.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
+import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/data/models/planner/request/resource_request_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
@@ -57,6 +59,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
 
   // State
   List<CourseModel> _courses = [];
+  ResourceModel? _resource;
   bool isLoading = true;
 
   @override
@@ -254,6 +257,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
                   NotesEditor(
                     key: ObjectKey(_formController.notesController),
                     controller: _formController.notesController,
+                    onOpenInNotes: widget.isEdit ? _openInNotes : null,
                   ),
                   const SizedBox(height: 12),
                 ],
@@ -268,6 +272,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
   void _populateInitialStateData(ResourceScreenDataFetched state) {
     setState(() {
       _courses = state.courses;
+      _resource = state.resource;
       Sort.byTitle(_courses);
 
       if (widget.isEdit) {
@@ -279,13 +284,6 @@ class ResourceDetailsState extends State<ResourceDetails> {
         if (state.resource!.notes != null) {
           _formController.notesController = QuillController(
             document: Document.fromJson(state.resource!.notes!['ops'] as List),
-            selection: const TextSelection.collapsed(offset: 0),
-          );
-        } else if (state.resource!.details != null &&
-            state.resource!.details!.isNotEmpty) {
-          // TODO: Remove once `details` is retired — pre-populate from legacy HTML
-          _formController.notesController = QuillController(
-            document: htmlToQuillDocument(state.resource!.details!),
             selection: const TextSelection.collapsed(offset: 0),
           );
         } else {
@@ -311,6 +309,16 @@ class ResourceDetailsState extends State<ResourceDetails> {
       return null;
     }
     return {'ops': ops};
+  }
+
+  void _openInNotes() {
+    if (_resource?.linkedNote != null) {
+      // Open existing note
+      context.push('${AppRoute.noteEditScreen}?id=${_resource!.linkedNote!.id}');
+    } else if (_resource != null) {
+      // Create new note linked to this material
+      context.push('${AppRoute.noteEditScreen}?material_id=${_resource!.id}');
+    }
   }
 
   Future<void> onSubmit() async {

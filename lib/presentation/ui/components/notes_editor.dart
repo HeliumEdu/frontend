@@ -13,8 +13,13 @@ import 'package:heliumapp/utils/app_style.dart';
 
 class NotesEditor extends StatelessWidget {
   final QuillController controller;
+  final VoidCallback? onOpenInNotes;
 
-  const NotesEditor({super.key, required this.controller});
+  const NotesEditor({
+    super.key,
+    required this.controller,
+    this.onOpenInNotes,
+  });
 
   static Future<void> _showColorPicker(
     BuildContext context,
@@ -54,7 +59,33 @@ class NotesEditor extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Notes', style: AppStyles.formLabel(context)),
+        Row(
+          children: [
+            Text('Notes', style: AppStyles.formLabel(context)),
+            const Spacer(),
+            if (onOpenInNotes != null)
+              TextButton.icon(
+                onPressed: onOpenInNotes,
+                icon: Icon(
+                  Icons.open_in_new,
+                  size: 16,
+                  color: context.colorScheme.primary,
+                ),
+                label: Text(
+                  'Open in Notebook',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: context.colorScheme.primary,
+                  ),
+                ),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              ),
+          ],
+        ),
         const SizedBox(height: 9),
         Container(
           decoration: BoxDecoration(

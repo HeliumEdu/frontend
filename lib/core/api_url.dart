@@ -61,6 +61,7 @@ class ApiUrl {
   static const plannerResourcesListUrl = '/planner/materials/';
   static const plannerHomeworkListUrl = '/planner/homework/';
   static const plannerEventsListUrl = '/planner/events/';
+  static const plannerNotesListUrl = '/planner/notes/';
   static const feedExternalCalendarsEventsListUrl =
       '/feed/externalcalendars/events/';
   static const plannerRemindersListUrl = '/planner/reminders/';
@@ -76,6 +77,9 @@ class ApiUrl {
 
   static String plannerEventsDetailsUrl(int eventId) =>
       '/planner/events/$eventId/';
+
+  static String plannerNotesDetailsUrl(int noteId) =>
+      '/planner/notes/$noteId/';
 
   static String plannerRemindersDetailsUrl(int reminderId) =>
       '/planner/reminders/$reminderId/';

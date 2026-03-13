@@ -17,6 +17,8 @@ class AppRoute {
 
   // Authenticated routes
   static const String plannerScreen = '/planner';
+  static const String notesScreen = '/notebook';
+  static const String noteEditScreen = '/notebook/edit';
   static const String coursesScreen = '/classes';
   static const String resourcesScreen = '/resources';
   static const String gradesScreen = '/grades';

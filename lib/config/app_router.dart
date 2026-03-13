@@ -25,6 +25,9 @@ import 'package:heliumapp/presentation/features/auth/views/signup_screen.dart';
 import 'package:heliumapp/presentation/features/auth/views/verify_email_screen.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/views/course_add_screen.dart';
+import 'package:heliumapp/presentation/features/notes/bloc/note_bloc.dart';
+import 'package:heliumapp/data/repositories/note_repository_impl.dart';
+import 'package:heliumapp/data/sources/note_remote_data_source.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
@@ -36,6 +39,7 @@ import 'package:heliumapp/presentation/features/settings/views/feeds_screen.dart
 import 'package:heliumapp/presentation/features/settings/views/import_export_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/preferences_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/settings_screen.dart';
+import 'package:heliumapp/presentation/features/notes/views/note_add_screen.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
@@ -117,6 +121,12 @@ void initializeRouter() {
             path: AppRoute.plannerScreen,
             pageBuilder: (context, state) => const NoTransitionPage(
               child: NavigationShellContent(page: NavigationPage.planner),
+            ),
+          ),
+          GoRoute(
+            path: AppRoute.notesScreen,
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: NavigationShellContent(page: NavigationPage.notes),
             ),
           ),
           GoRoute(
@@ -231,6 +241,66 @@ void initializeRouter() {
                 resourceId: args.resourceId,
                 isEdit: args.isEdit,
                 isNew: !args.isEdit,
+              ),
+            ),
+          );
+        },
+      ),
+
+      // Note edit route (outside shell for full-screen editing)
+      GoRoute(
+        path: AppRoute.noteEditScreen,
+        parentNavigatorKey: rootNavigatorKey,
+        pageBuilder: (context, state) {
+          final args = state.extra as NoteAddArgs?;
+
+          // When navigating from notebook_screen with shared bloc
+          if (args?.noteBloc != null) {
+            return MaterialPage(
+              child: BlocProvider<NoteBloc>.value(
+                value: args!.noteBloc!,
+                child: NoteAddScreen(
+                  noteId: args.noteId,
+                  homeworkId: args.homeworkId,
+                  eventId: args.eventId,
+                  materialId: args.materialId,
+                ),
+              ),
+            );
+          }
+
+          // When navigating from other screens (resource_details, planner_item_details),
+          // parse query params and create a standalone bloc
+          final noteIdParam = state.uri.queryParameters['id'];
+          final homeworkIdParam = state.uri.queryParameters['homework_id'];
+          final eventIdParam = state.uri.queryParameters['event_id'];
+          final materialIdParam = state.uri.queryParameters['material_id'];
+
+          // Redirect to notebook if accessed directly via URL without any context
+          if (args == null &&
+              noteIdParam == null &&
+              homeworkIdParam == null &&
+              eventIdParam == null &&
+              materialIdParam == null) {
+            return const MaterialPage(
+              child: _RouteRedirect(redirectTo: AppRoute.notesScreen),
+            );
+          }
+
+          return MaterialPage(
+            child: BlocProvider<NoteBloc>(
+              create: (context) => NoteBloc(
+                noteRepository: NoteRepositoryImpl(
+                  remoteDataSource: NoteRemoteDataSourceImpl(
+                    dioClient: DioClient(),
+                  ),
+                ),
+              ),
+              child: NoteAddScreen(
+                noteId: noteIdParam != null ? int.tryParse(noteIdParam) : null,
+                homeworkId: homeworkIdParam != null ? int.tryParse(homeworkIdParam) : null,
+                eventId: eventIdParam != null ? int.tryParse(eventIdParam) : null,
+                materialId: materialIdParam != null ? int.tryParse(materialIdParam) : null,
               ),
             ),
           );
