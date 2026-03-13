@@ -464,5 +464,77 @@ void main() {
     // Note: Emulator and test device filtering is now handled natively on Android
     // (see HeliumApplication.kt). Sentry won't initialize on those devices,
     // so no Dart-level tests are needed for that functionality.
+
+    group('Apple development device filtering', () {
+      test('Filters events from Apple DEVELOPMENT kernel', () {
+        final event = SentryEvent(
+          exceptions: [
+            SentryException(
+              type: 'WatchdogTermination',
+              value:
+                  'The OS watchdog terminated your app, possibly because it overused RAM.',
+            ),
+          ],
+          contexts: Contexts(
+            operatingSystem: SentryOperatingSystem(
+              kernelVersion:
+                  'Darwin Kernel Version 25.3.0: Mon Jan 26 21:56:52 PST 2026; root:xnu_development-12377.82.2~2/DEVELOPMENT_ARM64_T8140',
+            ),
+          ),
+        );
+
+        expect(SentryService.shouldFilterEvent(event), isTrue,
+            reason: 'Events from Apple development devices should be filtered');
+      });
+
+      test('Filters events with lowercase development in kernel', () {
+        final event = SentryEvent(
+          contexts: Contexts(
+            operatingSystem: SentryOperatingSystem(
+              kernelVersion: 'xnu_development-12345/development_ARM64',
+            ),
+          ),
+        );
+
+        expect(SentryService.shouldFilterEvent(event), isTrue,
+            reason: 'Case insensitive matching for development kernel');
+      });
+
+      test('Does not filter events from release kernel', () {
+        final event = SentryEvent(
+          exceptions: [
+            SentryException(
+              type: 'WatchdogTermination',
+              value:
+                  'The OS watchdog terminated your app, possibly because it overused RAM.',
+            ),
+          ],
+          contexts: Contexts(
+            operatingSystem: SentryOperatingSystem(
+              kernelVersion:
+                  'Darwin Kernel Version 25.3.0: Mon Jan 26 20:58:26 PST 2026; root:xnu-12377.82.2~2/RELEASE_ARM64_T8103',
+            ),
+          ),
+        );
+
+        expect(SentryService.shouldFilterEvent(event), isFalse,
+            reason: 'Events from release kernels should NOT be filtered');
+      });
+
+      test('Does not filter when no OS context present', () {
+        final event = SentryEvent(
+          exceptions: [
+            SentryException(
+              type: 'WatchdogTermination',
+              value:
+                  'The OS watchdog terminated your app, possibly because it overused RAM.',
+            ),
+          ],
+        );
+
+        expect(SentryService.shouldFilterEvent(event), isFalse,
+            reason: 'Events without OS context should not be filtered by this rule');
+      });
+    });
   });
 }

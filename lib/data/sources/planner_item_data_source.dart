@@ -812,10 +812,14 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     Sort.byStartThenTitle(appointments!.cast<PlannerItemBaseModel>());
     _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
 
-    if (!_isDisposed) {
+    // Defer notification to avoid triggering rebuild during paint phase.
+    // Syncfusion's _SelectionPainter crashes (NoSuchMethodError on null check)
+    // if notifyListeners is called while a repaint is already in progress.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_isDisposed) return;
       notifyListeners(CalendarDataSourceAction.reset, appointments!);
-    }
-    _notifyChangeListeners();
+      _notifyChangeListeners();
+    });
   }
 
   void clearTimeOverride(int itemId) {

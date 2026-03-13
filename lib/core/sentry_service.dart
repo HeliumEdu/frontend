@@ -141,6 +141,17 @@ class SentryService {
     // Note: Emulator/test farm detection is handled natively on Android
     // (see HeliumApplication.kt). Sentry won't initialize on those devices.
 
+    // Filter Apple internal/development devices (e.g., App Review infrastructure).
+    // These have DEVELOPMENT kernels that regular users cannot access.
+    final osContext = event.contexts.operatingSystem;
+    if (osContext != null) {
+      final kernelVersion = (osContext.kernelVersion ?? '').toLowerCase();
+      if (kernelVersion.contains('development')) {
+        _log.info('Filtered event from Sentry (Apple development device)');
+        return true;
+      }
+    }
+
     // Check the exception types in the event
     if (event.exceptions != null) {
       for (final exception in event.exceptions!) {
