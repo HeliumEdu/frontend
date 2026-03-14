@@ -29,6 +29,7 @@ import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_d
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 
 class NotebookScreen extends StatelessWidget {
@@ -244,19 +245,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
   }
 
   void _openFilterMenu(BuildContext context) {
-    final RenderBox button = context.findRenderObject() as RenderBox;
-    final RenderBox overlay =
-        Overlay.of(context).context.findRenderObject() as RenderBox;
-    final RelativeRect position = RelativeRect.fromRect(
-      Rect.fromPoints(
-        button.localToGlobal(Offset.zero, ancestor: overlay),
-        button.localToGlobal(
-          button.size.bottomRight(Offset.zero),
-          ancestor: overlay,
-        ),
-      ),
-      Offset.zero & overlay.size,
-    );
+    final isMobile = Responsive.isMobile(context);
 
     Widget buildContent(BuildContext context, StateSetter setMenuState) {
       final filterOptions = [
@@ -287,7 +276,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
       ];
 
       return Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.fromLTRB(16, 16, 16, isMobile ? 32 : 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -352,19 +341,45 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
       );
     }
 
-    showMenu(
-      context: context,
-      position: position,
-      color: context.colorScheme.surface,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      items: [
-        PopupMenuItem(
-          enabled: false,
-          padding: EdgeInsets.zero,
-          child: StatefulBuilder(builder: buildContent),
+    if (isMobile) {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: context.colorScheme.surface,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
         ),
-      ],
-    );
+        builder: (context) => StatefulBuilder(builder: buildContent),
+      );
+    } else {
+      final RenderBox button = context.findRenderObject() as RenderBox;
+      final RenderBox overlay =
+          Overlay.of(context).context.findRenderObject() as RenderBox;
+      final RelativeRect position = RelativeRect.fromRect(
+        Rect.fromPoints(
+          button.localToGlobal(Offset.zero, ancestor: overlay),
+          button.localToGlobal(
+            button.size.bottomRight(Offset.zero),
+            ancestor: overlay,
+          ),
+        ),
+        Offset.zero & overlay.size,
+      );
+
+      showMenu(
+        context: context,
+        position: position,
+        color: context.colorScheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        items: [
+          PopupMenuItem(
+            enabled: false,
+            padding: EdgeInsets.zero,
+            child: StatefulBuilder(builder: buildContent),
+          ),
+        ],
+      );
+    }
   }
 
   @override
