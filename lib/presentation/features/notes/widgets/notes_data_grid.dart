@@ -63,7 +63,13 @@ class _NotesDataGridState extends State<NotesDataGrid> {
         oldWidget.userSettings != widget.userSettings ||
         oldWidget.onNoteTap != widget.onNoteTap ||
         oldWidget.onDelete != widget.onDelete) {
-      _dataSource = _buildDataSource();
+      _dataSource.update(
+        notes: widget.notes,
+        context: context,
+        userSettings: widget.userSettings,
+        onEdit: widget.onNoteTap,
+        onDelete: widget.onDelete,
+      );
     }
   }
 
@@ -132,7 +138,6 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                     data: SfDataGridThemeData(
                       sortIconColor: context.colorScheme.primary,
                       headerColor: headerColor,
-                      gridLineColor: context.colorScheme.outline.withValues(alpha: 0.1),
                     ),
                     child: SfDataGrid(
                       key: ValueKey('notes_grid_${showLinkedTo}_${showActions}_${isCompact}'),
@@ -141,7 +146,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                       columnWidthMode: ColumnWidthMode.fill,
                       headerRowHeight: 40,
                       rowHeight: 56,
-                      gridLinesVisibility: GridLinesVisibility.horizontal,
+                      gridLinesVisibility: GridLinesVisibility.none,
                       headerGridLinesVisibility: GridLinesVisibility.none,
                       selectionMode: SelectionMode.none,
                       horizontalScrollPhysics: const NeverScrollableScrollPhysics(),
@@ -273,11 +278,11 @@ class _NotesDataGridState extends State<NotesDataGrid> {
 }
 
 class NotesDataSource extends DataGridSource {
-  final List<NoteModel> notes;
-  final BuildContext context;
-  final UserSettingsModel? userSettings;
-  final Function(NoteModel) onEdit;
-  final Function(BuildContext, NoteModel) onDelete;
+  List<NoteModel> notes;
+  BuildContext context;
+  UserSettingsModel? userSettings;
+  Function(NoteModel) onEdit;
+  Function(BuildContext, NoteModel) onDelete;
   List<DataGridRow> _dataGridRows = [];
   late List<DataGridRow> _allRows;
   late Map<int, NoteModel> _notesById;
@@ -289,6 +294,16 @@ class NotesDataSource extends DataGridSource {
     required this.onDelete,
     this.userSettings,
   }) {
+    _rebuildRows();
+    sortedColumns.add(
+      const SortColumnDetails(
+        name: 'title',
+        sortDirection: DataGridSortDirection.ascending,
+      ),
+    );
+  }
+
+  void _rebuildRows() {
     _notesById = {for (var note in notes) note.id: note};
     _allRows = notes.map((note) {
       return DataGridRow(cells: [
@@ -311,13 +326,22 @@ class NotesDataSource extends DataGridSource {
       ]);
     }).toList();
     _dataGridRows = _allRows;
-    // Set initial sort by title
-    sortedColumns.add(
-      const SortColumnDetails(
-        name: 'title',
-        sortDirection: DataGridSortDirection.ascending,
-      ),
-    );
+  }
+
+  void update({
+    required List<NoteModel> notes,
+    required BuildContext context,
+    required Function(NoteModel) onEdit,
+    required Function(BuildContext, NoteModel) onDelete,
+    UserSettingsModel? userSettings,
+  }) {
+    this.notes = notes;
+    this.context = context;
+    this.userSettings = userSettings;
+    this.onEdit = onEdit;
+    this.onDelete = onDelete;
+    _rebuildRows();
+    notifyListeners();
   }
 
   @override
@@ -373,7 +397,16 @@ class NotesDataSource extends DataGridSource {
           : null,
       cells: displayCells.map((cell) => MouseRegion(
         cursor: rowCursor,
-        child: _buildCell(cell, rowColor, entityType),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: context.colorScheme.outline.withValues(alpha: 0.1),
+              ),
+            ),
+          ),
+          child: _buildCell(cell, rowColor, entityType),
+        ),
       )).toList(),
     );
   }
