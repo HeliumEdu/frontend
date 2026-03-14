@@ -11,6 +11,7 @@ import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_pager.dart';
+import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
@@ -26,6 +27,7 @@ class NotesDataGrid extends StatefulWidget {
   final UserSettingsModel? userSettings;
   final int rowsPerPage;
   final Function(int)? onRowsPerPageChanged;
+  final bool isLoading;
 
   const NotesDataGrid({
     super.key,
@@ -35,6 +37,7 @@ class NotesDataGrid extends StatefulWidget {
     this.userSettings,
     this.rowsPerPage = 10,
     this.onRowsPerPageChanged,
+    this.isLoading = false,
   });
 
   @override
@@ -105,138 +108,151 @@ class _NotesDataGridState extends State<NotesDataGrid> {
     final headerColor = context.colorScheme.surfaceContainerHighest
         .withValues(alpha: 0.5);
 
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: context.colorScheme.outline.withValues(alpha: 0.2),
-        ),
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(8),
-          topRight: Radius.circular(8),
-        ),
-      ),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(8),
-          topRight: Radius.circular(8),
-        ),
-        child: Column(
-          children: [
-            Expanded(
-              child: SfDataGridTheme(
-                data: SfDataGridThemeData(
-                  sortIconColor: context.colorScheme.primary,
-                  headerColor: headerColor,
-                ),
-                child: SfDataGrid(
-                  key: ValueKey('notes_grid_${showLinkedTo}_${showActions}_${isCompact}'),
-                  source: _dataSource,
-                  controller: _controller,
-                  columnWidthMode: ColumnWidthMode.fill,
-                  headerRowHeight: 40,
-                  rowHeight: 56,
-                  gridLinesVisibility: GridLinesVisibility.none,
-                  headerGridLinesVisibility: GridLinesVisibility.none,
-                  selectionMode: SelectionMode.none,
-                  horizontalScrollPhysics: const NeverScrollableScrollPhysics(),
-                  navigationMode: GridNavigationMode.row,
-                  allowSorting: true,
-                  sortingGestureType: SortingGestureType.tap,
-                  rowsPerPage: widget.rowsPerPage == -1 ? null : widget.rowsPerPage,
-                  allowSwiping: isTouchDevice,
-                  swipeMaxOffset: 80,
-                  onSwipeEnd: (details) {
-                    if (details.swipeDirection ==
-                        DataGridRowSwipeDirection.endToStart) {
-                      final rowIndex = details.rowIndex;
-                      final note = _dataSource.getNoteAtRow(rowIndex);
-                      if (note != null) {
-                        widget.onDelete(context, note);
-                      }
-                    }
-                  },
-                  endSwipeActionsBuilder: (context, row, rowIndex) {
-                    return Container(
-                      color: context.colorScheme.error,
-                      alignment: Alignment.centerRight,
-                      padding: const EdgeInsets.only(right: 24),
-                      child: Icon(
-                        Icons.delete_outline,
-                        color: context.colorScheme.onError,
-                      ),
-                    );
-                  },
-                  onCellTap: (details) {
-                    if (details.rowColumnIndex.rowIndex > 0) {
-                      final rowIndex = details.rowColumnIndex.rowIndex - 1;
-                      final note = _dataSource.getNoteAtRow(rowIndex);
-                      if (note != null && (isTouchDevice || isCompact)) {
-                        widget.onNoteTap(note);
-                      }
-                    }
-                  },
-                  columns: [
-                    GridColumn(
-                      columnName: 'title',
-                      label: _buildHeaderCell('Title'),
-                      minimumWidth: 170,
+    return Stack(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: context.colorScheme.outline.withValues(alpha: 0.2),
+            ),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(8),
+              topRight: Radius.circular(8),
+            ),
+          ),
+          child: ClipRRect(
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(8),
+              topRight: Radius.circular(8),
+            ),
+            child: Column(
+              children: [
+                Expanded(
+                  child: SfDataGridTheme(
+                    data: SfDataGridThemeData(
+                      sortIconColor: context.colorScheme.primary,
+                      headerColor: headerColor,
+                      gridLineColor: context.colorScheme.outline.withValues(alpha: 0.1),
                     ),
-                    if (showLinkedTo)
-                      GridColumn(
-                        columnName: 'linkedTo',
-                        label: _buildHeaderCell('Linked To'),
-                        width: 200,
-                      ),
-                    GridColumn(
-                      columnName: 'modified',
-                      label: _buildHeaderCell('Modified'),
-                      width: 118,
+                    child: SfDataGrid(
+                      key: ValueKey('notes_grid_${showLinkedTo}_${showActions}_${isCompact}'),
+                      source: _dataSource,
+                      controller: _controller,
+                      columnWidthMode: ColumnWidthMode.fill,
+                      headerRowHeight: 40,
+                      rowHeight: 56,
+                      gridLinesVisibility: GridLinesVisibility.horizontal,
+                      headerGridLinesVisibility: GridLinesVisibility.none,
+                      selectionMode: SelectionMode.none,
+                      horizontalScrollPhysics: const NeverScrollableScrollPhysics(),
+                      navigationMode: GridNavigationMode.row,
+                      allowSorting: true,
+                      sortingGestureType: SortingGestureType.tap,
+                      rowsPerPage: widget.rowsPerPage == -1 ? null : widget.rowsPerPage,
+                      allowSwiping: isTouchDevice,
+                      swipeMaxOffset: 80,
+                      onSwipeEnd: (details) {
+                        if (details.swipeDirection ==
+                            DataGridRowSwipeDirection.endToStart) {
+                          final rowIndex = details.rowIndex;
+                          final note = _dataSource.getNoteAtRow(rowIndex);
+                          if (note != null) {
+                            widget.onDelete(context, note);
+                          }
+                        }
+                      },
+                      endSwipeActionsBuilder: (context, row, rowIndex) {
+                        return Container(
+                          color: context.colorScheme.error,
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.only(right: 24),
+                          child: Icon(
+                            Icons.delete_outline,
+                            color: context.colorScheme.onError,
+                          ),
+                        );
+                      },
+                      onCellTap: (details) {
+                        if (details.rowColumnIndex.rowIndex > 0) {
+                          final rowIndex = details.rowColumnIndex.rowIndex - 1;
+                          final note = _dataSource.getNoteAtRow(rowIndex);
+                          if (note != null && (isTouchDevice || isCompact)) {
+                            widget.onNoteTap(note);
+                          }
+                        }
+                      },
+                      columns: [
+                        GridColumn(
+                          columnName: 'title',
+                          label: _buildHeaderCell('Title'),
+                          minimumWidth: 170,
+                        ),
+                        if (showLinkedTo)
+                          GridColumn(
+                            columnName: 'linkedTo',
+                            label: _buildHeaderCell('Linked To'),
+                            width: 200,
+                          ),
+                        GridColumn(
+                          columnName: 'modified',
+                          label: _buildHeaderCell('Modified'),
+                          width: 118,
+                        ),
+                        if (showActions)
+                          GridColumn(
+                            columnName: 'actions',
+                            label: const SizedBox.shrink(),
+                            width: isCompact ? 51 : 93,
+                            allowSorting: false,
+                          ),
+                      ],
                     ),
-                    if (showActions)
-                      GridColumn(
-                        columnName: 'actions',
-                        label: const SizedBox.shrink(),
-                        width: isCompact ? 50 : 90,
-                        allowSorting: false,
-                      ),
-                  ],
+                  ),
                 ),
-              ),
+                SizedBox(
+                  height: 0,
+                  child: SfDataPager(
+                    delegate: _dataSource,
+                    controller: _pagerController,
+                    pageCount: isShowingAll ? 1 : totalPages.toDouble(),
+                  ),
+                ),
+                HeliumPager(
+                  startIndex: startIndex,
+                  endIndex: endIndex,
+                  totalItems: totalItems,
+                  isShowingAll: isShowingAll,
+                  totalPages: totalPages,
+                  currentPage: effectiveCurrentPage,
+                  onPageChanged: (page) {
+                    setState(() { _currentPage = page; });
+                    _pagerController.selectedPageIndex = page - 1;
+                  },
+                  itemsPerPage: widget.rowsPerPage,
+                  itemsPerPageOptions: const [5, 10, 25, 50, 100],
+                  onItemsPerPageChanged: widget.onRowsPerPageChanged != null
+                      ? (value) {
+                          widget.onRowsPerPageChanged!(value);
+                          setState(() { _currentPage = 1; });
+                          _pagerController.selectedPageIndex = 0;
+                        }
+                      : null,
+                ),
+              ],
             ),
-            SizedBox(
-              height: 0,
-              child: SfDataPager(
-                delegate: _dataSource,
-                controller: _pagerController,
-                pageCount: isShowingAll
-                    ? 1
-                    : totalPages.toDouble(),
-              ),
-            ),
-            HeliumPager(
-              startIndex: startIndex,
-              endIndex: endIndex,
-              totalItems: totalItems,
-              isShowingAll: isShowingAll,
-              totalPages: totalPages,
-              currentPage: effectiveCurrentPage,
-              onPageChanged: (page) {
-                setState(() { _currentPage = page; });
-                _pagerController.selectedPageIndex = page - 1;
-              },
-              itemsPerPage: widget.rowsPerPage,
-              itemsPerPageOptions: const [5, 10, 25, 50, 100],
-              onItemsPerPageChanged: widget.onRowsPerPageChanged != null
-                  ? (value) {
-                      widget.onRowsPerPageChanged!(value);
-                      setState(() { _currentPage = 1; });
-                      _pagerController.selectedPageIndex = 0;
-                    }
-                  : null,
-            ),
-          ],
+          ),
         ),
-      ),
+        if (widget.isLoading)
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                color: context.colorScheme.surface.withValues(alpha: 0.7),
+              ),
+              child: const Center(child: LoadingIndicator(expanded: false)),
+            ),
+          ),
+      ],
     );
   }
 

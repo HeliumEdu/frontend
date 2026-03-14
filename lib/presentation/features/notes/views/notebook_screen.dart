@@ -101,7 +101,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
   }
 
   void _checkReadyToShow() {
-    if (_notesReady && _filterStateRestored) {
+    if (_filterStateRestored) {
       setState(() {
         isLoading = false;
       });
@@ -363,9 +363,8 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
           } else if (state is NotesFetched) {
             setState(() {
               _notes = state.notes;
+              _notesReady = true;
             });
-            _notesReady = true;
-            _checkReadyToShow();
           } else if (state is NoteCreated) {
             setState(() {
               _notes.add(state.note);
@@ -489,10 +488,6 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
   Widget buildMainArea(BuildContext context) {
     return BlocBuilder<NoteBloc, NoteState>(
       builder: (context, state) {
-        if (state is NotesLoading) {
-          return const LoadingIndicator();
-        }
-
         if (state is NotesError) {
           return ErrorCard(
             message: state.message!,
@@ -501,9 +496,10 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
           );
         }
 
-        final filteredNotes = _getFilteredNotes();
+        final notesLoading = !_notesReady;
+        final filteredNotes = notesLoading ? <NoteModel>[] : _getFilteredNotes();
 
-        if (filteredNotes.isEmpty) {
+        if (!notesLoading && filteredNotes.isEmpty) {
           return EmptyCard(
             icon: icon,
             message: _searchQuery != null || _filterEntityTypes.isNotEmpty
@@ -515,6 +511,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
         return Expanded(
           child: NotesDataGrid(
             notes: filteredNotes,
+            isLoading: notesLoading,
             onNoteTap: _openNote,
             onDelete: _confirmDeleteNote,
             userSettings: userSettings,
