@@ -118,8 +118,6 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
   List<CourseGroupModel> _courseGroups = [];
   final Map<int, List<CourseModel>> _coursesMap = {};
   int? _selectedGroupId;
-  _PendingCourseDialogOpen? _pendingCourseDialogOpen;
-  bool _pendingDialogNavigating = false;
 
   @override
   void initState() {
@@ -348,59 +346,23 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
       final step = int.tryParse(stepParam ?? '0') ?? 0;
 
       if (courseId != null) {
-        // Find the course in our data
         final course = state.courses.firstWhereOrNull((c) => c.id == courseId);
 
         if (course != null) {
-          _pendingCourseDialogOpen = _PendingCourseDialogOpen(
-            courseGroupId: course.courseGroup,
-            courseId: course.id,
-            step: step,
-          );
-
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (!mounted) return;
-            _openPendingCourseDialogFromQuery();
+            showCourseAdd(
+              context,
+              courseGroupId: course.courseGroup,
+              courseId: course.id,
+              isEdit: true,
+              isNew: false,
+              initialStep: step,
+            );
           });
         }
       }
     }
-  }
-
-  void _openPendingCourseDialogFromQuery() {
-    final pending = _pendingCourseDialogOpen;
-    if (!mounted || pending == null) {
-      return;
-    }
-
-    final queryParams = GoRouterState.of(context).uri.queryParameters;
-    if (queryParams['id'] != null) {
-      // Clear URL query params first. Opening the dialog in the same frame as
-      // this route change can cause dialog listeners to immediately close it.
-      // Only call context.go once — the async router redirect (fetchSettings)
-      // can cause GoRouterState to lag, so we poll until params clear rather
-      // than navigating again on each iteration.
-      if (!_pendingDialogNavigating) {
-        _pendingDialogNavigating = true;
-        context.go(AppRoute.coursesScreen);
-      }
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        _openPendingCourseDialogFromQuery();
-      });
-      return;
-    }
-
-    _pendingDialogNavigating = false;
-    _pendingCourseDialogOpen = null;
-    showCourseAdd(
-      context,
-      courseGroupId: pending.courseGroupId,
-      courseId: pending.courseId,
-      isEdit: true,
-      isNew: false,
-      initialStep: pending.step,
-    );
   }
 
   Widget _buildCoursesCard(BuildContext context, CourseModel course) {
@@ -682,16 +644,4 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
       isNew: false,
     );
   }
-}
-
-class _PendingCourseDialogOpen {
-  final int courseGroupId;
-  final int courseId;
-  final int step;
-
-  const _PendingCourseDialogOpen({
-    required this.courseGroupId,
-    required this.courseId,
-    required this.step,
-  });
 }
