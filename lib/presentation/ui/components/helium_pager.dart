@@ -88,6 +88,15 @@ class HeliumPager extends StatelessWidget {
 
     return Row(
       children: [
+        if (isMobile)
+          IconButton(
+            onPressed: currentPage > 1 ? () => onPageChanged(1) : null,
+            icon: const Icon(Icons.first_page),
+            iconSize: 20,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
+        if (isMobile) const SizedBox(width: 4),
         IconButton(
           onPressed: currentPage > 1
               ? () => onPageChanged(currentPage - 1)
@@ -98,15 +107,7 @@ class HeliumPager extends StatelessWidget {
           constraints: const BoxConstraints(),
         ),
         const SizedBox(width: 8),
-        if (isMobile)
-          Text(
-            'Page $currentPage of $totalPages',
-            style: AppStyles.smallSecondaryTextLight(context).copyWith(
-              color: context.colorScheme.onSurface.withValues(alpha: 0.7),
-            ),
-          )
-        else
-          ..._buildPageNumbers(context),
+        ..._buildPageNumbers(context, isMobile),
         const SizedBox(width: 8),
         IconButton(
           onPressed: currentPage < totalPages
@@ -117,37 +118,58 @@ class HeliumPager extends StatelessWidget {
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
         ),
+        if (isMobile) const SizedBox(width: 4),
+        if (isMobile)
+          IconButton(
+            onPressed: currentPage < totalPages ? () => onPageChanged(totalPages) : null,
+            icon: const Icon(Icons.last_page),
+            iconSize: 20,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
       ],
     );
   }
 
-  List<Widget> _buildPageNumbers(BuildContext context) {
+  List<Widget> _buildPageNumbers(BuildContext context, bool isMobile) {
     final List<Widget> pages = [];
-    const int maxVisiblePages = 5;
 
-    if (totalPages <= maxVisiblePages) {
-      for (int i = 1; i <= totalPages; i++) {
-        pages.add(_buildPageButton(context, i));
-      }
-    } else {
-      pages.add(_buildPageButton(context, 1));
-
-      final int start = (currentPage - 1).clamp(2, totalPages - 3);
-      final int end = (currentPage + 1).clamp(4, totalPages - 1);
-
-      if (start > 2) {
-        pages.add(_buildEllipsis(context));
-      }
-
+    if (isMobile) {
+      // On mobile: show up to 3 pages centered around current, no ellipsis
+      const int maxVisible = 3;
+      final int start = (currentPage - 1)
+          .clamp(1, (totalPages - maxVisible + 1).clamp(1, totalPages));
+      final int end = (start + maxVisible - 1).clamp(1, totalPages);
       for (int i = start; i <= end; i++) {
         pages.add(_buildPageButton(context, i));
       }
+    } else {
+      // Desktop: full ellipsis behavior
+      const int maxVisiblePages = 5;
+      if (totalPages <= maxVisiblePages) {
+        for (int i = 1; i <= totalPages; i++) {
+          pages.add(_buildPageButton(context, i));
+        }
+      } else {
+        pages.add(_buildPageButton(context, 1));
 
-      if (end < totalPages - 1) {
-        pages.add(_buildEllipsis(context));
+        final int start = (currentPage - 1).clamp(2, totalPages - 3);
+        final int end = (currentPage + 1).clamp(4, totalPages - 1);
+
+        if (start > 2) {
+          pages.add(_buildEllipsis(context));
+        }
+
+        for (int i = start; i <= end; i++) {
+          pages.add(_buildPageButton(context, i));
+        }
+
+        if (end < totalPages - 1) {
+          pages.add(_buildEllipsis(context));
+        }
+
+        pages.add(_buildPageButton(context, totalPages));
       }
-
-      pages.add(_buildPageButton(context, totalPages));
     }
 
     return pages;
