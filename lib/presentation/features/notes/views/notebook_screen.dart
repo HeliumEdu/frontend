@@ -80,6 +80,8 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
   final Set<String> _filterEntityTypes = {};
   final TextEditingController _searchController = TextEditingController();
   int _rowsPerPage = 10;
+  bool _notesReady = false;
+  bool _filterStateRestored = false;
 
   @override
   void initState() {
@@ -92,8 +94,18 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
     return super.loadSettings().then((settings) {
       if (!mounted || settings == null) return settings;
       _restoreFilterStateIfEnabled(settings);
+      _filterStateRestored = true;
+      _checkReadyToShow();
       return settings;
     });
+  }
+
+  void _checkReadyToShow() {
+    if (_notesReady && _filterStateRestored) {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   @override
@@ -351,8 +363,9 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
           } else if (state is NotesFetched) {
             setState(() {
               _notes = state.notes;
-              isLoading = false;
             });
+            _notesReady = true;
+            _checkReadyToShow();
           } else if (state is NoteCreated) {
             setState(() {
               _notes.add(state.note);

@@ -16,7 +16,6 @@ import 'package:heliumapp/presentation/ui/components/category_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
 import 'package:heliumapp/presentation/ui/components/helium_pager.dart';
-import 'package:heliumapp/presentation/ui/components/non_touch_selectable_text.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_globals.dart';
@@ -627,22 +626,20 @@ class _TodosTableState extends State<TodosTable> {
   }
 
   Widget _buildTitleColumn(HomeworkModel homework, bool isCompleted) {
+    final isCompact = _isCompactActionsMode(context);
+    final titleStyle = AppStyles.smallSecondaryText(context).copyWith(
+      decoration: isCompleted ? TextDecoration.lineThrough : TextDecoration.none,
+      decorationColor: context.colorScheme.onSurface,
+      decorationThickness: 2.0,
+    );
     return Expanded(
       flex: 3,
       child: Row(
         children: [
           Expanded(
-            child: NonTouchSelectableText(
-              homework.title,
-              style: AppStyles.smallSecondaryText(context).copyWith(
-                decoration: isCompleted
-                    ? TextDecoration.lineThrough
-                    : TextDecoration.none,
-                decorationColor: context.colorScheme.onSurface,
-                decorationThickness: 2.0,
-              ),
-              maxLines: 1,
-            ),
+            child: isCompact
+                ? Text(homework.title, style: titleStyle, maxLines: 1, overflow: TextOverflow.ellipsis)
+                : SelectableText(homework.title, style: titleStyle, maxLines: 1),
           ),
         ],
       ),
@@ -654,18 +651,19 @@ class _TodosTableState extends State<TodosTable> {
     UserSettingsModel userSettings,
   ) {
     final isMobile = Responsive.isMobile(context);
+    final isCompact = _isCompactActionsMode(context);
+    final dateText = homework.allDay
+        ? HeliumDateTime.formatDateForTodos(HeliumDateTime.toLocal(homework.start, userSettings.timeZone))
+        : HeliumDateTime.formatDateAndTimeForTodos(
+            HeliumDateTime.toLocal(homework.start, userSettings.timeZone),
+          );
+    final dateStyle = AppStyles.smallSecondaryText(context);
 
     return SizedBox(
       width: TodosSortColumn.dueDate.widthForLayout(isMobile: isMobile)!,
-      child: NonTouchSelectableText(
-        homework.allDay
-            ? HeliumDateTime.formatDateForTodos(HeliumDateTime.toLocal(homework.start, userSettings.timeZone))
-            : HeliumDateTime.formatDateAndTimeForTodos(
-                HeliumDateTime.toLocal(homework.start, userSettings.timeZone),
-              ),
-        style: AppStyles.smallSecondaryText(context),
-        maxLines: 1,
-      ),
+      child: isCompact
+          ? Text(dateText, style: dateStyle, maxLines: 1, overflow: TextOverflow.ellipsis)
+          : SelectableText(dateText, style: dateStyle, maxLines: 1),
     );
   }
 

@@ -77,6 +77,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
   @override
   Widget build(BuildContext context) {
     final isTouchDevice = Responsive.isTouchDevice(context);
+    final isCompact = MediaQuery.of(context).size.width < 800;
     final showLinkedTo = Responsive.isDesktop(context);
     final showActions = !isTouchDevice;
 
@@ -128,6 +129,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                   headerColor: headerColor,
                 ),
                 child: SfDataGrid(
+                  key: ValueKey('notes_grid_${showLinkedTo}_${showActions}_${isCompact}'),
                   source: _dataSource,
                   controller: _controller,
                   columnWidthMode: ColumnWidthMode.fill,
@@ -168,7 +170,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                     if (details.rowColumnIndex.rowIndex > 0) {
                       final rowIndex = details.rowColumnIndex.rowIndex - 1;
                       final note = _dataSource.getNoteAtRow(rowIndex);
-                      if (note != null && isTouchDevice) {
+                      if (note != null && (isTouchDevice || isCompact)) {
                         widget.onNoteTap(note);
                       }
                     }
@@ -194,7 +196,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                       GridColumn(
                         columnName: 'actions',
                         label: const SizedBox.shrink(),
-                        width: 100,
+                        width: isCompact ? 50 : 90,
                         allowSorting: false,
                       ),
                   ],
@@ -343,33 +345,53 @@ class NotesDataSource extends DataGridSource {
         .where((c) => !Responsive.isTouchDevice(context) || c.columnName != 'actions')
         .toList();
 
+    final isTouchDevice = Responsive.isTouchDevice(context);
+    final isCompact = MediaQuery.of(context).size.width < 800;
+    final rowCursor = (isTouchDevice || isCompact)
+        ? SystemMouseCursors.click
+        : MouseCursor.defer;
+
     return DataGridRowAdapter(
       color: rowColor != null
           ? BadgeColors.background(context, rowColor)
           : null,
-      cells: displayCells.map((cell) => _buildCell(cell, rowColor, entityType)).toList(),
+      cells: displayCells.map((cell) => MouseRegion(
+        cursor: rowCursor,
+        child: _buildCell(cell, rowColor, entityType),
+      )).toList(),
     );
   }
 
   Widget _buildCell(DataGridCell cell, Color? rowColor, String entityType) {
     final isMobile = Responsive.isMobile(context);
+    final isTouchDevice = Responsive.isTouchDevice(context);
+    final isCompact = MediaQuery.of(context).size.width < 800;
+    final isSelectable = !isTouchDevice && !isCompact;
 
     if (cell.columnName == 'title') {
       final title = cell.value as String;
+      final displayTitle = title.isEmpty ? 'Untitled' : title;
+      final titleStyle = AppStyles.standardBodyText(context).copyWith(
+        fontStyle: title.isEmpty ? FontStyle.italic : FontStyle.normal,
+        color: title.isEmpty
+            ? context.colorScheme.onSurface.withValues(alpha: 0.5)
+            : null,
+      );
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         alignment: Alignment.centerLeft,
-        child: Text(
-          title.isEmpty ? 'Untitled' : title,
-          style: AppStyles.standardBodyText(context).copyWith(
-            fontStyle: title.isEmpty ? FontStyle.italic : FontStyle.normal,
-            color: title.isEmpty
-                ? context.colorScheme.onSurface.withValues(alpha: 0.5)
-                : null,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
+        child: isSelectable
+            ? SelectableText(
+                displayTitle,
+                style: titleStyle,
+                maxLines: 1,
+              )
+            : Text(
+                displayTitle,
+                style: titleStyle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
       );
     }
 
@@ -444,12 +466,14 @@ class NotesDataSource extends DataGridSource {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              HeliumIconButton(
-                onPressed: () => onEdit(note),
-                icon: Icons.edit_outlined,
-                color: context.colorScheme.onSurface,
-              ),
-              const SizedBox(width: 4),
+              if (!isCompact) ...[
+                HeliumIconButton(
+                  onPressed: () => onEdit(note),
+                  icon: Icons.edit_outlined,
+                  color: context.colorScheme.onSurface,
+                ),
+                const SizedBox(width: 4),
+              ],
               HeliumIconButton(
                 onPressed: () => onDelete(context, note),
                 icon: Icons.delete_outline,
