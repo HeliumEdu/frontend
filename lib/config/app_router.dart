@@ -261,8 +261,8 @@ void initializeRouter() {
                   noteId: args.noteId,
                   homeworkId: args.homeworkId,
                   eventId: args.eventId,
-                  materialId: args.materialId,
-                  materialGroupId: args.materialGroupId,
+                  resourceId: args.resourceId,
+                  resourceGroupId: args.resourceGroupId,
                 ),
               ),
             );

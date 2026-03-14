@@ -128,10 +128,10 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
     final noteId = int.tryParse(queryParams['id'] ?? '');
     final homeworkId = int.tryParse(queryParams['homeworkId'] ?? '');
     final eventId = int.tryParse(queryParams['eventId'] ?? '');
-    final materialId = int.tryParse(queryParams['materialId'] ?? '');
-    final materialGroupId = int.tryParse(queryParams['materialGroupId'] ?? '');
+    final resourceId = int.tryParse(queryParams['resourceId'] ?? '');
+    final resourceGroupId = int.tryParse(queryParams['resourceGroupId'] ?? '');
 
-    if (noteId == null && homeworkId == null && eventId == null && materialId == null) return;
+    if (noteId == null && homeworkId == null && eventId == null && resourceId == null) return;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -140,8 +140,8 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
         noteId: noteId,
         homeworkId: homeworkId,
         eventId: eventId,
-        materialId: materialId,
-        materialGroupId: materialGroupId,
+        resourceId: resourceId,
+        resourceGroupId: resourceGroupId,
       );
     });
   }

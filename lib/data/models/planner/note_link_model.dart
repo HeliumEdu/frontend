@@ -12,7 +12,7 @@ class NoteLinkModel {
   final int id;
   final int? homeworkId;
   final int? eventId;
-  final int? materialId;
+  final int? resourceId;
   final String linkedEntityType;
   final String? linkedEntityTitle;
   final Color? linkedEntityColor;
@@ -21,7 +21,7 @@ class NoteLinkModel {
     required this.id,
     this.homeworkId,
     this.eventId,
-    this.materialId,
+    this.resourceId,
     required this.linkedEntityType,
     this.linkedEntityTitle,
     this.linkedEntityColor,
@@ -32,7 +32,7 @@ class NoteLinkModel {
       id: json['id'],
       homeworkId: json['homework'],
       eventId: json['event'],
-      materialId: json['material'],
+      resourceId: json['material'],
       linkedEntityType: json['linked_entity_type'] ?? '',
       linkedEntityTitle: json['linked_entity_title'],
       linkedEntityColor: json['linked_entity_color'] != null
@@ -46,7 +46,7 @@ class NoteLinkModel {
       'id': id,
       'homework': homeworkId,
       'event': eventId,
-      'material': materialId,
+      'material': resourceId,
       'linked_entity_type': linkedEntityType,
       'linked_entity_title': linkedEntityTitle,
       'linked_entity_color': linkedEntityColor != null
@@ -59,7 +59,7 @@ class NoteLinkModel {
     int? id,
     int? homeworkId,
     int? eventId,
-    int? materialId,
+    int? resourceId,
     String? linkedEntityType,
     String? linkedEntityTitle,
     Color? linkedEntityColor,
@@ -68,7 +68,7 @@ class NoteLinkModel {
       id: id ?? this.id,
       homeworkId: homeworkId ?? this.homeworkId,
       eventId: eventId ?? this.eventId,
-      materialId: materialId ?? this.materialId,
+      resourceId: resourceId ?? this.resourceId,
       linkedEntityType: linkedEntityType ?? this.linkedEntityType,
       linkedEntityTitle: linkedEntityTitle ?? this.linkedEntityTitle,
       linkedEntityColor: linkedEntityColor ?? this.linkedEntityColor,

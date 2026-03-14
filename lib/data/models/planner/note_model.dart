@@ -71,5 +71,5 @@ class NoteModel extends BaseTitledModel {
 
   bool get isLinkedToEvent => link?.eventId != null;
 
-  bool get isLinkedToMaterial => link?.materialId != null;
+  bool get isLinkedToMaterial => link?.resourceId != null;
 }

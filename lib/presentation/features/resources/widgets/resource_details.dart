@@ -315,7 +315,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
     if (_resource?.linkedNote != null) {
       context.go('${AppRoute.notebookScreen}?id=${_resource!.linkedNote!.id}');
     } else if (_resource != null) {
-      context.go('${AppRoute.notebookScreen}?materialId=${_resource!.id}&materialGroupId=${_resource!.resourceGroup}');
+      context.go('${AppRoute.notebookScreen}?resourceId=${_resource!.id}&resourceGroupId=${_resource!.resourceGroup}');
     }
   }
 

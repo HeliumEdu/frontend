@@ -50,8 +50,8 @@ void showNoteAdd(
   int? noteId,
   int? homeworkId,
   int? eventId,
-  int? materialId,
-  int? materialGroupId,
+  int? resourceId,
+  int? resourceGroupId,
 }) {
   // Try to read existing NoteBloc, or create a new one
   final existingBloc = context.read<NoteBloc?>();
@@ -64,8 +64,8 @@ void showNoteAdd(
         noteId: noteId,
         homeworkId: homeworkId,
         eventId: eventId,
-        materialId: materialId,
-        materialGroupId: materialGroupId,
+        resourceId: resourceId,
+        resourceGroupId: resourceGroupId,
       ),
     );
   } else {
@@ -76,8 +76,8 @@ void showNoteAdd(
       noteId: noteId,
       homeworkId: homeworkId,
       eventId: eventId,
-      materialId: materialId,
-      materialGroupId: materialGroupId,
+      resourceId: resourceId,
+      resourceGroupId: resourceGroupId,
     );
 
     showScreenAsDialog(
@@ -108,16 +108,16 @@ class NoteAddScreen extends StatefulWidget {
   final int? noteId;
   final int? homeworkId;
   final int? eventId;
-  final int? materialId;
-  final int? materialGroupId;
+  final int? resourceId;
+  final int? resourceGroupId;
 
   const NoteAddScreen({
     super.key,
     this.noteId,
     this.homeworkId,
     this.eventId,
-    this.materialId,
-    this.materialGroupId,
+    this.resourceId,
+    this.resourceGroupId,
   });
 
   @override
@@ -162,7 +162,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
         isLoading = false;
       });
       if (widget.homeworkId != null || widget.eventId != null ||
-          (widget.materialId != null && widget.materialGroupId != null)) {
+          (widget.resourceId != null && widget.resourceGroupId != null)) {
         _fetchLinkedEntity();
       }
     }
@@ -263,17 +263,17 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
             linkedEntityTitle: event.title,
           );
         });
-      } else if (widget.materialId != null && widget.materialGroupId != null) {
+      } else if (widget.resourceId != null && widget.resourceGroupId != null) {
         final resource = await ResourceRepositoryImpl(
           remoteDataSource: ResourceRemoteDataSourceImpl(dioClient: dioClient),
-        ).getResource(widget.materialGroupId!, widget.materialId!);
+        ).getResource(widget.resourceGroupId!, widget.resourceId!);
         if (!mounted) return;
         setState(() {
           _titleController.text = resource.title;
           _provisionalLink = NoteLinkModel(
             id: 0,
-            materialId: resource.id,
-            linkedEntityType: 'material',
+            resourceId: resource.id,
+            linkedEntityType: 'resource',
             linkedEntityTitle: resource.title,
           );
         });
@@ -302,7 +302,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
         content: {'ops': content},
         homeworkId: widget.homeworkId,
         eventId: widget.eventId,
-        materialId: widget.materialId,
+        resourceId: widget.resourceId,
       );
       context.read<NoteBloc>().add(
         CreateNoteEvent(
@@ -499,7 +499,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       color = link.linkedEntityColor;
     } else if (link.linkedEntityType == 'event') {
       color = userSettings?.eventsColor;
-    } else if (link.linkedEntityType == 'material') {
+    } else if (link.linkedEntityType == 'resource') {
       color = userSettings?.resourceColor;
     }
 
@@ -543,7 +543,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
         return AppConstants.assignmentIcon;
       case 'event':
         return AppConstants.eventIcon;
-      case 'material':
+      case 'resource':
         return Icons.book;
       default:
         return Icons.link;
