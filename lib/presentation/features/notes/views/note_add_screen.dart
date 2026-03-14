@@ -232,10 +232,10 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
             });
             _populateNoteData(state.note);
           } else if (state is NoteCreated) {
-            showSnackBar(context, 'Note created');
-            context.pop();
+            showSnackBar(context, 'Note created', useRootMessenger: true);
+            cancelAction();
           } else if (state is NoteUpdated) {
-            context.pop();
+            cancelAction();
           }
         },
       ),
