@@ -145,7 +145,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                       controller: _controller,
                       columnWidthMode: ColumnWidthMode.fill,
                       headerRowHeight: 40,
-                      rowHeight: 56,
+                      rowHeight: 50,
                       gridLinesVisibility: GridLinesVisibility.none,
                       headerGridLinesVisibility: GridLinesVisibility.none,
                       selectionMode: SelectionMode.none,
@@ -262,14 +262,17 @@ class _NotesDataGridState extends State<NotesDataGrid> {
   }
 
   Widget _buildHeaderCell(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      alignment: Alignment.centerLeft,
-      child: Text(
-        text,
-        style: AppStyles.standardBodyText(context).copyWith(
-          color: context.colorScheme.onSurface,
-          fontSize: Responsive.getFontSize(context, mobile: 13, tablet: 14),
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        alignment: Alignment.centerLeft,
+        child: Text(
+          text,
+          style: AppStyles.standardBodyText(context).copyWith(
+            color: context.colorScheme.onSurface,
+            fontSize: Responsive.getFontSize(context, mobile: 13, tablet: 14),
+          ),
         ),
       ),
     );
