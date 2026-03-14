@@ -173,6 +173,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
 
     final filterState = {
       'filterEntityTypes': _filterEntityTypes.toList(),
+      'rowsPerPage': _rowsPerPage,
     };
     PrefService().setString(
       _savedNotebookFilterStateKey,
@@ -191,9 +192,12 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
       final savedEntityTypes = filterState['filterEntityTypes'] as List<dynamic>?;
       if (savedEntityTypes == null) return;
 
+      final savedRowsPerPage = filterState['rowsPerPage'] as int?;
+
       setState(() {
         _filterEntityTypes.clear();
         _filterEntityTypes.addAll(savedEntityTypes.cast<String>());
+        if (savedRowsPerPage != null) _rowsPerPage = savedRowsPerPage;
       });
     } catch (_) {
       // Ignore malformed settings and keep defaults.
@@ -390,7 +394,9 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
                   ),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: TextField(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: TextField(
                   controller: _searchController,
                   style: AppStyles.formText(context),
                   decoration: InputDecoration(
@@ -436,6 +442,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
                     _searchQuery = value.isEmpty ? null : value;
                   });
                 },
+              ),
               ),
               ),
             ),
@@ -503,6 +510,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
               setState(() {
                 _rowsPerPage = rowsPerPage;
               });
+              _saveFilterStateIfEnabled();
             },
           ),
         );

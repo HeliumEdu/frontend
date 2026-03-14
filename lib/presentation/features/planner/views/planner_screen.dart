@@ -1196,46 +1196,49 @@ class _CalendarScreenState
                             ),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: TextField(
-                            controller: _searchController,
-                            focusNode: _searchFocusNode,
-                            onChanged: _onSearchTextFieldChanged,
-                            onTapOutside: (_) {},
-                            style: AppStyles.formText(context),
-                            decoration: InputDecoration(
-                              hintText: 'Search ...',
-                              hintStyle: AppStyles.formHint(context),
-                              prefixIcon: Icon(
-                                Icons.search,
-                                color: context.colorScheme.onSurface.withValues(alpha: 0.4),
-                              ),
-                              border: InputBorder.none,
-                              enabledBorder: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                              isDense: true,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 10,
-                              ),
-                              suffixIcon: ValueListenableBuilder<TextEditingValue>(
-                                valueListenable: _searchController,
-                                builder: (context, value, _) {
-                                  if (value.text.isEmpty) {
-                                    return const SizedBox.shrink();
-                                  }
-                                  return IconButton(
-                                    onPressed: () {
-                                      _searchController.clear();
-                                      _plannerItemDataSource?.setSearchQuery('');
-                                    },
-                                    icon: Icon(
-                                      Icons.close,
-                                      size: 20,
-                                      color: context.colorScheme.onSurface.withValues(alpha: 0.4),
-                                    ),
-                                    tooltip: 'Clear',
-                                  );
-                                },
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: TextField(
+                              controller: _searchController,
+                              focusNode: _searchFocusNode,
+                              onChanged: _onSearchTextFieldChanged,
+                              onTapOutside: (_) {},
+                              style: AppStyles.formText(context),
+                              decoration: InputDecoration(
+                                hintText: 'Search ...',
+                                hintStyle: AppStyles.formHint(context),
+                                prefixIcon: Icon(
+                                  Icons.search,
+                                  color: context.colorScheme.onSurface.withValues(alpha: 0.4),
+                                ),
+                                border: InputBorder.none,
+                                enabledBorder: InputBorder.none,
+                                focusedBorder: InputBorder.none,
+                                isDense: true,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 10,
+                                ),
+                                suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                                  valueListenable: _searchController,
+                                  builder: (context, value, _) {
+                                    if (value.text.isEmpty) {
+                                      return const SizedBox.shrink();
+                                    }
+                                    return IconButton(
+                                      onPressed: () {
+                                        _searchController.clear();
+                                        _plannerItemDataSource?.setSearchQuery('');
+                                      },
+                                      icon: Icon(
+                                        Icons.close,
+                                        size: 20,
+                                        color: context.colorScheme.onSurface.withValues(alpha: 0.4),
+                                      ),
+                                      tooltip: 'Clear',
+                                    );
+                                  },
+                                ),
                               ),
                             ),
                           ),

@@ -8,7 +8,9 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
+import 'package:heliumapp/presentation/ui/components/drop_down.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -162,44 +164,38 @@ class _NotesDataGridState extends State<NotesDataGrid> {
               ),
             ),
             Container(
-              padding: const EdgeInsets.only(right: 25),
-              decoration: BoxDecoration(
-                border: Border(
-                  top: BorderSide(
-                    color: context.colorScheme.outline.withValues(alpha: 0.2),
+              decoration: const BoxDecoration(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SfDataPagerTheme(
+                    data: SfDataPagerThemeData(
+                      backgroundColor: Colors.transparent,
+                      selectedItemColor: context.colorScheme.primary,
+                      itemColor: Colors.transparent,
+                      itemBorderColor: Colors.transparent,
+                      itemBorderWidth: 0,
+                      disabledItemColor: Colors.transparent,
+                      disabledItemTextStyle: AppStyles.smallSecondaryTextLight(context).copyWith(
+                        color: context.colorScheme.onSurface.withValues(alpha: 0.4),
+                      ),
+                      itemTextStyle: AppStyles.smallSecondaryTextLight(context).copyWith(
+                        color: context.colorScheme.primary,
+                      ),
+                      selectedItemTextStyle: AppStyles.smallSecondaryTextLight(context).copyWith(
+                        color: context.colorScheme.onPrimary,
+                      ),
+                    ),
+                    child: SfDataPager(
+                      delegate: _dataSource,
+                      pageCount: widget.rowsPerPage == -1
+                          ? 1
+                          : (widget.notes.length / widget.rowsPerPage).ceil().toDouble().clamp(1, double.infinity),
+                    ),
                   ),
-                ),
-              ),
-              child: SfDataPagerTheme(
-                data: SfDataPagerThemeData(
-                  backgroundColor: context.colorScheme.surface,
-                  selectedItemColor: context.colorScheme.primary,
-                  itemColor: context.colorScheme.surface,
-                  itemBorderColor: context.colorScheme.primary,
-                  disabledItemColor: context.colorScheme.surface,
-                  disabledItemTextStyle: AppStyles.smallSecondaryTextLight(context).copyWith(
-                    color: context.colorScheme.onSurface.withValues(alpha: 0.4),
-                  ),
-                  itemTextStyle: AppStyles.smallSecondaryTextLight(context).copyWith(
-                    color: context.colorScheme.primary,
-                  ),
-                  selectedItemTextStyle: AppStyles.smallSecondaryTextLight(context).copyWith(
-                    color: context.colorScheme.onPrimary,
-                  ),
-                  dropdownButtonBorderColor: context.colorScheme.outline.withValues(alpha: 0.3),
-                ),
-                child: SfDataPager(
-                  delegate: _dataSource,
-                  pageCount: widget.rowsPerPage == -1
-                      ? 1
-                      : (widget.notes.length / widget.rowsPerPage).ceil().toDouble().clamp(1, double.infinity),
-                  availableRowsPerPage: const [5, 10, 25, 50, 100],
-                  onRowsPerPageChanged: widget.onRowsPerPageChanged != null
-                      ? (rowsPerPage) {
-                          widget.onRowsPerPageChanged!(rowsPerPage ?? 10);
-                        }
-                      : null,
-                ),
+                  if (widget.onRowsPerPageChanged != null)
+                    _buildRowsPerPageDropdown(),
+                ],
               ),
             ),
           ],
@@ -218,6 +214,48 @@ class _NotesDataGridState extends State<NotesDataGrid> {
           color: context.colorScheme.onSurface,
           fontSize: Responsive.getFontSize(context, mobile: 13, tablet: 14),
         ),
+      ),
+    );
+  }
+
+  Widget _buildRowsPerPageDropdown() {
+    const options = [5, 10, 25, 50, 100];
+    final dropDownItems = options.map((value) {
+      return DropDownItem<String>(
+        id: value,
+        value: value.toString(),
+      );
+    }).toList();
+
+    final currentItem = dropDownItems.firstWhere(
+      (item) => item.id == widget.rowsPerPage,
+      orElse: () => dropDownItems[1],
+    );
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 8, bottom: 8),
+      child: Row(
+        children: [
+          Text(
+            'Show',
+            style: AppStyles.standardBodyTextLight(context).copyWith(
+              color: context.colorScheme.onSurface.withValues(alpha: 0.7),
+            ),
+          ),
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 100,
+            child: DropDown<String>(
+              initialValue: currentItem,
+              items: dropDownItems,
+              onChanged: (newItem) {
+                if (newItem != null) {
+                  widget.onRowsPerPageChanged!(newItem.id);
+                }
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
