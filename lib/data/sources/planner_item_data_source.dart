@@ -615,10 +615,10 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       'filterCategories': _filterCategories,
       'filterTypes': _filterTypes,
       'filterStatuses': _filterStatuses.toList(),
-      'todosItemsPerPage': _todosItemsPerPage,
     };
 
     PrefService().setString('saved_filter_state', jsonEncode(filterState));
+    PrefService().setInt('saved_rows_per_page', _todosItemsPerPage);
     _log.fine('Filter state saved');
   }
 
@@ -654,7 +654,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
         _filterStatuses = savedStatuses.cast<String>().toSet();
       }
 
-      final savedItemsPerPage = filterState['todosItemsPerPage'] as int?;
+      final savedItemsPerPage = PrefService().getInt('saved_rows_per_page');
       if (savedItemsPerPage != null) {
         _todosItemsPerPage = savedItemsPerPage;
       }

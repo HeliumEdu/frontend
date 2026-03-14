@@ -59,6 +59,7 @@ class _NotebookProvidedScreen extends StatefulWidget {
 
 class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> {
   static const _savedNotebookFilterStateKey = 'saved_notebook_filter_state';
+  static const _savedRowsPerPageKey = 'saved_rows_per_page';
 
   @override
   String get screenTitle => 'Notebook';
@@ -185,35 +186,39 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
 
     final filterState = {
       'filterEntityTypes': _filterEntityTypes.toList(),
-      'rowsPerPage': _rowsPerPage,
     };
     PrefService().setString(
       _savedNotebookFilterStateKey,
       jsonEncode(filterState),
     );
+    PrefService().setInt(_savedRowsPerPageKey, _rowsPerPage);
   }
 
   void _restoreFilterStateIfEnabled(UserSettingsModel settings) {
     if (!settings.rememberFilterState) return;
 
+    final savedRowsPerPage = PrefService().getInt(_savedRowsPerPageKey);
+
     final savedState = PrefService().getString(_savedNotebookFilterStateKey);
-    if (savedState == null || savedState.isEmpty) return;
-
-    try {
-      final filterState = jsonDecode(savedState) as Map<String, dynamic>;
-      final savedEntityTypes = filterState['filterEntityTypes'] as List<dynamic>?;
-      if (savedEntityTypes == null) return;
-
-      final savedRowsPerPage = filterState['rowsPerPage'] as int?;
-
-      setState(() {
-        _filterEntityTypes.clear();
-        _filterEntityTypes.addAll(savedEntityTypes.cast<String>());
-        if (savedRowsPerPage != null) _rowsPerPage = savedRowsPerPage;
-      });
-    } catch (_) {
-      // Ignore malformed settings and keep defaults.
+    List<dynamic>? savedEntityTypes;
+    if (savedState != null && savedState.isNotEmpty) {
+      try {
+        final filterState = jsonDecode(savedState) as Map<String, dynamic>;
+        savedEntityTypes = filterState['filterEntityTypes'] as List<dynamic>?;
+      } catch (_) {
+        // Ignore malformed settings and keep defaults.
+      }
     }
+
+    if (savedEntityTypes == null && savedRowsPerPage == null) return;
+
+    setState(() {
+      if (savedEntityTypes != null) {
+        _filterEntityTypes.clear();
+        _filterEntityTypes.addAll(savedEntityTypes!.cast<String>());
+      }
+      if (savedRowsPerPage != null) _rowsPerPage = savedRowsPerPage;
+    });
   }
 
   void _openFilterMenu(BuildContext context) {

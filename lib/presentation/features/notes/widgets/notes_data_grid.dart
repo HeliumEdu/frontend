@@ -229,7 +229,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                     _pagerController.selectedPageIndex = page - 1;
                   },
                   itemsPerPage: widget.rowsPerPage,
-                  itemsPerPageOptions: const [5, 10, 25, 50, 100],
+                  itemsPerPageOptions: const [5, 10, 25, 50, 100, -1],
                   onItemsPerPageChanged: widget.onRowsPerPageChanged != null
                       ? (value) {
                           widget.onRowsPerPageChanged!(value);
