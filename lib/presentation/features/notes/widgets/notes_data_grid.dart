@@ -8,10 +8,9 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
-import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
-import 'package:heliumapp/presentation/ui/components/drop_down.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
+import 'package:heliumapp/presentation/ui/components/helium_pager.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
@@ -44,14 +43,36 @@ class NotesDataGrid extends StatefulWidget {
 
 class _NotesDataGridState extends State<NotesDataGrid> {
   final DataGridController _controller = DataGridController();
+  final DataPagerController _pagerController = DataPagerController();
+  int _currentPage = 1;
   late NotesDataSource _dataSource;
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = Responsive.isMobile(context);
     final isTouchDevice = Responsive.isTouchDevice(context);
     final showLinkedTo = Responsive.isDesktop(context);
     final showActions = !isTouchDevice;
+
+    final isShowingAll = widget.rowsPerPage == -1;
+    final totalItems = widget.notes.length;
+    final totalPages = isShowingAll
+        ? 1
+        : (totalItems / widget.rowsPerPage).ceil().clamp(1, 999999);
+
+    var effectiveCurrentPage = _currentPage;
+    if (effectiveCurrentPage > totalPages && totalPages > 0) {
+      effectiveCurrentPage = 1;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _currentPage != 1) setState(() { _currentPage = 1; });
+      });
+    }
+
+    final startIndex = isShowingAll
+        ? 0
+        : (effectiveCurrentPage - 1) * widget.rowsPerPage;
+    final endIndex = isShowingAll
+        ? totalItems
+        : (startIndex + widget.rowsPerPage).clamp(0, totalItems);
 
     _dataSource = NotesDataSource(
       notes: widget.notes,
@@ -163,40 +184,36 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                 ),
               ),
             ),
-            Container(
-              decoration: const BoxDecoration(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SfDataPagerTheme(
-                    data: SfDataPagerThemeData(
-                      backgroundColor: Colors.transparent,
-                      selectedItemColor: context.colorScheme.primary,
-                      itemColor: Colors.transparent,
-                      itemBorderColor: Colors.transparent,
-                      itemBorderWidth: 0,
-                      disabledItemColor: Colors.transparent,
-                      disabledItemTextStyle: AppStyles.smallSecondaryTextLight(context).copyWith(
-                        color: context.colorScheme.onSurface.withValues(alpha: 0.4),
-                      ),
-                      itemTextStyle: AppStyles.smallSecondaryTextLight(context).copyWith(
-                        color: context.colorScheme.primary,
-                      ),
-                      selectedItemTextStyle: AppStyles.smallSecondaryTextLight(context).copyWith(
-                        color: context.colorScheme.onPrimary,
-                      ),
-                    ),
-                    child: SfDataPager(
-                      delegate: _dataSource,
-                      pageCount: widget.rowsPerPage == -1
-                          ? 1
-                          : (widget.notes.length / widget.rowsPerPage).ceil().toDouble().clamp(1, double.infinity),
-                    ),
-                  ),
-                  if (widget.onRowsPerPageChanged != null)
-                    _buildRowsPerPageDropdown(),
-                ],
+            SizedBox(
+              height: 0,
+              child: SfDataPager(
+                delegate: _dataSource,
+                controller: _pagerController,
+                pageCount: isShowingAll
+                    ? 1
+                    : totalPages.toDouble(),
               ),
+            ),
+            HeliumPager(
+              startIndex: startIndex,
+              endIndex: endIndex,
+              totalItems: totalItems,
+              isShowingAll: isShowingAll,
+              totalPages: totalPages,
+              currentPage: effectiveCurrentPage,
+              onPageChanged: (page) {
+                setState(() { _currentPage = page; });
+                _pagerController.selectedPageIndex = page - 1;
+              },
+              itemsPerPage: widget.rowsPerPage,
+              itemsPerPageOptions: const [5, 10, 25, 50, 100],
+              onItemsPerPageChanged: widget.onRowsPerPageChanged != null
+                  ? (value) {
+                      widget.onRowsPerPageChanged!(value);
+                      setState(() { _currentPage = 1; });
+                      _pagerController.selectedPageIndex = 0;
+                    }
+                  : null,
             ),
           ],
         ),
@@ -218,47 +235,6 @@ class _NotesDataGridState extends State<NotesDataGrid> {
     );
   }
 
-  Widget _buildRowsPerPageDropdown() {
-    const options = [5, 10, 25, 50, 100];
-    final dropDownItems = options.map((value) {
-      return DropDownItem<String>(
-        id: value,
-        value: value.toString(),
-      );
-    }).toList();
-
-    final currentItem = dropDownItems.firstWhere(
-      (item) => item.id == widget.rowsPerPage,
-      orElse: () => dropDownItems[1],
-    );
-
-    return Padding(
-      padding: const EdgeInsets.only(left: 8, bottom: 8),
-      child: Row(
-        children: [
-          Text(
-            'Show',
-            style: AppStyles.standardBodyTextLight(context).copyWith(
-              color: context.colorScheme.onSurface.withValues(alpha: 0.7),
-            ),
-          ),
-          const SizedBox(width: 8),
-          SizedBox(
-            width: 100,
-            child: DropDown<String>(
-              initialValue: currentItem,
-              items: dropDownItems,
-              onChanged: (newItem) {
-                if (newItem != null) {
-                  widget.onRowsPerPageChanged!(newItem.id);
-                }
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class NotesDataSource extends DataGridSource {

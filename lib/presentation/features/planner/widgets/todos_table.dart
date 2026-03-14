@@ -8,15 +8,14 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
-import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/sources/planner_item_data_source.dart';
 import 'package:heliumapp/presentation/features/planner/controllers/todos_table_controller.dart';
 import 'package:heliumapp/presentation/ui/components/category_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
-import 'package:heliumapp/presentation/ui/components/drop_down.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
+import 'package:heliumapp/presentation/ui/components/helium_pager.dart';
 import 'package:heliumapp/presentation/ui/components/non_touch_selectable_text.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -194,13 +193,23 @@ class _TodosTableState extends State<TodosTable> {
             children: [
               _buildTableHeader(),
               Expanded(child: tableBody),
-              _buildTableFooter(
+              HeliumPager(
                 startIndex: startIndex,
                 endIndex: endIndex,
                 totalItems: totalItems,
                 isShowingAll: isShowingAll,
                 totalPages: totalPages,
                 currentPage: effectiveCurrentPage,
+                onPageChanged: (page) {
+                  controller.currentPage = page;
+                },
+                itemsPerPage: controller.itemsPerPage,
+                itemsPerPageOptions: _itemsPerPageOptions,
+                onItemsPerPageChanged: (value) {
+                  controller.itemsPerPage = value;
+                  controller.currentPage = 1;
+                  widget.dataSource.todosItemsPerPage = value;
+                },
               ),
             ],
           ),
@@ -335,224 +344,6 @@ class _TodosTableState extends State<TodosTable> {
               child: const SizedBox.shrink(),
             ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildTableFooter({
-    required int startIndex,
-    required int endIndex,
-    required int totalItems,
-    required bool isShowingAll,
-    required int totalPages,
-    required int currentPage,
-  }) {
-    return Container(
-      padding: EdgeInsets.only(
-        left: 8,
-        right: 8,
-        bottom: 8,
-        top: Responsive.isMobile(context) ? 4 : 8,
-      ),
-      decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(
-            color: context.colorScheme.outline.withValues(alpha: 0.2),
-          ),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildItemsCountText(startIndex, endIndex, totalItems),
-              if (!isShowingAll && totalPages > 1)
-                _buildPagination(totalPages, currentPage),
-            ],
-          ),
-          const SizedBox(height: 4),
-          _buildItemsPerPageDropdown(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildItemsPerPageDropdown() {
-    final controller = widget.controller;
-    final dropDownItems = _itemsPerPageOptions.map((value) {
-      return DropDownItem<String>(
-        id: value,
-        value: value == -1 ? 'All' : value.toString(),
-      );
-    }).toList();
-
-    final currentItem = dropDownItems.firstWhere(
-      (item) => item.id == controller.itemsPerPage,
-    );
-
-    return Row(
-      children: [
-        Text(
-          'Show',
-          style: AppStyles.standardBodyTextLight(context).copyWith(
-            color: context.colorScheme.onSurface.withValues(alpha: 0.7),
-          ),
-        ),
-        const SizedBox(width: 8),
-        SizedBox(
-          width: 100,
-          child: DropDown<String>(
-            initialValue: currentItem,
-            items: dropDownItems,
-            onChanged: (newItem) {
-              if (newItem != null) {
-                controller.itemsPerPage = newItem.id;
-                controller.currentPage = 1;
-                // Save to data source for persistence
-                widget.dataSource.todosItemsPerPage = newItem.id;
-              }
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildItemsCountText(int startIndex, int endIndex, int totalItems) {
-    final displayStart = totalItems > 0 ? startIndex + 1 : 0;
-    return Text(
-      '${!Responsive.isMobile(context) ? 'Showing ' : ''}$displayStart to $endIndex of $totalItems',
-      style: AppStyles.standardBodyTextLight(
-        context,
-      ).copyWith(color: context.colorScheme.onSurface.withValues(alpha: 0.7)),
-    );
-  }
-
-  Widget _buildPagination(int totalPages, int currentPage) {
-    final controller = widget.controller;
-    final isMobile = Responsive.isMobile(context);
-
-    return Row(
-      children: [
-        IconButton(
-          onPressed: currentPage > 1
-              ? () {
-                  controller.currentPage--;
-                }
-              : null,
-          icon: const Icon(Icons.chevron_left),
-          iconSize: 20,
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(),
-        ),
-        const SizedBox(width: 8),
-        // On mobile, show page indicator text; on desktop, show page numbers
-        if (isMobile)
-          Text(
-            'Page $currentPage of $totalPages',
-            style: AppStyles.smallSecondaryTextLight(context).copyWith(
-              color: context.colorScheme.onSurface.withValues(alpha: 0.7),
-            ),
-          )
-        else
-          ..._buildPageNumbers(totalPages, currentPage),
-        const SizedBox(width: 8),
-        IconButton(
-          onPressed: currentPage < totalPages
-              ? () {
-                  controller.currentPage++;
-                }
-              : null,
-          icon: const Icon(Icons.chevron_right),
-          iconSize: 20,
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(),
-        ),
-      ],
-    );
-  }
-
-  List<Widget> _buildPageNumbers(int totalPages, int currentPage) {
-    final List<Widget> pages = [];
-    // Only used on non-mobile screens
-    const int maxVisiblePages = 5;
-
-    if (totalPages <= maxVisiblePages) {
-      for (int i = 1; i <= totalPages; i++) {
-        pages.add(_buildPageButton(i, currentPage));
-      }
-    } else {
-      pages.add(_buildPageButton(1, currentPage));
-
-      final int start = (currentPage - 1).clamp(2, totalPages - 3);
-      final int end = (currentPage + 1).clamp(4, totalPages - 1);
-
-      if (start > 2) {
-        pages.add(_buildEllipsis());
-      }
-
-      for (int i = start; i <= end; i++) {
-        pages.add(_buildPageButton(i, currentPage));
-      }
-
-      if (end < totalPages - 1) {
-        pages.add(_buildEllipsis());
-      }
-
-      pages.add(_buildPageButton(totalPages, currentPage));
-    }
-
-    return pages;
-  }
-
-  Widget _buildPageButton(int pageNumber, int currentPage) {
-    final controller = widget.controller;
-    final isActive = currentPage == pageNumber;
-
-    return Padding(
-      padding: const EdgeInsets.only(left: 4),
-      child: OutlinedButton(
-        onPressed: isActive
-            ? null
-            : () {
-                controller.currentPage = pageNumber;
-              },
-        style: OutlinedButton.styleFrom(
-          backgroundColor: isActive
-              ? context.colorScheme.primary
-              : context.colorScheme.surface,
-          disabledBackgroundColor: isActive
-              ? context.colorScheme.primary
-              : null,
-          minimumSize: const Size(40, 40),
-          padding: EdgeInsets.zero,
-          side: BorderSide(color: context.colorScheme.primary),
-        ),
-        child: Text(
-          pageNumber.toString(),
-          style: AppStyles.buttonText(context).copyWith(
-            color: isActive
-                ? context.colorScheme.onPrimary
-                : context.colorScheme.primary,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEllipsis() {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        child: Text(
-          '...',
-          style: AppStyles.standardBodyTextLight(context).copyWith(
-            color: context.colorScheme.onSurface.withValues(alpha: 0.7),
-          ),
-        ),
       ),
     );
   }
