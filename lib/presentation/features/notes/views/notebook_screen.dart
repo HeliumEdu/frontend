@@ -218,7 +218,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
     final filterOptions = [
       (
         value: 'standalone',
-        label: 'Standalone',
+        label: 'Unlinked',
         icon: Icons.link_off,
         color: context.colorScheme.onSurface,
       ),

@@ -95,7 +95,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                   rowHeight: 56,
                   gridLinesVisibility: GridLinesVisibility.none,
                   headerGridLinesVisibility: GridLinesVisibility.none,
-                  selectionMode: SelectionMode.single,
+                  selectionMode: SelectionMode.none,
                   navigationMode: GridNavigationMode.row,
                   allowSorting: true,
                   sortingGestureType: SortingGestureType.tap,
@@ -136,20 +136,20 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                     GridColumn(
                       columnName: 'title',
                       label: _buildHeaderCell('Title'),
-                      minimumWidth: 150,
+                      minimumWidth: 190,
                     ),
                     if (!isMobile)
                       GridColumn(
                         columnName: 'linkedTo',
                         label: _buildHeaderCell('Linked To'),
                         minimumWidth: 120,
-                        width: 200,
+                        width: Responsive.getResponsiveValue(context, mobile: 180, desktop: 200),
                       ),
                     GridColumn(
                       columnName: 'modified',
                       label: _buildHeaderCell('Modified'),
-                      minimumWidth: 80,
-                      width: isMobile ? 100 : 140,
+                      minimumWidth: 115,
+                      width: isMobile ? 115 : 140,
                     ),
                     if (showActions)
                       GridColumn(
@@ -217,7 +217,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
         text,
         style: AppStyles.standardBodyText(context).copyWith(
           color: context.colorScheme.onSurface,
-          fontSize: Responsive.getFontSize(context, mobile: 10, tablet: 14),
+          fontSize: Responsive.getFontSize(context, mobile: 13, tablet: 14),
         ),
       ),
     );

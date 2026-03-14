@@ -419,7 +419,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       color = userSettings?.resourceColor;
     }
 
-    // Fallback color for standalone notes
+    // Fallback color for unlinked notes
     final effectiveColor = color ?? context.colorScheme.outline;
 
     return Container(
