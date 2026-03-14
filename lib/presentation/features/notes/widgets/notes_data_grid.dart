@@ -147,7 +147,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                           headerColor: headerColor,
                         ),
                         child: SfDataGrid(
-                          key: ValueKey('notes_grid_${showLinkedTo}_${showActions}_${isCompact}'),
+                          key: ValueKey('notes_grid_${showLinkedTo}_${showActions}_$isCompact'),
                           source: _dataSource,
                           controller: _controller,
                           columnWidthMode: ColumnWidthMode.fill,
@@ -227,7 +227,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                           right: 0,
                           bottom: 0,
                           child: !widget.hasAnyNotes
-                              ? EmptyCard(
+                              ? const EmptyCard(
                                   expanded: false,
                                   icon: Icons.library_books,
                                   message: 'Click "+" to get started',

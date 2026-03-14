@@ -258,32 +258,99 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
       Offset.zero & overlay.size,
     );
 
-    final filterOptions = [
-      (
-        value: 'standalone',
-        label: 'Unlinked',
-        icon: Icons.link_off,
-        color: context.colorScheme.onSurface,
-      ),
-      (
-        value: 'homework',
-        label: 'Assignments',
-        icon: AppConstants.assignmentIcon,
-        color: context.colorScheme.onSurface,
-      ),
-      (
-        value: 'event',
-        label: 'Events',
-        icon: AppConstants.eventIcon,
-        color: userSettings?.eventsColor ?? context.colorScheme.tertiary,
-      ),
-      (
-        value: 'material',
-        label: 'Resources',
-        icon: Icons.book,
-        color: userSettings?.resourceColor ?? context.colorScheme.secondary,
-      ),
-    ];
+    Widget buildContent(BuildContext context, StateSetter setMenuState) {
+      final filterOptions = [
+        (
+          value: 'standalone',
+          label: 'Unlinked',
+          icon: Icons.link_off,
+          color: context.colorScheme.onSurface,
+        ),
+        (
+          value: 'homework',
+          label: 'Assignments',
+          icon: AppConstants.assignmentIcon,
+          color: context.colorScheme.onSurface,
+        ),
+        (
+          value: 'event',
+          label: 'Events',
+          icon: AppConstants.eventIcon,
+          color: userSettings?.eventsColor ?? context.colorScheme.tertiary,
+        ),
+        (
+          value: 'material',
+          label: 'Resources',
+          icon: Icons.book,
+          color: userSettings?.resourceColor ?? context.colorScheme.secondary,
+        ),
+      ];
+
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Filters',
+                    style: AppStyles.formText(context).copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    _filterEntityTypes.clear();
+                    _saveFilterStateIfEnabled();
+                    setState(() {});
+                    setMenuState(() {});
+                  },
+                  child: const Text('Clear All'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ...filterOptions.map((option) {
+              final isChecked = _filterEntityTypes.contains(option.value);
+              return CheckboxListTile(
+                title: Row(
+                  children: [
+                    Icon(option.icon, size: 18, color: option.color),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        option.label,
+                        style: AppStyles.formText(context),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                value: isChecked,
+                onChanged: (value) {
+                  if (value == true) {
+                    _filterEntityTypes.add(option.value);
+                  } else {
+                    _filterEntityTypes.remove(option.value);
+                  }
+                  _saveFilterStateIfEnabled();
+                  setState(() {});
+                  setMenuState(() {});
+                },
+                controlAffinity: ListTileControlAffinity.leading,
+                contentPadding: EdgeInsets.zero,
+                dense: true,
+              );
+            }),
+          ],
+        ),
+      );
+    }
 
     showMenu(
       context: context,
@@ -294,87 +361,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
         PopupMenuItem(
           enabled: false,
           padding: EdgeInsets.zero,
-          child: Material(
-            color: context.colorScheme.surface,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  StatefulBuilder(
-                    builder: (innerContext, setMenuState) {
-                      return Column(
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  'Filters',
-                                  style: AppStyles.formText(context).copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  setState(() {
-                                    _filterEntityTypes.clear();
-                                  });
-                                  _saveFilterStateIfEnabled();
-                                  setMenuState(() {});
-                                },
-                                child: const Text('Clear All'),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          ...filterOptions.map((option) {
-                            final isChecked = _filterEntityTypes.contains(option.value);
-                            return CheckboxListTile(
-                              title: Row(
-                                children: [
-                                  Icon(
-                                    option.icon,
-                                    size: 18,
-                                    color: option.color,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      option.label,
-                                      style: AppStyles.formText(context),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              value: isChecked,
-                              onChanged: (value) {
-                                setState(() {
-                                  if (value == true) {
-                                    _filterEntityTypes.add(option.value);
-                                  } else {
-                                    _filterEntityTypes.remove(option.value);
-                                  }
-                                });
-                                _saveFilterStateIfEnabled();
-                                setMenuState(() {});
-                              },
-                              controlAffinity: ListTileControlAffinity.leading,
-                              contentPadding: EdgeInsets.zero,
-                              dense: true,
-                            );
-                          }),
-                        ],
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
+          child: StatefulBuilder(builder: buildContent),
         ),
       ],
     );

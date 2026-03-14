@@ -462,6 +462,10 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                     customOnPressedCallback: (ctrl, isBackground) =>
                         _showColorPicker(context, ctrl, isBackground),
                   ),
+                  backgroundColor: QuillToolbarColorButtonOptions(
+                    customOnPressedCallback: (ctrl, isBackground) =>
+                        _showColorPicker(context, ctrl, isBackground),
+                  ),
                 ),
               ),
             ),
