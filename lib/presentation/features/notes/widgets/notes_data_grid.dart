@@ -48,7 +48,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
   Widget build(BuildContext context) {
     final isMobile = Responsive.isMobile(context);
     final isTouchDevice = Responsive.isTouchDevice(context);
-    final showLinkedTo = !isMobile;
+    final showLinkedTo = Responsive.isDesktop(context);
     final showActions = !isTouchDevice;
 
     _dataSource = NotesDataSource(
@@ -96,6 +96,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                   gridLinesVisibility: GridLinesVisibility.none,
                   headerGridLinesVisibility: GridLinesVisibility.none,
                   selectionMode: SelectionMode.none,
+                  horizontalScrollPhysics: const NeverScrollableScrollPhysics(),
                   navigationMode: GridNavigationMode.row,
                   allowSorting: true,
                   sortingGestureType: SortingGestureType.tap,
@@ -138,18 +139,16 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                       label: _buildHeaderCell('Title'),
                       minimumWidth: 190,
                     ),
-                    if (!isMobile)
+                    if (showLinkedTo)
                       GridColumn(
                         columnName: 'linkedTo',
                         label: _buildHeaderCell('Linked To'),
-                        minimumWidth: 120,
-                        width: Responsive.getResponsiveValue(context, mobile: 180, desktop: 200),
+                        width: 200,
                       ),
                     GridColumn(
                       columnName: 'modified',
                       label: _buildHeaderCell('Modified'),
-                      minimumWidth: 115,
-                      width: isMobile ? 115 : 140,
+                      width: 118,
                     ),
                     if (showActions)
                       GridColumn(
