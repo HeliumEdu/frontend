@@ -48,6 +48,33 @@ class _NotesDataGridState extends State<NotesDataGrid> {
   late NotesDataSource _dataSource;
 
   @override
+  void initState() {
+    super.initState();
+    _dataSource = _buildDataSource();
+  }
+
+  @override
+  void didUpdateWidget(NotesDataGrid oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.notes != widget.notes ||
+        oldWidget.userSettings != widget.userSettings ||
+        oldWidget.onNoteTap != widget.onNoteTap ||
+        oldWidget.onDelete != widget.onDelete) {
+      _dataSource = _buildDataSource();
+    }
+  }
+
+  NotesDataSource _buildDataSource() {
+    return NotesDataSource(
+      notes: widget.notes,
+      context: context,
+      userSettings: widget.userSettings,
+      onEdit: widget.onNoteTap,
+      onDelete: widget.onDelete,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isTouchDevice = Responsive.isTouchDevice(context);
     final showLinkedTo = Responsive.isDesktop(context);
@@ -73,16 +100,6 @@ class _NotesDataGridState extends State<NotesDataGrid> {
     final endIndex = isShowingAll
         ? totalItems
         : (startIndex + widget.rowsPerPage).clamp(0, totalItems);
-
-    _dataSource = NotesDataSource(
-      notes: widget.notes,
-      context: context,
-      userSettings: widget.userSettings,
-      onEdit: widget.onNoteTap,
-      onDelete: widget.onDelete,
-      showLinkedTo: showLinkedTo,
-      showActions: showActions,
-    );
 
     final headerColor = context.colorScheme.surfaceContainerHighest
         .withValues(alpha: 0.5);
@@ -243,8 +260,6 @@ class NotesDataSource extends DataGridSource {
   final UserSettingsModel? userSettings;
   final Function(NoteModel) onEdit;
   final Function(BuildContext, NoteModel) onDelete;
-  final bool showLinkedTo;
-  final bool showActions;
   List<DataGridRow> _dataGridRows = [];
   late List<DataGridRow> _allRows;
   late Map<int, NoteModel> _notesById;
@@ -255,8 +270,6 @@ class NotesDataSource extends DataGridSource {
     required this.onEdit,
     required this.onDelete,
     this.userSettings,
-    this.showLinkedTo = true,
-    this.showActions = true,
   }) {
     _notesById = {for (var note in notes) note.id: note};
     _allRows = notes.map((note) {
@@ -326,8 +339,8 @@ class NotesDataSource extends DataGridSource {
     // Filter out internal cells and hidden columns for display
     final displayCells = row.getCells()
         .where((c) => !c.columnName.startsWith('_'))
-        .where((c) => showLinkedTo || c.columnName != 'linkedTo')
-        .where((c) => showActions || c.columnName != 'actions')
+        .where((c) => Responsive.isDesktop(context) || c.columnName != 'linkedTo')
+        .where((c) => !Responsive.isTouchDevice(context) || c.columnName != 'actions')
         .toList();
 
     return DataGridRowAdapter(
