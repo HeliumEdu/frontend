@@ -15,6 +15,7 @@ class CourseTitleLabel extends StatelessWidget {
   final Color color;
   final bool showIcon;
   final bool compact;
+  final IconData? icon;
   final VoidCallback? onDelete;
 
   const CourseTitleLabel({
@@ -23,6 +24,7 @@ class CourseTitleLabel extends StatelessWidget {
     required this.color,
     this.showIcon = true,
     this.compact = false,
+    this.icon,
     this.onDelete,
   });
 
@@ -40,7 +42,7 @@ class CourseTitleLabel extends StatelessWidget {
         children: [
           if (showIcon) ...[
             Icon(
-              Icons.school_outlined,
+              icon ?? Icons.school_outlined,
               color: BadgeColors.foreground(context, color),
               size: Responsive.getIconSize(
                 context,

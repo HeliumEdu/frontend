@@ -9,7 +9,9 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
+import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
+import 'package:heliumapp/presentation/ui/components/resource_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/helium_pager.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -418,7 +420,7 @@ class NotesDataSource extends DataGridSource {
       rowColor = linkedEntityColor;
     } else if (entityType == 'event') {
       rowColor = userSettings?.eventsColor;
-    } else if (entityType == 'material') {
+    } else if (entityType == 'resource') {
       rowColor = userSettings?.resourceColor;
     }
 
@@ -449,13 +451,13 @@ class NotesDataSource extends DataGridSource {
               ),
             ),
           ),
-          child: _buildCell(cell, rowColor, entityType),
+          child: _buildCell(cell, rowColor, entityType, linkedEntityColor),
         ),
       )).toList(),
     );
   }
 
-  Widget _buildCell(DataGridCell cell, Color? rowColor, String entityType) {
+  Widget _buildCell(DataGridCell cell, Color? rowColor, String entityType, Color? linkedEntityColor) {
     final isMobile = Responsive.isMobile(context);
     final isTouchDevice = Responsive.isTouchDevice(context);
     final isCompact = MediaQuery.of(context).size.width < 800;
@@ -503,28 +505,29 @@ class NotesDataSource extends DataGridSource {
         );
       }
 
-      final icon = _getEntityIcon(entityType);
+      Widget badge;
+      if (entityType == 'resource' && userSettings != null) {
+        badge = ResourceTitleLabel(title: linkedTo, userSettings: userSettings!);
+      } else if (entityType == 'event') {
+        badge = CourseTitleLabel(
+          title: linkedTo,
+          color: userSettings?.eventsColor ?? context.colorScheme.tertiary,
+          icon: AppConstants.eventIcon,
+          compact: true,
+        );
+      } else {
+        badge = CourseTitleLabel(
+          title: linkedTo,
+          color: linkedEntityColor ?? context.colorScheme.primary,
+          icon: AppConstants.assignmentIcon,
+          compact: true,
+        );
+      }
+
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         alignment: Alignment.centerLeft,
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              size: 16,
-              color: rowColor ?? context.colorScheme.onSurface.withValues(alpha: 0.5),
-            ),
-            const SizedBox(width: 6),
-            Expanded(
-              child: Text(
-                linkedTo,
-                style: AppStyles.standardBodyTextLight(context),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
+        child: badge,
       );
     }
 
@@ -585,16 +588,4 @@ class NotesDataSource extends DataGridSource {
     );
   }
 
-  IconData _getEntityIcon(String entityType) {
-    switch (entityType) {
-      case 'homework':
-        return AppConstants.assignmentIcon;
-      case 'event':
-        return AppConstants.eventIcon;
-      case 'material':
-        return Icons.book;
-      default:
-        return Icons.link_off;
-    }
-  }
 }

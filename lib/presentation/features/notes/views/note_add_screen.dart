@@ -37,11 +37,11 @@ import 'package:heliumapp/presentation/features/notes/bloc/note_state.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
+import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
+import 'package:heliumapp/presentation/ui/components/resource_title_label.dart';
 import 'package:heliumapp/presentation/ui/dialogs/color_picker_dialog.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_globals.dart';
-import 'package:heliumapp/utils/app_style.dart';
-import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 /// Shows note add/edit as a dialog on desktop, or navigates on mobile
@@ -393,7 +393,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                   ),
                   if (_note?.link != null || _provisionalLink != null) ...[
                     const SizedBox(width: 8),
-                    _buildLinkedEntityInfo(_note?.link ?? _provisionalLink!),
+                    _buildLinkedEntityBadge(_note?.link ?? _provisionalLink!),
                   ],
                 ],
               ),
@@ -494,63 +494,27 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   );
   }
 
-  Widget _buildLinkedEntityInfo(NoteLinkModel link) {
-    final icon = _getEntityIcon(link.linkedEntityType);
+  Widget _buildLinkedEntityBadge(NoteLinkModel link) {
+    final title = link.linkedEntityTitle ?? 'Linked ${link.linkedEntityType}';
 
-    // Determine color based on entity type
-    Color? color;
-    if (link.linkedEntityType == 'homework') {
-      color = link.linkedEntityColor;
-    } else if (link.linkedEntityType == 'event') {
-      color = userSettings?.eventsColor;
-    } else if (link.linkedEntityType == 'resource') {
-      color = userSettings?.resourceColor;
+    if (link.linkedEntityType == 'resource') {
+      if (userSettings == null) return const SizedBox.shrink();
+      return ResourceTitleLabel(title: title, userSettings: userSettings!);
     }
 
-    // Fallback color for unlinked notes
-    final effectiveColor = color ?? context.colorScheme.outline;
+    if (link.linkedEntityType == 'event') {
+      return CourseTitleLabel(
+        title: title,
+        color: userSettings?.eventsColor ?? context.colorScheme.tertiary,
+        icon: AppConstants.eventIcon,
+      );
+    }
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: BadgeColors.background(context, effectiveColor),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: BadgeColors.border(context, effectiveColor),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            size: 16,
-            color: BadgeColors.foreground(context, effectiveColor),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            link.linkedEntityTitle ?? 'Linked ${link.linkedEntityType}',
-            style: AppStyles.standardBodyTextLight(context).copyWith(
-              fontSize: 12,
-              color: BadgeColors.foreground(context, effectiveColor),
-            ),
-          ),
-        ],
-      ),
+    // homework (and any unknown linked type)
+    return CourseTitleLabel(
+      title: title,
+      color: link.linkedEntityColor ?? context.colorScheme.primary,
+      icon: AppConstants.assignmentIcon,
     );
-  }
-
-  IconData _getEntityIcon(String entityType) {
-    switch (entityType) {
-      case 'homework':
-        return AppConstants.assignmentIcon;
-      case 'event':
-        return AppConstants.eventIcon;
-      case 'resource':
-        return Icons.book;
-      default:
-        return Icons.link;
-    }
   }
 }

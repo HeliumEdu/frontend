@@ -170,8 +170,8 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
         if (_filterEntityTypes.contains('event')) {
           if (note.link?.linkedEntityType == 'event') return true;
         }
-        if (_filterEntityTypes.contains('material')) {
-          if (note.link?.linkedEntityType == 'material') return true;
+        if (_filterEntityTypes.contains('resource')) {
+          if (note.link?.linkedEntityType == 'resource') return true;
         }
         return false;
       }).toList();
@@ -279,7 +279,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
           color: userSettings?.eventsColor ?? context.colorScheme.tertiary,
         ),
         (
-          value: 'material',
+          value: 'resource',
           label: 'Resources',
           icon: Icons.book,
           color: userSettings?.resourceColor ?? context.colorScheme.secondary,
