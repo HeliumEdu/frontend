@@ -79,6 +79,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
   String? _searchQuery;
   final Set<String> _filterEntityTypes = {};
   final TextEditingController _searchController = TextEditingController();
+  int _rowsPerPage = 10;
 
   @override
   void initState() {
@@ -497,6 +498,12 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
             onNoteTap: _openNote,
             onDelete: _confirmDeleteNote,
             userSettings: userSettings,
+            rowsPerPage: _rowsPerPage,
+            onRowsPerPageChanged: (rowsPerPage) {
+              setState(() {
+                _rowsPerPage = rowsPerPage;
+              });
+            },
           ),
         );
       },

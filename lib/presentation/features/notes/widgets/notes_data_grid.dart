@@ -15,6 +15,7 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 class NotesDataGrid extends StatefulWidget {
@@ -22,6 +23,8 @@ class NotesDataGrid extends StatefulWidget {
   final Function(NoteModel) onNoteTap;
   final Function(BuildContext, NoteModel) onDelete;
   final UserSettingsModel? userSettings;
+  final int rowsPerPage;
+  final Function(int)? onRowsPerPageChanged;
 
   const NotesDataGrid({
     super.key,
@@ -29,6 +32,8 @@ class NotesDataGrid extends StatefulWidget {
     required this.onNoteTap,
     required this.onDelete,
     this.userSettings,
+    this.rowsPerPage = 10,
+    this.onRowsPerPageChanged,
   });
 
   @override
@@ -37,6 +42,7 @@ class NotesDataGrid extends StatefulWidget {
 
 class _NotesDataGridState extends State<NotesDataGrid> {
   final DataGridController _controller = DataGridController();
+  late NotesDataSource _dataSource;
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +51,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
     final showLinkedTo = !isMobile;
     final showActions = !isTouchDevice;
 
-    final dataSource = NotesDataSource(
+    _dataSource = NotesDataSource(
       notes: widget.notes,
       context: context,
       userSettings: widget.userSettings,
@@ -55,78 +61,151 @@ class _NotesDataGridState extends State<NotesDataGrid> {
       showActions: showActions,
     );
 
-    return SfDataGrid(
-      source: dataSource,
-      controller: _controller,
-      columnWidthMode: ColumnWidthMode.fill,
-      headerRowHeight: 48,
-      rowHeight: 56,
-      gridLinesVisibility: GridLinesVisibility.none,
-      headerGridLinesVisibility: GridLinesVisibility.none,
-      selectionMode: SelectionMode.single,
-      navigationMode: GridNavigationMode.row,
-      allowSorting: true,
-      sortingGestureType: SortingGestureType.tap,
-      allowSwiping: isTouchDevice,
-      swipeMaxOffset: 80,
-      onSwipeEnd: (details) {
-        if (details.swipeDirection == DataGridRowSwipeDirection.endToStart) {
-          final rowIndex = details.rowIndex;
-          final note = dataSource.getNoteAtRow(rowIndex);
-          if (note != null) {
-            widget.onDelete(context, note);
-          }
-        }
-      },
-      endSwipeActionsBuilder: (context, row, rowIndex) {
-        return Container(
-          color: context.colorScheme.error,
-          alignment: Alignment.centerRight,
-          padding: const EdgeInsets.only(right: 24),
-          child: Icon(
-            Icons.delete_outline,
-            color: context.colorScheme.onError,
-          ),
-        );
-      },
-      onCellTap: (details) {
-        if (details.rowColumnIndex.rowIndex > 0) {
-          final rowIndex = details.rowColumnIndex.rowIndex - 1;
-          final note = dataSource.getNoteAtRow(rowIndex);
-          if (note != null && isTouchDevice) {
-            // Only allow row tap to edit on touch devices (where actions column is hidden)
-            // On desktop with actions column, users should use the edit button
-            widget.onNoteTap(note);
-          }
-        }
-      },
-      columns: [
-        GridColumn(
-          columnName: 'title',
-          label: _buildHeaderCell('Title'),
-          minimumWidth: 150,
+    final headerColor = context.colorScheme.surfaceContainerHighest
+        .withValues(alpha: 0.5);
+
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: context.colorScheme.outline.withValues(alpha: 0.2),
         ),
-        if (!isMobile)
-          GridColumn(
-            columnName: 'linkedTo',
-            label: _buildHeaderCell('Linked To'),
-            minimumWidth: 120,
-            width: 200,
-          ),
-        GridColumn(
-          columnName: 'modified',
-          label: _buildHeaderCell('Last Modified'),
-          minimumWidth: 80,
-          width: isMobile ? 100 : 140,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(8),
+          topRight: Radius.circular(8),
         ),
-        if (showActions)
-          GridColumn(
-            columnName: 'actions',
-            label: const SizedBox.shrink(),
-            width: 100,
-            allowSorting: false,
-          ),
-      ],
+      ),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(8),
+          topRight: Radius.circular(8),
+        ),
+        child: Column(
+          children: [
+            Expanded(
+              child: SfDataGridTheme(
+                data: SfDataGridThemeData(
+                  sortIconColor: context.colorScheme.primary,
+                  headerColor: headerColor,
+                ),
+                child: SfDataGrid(
+                  source: _dataSource,
+                  controller: _controller,
+                  columnWidthMode: ColumnWidthMode.fill,
+                  headerRowHeight: 40,
+                  rowHeight: 56,
+                  gridLinesVisibility: GridLinesVisibility.none,
+                  headerGridLinesVisibility: GridLinesVisibility.none,
+                  selectionMode: SelectionMode.single,
+                  navigationMode: GridNavigationMode.row,
+                  allowSorting: true,
+                  sortingGestureType: SortingGestureType.tap,
+                  rowsPerPage: widget.rowsPerPage == -1 ? null : widget.rowsPerPage,
+                  allowSwiping: isTouchDevice,
+                  swipeMaxOffset: 80,
+                  onSwipeEnd: (details) {
+                    if (details.swipeDirection ==
+                        DataGridRowSwipeDirection.endToStart) {
+                      final rowIndex = details.rowIndex;
+                      final note = _dataSource.getNoteAtRow(rowIndex);
+                      if (note != null) {
+                        widget.onDelete(context, note);
+                      }
+                    }
+                  },
+                  endSwipeActionsBuilder: (context, row, rowIndex) {
+                    return Container(
+                      color: context.colorScheme.error,
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.only(right: 24),
+                      child: Icon(
+                        Icons.delete_outline,
+                        color: context.colorScheme.onError,
+                      ),
+                    );
+                  },
+                  onCellTap: (details) {
+                    if (details.rowColumnIndex.rowIndex > 0) {
+                      final rowIndex = details.rowColumnIndex.rowIndex - 1;
+                      final note = _dataSource.getNoteAtRow(rowIndex);
+                      if (note != null && isTouchDevice) {
+                        widget.onNoteTap(note);
+                      }
+                    }
+                  },
+                  columns: [
+                    GridColumn(
+                      columnName: 'title',
+                      label: _buildHeaderCell('Title'),
+                      minimumWidth: 150,
+                    ),
+                    if (!isMobile)
+                      GridColumn(
+                        columnName: 'linkedTo',
+                        label: _buildHeaderCell('Linked To'),
+                        minimumWidth: 120,
+                        width: 200,
+                      ),
+                    GridColumn(
+                      columnName: 'modified',
+                      label: _buildHeaderCell('Modified'),
+                      minimumWidth: 80,
+                      width: isMobile ? 100 : 140,
+                    ),
+                    if (showActions)
+                      GridColumn(
+                        columnName: 'actions',
+                        label: const SizedBox.shrink(),
+                        width: 100,
+                        allowSorting: false,
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.only(right: 25),
+              decoration: BoxDecoration(
+                border: Border(
+                  top: BorderSide(
+                    color: context.colorScheme.outline.withValues(alpha: 0.2),
+                  ),
+                ),
+              ),
+              child: SfDataPagerTheme(
+                data: SfDataPagerThemeData(
+                  backgroundColor: context.colorScheme.surface,
+                  selectedItemColor: context.colorScheme.primary,
+                  itemColor: context.colorScheme.surface,
+                  itemBorderColor: context.colorScheme.primary,
+                  disabledItemColor: context.colorScheme.surface,
+                  disabledItemTextStyle: AppStyles.smallSecondaryTextLight(context).copyWith(
+                    color: context.colorScheme.onSurface.withValues(alpha: 0.4),
+                  ),
+                  itemTextStyle: AppStyles.smallSecondaryTextLight(context).copyWith(
+                    color: context.colorScheme.primary,
+                  ),
+                  selectedItemTextStyle: AppStyles.smallSecondaryTextLight(context).copyWith(
+                    color: context.colorScheme.onPrimary,
+                  ),
+                  dropdownButtonBorderColor: context.colorScheme.outline.withValues(alpha: 0.3),
+                ),
+                child: SfDataPager(
+                  delegate: _dataSource,
+                  pageCount: widget.rowsPerPage == -1
+                      ? 1
+                      : (widget.notes.length / widget.rowsPerPage).ceil().toDouble().clamp(1, double.infinity),
+                  availableRowsPerPage: const [5, 10, 25, 50, 100],
+                  onRowsPerPageChanged: widget.onRowsPerPageChanged != null
+                      ? (rowsPerPage) {
+                          widget.onRowsPerPageChanged!(rowsPerPage ?? 10);
+                        }
+                      : null,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -137,8 +216,8 @@ class _NotesDataGridState extends State<NotesDataGrid> {
       child: Text(
         text,
         style: AppStyles.standardBodyText(context).copyWith(
-          fontWeight: FontWeight.w600,
-          color: context.colorScheme.onSurface.withValues(alpha: 0.7),
+          color: context.colorScheme.onSurface,
+          fontSize: Responsive.getFontSize(context, mobile: 10, tablet: 14),
         ),
       ),
     );
@@ -153,7 +232,8 @@ class NotesDataSource extends DataGridSource {
   final Function(BuildContext, NoteModel) onDelete;
   final bool showLinkedTo;
   final bool showActions;
-  late List<DataGridRow> _dataGridRows;
+  List<DataGridRow> _dataGridRows = [];
+  late List<DataGridRow> _allRows;
   late Map<int, NoteModel> _notesById;
 
   NotesDataSource({
@@ -166,7 +246,7 @@ class NotesDataSource extends DataGridSource {
     this.showActions = true,
   }) {
     _notesById = {for (var note in notes) note.id: note};
-    _dataGridRows = notes.map((note) {
+    _allRows = notes.map((note) {
       return DataGridRow(cells: [
         DataGridCell<String>(columnName: 'title', value: note.title),
         DataGridCell<String>(
@@ -186,6 +266,7 @@ class NotesDataSource extends DataGridSource {
         ),
       ]);
     }).toList();
+    _dataGridRows = _allRows;
     // Set initial sort by title
     sortedColumns.add(
       const SortColumnDetails(
