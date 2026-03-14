@@ -28,6 +28,7 @@ class NotesDataGrid extends StatefulWidget {
   final int rowsPerPage;
   final Function(int)? onRowsPerPageChanged;
   final bool isLoading;
+  final String? emptyMessage;
 
   const NotesDataGrid({
     super.key,
@@ -38,6 +39,7 @@ class NotesDataGrid extends StatefulWidget {
     this.rowsPerPage = 10,
     this.onRowsPerPageChanged,
     this.isLoading = false,
+    this.emptyMessage,
   });
 
   @override
@@ -134,84 +136,114 @@ class _NotesDataGridState extends State<NotesDataGrid> {
             child: Column(
               children: [
                 Expanded(
-                  child: SfDataGridTheme(
-                    data: SfDataGridThemeData(
-                      sortIconColor: context.colorScheme.primary,
-                      headerColor: headerColor,
-                    ),
-                    child: SfDataGrid(
-                      key: ValueKey('notes_grid_${showLinkedTo}_${showActions}_${isCompact}'),
-                      source: _dataSource,
-                      controller: _controller,
-                      columnWidthMode: ColumnWidthMode.fill,
-                      headerRowHeight: 40,
-                      rowHeight: 50,
-                      gridLinesVisibility: GridLinesVisibility.none,
-                      headerGridLinesVisibility: GridLinesVisibility.none,
-                      selectionMode: SelectionMode.none,
-                      horizontalScrollPhysics: const NeverScrollableScrollPhysics(),
-                      navigationMode: GridNavigationMode.row,
-                      allowSorting: true,
-                      sortingGestureType: SortingGestureType.tap,
-                      rowsPerPage: widget.rowsPerPage == -1 ? null : widget.rowsPerPage,
-                      allowSwiping: isTouchDevice,
-                      swipeMaxOffset: 80,
-                      onSwipeEnd: (details) {
-                        if (details.swipeDirection ==
-                            DataGridRowSwipeDirection.endToStart) {
-                          final rowIndex = details.rowIndex;
-                          final note = _dataSource.getNoteAtRow(rowIndex);
-                          if (note != null) {
-                            widget.onDelete(context, note);
-                          }
-                        }
-                      },
-                      endSwipeActionsBuilder: (context, row, rowIndex) {
-                        return Container(
-                          color: context.colorScheme.error,
-                          alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.only(right: 24),
-                          child: Icon(
-                            Icons.delete_outline,
-                            color: context.colorScheme.onError,
-                          ),
-                        );
-                      },
-                      onCellTap: (details) {
-                        if (details.rowColumnIndex.rowIndex > 0) {
-                          final rowIndex = details.rowColumnIndex.rowIndex - 1;
-                          final note = _dataSource.getNoteAtRow(rowIndex);
-                          if (note != null && (isTouchDevice || isCompact)) {
-                            widget.onNoteTap(note);
-                          }
-                        }
-                      },
-                      columns: [
-                        GridColumn(
-                          columnName: 'title',
-                          label: _buildHeaderCell('Title'),
-                          minimumWidth: 170,
+                  child: Stack(
+                    children: [
+                      SfDataGridTheme(
+                        data: SfDataGridThemeData(
+                          sortIconColor: context.colorScheme.primary,
+                          headerColor: headerColor,
                         ),
-                        if (showLinkedTo)
-                          GridColumn(
-                            columnName: 'linkedTo',
-                            label: _buildHeaderCell('Linked To'),
-                            width: 200,
-                          ),
-                        GridColumn(
-                          columnName: 'modified',
-                          label: _buildHeaderCell('Modified'),
-                          width: 118,
+                        child: SfDataGrid(
+                          key: ValueKey('notes_grid_${showLinkedTo}_${showActions}_${isCompact}'),
+                          source: _dataSource,
+                          controller: _controller,
+                          columnWidthMode: ColumnWidthMode.fill,
+                          headerRowHeight: 40,
+                          rowHeight: 50,
+                          gridLinesVisibility: GridLinesVisibility.none,
+                          headerGridLinesVisibility: GridLinesVisibility.none,
+                          selectionMode: SelectionMode.none,
+                          horizontalScrollPhysics: const NeverScrollableScrollPhysics(),
+                          navigationMode: GridNavigationMode.row,
+                          allowSorting: true,
+                          sortingGestureType: SortingGestureType.tap,
+                          rowsPerPage: widget.rowsPerPage == -1 ? null : widget.rowsPerPage,
+                          allowSwiping: isTouchDevice,
+                          swipeMaxOffset: 80,
+                          onSwipeEnd: (details) {
+                            if (details.swipeDirection ==
+                                DataGridRowSwipeDirection.endToStart) {
+                              final rowIndex = details.rowIndex;
+                              final note = _dataSource.getNoteAtRow(rowIndex);
+                              if (note != null) {
+                                widget.onDelete(context, note);
+                              }
+                            }
+                          },
+                          endSwipeActionsBuilder: (context, row, rowIndex) {
+                            return Container(
+                              color: context.colorScheme.error,
+                              alignment: Alignment.centerRight,
+                              padding: const EdgeInsets.only(right: 24),
+                              child: Icon(
+                                Icons.delete_outline,
+                                color: context.colorScheme.onError,
+                              ),
+                            );
+                          },
+                          onCellTap: (details) {
+                            if (details.rowColumnIndex.rowIndex > 0) {
+                              final rowIndex = details.rowColumnIndex.rowIndex - 1;
+                              final note = _dataSource.getNoteAtRow(rowIndex);
+                              if (note != null && (isTouchDevice || isCompact)) {
+                                widget.onNoteTap(note);
+                              }
+                            }
+                          },
+                          columns: [
+                            GridColumn(
+                              columnName: 'title',
+                              label: _buildHeaderCell('Title'),
+                              minimumWidth: 170,
+                            ),
+                            if (showLinkedTo)
+                              GridColumn(
+                                columnName: 'linkedTo',
+                                label: _buildHeaderCell('Linked To'),
+                                width: 200,
+                              ),
+                            GridColumn(
+                              columnName: 'modified',
+                              label: _buildHeaderCell('Modified'),
+                              width: 118,
+                            ),
+                            if (showActions)
+                              GridColumn(
+                                columnName: 'actions',
+                                label: const SizedBox.shrink(),
+                                width: isCompact ? 51 : 93,
+                                allowSorting: false,
+                              ),
+                          ],
                         ),
-                        if (showActions)
-                          GridColumn(
-                            columnName: 'actions',
-                            label: const SizedBox.shrink(),
-                            width: isCompact ? 51 : 93,
-                            allowSorting: false,
+                      ),
+                      if (!widget.isLoading && widget.notes.isEmpty)
+                        Positioned(
+                          top: 40,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.library_books,
+                                  size: 48,
+                                  color: context.colorScheme.onSurface.withValues(alpha: 0.3),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  widget.emptyMessage ?? 'No notes found',
+                                  style: AppStyles.standardBodyTextLight(context).copyWith(
+                                    color: context.colorScheme.onSurface.withValues(alpha: 0.5),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                      ],
-                    ),
+                        ),
+                    ],
                   ),
                 ),
                 SizedBox(

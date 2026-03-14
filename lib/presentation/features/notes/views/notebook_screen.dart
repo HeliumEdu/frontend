@@ -25,9 +25,7 @@ import 'package:heliumapp/presentation/features/notes/views/note_add_screen.dart
 import 'package:heliumapp/presentation/features/notes/widgets/notes_data_grid.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
-import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
-import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
@@ -215,7 +213,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
     setState(() {
       if (savedEntityTypes != null) {
         _filterEntityTypes.clear();
-        _filterEntityTypes.addAll(savedEntityTypes!.cast<String>());
+        _filterEntityTypes.addAll(savedEntityTypes.cast<String>());
       }
       if (savedRowsPerPage != null) _rowsPerPage = savedRowsPerPage;
     });
@@ -372,20 +370,22 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
             });
           } else if (state is NoteCreated) {
             setState(() {
-              _notes.add(state.note);
+              _notes = [..._notes, state.note];
               Sort.byUpdatedAt(_notes);
             });
           } else if (state is NoteUpdated) {
             setState(() {
-              final index = _notes.indexWhere((n) => n.id == state.note.id);
+              final updated = List<NoteModel>.from(_notes);
+              final index = updated.indexWhere((n) => n.id == state.note.id);
               if (index != -1) {
-                _notes[index] = state.note;
-                Sort.byUpdatedAt(_notes);
+                updated[index] = state.note;
+                Sort.byUpdatedAt(updated);
+                _notes = updated;
               }
             });
           } else if (state is NoteDeleted) {
             setState(() {
-              _notes.removeWhere((n) => n.id == state.noteId);
+              _notes = _notes.where((n) => n.id != state.noteId).toList();
             });
             showSnackBar(context, 'Note deleted');
           }
@@ -504,19 +504,13 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
         final notesLoading = !_notesReady;
         final filteredNotes = notesLoading ? <NoteModel>[] : _getFilteredNotes();
 
-        if (!notesLoading && filteredNotes.isEmpty) {
-          return EmptyCard(
-            icon: icon,
-            message: _searchQuery != null || _filterEntityTypes.isNotEmpty
-                ? 'No notes match your search'
-                : 'Create your first note to get started',
-          );
-        }
-
         return Expanded(
           child: NotesDataGrid(
             notes: filteredNotes,
             isLoading: notesLoading,
+            emptyMessage: _searchQuery != null || _filterEntityTypes.isNotEmpty
+                ? 'No notes match the applied filters or search'
+                : 'Create your first note to get started',
             onNoteTap: _openNote,
             onDelete: _confirmDeleteNote,
             userSettings: userSettings,

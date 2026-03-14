@@ -165,7 +165,7 @@ class _TodosTableState extends State<TodosTable> {
             const SizedBox(height: 16),
             Text(
               hasAssignments
-                  ? 'No assignments match the applied filters'
+                  ? 'No assignments match the applied filters or search'
                   : 'No assignments found',
               style: AppStyles.standardBodyTextLight(context).copyWith(
                 color: context.colorScheme.onSurface.withValues(alpha: 0.5),
