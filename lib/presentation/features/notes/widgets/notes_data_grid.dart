@@ -94,7 +94,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
   Widget build(BuildContext context) {
     final isTouchDevice = Responsive.isTouchDevice(context);
     final isCompact = MediaQuery.of(context).size.width < 800;
-    final showLinkedTo = Responsive.isDesktop(context);
+    final showLinkedTo = !Responsive.isMobile(context);
     final showActions = !isTouchDevice;
 
     final isShowingAll = widget.rowsPerPage == -1;
@@ -205,7 +205,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                               GridColumn(
                                 columnName: 'linkedTo',
                                 label: _buildHeaderCell('Linked To'),
-                                width: 200,
+                                width: isCompact ? 150 : 200,
                               ),
                             GridColumn(
                               columnName: 'modified',
@@ -427,7 +427,7 @@ class NotesDataSource extends DataGridSource {
     // Filter out internal cells and hidden columns for display
     final displayCells = row.getCells()
         .where((c) => !c.columnName.startsWith('_'))
-        .where((c) => Responsive.isDesktop(context) || c.columnName != 'linkedTo')
+        .where((c) => !Responsive.isMobile(context) || c.columnName != 'linkedTo')
         .where((c) => !Responsive.isTouchDevice(context) || c.columnName != 'actions')
         .toList();
 
