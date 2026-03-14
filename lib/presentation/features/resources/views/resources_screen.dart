@@ -421,15 +421,10 @@ class _ResourcesScreenState
 
               const SizedBox(height: 12),
 
-              if (resource.notes != null ||
-                  (resource.details != null &&
-                      resource.details!.isNotEmpty)) ...[
+              if (resource.notes != null) ...[
                 const Divider(),
                 const SizedBox(height: 12),
-                NotesViewer(
-                  notes: resource.notes,
-                  legacyHtml: resource.details,
-                ),
+                NotesViewer(notes: resource.notes),
               ],
             ],
           ),

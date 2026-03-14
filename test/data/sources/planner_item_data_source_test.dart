@@ -624,17 +624,17 @@ void main() {
         homework1 = _createHomeworkModel(
           id: 1,
           title: 'Math Assignment',
-          comments: 'Complete problems 1-10',
+          notesText: 'Complete problems 1-10',
         );
         homework2 = _createHomeworkModel(
           id: 2,
           title: 'Physics Lab Report',
-          comments: 'Write conclusions',
+          notesText: 'Write conclusions',
         );
         event1 = _createEventModel(
           id: 3,
           title: 'Study Session',
-          comments: 'Review math notes',
+          notesText: 'Review math notes',
         );
 
         dataSource.addPlannerItem(homework1);
@@ -655,7 +655,7 @@ void main() {
         expect(filtered[0].id, 1);
       });
 
-      test('filters by comments match', () {
+      test('filters by notes match', () {
         dataSource.setSearchQuery('conclusions');
         final filtered = dataSource.filteredHomeworks;
 
@@ -1521,7 +1521,7 @@ HomeworkModel _createHomeworkModel({
   int categoryId = 1,
   CategoryModel? categoryEntity,
   bool completed = false,
-  String comments = '',
+  String? notesText,
 }) {
   return HomeworkModel(
     id: id,
@@ -1531,7 +1531,8 @@ HomeworkModel _createHomeworkModel({
     start: start ?? DateTime.parse('2025-01-15T10:00:00Z'),
     end: end ?? DateTime.parse('2025-01-15T11:00:00Z'),
     priority: 50,
-    comments: comments,
+    comments: '',
+    notes: notesText != null ? {'ops': [{'insert': '$notesText\n'}]} : null,
     attachments: [],
     reminders: [],
     completed: completed,
@@ -1550,7 +1551,7 @@ EventModel _createEventModel({
   DateTime? start,
   DateTime? end,
   bool allDay = false,
-  String comments = '',
+  String? notesText,
 }) {
   return EventModel(
     id: id,
@@ -1561,7 +1562,8 @@ EventModel _createEventModel({
     end: end ?? DateTime.parse('2025-01-15T15:00:00Z'),
     priority: 50,
     url: null,
-    comments: comments,
+    comments: '',
+    notes: notesText != null ? {'ops': [{'insert': '$notesText\n'}]} : null,
     attachments: [],
     reminders: [],
     color: const Color(0xFF4CAF50),

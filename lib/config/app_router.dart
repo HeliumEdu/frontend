@@ -247,14 +247,12 @@ void initializeRouter() {
         },
       ),
 
-      // Note edit route (outside shell for full-screen editing)
       GoRoute(
         path: AppRoute.noteEditScreen,
         parentNavigatorKey: rootNavigatorKey,
         pageBuilder: (context, state) {
           final args = state.extra as NoteAddArgs?;
 
-          // When navigating from notebook_screen with shared bloc
           if (args?.noteBloc != null) {
             return MaterialPage(
               child: BlocProvider<NoteBloc>.value(
@@ -269,8 +267,6 @@ void initializeRouter() {
             );
           }
 
-          // When navigating from other screens (resource_details, planner_item_details),
-          // parse query params and create a standalone bloc
           final noteIdParam = state.uri.queryParameters['id'];
           final homeworkIdParam = state.uri.queryParameters['homework_id'];
           final eventIdParam = state.uri.queryParameters['event_id'];
