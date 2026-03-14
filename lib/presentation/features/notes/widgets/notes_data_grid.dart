@@ -160,7 +160,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                     GridColumn(
                       columnName: 'title',
                       label: _buildHeaderCell('Title'),
-                      minimumWidth: 190,
+                      minimumWidth: 170,
                     ),
                     if (showLinkedTo)
                       GridColumn(
