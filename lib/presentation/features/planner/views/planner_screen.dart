@@ -1335,7 +1335,11 @@ class _CalendarScreenState
                 foregroundColor: hasFilters
                     ? context.colorScheme.onPrimary
                     : null,
-                side: BorderSide(color: context.colorScheme.primary),
+                side: BorderSide(
+                  color: _courses.isEmpty
+                      ? context.colorScheme.onSurface.withValues(alpha: 0.3)
+                      : context.colorScheme.primary,
+                ),
               ),
             );
           },

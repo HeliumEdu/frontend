@@ -11,6 +11,7 @@ import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_pager.dart';
+import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -28,6 +29,7 @@ class NotesDataGrid extends StatefulWidget {
   final int rowsPerPage;
   final Function(int)? onRowsPerPageChanged;
   final bool isLoading;
+  final bool hasAnyNotes;
   final String? emptyMessage;
 
   const NotesDataGrid({
@@ -39,6 +41,7 @@ class NotesDataGrid extends StatefulWidget {
     this.rowsPerPage = 10,
     this.onRowsPerPageChanged,
     this.isLoading = false,
+    this.hasAnyNotes = false,
     this.emptyMessage,
   });
 
@@ -223,25 +226,31 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                           left: 0,
                           right: 0,
                           bottom: 0,
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.library_books,
-                                  size: 48,
-                                  color: context.colorScheme.onSurface.withValues(alpha: 0.3),
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  widget.emptyMessage ?? 'No notes found',
-                                  style: AppStyles.standardBodyTextLight(context).copyWith(
-                                    color: context.colorScheme.onSurface.withValues(alpha: 0.5),
+                          child: !widget.hasAnyNotes
+                              ? EmptyCard(
+                                  expanded: false,
+                                  icon: Icons.library_books,
+                                  message: 'Click "+" to get started',
+                                )
+                              : Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.library_books,
+                                        size: 48,
+                                        color: context.colorScheme.onSurface.withValues(alpha: 0.3),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        widget.emptyMessage ?? 'No notes found',
+                                        style: AppStyles.standardBodyTextLight(context).copyWith(
+                                          color: context.colorScheme.onSurface.withValues(alpha: 0.5),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              ],
-                            ),
-                          ),
                         ),
                     ],
                   ),

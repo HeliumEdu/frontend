@@ -502,15 +502,17 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
         }
 
         final notesLoading = !_notesReady;
-        final filteredNotes = notesLoading ? <NoteModel>[] : _getFilteredNotes();
+        final hasAnyNotes = _notes.isNotEmpty;
+        final filteredNotes = (notesLoading || !hasAnyNotes)
+            ? <NoteModel>[]
+            : _getFilteredNotes();
 
         return Expanded(
           child: NotesDataGrid(
             notes: filteredNotes,
             isLoading: notesLoading,
-            emptyMessage: _searchQuery != null || _filterEntityTypes.isNotEmpty
-                ? 'No notes match the applied filters or search'
-                : 'Create your first note to get started',
+            hasAnyNotes: hasAnyNotes,
+            emptyMessage: 'No notes match the applied filters or search',
             onNoteTap: _openNote,
             onDelete: _confirmDeleteNote,
             userSettings: userSettings,

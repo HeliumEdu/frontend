@@ -301,6 +301,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                       hintText: 'Title',
                       controller: _titleController,
                       focusNode: _titleFocusNode,
+                      autofocus: true,
                       validator: BasicFormController.validateRequiredField,
                       fieldKey: _formController.getFieldKey('title'),
                       onFieldSubmitted: (_) => _editorFocusNode.requestFocus(),
