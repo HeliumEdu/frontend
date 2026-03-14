@@ -295,8 +295,10 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
                   onPressed: () {
                     _filterEntityTypes.clear();
                     _saveFilterStateIfEnabled();
-                    setState(() {});
                     setMenuState(() {});
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) setState(() {});
+                    });
                   },
                   child: const Text('Clear All'),
                 ),
@@ -328,8 +330,10 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
                     _filterEntityTypes.remove(option.value);
                   }
                   _saveFilterStateIfEnabled();
-                  setState(() {});
                   setMenuState(() {});
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) setState(() {});
+                  });
                 },
                 controlAffinity: ListTileControlAffinity.leading,
                 contentPadding: EdgeInsets.zero,
