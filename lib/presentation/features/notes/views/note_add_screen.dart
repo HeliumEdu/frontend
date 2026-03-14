@@ -69,9 +69,6 @@ void showNoteAdd(
       ),
     );
   } else {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final dialogWidth = screenWidth - 64; // Nearly full width with padding
-
     final noteScreen = NoteAddScreen(
       noteId: noteId,
       homeworkId: homeworkId,
@@ -98,7 +95,8 @@ void showNoteAdd(
               ),
               child: noteScreen,
             ),
-      width: dialogWidth,
+      width: double.infinity,
+      insetPadding: const EdgeInsets.all(32),
       alignment: Alignment.center,
     );
   }
