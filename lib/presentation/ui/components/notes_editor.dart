@@ -21,7 +21,7 @@ class NotesEditor extends StatelessWidget {
     this.onOpenInNotes,
   });
 
-  static Future<void> _showColorPicker(
+  static Future<void> showColorPicker(
     BuildContext context,
     QuillController controller,
     bool isBackground,
@@ -31,7 +31,7 @@ class NotesEditor extends StatelessWidget {
 
     Color initial = Colors.black;
     if (stored != null) {
-      // Quill stores as AARRGGBB (no #) or #RRGGBB — normalise to a Color
+      // Quill stores as #AARRGGBB — strip # and parse
       final hex = stored.startsWith('#') ? stored.substring(1) : stored;
       final padded = hex.length == 6 ? 'ff$hex' : hex;
       initial = Color(int.tryParse(padded, radix: 16) ?? 0xFF000000);
@@ -41,12 +41,11 @@ class NotesEditor extends StatelessWidget {
       parentContext: context,
       initialColor: initial,
       onSelected: (color) {
-        // Quill expects AARRGGBB without # (matches its own colorToHex output)
         final a = (color.a * 255).round().toRadixString(16).padLeft(2, '0');
         final r = (color.r * 255).round().toRadixString(16).padLeft(2, '0');
         final g = (color.g * 255).round().toRadixString(16).padLeft(2, '0');
         final b = (color.b * 255).round().toRadixString(16).padLeft(2, '0');
-        final hex = '$a$r$g$b'.toUpperCase();
+        final hex = '#$a$r$g$b'.toUpperCase();
         controller.formatSelection(
           isBackground ? BackgroundAttribute(hex) : ColorAttribute(hex),
         );
