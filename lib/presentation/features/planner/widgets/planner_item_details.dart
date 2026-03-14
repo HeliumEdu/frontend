@@ -10,6 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:go_router/go_router.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/presentation/features/notes/views/note_add_screen.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
@@ -1125,7 +1127,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   }
 
   void _openInNotes() {
-    // Check if there's already a linked note
     final LinkedNoteRef? linkedNote;
     if (_plannerItem is HomeworkModel) {
       linkedNote = (_plannerItem as HomeworkModel).linkedNote;
@@ -1136,13 +1137,10 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     }
 
     if (linkedNote != null) {
-      // Open existing note
-      showNoteAdd(context, noteId: linkedNote.id);
+      context.go('${AppRoute.notesScreen}?id=${linkedNote.id}');
     } else if (_isEvent) {
-      // Create new note linked to this event
       showNoteAdd(context, eventId: _plannerItem!.id);
     } else {
-      // Create new note linked to this homework
       showNoteAdd(context, homeworkId: _plannerItem!.id);
     }
   }

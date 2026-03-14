@@ -9,6 +9,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
@@ -120,6 +121,18 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
         forceRefresh: true,
       ),
     );
+  }
+
+  void _openFromQueryParams() {
+    final queryParams = GoRouterState.of(context).uri.queryParameters;
+    final noteId = int.tryParse(queryParams['id'] ?? '');
+
+    if (noteId == null) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      showNoteAdd(context, noteId: noteId);
+    });
   }
 
   List<NoteModel> _getFilteredNotes() {
@@ -368,6 +381,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
               _notes = state.notes;
               _notesReady = true;
             });
+            _openFromQueryParams();
           } else if (state is NoteCreated) {
             setState(() {
               _notes = [..._notes, state.note];
