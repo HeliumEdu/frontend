@@ -10,8 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
-import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_route.dart';
+import 'package:heliumapp/presentation/features/notes/views/note_add_screen.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
@@ -1138,11 +1137,13 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
     if (linkedNote != null) {
       // Open existing note
-      context.push('${AppRoute.noteEditScreen}?id=${linkedNote.id}');
+      showNoteAdd(context, noteId: linkedNote.id);
+    } else if (_isEvent) {
+      // Create new note linked to this event
+      showNoteAdd(context, eventId: _plannerItem!.id);
     } else {
-      // Create new note linked to this entity
-      final param = _isEvent ? 'event_id' : 'homework_id';
-      context.push('${AppRoute.noteEditScreen}?$param=${_plannerItem!.id}');
+      // Create new note linked to this homework
+      showNoteAdd(context, homeworkId: _plannerItem!.id);
     }
   }
 

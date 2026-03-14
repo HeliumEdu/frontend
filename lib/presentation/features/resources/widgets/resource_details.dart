@@ -9,8 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
-import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_route.dart';
+import 'package:heliumapp/presentation/features/notes/views/note_add_screen.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
@@ -314,10 +313,10 @@ class ResourceDetailsState extends State<ResourceDetails> {
   void _openInNotes() {
     if (_resource?.linkedNote != null) {
       // Open existing note
-      context.push('${AppRoute.noteEditScreen}?id=${_resource!.linkedNote!.id}');
+      showNoteAdd(context, noteId: _resource!.linkedNote!.id);
     } else if (_resource != null) {
       // Create new note linked to this material
-      context.push('${AppRoute.noteEditScreen}?material_id=${_resource!.id}');
+      showNoteAdd(context, materialId: _resource!.id);
     }
   }
 

@@ -9,11 +9,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
-import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
@@ -24,6 +21,7 @@ import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/presentation/features/notes/bloc/note_bloc.dart';
 import 'package:heliumapp/presentation/features/notes/bloc/note_event.dart';
 import 'package:heliumapp/presentation/features/notes/bloc/note_state.dart';
+import 'package:heliumapp/presentation/features/notes/views/note_add_screen.dart';
 import 'package:heliumapp/presentation/features/notes/widgets/notes_data_grid.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
@@ -147,20 +145,11 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
   }
 
   void _createNewNote() {
-    context.push(
-      AppRoute.noteEditScreen,
-      extra: NoteAddArgs(noteBloc: context.read<NoteBloc>()),
-    );
+    showNoteAdd(context);
   }
 
   void _openNote(NoteModel note) {
-    context.push(
-      AppRoute.noteEditScreen,
-      extra: NoteAddArgs(
-        noteBloc: context.read<NoteBloc>(),
-        noteId: note.id,
-      ),
-    );
+    showNoteAdd(context, noteId: note.id);
   }
 
   void _confirmDeleteNote(BuildContext context, NoteModel note) {

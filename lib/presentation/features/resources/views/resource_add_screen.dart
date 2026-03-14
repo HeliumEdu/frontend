@@ -40,6 +40,7 @@ void showResourceAdd(
   } else {
     showScreenAsDialog(
       context,
+      barrierDismissible: false,
       child: BlocProvider<ResourceBloc>.value(
         value: resourceBloc,
         child: ResourceAddScreen(

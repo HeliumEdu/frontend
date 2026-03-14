@@ -9,9 +9,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:go_router/go_router.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/config/route_args.dart';
+import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
+import 'package:heliumapp/data/repositories/note_repository_impl.dart';
+import 'package:heliumapp/data/sources/note_remote_data_source.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/presentation/features/notes/bloc/note_bloc.dart';
@@ -25,6 +30,63 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+
+/// Shows note add/edit as a dialog on desktop, or navigates on mobile
+void showNoteAdd(
+  BuildContext context, {
+  int? noteId,
+  int? homeworkId,
+  int? eventId,
+  int? materialId,
+}) {
+  // Try to read existing NoteBloc, or create a new one
+  final existingBloc = context.read<NoteBloc?>();
+
+  if (Responsive.isMobile(context)) {
+    context.push(
+      AppRoute.noteEditScreen,
+      extra: NoteAddArgs(
+        noteBloc: existingBloc,
+        noteId: noteId,
+        homeworkId: homeworkId,
+        eventId: eventId,
+        materialId: materialId,
+      ),
+    );
+  } else {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final dialogWidth = screenWidth - 64; // Nearly full width with padding
+
+    final noteScreen = NoteAddScreen(
+      noteId: noteId,
+      homeworkId: homeworkId,
+      eventId: eventId,
+      materialId: materialId,
+    );
+
+    showScreenAsDialog(
+      context,
+      barrierDismissible: false,
+      child: existingBloc != null
+          ? BlocProvider<NoteBloc>.value(
+              value: existingBloc,
+              child: noteScreen,
+            )
+          : BlocProvider<NoteBloc>(
+              create: (_) => NoteBloc(
+                noteRepository: NoteRepositoryImpl(
+                  remoteDataSource: NoteRemoteDataSourceImpl(
+                    dioClient: DioClient(),
+                  ),
+                ),
+              ),
+              child: noteScreen,
+            ),
+      width: dialogWidth,
+      alignment: Alignment.center,
+    );
+  }
+}
 
 class NoteAddScreen extends StatefulWidget {
   final int? noteId;

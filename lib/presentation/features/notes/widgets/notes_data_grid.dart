@@ -36,47 +36,27 @@ class NotesDataGrid extends StatefulWidget {
 }
 
 class _NotesDataGridState extends State<NotesDataGrid> {
-  late NotesDataSource _dataSource;
   final DataGridController _controller = DataGridController();
-
-  bool _shouldShowActionsColumn(BuildContext context) {
-    return !Responsive.isTouchDevice(context);
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _dataSource = NotesDataSource(
-      notes: widget.notes,
-      context: context,
-      userSettings: widget.userSettings,
-      onEdit: widget.onNoteTap,
-      onDelete: widget.onDelete,
-    );
-  }
-
-  @override
-  void didUpdateWidget(NotesDataGrid oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.notes != widget.notes) {
-      _dataSource = NotesDataSource(
-        notes: widget.notes,
-        context: context,
-        userSettings: widget.userSettings,
-        onEdit: widget.onNoteTap,
-        onDelete: widget.onDelete,
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     final isMobile = Responsive.isMobile(context);
     final isTouchDevice = Responsive.isTouchDevice(context);
-    final showActions = _shouldShowActionsColumn(context);
+    final showLinkedTo = !isMobile;
+    final showActions = !isTouchDevice;
+
+    final dataSource = NotesDataSource(
+      notes: widget.notes,
+      context: context,
+      userSettings: widget.userSettings,
+      onEdit: widget.onNoteTap,
+      onDelete: widget.onDelete,
+      showLinkedTo: showLinkedTo,
+      showActions: showActions,
+    );
 
     return SfDataGrid(
-      source: _dataSource,
+      source: dataSource,
       controller: _controller,
       columnWidthMode: ColumnWidthMode.fill,
       headerRowHeight: 48,
@@ -92,7 +72,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
       onSwipeEnd: (details) {
         if (details.swipeDirection == DataGridRowSwipeDirection.endToStart) {
           final rowIndex = details.rowIndex;
-          final note = _dataSource.getNoteAtRow(rowIndex);
+          final note = dataSource.getNoteAtRow(rowIndex);
           if (note != null) {
             widget.onDelete(context, note);
           }
@@ -112,7 +92,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
       onCellTap: (details) {
         if (details.rowColumnIndex.rowIndex > 0) {
           final rowIndex = details.rowColumnIndex.rowIndex - 1;
-          final note = _dataSource.getNoteAtRow(rowIndex);
+          final note = dataSource.getNoteAtRow(rowIndex);
           if (note != null && isTouchDevice) {
             // Only allow row tap to edit on touch devices (where actions column is hidden)
             // On desktop with actions column, users should use the edit button
@@ -171,6 +151,8 @@ class NotesDataSource extends DataGridSource {
   final UserSettingsModel? userSettings;
   final Function(NoteModel) onEdit;
   final Function(BuildContext, NoteModel) onDelete;
+  final bool showLinkedTo;
+  final bool showActions;
   late List<DataGridRow> _dataGridRows;
   late Map<int, NoteModel> _notesById;
 
@@ -180,6 +162,8 @@ class NotesDataSource extends DataGridSource {
     required this.onEdit,
     required this.onDelete,
     this.userSettings,
+    this.showLinkedTo = true,
+    this.showActions = true,
   }) {
     _notesById = {for (var note in notes) note.id: note};
     _dataGridRows = notes.map((note) {
@@ -245,9 +229,11 @@ class NotesDataSource extends DataGridSource {
       rowColor = userSettings?.resourceColor;
     }
 
-    // Filter out internal cells for display
+    // Filter out internal cells and hidden columns for display
     final displayCells = row.getCells()
         .where((c) => !c.columnName.startsWith('_'))
+        .where((c) => showLinkedTo || c.columnName != 'linkedTo')
+        .where((c) => showActions || c.columnName != 'actions')
         .toList();
 
     return DataGridRowAdapter(

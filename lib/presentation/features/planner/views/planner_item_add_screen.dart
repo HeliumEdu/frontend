@@ -49,6 +49,7 @@ void showPlannerItemAdd(
   } else {
     showScreenAsDialog(
       context,
+      barrierDismissible: false,
       child: MultiBlocProvider(
         providers: [
           BlocProvider<AttachmentBloc>.value(value: attachmentBloc),
