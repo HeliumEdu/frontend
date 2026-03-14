@@ -39,7 +39,7 @@ import 'package:heliumapp/presentation/features/shared/controllers/basic_form_co
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/resource_title_label.dart';
-import 'package:heliumapp/presentation/ui/dialogs/color_picker_dialog.dart';
+import 'package:heliumapp/presentation/ui/components/notes_editor.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -175,39 +175,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     _titleFocusNode.dispose();
     _editorFocusNode.dispose();
     super.dispose();
-  }
-
-  static Future<void> _showColorPicker(
-    BuildContext context,
-    QuillController controller,
-    bool isBackground,
-  ) async {
-    final key = isBackground ? 'background' : 'color';
-    final stored =
-        controller.getSelectionStyle().attributes[key]?.value as String?;
-
-    Color initial = Colors.black;
-    if (stored != null) {
-      // Quill stores as #AARRGGBB — strip # and parse
-      final hex = stored.startsWith('#') ? stored.substring(1) : stored;
-      final padded = hex.length == 6 ? 'ff$hex' : hex;
-      initial = Color(int.tryParse(padded, radix: 16) ?? 0xFF000000);
-    }
-
-    await showColorPickerDialog(
-      parentContext: context,
-      initialColor: initial,
-      onSelected: (color) {
-        final a = (color.a * 255).round().toRadixString(16).padLeft(2, '0');
-        final r = (color.r * 255).round().toRadixString(16).padLeft(2, '0');
-        final g = (color.g * 255).round().toRadixString(16).padLeft(2, '0');
-        final b = (color.b * 255).round().toRadixString(16).padLeft(2, '0');
-        final hex = '#$a$r$g$b'.toUpperCase();
-        controller.formatSelection(
-          isBackground ? BackgroundAttribute(hex) : ColorAttribute(hex),
-        );
-      },
-    );
   }
 
   void _fetchNote() {
@@ -435,7 +402,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                 showSubscript: false,
                 showSuperscript: false,
                 showSearchButton: false,
-                multiRowsDisplay: isMobile,
+                multiRowsDisplay: true,
                 buttonOptions: QuillSimpleToolbarButtonOptions(
                   base: QuillToolbarBaseButtonOptions(
                     iconTheme: QuillIconTheme(
@@ -459,11 +426,11 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                   ),
                   color: QuillToolbarColorButtonOptions(
                     customOnPressedCallback: (ctrl, isBackground) =>
-                        _showColorPicker(context, ctrl, isBackground),
+                        NotesEditor.showColorPicker(context, ctrl, isBackground),
                   ),
                   backgroundColor: QuillToolbarColorButtonOptions(
                     customOnPressedCallback: (ctrl, isBackground) =>
-                        _showColorPicker(context, ctrl, isBackground),
+                        NotesEditor.showColorPicker(context, ctrl, isBackground),
                   ),
                 ),
               ),

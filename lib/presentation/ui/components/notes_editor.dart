@@ -136,7 +136,7 @@ class NotesEditor extends StatelessWidget {
                       ),
                       color: QuillToolbarColorButtonOptions(
                         customOnPressedCallback: (ctrl, isBackground) =>
-                            _showColorPicker(context, ctrl, isBackground),
+                            showColorPicker(context, ctrl, isBackground),
                       ),
                     ),
                   ),
