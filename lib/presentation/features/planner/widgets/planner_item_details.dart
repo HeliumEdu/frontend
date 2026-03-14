@@ -12,7 +12,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
-import 'package:heliumapp/presentation/features/notes/views/note_add_screen.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
@@ -1137,11 +1136,11 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     }
 
     if (linkedNote != null) {
-      context.go('${AppRoute.notesScreen}?id=${linkedNote.id}');
+      context.go('${AppRoute.notebookScreen}?id=${linkedNote.id}');
     } else if (_isEvent) {
-      showNoteAdd(context, eventId: _plannerItem!.id);
+      context.go('${AppRoute.notebookScreen}?eventId=${_plannerItem!.id}');
     } else {
-      showNoteAdd(context, homeworkId: _plannerItem!.id);
+      context.go('${AppRoute.notebookScreen}?homeworkId=${_plannerItem!.id}');
     }
   }
 

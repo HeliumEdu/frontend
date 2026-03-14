@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
@@ -13,10 +14,21 @@ import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/data/models/planner/note_link_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
+import 'package:heliumapp/data/models/planner/course_model.dart';
+import 'package:heliumapp/data/models/planner/homework_model.dart';
+import 'package:heliumapp/data/repositories/course_repository_impl.dart';
+import 'package:heliumapp/data/repositories/event_repository_impl.dart';
+import 'package:heliumapp/data/repositories/homework_repository_impl.dart';
 import 'package:heliumapp/data/repositories/note_repository_impl.dart';
+import 'package:heliumapp/data/repositories/resource_repository_impl.dart';
+import 'package:heliumapp/data/sources/course_remote_data_source.dart';
+import 'package:heliumapp/data/sources/event_remote_data_source.dart';
+import 'package:heliumapp/data/sources/homework_remote_data_source.dart';
 import 'package:heliumapp/data/sources/note_remote_data_source.dart';
+import 'package:heliumapp/data/sources/resource_remote_data_source.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/presentation/features/notes/bloc/note_bloc.dart';
@@ -39,19 +51,21 @@ void showNoteAdd(
   int? homeworkId,
   int? eventId,
   int? materialId,
+  int? materialGroupId,
 }) {
   // Try to read existing NoteBloc, or create a new one
   final existingBloc = context.read<NoteBloc?>();
 
   if (Responsive.isMobile(context)) {
     context.push(
-      AppRoute.noteEditScreen,
+      AppRoute.notebookEditScreen,
       extra: NoteAddArgs(
         noteBloc: existingBloc,
         noteId: noteId,
         homeworkId: homeworkId,
         eventId: eventId,
         materialId: materialId,
+        materialGroupId: materialGroupId,
       ),
     );
   } else {
@@ -63,6 +77,7 @@ void showNoteAdd(
       homeworkId: homeworkId,
       eventId: eventId,
       materialId: materialId,
+      materialGroupId: materialGroupId,
     );
 
     showScreenAsDialog(
@@ -94,6 +109,7 @@ class NoteAddScreen extends StatefulWidget {
   final int? homeworkId;
   final int? eventId;
   final int? materialId;
+  final int? materialGroupId;
 
   const NoteAddScreen({
     super.key,
@@ -101,6 +117,7 @@ class NoteAddScreen extends StatefulWidget {
     this.homeworkId,
     this.eventId,
     this.materialId,
+    this.materialGroupId,
   });
 
   @override
@@ -130,6 +147,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   // State
   NoteModel? _note;
   bool _isNewNote = true;
+  NoteLinkModel? _provisionalLink;
 
   @override
   void initState() {
@@ -143,6 +161,10 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       setState(() {
         isLoading = false;
       });
+      if (widget.homeworkId != null || widget.eventId != null ||
+          (widget.materialId != null && widget.materialGroupId != null)) {
+        _fetchLinkedEntity();
+      }
     }
   }
 
@@ -197,6 +219,68 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
         forceRefresh: true,
       ),
     );
+  }
+
+  Future<void> _fetchLinkedEntity() async {
+    try {
+      final dioClient = DioClient();
+      if (widget.homeworkId != null) {
+        final homeworkRepo = HomeworkRepositoryImpl(
+          remoteDataSource: HomeworkRemoteDataSourceImpl(dioClient: dioClient),
+        );
+        final courseRepo = CourseRepositoryImpl(
+          remoteDataSource: CourseRemoteDataSourceImpl(dioClient: dioClient),
+        );
+        final results = await Future.wait([
+          homeworkRepo.getHomework(id: widget.homeworkId!),
+          courseRepo.getCourses(),
+        ]);
+        final homework = results[0] as HomeworkModel;
+        final courses = results[1] as List<CourseModel>;
+        final course = courses.firstWhereOrNull((c) => c.id == homework.course.id);
+        if (!mounted) return;
+        setState(() {
+          _titleController.text = homework.title;
+          _provisionalLink = NoteLinkModel(
+            id: 0,
+            homeworkId: homework.id,
+            linkedEntityType: 'homework',
+            linkedEntityTitle: homework.title,
+            linkedEntityColor: course?.color,
+          );
+        });
+      } else if (widget.eventId != null) {
+        final event = await EventRepositoryImpl(
+          remoteDataSource: EventRemoteDataSourceImpl(dioClient: dioClient),
+        ).getEvent(id: widget.eventId!);
+        if (!mounted) return;
+        setState(() {
+          _titleController.text = event.title;
+          _provisionalLink = NoteLinkModel(
+            id: 0,
+            eventId: event.id,
+            linkedEntityType: 'event',
+            linkedEntityTitle: event.title,
+          );
+        });
+      } else if (widget.materialId != null && widget.materialGroupId != null) {
+        final resource = await ResourceRepositoryImpl(
+          remoteDataSource: ResourceRemoteDataSourceImpl(dioClient: dioClient),
+        ).getResource(widget.materialGroupId!, widget.materialId!);
+        if (!mounted) return;
+        setState(() {
+          _titleController.text = resource.title;
+          _provisionalLink = NoteLinkModel(
+            id: 0,
+            materialId: resource.id,
+            linkedEntityType: 'material',
+            linkedEntityTitle: resource.title,
+          );
+        });
+      }
+    } catch (_) {
+      // If lookup fails, proceed without link info
+    }
   }
 
   void _saveNote() {
@@ -307,9 +391,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                       onFieldSubmitted: (_) => _editorFocusNode.requestFocus(),
                     ),
                   ),
-                  if (_note?.link != null) ...[
+                  if (_note?.link != null || _provisionalLink != null) ...[
                     const SizedBox(width: 8),
-                    _buildLinkedEntityInfo(),
+                    _buildLinkedEntityInfo(_note?.link ?? _provisionalLink!),
                   ],
                 ],
               ),
@@ -406,8 +490,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   );
   }
 
-  Widget _buildLinkedEntityInfo() {
-    final link = _note!.link!;
+  Widget _buildLinkedEntityInfo(NoteLinkModel link) {
     final icon = _getEntityIcon(link.linkedEntityType);
 
     // Determine color based on entity type

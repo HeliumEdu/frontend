@@ -126,12 +126,23 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
   void _openFromQueryParams() {
     final queryParams = GoRouterState.of(context).uri.queryParameters;
     final noteId = int.tryParse(queryParams['id'] ?? '');
+    final homeworkId = int.tryParse(queryParams['homeworkId'] ?? '');
+    final eventId = int.tryParse(queryParams['eventId'] ?? '');
+    final materialId = int.tryParse(queryParams['materialId'] ?? '');
+    final materialGroupId = int.tryParse(queryParams['materialGroupId'] ?? '');
 
-    if (noteId == null) return;
+    if (noteId == null && homeworkId == null && eventId == null && materialId == null) return;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      showNoteAdd(context, noteId: noteId);
+      showNoteAdd(
+        context,
+        noteId: noteId,
+        homeworkId: homeworkId,
+        eventId: eventId,
+        materialId: materialId,
+        materialGroupId: materialGroupId,
+      );
     });
   }
 

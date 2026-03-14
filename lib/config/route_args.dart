@@ -90,6 +90,7 @@ class NoteAddArgs extends RouteArgs {
   final int? homeworkId;
   final int? eventId;
   final int? materialId;
+  final int? materialGroupId;
 
   const NoteAddArgs({
     this.noteBloc,
@@ -97,6 +98,7 @@ class NoteAddArgs extends RouteArgs {
     this.homeworkId,
     this.eventId,
     this.materialId,
+    this.materialGroupId,
   });
 
   @override

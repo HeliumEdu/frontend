@@ -124,7 +124,7 @@ void initializeRouter() {
             ),
           ),
           GoRoute(
-            path: AppRoute.notesScreen,
+            path: AppRoute.notebookScreen,
             pageBuilder: (context, state) => const NoTransitionPage(
               child: NavigationShellContent(page: NavigationPage.notes),
             ),
@@ -248,7 +248,7 @@ void initializeRouter() {
       ),
 
       GoRoute(
-        path: AppRoute.noteEditScreen,
+        path: AppRoute.notebookEditScreen,
         parentNavigatorKey: rootNavigatorKey,
         pageBuilder: (context, state) {
           final args = state.extra as NoteAddArgs?;
@@ -262,27 +262,19 @@ void initializeRouter() {
                   homeworkId: args.homeworkId,
                   eventId: args.eventId,
                   materialId: args.materialId,
+                  materialGroupId: args.materialGroupId,
                 ),
               ),
             );
           }
 
           final noteIdParam = state.uri.queryParameters['id'];
-          final homeworkIdParam = state.uri.queryParameters['homework_id'];
-          final eventIdParam = state.uri.queryParameters['event_id'];
-          final materialIdParam = state.uri.queryParameters['material_id'];
 
-          // Redirect to notebook if accessed directly via URL without any context
-          if (args == null &&
-              noteIdParam == null &&
-              homeworkIdParam == null &&
-              eventIdParam == null &&
-              materialIdParam == null) {
+          if (args == null && noteIdParam == null) {
             return const MaterialPage(
-              child: _RouteRedirect(redirectTo: AppRoute.notesScreen),
+              child: _RouteRedirect(redirectTo: AppRoute.notebookScreen),
             );
           }
-
           return MaterialPage(
             child: BlocProvider<NoteBloc>(
               create: (context) => NoteBloc(
@@ -294,9 +286,6 @@ void initializeRouter() {
               ),
               child: NoteAddScreen(
                 noteId: noteIdParam != null ? int.tryParse(noteIdParam) : null,
-                homeworkId: homeworkIdParam != null ? int.tryParse(homeworkIdParam) : null,
-                eventId: eventIdParam != null ? int.tryParse(eventIdParam) : null,
-                materialId: materialIdParam != null ? int.tryParse(materialIdParam) : null,
               ),
             ),
           );

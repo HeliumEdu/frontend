@@ -86,7 +86,7 @@ class NavigationShellProvider extends InheritedWidget {
 
 enum NavigationPage {
   planner('Planner', Icons.calendar_month, AppRoute.plannerScreen),
-  notes('Notebook', Icons.library_books, AppRoute.notesScreen),
+  notes('Notebook', Icons.library_books, AppRoute.notebookScreen),
   courses('Classes', Icons.school, AppRoute.coursesScreen),
   resources('Resources', Icons.book, AppRoute.resourcesScreen),
   grades('Grades', Icons.bar_chart, AppRoute.gradesScreen);
