@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:heliumapp/presentation/ui/components/notes_editor.dart';
 
 class NotesViewer extends StatefulWidget {
   final Map<String, dynamic>? notes;
@@ -69,9 +70,10 @@ class _NotesViewerState extends State<NotesViewer> {
       constraints: const BoxConstraints(maxHeight: 200),
       child: QuillEditor.basic(
         controller: _controller,
-        config: const QuillEditorConfig(
+        config: QuillEditorConfig(
           showCursor: false,
           padding: EdgeInsets.zero,
+          customStyles: NotesEditor.buildDefaultStyles(context),
         ),
       ),
     );

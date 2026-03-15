@@ -21,6 +21,66 @@ class NotesEditor extends StatelessWidget {
     this.onOpenInNotes,
   });
 
+  /// Builds theme-aware default styles for Quill editors.
+  ///
+  /// Flutter Quill has hardcoded light-mode colors for several styles
+  /// (strikethrough, underline, inline code, code blocks, quotes).
+  /// This method overrides them with theme-appropriate colors.
+  static DefaultStyles buildDefaultStyles(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final onSurface = colorScheme.onSurface;
+    final isDark = theme.brightness == Brightness.dark;
+
+    return DefaultStyles(
+      strikeThrough: TextStyle(
+        decoration: TextDecoration.lineThrough,
+        decorationColor: onSurface,
+      ),
+      underline: TextStyle(
+        decoration: TextDecoration.underline,
+        decorationColor: onSurface,
+      ),
+      inlineCode: InlineCodeStyle(
+        backgroundColor: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
+        radius: const Radius.circular(3),
+        style: TextStyle(
+          fontSize: 14,
+          color: colorScheme.primary.withValues(alpha: 0.8),
+        ),
+      ),
+      quote: DefaultTextBlockStyle(
+        TextStyle(color: onSurface.withValues(alpha: 0.6)),
+        const HorizontalSpacing(0, 0),
+        const VerticalSpacing(6, 0),
+        const VerticalSpacing(6, 2),
+        BoxDecoration(
+          border: Border(
+            left: BorderSide(
+              width: 4,
+              color: isDark ? Colors.grey.shade600 : Colors.grey.shade300,
+            ),
+          ),
+        ),
+      ),
+      code: DefaultTextBlockStyle(
+        TextStyle(
+          color: isDark ? Colors.blue.shade200 : Colors.blue.shade900,
+          fontFamily: theme.platform == TargetPlatform.iOS ? 'Menlo' : 'Roboto Mono',
+          fontSize: 13,
+          height: 1.15,
+        ),
+        const HorizontalSpacing(0, 0),
+        const VerticalSpacing(6, 0),
+        VerticalSpacing.zero,
+        BoxDecoration(
+          color: isDark ? Colors.grey.shade800 : Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(2),
+        ),
+      ),
+    );
+  }
+
   static Future<void> showColorPicker(
     BuildContext context,
     QuillController controller,
@@ -149,8 +209,9 @@ class NotesEditor extends StatelessWidget {
                   ),
                   child: QuillEditor.basic(
                     controller: controller,
-                    config: const QuillEditorConfig(
-                      padding: EdgeInsets.all(12),
+                    config: QuillEditorConfig(
+                      padding: const EdgeInsets.all(12),
+                      customStyles: buildDefaultStyles(context),
                     ),
                   ),
                 ),

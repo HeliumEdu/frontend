@@ -444,10 +444,11 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
               child: QuillEditor.basic(
                 controller: _quillController,
                 focusNode: _editorFocusNode,
-                config: const QuillEditorConfig(
-                  padding: EdgeInsets.all(8),
+                config: QuillEditorConfig(
+                  padding: const EdgeInsets.all(8),
                   autoFocus: false,
                   expands: true,
+                  customStyles: NotesEditor.buildDefaultStyles(context),
                 ),
               ),
             ),
