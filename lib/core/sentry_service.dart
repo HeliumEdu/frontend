@@ -228,6 +228,14 @@ class SentryService {
       return true;
     }
 
+    // Filter network errors to background/infrastructure endpoints - these are
+    // expected when the device goes offline (especially in background)
+    if (_looksLikeNetworkError(combined) &&
+        (combined.contains('/auth/token/refresh/') ||
+            combined.contains('/auth/user/pushtoken/'))) {
+      return true;
+    }
+
     return false;
   }
 
@@ -269,5 +277,18 @@ class SentryService {
         text.contains('dio') ||
         text.contains('unauthorized') ||
         text.contains('forbidden');
+  }
+
+  /// Check if text looks like a network/connection error
+  bool _looksLikeNetworkError(String text) {
+    return text.contains('connection abort') ||
+        text.contains('connection refused') ||
+        text.contains('connection reset') ||
+        text.contains('connection closed') ||
+        text.contains('connection timed out') ||
+        text.contains('socket') ||
+        text.contains('network is unreachable') ||
+        text.contains('no route to host') ||
+        text.contains('host unreachable');
   }
 }

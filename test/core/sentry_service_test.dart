@@ -465,6 +465,100 @@ void main() {
     // (see HeliumApplication.kt). Sentry won't initialize on those devices,
     // so no Dart-level tests are needed for that functionality.
 
+    group('Background endpoint network errors', () {
+      test('Filters connection abort on token refresh', () {
+        // Real-world case: device goes offline while refreshing token
+        final event = SentryEvent(
+          exceptions: [
+            SentryException(
+              type: 'HttpException',
+              value:
+                  'HttpException: Software caused connection abort, uri = https://api.heliumedu.com/auth/token/refresh/',
+            ),
+          ],
+        );
+
+        expect(SentryService.shouldFilterEvent(event), isTrue,
+            reason:
+                'Connection abort on token refresh is expected when offline');
+      });
+
+      test('Filters socket exception on token refresh', () {
+        final event = SentryEvent(
+          exceptions: [
+            SentryException(
+              type: 'SocketException',
+              value:
+                  'SocketException: Connection reset by peer, /auth/token/refresh/',
+            ),
+          ],
+        );
+
+        expect(SentryService.shouldFilterEvent(event), isTrue,
+            reason: 'Socket errors on token refresh are expected when offline');
+      });
+
+      test('Filters connection abort on push token registration', () {
+        final event = SentryEvent(
+          exceptions: [
+            SentryException(
+              type: 'HttpException',
+              value:
+                  'HttpException: Software caused connection abort, uri = https://api.heliumedu.com/auth/user/pushtoken/',
+            ),
+          ],
+        );
+
+        expect(SentryService.shouldFilterEvent(event), isTrue,
+            reason:
+                'Connection abort on push token is expected when offline');
+      });
+
+      test('Filters socket exception on push token registration', () {
+        final event = SentryEvent(
+          exceptions: [
+            SentryException(
+              type: 'SocketException',
+              value:
+                  'SocketException: Connection refused, /auth/user/pushtoken/',
+            ),
+          ],
+        );
+
+        expect(SentryService.shouldFilterEvent(event), isTrue,
+            reason: 'Socket errors on push token are expected when offline');
+      });
+
+      test('Does NOT filter network errors on other endpoints', () {
+        final event = SentryEvent(
+          exceptions: [
+            SentryException(
+              type: 'HttpException',
+              value:
+                  'HttpException: Software caused connection abort, uri = https://api.heliumedu.com/planner/homework/',
+            ),
+          ],
+        );
+
+        expect(SentryService.shouldFilterEvent(event), isFalse,
+            reason: 'Network errors on other endpoints might indicate issues');
+      });
+
+      test('Does NOT filter non-network errors on token refresh', () {
+        final event = SentryEvent(
+          exceptions: [
+            SentryException(
+              type: 'FormatException',
+              value: 'Invalid JSON response from /auth/token/refresh/',
+            ),
+          ],
+        );
+
+        expect(SentryService.shouldFilterEvent(event), isFalse,
+            reason: 'Non-network errors on token refresh might be bugs');
+      });
+    });
+
     group('Apple development device filtering', () {
       test('Filters events from Apple DEVELOPMENT kernel', () {
         final event = SentryEvent(
