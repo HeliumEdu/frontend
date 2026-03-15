@@ -10,6 +10,7 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/ui/dialogs/color_picker_dialog.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/responsive_helpers.dart';
 
 class NotesEditor extends StatelessWidget {
   final QuillController controller;
@@ -73,6 +74,8 @@ class NotesEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = Responsive.isMobile(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -115,6 +118,8 @@ class NotesEditor extends StatelessWidget {
                 QuillSimpleToolbar(
                   controller: controller,
                   config: QuillSimpleToolbarConfig(
+                    showFontFamily: !isMobile,
+                    showDividers: !isMobile,
                     showFontSize: false,
                     showSuperscript: false,
                     showSubscript: false,
@@ -123,7 +128,10 @@ class NotesEditor extends StatelessWidget {
                     showCodeBlock: false,
                     showDirection: false,
                     showSearchButton: false,
+                    showClearFormat: !isMobile,
                     showBackgroundColorButton: false,
+                    showColorButton: !isMobile,
+                    showIndent: !isMobile,
                     buttonOptions: QuillSimpleToolbarButtonOptions(
                       base: QuillToolbarBaseButtonOptions(
                         iconTheme: QuillIconTheme(

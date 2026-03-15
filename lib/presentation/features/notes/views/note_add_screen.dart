@@ -395,8 +395,10 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                           config: QuillSimpleToolbarConfig(
                             showDividers: !isMobile,
                             showFontSize: !isMobile,
+                            showHeaderStyle: !isMobile,
                             showStrikeThrough: !isMobile,
                             showInlineCode: !isMobile,
+                            showFontFamily: !isMobile,
                             showClearFormat: !isMobile,
                             showAlignmentButtons: !isMobile,
                             showLeftAlignment: !isMobile,
@@ -404,9 +406,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                             showRightAlignment: !isMobile,
                             showCodeBlock: !isMobile,
                             showIndent: !isMobile,
-                            showUndo: !isMobile,
-                            showRedo: !isMobile,
                             showSubscript: !isMobile,
+                            showSuperscript: !isMobile,
+                            showBackgroundColorButton: !isMobile,
                             showSearchButton: true,
                             buttonOptions: QuillSimpleToolbarButtonOptions(
                               search: QuillToolbarSearchButtonOptions(
