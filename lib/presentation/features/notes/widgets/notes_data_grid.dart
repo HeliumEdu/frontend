@@ -458,7 +458,6 @@ class NotesDataSource extends DataGridSource {
   }
 
   Widget _buildCell(DataGridCell cell, Color? rowColor, String entityType, Color? linkedEntityColor) {
-    final isMobile = Responsive.isMobile(context);
     final isTouchDevice = Responsive.isTouchDevice(context);
     final isCompact = MediaQuery.of(context).size.width < 800;
     final isSelectable = !isTouchDevice && !isCompact;
@@ -466,14 +465,14 @@ class NotesDataSource extends DataGridSource {
     if (cell.columnName == 'title') {
       final title = cell.value as String;
       final displayTitle = title.isEmpty ? 'Untitled' : title;
-      final titleStyle = AppStyles.standardBodyText(context).copyWith(
+      final titleStyle = AppStyles.smallSecondaryText(context).copyWith(
         fontStyle: title.isEmpty ? FontStyle.italic : FontStyle.normal,
         color: title.isEmpty
             ? context.colorScheme.onSurface.withValues(alpha: 0.5)
             : null,
       );
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 8),
         alignment: Alignment.centerLeft,
         child: isSelectable
             ? SelectableText(
@@ -507,7 +506,7 @@ class NotesDataSource extends DataGridSource {
 
       Widget badge;
       if (entityType == 'resource' && userSettings != null) {
-        badge = ResourceTitleLabel(title: linkedTo, userSettings: userSettings!);
+        badge = ResourceTitleLabel(title: linkedTo, userSettings: userSettings!, compact: true);
       } else if (entityType == 'event') {
         badge = CourseTitleLabel(
           title: linkedTo,
@@ -537,17 +536,19 @@ class NotesDataSource extends DataGridSource {
           ? HeliumDateTime.toLocal(date, userSettings!.timeZone)
           : date;
       final formattedDate = HeliumDateTime.formatDate(localDate);
+      final dateStyle = AppStyles.smallSecondaryText(context);
 
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 8),
         alignment: Alignment.centerLeft,
-        child: Text(
-          formattedDate,
-          style: AppStyles.standardBodyTextLight(context).copyWith(
-            color: context.colorScheme.onSurface.withValues(alpha: 0.6),
-            fontSize: isMobile ? 12 : 14,
-          ),
-        ),
+        child: isSelectable
+            ? SelectableText(formattedDate, style: dateStyle, maxLines: 1)
+            : Text(
+                formattedDate,
+                style: dateStyle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
       );
     }
 

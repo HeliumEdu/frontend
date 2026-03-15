@@ -58,11 +58,10 @@ import 'package:heliumapp/presentation/features/planner/bloc/planner_state.dart'
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
-import 'package:heliumapp/presentation/features/planner/controllers/todos_table_controller.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/day_popout_dialog.dart';
-import 'package:heliumapp/presentation/features/planner/widgets/todos_table.dart';
+import 'package:heliumapp/presentation/features/planner/widgets/todos_data_grid.dart';
 import 'package:heliumapp/presentation/features/settings/views/settings_screen.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
@@ -180,7 +179,7 @@ class _CalendarScreenState
   final ScrollController _monthViewScrollController = ScrollController();
 
   final GlobalKey _todayButtonKey = GlobalKey();
-  late final TodosTableController _todosController;
+  final GlobalKey<TodosDataGridState> _todosDataGridKey = GlobalKey();
 
   final List<CalendarView> _allowedViews = [
     CalendarView.month,
@@ -221,7 +220,6 @@ class _CalendarScreenState
 
     _calendarController = CalendarController()
       ..view = PlannerHelper.mapHeliumViewToSfCalendarView(_currentView);
-    _todosController = TodosTableController();
 
     context.read<PlannerBloc>().add(FetchPlannerScreenDataEvent());
 
@@ -262,7 +260,6 @@ class _CalendarScreenState
   @override
   void dispose() {
     _plannerItemDataSource?.dispose();
-    _todosController.dispose();
     _searchController.dispose();
     _searchFocusNode.dispose();
     _monthViewScrollController.dispose();
@@ -309,8 +306,6 @@ class _CalendarScreenState
           }
 
           _plannerItemDataSource!.restoreFiltersIfEnabled();
-          _todosController.itemsPerPage =
-              _plannerItemDataSource!.todosItemsPerPage;
         });
 
         unawaited(_refreshExternalCalendarsMap());
@@ -2827,9 +2822,7 @@ class _CalendarScreenState
   void _goToToday() {
     _log.info('Today button pressed (view: $_currentView)');
     if (_currentView == PlannerView.todos) {
-      if (_plannerItemDataSource != null) {
-        _todosController.goToToday(_plannerItemDataSource!.filteredHomeworks);
-      }
+      _todosDataGridKey.currentState?.goToToday();
     } else {
       _jumpToDate(DateTime.now(), offsetForVisibility: true);
     }
@@ -3496,9 +3489,9 @@ class _CalendarScreenState
   }
 
   Widget _buildTodosView() {
-    return TodosTable(
+    return TodosDataGrid(
+      key: _todosDataGridKey,
       dataSource: _plannerItemDataSource!,
-      controller: _todosController,
       onTap: _openPlannerItem,
       onToggleCompleted: _onToggleCompleted,
       onDelete: _deletePlannerItem,

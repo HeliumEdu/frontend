@@ -458,6 +458,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                             autoFocus: false,
                             expands: true,
                             customStyles: NotesEditor.buildDefaultStyles(context),
+                            // ignore: experimental_member_use
                             onKeyPressed: (event, node) {
                               final isFindShortcut = event.logicalKey == LogicalKeyboardKey.keyF &&
                                   (HardwareKeyboard.instance.isMetaPressed ||
