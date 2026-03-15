@@ -17,6 +17,7 @@ import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_pager.dart';
+import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -585,6 +586,15 @@ class TodosDataGridState extends State<TodosDataGrid> {
 
   Widget _buildEmptyState() {
     final hasAssignments = widget.dataSource.allHomeworks.isNotEmpty;
+
+    if (!hasAssignments) {
+      return const EmptyCard(
+        expanded: false,
+        icon: Icons.assignment_outlined,
+        message: 'Click "+" to get started',
+      );
+    }
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -596,9 +606,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
           ),
           const SizedBox(height: 16),
           Text(
-            hasAssignments
-                ? 'No assignments match the applied filters or search'
-                : 'No assignments found',
+            'No assignments match the applied filters or search',
             style: AppStyles.standardBodyTextLight(context).copyWith(
               color: context.colorScheme.onSurface.withValues(alpha: 0.5),
             ),
