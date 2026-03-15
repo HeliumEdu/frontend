@@ -353,14 +353,15 @@ class NotesDataSource extends DataGridSource {
     _notesById = {for (var note in notes) note.id: note};
     _allRows = notes.map((note) {
       return DataGridRow(cells: [
-        DataGridCell<String>(columnName: 'title', value: note.title),
+        // Store lowercase for case-insensitive sorting
+        DataGridCell<String>(columnName: 'title', value: note.title.toLowerCase()),
         DataGridCell<String>(
           columnName: 'linkedTo',
-          value: note.link?.linkedEntityTitle ?? '',
+          value: note.link?.linkedEntityTitle?.toLowerCase() ?? '',
         ),
         DataGridCell<DateTime>(columnName: 'modified', value: note.updatedAt),
         DataGridCell<int>(columnName: 'actions', value: note.id),
-        // Store additional data for row styling
+        // Store additional data for row styling and display
         DataGridCell<Color?>(
           columnName: '_color',
           value: note.link?.linkedEntityColor,
@@ -369,9 +370,21 @@ class NotesDataSource extends DataGridSource {
           columnName: '_entityType',
           value: note.link?.linkedEntityType ?? '',
         ),
+        // Store original title for display
+        DataGridCell<String>(
+          columnName: '_originalTitle',
+          value: note.title,
+        ),
+        DataGridCell<String>(
+          columnName: '_originalLinkedTo',
+          value: note.link?.linkedEntityTitle ?? '',
+        ),
       ]);
     }).toList();
     _dataGridRows = _allRows;
+
+    // Apply current sort order
+    _sortRows(_dataGridRows);
   }
 
   void update({
@@ -392,6 +405,40 @@ class NotesDataSource extends DataGridSource {
 
   @override
   List<DataGridRow> get rows => _dataGridRows;
+
+  @override
+  Future<void> performSorting(List<DataGridRow> rows) async {
+    _sortRows(rows);
+  }
+
+  void _sortRows(List<DataGridRow> rows) {
+    if (sortedColumns.isEmpty) return;
+
+    final sortColumn = sortedColumns.first;
+    final ascending =
+        sortColumn.sortDirection == DataGridSortDirection.ascending;
+
+    rows.sort((a, b) {
+      final cellA = a.getCells().firstWhere(
+            (c) => c.columnName == sortColumn.name,
+            orElse: () => const DataGridCell<String>(columnName: '', value: ''),
+          );
+      final cellB = b.getCells().firstWhere(
+            (c) => c.columnName == sortColumn.name,
+            orElse: () => const DataGridCell<String>(columnName: '', value: ''),
+          );
+
+      int comparison = 0;
+      final valueA = cellA.value;
+      final valueB = cellB.value;
+
+      if (valueA is Comparable && valueB is Comparable) {
+        comparison = valueA.compareTo(valueB);
+      }
+
+      return ascending ? comparison : -comparison;
+    });
+  }
 
   NoteModel? getNoteAtRow(int rowIndex) {
     if (rowIndex < 0 || rowIndex >= _dataGridRows.length) return null;
@@ -451,19 +498,24 @@ class NotesDataSource extends DataGridSource {
               ),
             ),
           ),
-          child: _buildCell(cell, rowColor, entityType, linkedEntityColor),
+          child: _buildCell(row, cell, rowColor, entityType, linkedEntityColor),
         ),
       )).toList(),
     );
   }
 
-  Widget _buildCell(DataGridCell cell, Color? rowColor, String entityType, Color? linkedEntityColor) {
+  Widget _buildCell(DataGridRow row, DataGridCell cell, Color? rowColor, String entityType, Color? linkedEntityColor) {
     final isTouchDevice = Responsive.isTouchDevice(context);
     final isCompact = MediaQuery.of(context).size.width < 800;
     final isSelectable = !isTouchDevice && !isCompact;
 
     if (cell.columnName == 'title') {
-      final title = cell.value as String;
+      // Get original title for display (cell.value is lowercase for sorting)
+      final originalTitle = row.getCells()
+          .firstWhere((c) => c.columnName == '_originalTitle',
+              orElse: () => DataGridCell<String>(columnName: '_originalTitle', value: cell.value as String))
+          .value as String;
+      final title = originalTitle;
       final displayTitle = title.isEmpty ? 'Untitled' : title;
       final titleStyle = AppStyles.smallSecondaryText(context).copyWith(
         fontStyle: title.isEmpty ? FontStyle.italic : FontStyle.normal,
@@ -490,7 +542,12 @@ class NotesDataSource extends DataGridSource {
     }
 
     if (cell.columnName == 'linkedTo') {
-      final linkedTo = cell.value as String;
+      // Get original linkedTo for display (cell.value is lowercase for sorting)
+      final originalLinkedTo = row.getCells()
+          .firstWhere((c) => c.columnName == '_originalLinkedTo',
+              orElse: () => DataGridCell<String>(columnName: '_originalLinkedTo', value: cell.value as String))
+          .value as String;
+      final linkedTo = originalLinkedTo;
       if (linkedTo.isEmpty) {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16),
